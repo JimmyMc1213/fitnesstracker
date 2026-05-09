@@ -1,0 +1,261 @@
+import {
+  loadTasksForToday,
+  localDateKey,
+} from "./dailyPlan";
+import {
+  DEFAULT_NUTRITION_TARGETS,
+  INITIAL_WORKOUT,
+  PLAN_START_ISO,
+  buildHabitsForDateKey,
+  defaultHabitTemplates,
+  defaultWorkoutRoutineTemplates,
+  normalizeWorkoutTemplates,
+} from "./data";
+import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
+import type { PersistedFitnessSlice } from "./persistFitnessSlice";
+import type {
+  AdjustmentEvent,
+  AppState,
+  CustomExerciseTemplate,
+  FoodItem,
+  HabitTemplate,
+  LoggedFood,
+  MacroTotals,
+  WorkoutState,
+} from "./types";
+
+function normalizeAdjustmentHistory(raw: unknown): AdjustmentEvent[] {
+  if (!Array.isArray(raw)) return [];
+  const out: AdjustmentEvent[] = [];
+  for (const ev of raw) {
+    if (!ev || typeof ev !== "object") continue;
+    const o = ev as Record<string, unknown>;
+    if (typeof o.weekEndingSunday !== "string" || typeof o.atIso !== "string") continue;
+    out.push({
+      atIso: o.atIso,
+      weekEndingSunday: o.weekEndingSunday,
+      weeklyLossLbs: Number(o.weeklyLossLbs) || 0,
+      before: o.before as MacroTotals,
+      after: o.after as MacroTotals,
+      reason: String(o.reason ?? ""),
+      recommendedDeltaCal: typeof o.recommendedDeltaCal === "number" ? o.recommendedDeltaCal : undefined,
+      appliedDeltaCal: typeof o.appliedDeltaCal === "number" ? o.appliedDeltaCal : undefined,
+    });
+  }
+  return out;
+}
+
+function normalizePersistedWorkout(raw: WorkoutState | undefined): WorkoutState {
+  if (!raw) return { ...INITIAL_WORKOUT };
+  const legacyPhase = raw.sessionPhase as string;
+  let sessionPhase: WorkoutState["sessionPhase"] =
+    legacyPhase === "idle" ? "idle" : "lifting";
+  if (legacyPhase === "prep") sessionPhase = "lifting";
+
+  const base: WorkoutState = {
+    ...raw,
+    sessionPhase,
+    sessionDayKey: typeof raw.sessionDayKey === "string" ? raw.sessionDayKey : null,
+    sessionTitle: typeof raw.sessionTitle === "string" ? raw.sessionTitle : "Workout",
+    sessionStartedAtMs: typeof raw.sessionStartedAtMs === "number" ? raw.sessionStartedAtMs : null,
+  };
+
+  const today = localDateKey(new Date());
+  if (sessionPhase === "lifting" && base.sessionDayKey == null) {
+    base.sessionDayKey = today;
+  }
+
+  if (sessionPhase === "lifting" && base.sessionStartedAtMs == null) {
+    base.sessionStartedAtMs = Date.now();
+  }
+
+  if (sessionPhase === "lifting" && base.sessionDayKey !== today) {
+    return {
+      ...base,
+      sessionPhase: "idle",
+      startedAt: "—",
+      sessionDayKey: null,
+      sessionStartedAtMs: null,
+      exercises: [],
+      sessionTitle: "Workout",
+    };
+  }
+
+  if (sessionPhase === "idle") {
+    return {
+      ...base,
+      startedAt: "—",
+      sessionDayKey: null,
+      sessionStartedAtMs: null,
+      exercises: [],
+      sessionTitle: "Workout",
+    };
+  }
+
+  return base;
+}
+
+function normalizeStretchBlockCompletionMap(raw: unknown): Record<string, string[]> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, string[]> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (!Array.isArray(v)) continue;
+    out[k] = v.filter((x): x is string => typeof x === "string");
+  }
+  return out;
+}
+
+type LegacyMeal = { items: FoodItem[] };
+
+function migrateLegacyMealsToLog(meals: LegacyMeal[]): LoggedFood[] {
+  const flat: FoodItem[] = [];
+  for (const m of meals) {
+    if (!m?.items?.length) continue;
+    for (const it of m.items) flat.push(it);
+  }
+  const base = Date.now() - flat.length * 1000;
+  return flat.map((it, i) => ({ ...it, loggedAtMs: base + i * 1000 }));
+}
+
+function normalizeNutritionLog(raw: unknown): LoggedFood[] {
+  if (!Array.isArray(raw)) return [];
+  const out: LoggedFood[] = [];
+  for (let i = 0; i < raw.length; i++) {
+    const o = raw[i];
+    if (!o || typeof o !== "object") continue;
+    const r = o as Record<string, unknown>;
+    out.push({
+      id: String(r.id ?? `i${i}`),
+      name: String(r.name ?? ""),
+      qty: String(r.qty ?? ""),
+      cal: Number(r.cal) || 0,
+      p: Number(r.p) || 0,
+      c: Number(r.c) || 0,
+      f: Number(r.f) || 0,
+      loggedAtMs: typeof r.loggedAtMs === "number" ? r.loggedAtMs : Date.now() - i,
+    });
+  }
+  return out;
+}
+
+function nutritionLogFromPersist(p: unknown): LoggedFood[] {
+  if (!p || typeof p !== "object") return [];
+  const o = p as Record<string, unknown>;
+  if (Array.isArray(o.nutritionLog)) return normalizeNutritionLog(o.nutritionLog);
+  if (Array.isArray(o.meals)) return migrateLegacyMealsToLog(o.meals as LegacyMeal[]);
+  return [];
+}
+
+function isValidPlanStartIso(s: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(`${s}T12:00:00`));
+}
+
+function normalizeHabitTemplates(raw: unknown): HabitTemplate[] | null {
+  if (!Array.isArray(raw)) return null;
+  const out: HabitTemplate[] = [];
+  const icons = new Set(["drop", "run", "bolt", "moon"]);
+  for (const x of raw) {
+    if (!x || typeof x !== "object") continue;
+    const o = x as Record<string, unknown>;
+    if (typeof o.id !== "string" || typeof o.name !== "string" || typeof o.icon !== "string") continue;
+    const name = o.name.trim();
+    if (!name) continue;
+    const icon = icons.has(o.icon) ? o.icon : "bolt";
+    out.push({ id: o.id, name, icon });
+  }
+  return out.length ? out : null;
+}
+
+function normalizeWorkoutsCompletedByDay(raw: unknown): Record<string, boolean> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, boolean> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(k) && v === true) out[k] = true;
+  }
+  return out;
+}
+
+function normalizeCustomExercises(raw: unknown): CustomExerciseTemplate[] {
+  if (!Array.isArray(raw)) return [];
+  const out: CustomExerciseTemplate[] = [];
+  for (const x of raw) {
+    if (!x || typeof x !== "object") continue;
+    const o = x as Record<string, unknown>;
+    if (typeof o.id !== "string" || typeof o.name !== "string") continue;
+    const name = o.name.trim();
+    if (!name) continue;
+    const label = typeof o.label === "string" ? o.label.trim() : "";
+    out.push({ id: o.id, name, label });
+  }
+  return out;
+}
+
+function normalizeHabitsDoneByDay(raw: unknown): Record<string, Record<string, boolean>> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, Record<string, boolean>> = {};
+  for (const [day, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !v || typeof v !== "object" || Array.isArray(v)) continue;
+    const inner: Record<string, boolean> = {};
+    for (const [hid, b] of Object.entries(v as Record<string, unknown>)) {
+      if (typeof hid === "string" && typeof b === "boolean") inner[hid] = b;
+    }
+    out[day] = inner;
+  }
+  return out;
+}
+
+/** Build full app state from a persisted JSON blob (localStorage or Supabase). */
+export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | null | undefined): AppState {
+  const nutritionTargets = p?.nutritionTargets ? { ...p.nutritionTargets } : { ...DEFAULT_NUTRITION_TARGETS };
+  const lastAdj =
+    typeof p?.lastAdjustmentSundayKey === "string" ? p.lastAdjustmentSundayKey : null;
+  const reviewDone =
+    typeof p?.sundayReviewCompletedKey === "string"
+      ? p.sundayReviewCompletedKey
+      : lastAdj;
+  const displayName = typeof p?.displayName === "string" && p.displayName.trim() ? p.displayName.trim() : "Jimmy";
+  const planStartIso =
+    typeof p?.planStartIso === "string" && isValidPlanStartIso(p.planStartIso) ? p.planStartIso : PLAN_START_ISO;
+  const stepsTarget =
+    typeof p?.stepsTarget === "number" && Number.isFinite(p.stepsTarget) && p.stepsTarget >= 1000 && p.stepsTarget <= 100_000
+      ? Math.round(p.stepsTarget)
+      : 10_000;
+  const habitTemplates = normalizeHabitTemplates(p?.habitTemplates) ?? defaultHabitTemplates();
+  const habitsDoneByDay = normalizeHabitsDoneByDay(p?.habitsDoneByDay);
+  const todayKey = localDateKey(new Date());
+  const { nutritionManualByDay, nutritionItemsByDay } = mergePersistedNutritionDays(
+    p?.nutritionManualByDay,
+    p?.nutritionItemsByDay,
+  );
+
+  return {
+    displayName,
+    habitTemplates,
+    habitsDoneByDay,
+    planStartIso,
+    stepsTarget,
+    nutritionLog: nutritionLogFromPersist(p ?? null),
+    nutritionManualByDay,
+    nutritionItemsByDay,
+    nutritionPresets: normalizeNutritionPresets(p?.nutritionPresets),
+    workout: normalizePersistedWorkout(p?.workout),
+    customExercises: normalizeCustomExercises(p?.customExercises),
+    workoutTemplates:
+      p?.workoutTemplates === undefined || p?.workoutTemplates === null
+        ? defaultWorkoutRoutineTemplates()
+        : normalizeWorkoutTemplates(p.workoutTemplates),
+    workoutsCompletedByDay: normalizeWorkoutsCompletedByDay(p?.workoutsCompletedByDay),
+    habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey),
+    dailyTasks: loadTasksForToday(nutritionTargets, planStartIso, stepsTarget),
+    nutritionTargets,
+    weightLog: p?.weightLog ?? [],
+    lastAdjustmentSundayKey: lastAdj,
+    sundayReviewCompletedKey: reviewDone,
+    adjustmentHistory: normalizeAdjustmentHistory(p?.adjustmentHistory),
+    nightlyStretchCompletedArizonaKey:
+      typeof p?.nightlyStretchCompletedArizonaKey === "string"
+        ? p.nightlyStretchCompletedArizonaKey
+        : null,
+    nightlyStretchBlockIdsByArizonaDay: normalizeStretchBlockCompletionMap(p?.nightlyStretchBlockIdsByArizonaDay),
+  };
+}
