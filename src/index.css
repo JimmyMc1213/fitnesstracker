@@ -18,8 +18,6 @@
   --display: "Inter", -apple-system, system-ui, sans-serif;
   --mono: "Inter", -apple-system, system-ui, sans-serif;
   --lime: #ffffff;
-  /* Main nav: padding-top + tab row + padding-bottom (see .tabbar) + home indicator */
-  --main-tabbar-stack: calc(10px + 44px + 28px + env(safe-area-inset-bottom, 0px));
 }
 
 * {
@@ -27,15 +25,16 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* Viewport shell: keep height anchored to what the browser actually gives us —
- * dropping 100lvh here avoids a layout canvas taller than the visible window,
- * which created huge empty scroll and fought fixed UI. Pair with `-webkit-fill-available`
- * for iOS Safari. */
+/* Mobile shell: pin every layer to the *dynamic* viewport (`100dvh`), which is
+ * the only height unit that tracks what the user can actually see on iOS Safari
+ * as the URL bar shows/hides. Layout uses a column flex chain so the tab bar can
+ * sit at the bottom as a real flex child — no `position: fixed`, no clipping
+ * ancestors, no JS viewport syncing. */
 html {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
+  height: 100dvh;
   overflow: hidden;
   background: var(--bg);
   overscroll-behavior: none;
@@ -45,9 +44,7 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
+  height: 100dvh;
   overflow: hidden;
   background: var(--bg);
   overscroll-behavior: none;
@@ -62,8 +59,6 @@ body {
   flex: 1;
   width: 100%;
   min-height: 0;
-  /* visible: fixed bottom nav is a descendant — overflow:hidden on this layer clips it in Safari */
-  overflow: visible;
   background: var(--bg);
   display: flex;
   flex-direction: column;
@@ -76,7 +71,6 @@ body {
   min-height: 0;
   margin: 0;
   background: var(--bg);
-  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -188,11 +182,6 @@ textarea {
   display: none;
 }
 
-/* Bottom tab bar is position:fixed; reserve space so scrollable content clears it */
-html.has-main-tabbar .screen {
-  padding-bottom: calc(14px + var(--main-tabbar-stack));
-}
-
 .tap {
   transition:
     opacity 0.15s ease,
@@ -262,24 +251,22 @@ html.has-main-tabbar .screen {
   border-radius: 999px;
 }
 
+/* Tab bar lives in the column-flex chain (NOT position: fixed). This avoids the
+ * iOS Safari class of bugs where fixed elements drift above the home indicator
+ * when the URL bar shows/hides, and removes the need for `overflow: visible`
+ * gymnastics on every ancestor. Bottom padding uses safe-area-inset-bottom with
+ * a small floor so the bar hugs the home indicator on iOS and stays tight on
+ * desktop without a hardcoded 28px slab. */
 .tabbar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  flex-shrink: 0;
   box-sizing: border-box;
   width: 100%;
-  max-width: 100%;
-  padding: 10px 12px calc(28px + env(safe-area-inset-bottom, 0px));
-  background: rgba(10, 10, 10, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  padding: 8px 12px max(8px, env(safe-area-inset-bottom, 0px));
+  background: var(--bg);
   border-top: 0.5px solid var(--border);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 2px;
-  /* Above scrolling UI; below modal sheets (they use z-index 100+) */
-  z-index: 100;
 }
 
 .tab {

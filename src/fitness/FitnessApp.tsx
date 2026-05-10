@@ -143,13 +143,6 @@ export function FitnessApp() {
   const Current = screens[tab];
   const hideTabBar = tab === "stretch";
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("has-main-tabbar", !hideTabBar);
-    return () => {
-      document.documentElement.classList.remove("has-main-tabbar");
-    };
-  }, [hideTabBar]);
-
   const previewSundayUi =
     import.meta.env.DEV &&
     typeof window !== "undefined" &&
@@ -173,9 +166,6 @@ export function FitnessApp() {
           display: "flex",
           flexDirection: "column",
           position: "relative",
-          /* Do NOT clip: `position:fixed` bottom nav is a DOM descendant; WebKit
-           * clips fixed nodes to `overflow:hidden` ancestors, which hid the tab bar. */
-          overflow: "visible",
           boxSizing: "border-box",
           paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
         }}
