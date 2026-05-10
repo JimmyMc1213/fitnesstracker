@@ -25,45 +25,66 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* Mobile-safe full-viewport shell.
-   We pin html/body/#root to the dynamic viewport (100dvh) so the app always
-   fills the currently-visible area on iOS Safari & Android Chrome as the URL
-   bar shows/hides. #root is `position: fixed` so the surface tracks the
-   visual viewport even when the document itself isn't scrollable. */
-html,
+/* Mobile full-viewport shell (notably iOS Safari in the browser chrome).
+ * `100vh` / `100dvh` alone often size the layout viewport shorter than what
+ * you see drawn, leaving a strip of background below the app. We stack newer
+ * units plus `-webkit-fill-available` (fills the device's available viewport in
+ * WebKit). `100lvh` is "large viewport" height so the painted surface reaches
+ * the physical bottom edge even while dynamic chrome is transitioning.
+ */
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  overscroll-behavior: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: 100lvh;
+  min-height: -webkit-fill-available;
+}
+
 body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100vh; /* legacy fallback */
-  height: 100dvh; /* modern: dynamic viewport, follows URL bar collapse */
+  min-height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: 100lvh;
+  min-height: -webkit-fill-available;
   overflow: hidden;
   background: var(--bg);
   overscroll-behavior: none;
-}
-
-body {
   color: var(--text);
   font-family: var(--ui);
   font-weight: 400;
+  display: flex;
+  flex-direction: column;
 }
 
 #root {
-  position: fixed;
-  inset: 0;
+  flex: 1;
   width: 100%;
-  height: 100%;
+  min-height: 0;
   overflow: hidden;
   background: var(--bg);
+  display: flex;
+  flex-direction: column;
 }
 
 .app-root {
-  height: 100%;
+  flex: 1;
   width: 100%;
   max-width: 100%;
+  min-height: 0;
   margin: 0;
   background: var(--bg);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 button {

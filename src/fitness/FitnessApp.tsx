@@ -157,7 +157,8 @@ export function FitnessApp() {
     <FitnessSyncContext.Provider value={fitnessSync}>
       <div
         style={{
-          height: "100%",
+          flex: 1,
+          minHeight: 0,
           width: "100%",
           maxWidth: "100%",
           background: "var(--bg)",
