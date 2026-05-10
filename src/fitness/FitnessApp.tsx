@@ -173,7 +173,9 @@ export function FitnessApp() {
           display: "flex",
           flexDirection: "column",
           position: "relative",
-          overflow: "hidden",
+          /* Do NOT clip: `position:fixed` bottom nav is a DOM descendant; WebKit
+           * clips fixed nodes to `overflow:hidden` ancestors, which hid the tab bar. */
+          overflow: "visible",
           boxSizing: "border-box",
           paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
         }}
@@ -191,7 +193,7 @@ export function FitnessApp() {
           <Current state={state} setState={setState} navigate={setTab} />
         </div>
 
-        {!hideTabBar && (
+        {!hideTabBar ? (
           <nav className="tabbar" aria-label="Main">
             {TABS.map((t) => {
               const active = tab === t.id;
@@ -209,7 +211,7 @@ export function FitnessApp() {
               );
             })}
           </nav>
-        )}
+        ) : null}
 
         {showSundayReview && sundayPreview ? (
           <SundayReviewSheet

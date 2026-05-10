@@ -27,13 +27,10 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* Mobile full-viewport shell (notably iOS Safari in the browser chrome).
- * `100vh` / `100dvh` alone often size the layout viewport shorter than what
- * you see drawn, leaving a strip of background below the app. We stack newer
- * units plus `-webkit-fill-available` (fills the device's available viewport in
- * WebKit). `100lvh` is "large viewport" height so the painted surface reaches
- * the physical bottom edge even while dynamic chrome is transitioning.
- */
+/* Viewport shell: keep height anchored to what the browser actually gives us —
+ * dropping 100lvh here avoids a layout canvas taller than the visible window,
+ * which created huge empty scroll and fought fixed UI. Pair with `-webkit-fill-available`
+ * for iOS Safari. */
 html {
   margin: 0;
   padding: 0;
@@ -42,20 +39,14 @@ html {
   overflow: hidden;
   background: var(--bg);
   overscroll-behavior: none;
-  min-height: 100vh;
-  min-height: 100dvh;
-  min-height: 100lvh;
-  min-height: -webkit-fill-available;
 }
 
 body {
   margin: 0;
   padding: 0;
   width: 100%;
-  min-height: 100%;
-  min-height: 100vh;
+  height: 100%;
   min-height: 100dvh;
-  min-height: 100lvh;
   min-height: -webkit-fill-available;
   overflow: hidden;
   background: var(--bg);
@@ -71,7 +62,8 @@ body {
   flex: 1;
   width: 100%;
   min-height: 0;
-  overflow: hidden;
+  /* visible: fixed bottom nav is a descendant — overflow:hidden on this layer clips it in Safari */
+  overflow: visible;
   background: var(--bg);
   display: flex;
   flex-direction: column;
@@ -84,7 +76,7 @@ body {
   min-height: 0;
   margin: 0;
   background: var(--bg);
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -286,8 +278,8 @@ html.has-main-tabbar .screen {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 2px;
-  /* Above scrolling screen content; below sheets (they use higher z-index) */
-  z-index: 50;
+  /* Above scrolling UI; below modal sheets (they use z-index 100+) */
+  z-index: 100;
 }
 
 .tab {
