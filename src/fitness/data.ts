@@ -328,19 +328,3 @@ export function initialHabitsForToday(): Habit[] {
 export const WEIGHT_14 = [172.4, 172.2, 172.0, 171.8, 171.6, 171.5, 171.4, 171.2, 171.0, 170.8, 170.6, 170.4, 170.2, 170.0];
 
 export const WPW_8 = [4, 5, 5, 5, 5, 5, 4, 5];
-
-/** Demo consistency grid length (Heatmap lays out as 7 rows × ceil(n/7) cols). */
-export const CONSISTENCY_GRID_DAYS = 90;
-
-export function makeHeatmap(): number[] {
-  const arr: number[] = [];
-  for (let i = 0; i < CONSISTENCY_GRID_DAYS; i++) {
-    const dow = i % 7;
-    if (dow === 6) {
-      arr.push(0);
-      continue;
-    }
-    arr.push(Math.random() < 0.88 ? 1 : 0);
-  }
-  return arr;
-}

@@ -1,9 +1,9 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { makeHeatmap, planDayIndex, planWeekIndex } from "../data";
+import { planDayIndex, planWeekIndex } from "../data";
 import { localDateKey } from "../dailyPlan";
 import { IconArrowDown, IconArrowUp } from "../icons";
-import { Heatmap, LineChart, ScreenHeader, SectionLabel } from "../shared";
+import { LineChart, ScreenHeader, SectionLabel } from "../shared";
 import {
   MIN_WEIGH_INS_PER_WEEK,
   calendarWeekRangeFromSunday,
@@ -282,8 +282,6 @@ function LiftingCalendarCard({ viewYear, viewMonth, onPrevMonth, onNextMonth, on
 }
 
 export function ScreenProgress({ state }: ScreenProps) {
-  const heatmap = useMemo(() => makeHeatmap(), []);
-  const heatCols = Math.ceil(heatmap.length / 7);
   const chartWrapRef = useRef<HTMLDivElement>(null);
   const [chartW, setChartW] = useState(0);
 
@@ -328,8 +326,6 @@ export function ScreenProgress({ state }: ScreenProps) {
       return { y: d.getFullYear(), m: d.getMonth() };
     });
   };
-
-  const heatCell = Math.max(8, Math.floor((chartW - (heatCols - 1) * 3) / heatCols));
 
   const calendarWeekRows = useMemo(() => {
     const rows: { mon: string; sun: string; avg: number | null; days: number }[] = [];
@@ -544,23 +540,6 @@ export function ScreenProgress({ state }: ScreenProps) {
         <p style={{ margin: "14px 0 0", fontSize: 11, lineHeight: 1.5, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>
           Steps: Settings
         </p>
-      </div>
-
-      <SectionLabel>Consistency</SectionLabel>
-      <div className="card" style={{ padding: 18 }}>
-        <div style={{ overflow: "hidden" }}>
-          <Heatmap days={heatmap} cell={heatCell} gap={3} />
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14 }}>
-          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>Less</span>
-          <div style={{ display: "flex", gap: 3 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(255,255,255,0.04)" }} />
-            <span style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
-            <span style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(255,255,255,0.4)" }} />
-            <span style={{ width: 10, height: 10, borderRadius: 2, background: "#fff" }} />
-          </div>
-          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>More</span>
-        </div>
       </div>
 
       <div style={{ height: 8 }} />

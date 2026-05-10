@@ -22,7 +22,6 @@ import {
   IconHabits,
   IconHome,
 } from "./icons";
-import { IOSDevice } from "./iosFrame";
 import { ScreenHome } from "./screens/ScreenHome";
 import { ScreenNutrition } from "./screens/ScreenNutrition";
 import { ScreenProgress } from "./screens/ScreenProgress";
@@ -156,20 +155,21 @@ export function FitnessApp() {
 
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
-      <IOSDevice width={375} height={812} dark>
       <div
         style={{
-          height: "100%",
+          minHeight: "100dvh",
+          width: "100%",
+          maxWidth: "100%",
           background: "var(--bg)",
           color: "var(--text)",
           display: "flex",
           flexDirection: "column",
           position: "relative",
+          boxSizing: "border-box",
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
         }}
       >
-        <div style={{ height: 54 }} />
-
-        <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+        <div style={{ flex: 1, position: "relative", overflow: "hidden", minHeight: 0 }}>
           <Current state={state} setState={setState} navigate={setTab} />
         </div>
 
@@ -202,7 +202,6 @@ export function FitnessApp() {
           />
         ) : null}
       </div>
-      </IOSDevice>
     </FitnessSyncContext.Provider>
   );
 }

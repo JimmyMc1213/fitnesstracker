@@ -198,24 +198,6 @@ export function BarChart({
   );
 }
 
-export function Heatmap({ days, cell = 12, gap = 3 }: { days: number[]; cell?: number; gap?: number }) {
-  const cols = Math.ceil(days.length / 7);
-  const wi = cols * (cell + gap) - gap;
-  const ht = 7 * (cell + gap) - gap;
-  return (
-    <svg width={wi} height={ht} style={{ display: "block" }}>
-      {days.map((v, i) => {
-        const col = Math.floor(i / 7);
-        const row = i % 7;
-        const x = col * (cell + gap);
-        const y = row * (cell + gap);
-        const fill = v ? "#ffffff" : row === 0 || row === 6 ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.06)";
-        return <rect key={i} x={x} y={y} width={cell} height={cell} rx="2" fill={fill} />;
-      })}
-    </svg>
-  );
-}
-
 export function SectionLabel({ children, right }: { children: ReactNode; right?: ReactNode }) {
   return (
     <div className="between" style={{ marginTop: 28, marginBottom: 12 }}>

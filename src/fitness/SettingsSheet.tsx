@@ -154,11 +154,29 @@ export function SettingsSheet({
         </p>
         {!sync.configured ? (
           <div className="card" style={{ padding: "16px 18px", marginBottom: 18, fontSize: 13, lineHeight: 1.55, color: "rgba(255,255,255,0.5)" }}>
-            Cloud sync is off. Add{" "}
-            <code style={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>VITE_SUPABASE_URL</code> and{" "}
-            <code style={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>VITE_SUPABASE_ANON_KEY</code> to{" "}
-            <code style={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>.env</code>, run the SQL in{" "}
-            <code style={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>supabase/migrations/</code>, then rebuild.
+            <p style={{ margin: "0 0 10px" }}>
+              Cloud sync is off — the app does not see valid Supabase env vars. Fix this, then restart{" "}
+              <code style={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>npm run dev</code>.
+            </p>
+            <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8 }}>
+              <li>
+                File must be named <code style={{ fontSize: 12 }}>.env</code> in the project root (same folder as{" "}
+                <code style={{ fontSize: 12 }}>package.json</code>), not inside <code style={{ fontSize: 12 }}>src</code>.
+              </li>
+              <li>
+                Exact lines: <code style={{ fontSize: 12 }}>VITE_SUPABASE_URL=https://…supabase.co</code> and{" "}
+                <code style={{ fontSize: 12 }}>VITE_SUPABASE_ANON_KEY=…</code> (anon JWT <code style={{ fontSize: 11 }}>eyJ…</code>), or{" "}
+                <code style={{ fontSize: 12 }}>VITE_SUPABASE_PUBLISHABLE_KEY=…</code>. Never the secret JWT. No spaces around{" "}
+                <code style={{ fontSize: 12 }}>=</code>.
+              </li>
+              <li>
+                URL must start with <code style={{ fontSize: 12 }}>https://</code>. Restart the dev server after saving.
+              </li>
+              <li style={{ color: "rgba(255,255,255,0.38)", fontSize: 12 }}>
+                Dev hint: open the browser console — if env still fails, you’ll see a short{" "}
+                <code style={{ fontSize: 11 }}>[Fitcoach]</code> message about what’s missing.
+              </li>
+            </ul>
           </div>
         ) : !sync.sessionEmail ? (
           <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12, marginBottom: 18 }}>
