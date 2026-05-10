@@ -170,7 +170,16 @@ export function FitnessApp() {
           paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
         }}
       >
-        <div style={{ flex: 1, position: "relative", overflow: "hidden", minHeight: 0 }}>
+        <div
+          style={{
+            flex: 1,
+            position: "relative",
+            overflow: "hidden",
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <Current state={state} setState={setState} navigate={setTab} />
         </div>
 
