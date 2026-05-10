@@ -18,6 +18,8 @@
   --display: "Inter", -apple-system, system-ui, sans-serif;
   --mono: "Inter", -apple-system, system-ui, sans-serif;
   --lime: #ffffff;
+  /* Main nav: padding-top + tab row + padding-bottom (see .tabbar) + home indicator */
+  --main-tabbar-stack: calc(10px + 44px + 28px + env(safe-area-inset-bottom, 0px));
 }
 
 * {
@@ -194,6 +196,11 @@ textarea {
   display: none;
 }
 
+/* Bottom tab bar is position:fixed; reserve space so scrollable content clears it */
+html.has-main-tabbar .screen {
+  padding-bottom: calc(14px + var(--main-tabbar-stack));
+}
+
 .tap {
   transition:
     opacity 0.15s ease,
@@ -264,8 +271,13 @@ textarea {
 }
 
 .tabbar {
-  flex-shrink: 0;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
   padding: 10px 12px calc(28px + env(safe-area-inset-bottom, 0px));
   background: rgba(10, 10, 10, 0.96);
   backdrop-filter: blur(16px);
@@ -274,7 +286,8 @@ textarea {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 2px;
-  z-index: 5;
+  /* Above scrolling screen content; below sheets (they use higher z-index) */
+  z-index: 50;
 }
 
 .tab {

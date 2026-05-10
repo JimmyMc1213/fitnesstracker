@@ -143,6 +143,13 @@ export function FitnessApp() {
   const Current = screens[tab];
   const hideTabBar = tab === "stretch";
 
+  useEffect(() => {
+    document.documentElement.classList.toggle("has-main-tabbar", !hideTabBar);
+    return () => {
+      document.documentElement.classList.remove("has-main-tabbar");
+    };
+  }, [hideTabBar]);
+
   const previewSundayUi =
     import.meta.env.DEV &&
     typeof window !== "undefined" &&
