@@ -25,16 +25,21 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* Mobile shell: pin every layer to the *dynamic* viewport (`100dvh`), which is
- * the only height unit that tracks what the user can actually see on iOS Safari
- * as the URL bar shows/hides. Layout uses a column flex chain so the tab bar can
- * sit at the bottom as a real flex child — no `position: fixed`, no clipping
- * ancestors, no JS viewport syncing. */
+/* Mobile shell: anchor `body` to the actual viewport edges with `position: fixed;
+ * inset: 0`. This is the only technique that's reliable across all three target
+ * environments:
+ *   - iOS PWA standalone (where 100dvh returns the *safe-area* height, not the
+ *     full screen, leaving a dead strip below fixed bottom UI),
+ *   - iOS Safari with the URL bar (where 100vh overflows the visible area), and
+ *   - desktop browsers (where any of the above just works).
+ * `position: fixed; inset: 0` always equals the actual visual viewport. The
+ * column-flex chain inside body then drops the tab bar at the true screen edge,
+ * with `env(safe-area-inset-bottom)` reserving the home indicator zone. */
 html {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100dvh;
+  height: 100%;
   overflow: hidden;
   background: var(--bg);
   overscroll-behavior: none;
@@ -43,10 +48,10 @@ html {
 body {
   margin: 0;
   padding: 0;
-  width: 100%;
-  height: 100dvh;
-  overflow: hidden;
+  position: fixed;
+  inset: 0;
   background: var(--bg);
+  overflow: hidden;
   overscroll-behavior: none;
   color: var(--text);
   font-family: var(--ui);
