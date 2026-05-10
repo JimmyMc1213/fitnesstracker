@@ -165,6 +165,7 @@ export function FitnessApp() {
           display: "flex",
           flexDirection: "column",
           position: "relative",
+          overflow: "hidden",
           boxSizing: "border-box",
           paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
         }}

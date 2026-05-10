@@ -25,14 +25,12 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* iOS/WebKit: fill visible viewport so fixed bottom UI aligns with screen edge. */
+/* --app-vh set from visualViewport (syncViewportHeight.ts); fallback for first paint / no JS */
 html {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
-  height: 100dvh;
-  height: -webkit-fill-available;
+  height: var(--app-vh, 100dvh);
   overflow: hidden;
   background: #050505;
 }
@@ -162,7 +160,7 @@ textarea {
 .screen {
   height: 100%;
   overflow-y: auto;
-  padding: 0 20px 110px;
+  padding: 0 20px 28px;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -240,12 +238,8 @@ textarea {
 }
 
 .tabbar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  flex-shrink: 0;
   width: 100%;
-  max-width: 100%;
   padding: 10px 12px calc(28px + env(safe-area-inset-bottom, 0px));
   background: rgba(10, 10, 10, 0.96);
   backdrop-filter: blur(16px);
