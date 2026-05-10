@@ -1,6 +1,10 @@
-/** Sync layout viewport height to the visible viewport (esp. mobile Safari / standalone). */
+/** Sync layout viewport height for the app shell (mobile Safari / standalone). */
 export function syncAppViewportHeight(): void {
-  const h = window.visualViewport?.height ?? window.innerHeight;
+  const inner = window.innerHeight;
+  const vv = window.visualViewport;
+  // visualViewport.height excludes chrome; innerHeight is the layout viewport. Using only vv
+  // leaves a strip below the app (html shorter than the painted area). Max fills that gap.
+  const h = vv != null ? Math.max(inner, vv.height) : inner;
   document.documentElement.style.setProperty("--app-vh", `${h}px`);
 }
 

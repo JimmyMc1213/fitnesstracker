@@ -25,23 +25,25 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* --app-vh set from visualViewport (syncViewportHeight.ts); fallback for first paint / no JS */
+/* --app-vh from syncViewportHeight.ts; match --bg so any seam is invisible (was #050505 vs --bg) */
 html {
   margin: 0;
   padding: 0;
   width: 100%;
+  min-height: 100dvh;
   height: var(--app-vh, 100dvh);
   overflow: hidden;
-  background: #050505;
+  background: var(--bg);
 }
 
 body {
   margin: 0;
   padding: 0;
   width: 100%;
+  min-height: 100%;
   height: 100%;
   overflow: hidden;
-  background: #050505;
+  background: var(--bg);
   color: var(--text);
   font-family: var(--ui);
   font-weight: 400;
@@ -49,8 +51,10 @@ body {
 
 #root {
   width: 100%;
+  min-height: 100%;
   height: 100%;
   overflow: hidden;
+  background: var(--bg);
 }
 
 .app-root {
