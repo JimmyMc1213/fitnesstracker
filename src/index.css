@@ -25,16 +25,16 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* Mobile shell: anchor `body` to the actual viewport edges with `position: fixed;
- * inset: 0`. This is the only technique that's reliable across all three target
- * environments:
- *   - iOS PWA standalone (where 100dvh returns the *safe-area* height, not the
- *     full screen, leaving a dead strip below fixed bottom UI),
- *   - iOS Safari with the URL bar (where 100vh overflows the visible area), and
- *   - desktop browsers (where any of the above just works).
- * `position: fixed; inset: 0` always equals the actual visual viewport. The
- * column-flex chain inside body then drops the tab bar at the true screen edge,
- * with `env(safe-area-inset-bottom)` reserving the home indicator zone. */
+/* Mobile shell: position fixed plus JS that pins body geometry to visualViewport
+ * (attachVisualViewportBodyFit in App.tsx). iOS Safari in-tab chrome uses a
+ * layout viewport taller than the visible area; inset: 0 alone follows layout,
+ * causing overlap/dead strips with the bottom toolbar unless we sync resize and
+ * scroll events on visualViewport.
+ *
+ * Before JS runs, inset: 0 still looks like other fixed-fullscreen setups.
+ *
+ * Column-flex chain inside body keeps the tab bar at the viewport edge after
+ * that sync, with env(safe-area-inset-bottom) covering the home indicator. */
 html {
   margin: 0;
   padding: 0;
