@@ -25,31 +25,32 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* Mobile shell: position fixed plus JS that pins body geometry to visualViewport
- * (attachVisualViewportBodyFit in App.tsx). iOS Safari in-tab chrome uses a
- * layout viewport taller than the visible area; inset: 0 alone follows layout,
- * causing overlap/dead strips with the bottom toolbar unless we sync resize and
- * scroll events on visualViewport.
+/* Mobile shell: avoid `position: fixed` + JS visualViewport pinning — it fights
+ * iOS keyboards and can jitter. Use explicit `100dvh` on `html`: on modern Safari
+ * the *dynamic* viewport tracks URL bar show/hide, so the shell matches what you
+ * see without layout-vs-visual hacks. Fallback `100vh` for older engines.
  *
- * Before JS runs, inset: 0 still looks like other fixed-fullscreen setups.
- *
- * Column-flex chain inside body keeps the tab bar at the viewport edge after
- * that sync, with env(safe-area-inset-bottom) covering the home indicator. */
+ * Flex column fills that frame; scrolling stays inside `.screen`; tab bar + safe-area
+ * insets unchanged. */
 html {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
   overflow: hidden;
   background: var(--bg);
   overscroll-behavior: none;
+
+  height: 100vh;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
 }
 
 body {
   margin: 0;
   padding: 0;
-  position: fixed;
-  inset: 0;
+  position: relative;
+  width: 100%;
+  height: 100%;
   background: var(--bg);
   overflow: hidden;
   overscroll-behavior: none;
