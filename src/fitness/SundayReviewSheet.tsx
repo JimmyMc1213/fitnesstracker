@@ -66,7 +66,7 @@ export function SundayReviewSheet({ preview, nutritionTargets, setState, reviewC
       }}
     >
       <div
-        className="card"
+        className="card page-transition"
         style={{
           maxHeight: "88%",
           overflowY: "auto",

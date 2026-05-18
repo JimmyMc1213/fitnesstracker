@@ -114,6 +114,7 @@ export function SettingsSheet({
       role="dialog"
       aria-modal="true"
       aria-labelledby="settings-title"
+      className="page-transition"
       style={{
         position: "absolute",
         inset: 0,

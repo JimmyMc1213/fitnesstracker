@@ -296,6 +296,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         : state.workoutTemplates.find((t) => t.id === editingRoutineId) ?? null;
     return (
       <WorkoutRoutineEditor
+        key={editingRoutineId}
         template={editTemplate}
         customExercises={state.customExercises}
         onSave={(saved) => {
@@ -326,7 +327,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   if (phase === "idle") {
     const jimmyLoaded = isJimmySummerPlanTemplates(state.workoutTemplates);
     return (
-      <div className="screen">
+      <div key="workout-idle" className="screen page-transition">
         <ScreenHeader eyebrow="TRAINING" title="Start Workout" />
 
         {!jimmyLoaded ? (
@@ -563,7 +564,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   }
 
   return (
-    <div className="screen">
+    <div key="workout-lifting" className="screen page-transition">
       <div style={{ paddingTop: 8 }}>
         <div className="between" style={{ alignItems: "center", marginBottom: 4 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>

@@ -90,10 +90,11 @@ export function DayProgressSheet({
       }}
     >
       <div
+        key={dateKey}
         role="dialog"
         aria-modal="true"
         aria-labelledby="day-progress-title"
-        className="card"
+        className="card page-transition"
         style={{
           width: "100%",
           maxWidth: 440,

@@ -231,6 +231,7 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
 
   return (
     <div className="screen" style={{ height: "100%", position: "relative" }}>
+      <div key={segment} className="page-transition">
       <ScreenHeader
         eyebrow={new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).replace(",", "").toUpperCase()}
         title="Nutrition"
@@ -621,6 +622,7 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
           <div style={{ height: 24 }} />
         </>
       )}
+      </div>
     </div>
   );
 }

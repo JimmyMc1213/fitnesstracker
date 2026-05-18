@@ -149,7 +149,7 @@ export function WorkoutRoutineEditor({
   }
 
   return (
-    <div className="screen">
+    <div className="screen page-transition">
       <div className="between" style={{ alignItems: "center", marginBottom: 8, marginTop: 4 }}>
         <button
           type="button"

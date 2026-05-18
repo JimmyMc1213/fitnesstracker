@@ -79,7 +79,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   const nightlyStretchDone = state.nightlyStretchCompletedArizonaKey === arizonaTodayKey;
 
   return (
-    <div className="screen" style={{ position: "relative" }}>
+    <div className="screen page-transition" style={{ position: "relative" }}>
       <ScreenHeader
         eyebrow={todayEyebrow}
         title={greetingName ? `Morning, ${greetingName}` : "Morning"}

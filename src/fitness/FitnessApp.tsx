@@ -193,7 +193,7 @@ export function FitnessApp() {
             flexDirection: "column",
           }}
         >
-          <Current state={state} setState={setState} navigate={setTab} />
+          <Current key={tab} state={state} setState={setState} navigate={setTab} />
         </div>
 
         {!hideTabBar ? (

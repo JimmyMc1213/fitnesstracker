@@ -75,7 +75,7 @@ function YearPickerSheet({
       onClick={onClose}
     >
       <div
-        className="card"
+        className="card page-transition"
         onClick={(e) => e.stopPropagation()}
         style={{
           padding: 18,
@@ -350,7 +350,7 @@ export function ScreenProgress({ state }: ScreenProps) {
   const T = state.nutritionTargets;
 
   return (
-    <div className="screen">
+    <div className="screen page-transition">
       <ScreenHeader eyebrow={`Week ${weekIn}/12 · Day ${daysIn}/${daysTotal}`} title="Progress" />
 
       <div className="card" style={{ padding: 18, marginTop: 18 }}>

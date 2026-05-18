@@ -29,7 +29,7 @@ export function ScreenHabits({ state, setState }: ScreenProps) {
     .toUpperCase();
 
   return (
-    <div className="screen">
+    <div className="screen page-transition">
       <ScreenHeader eyebrow={todayEyebrow} title="Habits" />
 
       <SectionLabel

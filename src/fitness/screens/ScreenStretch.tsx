@@ -84,7 +84,7 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
   }
 
   return (
-    <div className="screen" style={{ paddingBottom: 28 }}>
+    <div className="screen page-transition" style={{ paddingBottom: 28 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
         <button
           type="button"
@@ -257,9 +257,10 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
           onClick={() => setOpenBlockId(null)}
         >
           <div
+            key={openBlock.id}
             role="dialog"
             aria-labelledby="stretch-detail-title"
-            className="card"
+            className="card page-transition"
             style={{
               width: "100%",
               maxWidth: 375,
