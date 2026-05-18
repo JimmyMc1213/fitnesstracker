@@ -209,16 +209,39 @@ export function useFitnessCloudSync(
     return () => window.clearTimeout(id);
   }, [configured, session?.user?.id, syncSig, setState]);
 
-  const signInWithEmail = useCallback(async (email: string) => {
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
     const sb = getSupabase();
     if (!sb) return { error: "Add Supabase keys to sync." };
-    const redirectTo = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}` : undefined;
-    const { error } = await sb.auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: redirectTo },
-    });
+    const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
     if (error) return { error: error.message };
     return {};
+  }, []);
+
+  const signUpWithEmail = useCallback(async (email: string, password: string, name: string) => {
+    const sb = getSupabase();
+    if (!sb) return { error: "Add Supabase keys to sync." };
+    const { data, error } = await sb.auth.signUp({
+      email: email.trim(),
+      password,
+      options: { data: { full_name: name.trim() } },
+    });
+
+    // Account already exists — try signing in with the supplied password.
+    if (error?.message?.toLowerCase().includes("already registered") ||
+        error?.message?.toLowerCase().includes("already exists") ||
+        error?.message?.toLowerCase().includes("user already")) {
+      const { error: signInError } = await sb.auth.signInWithPassword({ email: email.trim(), password });
+      if (!signInError) return {};
+      return { error: "An account with that email already exists. Check your password and try signing in instead." };
+    }
+
+    if (error) return { error: error.message };
+    // Email confirmation disabled — session arrives immediately.
+    if (data.session) return {};
+    // Email confirmation still enabled — try sign-in in case already confirmed.
+    const { error: signInError } = await sb.auth.signInWithPassword({ email: email.trim(), password });
+    if (!signInError) return {};
+    return { needsConfirmation: true };
   }, []);
 
   const signOut = useCallback(async () => {
@@ -273,7 +296,8 @@ export function useFitnessCloudSync(
     busy,
     lastError,
     lastSyncedLabel: formatSyncedLabel(lastSyncedAt),
-    signInWithEmail,
+    signInWithPassword,
+    signUpWithEmail,
     signOut,
     syncNow,
   };

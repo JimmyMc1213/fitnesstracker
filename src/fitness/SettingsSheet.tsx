@@ -61,6 +61,7 @@ export function SettingsSheet({
 
   const sync = useFitnessSync();
   const [syncEmail, setSyncEmail] = useState("");
+  const [syncPassword, setSyncPassword] = useState("");
   const [syncHint, setSyncHint] = useState<string | null>(null);
 
   useEffect(() => {
@@ -158,7 +159,7 @@ export function SettingsSheet({
       <div className="screen" style={{ flex: 1, overflow: "auto", paddingBottom: 28 }}>
         <SectionLabel>Sync & backup</SectionLabel>
         <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
-          Sign in with the same email on your phone and computer. Data merges when both sides edit, and the cloud copy is updated after changes (about a second delay).
+          Sign in with the same account on your phone and computer. Data merges when both sides edit, and the cloud copy is updated after changes (about a second delay).
         </p>
         {!sync.configured ? (
           <div className="card" style={{ padding: "16px 18px", marginBottom: 18, fontSize: 13, lineHeight: 1.55, color: "rgba(255,255,255,0.5)" }}>
@@ -198,7 +199,20 @@ export function SettingsSheet({
                 placeholder="you@example.com"
                 value={syncEmail}
                 onChange={(e) => setSyncEmail(e.target.value)}
-                aria-label="Email for sign-in link"
+                aria-label="Email"
+              />
+            </label>
+            <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+              Password
+              <input
+                className="input"
+                style={{ marginTop: 8 }}
+                type="password"
+                autoComplete="current-password"
+                placeholder="Password"
+                value={syncPassword}
+                onChange={(e) => setSyncPassword(e.target.value)}
+                aria-label="Password"
               />
             </label>
             {syncHint ? (
@@ -210,12 +224,12 @@ export function SettingsSheet({
             <button
               type="button"
               className="tap"
-              disabled={sync.busy || !syncEmail.includes("@")}
+              disabled={sync.busy || !syncEmail.includes("@") || !syncPassword}
               onClick={async () => {
                 setSyncHint(null);
-                const r = await sync.signInWithEmail(syncEmail);
+                const r = await sync.signInWithPassword(syncEmail, syncPassword);
                 if (r.error) setSyncHint(r.error);
-                else setSyncHint("Check your inbox for the sign-in link. After you open it, come back here — sync starts automatically.");
+                else setSyncHint("Signed in. Sync continues automatically.");
               }}
               style={{
                 padding: "12px 14px",
@@ -223,11 +237,11 @@ export function SettingsSheet({
                 fontWeight: 700,
                 fontSize: 14,
                 border: "none",
-                background: sync.busy || !syncEmail.includes("@") ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.14)",
+                background: sync.busy || !syncEmail.includes("@") || !syncPassword ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.14)",
                 color: "#fff",
               }}
             >
-              Email me a sign-in link
+              Sign in
             </button>
           </div>
         ) : (

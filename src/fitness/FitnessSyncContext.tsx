@@ -6,7 +6,8 @@ export type FitnessSyncContextValue = {
   busy: boolean;
   lastError: string | null;
   lastSyncedLabel: string | null;
-  signInWithEmail: (email: string) => Promise<{ error?: string }>;
+  signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
+  signUpWithEmail: (email: string, password: string, name: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   syncNow: () => Promise<void>;
 };
@@ -17,7 +18,8 @@ const disabledSync: FitnessSyncContextValue = {
   busy: false,
   lastError: null,
   lastSyncedLabel: null,
-  signInWithEmail: async () => ({ error: "Sync unavailable" }),
+  signInWithPassword: async () => ({ error: "Sync unavailable" }),
+  signUpWithEmail: async () => ({ error: "Sync unavailable" as string }),
   signOut: async () => {},
   syncNow: async () => {},
 };

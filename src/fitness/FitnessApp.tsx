@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ComponentType } from "react";
+import { useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 
 import { buildSundayReviewPreview } from "./weeklyAdjustment";
 import { buildAppStateFromPersisted } from "./buildAppState";
@@ -9,7 +9,8 @@ import {
   persistTasksForToday,
 } from "./dailyPlan";
 import { buildHabitsForDateKey } from "./data";
-import { FitnessSyncContext } from "./FitnessSyncContext";
+import { AuthScreen } from "./AuthScreen";
+import { FitnessSyncContext, useFitnessSync } from "./FitnessSyncContext";
 import { useFitnessCloudSync } from "./fitnessCloudSync";
 import {
   FITNESS_LOCAL_STORAGE_KEY,
@@ -47,6 +48,12 @@ function buildInitialState(): AppState {
     seedJimmyData();
   }
   return buildAppStateFromPersisted(loadPersistedSlice());
+}
+
+function AuthGate({ children }: { children: ReactNode }) {
+  const sync = useFitnessSync();
+  if (sync.configured && !sync.sessionEmail) return <AuthScreen />;
+  return <>{children}</>;
 }
 
 export function FitnessApp() {
@@ -168,6 +175,7 @@ export function FitnessApp() {
 
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
+      <AuthGate>
       <div
         style={{
           flex: 1,
@@ -225,6 +233,7 @@ export function FitnessApp() {
           />
         ) : null}
       </div>
+      </AuthGate>
     </FitnessSyncContext.Provider>
   );
 }
