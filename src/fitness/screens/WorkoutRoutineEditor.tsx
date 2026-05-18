@@ -135,6 +135,9 @@ export function WorkoutRoutineEditor({
         ...e,
         sets: e.sets.map((s) => ({ ...s })),
       })),
+      ...(template?.warmupItems?.length ? { warmupItems: template.warmupItems.map((w) => ({ ...w })) } : {}),
+      ...(template?.warmupTip ? { warmupTip: template.warmupTip } : {}),
+      ...(template?.sessionTip ? { sessionTip: template.sessionTip } : {}),
     });
   }
 

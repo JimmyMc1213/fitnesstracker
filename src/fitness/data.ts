@@ -199,7 +199,27 @@ export function normalizeWorkoutTemplates(raw: unknown): WorkoutRoutineTemplate[
     const dayLabel = typeof o.dayLabel === "string" ? o.dayLabel : "";
     const focus = typeof o.focus === "string" ? o.focus : "";
     const exercises = normalizeWorkoutExerciseArray(o.exercises);
-    out.push({ id: o.id, name, dayLabel, focus, exercises });
+    const warmupItems = Array.isArray(o.warmupItems)
+      ? (o.warmupItems as unknown[])
+          .map((w) => {
+            if (!w || typeof w !== "object") return null;
+            const u = (w as Record<string, unknown>).description;
+            return typeof u === "string" && u.trim() ? { description: u.trim() } : null;
+          })
+          .filter((x): x is { description: string } => x != null)
+      : undefined;
+    const warmupTip = typeof o.warmupTip === "string" && o.warmupTip.trim() ? o.warmupTip.trim() : undefined;
+    const sessionTip = typeof o.sessionTip === "string" && o.sessionTip.trim() ? o.sessionTip.trim() : undefined;
+    out.push({
+      id: o.id,
+      name,
+      dayLabel,
+      focus,
+      exercises,
+      ...(warmupItems?.length ? { warmupItems } : {}),
+      ...(warmupTip ? { warmupTip } : {}),
+      ...(sessionTip ? { sessionTip } : {}),
+    });
   }
   return out;
 }

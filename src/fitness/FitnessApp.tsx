@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState, type ComponentType } from "react";
 
 import { buildSundayReviewPreview } from "./weeklyAdjustment";
+import { buildAppStateFromPersisted } from "./buildAppState";
+import { seedJimmyData } from "./jimmy-seed-data";
 import {
   loadTasksForToday,
   localDateKey,
   persistTasksForToday,
 } from "./dailyPlan";
 import { buildHabitsForDateKey } from "./data";
-import { buildAppStateFromPersisted } from "./buildAppState";
 import { FitnessSyncContext } from "./FitnessSyncContext";
 import { useFitnessCloudSync } from "./fitnessCloudSync";
 import {
+  FITNESS_LOCAL_STORAGE_KEY,
   loadPersistedSlice,
   savePersistedSlice,
   sliceFromAppState,
@@ -41,6 +43,9 @@ function sundayNoonForCurrentWeek(d: Date): Date {
 }
 
 function buildInitialState(): AppState {
+  if (typeof localStorage !== "undefined" && !localStorage.getItem(FITNESS_LOCAL_STORAGE_KEY)) {
+    seedJimmyData();
+  }
   return buildAppStateFromPersisted(loadPersistedSlice());
 }
 
@@ -54,8 +59,14 @@ export function FitnessApp() {
   const activeDayKey = useRef(localDateKey(new Date()));
 
   useEffect(() => {
-    persistTasksForToday(state.dailyTasks, state.nutritionTargets, state.planStartIso, state.stepsTarget);
-  }, [state.dailyTasks, state.nutritionTargets, state.planStartIso, state.stepsTarget]);
+    persistTasksForToday(
+      state.dailyTasks,
+      state.nutritionTargets,
+      state.planStartIso,
+      state.stepsTarget,
+      state.workoutTemplates,
+    );
+  }, [state.dailyTasks, state.nutritionTargets, state.planStartIso, state.stepsTarget, state.workoutTemplates]);
 
   useEffect(() => {
     savePersistedSlice({
@@ -79,6 +90,7 @@ export function FitnessApp() {
       habitsDoneByDay: state.habitsDoneByDay,
       planStartIso: state.planStartIso,
       stepsTarget: state.stepsTarget,
+      progressGoal: state.progressGoal,
     });
   }, [
     state.nutritionLog,
@@ -101,6 +113,7 @@ export function FitnessApp() {
     state.habitsDoneByDay,
     state.planStartIso,
     state.stepsTarget,
+    state.progressGoal,
   ]);
 
   useEffect(() => {
@@ -109,7 +122,7 @@ export function FitnessApp() {
       if (today === activeDayKey.current) return;
       activeDayKey.current = today;
       setState((s) => {
-        const tasks = loadTasksForToday(s.nutritionTargets, s.planStartIso, s.stepsTarget);
+        const tasks = loadTasksForToday(s.nutritionTargets, s.planStartIso, s.stepsTarget, s.workoutTemplates);
         const habits = buildHabitsForDateKey(s.habitTemplates, s.habitsDoneByDay, today);
         return { ...s, dailyTasks: tasks, habits };
       });

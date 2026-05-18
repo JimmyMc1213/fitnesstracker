@@ -5,6 +5,7 @@ import { arizonaCalendarDateKey, isArizonaEightPmOrLater, localDateKey } from ".
 import { SettingsSheet } from "../SettingsSheet";
 import { compressImageToJpegDataUrl } from "../imageCompress";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
+import { SUNDAY_PREP_STEPS } from "../jimmy-seed-data";
 import { StreakWeeklyHeader } from "../StreakWeeklyHeader";
 import { MacroBar, MacroRing, ScreenHeader } from "../shared";
 import type { ScreenProps } from "../types";
@@ -23,6 +24,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const greetingName = state.displayName.trim();
+  const isLocalSunday = new Date().getDay() === 0;
 
   useEffect(() => {
     const id = window.setInterval(() => setClock(new Date()), 60_000);
@@ -242,6 +244,30 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
           ) : null}
         </div>
       )}
+
+      {isLocalSunday ? (
+        <div className="card" style={{ padding: 18, marginTop: 18, borderColor: "rgba(255,200,120,0.28)" }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "rgba(255,200,120,0.8)",
+              marginBottom: 10,
+            }}
+          >
+            Sunday meal prep
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8 }}>
+            {SUNDAY_PREP_STEPS.map((step) => (
+              <li key={step} style={{ fontSize: 12, lineHeight: 1.45, color: "rgba(255,255,255,0.68)", fontWeight: 500 }}>
+                {step}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {showNightlyStretchWindow ? (
         nightlyStretchDone ? (

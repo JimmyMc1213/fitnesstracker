@@ -21,6 +21,7 @@ import type {
   HabitTemplate,
   LoggedFood,
   MacroTotals,
+  ProgressGoalConfig,
   WorkoutState,
 } from "./types";
 
@@ -150,6 +151,21 @@ function isValidPlanStartIso(s: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(`${s}T12:00:00`));
 }
 
+function normalizeProgressGoal(raw: unknown): ProgressGoalConfig | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const low = Number(o.goalWeightLowLbs ?? o.goalWeightLow);
+  const high = Number(o.goalWeightHighLbs ?? o.goalWeightHigh);
+  const start = Number(o.progressStartWeightLbs ?? o.startingWeightLbs ?? o.startingWeight);
+  if (![low, high, start].every((n) => Number.isFinite(n))) return null;
+  if (low <= 0 || high <= 0 || start <= 0) return null;
+  return {
+    goalWeightLowLbs: low,
+    goalWeightHighLbs: high,
+    progressStartWeightLbs: start,
+  };
+}
+
 function normalizeHabitTemplates(raw: unknown): HabitTemplate[] | null {
   if (!Array.isArray(raw)) return null;
   const out: HabitTemplate[] = [];
@@ -160,8 +176,12 @@ function normalizeHabitTemplates(raw: unknown): HabitTemplate[] | null {
     if (typeof o.id !== "string" || typeof o.name !== "string" || typeof o.icon !== "string") continue;
     const name = o.name.trim();
     if (!name) continue;
-    const icon = icons.has(o.icon) ? o.icon : "bolt";
-    out.push({ id: o.id, name, icon });
+    let icon = o.icon;
+    if (icon === "water") icon = "drop";
+    if (icon === "sleep") icon = "moon";
+    if (!icons.has(icon)) icon = "bolt";
+    const subtitle = typeof o.subtitle === "string" && o.subtitle.trim() ? o.subtitle.trim() : undefined;
+    out.push({ id: o.id, name, icon, ...(subtitle ? { subtitle } : {}) });
   }
   return out.length ? out : null;
 }
@@ -227,6 +247,10 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     p?.nutritionManualByDay,
     p?.nutritionItemsByDay,
   );
+  const workoutTemplates =
+    p?.workoutTemplates === undefined || p?.workoutTemplates === null
+      ? defaultWorkoutRoutineTemplates()
+      : normalizeWorkoutTemplates(p.workoutTemplates);
 
   return {
     displayName,
@@ -240,13 +264,10 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     nutritionPresets: normalizeNutritionPresets(p?.nutritionPresets),
     workout: normalizePersistedWorkout(p?.workout),
     customExercises: normalizeCustomExercises(p?.customExercises),
-    workoutTemplates:
-      p?.workoutTemplates === undefined || p?.workoutTemplates === null
-        ? defaultWorkoutRoutineTemplates()
-        : normalizeWorkoutTemplates(p.workoutTemplates),
+    workoutTemplates,
     workoutsCompletedByDay: normalizeWorkoutsCompletedByDay(p?.workoutsCompletedByDay),
     habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey),
-    dailyTasks: loadTasksForToday(nutritionTargets, planStartIso, stepsTarget),
+    dailyTasks: loadTasksForToday(nutritionTargets, planStartIso, stepsTarget, workoutTemplates),
     nutritionTargets,
     weightLog: p?.weightLog ?? [],
     lastAdjustmentSundayKey: lastAdj,
@@ -257,5 +278,6 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
         ? p.nightlyStretchCompletedArizonaKey
         : null,
     nightlyStretchBlockIdsByArizonaDay: normalizeStretchBlockCompletionMap(p?.nightlyStretchBlockIdsByArizonaDay),
+    progressGoal: normalizeProgressGoal(p?.progressGoal),
   };
 }

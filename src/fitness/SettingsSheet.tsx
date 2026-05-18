@@ -2,6 +2,7 @@ import { useEffect, useState, type ChangeEvent, type Dispatch, type SetStateActi
 
 import { generateDailyTasksForDate, localDateKey } from "./dailyPlan";
 import { buildHabitsForDateKey } from "./data";
+import { refreshStateAfterJimmySeed } from "./jimmy-seed-data";
 import { useFitnessSync } from "./FitnessSyncContext";
 import { IconBolt, IconDroplet, IconMoon, IconRun, IconX } from "./icons";
 import { SectionLabel } from "./shared";
@@ -75,7 +76,13 @@ export function SettingsSheet({
       return {
         ...s,
         nutritionTargets,
-        dailyTasks: generateDailyTasksForDate(new Date(), nutritionTargets, s.planStartIso, s.stepsTarget),
+        dailyTasks: generateDailyTasksForDate(
+          new Date(),
+          nutritionTargets,
+          s.planStartIso,
+          s.stepsTarget,
+          s.workoutTemplates,
+        ),
       };
     });
   }
@@ -436,7 +443,7 @@ export function SettingsSheet({
                 setState((s) => ({
                   ...s,
                   planStartIso: v,
-                  dailyTasks: generateDailyTasksForDate(new Date(), s.nutritionTargets, v, s.stepsTarget),
+                  dailyTasks: generateDailyTasksForDate(new Date(), s.nutritionTargets, v, s.stepsTarget, s.workoutTemplates),
                 }));
               }}
               aria-label="Program start date"
@@ -460,12 +467,46 @@ export function SettingsSheet({
                 setState((s) => ({
                   ...s,
                   stepsTarget,
-                  dailyTasks: generateDailyTasksForDate(new Date(), s.nutritionTargets, s.planStartIso, stepsTarget),
+                  dailyTasks: generateDailyTasksForDate(
+                    new Date(),
+                    s.nutritionTargets,
+                    s.planStartIso,
+                    stepsTarget,
+                    s.workoutTemplates,
+                  ),
                 }));
               }}
               aria-label="Daily steps goal"
             />
           </label>
+          <button
+            type="button"
+            className="tap"
+            onClick={() => {
+              if (
+                typeof window !== "undefined" &&
+                !window.confirm(
+                  "Load Jimmy’s summer plan? This replaces workouts, Saved nutrition presets, habits, macro targets, and goal range. Logs (weight, meals, completions) are kept.",
+                )
+              )
+                return;
+              setState(refreshStateAfterJimmySeed());
+            }}
+            style={{
+              padding: "12px 14px",
+              borderRadius: 12,
+              fontWeight: 700,
+              fontSize: 14,
+              border: "none",
+              background: "rgba(10,132,255,0.22)",
+              color: "#fff",
+            }}
+          >
+            Load my summer plan
+          </button>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: "rgba(255,255,255,0.38)", fontWeight: 400 }}>
+            Applies 2,000 kcal / 175P targets, Jimmy’s routines (warm-ups included), meal-prep presets, and the 160–165 lb goal band.
+          </p>
         </div>
       </div>
     </div>

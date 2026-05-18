@@ -1,8 +1,10 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 import { localDateKey } from "../dailyPlan";
 import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
-import { progressiveOverloadInsight } from "../coach";
+import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach";
+import { refreshStateAfterJimmySeed } from "../jimmy-seed-data";
+import { isJimmySummerPlanTemplates, jimmySuggestedRoutineIdForDate } from "../jimmyWeekly";
 import { IconCheck, IconMinus, IconPlus, IconSearch } from "../icons";
 import { ScreenHeader } from "../shared";
 import type { ScreenProps } from "../types";
@@ -248,12 +250,27 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     }));
   }
 
+  const sortedRoutineTemplates = useMemo(() => {
+    if (!isJimmySummerPlanTemplates(state.workoutTemplates)) return state.workoutTemplates;
+    const rid = jimmySuggestedRoutineIdForDate(new Date());
+    if (!rid) return state.workoutTemplates;
+    const ix = state.workoutTemplates.findIndex((t) => t.id === rid);
+    if (ix <= 0) return state.workoutTemplates;
+    const next = [...state.workoutTemplates];
+    const [head] = next.splice(ix, 1);
+    return head ? [head, ...next] : state.workoutTemplates;
+  }, [state.workoutTemplates]);
+
+  const todayRoutineId = useMemo(() => jimmySuggestedRoutineIdForDate(new Date()), []);
   const qLow = exQuery.trim().toLowerCase();
   const filteredBuiltin = EXERCISE_DB.filter((n) => !qLow || n.toLowerCase().includes(qLow));
   const filteredCustom = state.customExercises.filter(
     (c) => !qLow || c.name.toLowerCase().includes(qLow) || c.label.toLowerCase().includes(qLow),
   );
-  const overloadTip = progressiveOverloadInsight(w);
+  const overloadTip =
+    isJimmySummerPlanTemplates(state.workoutTemplates) && phase === "lifting"
+      ? `${progressiveOverloadInsight(w)}\n\n${jimmyIntensityCoachingLine(localDateKey(new Date()))}`
+      : progressiveOverloadInsight(w);
 
   const createInputStyle: CSSProperties = {
     background: "#1A1A1A",
@@ -307,9 +324,53 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   }
 
   if (phase === "idle") {
+    const jimmyLoaded = isJimmySummerPlanTemplates(state.workoutTemplates);
     return (
       <div className="screen">
         <ScreenHeader eyebrow="TRAINING" title="Start Workout" />
+
+        {!jimmyLoaded ? (
+          <div
+            className="card"
+            style={{
+              marginTop: 18,
+              padding: 16,
+              borderColor: "rgba(10,132,255,0.38)",
+              background: "rgba(10,132,255,0.07)",
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 8 }}>Summer plan not loaded</div>
+            <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", fontWeight: 400 }}>
+              Your device already had saved data, so the app kept the default program. Load Jimmy&apos;s routines (Chest + Triceps Mon, etc.), macro targets, and meal presets in one step.
+            </p>
+            <button
+              type="button"
+              className="tap"
+              onClick={() => {
+                if (
+                  typeof window !== "undefined" &&
+                  !window.confirm(
+                    "Load Jimmy’s summer plan? Replaces workouts, Saved nutrition presets, habits, macros, and goal range. Logs stay.",
+                  )
+                )
+                  return;
+                setState(refreshStateAfterJimmySeed());
+              }}
+              style={{
+                width: "100%",
+                padding: "12px 14px",
+                borderRadius: 12,
+                fontWeight: 700,
+                fontSize: 14,
+                border: "none",
+                background: ACCENT_BLUE,
+                color: "#fff",
+              }}
+            >
+              Load Jimmy&apos;s summer plan
+            </button>
+          </div>
+        ) : null}
 
         <button
           type="button"
@@ -386,9 +447,10 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {state.workoutTemplates.map((tpl) => {
+            {sortedRoutineTemplates.map((tpl) => {
               const preview = tpl.exercises.slice(0, 4).map((e) => e.name);
               const more = tpl.exercises.length - preview.length;
+              const isToday = todayRoutineId != null && tpl.id === todayRoutineId;
               return (
                 <div
                   key={tpl.id}
@@ -425,6 +487,18 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                       }}
                     >
                       {tpl.dayLabel.trim() || "Routine"}
+                      {isToday ? (
+                        <span
+                          style={{
+                            marginLeft: 8,
+                            fontSize: 10,
+                            color: "rgba(10,132,255,0.95)",
+                            letterSpacing: "0.04em",
+                          }}
+                        >
+                          Today
+                        </span>
+                      ) : null}
                     </div>
                     <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: "-0.02em", marginBottom: 6 }}>{tpl.name}</div>
                     {tpl.focus.trim() ? (
@@ -568,6 +642,39 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
 
       {showWarmup ? (
         <>
+          {activeRoutine?.warmupItems?.length ? (
+            <>
+              <div className="card" style={{ padding: 16, marginTop: 8, borderColor: "rgba(10,132,255,0.28)" }}>
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: "rgba(10,132,255,0.75)",
+                    marginBottom: 10,
+                  }}
+                >
+                  Session warm-up
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
+                  {activeRoutine.warmupItems.map((item) => (
+                    <li key={item.description} style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.72)" }}>
+                      {item.description}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {activeRoutine.warmupTip ? (
+                <div className="card" style={{ padding: 14, marginTop: 12, background: "rgba(10,132,255,0.08)", borderColor: "rgba(10,132,255,0.35)" }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(10,132,255,0.65)", marginBottom: 8 }}>
+                    Coach callout
+                  </div>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.88)" }}>{activeRoutine.warmupTip}</p>
+                </div>
+              ) : null}
+            </>
+          ) : null}
           <div className="card" style={{ padding: 16, marginTop: 8 }}>
             <div
               style={{
@@ -626,8 +733,17 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         >
           Coach note
         </div>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.72)" }}>{overloadTip}</p>
+        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.72)", whiteSpace: "pre-line" }}>{overloadTip}</p>
       </div>
+
+      {phase === "lifting" && activeRoutine?.sessionTip ? (
+        <div className="card" style={{ padding: 14, marginTop: 12, borderColor: "rgba(52,199,89,0.35)", background: "rgba(52,199,89,0.06)" }}>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(52,199,89,0.75)", marginBottom: 8 }}>
+            After this session
+          </div>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.82)" }}>{activeRoutine.sessionTip}</p>
+        </div>
+      ) : null}
 
       <div className="card" style={{ padding: 18, marginTop: 12, display: "flex", gap: 18, alignItems: "center" }}>
         <div style={{ flex: 1 }}>

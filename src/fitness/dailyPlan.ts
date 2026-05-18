@@ -1,5 +1,11 @@
 import { PLAN_START_ISO, SPLIT, planWeekIndex } from "./data";
-import type { DailyTask, MacroTotals } from "./types";
+import {
+  JIMMY_DAILY_SCHEDULE,
+  JIMMY_WEEKLY_SCHEDULE,
+  isJimmySummerPlanTemplates,
+  jimmySuggestedRoutineIdForDate,
+} from "./jimmyWeekly";
+import type { DailyTask, MacroTotals, WorkoutRoutineTemplate } from "./types";
 
 export const DAILY_STORAGE_KEY = "fitcoach:daily:v5";
 
@@ -9,8 +15,17 @@ function nutritionTargetsSig(t: MacroTotals): string {
   return `${t.cal}-${t.p}-${t.c}-${t.f}`;
 }
 
-function dailyPlanSig(t: MacroTotals, planStartIso: string, stepsTarget: number): string {
-  return `${nutritionTargetsSig(t)}|${planStartIso}|${stepsTarget}`;
+function workoutTemplatesSig(templates: WorkoutRoutineTemplate[] | undefined): string {
+  return templates && isJimmySummerPlanTemplates(templates) ? "jimmy" : "def";
+}
+
+function dailyPlanSig(
+  t: MacroTotals,
+  planStartIso: string,
+  stepsTarget: number,
+  templates: WorkoutRoutineTemplate[] | undefined,
+): string {
+  return `${nutritionTargetsSig(t)}|${planStartIso}|${stepsTarget}|${workoutTemplatesSig(templates)}`;
 }
 
 export function localDateKey(d: Date): string {
@@ -103,22 +118,33 @@ export function generateDailyTasksForDate(
   targets: MacroTotals,
   planStartIso: string = PLAN_START_ISO,
   stepsTarget: number = 10_000,
+  workoutTemplates?: WorkoutRoutineTemplate[],
 ): DailyTask[] {
   const dateKey = localDateKey(d);
   const seed = hashSeed(dateKey);
   const dow = d.getDay();
   const wk = planWeekIndex(d, planStartIso);
   const steps = stepsTarget;
+  const jimmy = Boolean(workoutTemplates && isJimmySummerPlanTemplates(workoutTemplates));
 
   const tasks: DailyTask[] = [];
 
   if (dow === 6) {
-    tasks.push({
-      id: `${dateKey}_g0`,
-      category: "gym",
-      title: "Saturday · Active recovery: 45–60 min easy walk, light mobility, optional easy bike — not a hard workout.",
-      done: false,
-    });
+    if (jimmy) {
+      tasks.push({
+        id: `${dateKey}_g0`,
+        category: "gym",
+        title: `Saturday · ${JIMMY_WEEKLY_SCHEDULE.saturday.note ?? "Active recovery"}`,
+        done: false,
+      });
+    } else {
+      tasks.push({
+        id: `${dateKey}_g0`,
+        category: "gym",
+        title: "Saturday · Active recovery: 45–60 min easy walk, light mobility, optional easy bike — not a hard workout.",
+        done: false,
+      });
+    }
     tasks.push({
       id: `${dateKey}_g1`,
       category: "gym",
@@ -126,17 +152,54 @@ export function generateDailyTasksForDate(
       done: false,
     });
   } else if (dow === 0) {
-    tasks.push({
-      id: `${dateKey}_g0`,
-      category: "gym",
-      title: "Sunday · Rest. No lifting mindset — optional easy stretch or breathwork only.",
-      done: false,
-    });
+    if (jimmy) {
+      tasks.push({
+        id: `${dateKey}_g0`,
+        category: "gym",
+        title: `Sunday · ${JIMMY_WEEKLY_SCHEDULE.sunday.note ?? "Rest and meal prep."}`,
+        done: false,
+      });
+    } else {
+      tasks.push({
+        id: `${dateKey}_g0`,
+        category: "gym",
+        title: "Sunday · Rest. No lifting mindset — optional easy stretch or breathwork only.",
+        done: false,
+      });
+    }
     tasks.push({
       id: `${dateKey}_g1`,
       category: "gym",
       title: `Still move if you can: easy steps toward ${steps.toLocaleString()} without a structured workout.`,
       done: false,
+    });
+  } else if (jimmy && workoutTemplates) {
+    const rid = jimmySuggestedRoutineIdForDate(d);
+    const tpl = rid ? workoutTemplates.find((t) => t.id === rid) : undefined;
+    const dayLab = tpl?.dayLabel?.trim() || "Weekday";
+    const name = tpl?.name?.trim() || "Training";
+    const focus = tpl?.focus?.trim() || "";
+    const warm = tpl?.warmupTip?.trim() || "Warm up before your first heavy set.";
+    tasks.push({
+      id: `${dateKey}_g0`,
+      category: "gym",
+      title: `${dayLab} · ${name}${focus ? ` (${focus})` : ""} — ${warm} Tap your matching routine in Workout.`,
+      done: false,
+      navigateTo: "workout",
+    });
+    tasks.push({
+      id: `${dateKey}_g1`,
+      category: "gym",
+      title: "Mountainside rhythm: log every set · two-more-reps rule · 60–90s rest between working sets.",
+      done: false,
+      navigateTo: "workout",
+    });
+    tasks.push({
+      id: `${dateKey}_g2`,
+      category: "gym",
+      title: "Effort: leave 1–2 reps in the tank on most sets — don't max out every session.",
+      done: false,
+      navigateTo: "workout",
     });
   } else {
     const split = splitForWeekday(d)!;
@@ -178,7 +241,10 @@ export function generateDailyTasksForDate(
   });
 
   const extras = nutritionExtraLines(targets);
-  const nutExtra = extras[pickDistinctIndices(seed + 7, 1, extras.length)[0]!]!;
+  const nutExtra =
+    jimmy && dow >= 1 && dow <= 5
+      ? `Jimmy fuel rhythm: ${JIMMY_DAILY_SCHEDULE.map((s) => `${s.time} ${s.label}`).join(" → ")}. Quick-add from Saved presets.`
+      : extras[pickDistinctIndices(seed + 7, 1, extras.length)[0]!]!;
   tasks.push({
     id: `${dateKey}_n1`,
     category: "nutrition",
@@ -227,10 +293,11 @@ export function loadTasksForToday(
   targets: MacroTotals,
   planStartIso: string = PLAN_START_ISO,
   stepsTarget: number = 10_000,
+  workoutTemplates?: WorkoutRoutineTemplate[],
 ): DailyTask[] {
   const now = new Date();
   const key = localDateKey(now);
-  const sig = dailyPlanSig(targets, planStartIso, stepsTarget);
+  const sig = dailyPlanSig(targets, planStartIso, stepsTarget, workoutTemplates);
   try {
     const raw = localStorage.getItem(DAILY_STORAGE_KEY);
     if (raw) {
@@ -247,7 +314,7 @@ export function loadTasksForToday(
   } catch {
     /* ignore */
   }
-  const tasks = generateDailyTasksForDate(now, targets, planStartIso, stepsTarget);
+  const tasks = generateDailyTasksForDate(now, targets, planStartIso, stepsTarget, workoutTemplates);
   try {
     localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify({ dateKey: key, targetsSig: sig, tasks }));
   } catch {
@@ -261,12 +328,17 @@ export function persistTasksForToday(
   targets: MacroTotals,
   planStartIso: string = PLAN_START_ISO,
   stepsTarget: number = 10_000,
+  workoutTemplates?: WorkoutRoutineTemplate[],
 ): void {
   const key = localDateKey(new Date());
   try {
     localStorage.setItem(
       DAILY_STORAGE_KEY,
-      JSON.stringify({ dateKey: key, targetsSig: dailyPlanSig(targets, planStartIso, stepsTarget), tasks }),
+      JSON.stringify({
+        dateKey: key,
+        targetsSig: dailyPlanSig(targets, planStartIso, stepsTarget, workoutTemplates),
+        tasks,
+      }),
     );
   } catch {
     /* ignore */

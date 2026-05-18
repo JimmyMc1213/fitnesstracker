@@ -80,9 +80,11 @@ export function ScreenHabits({ state, setState }: ScreenProps) {
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 2, fontWeight: 400 }}>
                   {habit.done
                     ? "Done today"
-                    : habit.icon === "run"
-                      ? `Target ${stepsGoal.toLocaleString()} steps · program week ${progWeek}/12 (anchor ${state.planStartIso})`
-                      : "Not yet today"}
+                    : habit.subtitle?.trim()
+                      ? habit.subtitle.trim()
+                      : habit.icon === "run"
+                        ? `Target ${stepsGoal.toLocaleString()} steps · program week ${progWeek}/12 (anchor ${state.planStartIso})`
+                        : "Not yet today"}
                 </div>
               </div>
               <button

@@ -14,6 +14,8 @@ export type NutritionPreset = MacroTotals & {
   id: string;
   name: string;
   lastUsedAtMs: number;
+  /** Optional coaching / portion notes (e.g. cooked vs raw weight). */
+  notes?: string;
 };
 
 export type FoodItem = MacroTotals & {
@@ -54,6 +56,11 @@ export type WorkoutRoutineTemplate = {
   /** Subtitle / programming note */
   focus: string;
   exercises: WorkoutExercise[];
+  /** Optional session-specific warm-up steps (shown in active workout). */
+  warmupItems?: { description: string }[];
+  warmupTip?: string;
+  /** Closing tip after the main log (e.g. Jimmy plan cues). */
+  sessionTip?: string;
 };
 
 /** idle: start-workout dashboard; lifting: active session (timer, log) */
@@ -77,6 +84,8 @@ export type HabitTemplate = {
   id: string;
   name: string;
   icon: string;
+  /** Secondary line in the Habits list when present. */
+  subtitle?: string;
 };
 
 export type Habit = HabitTemplate & {
@@ -109,6 +118,14 @@ export type AdjustmentEvent = {
   reason: string;
   recommendedDeltaCal?: number;
   appliedDeltaCal?: number;
+};
+
+/** Weight goal band + progress bar anchor (persisted). When absent, Progress uses built-in defaults. */
+export type ProgressGoalConfig = {
+  goalWeightLowLbs: number;
+  goalWeightHighLbs: number;
+  /** Typical starting weight for “% to goal” bar when the log is empty. */
+  progressStartWeightLbs: number;
 };
 
 export type AppState = {
@@ -150,6 +167,7 @@ export type AppState = {
   nightlyStretchCompletedArizonaKey: string | null;
   /** Per Arizona calendar day, stretch block ids marked complete (`stretchRoutine` ids). */
   nightlyStretchBlockIdsByArizonaDay: Record<string, string[]>;
+  progressGoal: ProgressGoalConfig | null;
 };
 
 export type ScreenProps = {

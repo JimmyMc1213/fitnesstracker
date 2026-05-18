@@ -1,5 +1,21 @@
 import type { WorkoutState } from "./types";
 
+import { JIMMY_INTENSITY_RULES } from "./jimmy-seed-data";
+
+function jimmyRuleIndex(seed: string): number {
+  let h = 5381;
+  for (let i = 0; i < seed.length; i++) {
+    h = ((h << 5) + h) ^ seed.charCodeAt(i);
+  }
+  return Math.abs(h) % Math.max(1, JIMMY_INTENSITY_RULES.length);
+}
+
+/** Rotating motivational line from the summer plan intensity rules. */
+export function jimmyIntensityCoachingLine(dayKey: string): string {
+  const r = JIMMY_INTENSITY_RULES[jimmyRuleIndex(`${dayKey}|jimmy`)]!;
+  return `${r.title} — ${r.description}`;
+}
+
 export function progressiveOverloadInsight(w: WorkoutState): string {
   const primary = w.exercises[0];
   if (!primary) {

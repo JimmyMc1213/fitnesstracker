@@ -181,7 +181,17 @@ export function normalizeNutritionPresets(raw: unknown): NutritionPreset[] {
     const f = Number(r.f) || 0;
     const id = typeof r.id === "string" && r.id ? r.id : `preset-${i}`;
     const lastUsedAtMs = typeof r.lastUsedAtMs === "number" ? r.lastUsedAtMs : Date.now() - i * 1000;
-    const preset: NutritionPreset = { id, name, cal, p, c, f, lastUsedAtMs };
+    const notes = typeof r.notes === "string" && r.notes.trim() ? r.notes.trim() : undefined;
+    const preset: NutritionPreset = {
+      id,
+      name,
+      cal,
+      p,
+      c,
+      f,
+      lastUsedAtMs,
+      ...(notes ? { notes } : {}),
+    };
     const fp = nutritionPresetFingerprint(name, preset);
     const prev = byFp.get(fp);
     if (!prev || preset.lastUsedAtMs > prev.lastUsedAtMs) byFp.set(fp, preset);

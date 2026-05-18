@@ -5,6 +5,7 @@ import type {
   LoggedFood,
   NutritionLoggedItem,
   NutritionPreset,
+  ProgressGoalConfig,
   WeightEntry,
   WorkoutState,
 } from "./types";
@@ -135,6 +136,13 @@ function mergeWorkoutState(local: WorkoutState, remote: WorkoutState): WorkoutSt
   return remote;
 }
 
+function mergeProgressGoal(
+  local: ProgressGoalConfig | null | undefined,
+  remote: ProgressGoalConfig | null | undefined,
+): ProgressGoalConfig | null {
+  return remote ?? local ?? null;
+}
+
 /**
  * Union-merge two device snapshots so simultaneous edits on phone + desktop lose as little as possible.
  * When both sides edited the same habit day or workout-completion flag, done=true wins.
@@ -180,5 +188,6 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     habitsDoneByDay: mergeHabitsDoneByDay(local.habitsDoneByDay, remote.habitsDoneByDay),
     planStartIso: remote.planStartIso || local.planStartIso,
     stepsTarget: Math.max(local.stepsTarget, remote.stepsTarget),
+    progressGoal: mergeProgressGoal(local.progressGoal, remote.progressGoal),
   };
 }

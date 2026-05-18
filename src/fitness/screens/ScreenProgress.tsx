@@ -31,9 +31,9 @@ function distinctDaysLogged(log: { dateKey: string }[], startKey: string, endKey
   return keys.size;
 }
 
-const GOAL_LO_LBS = 158;
-const GOAL_HI_LBS = 165;
-const CUT_BAR_START_LBS = 172;
+const DEFAULT_GOAL_LO = 158;
+const DEFAULT_GOAL_HI = 165;
+const DEFAULT_CUT_START = 172;
 
 const WEEK_LABELS = ["S", "M", "T", "W", "T", "F", "S"] as const;
 
@@ -285,6 +285,10 @@ export function ScreenProgress({ state }: ScreenProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null);
   const [chartW, setChartW] = useState(0);
 
+  const goalLo = state.progressGoal?.goalWeightLowLbs ?? DEFAULT_GOAL_LO;
+  const goalHi = state.progressGoal?.goalWeightHighLbs ?? DEFAULT_GOAL_HI;
+  const cutBarStart = state.progressGoal?.progressStartWeightLbs ?? DEFAULT_CUT_START;
+
   useLayoutEffect(() => {
     const el = chartWrapRef.current;
     if (!el) return;
@@ -303,12 +307,13 @@ export function ScreenProgress({ state }: ScreenProps) {
     [state.weightLog],
   );
   const chartSeries = sorted.map((e) => e.weightLbs);
-  const todayWeight = chartSeries.length ? chartSeries[chartSeries.length - 1]! : CUT_BAR_START_LBS;
+  const todayWeight = chartSeries.length ? chartSeries[chartSeries.length - 1]! : cutBarStart;
   const startWeight = chartSeries.length ? chartSeries[0]! : todayWeight;
   const delta = todayWeight - startWeight;
 
-  const goalMid = (GOAL_LO_LBS + GOAL_HI_LBS) / 2;
-  const goalPct = Math.max(0, Math.min(1, (CUT_BAR_START_LBS - todayWeight) / (CUT_BAR_START_LBS - goalMid)));
+  const goalMid = (goalLo + goalHi) / 2;
+  const denom = cutBarStart - goalMid;
+  const goalPct = denom !== 0 ? Math.max(0, Math.min(1, (cutBarStart - todayWeight) / denom)) : 0;
 
   const daysIn = planDayIndex(new Date(), state.planStartIso);
   const daysTotal = 84;
@@ -457,7 +462,7 @@ export function ScreenProgress({ state }: ScreenProps) {
         <div className="between" style={{ alignItems: "baseline" }}>
           <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>
             {todayWeight.toFixed(1)}{" "}
-            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 16 }}>→</span> {GOAL_LO_LBS}–{GOAL_HI_LBS}
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 16 }}>→</span> {goalLo}–{goalHi}
             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginLeft: 6, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>lbs</span>
           </div>
           <div style={{ fontSize: 12, color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{Math.round(goalPct * 100)}%</div>

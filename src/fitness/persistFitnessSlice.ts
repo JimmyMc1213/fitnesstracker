@@ -1,6 +1,8 @@
 import type { AppState } from "./types";
 
-const KEY = "fitcoach:persist:v1";
+export const FITNESS_LOCAL_STORAGE_KEY = "fitcoach:persist:v1";
+
+const KEY = FITNESS_LOCAL_STORAGE_KEY;
 
 export type PersistedFitnessSlice = Pick<
   AppState,
@@ -24,6 +26,7 @@ export type PersistedFitnessSlice = Pick<
   | "habitsDoneByDay"
   | "planStartIso"
   | "stepsTarget"
+  | "progressGoal"
 >;
 
 export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
@@ -48,6 +51,7 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     habitsDoneByDay: state.habitsDoneByDay,
     planStartIso: state.planStartIso,
     stepsTarget: state.stepsTarget,
+    progressGoal: state.progressGoal,
   };
 }
 
