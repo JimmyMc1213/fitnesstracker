@@ -29,6 +29,8 @@
  * iOS keyboards and can jitter. Use explicit `100dvh` on `html`: on modern Safari
  * the *dynamic* viewport tracks URL bar show/hide, so the shell matches what you
  * see without layout-vs-visual hacks. Fallback `100vh` for older engines.
+ * In PWA standalone mode we drop the final `100dvh` (see block below): cold start
+ * can mis-size `dvh` vs the home indicator.
  *
  * Flex column fills that frame; scrolling stays inside `.screen`; tab bar + safe-area
  * insets unchanged. */
@@ -43,6 +45,17 @@ html {
   height: 100vh;
   height: 100dvh;
   min-height: -webkit-fill-available;
+}
+
+/* iOS Add-to-Home / `display: standalone`: `100dvh` can report wrong height on
+ * cold start so the flex shell and tab bar misalign vs the home indicator.
+ * Prefer classic viewport height + fill-available here; regular Safari tabs keep
+ * `100dvh` above for URL-bar dynamics. */
+@media (display-mode: standalone) {
+  html {
+    height: 100vh;
+    min-height: -webkit-fill-available;
+  }
 }
 
 body {
@@ -267,7 +280,10 @@ textarea {
   flex-shrink: 0;
   box-sizing: border-box;
   width: 100%;
-  padding: 8px 12px max(8px, env(safe-area-inset-bottom, 0px));
+  padding: 8px 12px;
+  /* `constant()` for older WebKit; `env()` wins when supported */
+  padding-bottom: max(8px, constant(safe-area-inset-bottom));
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
   background: var(--bg);
   border-top: 0.5px solid var(--border);
   display: grid;
