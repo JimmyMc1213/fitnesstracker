@@ -31,7 +31,9 @@ import { ScreenProgress } from "./screens/ScreenProgress";
 import { ScreenHabits } from "./screens/ScreenHabits";
 import { ScreenStretch } from "./screens/ScreenStretch";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
+import { dismissWorkoutSummary } from "./finishWorkout";
 import { SundayReviewSheet } from "./SundayReviewSheet";
+import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
 import type { AppState, ScreenProps, TabId } from "./types";
 
 /** Dev only: `?previewSunday=1` treats "now" as noon on this week's Sunday so the review sheet is visible any day. */
@@ -85,6 +87,7 @@ export function FitnessApp() {
       customExercises: state.customExercises,
       workoutTemplates: state.workoutTemplates,
       workoutsCompletedByDay: state.workoutsCompletedByDay,
+      exercisePersonalBests: state.exercisePersonalBests,
       nutritionTargets: state.nutritionTargets,
       weightLog: state.weightLog,
       lastAdjustmentSundayKey: state.lastAdjustmentSundayKey,
@@ -108,6 +111,7 @@ export function FitnessApp() {
     state.customExercises,
     state.workoutTemplates,
     state.workoutsCompletedByDay,
+    state.exercisePersonalBests,
     state.nutritionTargets,
     state.weightLog,
     state.lastAdjustmentSundayKey,
@@ -161,7 +165,8 @@ export function FitnessApp() {
   };
 
   const Current = screens[tab];
-  const hideTabBar = tab === "stretch";
+  const showWorkoutSummary = state.workoutSummary != null;
+  const hideTabBar = tab === "stretch" || showWorkoutSummary;
 
   const previewSundayUi =
     import.meta.env.DEV &&
@@ -230,6 +235,16 @@ export function FitnessApp() {
             nutritionTargets={state.nutritionTargets}
             setState={setState}
             reviewClock={previewSundayUi ? reviewNow : undefined}
+          />
+        ) : null}
+
+        {showWorkoutSummary && state.workoutSummary ? (
+          <WorkoutSummarySheet
+            summary={state.workoutSummary}
+            onDone={() => {
+              setState((s) => dismissWorkoutSummary(s));
+              setTab("home");
+            }}
           />
         ) : null}
       </div>

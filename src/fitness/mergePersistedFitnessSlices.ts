@@ -1,4 +1,5 @@
 import { nutritionPresetFingerprint } from "./nutritionTotals";
+import { mergeExercisePersonalBests } from "./workoutSummary";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import type {
   AdjustmentEvent,
@@ -170,6 +171,7 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     customExercises: mergeById(local.customExercises, remote.customExercises),
     workoutTemplates: mergeById(local.workoutTemplates, remote.workoutTemplates, 80),
     workoutsCompletedByDay: mergeWorkoutsCompleted(local.workoutsCompletedByDay, remote.workoutsCompletedByDay),
+    exercisePersonalBests: mergeExercisePersonalBests(local.exercisePersonalBests, remote.exercisePersonalBests),
     nightlyStretchCompletedArizonaKey:
       local.nightlyStretchCompletedArizonaKey && remote.nightlyStretchCompletedArizonaKey
         ? local.nightlyStretchCompletedArizonaKey.localeCompare(remote.nightlyStretchCompletedArizonaKey) >= 0

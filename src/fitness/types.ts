@@ -66,6 +66,24 @@ export type WorkoutRoutineTemplate = {
 /** idle: start-workout dashboard; lifting: active session (timer, log) */
 export type WorkoutSessionPhase = "idle" | "lifting";
 
+/** Best logged performance per exercise name (keyed by normalized name). */
+export type ExercisePersonalBest = { maxWeight: number; maxReps: number };
+
+export type WorkoutSummaryPr = { exerciseName: string; detail: string };
+
+export type WorkoutSummaryNeedsWork = { exerciseName: string; detail: string };
+
+/** Snapshot shown after tapping Finish — not persisted (cleared on dismiss). */
+export type WorkoutSessionSummary = {
+  title: string;
+  durationSec: number;
+  doneSets: number;
+  totalSets: number;
+  totalVolume: number;
+  prs: WorkoutSummaryPr[];
+  needsWork: WorkoutSummaryNeedsWork[];
+};
+
 export type WorkoutState = {
   splitId: string;
   startedAt: string;
@@ -154,6 +172,10 @@ export type AppState = {
   workoutTemplates: WorkoutRoutineTemplate[];
   /** Local YYYY-MM-DD days where the user tapped Finish on a workout session (not Cancel). */
   workoutsCompletedByDay: Record<string, boolean>;
+  /** Per-exercise bests for PR detection across sessions. */
+  exercisePersonalBests: Record<string, ExercisePersonalBest>;
+  /** Post-finish recap overlay; cleared when user returns home. */
+  workoutSummary: WorkoutSessionSummary | null;
   habits: Habit[];
   dailyTasks: DailyTask[];
   nutritionTargets: MacroTotals;

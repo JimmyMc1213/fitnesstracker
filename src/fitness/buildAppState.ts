@@ -17,6 +17,7 @@ import type {
   AdjustmentEvent,
   AppState,
   CustomExerciseTemplate,
+  ExercisePersonalBest,
   FoodItem,
   HabitTemplate,
   LoggedFood,
@@ -186,6 +187,21 @@ function normalizeHabitTemplates(raw: unknown): HabitTemplate[] | null {
   return out.length ? out : null;
 }
 
+function normalizeExercisePersonalBests(raw: unknown): Record<string, ExercisePersonalBest> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, ExercisePersonalBest> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (!k.trim() || !v || typeof v !== "object" || Array.isArray(v)) continue;
+    const o = v as Record<string, unknown>;
+    const maxWeight = Number(o.maxWeight);
+    const maxReps = Number(o.maxReps);
+    if (!Number.isFinite(maxWeight) || !Number.isFinite(maxReps)) continue;
+    if (maxWeight <= 0 && maxReps <= 0) continue;
+    out[k.trim().toLowerCase()] = { maxWeight, maxReps };
+  }
+  return out;
+}
+
 function normalizeWorkoutsCompletedByDay(raw: unknown): Record<string, boolean> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
   const out: Record<string, boolean> = {};
@@ -266,6 +282,8 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     customExercises: normalizeCustomExercises(p?.customExercises),
     workoutTemplates,
     workoutsCompletedByDay: normalizeWorkoutsCompletedByDay(p?.workoutsCompletedByDay),
+    exercisePersonalBests: normalizeExercisePersonalBests(p?.exercisePersonalBests),
+    workoutSummary: null,
     habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey),
     dailyTasks: loadTasksForToday(nutritionTargets, planStartIso, stepsTarget, workoutTemplates),
     nutritionTargets,

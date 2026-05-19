@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { localDateKey } from "../dailyPlan";
 import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
 import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach";
+import { finishWorkout } from "../finishWorkout";
 import { refreshStateAfterJimmySeed } from "../jimmy-seed-data";
 import { isJimmySummerPlanTemplates, jimmySuggestedRoutineIdForDate } from "../jimmyWeekly";
 import { IconCheck, IconMinus, IconPlus, IconSearch } from "../icons";
@@ -218,13 +219,14 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   }
 
   function endSessionToIdle(completed: boolean) {
-    setState((s) => {
-      const dayKey = s.workout.sessionDayKey;
-      const workoutsCompletedByDay =
-        completed && dayKey ? { ...s.workoutsCompletedByDay, [dayKey]: true } : s.workoutsCompletedByDay;
-      return {
+    if (completed) {
+      setState((s) => {
+        const result = finishWorkout(s);
+        return result ? result.state : s;
+      });
+    } else {
+      setState((s) => ({
         ...s,
-        workoutsCompletedByDay,
         workout: {
           ...s.workout,
           sessionPhase: "idle",
@@ -234,8 +236,8 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           sessionTitle: "Workout",
           exercises: [],
         },
-      };
-    });
+      }));
+    }
     setShowExSearch(false);
     setExQuery("");
     setDraftExName("");
@@ -596,7 +598,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               border: "none",
             }}
           >
-            Finish
+            Finish workout
           </button>
         </div>
 
