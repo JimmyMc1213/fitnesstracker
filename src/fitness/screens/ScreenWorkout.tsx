@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from "react";
 
 import { localDateKey } from "../dailyPlan";
 import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
@@ -42,6 +42,95 @@ const WARMUP_ITEMS = [
   "2–4 ramp sets on your first main lift — empty bar → light → working weight",
 ];
 
+function EmptyFinishConfirmSheet({
+  onKeepTraining,
+  onQuit,
+}: {
+  onKeepTraining: () => void;
+  onQuit: () => void;
+}) {
+  function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
+    if (e.target === e.currentTarget) onKeepTraining();
+  }
+
+  return (
+    <div
+      role="presentation"
+      onMouseDown={onBackdropMouseDown}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1100,
+        background: "rgba(0,0,0,0.52)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+        padding: "12px 12px calc(16px + env(safe-area-inset-bottom, 0px))",
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="empty-finish-title"
+        className="card page-transition"
+        style={{
+          width: "100%",
+          maxWidth: 440,
+          background: "#121212",
+          borderColor: "var(--border)",
+          padding: 20,
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div id="empty-finish-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff" }}>
+          Nothing logged yet
+        </div>
+        <p style={{ margin: "10px 0 18px", fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.55)" }}>
+          You haven&apos;t checked off any sets. Quit without saving this workout?
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <button
+            type="button"
+            className="tap"
+            onClick={onKeepTraining}
+            style={{
+              width: "100%",
+              padding: 14,
+              borderRadius: 12,
+              border: "none",
+              background: ACCENT_GREEN,
+              color: "#0a0a0a",
+              fontSize: 15,
+              fontWeight: 700,
+            }}
+          >
+            Keep training
+          </button>
+          <button
+            type="button"
+            className="tap"
+            onClick={onQuit}
+            style={{
+              width: "100%",
+              padding: 14,
+              borderRadius: 12,
+              border: "0.5px solid rgba(255,69,58,0.35)",
+              background: "rgba(255,69,58,0.12)",
+              color: "#FF6961",
+              fontSize: 15,
+              fontWeight: 600,
+            }}
+          >
+            Quit workout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [showExSearch, setShowExSearch] = useState(false);
   const [exQuery, setExQuery] = useState("");
@@ -52,6 +141,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
   const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
+  const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
   const w = state.workout;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
   const split = activeRoutine ? { day: activeRoutine.dayLabel, name: activeRoutine.name } : SPLIT.find((s) => s.id === w.splitId);
@@ -255,7 +345,16 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     });
   }
 
+  function requestFinishWorkout() {
+    if (doneSets === 0) {
+      setShowEmptyFinishConfirm(true);
+      return;
+    }
+    endSessionToIdle(true);
+  }
+
   function endSessionToIdle(completed: boolean) {
+    setShowEmptyFinishConfirm(false);
     if (completed) {
       setState((s) => {
         const result = finishWorkout(s);
@@ -655,7 +754,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           <button
             type="button"
             className="tap"
-            onClick={() => endSessionToIdle(true)}
+            onClick={requestFinishWorkout}
             style={{
               background: ACCENT_GREEN,
               color: "#0a0a0a",
@@ -1269,6 +1368,13 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
       </div>
 
       <div style={{ height: 8 }} />
+
+      {showEmptyFinishConfirm ? (
+        <EmptyFinishConfirmSheet
+          onKeepTraining={() => setShowEmptyFinishConfirm(false)}
+          onQuit={() => endSessionToIdle(false)}
+        />
+      ) : null}
 
       {notesEdit ? (
         <ExerciseNotesEditSheet

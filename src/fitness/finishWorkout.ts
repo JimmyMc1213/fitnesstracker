@@ -6,10 +6,15 @@ export type FinishWorkoutResult = {
   summary: WorkoutSessionSummary;
 };
 
+function loggedSetCount(workout: AppState["workout"]): number {
+  return workout.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0);
+}
+
 /** Complete the active workout: snapshot summary, update PRs, clear session, mark day done. */
 export function finishWorkout(state: AppState, endedAtMs = Date.now()): FinishWorkoutResult | null {
   const w = state.workout;
   if (w.sessionPhase !== "lifting") return null;
+  if (loggedSetCount(w) === 0) return null;
 
   const summary = buildWorkoutSessionSummary(w, state.exercisePersonalBests, endedAtMs);
   const exercisePersonalBests = personalBestsAfterSession(w.exercises, state.exercisePersonalBests);
