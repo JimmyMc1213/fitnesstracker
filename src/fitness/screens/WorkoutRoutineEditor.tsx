@@ -1,6 +1,8 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
 import { EXERCISE_DB, newTemplateExerciseLine, resizeWorkoutSets } from "../data";
+import { ExerciseNoteRow } from "../ExerciseNoteRow";
+import { getExerciseNote } from "../exerciseNotes";
 import { IconPlus, IconSearch, IconTrash } from "../icons";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
@@ -15,6 +17,8 @@ const DAY_PRESETS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 type WorkoutRoutineEditorProps = {
   template: WorkoutRoutineTemplate | null;
   customExercises: CustomExerciseTemplate[];
+  exerciseNotesByKey: Record<string, string>;
+  onNotePress: (name: string, label?: string) => void;
   onSave: (t: WorkoutRoutineTemplate) => void;
   onDelete: ((id: string) => void) | null;
   onClose: () => void;
@@ -23,6 +27,8 @@ type WorkoutRoutineEditorProps = {
 export function WorkoutRoutineEditor({
   template,
   customExercises,
+  exerciseNotesByKey,
+  onNotePress,
   onSave,
   onDelete,
   onClose,
@@ -270,8 +276,13 @@ export function WorkoutRoutineEditor({
               value={row.label ?? ""}
               onChange={(e) => patchExercise(row.id, { label: e.target.value })}
               placeholder="Label (optional)"
-              style={inputStyle}
+              style={{ ...inputStyle, marginBottom: 8 }}
               readOnly={ctx.isOverlay}
+            />
+            <ExerciseNoteRow
+              note={getExerciseNote(exerciseNotesByKey, row.name, row.label)}
+              onPress={() => onNotePress(row.name, row.label)}
+              style={{ marginTop: 0, marginBottom: 10 }}
             />
           </div>
         )}

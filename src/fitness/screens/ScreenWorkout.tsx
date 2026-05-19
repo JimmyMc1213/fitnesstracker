@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 import { localDateKey } from "../dailyPlan";
 import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
+import { ExerciseNoteRow } from "../ExerciseNoteRow";
+import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
+import { getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach";
 import { finishWorkout } from "../finishWorkout";
 import { refreshStateAfterJimmySeed } from "../jimmy-seed-data";
@@ -48,6 +51,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [, setTick] = useState(0);
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
   const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
+  const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
   const w = state.workout;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
   const split = activeRoutine ? { day: activeRoutine.dayLabel, name: activeRoutine.name } : SPLIT.find((s) => s.id === w.splitId);
@@ -100,6 +104,20 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             : exercise,
         ),
       },
+    }));
+  }
+
+  function saveExerciseNote(name: string, label: string | undefined, note: string) {
+    setState((s) => ({
+      ...s,
+      exerciseNotesByKey: withExerciseNote(s.exerciseNotesByKey, name, label, note),
+    }));
+  }
+
+  function deleteExerciseNote(name: string, label?: string) {
+    setState((s) => ({
+      ...s,
+      exerciseNotesByKey: withExerciseNote(s.exerciseNotesByKey, name, label, ""),
     }));
   }
 
@@ -317,32 +335,45 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         ? null
         : state.workoutTemplates.find((t) => t.id === editingRoutineId) ?? null;
     return (
-      <WorkoutRoutineEditor
-        key={editingRoutineId}
-        template={editTemplate}
-        customExercises={state.customExercises}
-        onSave={(saved) => {
-          setState((s) => {
-            const i = s.workoutTemplates.findIndex((t) => t.id === saved.id);
-            const next = [...s.workoutTemplates];
-            if (i >= 0) next[i] = saved;
-            else next.push(saved);
-            return { ...s, workoutTemplates: next };
-          });
-          setEditingRoutineId(null);
-        }}
-        onDelete={
-          editingRoutineId !== NEW_ROUTINE_EDITOR_ID
-            ? (id) => {
-                setState((s) => ({
-                  ...s,
-                  workoutTemplates: s.workoutTemplates.filter((t) => t.id !== id),
-                }));
-              }
-            : null
-        }
-        onClose={() => setEditingRoutineId(null)}
-      />
+      <>
+        <WorkoutRoutineEditor
+          key={editingRoutineId}
+          template={editTemplate}
+          customExercises={state.customExercises}
+          exerciseNotesByKey={state.exerciseNotesByKey}
+          onNotePress={(name, label) => setNotesEdit({ name, label })}
+          onSave={(saved) => {
+            setState((s) => {
+              const i = s.workoutTemplates.findIndex((t) => t.id === saved.id);
+              const next = [...s.workoutTemplates];
+              if (i >= 0) next[i] = saved;
+              else next.push(saved);
+              return { ...s, workoutTemplates: next };
+            });
+            setEditingRoutineId(null);
+          }}
+          onDelete={
+            editingRoutineId !== NEW_ROUTINE_EDITOR_ID
+              ? (id) => {
+                  setState((s) => ({
+                    ...s,
+                    workoutTemplates: s.workoutTemplates.filter((t) => t.id !== id),
+                  }));
+                }
+              : null
+          }
+          onClose={() => setEditingRoutineId(null)}
+        />
+        {notesEdit ? (
+          <ExerciseNotesEditSheet
+            exerciseName={notesEdit.name}
+            note={getExerciseNote(state.exerciseNotesByKey, notesEdit.name, notesEdit.label)}
+            onSave={(next) => saveExerciseNote(notesEdit.name, notesEdit.label, next)}
+            onDelete={() => deleteExerciseNote(notesEdit.name, notesEdit.label)}
+            onClose={() => setNotesEdit(null)}
+          />
+        ) : null}
+      </>
     );
   }
 
@@ -830,15 +861,16 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           }
           renderItem={(exercise, ei, handle, ctx) => {
           const done = exercise.sets.filter((st) => st.done).length;
+          const exerciseNote = getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label);
           return (
-<div
+            <div
               className="card"
               style={{
                 padding: 16,
                 pointerEvents: ctx.isOverlay ? "none" : undefined,
               }}
             >
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: exerciseNote ? 8 : 12 }}>
                 <ExerciseDragHandle handle={handle} disabled={ctx.isListDragging && !handle.isDragging} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -889,6 +921,11 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                   <IconTrash size={18} stroke={1.75} />
                 </button>
               </div>
+
+              <ExerciseNoteRow
+                note={exerciseNote}
+                onPress={() => setNotesEdit({ name: exercise.name, label: exercise.label })}
+              />
 
               <div
                 style={{
@@ -1232,6 +1269,16 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
       </div>
 
       <div style={{ height: 8 }} />
+
+      {notesEdit ? (
+        <ExerciseNotesEditSheet
+          exerciseName={notesEdit.name}
+          note={getExerciseNote(state.exerciseNotesByKey, notesEdit.name, notesEdit.label)}
+          onSave={(next) => saveExerciseNote(notesEdit.name, notesEdit.label, next)}
+          onDelete={() => deleteExerciseNote(notesEdit.name, notesEdit.label)}
+          onClose={() => setNotesEdit(null)}
+        />
+      ) : null}
     </div>
   );
 }

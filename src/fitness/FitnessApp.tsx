@@ -78,54 +78,8 @@ export function FitnessApp() {
   }, [state.dailyTasks, state.nutritionTargets, state.planStartIso, state.stepsTarget, state.workoutTemplates]);
 
   useEffect(() => {
-    savePersistedSlice({
-      nutritionLog: state.nutritionLog,
-      nutritionManualByDay: state.nutritionManualByDay,
-      nutritionItemsByDay: state.nutritionItemsByDay,
-      nutritionPresets: state.nutritionPresets,
-      workout: state.workout,
-      customExercises: state.customExercises,
-      workoutTemplates: state.workoutTemplates,
-      workoutsCompletedByDay: state.workoutsCompletedByDay,
-      exercisePersonalBests: state.exercisePersonalBests,
-      nutritionTargets: state.nutritionTargets,
-      weightLog: state.weightLog,
-      lastAdjustmentSundayKey: state.lastAdjustmentSundayKey,
-      sundayReviewCompletedKey: state.sundayReviewCompletedKey,
-      adjustmentHistory: state.adjustmentHistory,
-      nightlyStretchCompletedArizonaKey: state.nightlyStretchCompletedArizonaKey,
-      nightlyStretchBlockIdsByArizonaDay: state.nightlyStretchBlockIdsByArizonaDay,
-      displayName: state.displayName,
-      habitTemplates: state.habitTemplates,
-      habitsDoneByDay: state.habitsDoneByDay,
-      planStartIso: state.planStartIso,
-      stepsTarget: state.stepsTarget,
-      progressGoal: state.progressGoal,
-    });
-  }, [
-    state.nutritionLog,
-    state.nutritionManualByDay,
-    state.nutritionItemsByDay,
-    state.nutritionPresets,
-    state.workout,
-    state.customExercises,
-    state.workoutTemplates,
-    state.workoutsCompletedByDay,
-    state.exercisePersonalBests,
-    state.nutritionTargets,
-    state.weightLog,
-    state.lastAdjustmentSundayKey,
-    state.sundayReviewCompletedKey,
-    state.adjustmentHistory,
-    state.nightlyStretchCompletedArizonaKey,
-    state.nightlyStretchBlockIdsByArizonaDay,
-    state.displayName,
-    state.habitTemplates,
-    state.habitsDoneByDay,
-    state.planStartIso,
-    state.stepsTarget,
-    state.progressGoal,
-  ]);
+    savePersistedSlice(sliceFromAppState(state));
+  }, [syncSig]);
 
   useEffect(() => {
     const rolloverIfNeeded = () => {

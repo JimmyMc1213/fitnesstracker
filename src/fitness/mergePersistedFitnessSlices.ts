@@ -169,6 +169,7 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     adjustmentHistory: mergeAdjustmentHistory(local.adjustmentHistory, remote.adjustmentHistory),
     workout: mergeWorkoutState(local.workout, remote.workout),
     customExercises: mergeById(local.customExercises, remote.customExercises),
+    exerciseNotesByKey: { ...local.exerciseNotesByKey, ...remote.exerciseNotesByKey },
     workoutTemplates: mergeById(local.workoutTemplates, remote.workoutTemplates, 80),
     workoutsCompletedByDay: mergeWorkoutsCompleted(local.workoutsCompletedByDay, remote.workoutsCompletedByDay),
     exercisePersonalBests: mergeExercisePersonalBests(local.exercisePersonalBests, remote.exercisePersonalBests),

@@ -11,6 +11,7 @@ import {
   defaultWorkoutRoutineTemplates,
   normalizeWorkoutTemplates,
 } from "./data";
+import { normalizeExerciseNotesByKey } from "./exerciseNotes";
 import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import type {
@@ -280,6 +281,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     nutritionPresets: normalizeNutritionPresets(p?.nutritionPresets),
     workout: normalizePersistedWorkout(p?.workout),
     customExercises: normalizeCustomExercises(p?.customExercises),
+    exerciseNotesByKey: normalizeExerciseNotesByKey(p?.exerciseNotesByKey),
     workoutTemplates,
     workoutsCompletedByDay: normalizeWorkoutsCompletedByDay(p?.workoutsCompletedByDay),
     exercisePersonalBests: normalizeExercisePersonalBests(p?.exercisePersonalBests),

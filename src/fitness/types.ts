@@ -168,6 +168,8 @@ export type AppState = {
   workout: WorkoutState;
   /** Exercises you created (name + label); available when adding moves to a session. */
   customExercises: CustomExerciseTemplate[];
+  /** Freeform notes keyed by exercise identity (name + optional label); persist across all workouts. */
+  exerciseNotesByKey: Record<string, string>;
   /** Your routines (start workout from these; edit anytime). Seeded from the built-in 5-day split on first launch. */
   workoutTemplates: WorkoutRoutineTemplate[];
   /** Local YYYY-MM-DD days where the user tapped Finish on a workout session (not Cancel). */

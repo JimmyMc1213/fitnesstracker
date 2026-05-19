@@ -36,17 +36,6 @@ export function AuthScreen() {
   };
 
   const s: Record<string, CSSProperties> = {
-    root: {
-      position: "fixed",
-      inset: 0,
-      background: "#0f0f0f",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "32px 24px",
-      fontFamily: "inherit",
-    },
     logo: { fontSize: 28, fontWeight: 700, color: "#fff", marginBottom: 8 },
     sub: { fontSize: 14, color: "rgba(255,255,255,0.4)", marginBottom: 48 },
     card: {
@@ -107,7 +96,7 @@ export function AuthScreen() {
 
   if (view === "landing")
     return (
-      <div style={s.root}>
+      <div className="auth-screen">
         <div style={s.logo}>Fit Coach</div>
         <div style={s.sub}>Your personal training companion</div>
         <button
@@ -134,7 +123,7 @@ export function AuthScreen() {
 
   if (view === "signup")
     return (
-      <div style={s.root}>
+      <div className="auth-screen">
         <div style={s.card}>
           <div style={s.title}>Create Account</div>
           <input
@@ -181,7 +170,7 @@ export function AuthScreen() {
     );
 
   return (
-    <div style={s.root}>
+    <div className="auth-screen">
       <div style={s.card}>
         <div style={s.title}>Sign In</div>
         <input
