@@ -6,9 +6,11 @@ import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach
 import { finishWorkout } from "../finishWorkout";
 import { refreshStateAfterJimmySeed } from "../jimmy-seed-data";
 import { isJimmySummerPlanTemplates, jimmySuggestedRoutineIdForDate } from "../jimmyWeekly";
-import { IconCheck, IconMinus, IconPlus, IconSearch } from "../icons";
+import { IconCheck, IconMinus, IconPlus, IconSearch, IconTrash } from "../icons";
+import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
 import type { ScreenProps } from "../types";
+import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
 
 function formatSessionClock(d: Date): string {
@@ -45,7 +47,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [showWarmup, setShowWarmup] = useState(false);
   const [, setTick] = useState(0);
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
-
+  const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
   const w = state.workout;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
   const split = activeRoutine ? { day: activeRoutine.dayLabel, name: activeRoutine.name } : SPLIT.find((s) => s.id === w.splitId);
@@ -58,6 +60,13 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
       setEditingRoutineId(null);
     }
   }, [phase, editingRoutineId, state.workoutTemplates]);
+
+  useEffect(() => {
+    if (phase !== "idle" || previewRoutineId === null) return;
+    if (!state.workoutTemplates.some((t) => t.id === previewRoutineId)) {
+      setPreviewRoutineId(null);
+    }
+  }, [phase, previewRoutineId, state.workoutTemplates]);
 
   useEffect(() => {
     if (phase !== "lifting" || w.sessionStartedAtMs == null) return;
@@ -116,6 +125,16 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         exercises: s.workout.exercises.map((exercise) =>
           exercise.id === eid ? { ...exercise, sets: exercise.sets.filter((_, i) => i !== idx) } : exercise,
         ),
+      },
+    }));
+  }
+
+  function removeExerciseFromSession(eid: string) {
+    setState((s) => ({
+      ...s,
+      workout: {
+        ...s.workout,
+        exercises: s.workout.exercises.filter((exercise) => exercise.id !== eid),
       },
     }));
   }
@@ -243,6 +262,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     setDraftExName("");
     setDraftExLabel("");
     setShowWarmup(false);
+    setPreviewRoutineId(null);
   }
 
   function updateSessionTitle(text: string) {
@@ -328,7 +348,9 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
 
   if (phase === "idle") {
     const jimmyLoaded = isJimmySummerPlanTemplates(state.workoutTemplates);
+    const previewTpl = previewRoutineId ? state.workoutTemplates.find((t) => t.id === previewRoutineId) : null;
     return (
+      <>
       <div key="workout-idle" className="screen page-transition">
         <ScreenHeader eyebrow="TRAINING" title="Start Workout" />
 
@@ -468,7 +490,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                   <button
                     type="button"
                     className="tap"
-                    onClick={() => startTemplateWorkout(tpl.id)}
+                    onClick={() => setPreviewRoutineId(tpl.id)}
                     style={{
                       flex: 1,
                       textAlign: "left",
@@ -562,6 +584,21 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
 
         <div style={{ height: 12 }} />
       </div>
+      {previewTpl ? (
+        <RoutinePreviewSheet
+          template={previewTpl}
+          onClose={() => setPreviewRoutineId(null)}
+          onEdit={() => {
+            setPreviewRoutineId(null);
+            setEditingRoutineId(previewTpl.id);
+          }}
+          onStart={() => {
+            startTemplateWorkout(previewTpl.id);
+            setPreviewRoutineId(null);
+          }}
+        />
+      ) : null}
+      </>
     );
   }
 
@@ -782,12 +819,28 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             </p>
           </div>
         ) : null}
-        {w.exercises.map((exercise, ei) => {
+        <SortableExerciseList
+          items={w.exercises}
+          gap={12}
+          onReorder={(next) =>
+            setState((s) => ({
+              ...s,
+              workout: { ...s.workout, exercises: next },
+            }))
+          }
+          renderItem={(exercise, ei, handle, ctx) => {
           const done = exercise.sets.filter((st) => st.done).length;
           return (
-            <div key={exercise.id} className="card" style={{ padding: 16 }}>
-              <div className="between" style={{ marginBottom: 12 }}>
-                <div>
+<div
+              className="card"
+              style={{
+                padding: 16,
+                pointerEvents: ctx.isOverlay ? "none" : undefined,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
+                <ExerciseDragHandle handle={handle} disabled={ctx.isListDragging && !handle.isDragging} />
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
                       {String(ei + 1).padStart(2, "0")}
@@ -815,6 +868,26 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                     Target {exercise.target} · {done}/{exercise.sets.length} sets
                   </div>
                 </div>
+                <button
+                  type="button"
+                  className="tap"
+                  aria-label={`Remove ${exercise.name}`}
+                  disabled={ctx.isListDragging}
+                  onClick={() => removeExerciseFromSession(exercise.id)}
+                  style={{
+                    flexShrink: 0,
+                    display: "grid",
+                    placeItems: "center",
+                    width: 36,
+                    height: 36,
+                    padding: 0,
+                    border: "none",
+                    background: "transparent",
+                    color: "#FF6961",
+                  }}
+                >
+                  <IconTrash size={18} stroke={1.75} />
+                </button>
               </div>
 
               <div
@@ -944,7 +1017,8 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               </button>
             </div>
           );
-        })}
+          }}
+        />
       </div>
 
       {showExSearch ? (

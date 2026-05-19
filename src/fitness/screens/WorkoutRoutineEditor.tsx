@@ -1,7 +1,8 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
 import { EXERCISE_DB, newTemplateExerciseLine, resizeWorkoutSets } from "../data";
-import { IconPlus, IconSearch } from "../icons";
+import { IconPlus, IconSearch, IconTrash } from "../icons";
+import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
 import type { CustomExerciseTemplate, WorkoutExercise, WorkoutRoutineTemplate } from "../types";
 
@@ -34,7 +35,6 @@ export function WorkoutRoutineEditor({
   const [exQuery, setExQuery] = useState("");
   const [draftName, setDraftName] = useState("");
   const [draftLabel, setDraftLabel] = useState("");
-
   useEffect(() => {
     if (template) {
       setName(template.name);
@@ -92,18 +92,6 @@ export function WorkoutRoutineEditor({
         return next;
       }),
     );
-  }
-
-  function moveExercise(id: string, dir: -1 | 1) {
-    setExercises((rows) => {
-      const i = rows.findIndex((r) => r.id === id);
-      if (i < 0) return rows;
-      const j = i + dir;
-      if (j < 0 || j >= rows.length) return rows;
-      const next = [...rows];
-      [next[i], next[j]] = [next[j]!, next[i]!];
-      return next;
-    });
   }
 
   function removeExercise(id: string) {
@@ -214,22 +202,58 @@ export function WorkoutRoutineEditor({
         <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>{exercises.length} move{exercises.length === 1 ? "" : "s"}</span>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {exercises.map((row, ri) => (
-          <div key={row.id} className="card" style={{ padding: 12 }}>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600, marginBottom: 8 }}>#{ri + 1}</div>
-            <input
-              value={row.name}
-              onChange={(e) => patchExercise(row.id, { name: e.target.value })}
-              placeholder="Exercise name"
-              style={{ ...inputStyle, marginBottom: 8 }}
-            />
+      <SortableExerciseList
+        items={exercises}
+        onReorder={setExercises}
+        gap={10}
+        renderItem={(row, ri, handle, ctx) => (
+          <div
+            className="card"
+            style={{
+              padding: 12,
+              pointerEvents: ctx.isOverlay ? "none" : undefined,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <ExerciseDragHandle handle={handle} disabled={ctx.isListDragging && !handle.isDragging} />
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600, flexShrink: 0, width: 20 }}>
+                #{ri + 1}
+              </span>
+              <input
+                value={row.name}
+                onChange={(e) => patchExercise(row.id, { name: e.target.value })}
+                placeholder="Exercise name"
+                style={{ ...inputStyle, flex: 1, minWidth: 0, marginBottom: 0 }}
+                readOnly={ctx.isOverlay}
+              />
+              <button
+                type="button"
+                className="tap"
+                aria-label={`Remove ${row.name.trim() || "exercise"}`}
+                disabled={ctx.isListDragging}
+                onClick={() => removeExercise(row.id)}
+                style={{
+                  flexShrink: 0,
+                  display: "grid",
+                  placeItems: "center",
+                  width: 36,
+                  height: 36,
+                  padding: 0,
+                  border: "none",
+                  background: "transparent",
+                  color: "#FF6961",
+                }}
+              >
+                <IconTrash size={18} stroke={1.75} />
+              </button>
+            </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 72px", gap: 8, marginBottom: 8 }}>
               <input
                 value={row.target}
                 onChange={(e) => patchExercise(row.id, { target: e.target.value })}
                 placeholder="Target (e.g. 4 × 8–10)"
                 style={inputStyle}
+                readOnly={ctx.isOverlay}
               />
               <input
                 type="number"
@@ -239,33 +263,19 @@ export function WorkoutRoutineEditor({
                 onChange={(e) => patchExercise(row.id, { setCount: +e.target.value || 1 })}
                 title="Sets"
                 style={{ ...inputStyle, textAlign: "center" }}
+                readOnly={ctx.isOverlay}
               />
             </div>
             <input
               value={row.label ?? ""}
               onChange={(e) => patchExercise(row.id, { label: e.target.value })}
               placeholder="Label (optional)"
-              style={{ ...inputStyle, marginBottom: 10 }}
+              style={inputStyle}
+              readOnly={ctx.isOverlay}
             />
-            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-              <button type="button" className="tap" onClick={() => moveExercise(row.id, -1)} style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", padding: 6 }}>
-                ↑ Move up
-              </button>
-              <button type="button" className="tap" onClick={() => moveExercise(row.id, 1)} style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", padding: 6 }}>
-                ↓ Move down
-              </button>
-              <button
-                type="button"
-                className="tap"
-                onClick={() => removeExercise(row.id)}
-                style={{ marginLeft: "auto", fontSize: 12, color: "#FF6961", padding: 6, fontWeight: 600 }}
-              >
-                Remove
-              </button>
-            </div>
           </div>
-        ))}
-      </div>
+        )}
+      />
 
       {showPicker ? (
         <div className="card" style={{ padding: 12, marginTop: 12 }}>

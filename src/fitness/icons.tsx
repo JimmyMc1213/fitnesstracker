@@ -126,6 +126,19 @@ export function IconTrash(p: IconProps) {
   );
 }
 
+export function IconGrip(p: IconProps) {
+  return (
+    <Icon {...p} stroke={p.stroke ?? 2}>
+      <circle cx="9" cy="6" r="1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="6" r="1" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="18" r="1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="18" r="1" fill="currentColor" stroke="none" />
+    </Icon>
+  );
+}
+
 export function IconSearch(p: IconProps) {
   return (
     <Icon {...p}>
