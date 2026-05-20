@@ -4,38 +4,17 @@ import { planDayIndex, planWeekIndex } from "../data";
 import { localDateKey } from "../dailyPlan";
 import { IconArrowDown, IconArrowUp } from "../icons";
 import { LineChart, ScreenHeader, SectionLabel } from "../shared";
-import {
-  MIN_WEIGH_INS_PER_WEEK,
-  calendarWeekRangeFromSunday,
-  meanWeightInRangeOrNull,
-  sundayOfWeekContaining,
-} from "../weeklyAdjustment";
+import { WeighInSheet, weighInDateKeyToday } from "../WeighInSheet";
 import {
   formatWeightDeltaLbs,
-  formatWeightFromLbs,
   formatWeeklyRateLbsPerWeek,
   LBS_PER_KG,
   weightUnitLabel,
 } from "../unitPreferences";
 import type { ScreenProps } from "../types";
 
-function weekRowTitle(index: number): string {
-  if (index === 0) return "This week";
-  if (index === 1) return "Last week";
-  if (index === 2) return "2 wks ago";
-  return `${index} wks ago`;
-}
-
 function shortWeekEnding(dateKey: string): string {
   return new Date(`${dateKey}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function distinctDaysLogged(log: { dateKey: string }[], startKey: string, endKey: string): number {
-  const keys = new Set<string>();
-  for (const e of log) {
-    if (e.dateKey >= startKey && e.dateKey <= endKey) keys.add(e.dateKey);
-  }
-  return keys.size;
 }
 
 const DEFAULT_GOAL_LO = 158;
@@ -288,10 +267,13 @@ function LiftingCalendarCard({ viewYear, viewMonth, onPrevMonth, onNextMonth, on
   );
 }
 
-export function ScreenProgress({ state }: ScreenProps) {
+export function ScreenProgress({ state, setState }: ScreenProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null);
   const [chartW, setChartW] = useState(0);
+  const [weighInOpen, setWeighInOpen] = useState(false);
   const wUnit = state.unitPreferences.weightUnit;
+  const dateKeyToday = weighInDateKeyToday();
+  const todayEntry = state.weightLog.find((e) => e.dateKey === dateKeyToday);
 
   const goalLo = state.progressGoal?.goalWeightLowLbs ?? DEFAULT_GOAL_LO;
   const goalHi = state.progressGoal?.goalWeightHighLbs ?? DEFAULT_GOAL_HI;
@@ -344,21 +326,6 @@ export function ScreenProgress({ state }: ScreenProps) {
     });
   };
 
-  const calendarWeekRows = useMemo(() => {
-    const rows: { mon: string; sun: string; avg: number | null; days: number }[] = [];
-    let sun = sundayOfWeekContaining(new Date());
-    for (let i = 0; i < 8; i++) {
-      const { mon, sun: sk } = calendarWeekRangeFromSunday(sun);
-      const days = distinctDaysLogged(state.weightLog, mon, sk);
-      const avg = meanWeightInRangeOrNull(state.weightLog, mon, sk);
-      rows.push({ mon, sun: sk, avg, days });
-      const prev = new Date(sun);
-      prev.setDate(prev.getDate() - 7);
-      sun = prev;
-    }
-    return rows;
-  }, [state.weightLog]);
-
   const T = state.nutritionTargets;
 
   return (
@@ -366,7 +333,7 @@ export function ScreenProgress({ state }: ScreenProps) {
       <ScreenHeader eyebrow={`Week ${weekIn}/12 · Day ${daysIn}/${daysTotal}`} title="Progress" />
 
       <div className="card" style={{ padding: 18, marginTop: 18 }}>
-        <div className="between">
+        <div className="between" style={{ alignItems: "flex-start", gap: 12 }}>
           <div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>
               Body weight
@@ -397,53 +364,50 @@ export function ScreenProgress({ state }: ScreenProps) {
                   {formatWeightDeltaLbs(deltaLbs, wUnit)}
                 </>
               ) : (
-                <span style={{ color: "rgba(255,255,255,0.35)" }}>Log on Home</span>
+                <span style={{ color: "rgba(255,255,255,0.35)" }}>Log weigh-in</span>
               )}
             </div>
             <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 4, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
               vs first log
             </div>
           </div>
+          <button
+            type="button"
+            className="tap"
+            onClick={() => setWeighInOpen(true)}
+            style={{
+              flexShrink: 0,
+              border: "0.5px solid rgba(74,222,128,0.35)",
+              borderRadius: 10,
+              padding: "10px 14px",
+              fontSize: 12,
+              fontWeight: 600,
+              color: "rgb(74,222,128)",
+              background: "rgba(74,222,128,0.1)",
+            }}
+          >
+            {todayEntry ? "Update weigh-in" : "Log weigh-in"}
+          </button>
         </div>
         <div ref={chartWrapRef} style={{ marginTop: 14, width: "100%" }}>
           {chartSeries.length >= 2 && chartW > 0 ? (
             <LineChart data={chartSeries} width={chartW} height={140} />
           ) : chartSeries.length >= 2 ? null : (
-            <div style={{ padding: 32, textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>Two weigh-ins unlock the chart.</div>
+            <div style={{ padding: 32, textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>
+              Log two weigh-ins to unlock the trend line.
+            </div>
           )}
         </div>
       </div>
 
-      <SectionLabel
-        right={
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500 }}>
-            Sundays compare two weeks (need {MIN_WEIGH_INS_PER_WEEK} weigh-in days each)
-          </span>
-        }
-      >
-        Week avg
-      </SectionLabel>
-      <div className="card" style={{ padding: 18 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {calendarWeekRows.map((row, i) => (
-            <div key={row.sun} className="between" style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.85)" }}>
-              <span>{weekRowTitle(i)}</span>
-              <span style={{ fontVariantNumeric: "tabular-nums" }}>
-                {row.avg !== null ? (
-                  <>
-                    {formatWeightFromLbs(row.avg, wUnit)} {weightUnitLabel(wUnit)}{" "}
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{row.days}/{MIN_WEIGH_INS_PER_WEEK}d</span>
-                  </>
-                ) : (
-                  <span style={{ color: "rgba(255,255,255,0.35)" }}>
-                    — <span style={{ fontSize: 10 }}>{row.days}/{MIN_WEIGH_INS_PER_WEEK}d</span>
-                  </span>
-                )}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <WeighInSheet
+        open={weighInOpen}
+        onClose={() => setWeighInOpen(false)}
+        dateKey={dateKeyToday}
+        existing={todayEntry}
+        unitPreferences={state.unitPreferences}
+        setState={setState}
+      />
 
       <SectionLabel
         right={
