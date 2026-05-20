@@ -13,6 +13,7 @@ import {
 } from "./data";
 import { normalizeExerciseNotesByKey } from "./exerciseNotes";
 import { normalizeExperienceLevel } from "./experienceLevel";
+import { normalizeEquipmentSetup } from "./equipmentSetup";
 import { isJimmySummerPlanTemplates } from "./jimmyWeekly";
 import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
 import { normalizeUnitPreferences } from "./unitPreferences";
@@ -313,5 +314,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
       (p?.weightLog?.length ?? 0) > 0,
     experienceLevel: normalizeExperienceLevel(p?.experienceLevel),
     experienceLevelChosen: p?.experienceLevelChosen === true || hasLegacyFitnessData,
+    equipmentSetup: normalizeEquipmentSetup(p?.equipmentSetup),
+    equipmentSetupChosen: p?.equipmentSetupChosen === true || hasLegacyFitnessData,
   };
 }

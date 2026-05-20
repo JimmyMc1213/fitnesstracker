@@ -33,6 +33,8 @@ export type PersistedFitnessSlice = Pick<
   | "unitPreferencesChosen"
   | "experienceLevel"
   | "experienceLevelChosen"
+  | "equipmentSetup"
+  | "equipmentSetupChosen"
 >;
 
 export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
@@ -64,6 +66,8 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     unitPreferencesChosen: state.unitPreferencesChosen,
     experienceLevel: state.experienceLevel,
     experienceLevelChosen: state.experienceLevelChosen,
+    equipmentSetup: state.equipmentSetup,
+    equipmentSetupChosen: state.equipmentSetupChosen,
   };
 }
 

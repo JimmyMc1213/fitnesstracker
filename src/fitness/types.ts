@@ -117,6 +117,8 @@ export type HeightDisplayUnit = "ft_in" | "cm";
 
 export type ExperienceLevel = "beginner" | "intermediate" | "advanced";
 
+export type EquipmentSetup = "full_gym" | "home_gym" | "dumbbells_only" | "bodyweight_only";
+
 export type UnitPreferences = {
   weightUnit: WeightUnit;
   heightUnit: HeightDisplayUnit;
@@ -212,6 +214,10 @@ export type AppState = {
   experienceLevel: ExperienceLevel;
   /** False until user completes the experience level onboarding screen. */
   experienceLevelChosen: boolean;
+  /** Available equipment for exercise selection in templates. */
+  equipmentSetup: EquipmentSetup;
+  /** False until user completes the equipment onboarding screen. */
+  equipmentSetupChosen: boolean;
 };
 
 export type ScreenProps = {

@@ -6,13 +6,15 @@ import { refreshStateAfterJimmySeed } from "./jimmy-seed-data";
 import { useFitnessSync } from "./FitnessSyncContext";
 import { IconBolt, IconDroplet, IconMoon, IconRun, IconX } from "./icons";
 import { UnitPreferencePicker } from "./UnitPreferencePicker";
+import { EquipmentSetupPicker } from "./EquipmentSetupPicker";
+import { buildWorkoutTemplates } from "./workoutTemplateBuilder";
 import { SectionLabel } from "./shared";
 import {
   formatWeightFromLbs,
   heightUnitLabel,
   weightUnitLabel,
 } from "./unitPreferences";
-import type { AppState, HabitTemplate, MacroTotals, UnitPreferences } from "./types";
+import type { AppState, EquipmentSetup, HabitTemplate, MacroTotals, UnitPreferences } from "./types";
 
 function newHabitId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
@@ -314,6 +316,24 @@ export function SettingsSheet({
               setState((s) => ({
                 ...s,
                 unitPreferences: next,
+              }))
+            }
+          />
+        </div>
+
+        <SectionLabel>Equipment</SectionLabel>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+          Workout templates swap exercises to match what you have available.
+        </p>
+        <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
+          <EquipmentSetupPicker
+            value={state.equipmentSetup}
+            onChange={(next: EquipmentSetup) =>
+              setState((s) => ({
+                ...s,
+                equipmentSetup: next,
+                equipmentSetupChosen: true,
+                workoutTemplates: buildWorkoutTemplates(s.experienceLevel, next),
               }))
             }
           />

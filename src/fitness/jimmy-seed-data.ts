@@ -759,6 +759,8 @@ export function seedJimmyData(): void {
     progressGoal: { ...JIMMY_PROGRESS_GOAL_CONFIG },
     experienceLevel: "intermediate",
     experienceLevelChosen: true,
+    equipmentSetup: "full_gym",
+    equipmentSetupChosen: true,
     workout: {
       ...base.workout,
       splitId,

@@ -35,6 +35,7 @@ import { dismissWorkoutSummary } from "./finishWorkout";
 import { SundayReviewSheet } from "./SundayReviewSheet";
 import { UnitOnboardingScreen } from "./UnitOnboardingScreen";
 import { ExperienceLevelOnboardingScreen } from "./ExperienceLevelOnboardingScreen";
+import { EquipmentOnboardingScreen } from "./EquipmentOnboardingScreen";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
 import type { AppState, ScreenProps, TabId } from "./types";
 
@@ -86,6 +87,21 @@ function ExperienceLevelGate({
 }) {
   if (!state.experienceLevelChosen) {
     return <ExperienceLevelOnboardingScreen setState={setState} />;
+  }
+  return <>{children}</>;
+}
+
+function EquipmentSetupGate({
+  state,
+  setState,
+  children,
+}: {
+  state: AppState;
+  setState: React.Dispatch<React.SetStateAction<AppState>>;
+  children: ReactNode;
+}) {
+  if (!state.equipmentSetupChosen) {
+    return <EquipmentOnboardingScreen setState={setState} />;
   }
   return <>{children}</>;
 }
@@ -169,6 +185,7 @@ export function FitnessApp() {
       <AuthGate>
       <UnitPreferencesGate state={state} setState={setState}>
       <ExperienceLevelGate state={state} setState={setState}>
+      <EquipmentSetupGate state={state} setState={setState}>
       <div
         style={{
           flex: 1,
@@ -238,6 +255,7 @@ export function FitnessApp() {
           />
         ) : null}
       </div>
+      </EquipmentSetupGate>
       </ExperienceLevelGate>
       </UnitPreferencesGate>
       </AuthGate>

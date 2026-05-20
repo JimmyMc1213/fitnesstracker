@@ -3,8 +3,10 @@ import { mergeExercisePersonalBests } from "./workoutSummary";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { normalizeUnitPreferences } from "./unitPreferences";
 import { normalizeExperienceLevel } from "./experienceLevel";
+import { normalizeEquipmentSetup } from "./equipmentSetup";
 import type {
   AdjustmentEvent,
+  EquipmentSetup,
   ExperienceLevel,
   LoggedFood,
   NutritionLoggedItem,
@@ -158,6 +160,10 @@ function mergeExperienceLevel(local: ExperienceLevel, remote: ExperienceLevel): 
   return rank[remote] >= rank[local] ? remote : local;
 }
 
+function mergeEquipmentSetup(local: EquipmentSetup, remote: EquipmentSetup): EquipmentSetup {
+  return normalizeEquipmentSetup(remote ?? local);
+}
+
 /**
  * Union-merge two device snapshots so simultaneous edits on phone + desktop lose as little as possible.
  * When both sides edited the same habit day or workout-completion flag, done=true wins.
@@ -216,5 +222,10 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
       normalizeExperienceLevel(remote.experienceLevel),
     ),
     experienceLevelChosen: Boolean(local.experienceLevelChosen || remote.experienceLevelChosen),
+    equipmentSetup: mergeEquipmentSetup(
+      normalizeEquipmentSetup(local.equipmentSetup),
+      normalizeEquipmentSetup(remote.equipmentSetup),
+    ),
+    equipmentSetupChosen: Boolean(local.equipmentSetupChosen || remote.equipmentSetupChosen),
   };
 }
