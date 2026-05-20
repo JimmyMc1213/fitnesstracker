@@ -34,6 +34,7 @@ import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
 import { SundayReviewSheet } from "./SundayReviewSheet";
 import { UnitOnboardingScreen } from "./UnitOnboardingScreen";
+import { ExperienceLevelOnboardingScreen } from "./ExperienceLevelOnboardingScreen";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
 import type { AppState, ScreenProps, TabId } from "./types";
 
@@ -70,6 +71,21 @@ function UnitPreferencesGate({
 }) {
   if (!state.unitPreferencesChosen) {
     return <UnitOnboardingScreen setState={setState} />;
+  }
+  return <>{children}</>;
+}
+
+function ExperienceLevelGate({
+  state,
+  setState,
+  children,
+}: {
+  state: AppState;
+  setState: React.Dispatch<React.SetStateAction<AppState>>;
+  children: ReactNode;
+}) {
+  if (!state.experienceLevelChosen) {
+    return <ExperienceLevelOnboardingScreen setState={setState} />;
   }
   return <>{children}</>;
 }
@@ -152,6 +168,7 @@ export function FitnessApp() {
     <FitnessSyncContext.Provider value={fitnessSync}>
       <AuthGate>
       <UnitPreferencesGate state={state} setState={setState}>
+      <ExperienceLevelGate state={state} setState={setState}>
       <div
         style={{
           flex: 1,
@@ -221,6 +238,7 @@ export function FitnessApp() {
           />
         ) : null}
       </div>
+      </ExperienceLevelGate>
       </UnitPreferencesGate>
       </AuthGate>
     </FitnessSyncContext.Provider>
