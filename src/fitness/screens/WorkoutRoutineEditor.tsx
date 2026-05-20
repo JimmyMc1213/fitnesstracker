@@ -1,12 +1,13 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
 import { EXERCISE_DB, newTemplateExerciseLine, resizeWorkoutSets } from "../data";
+import { ExerciseProgressSection } from "../ExerciseProgressSection";
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { getExerciseNote } from "../exerciseNotes";
 import { IconPlus, IconSearch, IconTrash } from "../icons";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
-import type { CustomExerciseTemplate, WorkoutExercise, WorkoutRoutineTemplate } from "../types";
+import type { AppState, CustomExerciseTemplate, WorkoutExercise, WorkoutRoutineTemplate } from "../types";
 
 /** Pass as `editingRoutineId` to open the editor for a brand-new routine. */
 export const NEW_ROUTINE_EDITOR_ID = "__new__";
@@ -15,6 +16,7 @@ const ACCENT_BLUE = "#0A84FF";
 const DAY_PRESETS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 type WorkoutRoutineEditorProps = {
+  state: AppState;
   template: WorkoutRoutineTemplate | null;
   customExercises: CustomExerciseTemplate[];
   exerciseNotesByKey: Record<string, string>;
@@ -25,6 +27,7 @@ type WorkoutRoutineEditorProps = {
 };
 
 export function WorkoutRoutineEditor({
+  state,
   template,
   customExercises,
   exerciseNotesByKey,
@@ -283,6 +286,12 @@ export function WorkoutRoutineEditor({
               note={getExerciseNote(exerciseNotesByKey, row.name, row.label)}
               onPress={() => onNotePress(row.name, row.label)}
               style={{ marginTop: 0, marginBottom: 10 }}
+            />
+            <ExerciseProgressSection
+              state={state}
+              exerciseName={row.name}
+              exerciseLabel={row.label}
+              style={{ marginTop: 0, marginBottom: 0 }}
             />
           </div>
         )}

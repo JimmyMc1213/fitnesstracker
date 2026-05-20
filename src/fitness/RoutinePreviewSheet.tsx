@@ -1,17 +1,19 @@
 import type { MouseEvent } from "react";
 
-import type { WorkoutRoutineTemplate } from "./types";
+import { ExerciseProgressSection } from "./ExerciseProgressSection";
+import type { AppState, WorkoutRoutineTemplate } from "./types";
 
 const ACCENT_BLUE = "#0A84FF";
 
 type RoutinePreviewSheetProps = {
+  state: AppState;
   template: WorkoutRoutineTemplate;
   onClose: () => void;
   onEdit: () => void;
   onStart: () => void;
 };
 
-export function RoutinePreviewSheet({ template, onClose, onEdit, onStart }: RoutinePreviewSheetProps) {
+export function RoutinePreviewSheet({ state, template, onClose, onEdit, onStart }: RoutinePreviewSheetProps) {
   const totalSets = template.exercises.reduce((a, e) => a + e.sets.length, 0);
 
   function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
@@ -120,6 +122,12 @@ export function RoutinePreviewSheet({ template, onClose, onEdit, onStart }: Rout
                     {ex.target.trim() || `${ex.sets.length} sets`}
                     {ex.target.trim() ? ` · ${ex.sets.length} set${ex.sets.length === 1 ? "" : "s"}` : ""}
                   </div>
+                  <ExerciseProgressSection
+                    state={state}
+                    exerciseName={ex.name}
+                    exerciseLabel={ex.label}
+                    style={{ marginTop: 8, marginBottom: 0 }}
+                  />
                 </div>
               </div>
             ))}

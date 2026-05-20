@@ -43,11 +43,11 @@ export function appendExerciseSessionHistory(
 }
 
 export function getExerciseSessionHistory(
-  history: Record<string, ExerciseSessionSnapshot[]>,
+  history: Record<string, ExerciseSessionSnapshot[]> | undefined,
   name: string,
   label?: string,
 ): ExerciseSessionSnapshot[] {
-  return history[exerciseNoteKey(name, label)] ?? [];
+  return (history ?? {})[exerciseNoteKey(name, label)] ?? [];
 }
 
 export function normalizeExerciseSessionHistoryByKey(raw: unknown): Record<string, ExerciseSessionSnapshot[]> {
