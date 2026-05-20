@@ -16,6 +16,7 @@ import { normalizeExperienceLevel } from "./experienceLevel";
 import { normalizeEquipmentSetup } from "./equipmentSetup";
 import { isJimmySummerPlanTemplates } from "./jimmyWeekly";
 import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
+import { normalizeOnboardingProfile } from "./onboardingProfile";
 import { normalizeUnitPreferences } from "./unitPreferences";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import type {
@@ -311,10 +312,15 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     unitPreferencesChosen:
       p?.unitPreferencesChosen === true ||
       Boolean(p?.unitPreferences) ||
-      (p?.weightLog?.length ?? 0) > 0,
+      (p?.weightLog?.length ?? 0) > 0 ||
+      p?.onboardingComplete === true,
     experienceLevel: normalizeExperienceLevel(p?.experienceLevel),
-    experienceLevelChosen: p?.experienceLevelChosen === true || hasLegacyFitnessData,
+    experienceLevelChosen:
+      p?.experienceLevelChosen === true || hasLegacyFitnessData || p?.onboardingComplete === true,
     equipmentSetup: normalizeEquipmentSetup(p?.equipmentSetup),
-    equipmentSetupChosen: p?.equipmentSetupChosen === true || hasLegacyFitnessData,
+    equipmentSetupChosen:
+      p?.equipmentSetupChosen === true || hasLegacyFitnessData || p?.onboardingComplete === true,
+    onboardingProfile: normalizeOnboardingProfile(p?.onboardingProfile),
+    onboardingComplete: p?.onboardingComplete === true || hasLegacyFitnessData,
   };
 }

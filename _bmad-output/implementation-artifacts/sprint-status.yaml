@@ -66,7 +66,7 @@ development_status:
   fti-25-unit-preference-lbskg-in-onboarding-and-settings: done
   fti-26-experience-level-selection-in-onboarding: done
   fti-27-equipment-selection-in-onboarding: done
-  fti-14-new-user-onboarding-workout-template-selection-nutrition-setup: backlog
+  fti-14-new-user-onboarding-workout-template-selection-nutrition-setup: done
 
   # Progress & weigh-in
   fti-16-rebuild-weigh-in-simple-logging-with-optional-progress-photo: backlog
