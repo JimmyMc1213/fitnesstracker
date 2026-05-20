@@ -4,7 +4,8 @@ import { localDateKey } from "../dailyPlan";
 import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
-import { getExerciseNote, withExerciseNote } from "../exerciseNotes";
+import { ExerciseProgressChart } from "../ExerciseProgressChart";
+import { exerciseNoteKey, getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach";
 import { finishWorkout } from "../finishWorkout";
 import { refreshStateAfterJimmySeed } from "../jimmy-seed-data";
@@ -142,7 +143,17 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
+  const [openProgressKeys, setOpenProgressKeys] = useState<Set<string>>(() => new Set());
   const w = state.workout;
+
+  const toggleProgressChart = (key: string) => {
+    setOpenProgressKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
   const split = activeRoutine ? { day: activeRoutine.dayLabel, name: activeRoutine.name } : SPLIT.find((s) => s.id === w.splitId);
   const phase = w.sessionPhase;
@@ -961,6 +972,8 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           renderItem={(exercise, ei, handle, ctx) => {
           const done = exercise.sets.filter((st) => st.done).length;
           const exerciseNote = getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label);
+          const progressKey = exerciseNoteKey(exercise.name, exercise.label);
+          const progressOpen = openProgressKeys.has(progressKey);
           return (
             <div
               className="card"
@@ -1025,6 +1038,36 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                 note={exerciseNote}
                 onPress={() => setNotesEdit({ name: exercise.name, label: exercise.label })}
               />
+
+              <button
+                type="button"
+                className="tap"
+                disabled={ctx.isListDragging}
+                onClick={() => toggleProgressChart(progressKey)}
+                style={{
+                  marginTop: exerciseNote ? 8 : 0,
+                  marginBottom: progressOpen ? 4 : 12,
+                  padding: 0,
+                  border: "none",
+                  background: "transparent",
+                  color: "rgba(255,255,255,0.45)",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  textAlign: "left",
+                }}
+              >
+                {progressOpen ? "Hide" : "Show"} progress (last 10 sessions)
+              </button>
+
+              {progressOpen ? (
+                <div style={{ marginBottom: 12 }}>
+                  <ExerciseProgressChart
+                    state={state}
+                    exerciseName={exercise.name}
+                    exerciseLabel={exercise.label}
+                  />
+                </div>
+              ) : null}
 
               <div
                 style={{

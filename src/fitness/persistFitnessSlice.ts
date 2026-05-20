@@ -21,6 +21,7 @@ export type PersistedFitnessSlice = Pick<
   | "workoutTemplates"
   | "workoutsCompletedByDay"
   | "exercisePersonalBests"
+  | "exerciseSessionHistoryByKey"
   | "nightlyStretchCompletedArizonaKey"
   | "nightlyStretchBlockIdsByArizonaDay"
   | "displayName"
@@ -48,6 +49,7 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     workoutTemplates: state.workoutTemplates,
     workoutsCompletedByDay: state.workoutsCompletedByDay,
     exercisePersonalBests: state.exercisePersonalBests,
+    exerciseSessionHistoryByKey: state.exerciseSessionHistoryByKey,
     nightlyStretchCompletedArizonaKey: state.nightlyStretchCompletedArizonaKey,
     nightlyStretchBlockIdsByArizonaDay: state.nightlyStretchBlockIdsByArizonaDay,
     displayName: state.displayName,

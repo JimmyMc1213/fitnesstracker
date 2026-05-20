@@ -69,6 +69,15 @@ export type WorkoutSessionPhase = "idle" | "lifting";
 /** Best logged performance per exercise name (keyed by normalized name). */
 export type ExercisePersonalBest = { maxWeight: number; maxReps: number };
 
+/** One finished session's best set for an exercise (for progress charts). */
+export type ExerciseSessionSnapshot = {
+  dayKey: string;
+  endedAtMs: number;
+  bestWeight: number;
+  bestReps: number;
+  volume: number;
+};
+
 export type WorkoutSummaryPr = { exerciseName: string; detail: string };
 
 export type WorkoutSummaryNeedsWork = { exerciseName: string; detail: string };
@@ -176,6 +185,8 @@ export type AppState = {
   workoutsCompletedByDay: Record<string, boolean>;
   /** Per-exercise bests for PR detection across sessions. */
   exercisePersonalBests: Record<string, ExercisePersonalBest>;
+  /** Last 10 session snapshots per exercise (keyed by exerciseNoteKey). */
+  exerciseSessionHistoryByKey: Record<string, ExerciseSessionSnapshot[]>;
   /** Post-finish recap overlay; cleared when user returns home. */
   workoutSummary: WorkoutSessionSummary | null;
   habits: Habit[];

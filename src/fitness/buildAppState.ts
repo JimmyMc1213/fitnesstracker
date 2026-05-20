@@ -11,6 +11,7 @@ import {
   defaultWorkoutRoutineTemplates,
   normalizeWorkoutTemplates,
 } from "./data";
+import { normalizeExerciseSessionHistoryByKey } from "./exerciseSessionHistory";
 import { normalizeExerciseNotesByKey } from "./exerciseNotes";
 import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
@@ -285,6 +286,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     workoutTemplates,
     workoutsCompletedByDay: normalizeWorkoutsCompletedByDay(p?.workoutsCompletedByDay),
     exercisePersonalBests: normalizeExercisePersonalBests(p?.exercisePersonalBests),
+    exerciseSessionHistoryByKey: normalizeExerciseSessionHistoryByKey(p?.exerciseSessionHistoryByKey),
     workoutSummary: null,
     habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey),
     dailyTasks: loadTasksForToday(nutritionTargets, planStartIso, stepsTarget, workoutTemplates),

@@ -26,7 +26,7 @@ function isBetterSet(w: number, r: number, best: ExercisePersonalBest): boolean 
   return false;
 }
 
-function sessionBestForExercise(sets: WorkoutSet[]): { w: number; r: number } | null {
+export function sessionBestForExercise(sets: WorkoutSet[]): { w: number; r: number } | null {
   let best: { w: number; r: number } | null = null;
   for (const st of sets) {
     if (!st.done || (st.w <= 0 && st.r <= 0)) continue;
