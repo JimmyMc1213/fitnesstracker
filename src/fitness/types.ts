@@ -115,6 +115,8 @@ export type WeightUnit = "lbs" | "kg";
 /** Height entry/display mode — canonical storage is always inches (`heightIn`). */
 export type HeightDisplayUnit = "ft_in" | "cm";
 
+export type ExperienceLevel = "beginner" | "intermediate" | "advanced";
+
 export type UnitPreferences = {
   weightUnit: WeightUnit;
   heightUnit: HeightDisplayUnit;
@@ -206,6 +208,10 @@ export type AppState = {
   unitPreferences: UnitPreferences;
   /** False until user completes the first-run unit preference screen. */
   unitPreferencesChosen: boolean;
+  /** Training experience for template generation and coaching cues. */
+  experienceLevel: ExperienceLevel;
+  /** False until user completes the experience level onboarding screen. */
+  experienceLevelChosen: boolean;
 };
 
 export type ScreenProps = {

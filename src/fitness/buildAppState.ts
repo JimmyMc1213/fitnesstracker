@@ -12,6 +12,8 @@ import {
   normalizeWorkoutTemplates,
 } from "./data";
 import { normalizeExerciseNotesByKey } from "./exerciseNotes";
+import { normalizeExperienceLevel } from "./experienceLevel";
+import { isJimmySummerPlanTemplates } from "./jimmyWeekly";
 import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
 import { normalizeUnitPreferences } from "./unitPreferences";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
@@ -269,6 +271,10 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     p?.workoutTemplates === undefined || p?.workoutTemplates === null
       ? defaultWorkoutRoutineTemplates()
       : normalizeWorkoutTemplates(p.workoutTemplates);
+  const hasLegacyFitnessData =
+    Object.keys(p?.workoutsCompletedByDay ?? {}).length > 0 ||
+    (p?.weightLog?.length ?? 0) > 0 ||
+    isJimmySummerPlanTemplates(workoutTemplates);
 
   return {
     displayName,
@@ -305,5 +311,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
       p?.unitPreferencesChosen === true ||
       Boolean(p?.unitPreferences) ||
       (p?.weightLog?.length ?? 0) > 0,
+    experienceLevel: normalizeExperienceLevel(p?.experienceLevel),
+    experienceLevelChosen: p?.experienceLevelChosen === true || hasLegacyFitnessData,
   };
 }

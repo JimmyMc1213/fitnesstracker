@@ -2,8 +2,10 @@ import { nutritionPresetFingerprint } from "./nutritionTotals";
 import { mergeExercisePersonalBests } from "./workoutSummary";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { normalizeUnitPreferences } from "./unitPreferences";
+import { normalizeExperienceLevel } from "./experienceLevel";
 import type {
   AdjustmentEvent,
+  ExperienceLevel,
   LoggedFood,
   NutritionLoggedItem,
   NutritionPreset,
@@ -150,6 +152,12 @@ function mergeUnitPreferences(local: UnitPreferences | undefined, remote: UnitPr
   return normalizeUnitPreferences(remote ?? local);
 }
 
+function mergeExperienceLevel(local: ExperienceLevel, remote: ExperienceLevel): ExperienceLevel {
+  if (local === remote) return local;
+  const rank: Record<ExperienceLevel, number> = { beginner: 0, intermediate: 1, advanced: 2 };
+  return rank[remote] >= rank[local] ? remote : local;
+}
+
 /**
  * Union-merge two device snapshots so simultaneous edits on phone + desktop lose as little as possible.
  * When both sides edited the same habit day or workout-completion flag, done=true wins.
@@ -203,5 +211,10 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
       normalizeUnitPreferences(remote.unitPreferences),
     ),
     unitPreferencesChosen: Boolean(local.unitPreferencesChosen || remote.unitPreferencesChosen),
+    experienceLevel: mergeExperienceLevel(
+      normalizeExperienceLevel(local.experienceLevel),
+      normalizeExperienceLevel(remote.experienceLevel),
+    ),
+    experienceLevelChosen: Boolean(local.experienceLevelChosen || remote.experienceLevelChosen),
   };
 }
