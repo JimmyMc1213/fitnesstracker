@@ -157,6 +157,8 @@ export type DailyTask = {
 export type WeightEntry = {
   dateKey: string;
   weightLbs: number;
+  /** ISO timestamp when the entry was saved (synced via JSONB payload). */
+  loggedAtIso?: string;
   photoDataUrl?: string;
 };
 

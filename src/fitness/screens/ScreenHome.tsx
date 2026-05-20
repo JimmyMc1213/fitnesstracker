@@ -1,19 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { IconCheck, IconChevR, IconSettings } from "../icons";
 import { arizonaCalendarDateKey, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
 import { SettingsSheet } from "../SettingsSheet";
-import { compressImageToJpegDataUrl } from "../imageCompress";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { SUNDAY_PREP_STEPS } from "../jimmy-seed-data";
 import { StreakWeeklyHeader } from "../StreakWeeklyHeader";
 import { MacroBar, MacroRing, ScreenHeader } from "../shared";
-import {
-  formatWeightFromLbs,
-  isValidWeighInLbs,
-  parseWeightToLbs,
-  weightUnitLabel,
-} from "../unitPreferences";
+import { formatWeightFromLbs, weightUnitLabel } from "../unitPreferences";
 import type { ScreenProps } from "../types";
 
 export function ScreenHome({ state, setState, navigate }: ScreenProps) {
@@ -23,13 +17,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   const todayEntry = state.weightLog.find((e) => e.dateKey === dateKeyToday);
 
   const wUnit = state.unitPreferences.weightUnit;
-  const [weightDraft, setWeightDraft] = useState(() =>
-    todayEntry ? formatWeightFromLbs(todayEntry.weightLbs, wUnit, wUnit === "kg" ? 1 : 1) : "",
-  );
-  const [photoPreview, setPhotoPreview] = useState<string | null>(todayEntry?.photoDataUrl ?? null);
-  const fileRef = useRef<HTMLInputElement>(null);
   const [clock, setClock] = useState(() => new Date());
-  const [morningWeighInEditing, setMorningWeighInEditing] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const greetingName = state.displayName.trim();
@@ -39,45 +27,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
     const id = window.setInterval(() => setClock(new Date()), 60_000);
     return () => window.clearInterval(id);
   }, []);
-
-  useEffect(() => {
-    setMorningWeighInEditing(false);
-  }, [dateKeyToday]);
-
-  useEffect(() => {
-    setWeightDraft(todayEntry ? formatWeightFromLbs(todayEntry.weightLbs, wUnit, wUnit === "kg" ? 1 : 1) : "");
-    setPhotoPreview(todayEntry?.photoDataUrl ?? null);
-  }, [dateKeyToday, todayEntry?.weightLbs, todayEntry?.photoDataUrl, wUnit]);
-
-  async function onPickPhoto(f: File) {
-    try {
-      const url = await compressImageToJpegDataUrl(f);
-      setPhotoPreview(url);
-    } catch {
-      /* ignore */
-    }
-  }
-
-  function saveWeighIn() {
-    const display = parseFloat(weightDraft);
-    const lbs = parseWeightToLbs(display, wUnit);
-    if (!isValidWeighInLbs(lbs)) return;
-    setState((s) => {
-      const key = localDateKey(new Date());
-      const nextLog = s.weightLog.filter((e) => e.dateKey !== key);
-      nextLog.push({ dateKey: key, weightLbs: lbs, photoDataUrl: photoPreview ?? undefined });
-      nextLog.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
-      return { ...s, weightLog: nextLog };
-    });
-    setMorningWeighInEditing(false);
-  }
-
-  function cancelWeighInRedo() {
-    if (!todayEntry) return;
-    setMorningWeighInEditing(false);
-    setWeightDraft(formatWeightFromLbs(todayEntry.weightLbs, wUnit, wUnit === "kg" ? 1 : 1));
-    setPhotoPreview(todayEntry.photoDataUrl ?? null);
-  }
 
   const todayEyebrow = new Date()
     .toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
@@ -116,144 +65,52 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
 
       <StreakWeeklyHeader state={state} todayKey={dateKeyToday} />
 
-      {todayEntry && !morningWeighInEditing ? (
-        <button
-          type="button"
-          className="tap card"
-          onClick={() => setMorningWeighInEditing(true)}
-          aria-label="Edit morning weigh-in"
+      <button
+        type="button"
+        className="tap card"
+        onClick={() => navigate("progress")}
+        aria-label={todayEntry ? "View or update weigh-in on Progress" : "Log weigh-in on Progress"}
+        style={{
+          padding: 16,
+          marginTop: 18,
+          borderColor: todayEntry ? "rgba(74,222,128,0.25)" : "rgba(74,222,128,0.18)",
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+          width: "100%",
+          textAlign: "left",
+          background: "var(--card)",
+        }}
+      >
+        <div
           style={{
-            padding: 16,
-            marginTop: 18,
-            borderColor: "rgba(74,222,128,0.25)",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            width: "100%",
-            textAlign: "left",
-            background: "var(--card)",
+            width: 44,
+            height: 44,
+            borderRadius: 999,
+            background: todayEntry ? "rgba(74,222,128,0.18)" : "rgba(255,255,255,0.06)",
+            display: "grid",
+            placeItems: "center",
+            flexShrink: 0,
           }}
         >
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 999,
-              background: "rgba(74,222,128,0.18)",
-              display: "grid",
-              placeItems: "center",
-              flexShrink: 0,
-            }}
-          >
-            <IconCheck size={22} stroke={2.4} style={{ color: "rgb(74,222,128)" }} />
-          </div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "#fff" }}>Morning weigh-in</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 4 }}>
-              Tap to fix a mistake or update weight / photo.
-            </div>
-          </div>
-        </button>
-      ) : (
-        <div className="card" style={{ padding: 18, marginTop: 18, borderColor: "rgba(74,222,128,0.25)" }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "rgba(74,222,128,0.75)",
-              marginBottom: 8,
-            }}
-          >
-            Morning weigh-in
-          </div>
-          <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", fontWeight: 400 }}>
-            Step on the scale <strong style={{ color: "#fff", fontWeight: 600 }}>after the bathroom</strong>,{" "}
-            <strong style={{ color: "#fff", fontWeight: 600 }}>before food or drink</strong>. Optional progress photo — same
-            stance/lighting when you can.
-          </p>
-          <div className="between" style={{ alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
-            <div style={{ flex: 1, minWidth: 100 }}>
-              <label htmlFor="wi-weight" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em" }}>
-                Weight ({weightUnitLabel(wUnit)})
-              </label>
-              <input
-                id="wi-weight"
-                type="number"
-                inputMode="decimal"
-                className="input"
-                style={{ marginTop: 6, fontSize: 18, fontWeight: 600 }}
-                placeholder={wUnit === "kg" ? "78.2" : "172.4"}
-                value={weightDraft}
-                onChange={(e) => setWeightDraft(e.target.value)}
-              />
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
-              <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={(e) => e.target.files?.[0] && onPickPhoto(e.target.files[0])} />
-              <button
-                type="button"
-                className="tap"
-                onClick={() => fileRef.current?.click()}
-                style={{
-                  border: "0.5px solid var(--border)",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "#fff",
-                }}
-              >
-                {photoPreview ? "Change photo" : "Add progress photo"}
-              </button>
-              {photoPreview ? (
-                <button type="button" className="tap" onClick={() => setPhotoPreview(null)} style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
-                  Remove photo
-                </button>
-              ) : null}
-            </div>
-          </div>
-          {photoPreview ? (
-            <div style={{ marginTop: 14, borderRadius: 12, overflow: "hidden", border: "0.5px solid var(--border)", maxHeight: 220 }}>
-              <img src={photoPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-            </div>
-          ) : null}
-          <button
-            type="button"
-            className="tap"
-            onClick={saveWeighIn}
-            style={{
-              marginTop: 16,
-              width: "100%",
-              background: "#ffffff",
-              color: "#000",
-              borderRadius: 12,
-              padding: 14,
-              fontSize: 14,
-              fontWeight: 600,
-            }}
-          >
-            Save today&apos;s weigh-in
-          </button>
           {todayEntry ? (
-            <button
-              type="button"
-              className="tap"
-              onClick={cancelWeighInRedo}
-              style={{
-                marginTop: 10,
-                width: "100%",
-                padding: 10,
-                fontSize: 13,
-                fontWeight: 600,
-                color: "rgba(255,255,255,0.45)",
-              }}
-            >
-              Cancel · keep saved entry
-            </button>
-          ) : null}
+            <IconCheck size={22} stroke={2.4} style={{ color: "rgb(74,222,128)" }} />
+          ) : (
+            <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>+</span>
+          )}
         </div>
-      )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "#fff" }}>
+            {todayEntry ? "Weigh-in logged" : "Morning weigh-in"}
+          </div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 4 }}>
+            {todayEntry
+              ? `${formatWeightFromLbs(todayEntry.weightLbs, wUnit)} ${weightUnitLabel(wUnit)} · tap to update on Progress`
+              : "Log weight and optional photo on the Progress tab"}
+          </div>
+        </div>
+        <IconChevR size={14} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
+      </button>
 
       {isLocalSunday ? (
         <div className="card" style={{ padding: 18, marginTop: 18, borderColor: "rgba(255,200,120,0.28)" }}>

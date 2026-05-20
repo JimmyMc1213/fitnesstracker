@@ -69,7 +69,7 @@ development_status:
   fti-14-new-user-onboarding-workout-template-selection-nutrition-setup: done
 
   # Progress & weigh-in
-  fti-16-rebuild-weigh-in-simple-logging-with-optional-progress-photo: backlog
+  fti-16-rebuild-weigh-in-simple-logging-with-optional-progress-photo: done
 
   # Workout screen UX
   fti-19-workout-screen-ui-cleanup: backlog

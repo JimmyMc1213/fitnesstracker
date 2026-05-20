@@ -108,7 +108,7 @@ function nutritionExtraLines(targets: MacroTotals): string[] {
     `Structure, not perfection: most meals = protein + carb + produce; you pick the foods inside ~${targets.cal} kcal.`,
     `Fat around ${targets.f}g — don't zero-fat while cutting and training 5×/week.`,
     `Sweet rule: water/diet drink → 30g protein → wait 10 minutes — then one measured serving if you still want it.`,
-    `Weekly scale rule: adjust from the 7-day average weigh-in only (morning, post-bathroom, fasted).`,
+    `Weekly scale rule: log morning weight on Progress (post-bathroom, fasted); Sunday review compares week averages.`,
     `Planned treat beats random binge: one controlled dessert still works if totals stay honest in Fuel.`,
   ];
 }
@@ -258,7 +258,7 @@ export function generateDailyTasksForDate(
       id: `${dateKey}_l0`,
       category: "life",
       title:
-        "Sunday check-in: 7-day average weight, progress photos (same mirror/light: front/side/back, relaxed + flexed), days you hit calories + protein + steps, workouts completed, biggest struggle.",
+        "Sunday check-in: week-over-week weight trend, progress photos (same mirror/light: front/side/back, relaxed + flexed), days you hit calories + protein + steps, workouts completed, biggest struggle.",
       done: false,
     });
     tasks.push({

@@ -17,16 +17,27 @@ import type {
   WorkoutState,
 } from "./types";
 
+function weightEntryTimestamp(e: WeightEntry): number {
+  if (e.loggedAtIso) {
+    const t = Date.parse(e.loggedAtIso);
+    if (Number.isFinite(t)) return t;
+  }
+  return Date.parse(`${e.dateKey}T12:00:00`);
+}
+
 function mergeWeightLog(a: WeightEntry[], b: WeightEntry[]): WeightEntry[] {
   const byDay = new Map<string, WeightEntry>();
   for (const e of [...a, ...b]) {
     const prev = byDay.get(e.dateKey);
     if (!prev) byDay.set(e.dateKey, e);
     else {
+      const newer = weightEntryTimestamp(e) >= weightEntryTimestamp(prev) ? e : prev;
+      const older = newer === e ? prev : e;
       byDay.set(e.dateKey, {
-        ...prev,
-        ...e,
-        photoDataUrl: e.photoDataUrl ?? prev.photoDataUrl,
+        ...older,
+        ...newer,
+        photoDataUrl: newer.photoDataUrl ?? older.photoDataUrl,
+        loggedAtIso: newer.loggedAtIso ?? older.loggedAtIso,
       });
     }
   }

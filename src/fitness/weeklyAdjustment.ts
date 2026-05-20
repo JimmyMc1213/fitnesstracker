@@ -1,11 +1,8 @@
 import { DEFAULT_NUTRITION_TARGETS } from "./data";
 import type { AppState, AdjustmentEvent, MacroTotals, WeightEntry } from "./types";
 
-/** Require one weigh-in per day of the 7-day block (Mon–Sun) for a valid comparison. */
-export const MIN_WEIGH_INS_PER_WEEK = 7;
-const CAL_MIN = 1600;
-const CAL_MAX = 2800;
-const CARB_MIN = 80;
+/** Minimum distinct weigh-in days in a Mon–Sun week to compare week averages in Sunday review. */
+export const MIN_WEIGH_INS_FOR_WEEK_COMPARE = 2;
 
 function localDateKey(d: Date): string {
   const y = d.getFullYear();
@@ -56,11 +53,12 @@ export function weekDayShortLabel(dateKey: string): string {
   return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
-export function averageWeightInRange(
+/** Mean weight for distinct logged days in range; null if fewer than `minDistinctDays`. */
+export function meanWeightInRangeOrNull(
   log: WeightEntry[],
   startKey: string,
   endKey: string,
-  minDistinctDays: number,
+  minDistinctDays = 1,
 ): number | null {
   const entries = log.filter((e) => e.dateKey >= startKey && e.dateKey <= endKey);
   const byDay = new Map<string, number>();
@@ -68,17 +66,6 @@ export function averageWeightInRange(
     byDay.set(e.dateKey, e.weightLbs);
   }
   if (byDay.size < minDistinctDays) return null;
-  const sum = [...byDay.values()].reduce((a, v) => a + v, 0);
-  return sum / byDay.size;
-}
-
-export function meanWeightInRangeOrNull(log: WeightEntry[], startKey: string, endKey: string): number | null {
-  const entries = log.filter((e) => e.dateKey >= startKey && e.dateKey <= endKey);
-  const byDay = new Map<string, number>();
-  for (const e of entries) {
-    byDay.set(e.dateKey, e.weightLbs);
-  }
-  if (byDay.size === 0) return null;
   const sum = [...byDay.values()].reduce((a, v) => a + v, 0);
   return sum / byDay.size;
 }
@@ -92,8 +79,8 @@ function applyCalorieDelta(base: MacroTotals, deltaCal: number): MacroTotals {
     f: base.f,
     c: Math.round(base.c + deltaCal / 4),
   };
-  next.cal = Math.max(CAL_MIN, Math.min(CAL_MAX, next.cal));
-  next.c = Math.max(CARB_MIN, next.c);
+  next.cal = Math.max(1600, Math.min(2800, next.cal));
+  next.c = Math.max(80, next.c);
   return next;
 }
 
@@ -130,7 +117,7 @@ export type SundayReviewPreview = {
   weeklyLoss: number | null;
   baseDelta: number;
   recommendedTotalDelta: number;
-  /** Both weeks have 7 distinct logged days — comparison is valid. */
+  /** Both weeks have enough logged days for a week-over-week mean comparison. */
   ready: boolean;
 };
 
@@ -162,8 +149,8 @@ export function buildSundayReviewPreview(state: AppState, now = new Date()): Sun
   const distinctCurr = currDays.filter((d) => d.weightLbs != null).length;
   const distinctPrev = prevDays.filter((d) => d.weightLbs != null).length;
 
-  const avgCurr = averageWeightInRange(state.weightLog, currRange.mon, currRange.sun, MIN_WEIGH_INS_PER_WEEK);
-  const avgPrev = averageWeightInRange(state.weightLog, prevRange.mon, prevRange.sun, MIN_WEIGH_INS_PER_WEEK);
+  const avgCurr = meanWeightInRangeOrNull(state.weightLog, currRange.mon, currRange.sun, MIN_WEIGH_INS_FOR_WEEK_COMPARE);
+  const avgPrev = meanWeightInRangeOrNull(state.weightLog, prevRange.mon, prevRange.sun, MIN_WEIGH_INS_FOR_WEEK_COMPARE);
   const ready = avgCurr !== null && avgPrev !== null;
 
   let weeklyLoss: number | null = null;

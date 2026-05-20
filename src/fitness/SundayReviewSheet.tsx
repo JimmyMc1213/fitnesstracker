@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { refreshDailyTasksForTargets } from "./nutritionPipeline";
 import {
-  MIN_WEIGH_INS_PER_WEEK,
+  MIN_WEIGH_INS_FOR_WEEK_COMPARE,
   commitSundayReviewApproval,
   commitSundayReviewSkip,
   previewTargetsAfterCalorieDelta,
@@ -94,14 +94,14 @@ export function SundayReviewSheet({ preview, nutritionTargets, unitPreferences, 
         <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "rgba(255,255,255,0.55)" }}>Previous week ({preview.prevRange.mon} → {preview.prevRange.sun})</div>
         {rowList(preview.prevDays)}
         <div style={{ marginTop: 10, fontSize: 12, color: "rgba(255,255,255,0.4)", fontVariantNumeric: "tabular-nums" }}>
-          {preview.distinctPrev}/{MIN_WEIGH_INS_PER_WEEK} days · avg{" "}
+          {preview.distinctPrev} days logged · avg{" "}
           {preview.avgPrev != null ? `${formatWeightFromLbs(preview.avgPrev, wUnit)} ${weightUnitLabel(wUnit)}` : "—"}
         </div>
 
         <div style={{ fontSize: 12, fontWeight: 600, margin: "20px 0 8px", color: "rgba(255,255,255,0.55)" }}>This week ({preview.currRange.mon} → {preview.currRange.sun})</div>
         {rowList(preview.currDays)}
         <div style={{ marginTop: 10, fontSize: 12, color: "rgba(255,255,255,0.4)", fontVariantNumeric: "tabular-nums" }}>
-          {preview.distinctCurr}/{MIN_WEIGH_INS_PER_WEEK} days · avg{" "}
+          {preview.distinctCurr} days logged · avg{" "}
           {preview.avgCurr != null ? `${formatWeightFromLbs(preview.avgCurr, wUnit)} ${weightUnitLabel(wUnit)}` : "—"}
         </div>
 
@@ -145,8 +145,8 @@ export function SundayReviewSheet({ preview, nutritionTargets, unitPreferences, 
         ) : (
           <div style={{ marginTop: 18, padding: 14, borderRadius: 12, background: "rgba(255,100,100,0.08)", border: "0.5px solid rgba(255,100,100,0.2)" }}>
             <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.75)", fontWeight: 400 }}>
-              Need <strong style={{ color: "#fff" }}>{MIN_WEIGH_INS_PER_WEEK} different days</strong> with weigh-ins in{" "}
-              <strong style={{ color: "#fff" }}>both</strong> weeks to recommend a change. Close this and try again when logs are complete, or dismiss for today.
+              Need at least <strong style={{ color: "#fff" }}>{MIN_WEIGH_INS_FOR_WEEK_COMPARE} weigh-ins</strong> in{" "}
+              <strong style={{ color: "#fff" }}>both</strong> weeks to compare averages. Log more on Progress, or dismiss for today.
             </p>
           </div>
         )}
