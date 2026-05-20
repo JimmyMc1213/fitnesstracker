@@ -119,6 +119,25 @@ export type ExperienceLevel = "beginner" | "intermediate" | "advanced";
 
 export type EquipmentSetup = "full_gym" | "home_gym" | "dumbbells_only" | "bodyweight_only";
 
+export type NutritionGoal = "bulk" | "cut" | "maintain";
+
+export type ActivityLevel = "sedentary" | "light" | "moderate" | "active" | "very_active";
+
+export type UserGender = "male" | "female" | "other";
+
+export type WorkoutDaysPerWeek = 3 | 4 | 5 | 6;
+
+/** Stats and preferences collected during full onboarding (FTI-14). */
+export type OnboardingProfile = {
+  goal: NutritionGoal;
+  heightIn: number;
+  weightLbs: number;
+  age: number;
+  gender: UserGender;
+  activityLevel: ActivityLevel;
+  workoutDaysPerWeek: WorkoutDaysPerWeek;
+};
+
 export type UnitPreferences = {
   weightUnit: WeightUnit;
   heightUnit: HeightDisplayUnit;
@@ -218,6 +237,10 @@ export type AppState = {
   equipmentSetup: EquipmentSetup;
   /** False until user completes the equipment onboarding screen. */
   equipmentSetupChosen: boolean;
+  /** Profile from full onboarding (goal, stats, activity, split days). */
+  onboardingProfile: OnboardingProfile | null;
+  /** True after user finishes the guided onboarding wizard. */
+  onboardingComplete: boolean;
 };
 
 export type ScreenProps = {

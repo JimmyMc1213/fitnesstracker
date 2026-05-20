@@ -227,5 +227,7 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
       normalizeEquipmentSetup(remote.equipmentSetup),
     ),
     equipmentSetupChosen: Boolean(local.equipmentSetupChosen || remote.equipmentSetupChosen),
+    onboardingProfile: remote.onboardingProfile ?? local.onboardingProfile ?? null,
+    onboardingComplete: Boolean(local.onboardingComplete || remote.onboardingComplete),
   };
 }

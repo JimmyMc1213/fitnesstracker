@@ -33,9 +33,8 @@ import { ScreenStretch } from "./screens/ScreenStretch";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
 import { SundayReviewSheet } from "./SundayReviewSheet";
-import { UnitOnboardingScreen } from "./UnitOnboardingScreen";
-import { ExperienceLevelOnboardingScreen } from "./ExperienceLevelOnboardingScreen";
-import { EquipmentOnboardingScreen } from "./EquipmentOnboardingScreen";
+import { OnboardingFlow } from "./OnboardingFlow";
+import { shouldSkipOnboarding } from "./onboardingSkip";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
 import type { AppState, ScreenProps, TabId } from "./types";
 
@@ -61,7 +60,7 @@ function AuthGate({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-function UnitPreferencesGate({
+function OnboardingGate({
   state,
   setState,
   children,
@@ -70,40 +69,22 @@ function UnitPreferencesGate({
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   children: ReactNode;
 }) {
-  if (!state.unitPreferencesChosen) {
-    return <UnitOnboardingScreen setState={setState} />;
-  }
-  return <>{children}</>;
-}
+  const sync = useFitnessSync();
+  const forcePreview =
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("previewOnboarding") === "1";
 
-function ExperienceLevelGate({
-  state,
-  setState,
-  children,
-}: {
-  state: AppState;
-  setState: React.Dispatch<React.SetStateAction<AppState>>;
-  children: ReactNode;
-}) {
-  if (!state.experienceLevelChosen) {
-    return <ExperienceLevelOnboardingScreen setState={setState} />;
-  }
-  return <>{children}</>;
-}
+  if (state.onboardingComplete && !forcePreview) return <>{children}</>;
 
-function EquipmentSetupGate({
-  state,
-  setState,
-  children,
-}: {
-  state: AppState;
-  setState: React.Dispatch<React.SetStateAction<AppState>>;
-  children: ReactNode;
-}) {
-  if (!state.equipmentSetupChosen) {
-    return <EquipmentOnboardingScreen setState={setState} />;
-  }
-  return <>{children}</>;
+  const skip = shouldSkipOnboarding({
+    persisted: loadPersistedSlice(),
+    sessionEmail: sync.sessionEmail,
+    forcePreview,
+  });
+  if (skip && !forcePreview) return <>{children}</>;
+
+  return <OnboardingFlow setState={setState} />;
 }
 
 export function FitnessApp() {
@@ -183,9 +164,7 @@ export function FitnessApp() {
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
       <AuthGate>
-      <UnitPreferencesGate state={state} setState={setState}>
-      <ExperienceLevelGate state={state} setState={setState}>
-      <EquipmentSetupGate state={state} setState={setState}>
+      <OnboardingGate state={state} setState={setState}>
       <div
         style={{
           flex: 1,
@@ -255,9 +234,7 @@ export function FitnessApp() {
           />
         ) : null}
       </div>
-      </EquipmentSetupGate>
-      </ExperienceLevelGate>
-      </UnitPreferencesGate>
+      </OnboardingGate>
       </AuthGate>
     </FitnessSyncContext.Provider>
   );
