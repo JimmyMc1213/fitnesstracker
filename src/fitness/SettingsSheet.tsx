@@ -5,8 +5,14 @@ import { buildHabitsForDateKey } from "./data";
 import { refreshStateAfterJimmySeed } from "./jimmy-seed-data";
 import { useFitnessSync } from "./FitnessSyncContext";
 import { IconBolt, IconDroplet, IconMoon, IconRun, IconX } from "./icons";
+import { UnitPreferencePicker } from "./UnitPreferencePicker";
 import { SectionLabel } from "./shared";
-import type { AppState, HabitTemplate, MacroTotals } from "./types";
+import {
+  formatWeightFromLbs,
+  heightUnitLabel,
+  weightUnitLabel,
+} from "./unitPreferences";
+import type { AppState, HabitTemplate, MacroTotals, UnitPreferences } from "./types";
 
 function newHabitId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
@@ -296,6 +302,33 @@ export function SettingsSheet({
             </div>
           </div>
         )}
+
+        <SectionLabel>Units</SectionLabel>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+          Weight and height display units. Logged values are stored consistently — switching units only changes how numbers are shown.
+        </p>
+        <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
+          <UnitPreferencePicker
+            value={state.unitPreferences}
+            onChange={(next: UnitPreferences) =>
+              setState((s) => ({
+                ...s,
+                unitPreferences: next,
+              }))
+            }
+          />
+        </div>
+
+        {state.progressGoal ? (
+          <>
+            <SectionLabel>Goal range</SectionLabel>
+            <div className="card" style={{ padding: "16px 18px", marginBottom: 18, fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
+              {formatWeightFromLbs(state.progressGoal.goalWeightLowLbs, state.unitPreferences.weightUnit)}–
+              {formatWeightFromLbs(state.progressGoal.goalWeightHighLbs, state.unitPreferences.weightUnit)}{" "}
+              {weightUnitLabel(state.unitPreferences.weightUnit)} · height in {heightUnitLabel(state.unitPreferences.heightUnit)}
+            </div>
+          </>
+        ) : null}
 
         <SectionLabel>You</SectionLabel>
         <div className="card" style={{ padding: "16px 18px" }}>

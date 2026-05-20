@@ -12,6 +12,7 @@ import { isJimmySummerPlanTemplates, jimmySuggestedRoutineIdForDate } from "../j
 import { IconCheck, IconMinus, IconPlus, IconSearch, IconTrash } from "../icons";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
+import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
 import type { ScreenProps } from "../types";
 import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
@@ -143,6 +144,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
   const w = state.workout;
+  const wUnit = state.unitPreferences.weightUnit;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
   const split = activeRoutine ? { day: activeRoutine.dayLabel, name: activeRoutine.name } : SPLIT.find((s) => s.id === w.splitId);
   const phase = w.sessionPhase;
@@ -936,7 +938,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               marginTop: 2,
             }}
           >
-            LBS · Volume
+            {wUnit === "kg" ? "KG" : "LBS"} · Volume
           </div>
         </div>
       </div>
@@ -1039,7 +1041,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                   Set
                 </div>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", textAlign: "center" }}>
-                  Lbs
+                  {weightUnitLabel(wUnit)}
                 </div>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", textAlign: "center" }}>
                   Reps
@@ -1066,8 +1068,8 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                     </div>
                     <input
                       type="number"
-                      value={st.w || ""}
-                      onChange={(ev) => updateSet(exercise.id, si, { w: +ev.target.value || 0 })}
+                      value={st.w ? formatSetWeight(st.w, wUnit) : ""}
+                      onChange={(ev) => updateSet(exercise.id, si, { w: parseSetWeightInput(ev.target.value, wUnit) })}
                       placeholder="—"
                       style={{
                         background: "#1A1A1A",

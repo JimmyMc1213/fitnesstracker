@@ -13,6 +13,7 @@ import {
 } from "./data";
 import { normalizeExerciseNotesByKey } from "./exerciseNotes";
 import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
+import { normalizeUnitPreferences } from "./unitPreferences";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import type {
   AdjustmentEvent,
@@ -299,5 +300,10 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
         : null,
     nightlyStretchBlockIdsByArizonaDay: normalizeStretchBlockCompletionMap(p?.nightlyStretchBlockIdsByArizonaDay),
     progressGoal: normalizeProgressGoal(p?.progressGoal),
+    unitPreferences: normalizeUnitPreferences(p?.unitPreferences),
+    unitPreferencesChosen:
+      p?.unitPreferencesChosen === true ||
+      Boolean(p?.unitPreferences) ||
+      (p?.weightLog?.length ?? 0) > 0,
   };
 }

@@ -110,6 +110,16 @@ export type Habit = HabitTemplate & {
   done: boolean;
 };
 
+export type WeightUnit = "lbs" | "kg";
+
+/** Height entry/display mode — canonical storage is always inches (`heightIn`). */
+export type HeightDisplayUnit = "ft_in" | "cm";
+
+export type UnitPreferences = {
+  weightUnit: WeightUnit;
+  heightUnit: HeightDisplayUnit;
+};
+
 export type TabId = "home" | "habits" | "nutrition" | "workout" | "progress" | "stretch";
 
 /** One actionable item for the day — training, fuel, recovery. */
@@ -192,6 +202,10 @@ export type AppState = {
   /** Per Arizona calendar day, stretch block ids marked complete (`stretchRoutine` ids). */
   nightlyStretchBlockIdsByArizonaDay: Record<string, string[]>;
   progressGoal: ProgressGoalConfig | null;
+  /** Display units for weight and height (canonical values stay lbs / inches). */
+  unitPreferences: UnitPreferences;
+  /** False until user completes the first-run unit preference screen. */
+  unitPreferencesChosen: boolean;
 };
 
 export type ScreenProps = {

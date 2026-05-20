@@ -29,6 +29,8 @@ export type PersistedFitnessSlice = Pick<
   | "planStartIso"
   | "stepsTarget"
   | "progressGoal"
+  | "unitPreferences"
+  | "unitPreferencesChosen"
 >;
 
 export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
@@ -56,6 +58,8 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     planStartIso: state.planStartIso,
     stepsTarget: state.stepsTarget,
     progressGoal: state.progressGoal,
+    unitPreferences: state.unitPreferences,
+    unitPreferencesChosen: state.unitPreferencesChosen,
   };
 }
 
