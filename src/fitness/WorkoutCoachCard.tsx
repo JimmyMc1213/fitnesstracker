@@ -50,6 +50,7 @@ export function WorkoutCoachCard({
         className="tap"
         onClick={() => setCollapsed((v) => !v)}
         aria-expanded={!collapsed}
+        aria-label={collapsed ? "Coach tips — tap to expand" : "Coach tips — tap to collapse"}
         style={{
           width: "100%",
           display: "flex",
@@ -60,14 +61,23 @@ export function WorkoutCoachCard({
           border: "none",
           background: "transparent",
           color: "#fff",
+          textAlign: "left",
         }}
       >
-        <span style={{ ...labelStyle, color: COACH_BLUE_LABEL }}>Coach</span>
+        <span style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+          <span style={{ ...labelStyle, color: COACH_BLUE_LABEL }}>Coach</span>
+          {collapsed ? (
+            <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.45)", lineHeight: 1.35 }}>
+              Tap for coach note, warm-up & mobility
+            </span>
+          ) : null}
+        </span>
         <span
           aria-hidden
           style={{
             fontSize: 12,
             color: COACH_BLUE_MUTED,
+            flexShrink: 0,
             transform: collapsed ? "rotate(0deg)" : "rotate(180deg)",
             transition: "transform 0.15s ease",
           }}
