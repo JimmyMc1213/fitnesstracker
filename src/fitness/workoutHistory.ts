@@ -1,3 +1,4 @@
+import { exerciseNoteKey } from "./exerciseNotes";
 import type { CompletedWorkoutSession, WorkoutExercise, WorkoutSet, WorkoutState } from "./types";
 
 export const MAX_WORKOUT_HISTORY = 200;
@@ -68,6 +69,26 @@ export function getWorkoutHistorySorted(
   history: CompletedWorkoutSession[] | undefined,
 ): CompletedWorkoutSession[] {
   return [...(history ?? [])].sort((a, b) => b.endedAtMs - a.endedAtMs);
+}
+
+/** Per-set weight/reps from the most recent completed session for this exercise (by name + label). */
+export function getLastLoggedSetsForExercise(
+  history: CompletedWorkoutSession[] | undefined,
+  name: string,
+  label?: string,
+): WorkoutSet[] {
+  const key = exerciseNoteKey(name, label);
+  for (const session of getWorkoutHistorySorted(history)) {
+    const ex = session.exercises.find((e) => exerciseNoteKey(e.name, e.label) === key);
+    if (ex?.sets.length) return ex.sets;
+  }
+  return [];
+}
+
+/** Dimmed placeholder text for an empty set input (falls back to em dash). */
+export function formatSetPlaceholderField(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return "—";
+  return Number.isInteger(value) ? String(value) : String(value);
 }
 
 export function removeWorkoutFromHistory(

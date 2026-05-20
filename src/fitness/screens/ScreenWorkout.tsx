@@ -5,7 +5,7 @@ import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineT
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
 import { ExerciseProgressSection } from "../ExerciseProgressSection";
-import { getExerciseNote, withExerciseNote } from "../exerciseNotes";
+import { exerciseNoteKey, getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach";
 import { finishWorkout } from "../finishWorkout";
 import { refreshStateAfterJimmySeed } from "../jimmy-seed-data";
@@ -27,6 +27,10 @@ import type { ScreenProps } from "../types";
 import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
 import { WorkoutCoachBanner, type CoachSection } from "../WorkoutCoachBanner";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
+import {
+  formatSetPlaceholderField,
+  getLastLoggedSetsForExercise,
+} from "../workoutHistory";
 
 function formatSessionClock(d: Date): string {
   return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
@@ -217,6 +221,23 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     phase === "lifting" && w.sessionStartedAtMs != null
       ? Math.max(0, Math.floor((Date.now() - w.sessionStartedAtMs) / 1000))
       : 0;
+
+  const previousSetPlaceholdersByKey = useMemo(() => {
+    const map = new Map<string, { w: string; r: string }[]>();
+    for (const ex of w.exercises) {
+      const key = exerciseNoteKey(ex.name, ex.label);
+      if (map.has(key)) continue;
+      const lastSets = getLastLoggedSetsForExercise(state.workoutHistory, ex.name, ex.label);
+      map.set(
+        key,
+        lastSets.map((st) => ({
+          w: formatSetPlaceholderField(st.w),
+          r: formatSetPlaceholderField(st.r),
+        })),
+      );
+    }
+    return map;
+  }, [w.exercises, state.workoutHistory]);
 
   const totalSets = w.exercises.reduce((a, e) => a + e.sets.length, 0);
   const doneSets = w.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0);
@@ -964,6 +985,8 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           const done = exercise.sets.filter((st) => st.done).length;
           const exerciseNote = getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label);
           const hasNote = exerciseNote.trim().length > 0;
+          const prevPlaceholders =
+            previousSetPlaceholdersByKey.get(exerciseNoteKey(exercise.name, exercise.label)) ?? [];
           return (
             <div
               className="card"
@@ -1080,7 +1103,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                       type="number"
                       value={st.w || ""}
                       onChange={(ev) => updateSet(exercise.id, si, { w: +ev.target.value || 0 })}
-                      placeholder="—"
+                      placeholder={prevPlaceholders[si]?.w ?? "—"}
                       style={{
                         background: "#1A1A1A",
                         border: "0.5px solid var(--border)",
@@ -1100,7 +1123,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                       type="number"
                       value={st.r || ""}
                       onChange={(ev) => updateSet(exercise.id, si, { r: +ev.target.value || 0 })}
-                      placeholder="—"
+                      placeholder={prevPlaceholders[si]?.r ?? "—"}
                       style={{
                         background: "#1A1A1A",
                         border: "0.5px solid var(--border)",
