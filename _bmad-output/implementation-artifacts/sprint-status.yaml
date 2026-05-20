@@ -72,7 +72,7 @@ development_status:
   fti-16-rebuild-weigh-in-simple-logging-with-optional-progress-photo: done
 
   # Workout screen UX
-  fti-19-workout-screen-ui-cleanup: backlog
+  fti-19-workout-screen-ui-cleanup: done
   fti-17-clean-up-edit-workout-ui: backlog
   fti-18-drag-and-drop-lift-effect-on-exercise-reorder: backlog
   fti-20-rest-timer-between-sets: backlog
