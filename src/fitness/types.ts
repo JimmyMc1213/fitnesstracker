@@ -82,6 +82,17 @@ export type WorkoutSummaryPr = { exerciseName: string; detail: string };
 
 export type WorkoutSummaryNeedsWork = { exerciseName: string; detail: string };
 
+/** Full completed workout stored for history and calendar (persisted + Supabase blob). */
+export type CompletedWorkoutSession = {
+  id: string;
+  dayKey: string;
+  endedAtMs: number;
+  startedAtMs: number;
+  title: string;
+  durationSec: number;
+  exercises: WorkoutExercise[];
+};
+
 /** Snapshot shown after tapping Finish — not persisted (cleared on dismiss). */
 export type WorkoutSessionSummary = {
   title: string;
@@ -187,6 +198,8 @@ export type AppState = {
   exercisePersonalBests: Record<string, ExercisePersonalBest>;
   /** Last 10 session snapshots per exercise (keyed by exerciseNoteKey). */
   exerciseSessionHistoryByKey: Record<string, ExerciseSessionSnapshot[]>;
+  /** Completed workouts, newest first (capped on save). */
+  workoutHistory: CompletedWorkoutSession[];
   /** Post-finish recap overlay; cleared when user returns home. */
   workoutSummary: WorkoutSessionSummary | null;
   habits: Habit[];

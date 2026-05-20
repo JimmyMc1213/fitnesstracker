@@ -1,5 +1,6 @@
 import { nutritionPresetFingerprint } from "./nutritionTotals";
 import { mergeExerciseSessionHistoryByKey } from "./exerciseSessionHistory";
+import { mergeWorkoutHistory } from "./workoutHistory";
 import { mergeExercisePersonalBests } from "./workoutSummary";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import type {
@@ -178,6 +179,7 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
       local.exerciseSessionHistoryByKey,
       remote.exerciseSessionHistoryByKey,
     ),
+    workoutHistory: mergeWorkoutHistory(local.workoutHistory ?? [], remote.workoutHistory ?? []),
     nightlyStretchCompletedArizonaKey:
       local.nightlyStretchCompletedArizonaKey && remote.nightlyStretchCompletedArizonaKey
         ? local.nightlyStretchCompletedArizonaKey.localeCompare(remote.nightlyStretchCompletedArizonaKey) >= 0

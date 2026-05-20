@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { planDayIndex, planWeekIndex } from "../data";
 import { IconArrowDown, IconArrowUp } from "../icons";
+import { WorkoutCalendarCard } from "../WorkoutCalendarCard";
 import { LineChart, ScreenHeader, SectionLabel } from "../shared";
 import {
   MIN_WEIGH_INS_PER_WEEK,
@@ -172,6 +173,9 @@ export function ScreenProgress({ state }: ScreenProps) {
           ))}
         </div>
       </div>
+
+      <SectionLabel>Workouts</SectionLabel>
+      <WorkoutCalendarCard state={state} />
 
       <SectionLabel>Goal range</SectionLabel>
       <div className="card" style={{ padding: 18 }}>

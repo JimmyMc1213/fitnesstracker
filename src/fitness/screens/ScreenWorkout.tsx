@@ -10,7 +10,8 @@ import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach
 import { finishWorkout } from "../finishWorkout";
 import { refreshStateAfterJimmySeed } from "../jimmy-seed-data";
 import { isJimmySummerPlanTemplates, jimmySuggestedRoutineIdForDate } from "../jimmyWeekly";
-import { IconCheck, IconMinus, IconPlus, IconSearch, IconTrash } from "../icons";
+import { IconCheck, IconClock, IconMinus, IconPlus, IconSearch, IconTrash } from "../icons";
+import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
 import type { ScreenProps } from "../types";
@@ -29,6 +30,31 @@ function formatElapsed(totalSec: number): string {
 
 const ACCENT_BLUE = "#0A84FF";
 const ACCENT_GREEN = "#34C759";
+
+function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className="tap"
+      onClick={onClick}
+      aria-label="Workout history"
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        border: "0.5px solid var(--border)",
+        background: "rgba(255,255,255,0.06)",
+        color: "#fff",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      <IconClock size={20} stroke={1.75} />
+    </button>
+  );
+}
 
 const MOBILITY_ITEMS = [
   "90/90 hips or World's greatest stretch — 45–60s each side",
@@ -143,6 +169,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
+  const [showHistoryPage, setShowHistoryPage] = useState(false);
   const w = state.workout;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
   const split = activeRoutine ? { day: activeRoutine.dayLabel, name: activeRoutine.name } : SPLIT.find((s) => s.id === w.splitId);
@@ -426,6 +453,17 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     boxSizing: "border-box",
   };
 
+  if (showHistoryPage) {
+    return (
+      <ScreenWorkoutHistory
+        state={state}
+        setState={setState}
+        navigate={() => {}}
+        onBack={() => setShowHistoryPage(false)}
+      />
+    );
+  }
+
   if (phase === "idle" && editingRoutineId !== null) {
     if (editingRoutineId !== NEW_ROUTINE_EDITOR_ID && !state.workoutTemplates.some((t) => t.id === editingRoutineId)) {
       return null;
@@ -484,7 +522,11 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     return (
       <>
       <div key="workout-idle" className="screen page-transition">
-        <ScreenHeader eyebrow="TRAINING" title="Start Workout" />
+        <ScreenHeader
+          eyebrow="TRAINING"
+          title="Start Workout"
+          right={<HistoryHeaderButton onClick={() => setShowHistoryPage(true)} />}
+        />
 
         {!jimmyLoaded ? (
           <div
@@ -766,6 +808,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               fontSize: 14,
               fontWeight: 700,
               border: "none",
+              flexShrink: 0,
             }}
           >
             Finish workout
@@ -1395,6 +1438,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           onClose={() => setNotesEdit(null)}
         />
       ) : null}
+
     </div>
   );
 }
