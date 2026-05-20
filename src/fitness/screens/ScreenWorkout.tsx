@@ -7,13 +7,17 @@ import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
 import { getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach";
 import { finishWorkout } from "../finishWorkout";
-import { refreshStateAfterJimmySeed } from "../jimmy-seed-data";
 import { isJimmySummerPlanTemplates, jimmySuggestedRoutineIdForDate } from "../jimmyWeekly";
-import { IconCheck, IconMinus, IconPlus, IconSearch, IconTrash } from "../icons";
+import { IconCheck, IconClock, IconMinus, IconPencil, IconPlus, IconSearch, IconTrash } from "../icons";
+import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
 import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
-import type { ScreenProps } from "../types";
+import type { ExercisePersonalBest, ScreenProps, WeightUnit } from "../types";
+import { WorkoutCoachCard } from "../WorkoutCoachCard";
+import { WorkoutSessionStickyHeader } from "../WorkoutSessionStickyHeader";
+import { normalizeExerciseKey } from "../workoutSummary";
+import { COACH_BLUE, METADATA_SIZE, SECONDARY_ACTION_COLOR, TITLE_SIZE, USER_NOTE_GRAY_MUTED, labelStyle } from "../workoutUiTokens";
 import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
 
@@ -27,8 +31,44 @@ function formatElapsed(totalSec: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-const ACCENT_BLUE = "#0A84FF";
+const ACCENT_BLUE = COACH_BLUE;
 const ACCENT_GREEN = "#34C759";
+
+function formatExercisePr(
+  name: string,
+  bests: Record<string, ExercisePersonalBest>,
+  unit: WeightUnit,
+): string | null {
+  const best = bests[normalizeExerciseKey(name)];
+  if (!best || (best.maxWeight <= 0 && best.maxReps <= 0)) return null;
+  const w = formatSetWeight(best.maxWeight, unit);
+  return `PR ${w}×${best.maxReps}`;
+}
+
+function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className="tap"
+      onClick={onClick}
+      aria-label="Workout history"
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        border: "0.5px solid var(--border)",
+        background: "rgba(255,255,255,0.06)",
+        color: "#fff",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      <IconClock size={20} stroke={1.75} />
+    </button>
+  );
+}
 
 const MOBILITY_ITEMS = [
   "90/90 hips or World's greatest stretch — 45–60s each side",
@@ -137,12 +177,14 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [exQuery, setExQuery] = useState("");
   const [draftExName, setDraftExName] = useState("");
   const [draftExLabel, setDraftExLabel] = useState("");
-  const [showWarmup, setShowWarmup] = useState(false);
+  const [sessionEditMode, setSessionEditMode] = useState(false);
+  const [expandedProgressId, setExpandedProgressId] = useState<string | null>(null);
   const [, setTick] = useState(0);
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
   const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
+  const [showHistoryPage, setShowHistoryPage] = useState(false);
   const w = state.workout;
   const wUnit = state.unitPreferences.weightUnit;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
@@ -380,7 +422,8 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     setExQuery("");
     setDraftExName("");
     setDraftExLabel("");
-    setShowWarmup(false);
+    setSessionEditMode(false);
+    setExpandedProgressId(null);
     setPreviewRoutineId(null);
   }
 
@@ -426,6 +469,17 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     outline: "none",
     boxSizing: "border-box",
   };
+
+  if (showHistoryPage) {
+    return (
+      <ScreenWorkoutHistory
+        state={state}
+        setState={setState}
+        navigate={() => {}}
+        onBack={() => setShowHistoryPage(false)}
+      />
+    );
+  }
 
   if (phase === "idle" && editingRoutineId !== null) {
     if (editingRoutineId !== NEW_ROUTINE_EDITOR_ID && !state.workoutTemplates.some((t) => t.id === editingRoutineId)) {
@@ -479,55 +533,15 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   }
 
   if (phase === "idle") {
-    const jimmyLoaded = isJimmySummerPlanTemplates(state.workoutTemplates);
     const previewTpl = previewRoutineId ? state.workoutTemplates.find((t) => t.id === previewRoutineId) : null;
     return (
       <>
       <div key="workout-idle" className="screen page-transition">
-        <ScreenHeader eyebrow="TRAINING" title="Start Workout" />
-
-        {!jimmyLoaded ? (
-          <div
-            className="card"
-            style={{
-              marginTop: 18,
-              padding: 16,
-              borderColor: "rgba(10,132,255,0.38)",
-              background: "rgba(10,132,255,0.07)",
-            }}
-          >
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 8 }}>Summer plan not loaded</div>
-            <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", fontWeight: 400 }}>
-              Your device already had saved data, so the app kept the default program. Load Jimmy&apos;s routines (Chest + Triceps Mon, etc.), macro targets, and meal presets in one step.
-            </p>
-            <button
-              type="button"
-              className="tap"
-              onClick={() => {
-                if (
-                  typeof window !== "undefined" &&
-                  !window.confirm(
-                    "Load Jimmy’s summer plan? Replaces workouts, Saved nutrition presets, habits, macros, and goal range. Logs stay.",
-                  )
-                )
-                  return;
-                setState(refreshStateAfterJimmySeed());
-              }}
-              style={{
-                width: "100%",
-                padding: "12px 14px",
-                borderRadius: 12,
-                fontWeight: 700,
-                fontSize: 14,
-                border: "none",
-                background: ACCENT_BLUE,
-                color: "#fff",
-              }}
-            >
-              Load Jimmy&apos;s summer plan
-            </button>
-          </div>
-        ) : null}
+        <ScreenHeader
+          eyebrow="TRAINING"
+          title="Start Workout"
+          right={<HistoryHeaderButton onClick={() => setShowHistoryPage(true)} />}
+        />
 
         <button
           type="button"
@@ -744,7 +758,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             </span>
             <span
               style={{
-                fontSize: 22,
+                fontSize: TITLE_SIZE,
                 fontWeight: 700,
                 fontVariantNumeric: "tabular-nums",
                 letterSpacing: "-0.02em",
@@ -753,22 +767,45 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               {formatElapsed(elapsedSec)}
             </span>
           </div>
-          <button
-            type="button"
-            className="tap"
-            onClick={requestFinishWorkout}
-            style={{
-              background: ACCENT_GREEN,
-              color: "#0a0a0a",
-              borderRadius: 10,
-              padding: "10px 18px",
-              fontSize: 14,
-              fontWeight: 700,
-              border: "none",
-            }}
-          >
-            Finish workout
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            <button
+              type="button"
+              className="tap"
+              aria-pressed={sessionEditMode}
+              aria-label="Edit workout layout"
+              title="Edit workout layout"
+              onClick={() => setSessionEditMode((v) => !v)}
+              style={{
+                display: "grid",
+                placeItems: "center",
+                width: 40,
+                height: 40,
+                padding: 0,
+                borderRadius: 10,
+                border: sessionEditMode ? `0.5px solid ${ACCENT_BLUE}` : "0.5px solid var(--border)",
+                background: sessionEditMode ? "rgba(10,132,255,0.12)" : "transparent",
+                color: sessionEditMode ? ACCENT_BLUE : "rgba(255,255,255,0.5)",
+              }}
+            >
+              <IconPencil size={18} stroke={1.75} />
+            </button>
+            <button
+              type="button"
+              className="tap"
+              onClick={requestFinishWorkout}
+              style={{
+                background: ACCENT_GREEN,
+                color: "#0a0a0a",
+                borderRadius: 10,
+                padding: "10px 18px",
+                fontSize: 14,
+                fontWeight: 700,
+                border: "none",
+              }}
+            >
+              Finish workout
+            </button>
+          </div>
         </div>
 
         <input
@@ -779,7 +816,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             marginTop: 6,
             marginBottom: 4,
             width: "100%",
-            fontSize: 22,
+            fontSize: TITLE_SIZE,
             fontWeight: 700,
             letterSpacing: "-0.03em",
             background: "transparent",
@@ -790,158 +827,26 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             fontFamily: "var(--ui)",
           }}
         />
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginBottom: 10 }}>
+        <div style={{ fontSize: METADATA_SIZE, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginBottom: 10 }}>
           Started {w.startedAt}
           {split ? ` · ${split.day}` : ""} · {w.exercises.length} exercise{w.exercises.length === 1 ? "" : "s"}
         </div>
       </div>
 
-      <button
-        type="button"
-        className="tap"
-        onClick={() => setShowWarmup((v) => !v)}
-        style={{
-          marginTop: 10,
-          width: "100%",
-          color: "rgba(255,255,255,0.45)",
-          fontSize: 12,
-          fontWeight: 500,
-          padding: 8,
-        }}
-      >
-        {showWarmup ? "Hide" : "Show"} warm-up checklist
-      </button>
+      <WorkoutCoachCard
+        overloadTip={overloadTip}
+        sessionTip={activeRoutine?.sessionTip}
+        activeRoutine={activeRoutine}
+        mobilityItems={MOBILITY_ITEMS}
+        warmupItems={WARMUP_ITEMS}
+      />
 
-      {showWarmup ? (
-        <>
-          {activeRoutine?.warmupItems?.length ? (
-            <>
-              <div className="card" style={{ padding: 16, marginTop: 8, borderColor: "rgba(10,132,255,0.28)" }}>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "rgba(10,132,255,0.75)",
-                    marginBottom: 10,
-                  }}
-                >
-                  Session warm-up
-                </div>
-                <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-                  {activeRoutine.warmupItems.map((item) => (
-                    <li key={item.description} style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.72)" }}>
-                      {item.description}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              {activeRoutine.warmupTip ? (
-                <div className="card" style={{ padding: 14, marginTop: 12, background: "rgba(10,132,255,0.08)", borderColor: "rgba(10,132,255,0.35)" }}>
-                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(10,132,255,0.65)", marginBottom: 8 }}>
-                    Coach callout
-                  </div>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.88)" }}>{activeRoutine.warmupTip}</p>
-                </div>
-              ) : null}
-            </>
-          ) : null}
-          <div className="card" style={{ padding: 16, marginTop: 8 }}>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "rgba(255,255,255,0.35)",
-                marginBottom: 10,
-              }}
-            >
-              Mobility
-            </div>
-            <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-              {MOBILITY_ITEMS.map((line) => (
-                <li key={line} style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.72)" }}>
-                  {line}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="card" style={{ padding: 16, marginTop: 12 }}>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "rgba(255,255,255,0.35)",
-                marginBottom: 10,
-              }}
-            >
-              Warm-up
-            </div>
-            <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-              {WARMUP_ITEMS.map((line) => (
-                <li key={line} style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.72)" }}>
-                  {line}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
-      ) : null}
-
-      <div className="card" style={{ padding: 14, marginTop: 14 }}>
-        <div
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.35)",
-            marginBottom: 8,
-          }}
-        >
-          Coach note
-        </div>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.72)", whiteSpace: "pre-line" }}>{overloadTip}</p>
-      </div>
-
-      {phase === "lifting" && activeRoutine?.sessionTip ? (
-        <div className="card" style={{ padding: 14, marginTop: 12, borderColor: "rgba(52,199,89,0.35)", background: "rgba(52,199,89,0.06)" }}>
-          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(52,199,89,0.75)", marginBottom: 8 }}>
-            After this session
-          </div>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.82)" }}>{activeRoutine.sessionTip}</p>
-        </div>
-      ) : null}
-
-      <div className="card" style={{ padding: 18, marginTop: 12, display: "flex", gap: 18, alignItems: "center" }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>Session</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4, fontWeight: 400 }}>
-            {doneSets}/{totalSets} sets logged
-          </div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>
-            {totalVolume.toLocaleString()}
-          </div>
-          <div
-            style={{
-              fontSize: 9,
-              color: "rgba(255,255,255,0.3)",
-              fontWeight: 500,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              marginTop: 2,
-            }}
-          >
-            {wUnit === "kg" ? "KG" : "LBS"} · Volume
-          </div>
-        </div>
-      </div>
+      <WorkoutSessionStickyHeader
+        doneSets={doneSets}
+        totalSets={totalSets}
+        totalVolume={totalVolume}
+        weightUnit={wUnit}
+      />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
         {w.exercises.length === 0 ? (
@@ -963,6 +868,8 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           renderItem={(exercise, ei, handle, ctx) => {
           const done = exercise.sets.filter((st) => st.done).length;
           const exerciseNote = getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label);
+          const prLabel = formatExercisePr(exercise.name, state.exercisePersonalBests, wUnit);
+          const progressExpanded = expandedProgressId === exercise.id;
           return (
             <div
               className="card"
@@ -971,11 +878,13 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                 pointerEvents: ctx.isOverlay ? "none" : undefined,
               }}
             >
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: exerciseNote ? 8 : 12 }}>
-                <ExerciseDragHandle handle={handle} disabled={ctx.isListDragging && !handle.isDragging} />
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
+                {sessionEditMode ? (
+                  <ExerciseDragHandle handle={handle} disabled={ctx.isListDragging && !handle.isDragging} />
+                ) : null}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                    <span style={{ fontSize: METADATA_SIZE, color: "rgba(255,255,255,0.3)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
                       {String(ei + 1).padStart(2, "0")}
                     </span>
                     {exercise.name}
@@ -997,36 +906,33 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                       </span>
                     ) : null}
                   </div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4, fontWeight: 400, fontVariantNumeric: "tabular-nums" }}>
+                  <div style={{ fontSize: METADATA_SIZE, color: "rgba(255,255,255,0.4)", marginTop: 4, fontWeight: 400, fontVariantNumeric: "tabular-nums" }}>
                     Target {exercise.target} · {done}/{exercise.sets.length} sets
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="tap"
-                  aria-label={`Remove ${exercise.name}`}
-                  disabled={ctx.isListDragging}
-                  onClick={() => removeExerciseFromSession(exercise.id)}
-                  style={{
-                    flexShrink: 0,
-                    display: "grid",
-                    placeItems: "center",
-                    width: 36,
-                    height: 36,
-                    padding: 0,
-                    border: "none",
-                    background: "transparent",
-                    color: "#FF6961",
-                  }}
-                >
-                  <IconTrash size={18} stroke={1.75} />
-                </button>
+                {sessionEditMode ? (
+                  <button
+                    type="button"
+                    className="tap"
+                    aria-label={`Remove ${exercise.name}`}
+                    disabled={ctx.isListDragging}
+                    onClick={() => removeExerciseFromSession(exercise.id)}
+                    style={{
+                      flexShrink: 0,
+                      display: "grid",
+                      placeItems: "center",
+                      width: 36,
+                      height: 36,
+                      padding: 0,
+                      border: "none",
+                      background: "transparent",
+                      color: "#FF6961",
+                    }}
+                  >
+                    <IconTrash size={18} stroke={1.75} />
+                  </button>
+                ) : null}
               </div>
-
-              <ExerciseNoteRow
-                note={exerciseNote}
-                onPress={() => setNotesEdit({ name: exercise.name, label: exercise.label })}
-              />
 
               <div
                 style={{
@@ -1037,15 +943,9 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                   marginBottom: 6,
                 }}
               >
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", textAlign: "center" }}>
-                  Set
-                </div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", textAlign: "center" }}>
-                  {weightUnitLabel(wUnit)}
-                </div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", textAlign: "center" }}>
-                  Reps
-                </div>
+                <div style={{ ...labelStyle, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Set</div>
+                <div style={{ ...labelStyle, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>{weightUnitLabel(wUnit)}</div>
+                <div style={{ ...labelStyle, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Reps</div>
                 <div />
                 <div />
               </div>
@@ -1153,6 +1053,47 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               >
                 <IconPlus size={14} stroke={2} /> Add set
               </button>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 16,
+                  marginTop: 10,
+                  paddingTop: 8,
+                  borderTop: "0.5px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <ExerciseNoteRow
+                  note={exerciseNote}
+                  onPress={() => setNotesEdit({ name: exercise.name, label: exercise.label })}
+                  style={{ flex: 1, minWidth: 0 }}
+                />
+                {prLabel ? (
+                  <button
+                    type="button"
+                    className="tap"
+                    aria-expanded={progressExpanded}
+                    onClick={() => setExpandedProgressId((id) => (id === exercise.id ? null : exercise.id))}
+                    style={{
+                      padding: "4px 0",
+                      border: "none",
+                      background: "transparent",
+                      fontSize: 12,
+                      fontWeight: 500,
+                      color: SECONDARY_ACTION_COLOR,
+                      flexShrink: 0,
+                    }}
+                  >
+                    Progress
+                  </button>
+                ) : null}
+              </div>
+              {progressExpanded && prLabel ? (
+                <p style={{ margin: "4px 0 0", fontSize: 12, fontWeight: 600, color: USER_NOTE_GRAY_MUTED, fontVariantNumeric: "tabular-nums" }}>
+                  {prLabel} · {weightUnitLabel(wUnit)}
+                </p>
+              ) : null}
             </div>
           );
           }}
@@ -1387,6 +1328,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           onClose={() => setNotesEdit(null)}
         />
       ) : null}
+
     </div>
   );
 }

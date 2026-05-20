@@ -69,9 +69,28 @@ export type WorkoutSessionPhase = "idle" | "lifting";
 /** Best logged performance per exercise name (keyed by normalized name). */
 export type ExercisePersonalBest = { maxWeight: number; maxReps: number };
 
+export type ExerciseSessionSnapshot = {
+  dayKey: string;
+  endedAtMs: number;
+  bestWeight: number;
+  bestReps: number;
+  volume: number;
+};
+
 export type WorkoutSummaryPr = { exerciseName: string; detail: string };
 
 export type WorkoutSummaryNeedsWork = { exerciseName: string; detail: string };
+
+/** Full completed workout stored for history and calendar (persisted + Supabase blob). */
+export type CompletedWorkoutSession = {
+  id: string;
+  dayKey: string;
+  endedAtMs: number;
+  startedAtMs: number;
+  title: string;
+  durationSec: number;
+  exercises: WorkoutExercise[];
+};
 
 /** Snapshot shown after tapping Finish — not persisted (cleared on dismiss). */
 export type WorkoutSessionSummary = {
@@ -211,6 +230,10 @@ export type AppState = {
   workoutsCompletedByDay: Record<string, boolean>;
   /** Per-exercise bests for PR detection across sessions. */
   exercisePersonalBests: Record<string, ExercisePersonalBest>;
+  /** Last 10 session snapshots per exercise (keyed by exerciseNoteKey). */
+  exerciseSessionHistoryByKey: Record<string, ExerciseSessionSnapshot[]>;
+  /** Completed workouts, newest first (capped on save). */
+  workoutHistory: CompletedWorkoutSession[];
   /** Post-finish recap overlay; cleared when user returns home. */
   workoutSummary: WorkoutSessionSummary | null;
   habits: Habit[];

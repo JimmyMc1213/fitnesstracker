@@ -280,6 +280,7 @@ export function WorkoutRoutineEditor({
               readOnly={ctx.isOverlay}
             />
             <ExerciseNoteRow
+              variant="editor"
               note={getExerciseNote(exerciseNotesByKey, row.name, row.label)}
               onPress={() => onNotePress(row.name, row.label)}
               style={{ marginTop: 0, marginBottom: 10 }}
