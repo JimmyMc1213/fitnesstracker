@@ -1,6 +1,6 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 
-type Variant = "default" | "blue" | "green";
+type Variant = "default" | "blue";
 
 const VARIANT_STYLES: Record<
   Variant,
@@ -17,12 +17,6 @@ const VARIANT_STYLES: Record<
     background: "rgba(10,132,255,0.08)",
     label: "rgba(10,132,255,0.75)",
     toggle: "rgba(10,132,255,0.9)",
-  },
-  green: {
-    border: "rgba(52,199,89,0.35)",
-    background: "rgba(52,199,89,0.06)",
-    label: "rgba(52,199,89,0.75)",
-    toggle: "rgba(52,199,89,0.9)",
   },
 };
 

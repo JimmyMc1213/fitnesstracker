@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } fro
 
 import { localDateKey } from "../dailyPlan";
 import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
-import { CollapsibleTextCard } from "../CollapsibleTextCard";
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
 import { ExerciseProgressSection } from "../ExerciseProgressSection";
@@ -11,12 +10,22 @@ import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach
 import { finishWorkout } from "../finishWorkout";
 import { refreshStateAfterJimmySeed } from "../jimmy-seed-data";
 import { isJimmySummerPlanTemplates, jimmySuggestedRoutineIdForDate } from "../jimmyWeekly";
-import { IconCheck, IconClock, IconMinus, IconPlus, IconSearch, IconTrash } from "../icons";
+import {
+  IconBook,
+  IconCheck,
+  IconClock,
+  IconMinus,
+  IconPencil,
+  IconPlus,
+  IconSearch,
+  IconTrash,
+} from "../icons";
 import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
 import type { ScreenProps } from "../types";
 import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
+import { WorkoutCoachBanner, type CoachSection } from "../WorkoutCoachBanner";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
 
 function formatSessionClock(d: Date): string {
@@ -31,6 +40,22 @@ function formatElapsed(totalSec: number): string {
 
 const ACCENT_BLUE = "#0A84FF";
 const ACCENT_GREEN = "#34C759";
+const COACH_BLUE_LIGHT = "#6EB7FF";
+
+const TYPE = {
+  title: { fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" },
+  label: {
+    fontSize: 10,
+    fontWeight: 600,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.4)",
+  },
+  exerciseName: { fontSize: 16, fontWeight: 600, letterSpacing: "-0.01em" },
+  body: { fontSize: 14, fontWeight: 400, lineHeight: 1.5 },
+  bodyStrong: { fontSize: 14, fontWeight: 600, lineHeight: 1.5 },
+  secondary: { fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.4)" },
+} as const satisfies Record<string, CSSProperties>;
 
 function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
   return (
@@ -157,6 +182,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
   const [showHistoryPage, setShowHistoryPage] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const w = state.workout;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
   const split = activeRoutine ? { day: activeRoutine.dayLabel, name: activeRoutine.name } : SPLIT.find((s) => s.id === w.splitId);
@@ -182,6 +208,10 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     const id = window.setInterval(() => setTick((x) => x + 1), 1000);
     return () => window.clearInterval(id);
   }, [phase, w.sessionStartedAtMs]);
+
+  useEffect(() => {
+    if (phase !== "lifting") setEditMode(false);
+  }, [phase]);
 
   const elapsedSec =
     phase === "lifting" && w.sessionStartedAtMs != null
@@ -438,6 +468,48 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     outline: "none",
     boxSizing: "border-box",
   };
+
+  const coachSections: CoachSection[] = [];
+  if (activeRoutine?.warmupItems?.length) {
+    coachSections.push({
+      id: "warmup",
+      label: "Warm-up",
+      content: (
+        <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8 }}>
+          {activeRoutine.warmupItems.map((item) => (
+            <li key={item.description} style={{ ...TYPE.body, color: "rgba(255,255,255,0.82)" }}>
+              {item.description}
+            </li>
+          ))}
+        </ul>
+      ),
+    });
+  }
+  if (activeRoutine?.warmupTip) {
+    coachSections.push({
+      id: "callout",
+      label: "Callout",
+      content: <p style={{ margin: 0, ...TYPE.body, color: "rgba(255,255,255,0.88)" }}>{activeRoutine.warmupTip}</p>,
+    });
+  }
+  if (overloadTip) {
+    coachSections.push({
+      id: "note",
+      label: "Note",
+      content: (
+        <p style={{ margin: 0, ...TYPE.body, color: "rgba(255,255,255,0.82)", whiteSpace: "pre-line" }}>
+          {overloadTip}
+        </p>
+      ),
+    });
+  }
+  if (phase === "lifting" && activeRoutine?.sessionTip) {
+    coachSections.push({
+      id: "after",
+      label: "After this session",
+      content: <p style={{ margin: 0, ...TYPE.body, color: "rgba(255,255,255,0.82)" }}>{activeRoutine.sessionTip}</p>,
+    });
+  }
 
   if (showHistoryPage) {
     return (
@@ -765,119 +837,111 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
 
   return (
     <div key="workout-lifting" className="screen page-transition">
-      <div style={{ paddingTop: 8 }}>
-        <div className="between" style={{ alignItems: "center", marginBottom: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
-            <span style={{ fontSize: 20, lineHeight: 1 }} aria-hidden>
-              ⏱
-            </span>
-            <span
-              style={{
-                fontSize: 22,
-                fontWeight: 700,
-                fontVariantNumeric: "tabular-nums",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {formatElapsed(elapsedSec)}
-            </span>
-          </div>
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          marginLeft: -20,
+          marginRight: -20,
+          padding: "10px 20px 12px",
+          background: "rgba(10,10,10,0.92)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderBottom: "0.5px solid var(--border)",
+        }}
+      >
+        <div className="between" style={{ alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <input
+            value={w.sessionTitle}
+            onChange={(e) => updateSessionTitle(e.target.value)}
+            placeholder="Workout"
+            aria-label="Workout name"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              ...TYPE.title,
+              background: "transparent",
+              border: "none",
+              padding: 0,
+              color: "#fff",
+              outline: "none",
+              fontFamily: "var(--ui)",
+            }}
+          />
+          <button
+            type="button"
+            className="tap"
+            onClick={() => setEditMode((v) => !v)}
+            aria-label={editMode ? "Exit edit mode" : "Edit exercises"}
+            aria-pressed={editMode}
+            style={{
+              flexShrink: 0,
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              border: editMode ? "0.5px solid rgba(10,132,255,0.45)" : "0.5px solid var(--border)",
+              background: editMode ? "rgba(10,132,255,0.15)" : "rgba(255,255,255,0.06)",
+              color: editMode ? COACH_BLUE_LIGHT : "#fff",
+              display: "grid",
+              placeItems: "center",
+            }}
+          >
+            {editMode ? <IconCheck size={18} stroke={2} /> : <IconPencil size={16} stroke={1.8} />}
+          </button>
           <button
             type="button"
             className="tap"
             onClick={requestFinishWorkout}
             style={{
+              flexShrink: 0,
               background: ACCENT_GREEN,
               color: "#0a0a0a",
               borderRadius: 10,
-              padding: "10px 18px",
-              fontSize: 14,
-              fontWeight: 700,
+              padding: "9px 14px",
+              ...TYPE.bodyStrong,
               border: "none",
-              flexShrink: 0,
             }}
           >
-            Finish workout
+            Finish
           </button>
         </div>
-
-        <input
-          value={w.sessionTitle}
-          onChange={(e) => updateSessionTitle(e.target.value)}
-          placeholder="Workout name"
+        <div
           style={{
-            marginTop: 6,
-            marginBottom: 4,
-            width: "100%",
-            fontSize: 22,
-            fontWeight: 700,
-            letterSpacing: "-0.03em",
-            background: "transparent",
-            border: "none",
-            padding: "6px 0",
-            color: "#fff",
-            outline: "none",
-            fontFamily: "var(--ui)",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "wrap",
+            fontVariantNumeric: "tabular-nums",
           }}
-        />
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginBottom: 10 }}>
-          Started {w.startedAt}
-          {split ? ` · ${split.day}` : ""} · {w.exercises.length} exercise{w.exercises.length === 1 ? "" : "s"}
+        >
+          <span style={{ display: "inline-flex", alignItems: "baseline", gap: 4 }}>
+            <span style={{ ...TYPE.bodyStrong, color: "#fff" }}>
+              {doneSets}/{totalSets}
+            </span>
+            <span style={TYPE.label}>Sets</span>
+          </span>
+          <span style={{ ...TYPE.secondary, opacity: 0.5 }}>·</span>
+          <span style={{ display: "inline-flex", alignItems: "baseline", gap: 4 }}>
+            <span style={{ ...TYPE.bodyStrong, color: "#fff" }}>
+              {totalVolume.toLocaleString()}
+            </span>
+            <span style={TYPE.label}>Lbs</span>
+          </span>
+          <span style={{ ...TYPE.secondary, opacity: 0.5 }}>·</span>
+          <span style={{ ...TYPE.secondary, display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <IconClock size={12} stroke={1.8} />
+            {formatElapsed(elapsedSec)}
+          </span>
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
-        {activeRoutine?.warmupItems?.length ? (
-          <CollapsibleTextCard title="Session warm-up" variant="blue">
-            <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-              {activeRoutine.warmupItems.map((item) => (
-                <li key={item.description} style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.72)" }}>
-                  {item.description}
-                </li>
-              ))}
-            </ul>
-          </CollapsibleTextCard>
-        ) : null}
-        {activeRoutine?.warmupTip ? (
-          <CollapsibleTextCard title="Coach callout" variant="blue">
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.88)" }}>{activeRoutine.warmupTip}</p>
-          </CollapsibleTextCard>
-        ) : null}
-        <CollapsibleTextCard title="Coach note">
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.72)", whiteSpace: "pre-line" }}>{overloadTip}</p>
-        </CollapsibleTextCard>
-        {phase === "lifting" && activeRoutine?.sessionTip ? (
-          <CollapsibleTextCard title="After this session" variant="green">
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.82)" }}>{activeRoutine.sessionTip}</p>
-          </CollapsibleTextCard>
-        ) : null}
+      <div style={{ ...TYPE.secondary, marginTop: 14, marginBottom: 10 }}>
+        Started {w.startedAt}
+        {split ? ` · ${split.day}` : ""} · {w.exercises.length} exercise{w.exercises.length === 1 ? "" : "s"}
       </div>
 
-      <div className="card" style={{ padding: 18, marginTop: 12, display: "flex", gap: 18, alignItems: "center" }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>Session</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4, fontWeight: 400 }}>
-            {doneSets}/{totalSets} sets logged
-          </div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>
-            {totalVolume.toLocaleString()}
-          </div>
-          <div
-            style={{
-              fontSize: 9,
-              color: "rgba(255,255,255,0.3)",
-              fontWeight: 500,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              marginTop: 2,
-            }}
-          >
-            LBS · Volume
-          </div>
-        </div>
-      </div>
+      <WorkoutCoachBanner sections={coachSections} />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
         {w.exercises.length === 0 ? (
@@ -899,6 +963,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           renderItem={(exercise, ei, handle, ctx) => {
           const done = exercise.sets.filter((st) => st.done).length;
           const exerciseNote = getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label);
+          const hasNote = exerciseNote.trim().length > 0;
           return (
             <div
               className="card"
@@ -907,11 +972,13 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                 pointerEvents: ctx.isOverlay ? "none" : undefined,
               }}
             >
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: exerciseNote ? 8 : 12 }}>
-                <ExerciseDragHandle handle={handle} disabled={ctx.isListDragging && !handle.isDragging} />
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
+                {editMode ? (
+                  <ExerciseDragHandle handle={handle} disabled={ctx.isListDragging && !handle.isDragging} />
+                ) : null}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                  <div style={{ ...TYPE.exerciseName, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <span style={{ ...TYPE.secondary, fontVariantNumeric: "tabular-nums" }}>
                       {String(ei + 1).padStart(2, "0")}
                     </span>
                     {exercise.name}
@@ -933,43 +1000,41 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                       </span>
                     ) : null}
                   </div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4, fontWeight: 400, fontVariantNumeric: "tabular-nums" }}>
+                  <div style={{ ...TYPE.secondary, marginTop: 4, fontVariantNumeric: "tabular-nums" }}>
                     Target {exercise.target} · {done}/{exercise.sets.length} sets
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="tap"
-                  aria-label={`Remove ${exercise.name}`}
-                  disabled={ctx.isListDragging}
-                  onClick={() => removeExerciseFromSession(exercise.id)}
-                  style={{
-                    flexShrink: 0,
-                    display: "grid",
-                    placeItems: "center",
-                    width: 36,
-                    height: 36,
-                    padding: 0,
-                    border: "none",
-                    background: "transparent",
-                    color: "#FF6961",
-                  }}
-                >
-                  <IconTrash size={18} stroke={1.75} />
-                </button>
+                {editMode ? (
+                  <button
+                    type="button"
+                    className="tap"
+                    aria-label={`Remove ${exercise.name}`}
+                    disabled={ctx.isListDragging}
+                    onClick={() => removeExerciseFromSession(exercise.id)}
+                    style={{
+                      flexShrink: 0,
+                      display: "grid",
+                      placeItems: "center",
+                      width: 36,
+                      height: 36,
+                      padding: 0,
+                      border: "none",
+                      background: "transparent",
+                      color: "#FF6961",
+                    }}
+                  >
+                    <IconTrash size={18} stroke={1.75} />
+                  </button>
+                ) : null}
               </div>
 
-              <ExerciseNoteRow
-                note={exerciseNote}
-                onPress={() => setNotesEdit({ name: exercise.name, label: exercise.label })}
-              />
-
-              <ExerciseProgressSection
-                state={state}
-                exerciseName={exercise.name}
-                exerciseLabel={exercise.label}
-                style={{ marginBottom: 12 }}
-              />
+              {hasNote ? (
+                <ExerciseNoteRow
+                  note={exerciseNote}
+                  onPress={() => setNotesEdit({ name: exercise.name, label: exercise.label })}
+                  style={{ marginTop: 0, marginBottom: 12 }}
+                />
+              ) : null}
 
               <div
                 style={{
@@ -980,15 +1045,9 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                   marginBottom: 6,
                 }}
               >
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", textAlign: "center" }}>
-                  Set
-                </div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", textAlign: "center" }}>
-                  Lbs
-                </div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", textAlign: "center" }}>
-                  Reps
-                </div>
+                <div style={{ ...TYPE.label, textAlign: "center" }}>Set</div>
+                <div style={{ ...TYPE.label, textAlign: "center" }}>Lbs</div>
+                <div style={{ ...TYPE.label, textAlign: "center" }}>Reps</div>
                 <div />
                 <div />
               </div>
@@ -1006,7 +1065,15 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                       padding: "4px 4px",
                     }}
                   >
-                    <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.5)", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>
+                    <div
+                      style={{
+                        ...TYPE.body,
+                        fontWeight: 500,
+                        color: "rgba(255,255,255,0.5)",
+                        textAlign: "center",
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
                       {si + 1}
                     </div>
                     <input
@@ -1086,7 +1153,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                   borderRadius: 8,
                   padding: "10px",
                   color: "rgba(255,255,255,0.5)",
-                  fontSize: 12,
+                  ...TYPE.body,
                   fontWeight: 500,
                   display: "flex",
                   alignItems: "center",
@@ -1096,6 +1163,43 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               >
                 <IconPlus size={14} stroke={2} /> Add set
               </button>
+
+              <div
+                style={{
+                  marginTop: 14,
+                  paddingTop: 4,
+                  borderTop: "0.5px solid var(--border)",
+                }}
+              >
+                {!hasNote ? (
+                  <button
+                    type="button"
+                    className="tap"
+                    onClick={() => setNotesEdit({ name: exercise.name, label: exercise.label })}
+                    aria-label="Add exercise note"
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "10px 0",
+                      border: "none",
+                      background: "transparent",
+                      textAlign: "left",
+                      color: "rgba(255,255,255,0.6)",
+                    }}
+                  >
+                    <IconBook size={14} stroke={1.8} style={{ color: "rgba(255,255,255,0.4)" }} />
+                    <span style={{ ...TYPE.secondary, color: "rgba(255,255,255,0.6)" }}>Add note</span>
+                  </button>
+                ) : null}
+                <ExerciseProgressSection
+                  state={state}
+                  exerciseName={exercise.name}
+                  exerciseLabel={exercise.label}
+                  variant="footer"
+                />
+              </div>
             </div>
           );
           }}
@@ -1104,18 +1208,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
 
       {showExSearch ? (
         <div className="card" style={{ padding: 12, marginTop: 16 }}>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.35)",
-              marginBottom: 10,
-            }}
-          >
-            Create new
-          </div>
+          <div style={{ ...TYPE.label, marginBottom: 10 }}>Create new</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <input
               value={draftExName}
@@ -1163,18 +1256,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           <div style={{ marginTop: 10, maxHeight: 320, overflowY: "auto", display: "flex", flexDirection: "column" }}>
             {filteredCustom.length > 0 ? (
               <>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.35)",
-                    padding: "8px 8px 6px",
-                  }}
-                >
-                  Your exercises
-                </div>
+                <div style={{ ...TYPE.label, padding: "8px 8px 6px" }}>Your exercises</div>
                 {filteredCustom.map((c) => (
                   <button
                     key={c.id}
@@ -1185,7 +1267,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                       padding: "12px 8px",
                       textAlign: "left",
                       borderBottom: "0.5px solid var(--border)",
-                      fontSize: 13,
+                      ...TYPE.body,
                       fontWeight: 500,
                       display: "flex",
                       alignItems: "center",
@@ -1196,7 +1278,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                     <span style={{ minWidth: 0 }}>
                       <span style={{ display: "block", color: "#fff" }}>{c.name}</span>
                       {c.label ? (
-                        <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 3, fontWeight: 500 }}>{c.label}</span>
+                        <span style={{ display: "block", ...TYPE.secondary, marginTop: 3 }}>{c.label}</span>
                       ) : null}
                     </span>
                     <IconPlus size={14} stroke={2} style={{ color: "#fff", flexShrink: 0 }} />
@@ -1206,18 +1288,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             ) : null}
             {filteredBuiltin.length > 0 ? (
               <>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.35)",
-                    padding: "8px 8px 6px",
-                  }}
-                >
-                  Catalog
-                </div>
+                <div style={{ ...TYPE.label, padding: "8px 8px 6px" }}>Catalog</div>
                 {filteredBuiltin.map((n) => (
                   <button
                     key={n}
@@ -1228,7 +1299,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                       padding: "12px 8px",
                       textAlign: "left",
                       borderBottom: "0.5px solid var(--border)",
-                      fontSize: 13,
+                      ...TYPE.body,
                       fontWeight: 500,
                       display: "flex",
                       alignItems: "center",
@@ -1242,7 +1313,17 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               </>
             ) : null}
             {filteredCustom.length === 0 && filteredBuiltin.length === 0 ? (
-              <div style={{ padding: 16, textAlign: "center", fontSize: 13, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>No matches</div>
+              <div
+                style={{
+                  padding: 16,
+                  textAlign: "center",
+                  ...TYPE.body,
+                  fontWeight: 500,
+                  color: "rgba(255,255,255,0.45)",
+                }}
+              >
+                No matches
+              </div>
             ) : null}
           </div>
           <button
@@ -1257,10 +1338,8 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             style={{
               marginTop: 8,
               width: "100%",
-              color: "rgba(255,255,255,0.4)",
-              fontSize: 12,
+              ...TYPE.secondary,
               padding: 6,
-              fontWeight: 500,
             }}
           >
             Done

@@ -173,6 +173,23 @@ export function IconChevL(p: IconProps) {
   );
 }
 
+export function IconChevD(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="m6 9 6 6 6-6" />
+    </Icon>
+  );
+}
+
+export function IconPencil(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M4 20h4l10-10-4-4L4 16v4z" />
+      <path d="m14 6 4 4" />
+    </Icon>
+  );
+}
+
 export function IconArrowUp(p: IconProps) {
   return (
     <Icon {...p}>

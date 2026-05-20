@@ -151,7 +151,7 @@ export function RoutinePreviewSheet({ state, template, onClose, onEdit, onStart 
               </CollapsibleTextCard>
             ) : null}
             {template.sessionTip ? (
-              <CollapsibleTextCard title="After this session" variant="green">
+              <CollapsibleTextCard title="After this session" variant="blue">
                 <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: "rgba(255,255,255,0.82)", fontWeight: 500 }}>{template.sessionTip}</p>
               </CollapsibleTextCard>
             ) : null}
