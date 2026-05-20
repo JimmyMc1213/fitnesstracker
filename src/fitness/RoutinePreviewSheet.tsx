@@ -1,5 +1,6 @@
 import type { MouseEvent } from "react";
 
+import { CollapsibleTextCard } from "./CollapsibleTextCard";
 import { ExerciseProgressSection } from "./ExerciseProgressSection";
 import type { AppState, WorkoutRoutineTemplate } from "./types";
 
@@ -79,12 +80,6 @@ export function RoutinePreviewSheet({ state, template, onClose, onEdit, onStart 
             </button>
           </div>
 
-          {template.focus.trim() ? (
-            <p style={{ margin: "0 0 10px", fontSize: 12, lineHeight: 1.45, color: "rgba(255,255,255,0.5)", fontWeight: 400 }}>
-              {template.focus}
-            </p>
-          ) : null}
-
           <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.38)", fontVariantNumeric: "tabular-nums", marginBottom: 12 }}>
             {template.exercises.length} exercise{template.exercises.length === 1 ? "" : "s"} · {totalSets} set{totalSets === 1 ? "" : "s"}
           </div>
@@ -133,29 +128,34 @@ export function RoutinePreviewSheet({ state, template, onClose, onEdit, onStart 
             ))}
           </div>
 
-          {template.warmupItems?.length ? (
-            <div style={{ marginTop: 12, marginBottom: 4 }}>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.35)",
-                  marginBottom: 6,
-                }}
-              >
-                Warm-up
-              </div>
-              <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 4 }}>
-                {template.warmupItems.map((item) => (
-                  <li key={item.description} style={{ fontSize: 11, lineHeight: 1.4, color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>
-                    {item.description}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, marginBottom: 4 }}>
+            {template.focus.trim() ? (
+              <CollapsibleTextCard title="Focus">
+                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: "rgba(255,255,255,0.72)", fontWeight: 400 }}>{template.focus}</p>
+              </CollapsibleTextCard>
+            ) : null}
+            {template.warmupItems?.length ? (
+              <CollapsibleTextCard title="Warm-up" variant="blue">
+                <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+                  {template.warmupItems.map((item) => (
+                    <li key={item.description} style={{ fontSize: 12, lineHeight: 1.4, color: "rgba(255,255,255,0.72)", fontWeight: 500 }}>
+                      {item.description}
+                    </li>
+                  ))}
+                </ul>
+              </CollapsibleTextCard>
+            ) : null}
+            {template.warmupTip ? (
+              <CollapsibleTextCard title="Coach callout" variant="blue">
+                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: "rgba(255,255,255,0.82)", fontWeight: 500 }}>{template.warmupTip}</p>
+              </CollapsibleTextCard>
+            ) : null}
+            {template.sessionTip ? (
+              <CollapsibleTextCard title="After this session" variant="green">
+                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: "rgba(255,255,255,0.82)", fontWeight: 500 }}>{template.sessionTip}</p>
+              </CollapsibleTextCard>
+            ) : null}
+          </div>
         </div>
 
         <div style={{ padding: "12px 16px 16px", flexShrink: 0, borderTop: "0.5px solid var(--border)" }}>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } fro
 
 import { localDateKey } from "../dailyPlan";
 import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
+import { CollapsibleTextCard } from "../CollapsibleTextCard";
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
 import { ExerciseProgressSection } from "../ExerciseProgressSection";
@@ -55,19 +56,6 @@ function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
     </button>
   );
 }
-
-const MOBILITY_ITEMS = [
-  "90/90 hips or World's greatest stretch — 45–60s each side",
-  "Thoracic extension over bench or foam roller — 8–10 slow reps",
-  "Shoulder circles + band dislocates (light) — easy range, no forcing",
-  "Ankles/calves: knee-to-wall or calf rocks if squatting today",
-];
-
-const WARMUP_ITEMS = [
-  "5–8 min easy cardio (bike, walk incline, or row) until you break a light sweat",
-  "Band pull-aparts or face pulls — 2–3 sets × 15–20, shoulders back & down",
-  "2–4 ramp sets on your first main lift — empty bar → light → working weight",
-];
 
 function EmptyFinishConfirmSheet({
   onKeepTraining,
@@ -163,7 +151,6 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [exQuery, setExQuery] = useState("");
   const [draftExName, setDraftExName] = useState("");
   const [draftExLabel, setDraftExLabel] = useState("");
-  const [showWarmup, setShowWarmup] = useState(false);
   const [, setTick] = useState(0);
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
   const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
@@ -406,7 +393,6 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     setExQuery("");
     setDraftExName("");
     setDraftExLabel("");
-    setShowWarmup(false);
     setPreviewRoutineId(null);
   }
 
@@ -840,126 +826,32 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         </div>
       </div>
 
-      <button
-        type="button"
-        className="tap"
-        onClick={() => setShowWarmup((v) => !v)}
-        style={{
-          marginTop: 10,
-          width: "100%",
-          color: "rgba(255,255,255,0.45)",
-          fontSize: 12,
-          fontWeight: 500,
-          padding: 8,
-        }}
-      >
-        {showWarmup ? "Hide" : "Show"} warm-up checklist
-      </button>
-
-      {showWarmup ? (
-        <>
-          {activeRoutine?.warmupItems?.length ? (
-            <>
-              <div className="card" style={{ padding: 16, marginTop: 8, borderColor: "rgba(10,132,255,0.28)" }}>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "rgba(10,132,255,0.75)",
-                    marginBottom: 10,
-                  }}
-                >
-                  Session warm-up
-                </div>
-                <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-                  {activeRoutine.warmupItems.map((item) => (
-                    <li key={item.description} style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.72)" }}>
-                      {item.description}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              {activeRoutine.warmupTip ? (
-                <div className="card" style={{ padding: 14, marginTop: 12, background: "rgba(10,132,255,0.08)", borderColor: "rgba(10,132,255,0.35)" }}>
-                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(10,132,255,0.65)", marginBottom: 8 }}>
-                    Coach callout
-                  </div>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.88)" }}>{activeRoutine.warmupTip}</p>
-                </div>
-              ) : null}
-            </>
-          ) : null}
-          <div className="card" style={{ padding: 16, marginTop: 8 }}>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "rgba(255,255,255,0.35)",
-                marginBottom: 10,
-              }}
-            >
-              Mobility
-            </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
+        {activeRoutine?.warmupItems?.length ? (
+          <CollapsibleTextCard title="Session warm-up" variant="blue">
             <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-              {MOBILITY_ITEMS.map((line) => (
-                <li key={line} style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.72)" }}>
-                  {line}
+              {activeRoutine.warmupItems.map((item) => (
+                <li key={item.description} style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.72)" }}>
+                  {item.description}
                 </li>
               ))}
             </ul>
-          </div>
-          <div className="card" style={{ padding: 16, marginTop: 12 }}>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "rgba(255,255,255,0.35)",
-                marginBottom: 10,
-              }}
-            >
-              Warm-up
-            </div>
-            <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-              {WARMUP_ITEMS.map((line) => (
-                <li key={line} style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.72)" }}>
-                  {line}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
-      ) : null}
-
-      <div className="card" style={{ padding: 14, marginTop: 14 }}>
-        <div
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.35)",
-            marginBottom: 8,
-          }}
-        >
-          Coach note
-        </div>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.72)", whiteSpace: "pre-line" }}>{overloadTip}</p>
+          </CollapsibleTextCard>
+        ) : null}
+        {activeRoutine?.warmupTip ? (
+          <CollapsibleTextCard title="Coach callout" variant="blue">
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.88)" }}>{activeRoutine.warmupTip}</p>
+          </CollapsibleTextCard>
+        ) : null}
+        <CollapsibleTextCard title="Coach note">
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.72)", whiteSpace: "pre-line" }}>{overloadTip}</p>
+        </CollapsibleTextCard>
+        {phase === "lifting" && activeRoutine?.sessionTip ? (
+          <CollapsibleTextCard title="After this session" variant="green">
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.82)" }}>{activeRoutine.sessionTip}</p>
+          </CollapsibleTextCard>
+        ) : null}
       </div>
-
-      {phase === "lifting" && activeRoutine?.sessionTip ? (
-        <div className="card" style={{ padding: 14, marginTop: 12, borderColor: "rgba(52,199,89,0.35)", background: "rgba(52,199,89,0.06)" }}>
-          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(52,199,89,0.75)", marginBottom: 8 }}>
-            After this session
-          </div>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.82)" }}>{activeRoutine.sessionTip}</p>
-        </div>
-      ) : null}
 
       <div className="card" style={{ padding: 18, marginTop: 12, display: "flex", gap: 18, alignItems: "center" }}>
         <div style={{ flex: 1 }}>
