@@ -1,0 +1,86 @@
+# generated: 2026-05-20
+# last_updated: 2026-05-20
+# project: fitnesstracker
+# project_key: FTI
+# tracking_system: linear
+# story_location: _bmad-output/implementation-artifacts
+#
+# Sprint order (FTI-15 done; execute in this sequence):
+#   FTI-25 → 26 → 27 → 14 → 16 → 19 → 17 → 18 → 20 → 21 → 22 → 23 → 24
+#
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Story Status:
+#   - backlog: Story only exists in Linear / not yet story-filed
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Linear is the product backlog (FTI-14–27); BMad story files live under story_location
+# - Create next story with bmad-create-story after previous story reaches done
+# - FTI-14 has partial onboarding in src/fitness/OnboardingFlow.tsx — extend after 25–27
+#
+# ENVIRONMENT (dev / swarm test phases):
+# =====================================
+# - Copy .env.example → .env at project root; fill Supabase URL + client key (publishable or anon JWT).
+# - Vite embeds VITE_* at build time (vite.config.ts define); file must be saved on disk.
+# - Swarm does not run npm run dev; automated gate is npm run build (prebuild runs env check like predev).
+#
+# BMAD SWARM ALIGNMENT:
+# =====================
+# - bmad-swarm next: scans development_status top → bottom; picks FIRST story with status "backlog"
+#   → FTI-25 is the next target (25 → 26 → 27 → 14 → … per sprint order above)
+# - in-progress / ready-for-dev: Swarm skips story creation (Phase 1) and continues dev/review
+#   → FTI-14 is backlog until 25–27 are done so "next" does not resume 14 early
+# - Epic mode (e.g. epic-0): expects story keys like {epicNum}-{storyNum}-* (e.g. 0-1-foo)
+#   → Do NOT use epic mode until keys match that pattern or the orchestrator is customized
+# - Single-story targeting: orchestrator accepts "0-1" / "2.3" style args, not "FTI-25"
+#   → Safest start: bmad-swarm next only; explicit FTI keys may need orchestrator customization
+
+generated: 2026-05-20
+last_updated: 2026-05-20
+project: fitnesstracker
+project_key: FTI
+tracking_system: linear
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  epic-fti-sprint-1: in-progress
+
+  # Done (Linear completed)
+  fti-15-save-workouts-and-workout-history: done
+
+  # Sprint order — onboarding foundation first
+  fti-25-unit-preference-lbskg-in-onboarding-and-settings: done
+  fti-26-experience-level-selection-in-onboarding: backlog
+  fti-27-equipment-selection-in-onboarding: backlog
+  fti-14-new-user-onboarding-workout-template-selection-nutrition-setup: backlog
+
+  # Progress & weigh-in
+  fti-16-rebuild-weigh-in-simple-logging-with-optional-progress-photo: backlog
+
+  # Workout screen UX
+  fti-19-workout-screen-ui-cleanup: backlog
+  fti-17-clean-up-edit-workout-ui: backlog
+  fti-18-drag-and-drop-lift-effect-on-exercise-reorder: backlog
+  fti-20-rest-timer-between-sets: backlog
+  fti-21-swap-exercise-mid-workout: backlog
+
+  # Progress insights
+  fti-22-personal-records-board: backlog
+  fti-23-streak-tracker: backlog
+  fti-24-weekly-summary-card: backlog
+
+  epic-fti-sprint-1-retrospective: optional

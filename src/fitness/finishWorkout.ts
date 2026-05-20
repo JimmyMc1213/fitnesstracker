@@ -16,7 +16,7 @@ export function finishWorkout(state: AppState, endedAtMs = Date.now()): FinishWo
   if (w.sessionPhase !== "lifting") return null;
   if (loggedSetCount(w) === 0) return null;
 
-  const summary = buildWorkoutSessionSummary(w, state.exercisePersonalBests, endedAtMs);
+  const summary = buildWorkoutSessionSummary(w, state.exercisePersonalBests, endedAtMs, state.unitPreferences.weightUnit);
   const exercisePersonalBests = personalBestsAfterSession(w.exercises, state.exercisePersonalBests);
   const dayKey = w.sessionDayKey;
   const workoutsCompletedByDay =

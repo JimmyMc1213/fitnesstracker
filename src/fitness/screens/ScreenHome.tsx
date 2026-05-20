@@ -8,6 +8,12 @@ import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { SUNDAY_PREP_STEPS } from "../jimmy-seed-data";
 import { StreakWeeklyHeader } from "../StreakWeeklyHeader";
 import { MacroBar, MacroRing, ScreenHeader } from "../shared";
+import {
+  formatWeightFromLbs,
+  isValidWeighInLbs,
+  parseWeightToLbs,
+  weightUnitLabel,
+} from "../unitPreferences";
 import type { ScreenProps } from "../types";
 
 export function ScreenHome({ state, setState, navigate }: ScreenProps) {
@@ -16,7 +22,10 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   const totals = effectiveNutritionTotalsForDateKey(state.nutritionManualByDay, state.nutritionItemsByDay, dateKeyToday);
   const todayEntry = state.weightLog.find((e) => e.dateKey === dateKeyToday);
 
-  const [lbsDraft, setLbsDraft] = useState(() => (todayEntry ? String(todayEntry.weightLbs) : ""));
+  const wUnit = state.unitPreferences.weightUnit;
+  const [weightDraft, setWeightDraft] = useState(() =>
+    todayEntry ? formatWeightFromLbs(todayEntry.weightLbs, wUnit, wUnit === "kg" ? 1 : 1) : "",
+  );
   const [photoPreview, setPhotoPreview] = useState<string | null>(todayEntry?.photoDataUrl ?? null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [clock, setClock] = useState(() => new Date());
@@ -36,9 +45,9 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   }, [dateKeyToday]);
 
   useEffect(() => {
-    setLbsDraft(todayEntry ? String(todayEntry.weightLbs) : "");
+    setWeightDraft(todayEntry ? formatWeightFromLbs(todayEntry.weightLbs, wUnit, wUnit === "kg" ? 1 : 1) : "");
     setPhotoPreview(todayEntry?.photoDataUrl ?? null);
-  }, [dateKeyToday, todayEntry?.weightLbs, todayEntry?.photoDataUrl]);
+  }, [dateKeyToday, todayEntry?.weightLbs, todayEntry?.photoDataUrl, wUnit]);
 
   async function onPickPhoto(f: File) {
     try {
@@ -50,8 +59,9 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   }
 
   function saveWeighIn() {
-    const lbs = parseFloat(lbsDraft);
-    if (!Number.isFinite(lbs) || lbs < 70 || lbs > 450) return;
+    const display = parseFloat(weightDraft);
+    const lbs = parseWeightToLbs(display, wUnit);
+    if (!isValidWeighInLbs(lbs)) return;
     setState((s) => {
       const key = localDateKey(new Date());
       const nextLog = s.weightLog.filter((e) => e.dateKey !== key);
@@ -65,7 +75,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   function cancelWeighInRedo() {
     if (!todayEntry) return;
     setMorningWeighInEditing(false);
-    setLbsDraft(String(todayEntry.weightLbs));
+    setWeightDraft(formatWeightFromLbs(todayEntry.weightLbs, wUnit, wUnit === "kg" ? 1 : 1));
     setPhotoPreview(todayEntry.photoDataUrl ?? null);
   }
 
@@ -165,18 +175,18 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
           </p>
           <div className="between" style={{ alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 100 }}>
-              <label htmlFor="wi-lbs" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em" }}>
-                Weight (lbs)
+              <label htmlFor="wi-weight" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em" }}>
+                Weight ({weightUnitLabel(wUnit)})
               </label>
               <input
-                id="wi-lbs"
+                id="wi-weight"
                 type="number"
                 inputMode="decimal"
                 className="input"
                 style={{ marginTop: 6, fontSize: 18, fontWeight: 600 }}
-                placeholder="172.4"
-                value={lbsDraft}
-                onChange={(e) => setLbsDraft(e.target.value)}
+                placeholder={wUnit === "kg" ? "78.2" : "172.4"}
+                value={weightDraft}
+                onChange={(e) => setWeightDraft(e.target.value)}
               />
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>

@@ -1,4 +1,5 @@
-import type { ExercisePersonalBest, WorkoutExercise, WorkoutSessionSummary, WorkoutSet, WorkoutState } from "./types";
+import { formatSetWeight, weightUnitLabel } from "./unitPreferences";
+import type { ExercisePersonalBest, WeightUnit, WorkoutExercise, WorkoutSessionSummary, WorkoutSet, WorkoutState } from "./types";
 
 export function normalizeExerciseKey(name: string): string {
   return name.trim().toLowerCase();
@@ -14,8 +15,8 @@ export function parseWorkoutTarget(target: string): { repMin: number; repMax: nu
   return { repMin: Math.min(repMin, repMax), repMax: Math.max(repMin, repMax) };
 }
 
-function formatSetDetail(w: number, r: number): string {
-  if (w > 0) return `${w} lb × ${r} rep${r === 1 ? "" : "s"}`;
+function formatSetDetail(w: number, r: number, weightUnit: WeightUnit): string {
+  if (w > 0) return `${formatSetWeight(w, weightUnit)} ${weightUnitLabel(weightUnit)} × ${r} rep${r === 1 ? "" : "s"}`;
   return `${r} rep${r === 1 ? "" : "s"}`;
 }
 
@@ -82,6 +83,7 @@ export function buildWorkoutSessionSummary(
   workout: WorkoutState,
   personalBests: Record<string, ExercisePersonalBest>,
   endedAtMs: number,
+  weightUnit: WeightUnit = "lbs",
 ): WorkoutSessionSummary {
   const durationSec =
     workout.sessionStartedAtMs != null
@@ -114,7 +116,7 @@ export function buildWorkoutSessionSummary(
       if (isPr) {
         prs.push({
           exerciseName: ex.name,
-          detail: formatSetDetail(sessionBest.w, sessionBest.r),
+          detail: formatSetDetail(sessionBest.w, sessionBest.r, weightUnit),
         });
       }
     }

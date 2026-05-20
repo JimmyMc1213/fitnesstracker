@@ -8,17 +8,20 @@ import {
   previewTargetsAfterCalorieDelta,
   type SundayReviewPreview,
 } from "./weeklyAdjustment";
-import type { AppState, MacroTotals } from "./types";
+import { formatWeightFromLbs, formatWeeklyRateLbsPerWeek, weightUnitLabel } from "./unitPreferences";
+import type { AppState, MacroTotals, UnitPreferences } from "./types";
 
 type Props = {
   preview: SundayReviewPreview;
   nutritionTargets: MacroTotals;
+  unitPreferences: UnitPreferences;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   /** When set (e.g. dev preview Sunday), used for commit timestamps so Skip/Approve work off-Sunday. */
   reviewClock?: Date;
 };
 
-export function SundayReviewSheet({ preview, nutritionTargets, setState, reviewClock }: Props) {
+export function SundayReviewSheet({ preview, nutritionTargets, unitPreferences, setState, reviewClock }: Props) {
+  const wUnit = unitPreferences.weightUnit;
   const commitAt = reviewClock ?? new Date();
   const [customDelta, setCustomDelta] = useState(String(preview.recommendedTotalDelta));
 
@@ -45,7 +48,9 @@ export function SundayReviewSheet({ preview, nutritionTargets, setState, reviewC
         {rows.map((r) => (
           <div key={r.dateKey} className="between" style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>
             <span style={{ color: "rgba(255,255,255,0.45)" }}>{r.label}</span>
-            <span style={{ fontVariantNumeric: "tabular-nums" }}>{r.weightLbs != null ? `${r.weightLbs.toFixed(1)} lbs` : "—"}</span>
+            <span style={{ fontVariantNumeric: "tabular-nums" }}>
+              {r.weightLbs != null ? `${formatWeightFromLbs(r.weightLbs, wUnit)} ${weightUnitLabel(wUnit)}` : "—"}
+            </span>
           </div>
         ))}
       </div>
@@ -90,21 +95,21 @@ export function SundayReviewSheet({ preview, nutritionTargets, setState, reviewC
         {rowList(preview.prevDays)}
         <div style={{ marginTop: 10, fontSize: 12, color: "rgba(255,255,255,0.4)", fontVariantNumeric: "tabular-nums" }}>
           {preview.distinctPrev}/{MIN_WEIGH_INS_PER_WEEK} days · avg{" "}
-          {preview.avgPrev != null ? `${preview.avgPrev.toFixed(2)} lbs` : "—"}
+          {preview.avgPrev != null ? `${formatWeightFromLbs(preview.avgPrev, wUnit)} ${weightUnitLabel(wUnit)}` : "—"}
         </div>
 
         <div style={{ fontSize: 12, fontWeight: 600, margin: "20px 0 8px", color: "rgba(255,255,255,0.55)" }}>This week ({preview.currRange.mon} → {preview.currRange.sun})</div>
         {rowList(preview.currDays)}
         <div style={{ marginTop: 10, fontSize: 12, color: "rgba(255,255,255,0.4)", fontVariantNumeric: "tabular-nums" }}>
           {preview.distinctCurr}/{MIN_WEIGH_INS_PER_WEEK} days · avg{" "}
-          {preview.avgCurr != null ? `${preview.avgCurr.toFixed(2)} lbs` : "—"}
+          {preview.avgCurr != null ? `${formatWeightFromLbs(preview.avgCurr, wUnit)} ${weightUnitLabel(wUnit)}` : "—"}
         </div>
 
         {preview.ready && preview.weeklyLoss !== null ? (
           <div style={{ marginTop: 18, padding: 14, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: "0.5px solid var(--border)" }}>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginBottom: 6 }}>Average change (prev − this)</div>
             <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
-              {preview.weeklyLoss.toFixed(2)} lb/wk
+              {formatWeeklyRateLbsPerWeek(preview.weeklyLoss, wUnit)}
             </div>
             <div style={{ marginTop: 10, fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>
               Recommended:{" "}

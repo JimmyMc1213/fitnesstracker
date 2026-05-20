@@ -33,6 +33,7 @@ import { ScreenStretch } from "./screens/ScreenStretch";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
 import { SundayReviewSheet } from "./SundayReviewSheet";
+import { UnitOnboardingScreen } from "./UnitOnboardingScreen";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
 import type { AppState, ScreenProps, TabId } from "./types";
 
@@ -55,6 +56,21 @@ function buildInitialState(): AppState {
 function AuthGate({ children }: { children: ReactNode }) {
   const sync = useFitnessSync();
   if (sync.configured && !sync.sessionEmail) return <AuthScreen />;
+  return <>{children}</>;
+}
+
+function UnitPreferencesGate({
+  state,
+  setState,
+  children,
+}: {
+  state: AppState;
+  setState: React.Dispatch<React.SetStateAction<AppState>>;
+  children: ReactNode;
+}) {
+  if (!state.unitPreferencesChosen) {
+    return <UnitOnboardingScreen setState={setState} />;
+  }
   return <>{children}</>;
 }
 
@@ -135,6 +151,7 @@ export function FitnessApp() {
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
       <AuthGate>
+      <UnitPreferencesGate state={state} setState={setState}>
       <div
         style={{
           flex: 1,
@@ -187,6 +204,7 @@ export function FitnessApp() {
           <SundayReviewSheet
             preview={sundayPreview}
             nutritionTargets={state.nutritionTargets}
+            unitPreferences={state.unitPreferences}
             setState={setState}
             reviewClock={previewSundayUi ? reviewNow : undefined}
           />
@@ -195,6 +213,7 @@ export function FitnessApp() {
         {showWorkoutSummary && state.workoutSummary ? (
           <WorkoutSummarySheet
             summary={state.workoutSummary}
+            unitPreferences={state.unitPreferences}
             onDone={() => {
               setState((s) => dismissWorkoutSummary(s));
               setTab("home");
@@ -202,6 +221,7 @@ export function FitnessApp() {
           />
         ) : null}
       </div>
+      </UnitPreferencesGate>
       </AuthGate>
     </FitnessSyncContext.Provider>
   );

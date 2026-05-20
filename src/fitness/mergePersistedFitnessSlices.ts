@@ -1,12 +1,14 @@
 import { nutritionPresetFingerprint } from "./nutritionTotals";
 import { mergeExercisePersonalBests } from "./workoutSummary";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
+import { normalizeUnitPreferences } from "./unitPreferences";
 import type {
   AdjustmentEvent,
   LoggedFood,
   NutritionLoggedItem,
   NutritionPreset,
   ProgressGoalConfig,
+  UnitPreferences,
   WeightEntry,
   WorkoutState,
 } from "./types";
@@ -144,6 +146,10 @@ function mergeProgressGoal(
   return remote ?? local ?? null;
 }
 
+function mergeUnitPreferences(local: UnitPreferences | undefined, remote: UnitPreferences | undefined): UnitPreferences {
+  return normalizeUnitPreferences(remote ?? local);
+}
+
 /**
  * Union-merge two device snapshots so simultaneous edits on phone + desktop lose as little as possible.
  * When both sides edited the same habit day or workout-completion flag, done=true wins.
@@ -192,5 +198,10 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     planStartIso: remote.planStartIso || local.planStartIso,
     stepsTarget: Math.max(local.stepsTarget, remote.stepsTarget),
     progressGoal: mergeProgressGoal(local.progressGoal, remote.progressGoal),
+    unitPreferences: mergeUnitPreferences(
+      normalizeUnitPreferences(local.unitPreferences),
+      normalizeUnitPreferences(remote.unitPreferences),
+    ),
+    unitPreferencesChosen: Boolean(local.unitPreferencesChosen || remote.unitPreferencesChosen),
   };
 }

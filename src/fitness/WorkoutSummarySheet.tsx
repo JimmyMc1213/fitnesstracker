@@ -2,14 +2,21 @@ import { useEffect, type ReactNode } from "react";
 
 import { fireConfetti } from "./confetti";
 import { formatWorkoutDuration } from "./workoutSummary";
-import type { WorkoutSessionSummary } from "./types";
+import { LBS_PER_KG } from "./unitPreferences";
+import type { UnitPreferences, WorkoutSessionSummary } from "./types";
 
 type Props = {
   summary: WorkoutSessionSummary;
+  unitPreferences: UnitPreferences;
   onDone: () => void;
 };
 
-export function WorkoutSummarySheet({ summary, onDone }: Props) {
+export function WorkoutSummarySheet({ summary, unitPreferences, onDone }: Props) {
+  const volLabel = unitPreferences.weightUnit === "kg" ? "kg·reps" : "lb·reps";
+  const displayVolume =
+    summary.totalVolume > 0 && unitPreferences.weightUnit === "kg"
+      ? Math.round(summary.totalVolume / LBS_PER_KG)
+      : summary.totalVolume;
   useEffect(() => {
     const stop = fireConfetti();
     return stop;
@@ -81,8 +88,8 @@ export function WorkoutSummarySheet({ summary, onDone }: Props) {
           />
           <StatCard
             label="Volume"
-            value={summary.totalVolume > 0 ? summary.totalVolume.toLocaleString() : "—"}
-            sub={summary.totalVolume > 0 ? "lb·reps" : undefined}
+            value={summary.totalVolume > 0 ? displayVolume.toLocaleString() : "—"}
+            sub={summary.totalVolume > 0 ? volLabel : undefined}
           />
         </div>
 

@@ -10,6 +10,13 @@ import {
   meanWeightInRangeOrNull,
   sundayOfWeekContaining,
 } from "../weeklyAdjustment";
+import {
+  formatWeightDeltaLbs,
+  formatWeightFromLbs,
+  formatWeeklyRateLbsPerWeek,
+  LBS_PER_KG,
+  weightUnitLabel,
+} from "../unitPreferences";
 import type { ScreenProps } from "../types";
 
 function weekRowTitle(index: number): string {
@@ -284,6 +291,7 @@ function LiftingCalendarCard({ viewYear, viewMonth, onPrevMonth, onNextMonth, on
 export function ScreenProgress({ state }: ScreenProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null);
   const [chartW, setChartW] = useState(0);
+  const wUnit = state.unitPreferences.weightUnit;
 
   const goalLo = state.progressGoal?.goalWeightLowLbs ?? DEFAULT_GOAL_LO;
   const goalHi = state.progressGoal?.goalWeightHighLbs ?? DEFAULT_GOAL_HI;
@@ -306,14 +314,18 @@ export function ScreenProgress({ state }: ScreenProps) {
     () => [...state.weightLog].sort((a, b) => a.dateKey.localeCompare(b.dateKey)),
     [state.weightLog],
   );
-  const chartSeries = sorted.map((e) => e.weightLbs);
-  const todayWeight = chartSeries.length ? chartSeries[chartSeries.length - 1]! : cutBarStart;
-  const startWeight = chartSeries.length ? chartSeries[0]! : todayWeight;
-  const delta = todayWeight - startWeight;
+  const chartSeriesLbs = sorted.map((e) => e.weightLbs);
+  const chartSeries = wUnit === "kg" ? chartSeriesLbs.map((lbs) => lbs / LBS_PER_KG) : chartSeriesLbs;
+  const todayWeightLbs = chartSeriesLbs.length ? chartSeriesLbs[chartSeriesLbs.length - 1]! : cutBarStart;
+  const startWeightLbs = chartSeriesLbs.length ? chartSeriesLbs[0]! : todayWeightLbs;
+  const deltaLbs = todayWeightLbs - startWeightLbs;
+  const todayDisplay = wUnit === "kg" ? todayWeightLbs / LBS_PER_KG : todayWeightLbs;
+  const goalLoDisplay = wUnit === "kg" ? goalLo / LBS_PER_KG : goalLo;
+  const goalHiDisplay = wUnit === "kg" ? goalHi / LBS_PER_KG : goalHi;
 
   const goalMid = (goalLo + goalHi) / 2;
   const denom = cutBarStart - goalMid;
-  const goalPct = denom !== 0 ? Math.max(0, Math.min(1, (cutBarStart - todayWeight) / denom)) : 0;
+  const goalPct = denom !== 0 ? Math.max(0, Math.min(1, (cutBarStart - todayWeightLbs) / denom)) : 0;
 
   const daysIn = planDayIndex(new Date(), state.planStartIso);
   const daysTotal = 84;
@@ -361,16 +373,16 @@ export function ScreenProgress({ state }: ScreenProps) {
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 10 }}>
               <span style={{ fontSize: 36, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", fontVariantNumeric: "tabular-nums" }}>
-                {chartSeries.length ? todayWeight.toFixed(1) : "—"}
+                {chartSeries.length ? todayDisplay.toFixed(1) : "—"}
               </span>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>lbs</span>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>{weightUnitLabel(wUnit)}</span>
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
             <div
               style={{
                 fontSize: 12,
-                color: delta <= 0 ? "var(--pos)" : "var(--neg)",
+                color: deltaLbs <= 0 ? "var(--pos)" : "var(--neg)",
                 fontWeight: 600,
                 display: "flex",
                 alignItems: "center",
@@ -381,9 +393,8 @@ export function ScreenProgress({ state }: ScreenProps) {
             >
               {chartSeries.length >= 2 ? (
                 <>
-                  {delta <= 0 ? <IconArrowDown size={11} stroke={2.4} /> : <IconArrowUp size={11} stroke={2.4} />}
-                  {delta >= 0 ? "+" : ""}
-                  {delta.toFixed(1)} lbs
+                  {deltaLbs <= 0 ? <IconArrowDown size={11} stroke={2.4} /> : <IconArrowUp size={11} stroke={2.4} />}
+                  {formatWeightDeltaLbs(deltaLbs, wUnit)}
                 </>
               ) : (
                 <span style={{ color: "rgba(255,255,255,0.35)" }}>Log on Home</span>
@@ -420,7 +431,8 @@ export function ScreenProgress({ state }: ScreenProps) {
               <span style={{ fontVariantNumeric: "tabular-nums" }}>
                 {row.avg !== null ? (
                   <>
-                    {row.avg.toFixed(1)} lb <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{row.days}/{MIN_WEIGH_INS_PER_WEEK}d</span>
+                    {formatWeightFromLbs(row.avg, wUnit)} {weightUnitLabel(wUnit)}{" "}
+                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{row.days}/{MIN_WEIGH_INS_PER_WEEK}d</span>
                   </>
                 ) : (
                   <span style={{ color: "rgba(255,255,255,0.35)" }}>
@@ -461,14 +473,14 @@ export function ScreenProgress({ state }: ScreenProps) {
       <div className="card" style={{ padding: 18 }}>
         <div className="between" style={{ alignItems: "baseline" }}>
           <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>
-            {todayWeight.toFixed(1)}{" "}
-            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 16 }}>→</span> {goalLo}–{goalHi}
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginLeft: 6, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>lbs</span>
+            {todayDisplay.toFixed(1)}{" "}
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 16 }}>→</span> {goalLoDisplay.toFixed(1)}–{goalHiDisplay.toFixed(1)}
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginLeft: 6, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>{weightUnitLabel(wUnit)}</span>
           </div>
           <div style={{ fontSize: 12, color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{Math.round(goalPct * 100)}%</div>
         </div>
         <p style={{ margin: "12px 0 0", fontSize: 11, lineHeight: 1.5, color: "rgba(255,255,255,0.38)", fontWeight: 400 }}>
-          ~1 lb/wk · read trend over a few weeks
+          ~{wUnit === "kg" ? "0.5" : "1"} {weightUnitLabel(wUnit)}/wk · read trend over a few weeks
         </p>
         <div style={{ marginTop: 14 }}>
           <div className="barTrack" style={{ height: 4 }}>
@@ -506,7 +518,7 @@ export function ScreenProgress({ state }: ScreenProps) {
                 </span>
                 <div style={{ textAlign: "right", minWidth: 0 }}>
                   <div style={{ color: "rgba(255,255,255,0.82)", fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
-                    {ev.before.cal}→{ev.after.cal} kcal · {ev.weeklyLossLbs.toFixed(1)} lb/wk
+                    {ev.before.cal}→{ev.after.cal} kcal · {formatWeeklyRateLbsPerWeek(ev.weeklyLossLbs, wUnit)}
                   </div>
                   {ev.recommendedDeltaCal != null && ev.appliedDeltaCal != null && ev.recommendedDeltaCal !== ev.appliedDeltaCal ? (
                     <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>
