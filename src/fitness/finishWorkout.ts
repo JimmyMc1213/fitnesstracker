@@ -1,4 +1,6 @@
+import { appendExerciseSessionHistory } from "./exerciseSessionHistory";
 import type { AppState, WorkoutSessionSummary } from "./types";
+import { appendWorkoutHistory, buildCompletedWorkoutSession } from "./workoutHistory";
 import { buildWorkoutSessionSummary, personalBestsAfterSession } from "./workoutSummary";
 
 export type FinishWorkoutResult = {
@@ -18,6 +20,15 @@ export function finishWorkout(state: AppState, endedAtMs = Date.now()): FinishWo
 
   const summary = buildWorkoutSessionSummary(w, state.exercisePersonalBests, endedAtMs, state.unitPreferences.weightUnit);
   const exercisePersonalBests = personalBestsAfterSession(w.exercises, state.exercisePersonalBests);
+  const exerciseSessionHistoryByKey = appendExerciseSessionHistory(
+    state.exerciseSessionHistoryByKey ?? {},
+    w,
+    endedAtMs,
+  );
+  const completedSession = buildCompletedWorkoutSession(w, endedAtMs, summary.durationSec);
+  const workoutHistory = completedSession
+    ? appendWorkoutHistory(state.workoutHistory ?? [], completedSession)
+    : state.workoutHistory ?? [];
   const dayKey = w.sessionDayKey;
   const workoutsCompletedByDay =
     dayKey != null ? { ...state.workoutsCompletedByDay, [dayKey]: true } : state.workoutsCompletedByDay;
@@ -25,6 +36,8 @@ export function finishWorkout(state: AppState, endedAtMs = Date.now()): FinishWo
   const nextState: AppState = {
     ...state,
     exercisePersonalBests,
+    exerciseSessionHistoryByKey,
+    workoutHistory,
     workoutsCompletedByDay,
     workoutSummary: summary,
     workout: {

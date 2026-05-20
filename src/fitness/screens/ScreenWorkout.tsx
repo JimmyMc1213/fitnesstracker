@@ -8,7 +8,8 @@ import { getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach";
 import { finishWorkout } from "../finishWorkout";
 import { isJimmySummerPlanTemplates, jimmySuggestedRoutineIdForDate } from "../jimmyWeekly";
-import { IconCheck, IconMinus, IconPencil, IconPlus, IconSearch, IconTrash } from "../icons";
+import { IconCheck, IconClock, IconMinus, IconPencil, IconPlus, IconSearch, IconTrash } from "../icons";
+import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
 import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
@@ -42,6 +43,31 @@ function formatExercisePr(
   if (!best || (best.maxWeight <= 0 && best.maxReps <= 0)) return null;
   const w = formatSetWeight(best.maxWeight, unit);
   return `PR ${w}×${best.maxReps}`;
+}
+
+function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className="tap"
+      onClick={onClick}
+      aria-label="Workout history"
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        border: "0.5px solid var(--border)",
+        background: "rgba(255,255,255,0.06)",
+        color: "#fff",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      <IconClock size={20} stroke={1.75} />
+    </button>
+  );
 }
 
 const MOBILITY_ITEMS = [
@@ -158,6 +184,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
+  const [showHistoryPage, setShowHistoryPage] = useState(false);
   const w = state.workout;
   const wUnit = state.unitPreferences.weightUnit;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
@@ -443,6 +470,17 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     boxSizing: "border-box",
   };
 
+  if (showHistoryPage) {
+    return (
+      <ScreenWorkoutHistory
+        state={state}
+        setState={setState}
+        navigate={() => {}}
+        onBack={() => setShowHistoryPage(false)}
+      />
+    );
+  }
+
   if (phase === "idle" && editingRoutineId !== null) {
     if (editingRoutineId !== NEW_ROUTINE_EDITOR_ID && !state.workoutTemplates.some((t) => t.id === editingRoutineId)) {
       return null;
@@ -499,7 +537,11 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     return (
       <>
       <div key="workout-idle" className="screen page-transition">
-        <ScreenHeader eyebrow="TRAINING" title="Start Workout" />
+        <ScreenHeader
+          eyebrow="TRAINING"
+          title="Start Workout"
+          right={<HistoryHeaderButton onClick={() => setShowHistoryPage(true)} />}
+        />
 
         <button
           type="button"
@@ -1286,6 +1328,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           onClose={() => setNotesEdit(null)}
         />
       ) : null}
+
     </div>
   );
 }
