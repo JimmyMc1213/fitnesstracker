@@ -757,6 +757,7 @@ export function seedJimmyData(): void {
     planStartIso: new Date().toISOString().split("T")[0],
     stepsTarget: JIMMY_SETTINGS.dailyStepsGoal,
     progressGoal: { ...JIMMY_PROGRESS_GOAL_CONFIG },
+    onboardingCompleted: true,
     workout: {
       ...base.workout,
       splitId,

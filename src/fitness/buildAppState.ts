@@ -25,6 +25,7 @@ import type {
   HabitTemplate,
   LoggedFood,
   MacroTotals,
+  OnboardingProfile,
   ProgressGoalConfig,
   WorkoutState,
 } from "./types";
@@ -243,6 +244,32 @@ function normalizeHabitsDoneByDay(raw: unknown): Record<string, Record<string, b
   return out;
 }
 
+function normalizeOnboardingProfile(raw: unknown): OnboardingProfile | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const goal = o.goal;
+  const gender = o.gender;
+  const activityLevel = o.activityLevel;
+  if (goal !== "bulk" && goal !== "cut" && goal !== "maintain") return null;
+  if (gender !== "male" && gender !== "female") return null;
+  if (
+    activityLevel !== "sedentary" &&
+    activityLevel !== "lightly_active" &&
+    activityLevel !== "moderately_active" &&
+    activityLevel !== "very_active"
+  ) {
+    return null;
+  }
+  const heightIn = Number(o.heightIn);
+  const weightLbs = Number(o.weightLbs);
+  const age = Number(o.age);
+  const daysPerWeek = Number(o.daysPerWeek);
+  const splitKey = typeof o.splitKey === "string" ? o.splitKey : "";
+  if (![heightIn, weightLbs, age, daysPerWeek].every((n) => Number.isFinite(n) && n > 0)) return null;
+  if (!splitKey.trim()) return null;
+  return { goal, gender, activityLevel, heightIn, weightLbs, age, daysPerWeek, splitKey };
+}
+
 /** Build full app state from a persisted JSON blob (localStorage or Supabase). */
 export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | null | undefined): AppState {
   const nutritionTargets = p?.nutritionTargets ? { ...p.nutritionTargets } : { ...DEFAULT_NUTRITION_TARGETS };
@@ -252,7 +279,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     typeof p?.sundayReviewCompletedKey === "string"
       ? p.sundayReviewCompletedKey
       : lastAdj;
-  const displayName = typeof p?.displayName === "string" && p.displayName.trim() ? p.displayName.trim() : "Jimmy";
+  const displayName = typeof p?.displayName === "string" && p.displayName.trim() ? p.displayName.trim() : "Athlete";
   const planStartIso =
     typeof p?.planStartIso === "string" && isValidPlanStartIso(p.planStartIso) ? p.planStartIso : PLAN_START_ISO;
   const stepsTarget =
@@ -303,5 +330,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
         : null,
     nightlyStretchBlockIdsByArizonaDay: normalizeStretchBlockCompletionMap(p?.nightlyStretchBlockIdsByArizonaDay),
     progressGoal: normalizeProgressGoal(p?.progressGoal),
+    onboardingCompleted: p?.onboardingCompleted === true,
+    onboardingProfile: normalizeOnboardingProfile(p?.onboardingProfile),
   };
 }

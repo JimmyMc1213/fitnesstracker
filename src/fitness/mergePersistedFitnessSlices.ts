@@ -199,5 +199,7 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     planStartIso: remote.planStartIso || local.planStartIso,
     stepsTarget: Math.max(local.stepsTarget, remote.stepsTarget),
     progressGoal: mergeProgressGoal(local.progressGoal, remote.progressGoal),
+    onboardingCompleted: Boolean(local.onboardingCompleted || remote.onboardingCompleted),
+    onboardingProfile: remote.onboardingProfile ?? local.onboardingProfile ?? null,
   };
 }

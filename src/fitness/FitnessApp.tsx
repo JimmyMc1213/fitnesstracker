@@ -3,6 +3,8 @@ import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 
 import { buildSundayReviewPreview } from "./weeklyAdjustment";
 import { buildAppStateFromPersisted } from "./buildAppState";
 import { seedJimmyData } from "./jimmy-seed-data";
+import { needsOnboarding } from "./onboarding";
+import { OnboardingFlow } from "./OnboardingFlow";
 import {
   loadTasksForToday,
   localDateKey,
@@ -34,6 +36,7 @@ import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
 import { SundayReviewSheet } from "./SundayReviewSheet";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
+import { isSupabaseConfigured } from "./supabaseClient";
 import type { AppState, ScreenProps, TabId } from "./types";
 
 /** Dev only: `?previewSunday=1` treats "now" as noon on this week's Sunday so the review sheet is visible any day. */
@@ -47,7 +50,14 @@ function sundayNoonForCurrentWeek(d: Date): Date {
 
 function buildInitialState(): AppState {
   if (typeof localStorage !== "undefined" && !localStorage.getItem(FITNESS_LOCAL_STORAGE_KEY)) {
-    seedJimmyData();
+    if (!isSupabaseConfigured()) {
+      seedJimmyData();
+    } else {
+      const neutral = buildAppStateFromPersisted(null);
+      savePersistedSlice({
+        ...sliceFromAppState({ ...neutral, onboardingCompleted: false, displayName: "" }),
+      });
+    }
   }
   return buildAppStateFromPersisted(loadPersistedSlice());
 }
@@ -55,6 +65,56 @@ function buildInitialState(): AppState {
 function AuthGate({ children }: { children: ReactNode }) {
   const sync = useFitnessSync();
   if (sync.configured && !sync.sessionEmail) return <AuthScreen />;
+  return <>{children}</>;
+}
+
+function OnboardingGate({
+  children,
+  state,
+  setState,
+}: {
+  children: ReactNode;
+  state: AppState;
+  setState: React.Dispatch<React.SetStateAction<AppState>>;
+}) {
+  const sync = useFitnessSync();
+  const [awaitingInitialSync, setAwaitingInitialSync] = useState(true);
+  const slice = sliceFromAppState(state);
+  const previewOnboarding =
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("previewOnboarding") === "1";
+  const showOnboarding = previewOnboarding || needsOnboarding(sync.sessionEmail, slice, sync.configured);
+
+  useEffect(() => {
+    setAwaitingInitialSync(true);
+  }, [sync.sessionEmail]);
+
+  useEffect(() => {
+    if (!sync.busy) setAwaitingInitialSync(false);
+  }, [sync.busy]);
+
+  if (
+    sync.configured &&
+    awaitingInitialSync &&
+    sync.busy &&
+    !state.onboardingCompleted &&
+    sync.sessionEmail &&
+    !previewOnboarding
+  ) {
+    return (
+      <div className="onboarding-screen">
+        <div className="onboarding-inner" style={{ justifyContent: "center", alignItems: "center" }}>
+          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 15 }}>Loading your account…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (showOnboarding) {
+    return <OnboardingFlow state={state} setState={setState} onComplete={() => {}} />;
+  }
+
   return <>{children}</>;
 }
 
@@ -135,6 +195,7 @@ export function FitnessApp() {
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
       <AuthGate>
+      <OnboardingGate state={state} setState={setState}>
       <div
         style={{
           flex: 1,
@@ -202,6 +263,7 @@ export function FitnessApp() {
           />
         ) : null}
       </div>
+      </OnboardingGate>
       </AuthGate>
     </FitnessSyncContext.Provider>
   );

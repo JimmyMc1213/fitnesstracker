@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from "react";
 
 import { useFitnessSync } from "./FitnessSyncContext";
+import { PENDING_DISPLAY_NAME_KEY } from "./onboarding";
 
 type View = "landing" | "signin" | "signup";
 
@@ -24,6 +25,13 @@ export function AuthScreen() {
     setLoading(false);
     if (r.error) setError(r.error);
     else if (r.needsConfirmation) setInfo("Check your inbox and click the confirmation link, then come back and sign in.");
+    else {
+      try {
+        sessionStorage.setItem(PENDING_DISPLAY_NAME_KEY, name.trim());
+      } catch {
+        /* ignore */
+      }
+    }
   };
 
   const handleSignIn = async () => {

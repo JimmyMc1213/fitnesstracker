@@ -3,6 +3,12 @@ import type { Session } from "@supabase/supabase-js";
 
 import { buildAppStateFromPersisted } from "./buildAppState";
 import type { FitnessSyncContextValue } from "./FitnessSyncContext";
+import {
+  buildFreshOnboardingSlice,
+  consumePendingDisplayName,
+  hasExistingFitnessData,
+  isLegacyEmail,
+} from "./onboarding";
 import { mergePersistedFitnessSlices } from "./mergePersistedFitnessSlices";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { savePersistedSlice, sliceFromAppState } from "./persistFitnessSlice";
@@ -140,20 +146,38 @@ export function useFitnessCloudSync(
   }, [refreshSession]);
 
   const runPullForUser = useCallback(
-    async (uid: string) => {
+    async (uid: string, email: string | null) => {
       const sb = getSupabase();
       if (!sb) return;
       setBusy(true);
       setLastError(null);
       try {
+        const row = await fetchFitnessRemoteRow(uid);
         const localSlice = sliceFromAppState(stateRef.current);
-        const meta = loadSyncMeta();
-        const pull = await pullRemoteIntoLocal(uid, localSlice, meta);
-        if (pull.applied) {
-          savePersistedSlice(pull.mergedSlice);
-          saveSyncMeta(pull.meta);
-          setState(buildAppStateFromPersisted(pull.mergedSlice));
+
+        if (!row) {
+          if (!isLegacyEmail(email)) {
+            const pendingName = consumePendingDisplayName();
+            const fresh = buildFreshOnboardingSlice(pendingName ?? "");
+            savePersistedSlice(fresh);
+            saveSyncMeta({ lastSeenRemoteUpdatedAtMs: 0 });
+            setState(buildAppStateFromPersisted(fresh));
+          }
+          return;
         }
+
+        let remoteSlice = payloadToPersistedSlice(row.payload);
+        if (!remoteSlice.onboardingCompleted && hasExistingFitnessData(remoteSlice)) {
+          remoteSlice = { ...remoteSlice, onboardingCompleted: true };
+        }
+
+        const meta = loadSyncMeta();
+        if (row.updated_at_ms <= meta.lastSeenRemoteUpdatedAtMs) return;
+
+        const mergedSlice = mergePersistedFitnessSlices(localSlice, remoteSlice);
+        savePersistedSlice(mergedSlice);
+        saveSyncMeta({ lastSeenRemoteUpdatedAtMs: row.updated_at_ms });
+        setState(buildAppStateFromPersisted(mergedSlice));
       } catch (e) {
         setLastError(e instanceof Error ? e.message : "Sync pull failed");
       } finally {
@@ -165,8 +189,8 @@ export function useFitnessCloudSync(
 
   useEffect(() => {
     if (!configured || !session?.user?.id) return;
-    void runPullForUser(session.user.id);
-  }, [configured, session?.user?.id, runPullForUser]);
+    void runPullForUser(session.user.id, session.user.email ?? null);
+  }, [configured, session?.user?.id, session?.user?.email, runPullForUser]);
 
   useEffect(() => {
     if (!configured || !session?.user?.id) return;
@@ -258,7 +282,7 @@ export function useFitnessCloudSync(
     setBusy(true);
     setLastError(null);
     try {
-      await runPullForUser(uid);
+      await runPullForUser(uid, session?.user?.email ?? null);
       let meta = loadSyncMeta();
       let slice = sliceFromAppState(stateRef.current);
       let result = await tryPush(uid, slice, meta);

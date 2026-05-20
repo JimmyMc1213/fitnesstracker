@@ -130,6 +130,24 @@ export type Habit = HabitTemplate & {
   done: boolean;
 };
 
+export type FitnessGoal = "bulk" | "cut" | "maintain";
+
+export type Gender = "male" | "female";
+
+export type ActivityLevel = "sedentary" | "lightly_active" | "moderately_active" | "very_active";
+
+/** Stats collected during onboarding; persisted for reference. */
+export type OnboardingProfile = {
+  goal: FitnessGoal;
+  heightIn: number;
+  weightLbs: number;
+  age: number;
+  gender: Gender;
+  activityLevel: ActivityLevel;
+  daysPerWeek: number;
+  splitKey: string;
+};
+
 export type TabId = "home" | "habits" | "nutrition" | "workout" | "progress" | "stretch";
 
 /** One actionable item for the day — training, fuel, recovery. */
@@ -216,6 +234,10 @@ export type AppState = {
   /** Per Arizona calendar day, stretch block ids marked complete (`stretchRoutine` ids). */
   nightlyStretchBlockIdsByArizonaDay: Record<string, string[]>;
   progressGoal: ProgressGoalConfig | null;
+  /** True after the user finishes first-run onboarding (new accounts). */
+  onboardingCompleted: boolean;
+  /** Body stats and goal from onboarding; optional after complete. */
+  onboardingProfile: OnboardingProfile | null;
 };
 
 export type ScreenProps = {

@@ -31,6 +31,8 @@ export type PersistedFitnessSlice = Pick<
   | "planStartIso"
   | "stepsTarget"
   | "progressGoal"
+  | "onboardingCompleted"
+  | "onboardingProfile"
 >;
 
 export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
@@ -60,6 +62,8 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     planStartIso: state.planStartIso,
     stepsTarget: state.stepsTarget,
     progressGoal: state.progressGoal,
+    onboardingCompleted: state.onboardingCompleted,
+    onboardingProfile: state.onboardingProfile,
   };
 }
 
