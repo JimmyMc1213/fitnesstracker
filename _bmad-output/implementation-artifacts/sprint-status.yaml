@@ -78,12 +78,12 @@ development_status:
   epic-fti-sprint-1-retrospective: done
 
   # --- Sprint 2 (active) — coaching-led OS polish ---
-  epic-fti-sprint-2: in-progress
+  epic-fti-sprint-2: done
 
   fti-29-personalized-home-screen-greeting-post-onboarding: done
   fti-30-estimated-session-time-shown-per-split-in-onboarding: done
   fti-28-notification-setup-screen-in-onboarding: done
   fti-31-animated-macro-rings-on-home-dashboard: done
-  fti-32-water-intake-tracking: backlog
+  fti-32-water-intake-tracking: done
 
   epic-fti-sprint-2-retrospective: optional

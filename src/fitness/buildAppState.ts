@@ -22,12 +22,12 @@ import {
   normalizeStreakEligibleByDay,
   normalizeStreakSessionBaseline,
 } from "./dailyStreak";
-import { isJimmySummerPlanTemplates } from "./jimmyWeekly";
 import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
 import { normalizeOnboardingProfile } from "./onboardingProfile";
 import { normalizeRestTimerDefaultSeconds, normalizeRestTimerSecondsByExerciseKey } from "./restTimerPreferences";
 import { normalizeNotificationPreferences } from "./notificationPreferences";
 import { normalizeUnitPreferences } from "./unitPreferences";
+import { normalizeWaterDailyTargetOz, normalizeWaterLogByDay } from "./waterIntake";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import type {
   AdjustmentEvent,
@@ -265,7 +265,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     typeof p?.sundayReviewCompletedKey === "string"
       ? p.sundayReviewCompletedKey
       : lastAdj;
-  const displayName = typeof p?.displayName === "string" && p.displayName.trim() ? p.displayName.trim() : "Jimmy";
+  const displayName = typeof p?.displayName === "string" && p.displayName.trim() ? p.displayName.trim() : "";
   const planStartIso =
     typeof p?.planStartIso === "string" && isValidPlanStartIso(p.planStartIso) ? p.planStartIso : PLAN_START_ISO;
   const stepsTarget =
@@ -284,9 +284,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
       ? defaultWorkoutRoutineTemplates()
       : normalizeWorkoutTemplates(p.workoutTemplates);
   const hasLegacyFitnessData =
-    Object.keys(p?.workoutsCompletedByDay ?? {}).length > 0 ||
-    (p?.weightLog?.length ?? 0) > 0 ||
-    isJimmySummerPlanTemplates(workoutTemplates);
+    Object.keys(p?.workoutsCompletedByDay ?? {}).length > 0 || (p?.weightLog?.length ?? 0) > 0;
 
   const baseState: AppState = {
     displayName,
@@ -345,6 +343,8 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     onboardingProfile: normalizeOnboardingProfile(p?.onboardingProfile),
     onboardingComplete: p?.onboardingComplete === true || hasLegacyFitnessData,
     notificationPreferences: normalizeNotificationPreferences(p?.notificationPreferences),
+    waterLogByDay: normalizeWaterLogByDay(p?.waterLogByDay),
+    waterDailyTargetOz: normalizeWaterDailyTargetOz(p?.waterDailyTargetOz),
   };
 
   return applyStreakEligibility(baseState, todayKey);

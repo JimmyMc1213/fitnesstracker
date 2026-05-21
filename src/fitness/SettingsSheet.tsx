@@ -2,7 +2,6 @@ import { useEffect, useState, type ChangeEvent, type Dispatch, type SetStateActi
 
 import { generateDailyTasksForDate, localDateKey } from "./dailyPlan";
 import { buildHabitsForDateKey } from "./data";
-import { refreshStateAfterJimmySeed } from "./jimmy-seed-data";
 import { useFitnessSync } from "./FitnessSyncContext";
 import { IconBolt, IconDroplet, IconMoon, IconRun, IconX } from "./icons";
 import { UnitPreferencePicker } from "./UnitPreferencePicker";
@@ -12,6 +11,11 @@ import { NotificationPreferencesPicker } from "./NotificationPreferencesPicker";
 import { getNotificationPermission } from "./notificationPermission";
 import { SectionLabel } from "./shared";
 import { REST_TIMER_PRESETS } from "./restTimerPreferences";
+import {
+  formatWaterLitersFromOz,
+  normalizeWaterDailyTargetOz,
+  WATER_TARGET_PRESETS_OZ,
+} from "./waterIntake";
 import {
   formatWeightFromLbs,
   heightUnitLabel,
@@ -70,6 +74,8 @@ export function SettingsSheet({
   const [cIn, setCIn] = useState(String(T.c));
   const [fIn, setFIn] = useState(String(T.f));
 
+  const [waterTargetIn, setWaterTargetIn] = useState(String(state.waterDailyTargetOz));
+
   const sync = useFitnessSync();
   const [syncEmail, setSyncEmail] = useState("");
   const [syncPassword, setSyncPassword] = useState("");
@@ -82,6 +88,20 @@ export function SettingsSheet({
     setCIn(String(T.c));
     setFIn(String(T.f));
   }, [T.cal, T.p, T.c, T.f]);
+
+  useEffect(() => {
+    setWaterTargetIn(String(state.waterDailyTargetOz));
+  }, [state.waterDailyTargetOz]);
+
+  function commitWaterTarget(raw: string) {
+    const n = parseInt(raw, 10);
+    const val = normalizeWaterDailyTargetOz(Number.isFinite(n) ? n : undefined);
+    setWaterTargetIn(String(val));
+    setState((s) => ({
+      ...s,
+      waterDailyTargetOz: val,
+    }));
+  }
 
   function commit(patch: Partial<MacroTotals>) {
     setState((s) => {
@@ -383,6 +403,69 @@ export function SettingsSheet({
           />
         </div>
 
+        <SectionLabel>Hydration</SectionLabel>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+          Daily water intake target on the Nutrition tab. Logged in fluid ounces with a metric equivalent.
+        </p>
+        <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+            {WATER_TARGET_PRESETS_OZ.map((oz) => {
+              const selected = state.waterDailyTargetOz === oz;
+              return (
+                <button
+                  key={oz}
+                  type="button"
+                  className="tap"
+                  aria-pressed={selected}
+                  onClick={() => commitWaterTarget(String(oz))}
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    border: selected ? "0.5px solid rgba(10,132,255,0.55)" : "0.5px solid var(--border)",
+                    background: selected ? "rgba(10,132,255,0.15)" : "rgba(255,255,255,0.04)",
+                    color: selected ? "#0A84FF" : "rgba(255,255,255,0.65)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {oz} oz
+                </button>
+              );
+            })}
+          </div>
+          <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            Custom target (oz)
+            <input
+              type="number"
+              min={16}
+              max={256}
+              step={1}
+              inputMode="numeric"
+              className="input"
+              style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
+              value={waterTargetIn}
+              onChange={(e) => {
+                const v = e.target.value;
+                setWaterTargetIn(v);
+                if (v === "" || v === "-") return;
+                const n = parseInt(v, 10);
+                if (Number.isFinite(n) && n >= 16 && n <= 256) {
+                  setState((s) => ({
+                    ...s,
+                    waterDailyTargetOz: n,
+                  }));
+                }
+              }}
+              onBlur={() => commitWaterTarget(waterTargetIn)}
+              aria-label="Daily water target in ounces"
+            />
+          </label>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 500, marginTop: 8 }}>
+            {formatWaterLitersFromOz(state.waterDailyTargetOz)}
+          </div>
+        </div>
+
         <SectionLabel>Equipment</SectionLabel>
         <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
           Workout templates swap exercises to match what you have available.
@@ -426,7 +509,7 @@ export function SettingsSheet({
                   displayName: e.target.value,
                 }))
               }
-              placeholder="Jimmy"
+              placeholder="Your name"
               autoCapitalize="words"
               aria-label="Display name"
             />
@@ -609,34 +692,6 @@ export function SettingsSheet({
               aria-label="Daily steps goal"
             />
           </label>
-          <button
-            type="button"
-            className="tap"
-            onClick={() => {
-              if (
-                typeof window !== "undefined" &&
-                !window.confirm(
-                  "Load Jimmy’s summer plan? This replaces workouts, Saved nutrition presets, habits, macro targets, and goal range. Logs (weight, meals, completions) are kept.",
-                )
-              )
-                return;
-              setState(refreshStateAfterJimmySeed());
-            }}
-            style={{
-              padding: "12px 14px",
-              borderRadius: 12,
-              fontWeight: 700,
-              fontSize: 14,
-              border: "none",
-              background: "rgba(10,132,255,0.22)",
-              color: "#fff",
-            }}
-          >
-            Load my summer plan
-          </button>
-          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: "rgba(255,255,255,0.38)", fontWeight: 400 }}>
-            Applies 2,000 kcal / 175P targets, Jimmy’s routines (warm-ups included), meal-prep presets, and the 160–165 lb goal band.
-          </p>
         </div>
       </div>
     </div>

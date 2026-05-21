@@ -9,6 +9,7 @@ import {
 } from "./restTimerPreferences";
 import { mergeNotificationPreferences, normalizeNotificationPreferences } from "./notificationPreferences";
 import { normalizeUnitPreferences } from "./unitPreferences";
+import { mergeWaterLogByDay, normalizeWaterDailyTargetOz, normalizeWaterLogByDay } from "./waterIntake";
 import { normalizeExperienceLevel } from "./experienceLevel";
 import { normalizeEquipmentSetup } from "./equipmentSetup";
 import type {
@@ -310,6 +311,13 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     notificationPreferences: mergeNotificationPreferences(
       normalizeNotificationPreferences(local.notificationPreferences),
       normalizeNotificationPreferences(remote.notificationPreferences),
+    ),
+    waterLogByDay: mergeWaterLogByDay(
+      normalizeWaterLogByDay(local.waterLogByDay),
+      normalizeWaterLogByDay(remote.waterLogByDay),
+    ),
+    waterDailyTargetOz: normalizeWaterDailyTargetOz(
+      remote.waterDailyTargetOz ?? local.waterDailyTargetOz,
     ),
   };
 }

@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useState, type CSSProperties, type MouseEvent } from "react";
 
 import { localDateKey } from "../dailyPlan";
 import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
 import { exerciseNoteKey, getExerciseNote, withExerciseNote } from "../exerciseNotes";
-import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach";
+import { progressiveOverloadInsight } from "../coach";
 import { finishWorkout } from "../finishWorkout";
-import { isJimmySummerPlanTemplates, jimmySuggestedRoutineIdForDate } from "../jimmyWeekly";
 import { IconCheck, IconClock, IconMinus, IconPencil, IconPlus, IconSearch, IconTrash } from "../icons";
 import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
@@ -560,27 +559,12 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     }));
   }
 
-  const sortedRoutineTemplates = useMemo(() => {
-    if (!isJimmySummerPlanTemplates(state.workoutTemplates)) return state.workoutTemplates;
-    const rid = jimmySuggestedRoutineIdForDate(new Date());
-    if (!rid) return state.workoutTemplates;
-    const ix = state.workoutTemplates.findIndex((t) => t.id === rid);
-    if (ix <= 0) return state.workoutTemplates;
-    const next = [...state.workoutTemplates];
-    const [head] = next.splice(ix, 1);
-    return head ? [head, ...next] : state.workoutTemplates;
-  }, [state.workoutTemplates]);
-
-  const todayRoutineId = useMemo(() => jimmySuggestedRoutineIdForDate(new Date()), []);
   const qLow = exQuery.trim().toLowerCase();
   const filteredBuiltin = EXERCISE_DB.filter((n) => !qLow || n.toLowerCase().includes(qLow));
   const filteredCustom = state.customExercises.filter(
     (c) => !qLow || c.name.toLowerCase().includes(qLow) || c.label.toLowerCase().includes(qLow),
   );
-  const overloadTip =
-    isJimmySummerPlanTemplates(state.workoutTemplates) && phase === "lifting"
-      ? `${progressiveOverloadInsight(w)}\n\n${jimmyIntensityCoachingLine(localDateKey(new Date()))}`
-      : progressiveOverloadInsight(w);
+  const overloadTip = progressiveOverloadInsight(w);
 
   const createInputStyle: CSSProperties = {
     background: "#1A1A1A",
@@ -733,10 +717,9 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {sortedRoutineTemplates.map((tpl) => {
+            {state.workoutTemplates.map((tpl) => {
               const preview = tpl.exercises.slice(0, 4).map((e) => e.name);
               const more = tpl.exercises.length - preview.length;
-              const isToday = todayRoutineId != null && tpl.id === todayRoutineId;
               return (
                 <div
                   key={tpl.id}
@@ -773,18 +756,6 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                       }}
                     >
                       {tpl.dayLabel.trim() || "Routine"}
-                      {isToday ? (
-                        <span
-                          style={{
-                            marginLeft: 8,
-                            fontSize: 10,
-                            color: "rgba(10,132,255,0.95)",
-                            letterSpacing: "0.04em",
-                          }}
-                        >
-                          Today
-                        </span>
-                      ) : null}
                     </div>
                     <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: "-0.02em", marginBottom: 6 }}>{tpl.name}</div>
                     {tpl.focus.trim() ? (

@@ -1,6 +1,4 @@
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
-import { isJimmySummerPlanTemplates } from "./jimmy-seed-data";
-import type { WorkoutRoutineTemplate } from "./types";
 
 const DEFAULT_LEGACY_EMAILS = ["jimmymccarthy@gmail.com"];
 
@@ -19,11 +17,7 @@ export function isLegacyUserEmail(email: string | null | undefined): boolean {
 
 export function hasExistingFitnessData(p: Partial<PersistedFitnessSlice> | null | undefined): boolean {
   if (!p) return false;
-  return (
-    Object.keys(p.workoutsCompletedByDay ?? {}).length > 0 ||
-    (p.weightLog?.length ?? 0) > 0 ||
-    isJimmySummerPlanTemplates((p.workoutTemplates ?? []) as WorkoutRoutineTemplate[])
-  );
+  return Object.keys(p.workoutsCompletedByDay ?? {}).length > 0 || (p.weightLog?.length ?? 0) > 0;
 }
 
 export function shouldSkipOnboarding(opts: {

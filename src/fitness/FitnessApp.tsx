@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 
 import { buildSundayReviewPreview } from "./weeklyAdjustment";
 import { buildAppStateFromPersisted } from "./buildAppState";
 import { dismissStreakLossNotice, getPendingStreakLossNotice } from "./dailyStreak";
-import { seedJimmyData } from "./jimmy-seed-data";
+import { seedDefaultData } from "./defaultSeed";
 import {
   loadTasksForToday,
   localDateKey,
@@ -53,7 +53,7 @@ function sundayNoonForCurrentWeek(d: Date): Date {
 
 function buildInitialState(): AppState {
   if (typeof localStorage !== "undefined" && !localStorage.getItem(FITNESS_LOCAL_STORAGE_KEY)) {
-    seedJimmyData();
+    seedDefaultData();
   }
   return buildAppStateFromPersisted(loadPersistedSlice());
 }
