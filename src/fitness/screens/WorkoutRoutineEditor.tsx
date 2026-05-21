@@ -223,6 +223,7 @@ export function WorkoutRoutineEditor({
         items={exercises}
         onReorder={setExercises}
         gap={EDITOR_LIST_GAP}
+        dragHandleTapSize={44}
         renderItem={(row, ri, handle, ctx) => (
           <div
             className="card"

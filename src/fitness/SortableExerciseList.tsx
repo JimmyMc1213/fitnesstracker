@@ -25,8 +25,9 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 
 import { IconGrip } from "./icons";
 
-const LIFT_SCALE = 1.03;
 const LAYOUT_TRANSITION = "transform 220ms cubic-bezier(0.25, 1, 0.5, 1)";
+const COMPACT_GAP = 4;
+const HOLD_DELAY_MS = 280;
 
 const dropAnimation = {
   ...defaultDropAnimation,
@@ -35,15 +36,18 @@ const dropAnimation = {
   sideEffects: defaultDropAnimationSideEffects({
     styles: {
       active: {
-        opacity: "0.4",
+        opacity: "0.35",
       },
     },
   }),
 };
 
 export type SortableListContext = {
+  /** @deprecated Overlay uses built-in compact row; kept for API compatibility */
   isOverlay: boolean;
+  /** True while any item is being dragged — list shows compact name rows (Strong-style). */
   isListDragging: boolean;
+  isCompactReorder: boolean;
 };
 
 export type ExerciseDragHandleProps = {
@@ -52,10 +56,14 @@ export type ExerciseDragHandleProps = {
   attributes?: ReturnType<typeof useSortable>["attributes"];
 };
 
-type SortableExerciseListProps<T extends { id: string }> = {
+type SortableExerciseListProps<T extends { id: string; name: string }> = {
   items: T[];
   gap?: number;
   onReorder: (next: T[]) => void;
+  /** Label on compact rows; defaults to `item.name`. */
+  getDragLabel?: (item: T) => string;
+  /** Drag handle touch target in compact mode (routine editor: 44). */
+  dragHandleTapSize?: number;
   renderItem: (item: T, index: number, handle: ExerciseDragHandleProps, ctx: SortableListContext) => ReactNode;
 };
 
@@ -67,37 +75,94 @@ function reorder<T>(items: T[], from: number, to: number): T[] {
   return next;
 }
 
-function DragLiftShell({ children, isOverlay }: { children: ReactNode; isOverlay: boolean }) {
-  if (!isOverlay) return <>{children}</>;
+/** Thin name row used for every exercise while reordering (Strong-style compact list). */
+export function ReorderCompactRow({
+  label,
+  index,
+  handle,
+  isDragging,
+  isOverlay = false,
+  tapSize = 32,
+}: {
+  label: string;
+  index: number;
+  handle: ExerciseDragHandleProps;
+  isDragging: boolean;
+  isOverlay?: boolean;
+  tapSize?: number;
+}) {
+  const display = label.trim() || "Exercise";
   return (
     <div
+      className="card"
       style={{
-        transform: `scale(${LIFT_SCALE})`,
-        transformOrigin: "center top",
-        boxShadow: "0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06)",
-        borderRadius: 14,
-        cursor: "grabbing",
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "6px 12px",
+        minHeight: 36,
+        maxWidth: isOverlay ? 320 : undefined,
+        width: isOverlay ? "max-content" : undefined,
+        opacity: isDragging && !isOverlay ? 0.22 : 1,
+        boxShadow: isOverlay ? "0 12px 28px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06)" : undefined,
+        borderRadius: 10,
+        cursor: isOverlay ? "grabbing" : undefined,
         touchAction: "none",
-        willChange: "transform",
+        willChange: isOverlay ? "transform" : undefined,
+        transition: "opacity 160ms ease, box-shadow 160ms ease",
       }}
     >
-      {children}
+      <ExerciseDragHandle
+        handle={handle}
+        tapSize={tapSize}
+        disabled={!isOverlay && isDragging}
+      />
+      <span
+        style={{
+          fontSize: 10,
+          color: "rgba(255,255,255,0.35)",
+          fontWeight: 600,
+          fontVariantNumeric: "tabular-nums",
+          flexShrink: 0,
+          width: 20,
+        }}
+      >
+        {String(index + 1).padStart(2, "0")}
+      </span>
+      <span
+        style={{
+          fontSize: 14,
+          fontWeight: 600,
+          letterSpacing: "-0.01em",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          flex: 1,
+          minWidth: 0,
+        }}
+      >
+        {display}
+      </span>
     </div>
   );
 }
 
-function SortableRow<T extends { id: string }>({
+function SortableRow<T extends { id: string; name: string }>({
   item,
   index,
   gap,
   renderItem,
-  isListDragging,
+  isCompactReorder,
+  getDragLabel,
+  dragHandleTapSize,
 }: {
   item: T;
   index: number;
   gap: number;
   renderItem: SortableExerciseListProps<T>["renderItem"];
-  isListDragging: boolean;
+  isCompactReorder: boolean;
+  getDragLabel?: (item: T) => string;
+  dragHandleTapSize: number;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
@@ -107,13 +172,29 @@ function SortableRow<T extends { id: string }>({
     transform: CSS.Transform.toString(transform),
     transition: transition ? `${transition}, ${LAYOUT_TRANSITION}` : LAYOUT_TRANSITION,
     marginBottom: gap,
-    opacity: isDragging ? 0.28 : 1,
     zIndex: isDragging ? 0 : undefined,
+  };
+
+  const handleProps: ExerciseDragHandleProps = { isDragging, listeners, attributes };
+  const ctx: SortableListContext = {
+    isOverlay: false,
+    isListDragging: isCompactReorder,
+    isCompactReorder,
   };
 
   return (
     <div ref={setNodeRef} style={style}>
-      {renderItem(item, index, { isDragging, listeners, attributes }, { isOverlay: false, isListDragging })}
+      {isCompactReorder ? (
+        <ReorderCompactRow
+          label={getDragLabel ? getDragLabel(item) : item.name}
+          index={index}
+          handle={handleProps}
+          isDragging={isDragging}
+          tapSize={dragHandleTapSize}
+        />
+      ) : (
+        renderItem(item, index, handleProps, ctx)
+      )}
     </div>
   );
 }
@@ -155,14 +236,25 @@ export function ExerciseDragHandle({
   );
 }
 
-export function SortableExerciseList<T extends { id: string }>({ items, gap = 12, onReorder, renderItem }: SortableExerciseListProps<T>) {
+export function SortableExerciseList<T extends { id: string; name: string }>({
+  items,
+  gap = 12,
+  onReorder,
+  getDragLabel,
+  dragHandleTapSize = 32,
+  renderItem,
+}: SortableExerciseListProps<T>) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const isCompactReorder = activeId != null;
   const activeIndex = activeId != null ? items.findIndex((x) => x.id === activeId) : -1;
   const activeItem = activeIndex >= 0 ? items[activeIndex] : null;
+  const listGap = isCompactReorder ? COMPACT_GAP : gap;
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: HOLD_DELAY_MS, tolerance: 10 },
+    }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
@@ -201,22 +293,24 @@ export function SortableExerciseList<T extends { id: string }>({ items, gap = 12
             key={item.id}
             item={item}
             index={index}
-            gap={index < items.length - 1 ? gap : 0}
+            gap={index < items.length - 1 ? listGap : 0}
             renderItem={renderItem}
-            isListDragging={activeId != null}
+            isCompactReorder={isCompactReorder}
+            getDragLabel={getDragLabel}
+            dragHandleTapSize={dragHandleTapSize}
           />
         ))}
       </SortableContext>
       <DragOverlay dropAnimation={dropAnimation} style={{ cursor: "grabbing" }}>
         {activeItem && activeIndex >= 0 ? (
-          <DragLiftShell isOverlay>
-            {renderItem(
-              activeItem,
-              activeIndex,
-              { isDragging: true },
-              { isOverlay: true, isListDragging: true },
-            )}
-          </DragLiftShell>
+          <ReorderCompactRow
+            label={getDragLabel ? getDragLabel(activeItem) : activeItem.name}
+            index={activeIndex}
+            handle={{ isDragging: true }}
+            isDragging={false}
+            isOverlay
+            tapSize={dragHandleTapSize}
+          />
         ) : null}
       </DragOverlay>
     </DndContext>
