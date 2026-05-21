@@ -23,6 +23,7 @@ import {
   nextRestTimerPreset,
   restDurationForExercise,
 } from "../restTimerPreferences";
+import { ExerciseSwapSheet } from "../ExerciseSwapSheet";
 import { RestTimerBar } from "../RestTimerBar";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
 
@@ -200,6 +201,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
   const [showHistoryPage, setShowHistoryPage] = useState(false);
   const [restTimer, setRestTimer] = useState<ActiveRestTimer | null>(null);
+  const [swapExerciseId, setSwapExerciseId] = useState<string | null>(null);
   const w = state.workout;
   const wUnit = state.unitPreferences.weightUnit;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
@@ -380,6 +382,39 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     }));
   }
 
+  function swapExerciseInSession(eid: string, newName: string, newLabel?: string) {
+    const trimmedName = newName.trim();
+    if (!trimmedName) return;
+    const trimmedLabel = newLabel?.trim();
+    setState((s) => ({
+      ...s,
+      workout: {
+        ...s.workout,
+        exercises: s.workout.exercises.map((exercise) => {
+          if (exercise.id !== eid) return exercise;
+          const next: WorkoutExercise = {
+            id: exercise.id,
+            name: trimmedName,
+            target: exercise.target,
+            sets: exercise.sets,
+          };
+          if (trimmedLabel) next.label = trimmedLabel;
+          return next;
+        }),
+      },
+    }));
+    setRestTimer((current) =>
+      current?.exerciseId === eid
+        ? {
+            ...current,
+            exerciseName: trimmedName,
+            exerciseLabel: trimmedLabel || undefined,
+          }
+        : current,
+    );
+    setSwapExerciseId(null);
+  }
+
   function newWorkoutExerciseId(): string {
     return `e${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   }
@@ -515,6 +550,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     setExpandedProgressId(null);
     setPreviewRoutineId(null);
     setRestTimer(null);
+    setSwapExerciseId(null);
   }
 
   function updateSessionTitle(text: string) {
@@ -1008,7 +1044,26 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                   >
                     <IconTrash size={18} stroke={1.75} />
                   </button>
-                ) : null}
+                ) : (
+                  <button
+                    type="button"
+                    className="tap"
+                    aria-label={`Swap ${exercise.name}`}
+                    disabled={ctx.isListDragging}
+                    onClick={() => setSwapExerciseId(exercise.id)}
+                    style={{
+                      flexShrink: 0,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: SECONDARY_ACTION_COLOR,
+                      background: "none",
+                      border: "none",
+                      padding: "4px 0",
+                    }}
+                  >
+                    Swap
+                  </button>
+                )}
               </div>
 
               {restTimer?.exerciseId === exercise.id ? (
@@ -1422,6 +1477,22 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           onClose={() => setNotesEdit(null)}
         />
       ) : null}
+
+      {swapExerciseId
+        ? (() => {
+            const swapRow = w.exercises.find((e) => e.id === swapExerciseId);
+            if (!swapRow) return null;
+            return (
+              <ExerciseSwapSheet
+                currentName={swapRow.name}
+                currentLabel={swapRow.label}
+                customExercises={state.customExercises}
+                onSelect={(name, label) => swapExerciseInSession(swapRow.id, name, label)}
+                onClose={() => setSwapExerciseId(null)}
+              />
+            );
+          })()
+        : null}
 
     </div>
   );
