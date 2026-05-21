@@ -45,6 +45,7 @@ export type PersistedFitnessSlice = Pick<
   | "restTimerSecondsByExerciseKey"
   | "onboardingProfile"
   | "onboardingComplete"
+  | "notificationPreferences"
 >;
 
 export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
@@ -88,6 +89,7 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     restTimerSecondsByExerciseKey: state.restTimerSecondsByExerciseKey,
     onboardingProfile: state.onboardingProfile,
     onboardingComplete: state.onboardingComplete,
+    notificationPreferences: state.notificationPreferences,
   };
 }
 

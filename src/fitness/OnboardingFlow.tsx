@@ -10,6 +10,9 @@ import {
   calculateNutritionTargets,
   nutritionGoalLabel,
 } from "./nutritionCalculator";
+import { NotificationPreferencesPicker } from "./NotificationPreferencesPicker";
+import { DEFAULT_NOTIFICATION_PREFERENCES } from "./notificationPreferences";
+import { requestNotificationPermission } from "./notificationPermission";
 import { DEFAULT_ONBOARDING_PROFILE, progressGoalFromOnboarding } from "./onboardingProfile";
 import { OnboardingSegment } from "./OnboardingSegment";
 import { OnboardingTemplateReview } from "./OnboardingTemplateReview";
@@ -22,6 +25,7 @@ import type {
   ExperienceLevel,
   EquipmentSetup,
   MacroTotals,
+  NotificationPreferences,
   NutritionGoal,
   OnboardingProfile,
   UnitPreferences,
@@ -40,6 +44,7 @@ const STEP_LABELS = [
   "Schedule",
   "Templates",
   "Nutrition",
+  "Reminders",
 ] as const;
 
 const GOALS: NutritionGoal[] = ["bulk", "cut", "maintain"];
@@ -154,6 +159,9 @@ export function OnboardingFlow({
     buildWorkoutTemplatesForDays(5, DEFAULT_EXPERIENCE_LEVEL, DEFAULT_EQUIPMENT_SETUP),
   );
   const [macros, setMacros] = useState<MacroTotals>(() => calculateNutritionTargets(DEFAULT_ONBOARDING_PROFILE));
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(() => ({
+    ...DEFAULT_NOTIFICATION_PREFERENCES,
+  }));
 
   const statsValid =
     profile.heightIn >= 48 &&
@@ -181,7 +189,7 @@ export function OnboardingFlow({
     setStep((s) => Math.max(0, s - 1));
   }
 
-  function finish() {
+  function finish(notificationPreferences: NotificationPreferences) {
     const planStartIso = localDateKey(new Date());
     const progressGoal = progressGoalFromOnboarding(profile);
     setState((s) => ({
@@ -196,11 +204,20 @@ export function OnboardingFlow({
       onboardingComplete: true,
       workoutTemplates: draftTemplates,
       nutritionTargets: macros,
+      notificationPreferences,
       progressGoal,
       planStartIso,
       dailyTasks: loadTasksForToday(macros, planStartIso, s.stepsTarget, draftTemplates),
     }));
     onComplete?.();
+  }
+
+  async function finishWithReminders() {
+    let prefs = notificationPrefs;
+    if (prefs.workoutReminderEnabled || prefs.nutritionCheckInEnabled) {
+      await requestNotificationPermission();
+    }
+    finish(prefs);
   }
 
   if (step === 0) {
@@ -398,44 +415,63 @@ export function OnboardingFlow({
     );
   }
 
+  if (step === 8) {
+    return (
+      <OnboardingShell
+        step={step}
+        totalSteps={totalSteps}
+        title="Nutrition targets"
+        subtitle={`Estimated from your stats (~${computedMacros.cal} kcal). Adjust if needed.`}
+        onBack={goBack}
+        onContinue={goNext}
+      >
+        <div className="card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+          <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
+            Goal: {nutritionGoalLabel(profile.goal)} · {formatWeightFromLbs(profile.weightLbs, unitPreferences.weightUnit)} {unitPreferences.weightUnit}
+          </p>
+          {(["cal", "p", "c", "f"] as const).map((key) => (
+            <label key={key} style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
+              {key === "cal" ? "Calories" : key === "p" ? "Protein (g)" : key === "c" ? "Carbs (g)" : "Fat (g)"}
+              <input
+                type="number"
+                aria-label={key}
+                value={macros[key]}
+                onChange={(e) => {
+                  const n = parseInt(e.target.value, 10);
+                  if (Number.isFinite(n) && n >= 0) setMacros((m) => ({ ...m, [key]: n }));
+                }}
+                style={{ display: "block", width: "100%", marginTop: 6, padding: 10, borderRadius: 10, border: "0.5px solid var(--border)", background: "#1A1A1A", color: "#fff" }}
+              />
+            </label>
+          ))}
+          <button
+            type="button"
+            className="tap"
+            style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", background: "none", border: "none", textAlign: "left", padding: 0 }}
+            onClick={() => setMacros(computedMacros)}
+          >
+            Reset to calculated values
+          </button>
+        </div>
+      </OnboardingShell>
+    );
+  }
+
   return (
     <OnboardingShell
       step={step}
       totalSteps={totalSteps}
-      title="Nutrition targets"
-      subtitle={`Estimated from your stats (~${computedMacros.cal} kcal). Adjust if needed.`}
+      title="Stay on track"
+      subtitle="Optional reminders for training days and daily nutrition check-ins. You can change these anytime in Settings."
       onBack={goBack}
-      onContinue={finish}
+      onContinue={() => void finishWithReminders()}
       continueLabel="Finish setup"
     >
-      <div className="card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
-        <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
-          Goal: {nutritionGoalLabel(profile.goal)} · {formatWeightFromLbs(profile.weightLbs, unitPreferences.weightUnit)} {unitPreferences.weightUnit}
-        </p>
-        {(["cal", "p", "c", "f"] as const).map((key) => (
-          <label key={key} style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
-            {key === "cal" ? "Calories" : key === "p" ? "Protein (g)" : key === "c" ? "Carbs (g)" : "Fat (g)"}
-            <input
-              type="number"
-              aria-label={key}
-              value={macros[key]}
-              onChange={(e) => {
-                const n = parseInt(e.target.value, 10);
-                if (Number.isFinite(n) && n >= 0) setMacros((m) => ({ ...m, [key]: n }));
-              }}
-              style={{ display: "block", width: "100%", marginTop: 6, padding: 10, borderRadius: 10, border: "0.5px solid var(--border)", background: "#1A1A1A", color: "#fff" }}
-            />
-          </label>
-        ))}
-        <button
-          type="button"
-          className="tap"
-          style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", background: "none", border: "none", textAlign: "left", padding: 0 }}
-          onClick={() => setMacros(computedMacros)}
-        >
-          Reset to calculated values
-        </button>
-      </div>
+      <NotificationPreferencesPicker
+        value={notificationPrefs}
+        onChange={setNotificationPrefs}
+        showPermissionHint
+      />
     </OnboardingShell>
   );
 }
