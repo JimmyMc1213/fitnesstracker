@@ -113,6 +113,25 @@ export function formatPersonalRecordSet(wLbs: number, reps: number, unit: Weight
   return `${reps} rep${reps === 1 ? "" : "s"}`;
 }
 
+export function formatRecordHeroParts(
+  wLbs: number,
+  reps: number,
+  unit: WeightUnit,
+): { primary: string; primaryUnit: string; secondary: string | null } {
+  if (wLbs > 0) {
+    return {
+      primary: formatSetWeight(wLbs, unit),
+      primaryUnit: weightUnitLabel(unit),
+      secondary: `× ${reps}`,
+    };
+  }
+  return {
+    primary: String(reps),
+    primaryUnit: reps === 1 ? "rep" : "reps",
+    secondary: null,
+  };
+}
+
 export function formatPersonalRecordDate(dayKey: string, endedAtMs: number): string {
   const d = /^\d{4}-\d{2}-\d{2}$/.test(dayKey)
     ? new Date(`${dayKey}T12:00:00`)
@@ -147,8 +166,8 @@ export function buildPersonalRecordsBoard(
   }
 
   return rows.sort((a, b) => {
-    const nameCmp = a.displayName.localeCompare(b.displayName);
-    if (nameCmp !== 0) return nameCmp;
-    return (a.displayLabel ?? "").localeCompare(b.displayLabel ?? "");
+    if (b.bestWeight !== a.bestWeight) return b.bestWeight - a.bestWeight;
+    if (b.bestReps !== a.bestReps) return b.bestReps - a.bestReps;
+    return a.displayName.localeCompare(b.displayName);
   });
 }
