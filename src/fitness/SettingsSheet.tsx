@@ -13,6 +13,11 @@ import { getNotificationPermission } from "./notificationPermission";
 import { SectionLabel } from "./shared";
 import { REST_TIMER_PRESETS } from "./restTimerPreferences";
 import {
+  formatWaterLitersFromOz,
+  normalizeWaterDailyTargetOz,
+  WATER_TARGET_PRESETS_OZ,
+} from "./waterIntake";
+import {
   formatWeightFromLbs,
   heightUnitLabel,
   weightUnitLabel,
@@ -70,6 +75,8 @@ export function SettingsSheet({
   const [cIn, setCIn] = useState(String(T.c));
   const [fIn, setFIn] = useState(String(T.f));
 
+  const [waterTargetIn, setWaterTargetIn] = useState(String(state.waterDailyTargetOz));
+
   const sync = useFitnessSync();
   const [syncEmail, setSyncEmail] = useState("");
   const [syncPassword, setSyncPassword] = useState("");
@@ -82,6 +89,20 @@ export function SettingsSheet({
     setCIn(String(T.c));
     setFIn(String(T.f));
   }, [T.cal, T.p, T.c, T.f]);
+
+  useEffect(() => {
+    setWaterTargetIn(String(state.waterDailyTargetOz));
+  }, [state.waterDailyTargetOz]);
+
+  function commitWaterTarget(raw: string) {
+    const n = parseInt(raw, 10);
+    const val = normalizeWaterDailyTargetOz(Number.isFinite(n) ? n : undefined);
+    setWaterTargetIn(String(val));
+    setState((s) => ({
+      ...s,
+      waterDailyTargetOz: val,
+    }));
+  }
 
   function commit(patch: Partial<MacroTotals>) {
     setState((s) => {
@@ -381,6 +402,69 @@ export function SettingsSheet({
             onPermissionChange={setNotificationPermission}
             showPermissionHint
           />
+        </div>
+
+        <SectionLabel>Hydration</SectionLabel>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+          Daily water intake target on the Nutrition tab. Logged in fluid ounces with a metric equivalent.
+        </p>
+        <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+            {WATER_TARGET_PRESETS_OZ.map((oz) => {
+              const selected = state.waterDailyTargetOz === oz;
+              return (
+                <button
+                  key={oz}
+                  type="button"
+                  className="tap"
+                  aria-pressed={selected}
+                  onClick={() => commitWaterTarget(String(oz))}
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    border: selected ? "0.5px solid rgba(10,132,255,0.55)" : "0.5px solid var(--border)",
+                    background: selected ? "rgba(10,132,255,0.15)" : "rgba(255,255,255,0.04)",
+                    color: selected ? "#0A84FF" : "rgba(255,255,255,0.65)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {oz} oz
+                </button>
+              );
+            })}
+          </div>
+          <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            Custom target (oz)
+            <input
+              type="number"
+              min={16}
+              max={256}
+              step={1}
+              inputMode="numeric"
+              className="input"
+              style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
+              value={waterTargetIn}
+              onChange={(e) => {
+                const v = e.target.value;
+                setWaterTargetIn(v);
+                if (v === "" || v === "-") return;
+                const n = parseInt(v, 10);
+                if (Number.isFinite(n) && n >= 16 && n <= 256) {
+                  setState((s) => ({
+                    ...s,
+                    waterDailyTargetOz: n,
+                  }));
+                }
+              }}
+              onBlur={() => commitWaterTarget(waterTargetIn)}
+              aria-label="Daily water target in ounces"
+            />
+          </label>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 500, marginTop: 8 }}>
+            {formatWaterLitersFromOz(state.waterDailyTargetOz)}
+          </div>
         </div>
 
         <SectionLabel>Equipment</SectionLabel>

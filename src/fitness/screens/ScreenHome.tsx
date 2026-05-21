@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { IconCheck, IconChevR, IconSettings } from "../icons";
 import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
@@ -38,6 +38,15 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   useEffect(() => {
     if (viewDateKey > dateKeyToday) setViewDateKey(dateKeyToday);
   }, [dateKeyToday, viewDateKey]);
+
+  const prevTodayKeyRef = useRef(dateKeyToday);
+  useEffect(() => {
+    const prevToday = prevTodayKeyRef.current;
+    if (prevToday !== dateKeyToday) {
+      setViewDateKey((vk) => (vk === prevToday ? dateKeyToday : vk));
+      prevTodayKeyRef.current = dateKeyToday;
+    }
+  }, [dateKeyToday]);
 
   const headerEyebrow = formatDateKeyEyebrow(activeDateKey);
   const headerTitle = isViewingToday

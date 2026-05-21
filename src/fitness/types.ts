@@ -229,6 +229,13 @@ export type StreakLossNotice = {
   breakDateKey: string;
 };
 
+export type WaterLogEntry = {
+  id: string;
+  /** Fluid ounces — canonical storage unit */
+  amountOz: number;
+  loggedAtMs: number;
+};
+
 export type AppState = {
   /** First name for the home greeting */
   displayName: string;
@@ -309,6 +316,10 @@ export type AppState = {
   onboardingComplete: boolean;
   /** Workout + nutrition reminder toggles, times, and last-fired dedupe keys. */
   notificationPreferences: NotificationPreferences;
+  /** Per local calendar day, timestamped water intake entries. */
+  waterLogByDay: Record<string, WaterLogEntry[]>;
+  /** Daily hydration target in fluid ounces. */
+  waterDailyTargetOz: number;
 };
 
 export type ScreenProps = {

@@ -46,6 +46,8 @@ export type PersistedFitnessSlice = Pick<
   | "onboardingProfile"
   | "onboardingComplete"
   | "notificationPreferences"
+  | "waterLogByDay"
+  | "waterDailyTargetOz"
 >;
 
 export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
@@ -90,6 +92,8 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     onboardingProfile: state.onboardingProfile,
     onboardingComplete: state.onboardingComplete,
     notificationPreferences: state.notificationPreferences,
+    waterLogByDay: state.waterLogByDay,
+    waterDailyTargetOz: state.waterDailyTargetOz,
   };
 }
 

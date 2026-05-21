@@ -28,6 +28,7 @@ import { normalizeOnboardingProfile } from "./onboardingProfile";
 import { normalizeRestTimerDefaultSeconds, normalizeRestTimerSecondsByExerciseKey } from "./restTimerPreferences";
 import { normalizeNotificationPreferences } from "./notificationPreferences";
 import { normalizeUnitPreferences } from "./unitPreferences";
+import { normalizeWaterDailyTargetOz, normalizeWaterLogByDay } from "./waterIntake";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import type {
   AdjustmentEvent,
@@ -345,6 +346,8 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     onboardingProfile: normalizeOnboardingProfile(p?.onboardingProfile),
     onboardingComplete: p?.onboardingComplete === true || hasLegacyFitnessData,
     notificationPreferences: normalizeNotificationPreferences(p?.notificationPreferences),
+    waterLogByDay: normalizeWaterLogByDay(p?.waterLogByDay),
+    waterDailyTargetOz: normalizeWaterDailyTargetOz(p?.waterDailyTargetOz),
   };
 
   return applyStreakEligibility(baseState, todayKey);
