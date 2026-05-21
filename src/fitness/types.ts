@@ -208,6 +208,17 @@ export type FitnessStreakSnapshot = {
   updatedAtIso: string;
 };
 
+/** Last known active streak count (used to detect a broken chain). */
+export type StreakSessionBaseline = {
+  count: number;
+  dateKey: string;
+};
+
+export type StreakLossNotice = {
+  lostCount: number;
+  breakDateKey: string;
+};
+
 export type AppState = {
   /** First name for the home greeting */
   displayName: string;
@@ -240,6 +251,10 @@ export type AppState = {
   streakEligibleByDay: Record<string, boolean>;
   /** Denormalized streak count for quick display; recomputed when eligibility changes. */
   fitnessStreakSnapshot: FitnessStreakSnapshot;
+  /** Last active streak count before a break (for loss notice). */
+  streakSessionBaseline: StreakSessionBaseline | null;
+  /** Dismiss streak-loss modal once per break day. */
+  streakLossNoticeDismissedForKey: string | null;
   /** Per-exercise bests for PR detection across sessions. */
   exercisePersonalBests: Record<string, ExercisePersonalBest>;
   /** Last 10 session snapshots per exercise (keyed by exerciseNoteKey). */

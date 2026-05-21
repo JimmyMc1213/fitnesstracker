@@ -20,6 +20,7 @@ import {
   applyStreakEligibility,
   normalizeFitnessStreakSnapshot,
   normalizeStreakEligibleByDay,
+  normalizeStreakSessionBaseline,
 } from "./dailyStreak";
 import { isJimmySummerPlanTemplates } from "./jimmyWeekly";
 import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
@@ -303,6 +304,12 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     workoutsCompletedByDay: normalizeWorkoutsCompletedByDay(p?.workoutsCompletedByDay),
     streakEligibleByDay: normalizeStreakEligibleByDay(p?.streakEligibleByDay),
     fitnessStreakSnapshot: normalizeFitnessStreakSnapshot(p?.fitnessStreakSnapshot),
+    streakSessionBaseline: normalizeStreakSessionBaseline(p?.streakSessionBaseline),
+    streakLossNoticeDismissedForKey:
+      typeof p?.streakLossNoticeDismissedForKey === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(p.streakLossNoticeDismissedForKey)
+        ? p.streakLossNoticeDismissedForKey
+        : null,
     exercisePersonalBests: normalizeExercisePersonalBests(p?.exercisePersonalBests),
     exerciseSessionHistoryByKey: normalizeExerciseSessionHistoryByKey(p?.exerciseSessionHistoryByKey),
     workoutHistory: normalizeWorkoutHistory(p?.workoutHistory),

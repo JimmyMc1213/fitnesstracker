@@ -94,6 +94,24 @@ function mergeFitnessStreakSnapshot(
   return local.currentCount >= remote.currentCount ? local : remote;
 }
 
+function mergeStreakSessionBaseline(
+  local: import("./types").StreakSessionBaseline | null,
+  remote: import("./types").StreakSessionBaseline | null,
+): import("./types").StreakSessionBaseline | null {
+  if (!local) return remote;
+  if (!remote) return local;
+  if (local.dateKey === remote.dateKey) {
+    return local.count >= remote.count ? local : remote;
+  }
+  return local.dateKey.localeCompare(remote.dateKey) >= 0 ? local : remote;
+}
+
+function mergeStreakLossNoticeDismissedForKey(a: string | null, b: string | null): string | null {
+  if (!a) return b;
+  if (!b) return a;
+  return a.localeCompare(b) >= 0 ? a : b;
+}
+
 function mergeNutritionItemsByDay(
   a: Record<string, NutritionLoggedItem[]>,
   b: Record<string, NutritionLoggedItem[]>,
@@ -233,6 +251,11 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     fitnessStreakSnapshot: mergeFitnessStreakSnapshot(
       local.fitnessStreakSnapshot ?? { currentCount: 0, anchorDateKey: null, updatedAtIso: "" },
       remote.fitnessStreakSnapshot ?? { currentCount: 0, anchorDateKey: null, updatedAtIso: "" },
+    ),
+    streakSessionBaseline: mergeStreakSessionBaseline(local.streakSessionBaseline ?? null, remote.streakSessionBaseline ?? null),
+    streakLossNoticeDismissedForKey: mergeStreakLossNoticeDismissedForKey(
+      local.streakLossNoticeDismissedForKey ?? null,
+      remote.streakLossNoticeDismissedForKey ?? null,
     ),
     exercisePersonalBests: mergeExercisePersonalBests(local.exercisePersonalBests, remote.exercisePersonalBests),
     exerciseSessionHistoryByKey: mergeExerciseSessionHistoryByKey(

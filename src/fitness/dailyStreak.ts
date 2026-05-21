@@ -1,6 +1,6 @@
 import { localDateKey } from "./dailyPlan";
 import { effectiveNutritionTotalsForDateKey } from "./nutritionTotals";
-import type { AppState, FitnessStreakSnapshot, MacroTotals } from "./types";
+import type { AppState, FitnessStreakSnapshot, MacroTotals, StreakLossNotice, StreakSessionBaseline } from "./types";
 
 const WEEK_LETTERS = ["S", "M", "T", "W", "T", "F", "S"] as const;
 
@@ -84,6 +84,13 @@ function dateKeyMinusOne(dateKey: string): string {
   return `${y2}-${m2}-${day2}`;
 }
 
+function dateKeyPlusOne(dateKey: string): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + 1);
+  return localDateKey(dt);
+}
+
 function macroRatioHit(actual: number, target: number): boolean {
   if (target <= 0) return false;
   return actual >= target * NUTRITION_GOAL_HIT_RATIO;
@@ -145,6 +152,15 @@ export function normalizeFitnessStreakSnapshot(raw: unknown): FitnessStreakSnaps
   return { currentCount, anchorDateKey, updatedAtIso };
 }
 
+export function normalizeStreakSessionBaseline(raw: unknown): StreakSessionBaseline | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const o = raw as Record<string, unknown>;
+  const count = typeof o.count === "number" && o.count >= 0 ? Math.floor(o.count) : 0;
+  const dateKey = typeof o.dateKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(o.dateKey) ? o.dateKey : null;
+  if (!dateKey || count <= 0) return null;
+  return { count, dateKey };
+}
+
 function collectCandidateDateKeys(state: AppState): Set<string> {
   const keys = new Set<string>();
   for (const [k, v] of Object.entries(state.workoutsCompletedByDay)) {
@@ -204,7 +220,54 @@ export function buildFitnessStreakSnapshot(
 export function applyStreakEligibility(state: AppState, todayDateKey = localDateKey(new Date())): AppState {
   const streakEligibleByDay = rebuildStreakEligibleByDay(state);
   const fitnessStreakSnapshot = buildFitnessStreakSnapshot(streakEligibleByDay, todayDateKey);
-  return { ...state, streakEligibleByDay, fitnessStreakSnapshot };
+  let streakSessionBaseline = state.streakSessionBaseline;
+  if (fitnessStreakSnapshot.currentCount > 0) {
+    streakSessionBaseline = { count: fitnessStreakSnapshot.currentCount, dateKey: todayDateKey };
+  }
+  return { ...state, streakEligibleByDay, fitnessStreakSnapshot, streakSessionBaseline };
+}
+
+/** Calendar day where the streak chain broke (first miss after eligible days). */
+export function findStreakBreakDateKey(streakEligibleByDay: Record<string, boolean>, todayKey: string): string | null {
+  const { currentCount } = computeFitnessStreakCount(streakEligibleByDay, todayKey);
+  if (currentCount > 0) return null;
+
+  let k = dateKeyMinusOne(todayKey);
+  for (let i = 0; i < 366; i++) {
+    if (streakEligibleByDay[k]) {
+      let d = dateKeyPlusOne(k);
+      while (d <= todayKey) {
+        if (!streakEligibleByDay[d]) return d;
+        d = dateKeyPlusOne(d);
+      }
+      return null;
+    }
+    k = dateKeyMinusOne(k);
+  }
+
+  const yesterday = dateKeyMinusOne(todayKey);
+  return streakEligibleByDay[yesterday] ? null : yesterday;
+}
+
+/** Pending streak-loss notice when an active streak reset to zero. */
+export function getPendingStreakLossNotice(state: AppState, todayKey: string): StreakLossNotice | null {
+  const baseline = state.streakSessionBaseline;
+  if (!baseline || baseline.count <= 0) return null;
+  if (state.fitnessStreakSnapshot.currentCount > 0) return null;
+
+  const breakDateKey = findStreakBreakDateKey(state.streakEligibleByDay ?? {}, todayKey);
+  if (!breakDateKey) return null;
+  if (state.streakLossNoticeDismissedForKey === breakDateKey) return null;
+
+  return { lostCount: baseline.count, breakDateKey };
+}
+
+export function dismissStreakLossNotice(state: AppState, notice: StreakLossNotice): AppState {
+  return {
+    ...state,
+    streakLossNoticeDismissedForKey: notice.breakDateKey,
+    streakSessionBaseline: null,
+  };
 }
 
 /** @deprecated Use computeFitnessStreakCount + streakEligibleByDay. Kept for callers migrating off check-in logic. */

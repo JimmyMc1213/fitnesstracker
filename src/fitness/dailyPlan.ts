@@ -35,6 +35,13 @@ export function localDateKey(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+/** Short heading for home eyebrow, e.g. THU MAY 21 */
+export function formatDateKeyEyebrow(dateKey: string): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return dt.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).replace(",", "").toUpperCase();
+}
+
 /** Calendar date in America/Phoenix (no DST). */
 export function arizonaCalendarDateKey(d: Date): string {
   return new Intl.DateTimeFormat("en-CA", {
