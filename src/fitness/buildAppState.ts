@@ -19,6 +19,7 @@ import { normalizeEquipmentSetup } from "./equipmentSetup";
 import { isJimmySummerPlanTemplates } from "./jimmyWeekly";
 import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
 import { normalizeOnboardingProfile } from "./onboardingProfile";
+import { normalizeRestTimerDefaultSeconds, normalizeRestTimerSecondsByExerciseKey } from "./restTimerPreferences";
 import { normalizeUnitPreferences } from "./unitPreferences";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import type {
@@ -324,6 +325,8 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     equipmentSetup: normalizeEquipmentSetup(p?.equipmentSetup),
     equipmentSetupChosen:
       p?.equipmentSetupChosen === true || hasLegacyFitnessData || p?.onboardingComplete === true,
+    restTimerDefaultSeconds: normalizeRestTimerDefaultSeconds(p?.restTimerDefaultSeconds),
+    restTimerSecondsByExerciseKey: normalizeRestTimerSecondsByExerciseKey(p?.restTimerSecondsByExerciseKey),
     onboardingProfile: normalizeOnboardingProfile(p?.onboardingProfile),
     onboardingComplete: p?.onboardingComplete === true || hasLegacyFitnessData,
   };

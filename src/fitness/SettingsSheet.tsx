@@ -9,6 +9,7 @@ import { UnitPreferencePicker } from "./UnitPreferencePicker";
 import { EquipmentSetupPicker } from "./EquipmentSetupPicker";
 import { buildWorkoutTemplates } from "./workoutTemplateBuilder";
 import { SectionLabel } from "./shared";
+import { REST_TIMER_PRESETS } from "./restTimerPreferences";
 import {
   formatWeightFromLbs,
   heightUnitLabel,
@@ -319,6 +320,44 @@ export function SettingsSheet({
               }))
             }
           />
+        </div>
+
+        <SectionLabel>Rest timer</SectionLabel>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+          Default rest between sets when you mark a set complete. Override per exercise during a workout from the timer bar.
+        </p>
+        <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {REST_TIMER_PRESETS.map((sec) => {
+              const selected = state.restTimerDefaultSeconds === sec;
+              return (
+                <button
+                  key={sec}
+                  type="button"
+                  className="tap"
+                  aria-pressed={selected}
+                  onClick={() =>
+                    setState((s) => ({
+                      ...s,
+                      restTimerDefaultSeconds: sec,
+                    }))
+                  }
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    border: selected ? "0.5px solid rgba(10,132,255,0.55)" : "0.5px solid var(--border)",
+                    background: selected ? "rgba(10,132,255,0.15)" : "rgba(255,255,255,0.04)",
+                    color: selected ? "#0A84FF" : "rgba(255,255,255,0.65)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {sec}s
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <SectionLabel>Equipment</SectionLabel>

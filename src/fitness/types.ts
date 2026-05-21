@@ -262,6 +262,10 @@ export type AppState = {
   equipmentSetup: EquipmentSetup;
   /** False until user completes the equipment onboarding screen. */
   equipmentSetupChosen: boolean;
+  /** Default rest between sets in seconds (global). */
+  restTimerDefaultSeconds: number;
+  /** Per-exercise rest overrides keyed by exerciseNoteKey. */
+  restTimerSecondsByExerciseKey: Record<string, number>;
   /** Profile from full onboarding (goal, stats, activity, split days). */
   onboardingProfile: OnboardingProfile | null;
   /** True after user finishes the guided onboarding wizard. */

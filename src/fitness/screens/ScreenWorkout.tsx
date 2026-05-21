@@ -4,7 +4,7 @@ import { localDateKey } from "../dailyPlan";
 import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
-import { getExerciseNote, withExerciseNote } from "../exerciseNotes";
+import { exerciseNoteKey, getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { jimmyIntensityCoachingLine, progressiveOverloadInsight } from "../coach";
 import { finishWorkout } from "../finishWorkout";
 import { isJimmySummerPlanTemplates, jimmySuggestedRoutineIdForDate } from "../jimmyWeekly";
@@ -13,12 +13,17 @@ import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
 import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
-import type { ExercisePersonalBest, ScreenProps, WeightUnit } from "../types";
+import type { ExercisePersonalBest, ScreenProps, WeightUnit, WorkoutExercise } from "../types";
 import { WorkoutCoachCard } from "../WorkoutCoachCard";
 import { WorkoutSessionStickyHeader } from "../WorkoutSessionStickyHeader";
 import { normalizeExerciseKey } from "../workoutSummary";
 import { COACH_BLUE, METADATA_SIZE, SECONDARY_ACTION_COLOR, TITLE_SIZE, USER_NOTE_GRAY_MUTED, labelStyle } from "../workoutUiTokens";
 import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
+import {
+  nextRestTimerPreset,
+  restDurationForExercise,
+} from "../restTimerPreferences";
+import { RestTimerBar } from "../RestTimerBar";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
 
 function formatSessionClock(d: Date): string {
@@ -33,6 +38,15 @@ function formatElapsed(totalSec: number): string {
 
 const ACCENT_BLUE = COACH_BLUE;
 const ACCENT_GREEN = "#34C759";
+
+type ActiveRestTimer = {
+  exerciseId: string;
+  exerciseName: string;
+  exerciseLabel?: string;
+  endsAtMs: number;
+  durationSec: number;
+  completed: boolean;
+};
 
 function formatExercisePr(
   name: string,
@@ -185,6 +199,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
   const [showHistoryPage, setShowHistoryPage] = useState(false);
+  const [restTimer, setRestTimer] = useState<ActiveRestTimer | null>(null);
   const w = state.workout;
   const wUnit = state.unitPreferences.weightUnit;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
@@ -211,6 +226,20 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     const id = window.setInterval(() => setTick((x) => x + 1), 1000);
     return () => window.clearInterval(id);
   }, [phase, w.sessionStartedAtMs]);
+
+  useEffect(() => {
+    if (!restTimer || restTimer.completed) return;
+    if (Date.now() >= restTimer.endsAtMs) {
+      setRestTimer((current) => (current && !current.completed ? { ...current, completed: true } : current));
+    }
+  }, [restTimer, restTimer?.endsAtMs, restTimer?.completed]);
+
+  const restTimerRemainingSec =
+    restTimer == null
+      ? 0
+      : restTimer.completed
+        ? 0
+        : Math.max(0, Math.ceil((restTimer.endsAtMs - Date.now()) / 1000));
 
   const elapsedSec =
     phase === "lifting" && w.sessionStartedAtMs != null
@@ -239,6 +268,66 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         ),
       },
     }));
+  }
+
+  function clearRestTimer() {
+    setRestTimer(null);
+  }
+
+  function startRestTimer(exercise: WorkoutExercise) {
+    const durationSec = restDurationForExercise(
+      exercise.name,
+      exercise.label,
+      state.restTimerDefaultSeconds,
+      state.restTimerSecondsByExerciseKey,
+      exerciseNoteKey,
+    );
+    setRestTimer({
+      exerciseId: exercise.id,
+      exerciseName: exercise.name,
+      exerciseLabel: exercise.label,
+      endsAtMs: Date.now() + durationSec * 1000,
+      durationSec,
+      completed: false,
+    });
+  }
+
+  function toggleSetDone(exercise: WorkoutExercise, idx: number) {
+    const st = exercise.sets[idx];
+    if (!st) return;
+    const willDone = !st.done;
+    updateSet(exercise.id, idx, { done: willDone });
+    if (willDone) {
+      startRestTimer(exercise);
+    } else if (restTimer?.exerciseId === exercise.id) {
+      clearRestTimer();
+    }
+  }
+
+  function cycleRestPreset(exercise: WorkoutExercise) {
+    const key = exerciseNoteKey(exercise.name, exercise.label);
+    const current = restDurationForExercise(
+      exercise.name,
+      exercise.label,
+      state.restTimerDefaultSeconds,
+      state.restTimerSecondsByExerciseKey,
+      exerciseNoteKey,
+    );
+    const next = nextRestTimerPreset(current);
+    setState((s) => ({
+      ...s,
+      restTimerSecondsByExerciseKey: { ...s.restTimerSecondsByExerciseKey, [key]: next },
+    }));
+    if (restTimer?.exerciseId === exercise.id) {
+      setRestTimer({
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        exerciseLabel: exercise.label,
+        endsAtMs: Date.now() + next * 1000,
+        durationSec: next,
+        completed: false,
+      });
+    }
   }
 
   function saveExerciseNote(name: string, label: string | undefined, note: string) {
@@ -425,6 +514,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     setSessionEditMode(false);
     setExpandedProgressId(null);
     setPreviewRoutineId(null);
+    setRestTimer(null);
   }
 
   function updateSessionTitle(text: string) {
@@ -921,6 +1011,23 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                 ) : null}
               </div>
 
+              {restTimer?.exerciseId === exercise.id ? (
+                <RestTimerBar
+                  remainingSec={restTimerRemainingSec}
+                  durationSec={restTimer.durationSec}
+                  completed={restTimer.completed}
+                  presetLabel={`${restDurationForExercise(
+                    exercise.name,
+                    exercise.label,
+                    state.restTimerDefaultSeconds,
+                    state.restTimerSecondsByExerciseKey,
+                    exerciseNoteKey,
+                  )}s`}
+                  onDismiss={clearRestTimer}
+                  onCyclePreset={() => cycleRestPreset(exercise)}
+                />
+              ) : null}
+
               <div
                 style={{
                   display: "grid",
@@ -996,7 +1103,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
                     <button
                       type="button"
                       className="tap"
-                      onClick={() => updateSet(exercise.id, si, { done: !st.done })}
+                      onClick={() => toggleSetDone(exercise, si)}
                       aria-label="Done"
                       style={{
                         width: 36,
