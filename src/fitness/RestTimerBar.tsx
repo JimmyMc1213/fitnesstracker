@@ -38,11 +38,11 @@ export function RestTimerBar({
   return (
     <div
       style={{
-        marginBottom: 12,
-        borderRadius: 10,
+        marginBottom: 8,
+        borderRadius: 8,
         border: `0.5px solid ${completed ? "rgba(52,199,89,0.35)" : "rgba(10,132,255,0.25)"}`,
         background: completed ? "rgba(52,199,89,0.12)" : "rgba(10,132,255,0.08)",
-        padding: "10px 12px",
+        padding: "6px 10px",
         overflow: "hidden",
         position: "relative",
       }}
@@ -60,27 +60,29 @@ export function RestTimerBar({
           }}
         />
       ) : null}
-      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
-              fontSize: 10,
+              fontSize: 9,
               fontWeight: 600,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
               color: completed ? "rgba(52,199,89,0.95)" : "rgba(10,132,255,0.85)",
-              marginBottom: 2,
+              marginBottom: 1,
+              lineHeight: 1.2,
             }}
           >
             {completed ? "Rest complete" : "Rest timer"}
           </div>
           <div
             style={{
-              fontSize: 18,
-              fontWeight: 700,
+              fontSize: 16,
+              fontWeight: 600,
               fontVariantNumeric: "tabular-nums",
               color: accent,
               letterSpacing: "-0.02em",
+              lineHeight: 1.15,
             }}
           >
             {completed ? "Go!" : formatRestDuration(remainingSec)}
@@ -94,11 +96,11 @@ export function RestTimerBar({
           style={{
             flexShrink: 0,
             border: "0.5px solid rgba(255,255,255,0.12)",
-            borderRadius: 8,
-            padding: "6px 10px",
+            borderRadius: 6,
+            padding: "4px 8px",
             background: "rgba(255,255,255,0.06)",
             color: "rgba(255,255,255,0.72)",
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 600,
             fontVariantNumeric: "tabular-nums",
           }}
@@ -115,9 +117,9 @@ export function RestTimerBar({
             border: "none",
             background: "transparent",
             color: "rgba(255,255,255,0.45)",
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 500,
-            padding: "6px 4px",
+            padding: "4px 2px",
           }}
         >
           Skip
