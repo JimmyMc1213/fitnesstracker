@@ -57,7 +57,7 @@ tracking_system: linear
 story_location: _bmad-output/implementation-artifacts
 
 development_status:
-  epic-fti-sprint-1: in-progress
+  epic-fti-sprint-1: done
 
   # Done (Linear completed)
   fti-15-save-workouts-and-workout-history: done
@@ -81,6 +81,6 @@ development_status:
   # Progress insights
   fti-22-personal-records-board: done
   fti-23-streak-tracker: done
-  fti-24-weekly-summary-card: backlog
+  fti-24-weekly-summary-card: done
 
   epic-fti-sprint-1-retrospective: optional

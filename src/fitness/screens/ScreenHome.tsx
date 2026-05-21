@@ -6,6 +6,7 @@ import { SettingsSheet } from "../SettingsSheet";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { SUNDAY_PREP_STEPS } from "../jimmy-seed-data";
 import { StreakWeeklyHeader } from "../StreakWeeklyHeader";
+import { WeeklySummaryCard } from "../WeeklySummaryCard";
 import { MacroBar, MacroRing, ScreenHeader } from "../shared";
 import { formatWeightFromLbs, weightUnitLabel } from "../unitPreferences";
 import type { ScreenProps } from "../types";
@@ -84,6 +85,8 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         selectedDateKey={activeDateKey}
         onSelectDateKey={setViewDateKey}
       />
+
+      {isViewingToday ? <WeeklySummaryCard state={state} todayKey={dateKeyToday} /> : null}
 
       {!isViewingToday ? (
         <button
