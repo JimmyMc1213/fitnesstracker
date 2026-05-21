@@ -37,6 +37,8 @@ export type PersistedFitnessSlice = Pick<
   | "experienceLevelChosen"
   | "equipmentSetup"
   | "equipmentSetupChosen"
+  | "restTimerDefaultSeconds"
+  | "restTimerSecondsByExerciseKey"
   | "onboardingProfile"
   | "onboardingComplete"
 >;
@@ -74,6 +76,8 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     experienceLevelChosen: state.experienceLevelChosen,
     equipmentSetup: state.equipmentSetup,
     equipmentSetupChosen: state.equipmentSetupChosen,
+    restTimerDefaultSeconds: state.restTimerDefaultSeconds,
+    restTimerSecondsByExerciseKey: state.restTimerSecondsByExerciseKey,
     onboardingProfile: state.onboardingProfile,
     onboardingComplete: state.onboardingComplete,
   };

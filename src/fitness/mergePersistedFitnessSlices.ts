@@ -3,6 +3,10 @@ import { mergeExerciseSessionHistoryByKey } from "./exerciseSessionHistory";
 import { mergeWorkoutHistory } from "./workoutHistory";
 import { mergeExercisePersonalBests } from "./workoutSummary";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
+import {
+  mergeRestTimerSecondsByExerciseKey,
+  normalizeRestTimerDefaultSeconds,
+} from "./restTimerPreferences";
 import { normalizeUnitPreferences } from "./unitPreferences";
 import { normalizeExperienceLevel } from "./experienceLevel";
 import { normalizeEquipmentSetup } from "./equipmentSetup";
@@ -245,6 +249,13 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
       normalizeEquipmentSetup(remote.equipmentSetup),
     ),
     equipmentSetupChosen: Boolean(local.equipmentSetupChosen || remote.equipmentSetupChosen),
+    restTimerDefaultSeconds: normalizeRestTimerDefaultSeconds(
+      remote.restTimerDefaultSeconds ?? local.restTimerDefaultSeconds,
+    ),
+    restTimerSecondsByExerciseKey: mergeRestTimerSecondsByExerciseKey(
+      local.restTimerSecondsByExerciseKey,
+      remote.restTimerSecondsByExerciseKey,
+    ),
     onboardingProfile: remote.onboardingProfile ?? local.onboardingProfile ?? null,
     onboardingComplete: Boolean(local.onboardingComplete || remote.onboardingComplete),
   };
