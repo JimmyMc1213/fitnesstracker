@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { IconCheck, IconChevR, IconSettings } from "../icons";
 import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
+import { homeGreetingTitle, homePlanSubline } from "../homeGreeting";
 import { SettingsSheet } from "../SettingsSheet";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { SUNDAY_PREP_STEPS } from "../jimmy-seed-data";
@@ -27,6 +28,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
 
   const greetingName = state.displayName.trim();
   const isLocalSunday = isViewingToday && new Date().getDay() === 0;
+  const todayForGreeting = isViewingToday ? clock : new Date(activeDateKey.replace(/-/g, "/"));
 
   useEffect(() => {
     const id = window.setInterval(() => setClock(new Date()), 60_000);
@@ -39,14 +41,13 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
 
   const headerEyebrow = formatDateKeyEyebrow(activeDateKey);
   const headerTitle = isViewingToday
-    ? greetingName
-      ? `Morning, ${greetingName}`
-      : "Morning"
+    ? homeGreetingTitle(greetingName, todayForGreeting)
     : new Date(activeDateKey.replace(/-/g, "/")).toLocaleDateString("en-US", {
         weekday: "long",
         month: "long",
         day: "numeric",
       });
+  const headerSubtitle = isViewingToday ? homePlanSubline(state, todayForGreeting) ?? undefined : undefined;
 
   const arizonaTodayKey = arizonaCalendarDateKey(clock);
   const showNightlyStretchWindow = isViewingToday && isArizonaEightPmOrLater(clock);
@@ -58,6 +59,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
       <ScreenHeader
         eyebrow={headerEyebrow}
         title={headerTitle}
+        subtitle={headerSubtitle}
         right={
           <button
             type="button"

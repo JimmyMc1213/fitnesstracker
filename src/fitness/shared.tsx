@@ -210,10 +210,12 @@ export function SectionLabel({ children, right }: { children: ReactNode; right?:
 export function ScreenHeader({
   eyebrow,
   title,
+  subtitle,
   right,
 }: {
   eyebrow?: string;
   title: string;
+  subtitle?: string;
   right?: ReactNode;
 }) {
   return (
@@ -222,6 +224,19 @@ export function ScreenHeader({
         <div>
           {eyebrow && <div className="h-greeting">{eyebrow}</div>}
           <div className="h-title">{title}</div>
+          {subtitle && (
+            <div
+              style={{
+                marginTop: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                color: "rgba(255,255,255,0.52)",
+                lineHeight: 1.35,
+              }}
+            >
+              {subtitle}
+            </div>
+          )}
         </div>
         {right}
       </div>
