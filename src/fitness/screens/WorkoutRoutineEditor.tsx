@@ -1,12 +1,11 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
 import { EXERCISE_DB, newTemplateExerciseLine, resizeWorkoutSets } from "../data";
-import { ExerciseNoteRow } from "../ExerciseNoteRow";
-import { getExerciseNote } from "../exerciseNotes";
 import { IconPlus, IconSearch, IconTrash } from "../icons";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
 import type { CustomExerciseTemplate, WorkoutExercise, WorkoutRoutineTemplate } from "../types";
+import { ACCENT_GREEN, CARD_PADDING, EDITOR_LIST_GAP, labelStyle } from "../workoutUiTokens";
 
 /** Pass as `editingRoutineId` to open the editor for a brand-new routine. */
 export const NEW_ROUTINE_EDITOR_ID = "__new__";
@@ -14,11 +13,16 @@ export const NEW_ROUTINE_EDITOR_ID = "__new__";
 const ACCENT_BLUE = "#0A84FF";
 const DAY_PRESETS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
+const fieldLabelStyle: CSSProperties = {
+  ...labelStyle,
+  display: "block",
+  color: "rgba(255,255,255,0.35)",
+  marginBottom: 6,
+};
+
 type WorkoutRoutineEditorProps = {
   template: WorkoutRoutineTemplate | null;
   customExercises: CustomExerciseTemplate[];
-  exerciseNotesByKey: Record<string, string>;
-  onNotePress: (name: string, label?: string) => void;
   onSave: (t: WorkoutRoutineTemplate) => void;
   onDelete: ((id: string) => void) | null;
   onClose: () => void;
@@ -27,8 +31,6 @@ type WorkoutRoutineEditorProps = {
 export function WorkoutRoutineEditor({
   template,
   customExercises,
-  exerciseNotesByKey,
-  onNotePress,
   onSave,
   onDelete,
   onClose,
@@ -137,7 +139,8 @@ export function WorkoutRoutineEditor({
 
   function handleDelete() {
     if (!template?.id || !onDelete) return;
-    if (typeof window !== "undefined" && !window.confirm("Delete this routine?")) return;
+    const routineName = name.trim() || template.name.trim() || "this routine";
+    if (typeof window !== "undefined" && !window.confirm(`Delete "${routineName}"? This cannot be undone.`)) return;
     onDelete(template.id);
     onClose();
   }
@@ -190,17 +193,25 @@ export function WorkoutRoutineEditor({
             style={inputStyle}
           />
         </div>
-        <textarea
-          value={focus}
-          onChange={(e) => setFocus(e.target.value)}
-          placeholder="Notes / focus (optional)"
-          rows={2}
-          style={{
-            ...inputStyle,
-            minHeight: 64,
-            resize: "vertical",
-          }}
-        />
+        <div>
+          <label htmlFor="routine-focus-notes" style={fieldLabelStyle}>
+            Notes / focus
+          </label>
+          <textarea
+            id="routine-focus-notes"
+            value={focus}
+            onChange={(e) => setFocus(e.target.value)}
+            placeholder="Coach notes, session focus, reminders…"
+            rows={4}
+            style={{
+              ...inputStyle,
+              minHeight: 96,
+              resize: "vertical",
+              lineHeight: 1.5,
+              whiteSpace: "pre-wrap",
+            }}
+          />
+        </div>
       </div>
 
       <div className="between" style={{ marginTop: 24, marginBottom: 10 }}>
@@ -211,17 +222,17 @@ export function WorkoutRoutineEditor({
       <SortableExerciseList
         items={exercises}
         onReorder={setExercises}
-        gap={10}
+        gap={EDITOR_LIST_GAP}
         renderItem={(row, ri, handle, ctx) => (
           <div
             className="card"
             style={{
-              padding: 12,
+              padding: CARD_PADDING,
               pointerEvents: ctx.isOverlay ? "none" : undefined,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <ExerciseDragHandle handle={handle} disabled={ctx.isListDragging && !handle.isDragging} />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <ExerciseDragHandle handle={handle} tapSize={44} disabled={ctx.isListDragging && !handle.isDragging} />
               <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600, flexShrink: 0, width: 20 }}>
                 #{ri + 1}
               </span>
@@ -253,44 +264,47 @@ export function WorkoutRoutineEditor({
                 <IconTrash size={18} stroke={1.75} />
               </button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 72px", gap: 8, marginBottom: 8 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 72px", gap: 8 }}>
+              <div>
+                <span style={fieldLabelStyle}>Target</span>
+                <input
+                  value={row.target}
+                  onChange={(e) => patchExercise(row.id, { target: e.target.value })}
+                  placeholder="e.g. 4 × 8–10"
+                  style={inputStyle}
+                  readOnly={ctx.isOverlay}
+                />
+              </div>
+              <div>
+                <span style={fieldLabelStyle}>Sets</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={row.sets.length}
+                  onChange={(e) => patchExercise(row.id, { setCount: +e.target.value || 1 })}
+                  aria-label="Number of sets"
+                  style={{ ...inputStyle, textAlign: "center" }}
+                  readOnly={ctx.isOverlay}
+                />
+              </div>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <span style={fieldLabelStyle}>Label</span>
               <input
-                value={row.target}
-                onChange={(e) => patchExercise(row.id, { target: e.target.value })}
-                placeholder="Target (e.g. 4 × 8–10)"
+                value={row.label ?? ""}
+                onChange={(e) => patchExercise(row.id, { label: e.target.value })}
+                placeholder="Optional (e.g. machine setting)"
                 style={inputStyle}
                 readOnly={ctx.isOverlay}
               />
-              <input
-                type="number"
-                min={1}
-                max={12}
-                value={row.sets.length}
-                onChange={(e) => patchExercise(row.id, { setCount: +e.target.value || 1 })}
-                title="Sets"
-                style={{ ...inputStyle, textAlign: "center" }}
-                readOnly={ctx.isOverlay}
-              />
             </div>
-            <input
-              value={row.label ?? ""}
-              onChange={(e) => patchExercise(row.id, { label: e.target.value })}
-              placeholder="Label (optional)"
-              style={{ ...inputStyle, marginBottom: 8 }}
-              readOnly={ctx.isOverlay}
-            />
-            <ExerciseNoteRow
-              variant="editor"
-              note={getExerciseNote(exerciseNotesByKey, row.name, row.label)}
-              onPress={() => onNotePress(row.name, row.label)}
-              style={{ marginTop: 0, marginBottom: 10 }}
-            />
           </div>
         )}
       />
 
       {showPicker ? (
-        <div className="card" style={{ padding: 12, marginTop: 12 }}>
+        <div className="card" style={{ padding: CARD_PADDING, marginTop: 12 }}>
           <div
             style={{
               fontSize: 10,
@@ -439,12 +453,12 @@ export function WorkoutRoutineEditor({
         style={{
           marginTop: 20,
           width: "100%",
-          background: ACCENT_BLUE,
-          color: "#fff",
+          background: ACCENT_GREEN,
+          color: "#0a0a0a",
           borderRadius: 12,
           padding: 16,
           fontSize: 15,
-          fontWeight: 600,
+          fontWeight: 700,
           border: "none",
         }}
       >
@@ -457,15 +471,15 @@ export function WorkoutRoutineEditor({
           className="tap"
           onClick={handleDelete}
           style={{
-            marginTop: 12,
+            marginTop: 16,
             width: "100%",
-            background: "rgba(255,69,58,0.12)",
-            border: "0.5px solid rgba(255,69,58,0.35)",
-            borderRadius: 12,
-            padding: 14,
-            color: "#FF6961",
-            fontSize: 14,
-            fontWeight: 600,
+            padding: 10,
+            background: "transparent",
+            border: "none",
+            color: "rgba(255,255,255,0.35)",
+            fontSize: 13,
+            fontWeight: 500,
+            textDecoration: "underline",
           }}
         >
           Delete routine
