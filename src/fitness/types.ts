@@ -146,6 +146,16 @@ export type UserGender = "male" | "female" | "other";
 
 export type WorkoutDaysPerWeek = 3 | 4 | 5 | 6;
 
+export type NotificationPreferences = {
+  workoutReminderEnabled: boolean;
+  workoutReminderTime: string;
+  nutritionCheckInEnabled: boolean;
+  nutritionCheckInTime: string;
+  /** Last local date keys a reminder was shown — prevents duplicate fires per day */
+  lastFiredWorkoutReminderDateKey: string | null;
+  lastFiredNutritionReminderDateKey: string | null;
+};
+
 /** Stats and preferences collected during full onboarding (FTI-14). */
 export type OnboardingProfile = {
   goal: NutritionGoal;
@@ -297,6 +307,8 @@ export type AppState = {
   onboardingProfile: OnboardingProfile | null;
   /** True after user finishes the guided onboarding wizard. */
   onboardingComplete: boolean;
+  /** Workout + nutrition reminder toggles, times, and last-fired dedupe keys. */
+  notificationPreferences: NotificationPreferences;
 };
 
 export type ScreenProps = {

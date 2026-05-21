@@ -7,6 +7,7 @@ import {
   mergeRestTimerSecondsByExerciseKey,
   normalizeRestTimerDefaultSeconds,
 } from "./restTimerPreferences";
+import { mergeNotificationPreferences, normalizeNotificationPreferences } from "./notificationPreferences";
 import { normalizeUnitPreferences } from "./unitPreferences";
 import { normalizeExperienceLevel } from "./experienceLevel";
 import { normalizeEquipmentSetup } from "./equipmentSetup";
@@ -306,5 +307,9 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     ),
     onboardingProfile: remote.onboardingProfile ?? local.onboardingProfile ?? null,
     onboardingComplete: Boolean(local.onboardingComplete || remote.onboardingComplete),
+    notificationPreferences: mergeNotificationPreferences(
+      normalizeNotificationPreferences(local.notificationPreferences),
+      normalizeNotificationPreferences(remote.notificationPreferences),
+    ),
   };
 }

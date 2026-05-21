@@ -8,6 +8,8 @@ import { IconBolt, IconDroplet, IconMoon, IconRun, IconX } from "./icons";
 import { UnitPreferencePicker } from "./UnitPreferencePicker";
 import { EquipmentSetupPicker } from "./EquipmentSetupPicker";
 import { buildWorkoutTemplates } from "./workoutTemplateBuilder";
+import { NotificationPreferencesPicker } from "./NotificationPreferencesPicker";
+import { getNotificationPermission } from "./notificationPermission";
 import { SectionLabel } from "./shared";
 import { REST_TIMER_PRESETS } from "./restTimerPreferences";
 import {
@@ -72,6 +74,7 @@ export function SettingsSheet({
   const [syncEmail, setSyncEmail] = useState("");
   const [syncPassword, setSyncPassword] = useState("");
   const [syncHint, setSyncHint] = useState<string | null>(null);
+  const [notificationPermission, setNotificationPermission] = useState(getNotificationPermission);
 
   useEffect(() => {
     setCalIn(String(T.cal));
@@ -358,6 +361,26 @@ export function SettingsSheet({
               );
             })}
           </div>
+        </div>
+
+        <SectionLabel>Reminders</SectionLabel>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+          Workout and nutrition check-in reminders at your chosen times. Reminders appear while Fitcoach is open or
+          recently active.
+        </p>
+        <div style={{ marginBottom: 18 }}>
+          <NotificationPreferencesPicker
+            value={state.notificationPreferences}
+            onChange={(notificationPreferences) =>
+              setState((s) => ({
+                ...s,
+                notificationPreferences,
+              }))
+            }
+            permission={notificationPermission}
+            onPermissionChange={setNotificationPermission}
+            showPermissionHint
+          />
         </div>
 
         <SectionLabel>Equipment</SectionLabel>

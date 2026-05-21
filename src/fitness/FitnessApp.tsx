@@ -36,6 +36,8 @@ import { dismissWorkoutSummary } from "./finishWorkout";
 import { SundayReviewSheet } from "./SundayReviewSheet";
 import { OnboardingFlow } from "./OnboardingFlow";
 import { shouldSkipOnboarding } from "./onboardingSkip";
+import { registerNotificationServiceWorker } from "./registerNotificationServiceWorker";
+import { checkAndFireDueNotifications } from "./notificationScheduler";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
 import { StreakLostSheet } from "./StreakLostSheet";
 import type { AppState, ScreenProps, StreakLossNotice, TabId } from "./types";
@@ -111,6 +113,8 @@ export function FitnessApp() {
 
   const activeDayKey = useRef(localDateKey(new Date()));
   const todayKey = localDateKey(new Date());
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   useEffect(() => {
     persistTasksForToday(
@@ -125,6 +129,41 @@ export function FitnessApp() {
   useEffect(() => {
     savePersistedSlice(sliceFromAppState(state));
   }, [syncSig]);
+
+  useEffect(() => {
+    void registerNotificationServiceWorker();
+  }, []);
+
+  const schedulerRunningRef = useRef(false);
+
+  useEffect(() => {
+    if (!state.onboardingComplete) return;
+
+    const runScheduler = async () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      if (schedulerRunningRef.current) return;
+      schedulerRunningRef.current = true;
+      try {
+        await checkAndFireDueNotifications(stateRef.current, setState);
+      } finally {
+        schedulerRunningRef.current = false;
+      }
+    };
+
+    const initialId = window.setTimeout(() => void runScheduler(), 1500);
+    const intervalId = window.setInterval(() => void runScheduler(), 60_000);
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void runScheduler();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      window.clearTimeout(initialId);
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [state.onboardingComplete]);
 
   useEffect(() => {
     const rolloverIfNeeded = () => {
