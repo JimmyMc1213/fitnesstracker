@@ -495,8 +495,6 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           key={editingRoutineId}
           template={editTemplate}
           customExercises={state.customExercises}
-          exerciseNotesByKey={state.exerciseNotesByKey}
-          onNotePress={(name, label) => setNotesEdit({ name, label })}
           onSave={(saved) => {
             setState((s) => {
               const i = s.workoutTemplates.findIndex((t) => t.id === saved.id);
@@ -519,15 +517,6 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           }
           onClose={() => setEditingRoutineId(null)}
         />
-        {notesEdit ? (
-          <ExerciseNotesEditSheet
-            exerciseName={notesEdit.name}
-            note={getExerciseNote(state.exerciseNotesByKey, notesEdit.name, notesEdit.label)}
-            onSave={(next) => saveExerciseNote(notesEdit.name, notesEdit.label, next)}
-            onDelete={() => deleteExerciseNote(notesEdit.name, notesEdit.label)}
-            onClose={() => setNotesEdit(null)}
-          />
-        ) : null}
       </>
     );
   }

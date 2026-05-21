@@ -1,4 +1,5 @@
-/** Shared typography & color tokens for active workout UI (FTI-19). */
+/** Shared typography & color tokens for workout UI (FTI-19, FTI-17). */
+export const ACCENT_GREEN = "#34C759";
 export const COACH_BLUE = "#0A84FF";
 export const COACH_BLUE_LABEL = "rgba(10,132,255,0.75)";
 export const COACH_BLUE_MUTED = "rgba(10,132,255,0.65)";
@@ -19,3 +20,6 @@ export const labelStyle = {
   letterSpacing: "0.08em",
   textTransform: "uppercase" as const,
 };
+
+export const CARD_PADDING = 16;
+export const EDITOR_LIST_GAP = 12;

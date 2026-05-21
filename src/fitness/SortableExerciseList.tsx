@@ -75,9 +75,12 @@ function SortableRow<T extends { id: string }>({
 export function ExerciseDragHandle({
   handle,
   disabled,
+  tapSize = 32,
 }: {
   handle: ExerciseDragHandleProps;
   disabled?: boolean;
+  /** Minimum touch target (px). Routine editor uses 44 per FTI-17. */
+  tapSize?: number;
 }) {
   return (
     <button
@@ -89,8 +92,8 @@ export function ExerciseDragHandle({
         flexShrink: 0,
         display: "grid",
         placeItems: "center",
-        width: 32,
-        height: 32,
+        width: tapSize,
+        height: tapSize,
         padding: 0,
         border: "none",
         background: "transparent",
