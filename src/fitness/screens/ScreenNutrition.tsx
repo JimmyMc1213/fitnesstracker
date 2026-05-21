@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from "react";
 
 import { localDateKey } from "../dailyPlan";
+import { applyStreakEligibility } from "../dailyStreak";
 import {
   effectiveNutritionTotalsForDateKey,
   manualTotalsForDateKey,
@@ -118,10 +119,13 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
     setState((s) => {
       const prev = manualTotalsForDateKey(s.nutritionManualByDay, todayKey);
       const next: MacroTotals = { ...prev, ...patch };
-      return {
-        ...s,
-        nutritionManualByDay: { ...s.nutritionManualByDay, [todayKey]: next },
-      };
+      return applyStreakEligibility(
+        {
+          ...s,
+          nutritionManualByDay: { ...s.nutritionManualByDay, [todayKey]: next },
+        },
+        todayKey,
+      );
     });
   }
 
@@ -161,7 +165,7 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
       const nutritionItemsByDay = { ...s.nutritionItemsByDay };
       if (nextList.length === 0) delete nutritionItemsByDay[todayKey];
       else nutritionItemsByDay[todayKey] = nextList;
-      return { ...s, nutritionItemsByDay };
+      return applyStreakEligibility({ ...s, nutritionItemsByDay }, todayKey);
     });
   }
 
@@ -186,9 +190,14 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
 
     setState((s) => {
       const prev = s.nutritionItemsByDay[todayKey] ?? [];
-      const nutritionItemsByDay = { ...s.nutritionItemsByDay, [todayKey]: [...prev, row] };
-      const nutritionPresets = upsertNutritionPresetList(s.nutritionPresets, row);
-      return { ...s, nutritionItemsByDay, nutritionPresets };
+      return applyStreakEligibility(
+        {
+          ...s,
+          nutritionItemsByDay: { ...s.nutritionItemsByDay, [todayKey]: [...prev, row] },
+          nutritionPresets: upsertNutritionPresetList(s.nutritionPresets, row),
+        },
+        todayKey,
+      );
     });
 
     setDraftName("");
@@ -213,9 +222,14 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
     };
     setState((s) => {
       const prev = s.nutritionItemsByDay[todayKey] ?? [];
-      const nutritionItemsByDay = { ...s.nutritionItemsByDay, [todayKey]: [...prev, row] };
-      const nutritionPresets = touchNutritionPresetById(s.nutritionPresets, preset.id);
-      return { ...s, nutritionItemsByDay, nutritionPresets };
+      return applyStreakEligibility(
+        {
+          ...s,
+          nutritionItemsByDay: { ...s.nutritionItemsByDay, [todayKey]: [...prev, row] },
+          nutritionPresets: touchNutritionPresetById(s.nutritionPresets, preset.id),
+        },
+        todayKey,
+      );
     });
   }
 

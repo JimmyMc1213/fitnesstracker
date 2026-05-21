@@ -2,7 +2,8 @@ import { useEffect, useState, useId } from "react";
 
 import {
   buildStreakCalendarWeek,
-  computeFitnessCheckInStreak,
+  dayEligibleForStreak,
+  streakMotivationLabel,
   type StreakCalendarCellKind,
 } from "./dailyStreak";
 import { DayProgressSheet } from "./DayProgressSheet";
@@ -11,6 +12,7 @@ import type { AppState } from "./types";
 
 const RED_EMPTY = "#ef4444";
 const GREEN_COMPLETE = "#4ade80";
+const AMBER_PARTIAL = "#fbbf24";
 
 function DayLetterProgressRing({
   letter,
@@ -31,7 +33,7 @@ function DayLetterProgressRing({
   const dashLen =
     p >= 1 ? cLength - 0.5 : Math.max(cLength * p, p > 0 ? 2 : 0);
 
-  const arcStroke = p >= 1 ? GREEN_COMPLETE : "#ffffff";
+  const arcStroke = p >= 1 ? GREEN_COMPLETE : p >= 0.5 ? AMBER_PARTIAL : "#ffffff";
 
   const letterColor = future ? "rgba(255,255,255,0.35)" : "#fff";
 
@@ -78,7 +80,7 @@ function DayLetterProgressRing({
 }
 
 /** Cal-style streak pill flame (filled, not outline). */
-function StreakFlameGlyph({ size = 17 }: { size?: number }) {
+function StreakFlameGlyph({ size = 17, hot }: { size?: number; hot?: boolean }) {
   const raw = useId();
   const gradId = `streakFlameGrad-${raw.replace(/[^a-zA-Z0-9_-]/g, "") || "g"}`;
 
@@ -86,9 +88,9 @@ function StreakFlameGlyph({ size = 17 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden style={{ display: "block", flexShrink: 0 }}>
       <defs>
         <linearGradient id={gradId} x1="40%" y1="0%" x2="60%" y2="100%">
-          <stop offset="0%" stopColor="#fbbf24" />
-          <stop offset="45%" stopColor="#f97316" />
-          <stop offset="100%" stopColor="#ea580c" />
+          <stop offset="0%" stopColor={hot ? "#fde68a" : "#fbbf24"} />
+          <stop offset="45%" stopColor={hot ? "#fb923c" : "#f97316"} />
+          <stop offset="100%" stopColor={hot ? "#ea580c" : "#ea580c"} />
         </linearGradient>
       </defs>
       <path
@@ -102,9 +104,12 @@ function StreakFlameGlyph({ size = 17 }: { size?: number }) {
 }
 
 export function StreakWeeklyHeader({ state, todayKey }: { state: AppState; todayKey: string }) {
-  const streak = computeFitnessCheckInStreak(state, todayKey);
+  const streak = state.fitnessStreakSnapshot?.currentCount ?? 0;
+  const motivation = streakMotivationLabel(streak);
+  const todaySecured = dayEligibleForStreak(state, todayKey);
   const week = buildStreakCalendarWeek(state, todayKey);
   const [picked, setPicked] = useState<string | null>(null);
+  const hotStreak = streak >= 7;
 
   useEffect(() => {
     if (!picked) return;
@@ -140,21 +145,64 @@ export function StreakWeeklyHeader({ state, todayKey }: { state: AppState; today
         </div>
 
         <div
-          aria-label={`${streak} day streak`}
+          aria-label={`${streak} day streak${motivation ? `, ${motivation}` : ""}`}
           style={{
             display: "flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "6px 13px",
-            borderRadius: 999,
-            background: "rgba(250,250,252,0.97)",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: 2,
           }}
         >
-          <StreakFlameGlyph size={17} />
-          <span style={{ fontSize: 16, fontWeight: 800, color: "#0a0a0a", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
-            {streak}
-          </span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "6px 13px",
+              borderRadius: 999,
+              background: hotStreak
+                ? "linear-gradient(135deg, rgba(251,191,36,0.95), rgba(249,115,22,0.92))"
+                : todaySecured
+                  ? "rgba(250,250,252,0.97)"
+                  : "rgba(250,250,252,0.92)",
+              boxShadow: hotStreak
+                ? "0 0 18px rgba(249,115,22,0.35), 0 1px 2px rgba(0,0,0,0.25)"
+                : todaySecured
+                  ? "0 0 12px rgba(74,222,128,0.22), 0 1px 2px rgba(0,0,0,0.25)"
+                  : "0 1px 2px rgba(0,0,0,0.25)",
+            }}
+          >
+            <StreakFlameGlyph size={17} hot={hotStreak} />
+            <span
+              style={{
+                fontSize: 16,
+                fontWeight: 800,
+                color: hotStreak ? "#fff" : "#0a0a0a",
+                fontVariantNumeric: "tabular-nums",
+                lineHeight: 1,
+              }}
+            >
+              {streak}
+            </span>
+            {hotStreak ? (
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  letterSpacing: "0.06em",
+                  color: "rgba(255,255,255,0.92)",
+                  textTransform: "uppercase",
+                }}
+              >
+                day
+              </span>
+            ) : null}
+          </div>
+          {motivation ? (
+            <span style={{ fontSize: 10, fontWeight: 650, color: "rgba(255,255,255,0.42)", letterSpacing: "-0.01em" }}>
+              {motivation}
+            </span>
+          ) : null}
         </div>
       </div>
 
@@ -170,7 +218,7 @@ export function StreakWeeklyHeader({ state, todayKey }: { state: AppState; today
               type="button"
               className="tap"
               onClick={() => setPicked(cell.dateKey)}
-              aria-label={`${cell.dateKey}, day summary`}
+              aria-label={`${cell.dateKey}, streak day summary`}
               style={{
                 flex: 1,
                 display: "flex",

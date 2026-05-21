@@ -77,6 +77,23 @@ function mergeWorkoutsCompleted(
   return out;
 }
 
+function mergeStreakEligibleByDay(
+  a: Record<string, boolean>,
+  b: Record<string, boolean>,
+): Record<string, boolean> {
+  return mergeWorkoutsCompleted(a, b);
+}
+
+function mergeFitnessStreakSnapshot(
+  local: import("./types").FitnessStreakSnapshot,
+  remote: import("./types").FitnessStreakSnapshot,
+): import("./types").FitnessStreakSnapshot {
+  if (local.currentCount === remote.currentCount) {
+    return local.updatedAtIso >= remote.updatedAtIso ? local : remote;
+  }
+  return local.currentCount >= remote.currentCount ? local : remote;
+}
+
 function mergeNutritionItemsByDay(
   a: Record<string, NutritionLoggedItem[]>,
   b: Record<string, NutritionLoggedItem[]>,
@@ -209,6 +226,14 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     exerciseNotesByKey: { ...local.exerciseNotesByKey, ...remote.exerciseNotesByKey },
     workoutTemplates: mergeById(local.workoutTemplates, remote.workoutTemplates, 80),
     workoutsCompletedByDay: mergeWorkoutsCompleted(local.workoutsCompletedByDay, remote.workoutsCompletedByDay),
+    streakEligibleByDay: mergeStreakEligibleByDay(
+      local.streakEligibleByDay ?? {},
+      remote.streakEligibleByDay ?? {},
+    ),
+    fitnessStreakSnapshot: mergeFitnessStreakSnapshot(
+      local.fitnessStreakSnapshot ?? { currentCount: 0, anchorDateKey: null, updatedAtIso: "" },
+      remote.fitnessStreakSnapshot ?? { currentCount: 0, anchorDateKey: null, updatedAtIso: "" },
+    ),
     exercisePersonalBests: mergeExercisePersonalBests(local.exercisePersonalBests, remote.exercisePersonalBests),
     exerciseSessionHistoryByKey: mergeExerciseSessionHistoryByKey(
       local.exerciseSessionHistoryByKey,

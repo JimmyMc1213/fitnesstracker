@@ -80,7 +80,7 @@ development_status:
 
   # Progress insights
   fti-22-personal-records-board: done
-  fti-23-streak-tracker: backlog
+  fti-23-streak-tracker: done
   fti-24-weekly-summary-card: backlog
 
   epic-fti-sprint-1-retrospective: optional
