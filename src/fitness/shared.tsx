@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { useAnimatedMacroProgress } from "./useAnimatedMacroProgress";
 import type { FoodItem, MacroTotals } from "./types";
 
 export function sumItems(items: FoodItem[]): MacroTotals {
@@ -36,14 +37,26 @@ export function MacroBar({ label, value, target, unit = "g" }: { label: string; 
   );
 }
 
-export function MacroRing({ value, target, size = 132, stroke = 6 }: { value: number; target: number; size?: number; stroke?: number }) {
-  const pct = Math.max(0, Math.min(1, value / target));
+export function MacroRing({
+  value,
+  target,
+  size = 132,
+  stroke = 6,
+  animate = true,
+}: {
+  value: number;
+  target: number;
+  size?: number;
+  stroke?: number;
+  animate?: boolean;
+}) {
+  const { ringPct, displayCalories } = useAnimatedMacroProgress(value, target, animate);
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
-  const dash = c * pct;
+  const dash = c * ringPct;
   return (
     <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size}>
+      <svg width={size} height={size} aria-hidden>
         <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} fill="none" />
         <circle
           cx={size / 2}
@@ -69,7 +82,7 @@ export function MacroRing({ value, target, size = 132, stroke = 6 }: { value: nu
         }}
       >
         <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", fontVariantNumeric: "tabular-nums" }}>
-          {Math.round(value)}
+          {Math.round(displayCalories)}
         </div>
         <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 400 }}>
           of {target} kcal
