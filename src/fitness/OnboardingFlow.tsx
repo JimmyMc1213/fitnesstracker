@@ -381,7 +381,7 @@ export function OnboardingFlow({ setState }: { setState: React.Dispatch<React.Se
         step={step}
         totalSteps={totalSteps}
         title="Review your program"
-        subtitle="Reorder exercises, adjust targets, or swap moves before you start."
+        subtitle="Reorder exercises, adjust targets, or swap moves. Each day shows an estimated session time."
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!templatesValid}

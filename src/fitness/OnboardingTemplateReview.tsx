@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { EXERCISE_DB, newTemplateExerciseLine, resizeWorkoutSets } from "./data";
+import { estimatedSessionLabel } from "./estimateSessionDuration";
 import { ExerciseDragHandle, SortableExerciseList } from "./SortableExerciseList";
 import type { WorkoutExercise, WorkoutRoutineTemplate } from "./types";
 
@@ -37,6 +38,8 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {templates.map((routine) => {
         const open = expandedId === routine.id;
+        const sessionEstimate =
+          routine.exercises.length > 0 ? estimatedSessionLabel(routine) : null;
         return (
           <div key={routine.id} className="card" style={{ padding: 14 }}>
             <button
@@ -48,6 +51,11 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
               <div style={{ textAlign: "left" }}>
                 <div style={{ fontWeight: 700, fontSize: 15 }}>{routine.dayLabel} · {routine.name}</div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>{routine.focus}</div>
+                {sessionEstimate ? (
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>
+                    {sessionEstimate}
+                  </div>
+                ) : null}
               </div>
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 18 }}>{open ? "−" : "+"}</span>
             </button>
