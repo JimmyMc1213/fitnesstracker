@@ -8,9 +8,9 @@ import {
   touchNutritionPresetById,
   upsertNutritionPresetList,
 } from "../nutritionTotals";
-import { JIMMY_QUICK_ADD_PRESET_IDS, refreshStateAfterJimmySeed } from "../jimmy-seed-data";
-import { isJimmySummerPlanTemplates } from "../jimmyWeekly";
 import { MacroBar, ScreenHeader, SectionLabel } from "../shared";
+import { WaterTrackerCard } from "../WaterTrackerCard";
+import { appendWaterLogEntry, removeWaterLogEntry } from "../waterIntake";
 import type { MacroTotals, NutritionLoggedItem, NutritionPreset, ScreenProps } from "../types";
 
 function newNutritionItemId(): string {
@@ -241,7 +241,7 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
   }
 
   const presets = state.nutritionPresets;
-  const jimmyLoaded = isJimmySummerPlanTemplates(state.workoutTemplates);
+  const waterEntries = state.waterLogByDay[todayKey] ?? [];
 
   return (
     <div className="screen" style={{ height: "100%", position: "relative" }}>
@@ -278,81 +278,15 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
         </div>
       </div>
 
-      {!jimmyLoaded ? (
-        <div
-          className="card"
-          style={{
-            marginTop: 14,
-            padding: 16,
-            borderColor: "rgba(10,132,255,0.38)",
-            background: "rgba(10,132,255,0.07)",
-          }}
-        >
-          <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 8 }}>Summer plan not loaded</div>
-          <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", fontWeight: 400 }}>
-            Nutrition targets and Saved meal presets stay on the default program until you load Jimmy&apos;s summer plan (same for the Workout tab).
-          </p>
-          <button
-            type="button"
-            className="tap"
-            onClick={() => {
-              if (
-                typeof window !== "undefined" &&
-                !window.confirm(
-                  "Load Jimmy’s summer plan? Replaces workouts, Saved nutrition presets, habits, macros, and goal range. Logs stay.",
-                )
-              )
-                return;
-              setState(refreshStateAfterJimmySeed());
-            }}
-            style={{
-              width: "100%",
-              padding: "12px 14px",
-              borderRadius: 12,
-              fontWeight: 700,
-              fontSize: 14,
-              border: "none",
-              background: "#0A84FF",
-              color: "#fff",
-            }}
-          >
-            Load Jimmy&apos;s summer plan
-          </button>
-        </div>
-      ) : (
-        <>
-          <SectionLabel>Summer plan · Quick add</SectionLabel>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
-            {JIMMY_QUICK_ADD_PRESET_IDS.map((pid) => {
-              const preset = state.nutritionPresets.find((p) => p.id === pid);
-              if (!preset) return null;
-              const short = preset.name.length > 24 ? `${preset.name.slice(0, 22)}…` : preset.name;
-              return (
-                <button
-                  key={pid}
-                  type="button"
-                  className="tap"
-                  onClick={() => addPresetToToday(preset)}
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: 999,
-                    border: "0.5px solid rgba(255,255,255,0.14)",
-                    background: "rgba(255,255,255,0.08)",
-                    color: "#fff",
-                    fontSize: 12,
-                    fontWeight: 600,
-                  }}
-                >
-                  {short}
-                </button>
-              );
-            })}
-          </div>
-          <p style={{ margin: "4px 0 0", fontSize: 11, color: "rgba(255,255,255,0.38)", lineHeight: 1.45 }}>
-            One tap adds to today. Open Saved for full list, macros, and portion notes.
-          </p>
-        </>
-      )}
+      <WaterTrackerCard
+        dateKey={todayKey}
+        targetOz={state.waterDailyTargetOz}
+        entries={waterEntries}
+        readOnly={false}
+        isToday
+        onAddOz={(oz) => setState((s) => appendWaterLogEntry(s, todayKey, oz))}
+        onRemoveEntry={(entryId) => setState((s) => removeWaterLogEntry(s, todayKey, entryId))}
+      />
 
       <SegmentTabs value={segment} onChange={setSegment} />
 
@@ -365,9 +299,7 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
 
           {presets.length === 0 ? (
             <div className="card" style={{ padding: "22px 18px", fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
-              {jimmyLoaded
-                ? "Nothing saved yet. Add items on Today — they&apos;ll show up here automatically."
-                : "Nothing here yet. Load Jimmy’s summer plan from the banner on Today (or Workout) to import meal presets, or add foods on Today."}
+              Nothing saved yet. Add items on Today — they&apos;ll show up here automatically.
             </div>
           ) : (
             <div className="card" style={{ padding: "14px 18px", display: "flex", flexDirection: "column", gap: 10 }}>

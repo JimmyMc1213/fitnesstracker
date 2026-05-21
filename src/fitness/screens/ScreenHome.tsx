@@ -5,7 +5,6 @@ import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, 
 import { homeGreetingTitle, homePlanSubline } from "../homeGreeting";
 import { SettingsSheet } from "../SettingsSheet";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
-import { SUNDAY_PREP_STEPS } from "../jimmy-seed-data";
 import { StreakWeeklyHeader } from "../StreakWeeklyHeader";
 import { WeeklySummaryCard } from "../WeeklySummaryCard";
 import { MacroBar, MacroRing, ScreenHeader } from "../shared";
@@ -27,7 +26,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const greetingName = state.displayName.trim();
-  const isLocalSunday = isViewingToday && new Date().getDay() === 0;
   const todayForGreeting = isViewingToday ? clock : new Date(activeDateKey.replace(/-/g, "/"));
 
   useEffect(() => {
@@ -167,30 +165,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         </div>
         <IconChevR size={14} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
       </button>
-
-      {isLocalSunday ? (
-        <div className="card" style={{ padding: 18, marginTop: 18, borderColor: "rgba(255,200,120,0.28)" }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "rgba(255,200,120,0.8)",
-              marginBottom: 10,
-            }}
-          >
-            Sunday meal prep
-          </div>
-          <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8 }}>
-            {SUNDAY_PREP_STEPS.map((step) => (
-              <li key={step} style={{ fontSize: 12, lineHeight: 1.45, color: "rgba(255,255,255,0.68)", fontWeight: 500 }}>
-                {step}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
 
       {showNightlyStretchWindow ? (
         nightlyStretchDone ? (

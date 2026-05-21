@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import { IconDroplet } from "./icons";
 import {
@@ -16,15 +16,81 @@ type WaterTrackerCardProps = {
   readOnly: boolean;
   isToday: boolean;
   onAddOz: (oz: number) => void;
+  onRemoveEntry?: (entryId: string) => void;
 };
 
-export function WaterTrackerCard({ dateKey, targetOz, entries, readOnly, isToday, onAddOz }: WaterTrackerCardProps) {
+export function WaterTrackerCard({
+  dateKey,
+  targetOz,
+  entries,
+  readOnly,
+  isToday,
+  onAddOz,
+  onRemoveEntry,
+}: WaterTrackerCardProps) {
   const [customOz, setCustomOz] = useState("");
   const [customError, setCustomError] = useState<string | null>(null);
+  const [showEarlier, setShowEarlier] = useState(false);
 
   const total = totalWaterOzForDateKey({ [dateKey]: entries }, dateKey);
   const pct = targetOz > 0 ? Math.max(0, Math.min(1, total / targetOz)) : 0;
   const sectionLabel = isToday ? "Hydration · Today" : "Hydration";
+  const sortedEntries = [...entries].sort((a, b) => b.loggedAtMs - a.loggedAtMs);
+  const earlierCount = Math.max(0, sortedEntries.length - 1);
+  const visibleEntries = showEarlier ? sortedEntries : sortedEntries.slice(0, 1);
+
+  useEffect(() => {
+    if (sortedEntries.length <= 1) setShowEarlier(false);
+  }, [sortedEntries.length]);
+
+  function formatLoggedTime(ms: number): string {
+    return new Date(ms).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  }
+
+  function renderEntryRow(entry: WaterLogEntry, showDivider: boolean) {
+    return (
+      <div
+        key={entry.id}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          paddingBottom: showDivider ? 8 : 0,
+          borderBottom: showDivider ? "1px solid rgba(255,255,255,0.06)" : undefined,
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", fontVariantNumeric: "tabular-nums" }}>
+            +{Math.round(entry.amountOz)} oz
+          </div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 2 }}>
+            {formatLoggedTime(entry.loggedAtMs)}
+          </div>
+        </div>
+        {!readOnly && onRemoveEntry ? (
+          <button
+            type="button"
+            className="tap"
+            aria-label={`Remove ${entry.amountOz} ounces logged at ${formatLoggedTime(entry.loggedAtMs)}`}
+            onClick={() => onRemoveEntry(entry.id)}
+            style={{
+              flexShrink: 0,
+              fontSize: 12,
+              fontWeight: 600,
+              color: "rgba(255,120,120,0.95)",
+              padding: "6px 10px",
+              borderRadius: 8,
+              border: "none",
+              background: "rgba(255,80,80,0.12)",
+            }}
+          >
+            Remove
+          </button>
+        ) : null}
+      </div>
+    );
+  }
   const parsedCustomOz = parseInt(customOz, 10);
   const isCustomValid =
     customOz !== "" && Number.isFinite(parsedCustomOz) && parsedCustomOz > 0 && parsedCustomOz <= 128;
@@ -93,6 +159,41 @@ export function WaterTrackerCard({ dateKey, targetOz, entries, readOnly, isToday
           />
         </div>
       </div>
+
+      {sortedEntries.length > 0 ? (
+        <div
+          style={{
+            marginTop: 14,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          {visibleEntries.map((entry, idx) => renderEntryRow(entry, idx < visibleEntries.length - 1))}
+          {earlierCount > 0 ? (
+            <button
+              type="button"
+              className="tap"
+              onClick={() => setShowEarlier((v) => !v)}
+              aria-expanded={showEarlier}
+              style={{
+                marginTop: 2,
+                padding: 0,
+                border: "none",
+                background: "none",
+                textAlign: "left",
+                fontSize: 12,
+                fontWeight: 600,
+                color: "rgba(10,132,255,0.95)",
+              }}
+            >
+              {showEarlier
+                ? "Hide earlier entries"
+                : `Show ${earlierCount} earlier ${earlierCount === 1 ? "entry" : "entries"}`}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {!readOnly ? (
         <>

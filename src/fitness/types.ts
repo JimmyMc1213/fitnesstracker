@@ -59,7 +59,7 @@ export type WorkoutRoutineTemplate = {
   /** Optional session-specific warm-up steps (shown in active workout). */
   warmupItems?: { description: string }[];
   warmupTip?: string;
-  /** Closing tip after the main log (e.g. Jimmy plan cues). */
+  /** Closing tip after the main log. */
   sessionTip?: string;
 };
 

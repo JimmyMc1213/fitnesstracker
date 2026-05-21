@@ -61,6 +61,16 @@ export function totalWaterOzForDateKey(waterLogByDay: Record<string, WaterLogEnt
   return entries.reduce((sum, e) => sum + e.amountOz, 0);
 }
 
+export function removeWaterLogEntry(state: AppState, dateKey: string, entryId: string): AppState {
+  const prev = state.waterLogByDay[dateKey] ?? [];
+  const next = prev.filter((e) => e.id !== entryId);
+  if (next.length === prev.length) return state;
+  const waterLogByDay = { ...state.waterLogByDay };
+  if (next.length) waterLogByDay[dateKey] = next;
+  else delete waterLogByDay[dateKey];
+  return { ...state, waterLogByDay };
+}
+
 export function appendWaterLogEntry(state: AppState, dateKey: string, amountOz: number): AppState {
   if (!Number.isFinite(amountOz) || amountOz <= 0 || amountOz > 128) return state;
   const id =
