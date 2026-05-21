@@ -5,6 +5,7 @@ import { localDateKey } from "../dailyPlan";
 import { IconArrowDown, IconArrowUp } from "../icons";
 import { WorkoutCalendarCard } from "../WorkoutCalendarCard";
 import { PersonalRecordsSection } from "../PersonalRecordsSection";
+import { WeeklySummaryCard } from "../WeeklySummaryCard";
 import { LineChart, ScreenHeader, SectionLabel } from "../shared";
 import { WeighInSheet, weighInDateKeyToday } from "../WeighInSheet";
 import {
@@ -401,6 +402,8 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
           )}
         </div>
       </div>
+
+      <WeeklySummaryCard state={state} todayKey={dateKeyToday} />
 
       <WeighInSheet
         open={weighInOpen}
