@@ -97,9 +97,17 @@ export function WorkoutSummarySheet({ summary, unitPreferences, onDone }: Props)
           title="Personal records"
           empty="No PRs this session — keep stacking weight and reps."
           accent="#34C759"
+          highlight={summary.prs.length > 0}
         >
           {summary.prs.map((pr) => (
-            <SummaryRow key={`${pr.exerciseName}-${pr.detail}`} title={pr.exerciseName} detail={pr.detail} badge="PR" badgeColor="#34C759" />
+            <SummaryRow
+              key={`${pr.exerciseName}-${pr.detail}`}
+              title={pr.exerciseName}
+              detail={pr.detail}
+              badge="PR"
+              badgeColor="#34C759"
+              highlighted
+            />
           ))}
         </SummarySection>
 
@@ -184,11 +192,13 @@ function SummarySection({
   title,
   empty,
   accent,
+  highlight,
   children,
 }: {
   title: string;
   empty: string;
   accent: string;
+  highlight?: boolean;
   children: ReactNode;
 }) {
   const childList = Array.isArray(children) ? children : children != null ? [children] : [];
@@ -197,7 +207,25 @@ function SummarySection({
   return (
     <section style={{ marginTop: 28 }}>
       <div className="between" style={{ marginBottom: 10, alignItems: "flex-end" }}>
-        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>{title}</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>{title}</h2>
+          {highlight && hasItems ? (
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: accent,
+                background: `${accent}22`,
+                padding: "3px 7px",
+                borderRadius: 6,
+              }}
+            >
+              {childList.length} new
+            </span>
+          ) : null}
+        </div>
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: accent }} aria-hidden />
       </div>
       {hasItems ? (
@@ -214,11 +242,13 @@ function SummaryRow({
   detail,
   badge,
   badgeColor,
+  highlighted,
 }: {
   title: string;
   detail: string;
   badge: string;
   badgeColor: string;
+  highlighted?: boolean;
 }) {
   return (
     <div
@@ -227,7 +257,9 @@ function SummaryRow({
         padding: "12px 14px",
         alignItems: "center",
         gap: 12,
-        border: "0.5px solid var(--border)",
+        border: highlighted ? `1px solid ${badgeColor}55` : "0.5px solid var(--border)",
+        background: highlighted ? `${badgeColor}0d` : undefined,
+        boxShadow: highlighted ? `0 0 0 1px ${badgeColor}18` : undefined,
       }}
     >
       <div style={{ minWidth: 0, flex: 1 }}>
