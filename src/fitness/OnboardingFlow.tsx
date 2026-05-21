@@ -137,7 +137,13 @@ function OnboardingShell({
   );
 }
 
-export function OnboardingFlow({ setState }: { setState: React.Dispatch<React.SetStateAction<AppState>> }) {
+export function OnboardingFlow({
+  setState,
+  onComplete,
+}: {
+  setState: React.Dispatch<React.SetStateAction<AppState>>;
+  onComplete?: () => void;
+}) {
   const totalSteps = STEP_LABELS.length;
   const [step, setStep] = useState(0);
   const [unitPreferences, setUnitPreferences] = useState<UnitPreferences>({ ...DEFAULT_UNIT_PREFERENCES });
@@ -194,6 +200,7 @@ export function OnboardingFlow({ setState }: { setState: React.Dispatch<React.Se
       planStartIso,
       dailyTasks: loadTasksForToday(macros, planStartIso, s.stepsTarget, draftTemplates),
     }));
+    onComplete?.();
   }
 
   if (step === 0) {

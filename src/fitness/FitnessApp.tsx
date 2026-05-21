@@ -72,10 +72,22 @@ function OnboardingGate({
   children: ReactNode;
 }) {
   const sync = useFitnessSync();
-  const forcePreview =
+  const forcePreviewParam =
     import.meta.env.DEV &&
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("previewOnboarding") === "1";
+  const [previewOnboardingDismissed, setPreviewOnboardingDismissed] = useState(false);
+  const forcePreview = forcePreviewParam && !previewOnboardingDismissed;
+
+  function dismissPreviewOnboarding() {
+    if (!forcePreviewParam) return;
+    setPreviewOnboardingDismissed(true);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("previewOnboarding");
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+  }
 
   if (state.onboardingComplete && !forcePreview) return <>{children}</>;
 
@@ -86,7 +98,7 @@ function OnboardingGate({
   });
   if (skip && !forcePreview) return <>{children}</>;
 
-  return <OnboardingFlow setState={setState} />;
+  return <OnboardingFlow setState={setState} onComplete={dismissPreviewOnboarding} />;
 }
 
 export function FitnessApp() {
