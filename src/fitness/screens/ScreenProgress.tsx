@@ -4,6 +4,7 @@ import { planDayIndex, planWeekIndex } from "../data";
 import { localDateKey } from "../dailyPlan";
 import { IconArrowDown, IconArrowUp } from "../icons";
 import { WorkoutCalendarCard } from "../WorkoutCalendarCard";
+import { PersonalRecordsSection } from "../PersonalRecordsSection";
 import { LineChart, ScreenHeader, SectionLabel } from "../shared";
 import { WeighInSheet, weighInDateKeyToday } from "../WeighInSheet";
 import {
@@ -436,6 +437,9 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
 
       <SectionLabel>Workouts</SectionLabel>
       <WorkoutCalendarCard state={state} />
+
+      <SectionLabel>Personal records</SectionLabel>
+      <PersonalRecordsSection state={state} />
 
       <SectionLabel>Goal range</SectionLabel>
       <div className="card" style={{ padding: 18 }}>
