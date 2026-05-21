@@ -104,3 +104,4 @@ Composer
 ## Change Log
 
 - 2026-05-21: FTI-23 — Streak tracker with Supabase-synced eligibility, nutrition goal rules, and home UI polish
+- 2026-05-21: Streak day sheet simplified — streak-only default glance, full habit log collapsed; split getDayStreakSummary / getDayHabitProgress; dedupe weigh-in

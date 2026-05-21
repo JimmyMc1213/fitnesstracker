@@ -63,7 +63,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         }
       />
 
-      <StreakWeeklyHeader state={state} todayKey={dateKeyToday} />
+      <StreakWeeklyHeader state={state} todayKey={dateKeyToday} onNavigate={navigate} />
 
       <button
         type="button"

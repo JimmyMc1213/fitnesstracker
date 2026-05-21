@@ -8,7 +8,7 @@ import {
 } from "./dailyStreak";
 import { DayProgressSheet } from "./DayProgressSheet";
 import { IconDumbbell } from "./icons";
-import type { AppState } from "./types";
+import type { AppState, TabId } from "./types";
 
 const RED_EMPTY = "#ef4444";
 const GREEN_COMPLETE = "#4ade80";
@@ -103,7 +103,15 @@ function StreakFlameGlyph({ size = 17, hot }: { size?: number; hot?: boolean }) 
   );
 }
 
-export function StreakWeeklyHeader({ state, todayKey }: { state: AppState; todayKey: string }) {
+export function StreakWeeklyHeader({
+  state,
+  todayKey,
+  onNavigate,
+}: {
+  state: AppState;
+  todayKey: string;
+  onNavigate?: (tab: TabId) => void;
+}) {
   const streak = state.fitnessStreakSnapshot?.currentCount ?? 0;
   const motivation = streakMotivationLabel(streak);
   const todaySecured = dayEligibleForStreak(state, todayKey);
@@ -122,7 +130,15 @@ export function StreakWeeklyHeader({ state, todayKey }: { state: AppState; today
 
   return (
     <div style={{ marginTop: 14, marginBottom: 14 }}>
-      {picked ? <DayProgressSheet state={state} dateKey={picked} todayKey={todayKey} onClose={() => setPicked(null)} /> : null}
+      {picked ? (
+        <DayProgressSheet
+          state={state}
+          dateKey={picked}
+          todayKey={todayKey}
+          onClose={() => setPicked(null)}
+          onNavigate={onNavigate}
+        />
+      ) : null}
 
       <div className="between" style={{ alignItems: "center", padding: "6px 0 14px", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>

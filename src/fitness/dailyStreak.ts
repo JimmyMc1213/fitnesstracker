@@ -20,6 +20,30 @@ export type StreakCalendarCell = {
 
 export type DayProgressLineItem = { id: string; label: string; done: boolean };
 
+export type StreakDayStatus = "earned" | "not_yet" | "missed" | "future";
+
+export type DayStreakSummary = {
+  dateKey: string;
+  status: StreakDayStatus;
+  workoutDone: boolean;
+  /** Logged calories as % of target (can exceed 100). */
+  nutritionCalPct: number;
+  /** Logged protein as % of target (can exceed 100). */
+  nutritionProteinPct: number;
+  nutritionGoalHit: boolean;
+  eligible: boolean;
+};
+
+export type DayHabitProgress = {
+  dateKey: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  items: DayProgressLineItem[];
+};
+
+/** @deprecated Composed view — prefer getDayStreakSummary + getDayHabitProgress. */
 export type DayProgressDetail = {
   dateKey: string;
   calories: number;
@@ -202,38 +226,77 @@ export function streakMotivationLabel(count: number): string | null {
   return null;
 }
 
-/** Per-day checklist for streak UI & detail modal. */
-export function getDayProgressDetail(state: AppState, dateKey: string): DayProgressDetail {
-  const items: DayProgressLineItem[] = [];
-  items.push({
-    id: "streak-workout",
-    label: "Workout finished (streak)",
-    done: Boolean(state.workoutsCompletedByDay[dateKey]),
-  });
-  items.push({
-    id: "streak-nutrition",
-    label: "Nutrition goal hit (streak)",
-    done: nutritionGoalHitForDateKey(
-      state.nutritionManualByDay,
-      state.nutritionItemsByDay,
-      state.nutritionTargets,
+function nutritionTargetPct(actual: number, target: number): number {
+  if (target <= 0) return 0;
+  return Math.round((actual / target) * 100);
+}
+
+/** Streak-only summary for calendar day tap — workout OR nutrition goal. */
+export function getDayStreakSummary(state: AppState, dateKey: string, todayKey: string): DayStreakSummary {
+  if (dateKey > todayKey) {
+    return {
       dateKey,
-    ),
-  });
+      status: "future",
+      workoutDone: false,
+      nutritionCalPct: 0,
+      nutritionProteinPct: 0,
+      nutritionGoalHit: false,
+      eligible: false,
+    };
+  }
 
-  const weighed = state.weightLog.some((e) => e.dateKey === dateKey);
-  items.push({ id: "weigh", label: "Morning weigh-in", done: weighed });
+  const totals = effectiveNutritionTotalsForDateKey(
+    state.nutritionManualByDay,
+    state.nutritionItemsByDay,
+    dateKey,
+  );
+  const T = state.nutritionTargets;
+  const workoutDone = Boolean(state.workoutsCompletedByDay[dateKey]);
+  const nutritionGoalHit = nutritionGoalHitForDateKey(
+    state.nutritionManualByDay,
+    state.nutritionItemsByDay,
+    state.nutritionTargets,
+    dateKey,
+  );
+  const eligible = workoutDone || nutritionGoalHit;
 
+  let status: StreakDayStatus;
+  if (eligible) status = "earned";
+  else if (dateKey === todayKey) status = "not_yet";
+  else status = "missed";
+
+  return {
+    dateKey,
+    status,
+    workoutDone,
+    nutritionCalPct: nutritionTargetPct(totals.cal, T.cal),
+    nutritionProteinPct: nutritionTargetPct(totals.p, T.p),
+    nutritionGoalHit,
+    eligible,
+  };
+}
+
+function habitTemplateMentionsWeighIn(name: string): boolean {
+  return /weigh/i.test(name);
+}
+
+/** Habits + optional weigh-in for expanded day log — excludes streak criteria. */
+export function getDayHabitProgress(state: AppState, dateKey: string): DayHabitProgress {
+  const items: DayProgressLineItem[] = [];
   const t = effectiveNutritionTotalsForDateKey(state.nutritionManualByDay, state.nutritionItemsByDay, dateKey);
   const macrosDone = t.cal > 0 || t.p > 0 || t.c > 0 || t.f > 0;
-  items.push({ id: "nutrition", label: "Nutrition logged", done: macrosDone });
+  items.push({ id: "nutrition-logged", label: "Nutrition logged", done: macrosDone });
+
+  const hasWeighHabit = state.habitTemplates.some((h) => habitTemplateMentionsWeighIn(h.name));
+  if (!hasWeighHabit) {
+    const weighed = state.weightLog.some((e) => e.dateKey === dateKey);
+    items.push({ id: "weigh", label: "Morning weigh-in", done: weighed });
+  }
 
   const habitRow = state.habitsDoneByDay[dateKey] ?? {};
   for (const h of state.habitTemplates) {
     items.push({ id: `habit:${h.id}`, label: h.name, done: Boolean(habitRow[h.id]) });
   }
-
-  const streakProgress = streakDayProgress(state, dateKey);
 
   return {
     dateKey,
@@ -241,8 +304,27 @@ export function getDayProgressDetail(state: AppState, dateKey: string): DayProgr
     protein: t.p,
     carbs: t.c,
     fat: t.f,
-    progress: streakProgress,
     items,
+  };
+}
+
+/** @deprecated Use getDayStreakSummary + getDayHabitProgress. */
+export function getDayProgressDetail(state: AppState, dateKey: string): DayProgressDetail {
+  const todayKey = localDateKey(new Date());
+  const streak = getDayStreakSummary(state, dateKey, todayKey);
+  const habits = getDayHabitProgress(state, dateKey);
+  const streakItems: DayProgressLineItem[] = [
+    { id: "streak-workout", label: "Workout finished", done: streak.workoutDone },
+    { id: "streak-nutrition", label: "Nutrition goal hit", done: streak.nutritionGoalHit },
+  ];
+  return {
+    dateKey,
+    calories: habits.calories,
+    protein: habits.protein,
+    carbs: habits.carbs,
+    fat: habits.fat,
+    progress: streakDayProgress(state, dateKey),
+    items: [...streakItems, ...habits.items],
   };
 }
 
