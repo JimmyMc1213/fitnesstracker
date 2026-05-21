@@ -2,13 +2,20 @@ import {
   DndContext,
   DragOverlay,
   KeyboardSensor,
+  MeasuringStrategy,
   PointerSensor,
+  TouchSensor,
   closestCenter,
+  defaultDropAnimation,
+  defaultDropAnimationSideEffects,
+  useSensor,
+  useSensors,
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
+  defaultAnimateLayoutChanges,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
@@ -17,6 +24,22 @@ import { CSS } from "@dnd-kit/utilities";
 import { useState, type CSSProperties, type ReactNode } from "react";
 
 import { IconGrip } from "./icons";
+
+const LIFT_SCALE = 1.03;
+const LAYOUT_TRANSITION = "transform 220ms cubic-bezier(0.25, 1, 0.5, 1)";
+
+const dropAnimation = {
+  ...defaultDropAnimation,
+  duration: 240,
+  easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+  sideEffects: defaultDropAnimationSideEffects({
+    styles: {
+      active: {
+        opacity: "0.4",
+      },
+    },
+  }),
+};
 
 export type SortableListContext = {
   isOverlay: boolean;
@@ -44,6 +67,25 @@ function reorder<T>(items: T[], from: number, to: number): T[] {
   return next;
 }
 
+function DragLiftShell({ children, isOverlay }: { children: ReactNode; isOverlay: boolean }) {
+  if (!isOverlay) return <>{children}</>;
+  return (
+    <div
+      style={{
+        transform: `scale(${LIFT_SCALE})`,
+        transformOrigin: "center top",
+        boxShadow: "0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06)",
+        borderRadius: 14,
+        cursor: "grabbing",
+        touchAction: "none",
+        willChange: "transform",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function SortableRow<T extends { id: string }>({
   item,
   index,
@@ -57,12 +99,16 @@ function SortableRow<T extends { id: string }>({
   renderItem: SortableExerciseListProps<T>["renderItem"];
   isListDragging: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: item.id,
+    animateLayoutChanges: defaultAnimateLayoutChanges,
+  });
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition ? `${transition}, ${LAYOUT_TRANSITION}` : LAYOUT_TRANSITION,
     marginBottom: gap,
-    opacity: isDragging ? 0.35 : 1,
+    opacity: isDragging ? 0.28 : 1,
+    zIndex: isDragging ? 0 : undefined,
   };
 
   return (
@@ -98,7 +144,7 @@ export function ExerciseDragHandle({
         border: "none",
         background: "transparent",
         color: disabled ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.35)",
-        cursor: disabled ? "default" : "grab",
+        cursor: disabled ? "default" : handle.isDragging ? "grabbing" : "grab",
         touchAction: "none",
       }}
       {...(handle.attributes ?? {})}
@@ -113,6 +159,12 @@ export function SortableExerciseList<T extends { id: string }>({ items, gap = 12
   const [activeId, setActiveId] = useState<string | null>(null);
   const activeIndex = activeId != null ? items.findIndex((x) => x.id === activeId) : -1;
   const activeItem = activeIndex >= 0 ? items[activeIndex] : null;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   function onDragStart(ev: DragStartEvent) {
     setActiveId(String(ev.active.id));
@@ -134,11 +186,11 @@ export function SortableExerciseList<T extends { id: string }>({ items, gap = 12
 
   return (
     <DndContext
-      sensors={[
-        { sensor: PointerSensor, options: { activationConstraint: { distance: 6 } } },
-        { sensor: KeyboardSensor, options: { coordinateGetter: sortableKeyboardCoordinates } },
-      ]}
+      sensors={sensors}
       collisionDetection={closestCenter}
+      measuring={{
+        droppable: { strategy: MeasuringStrategy.Always },
+      }}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onDragCancel={onDragCancel}
@@ -155,15 +207,17 @@ export function SortableExerciseList<T extends { id: string }>({ items, gap = 12
           />
         ))}
       </SortableContext>
-      <DragOverlay dropAnimation={null}>
-        {activeItem && activeIndex >= 0
-          ? renderItem(
+      <DragOverlay dropAnimation={dropAnimation} style={{ cursor: "grabbing" }}>
+        {activeItem && activeIndex >= 0 ? (
+          <DragLiftShell isOverlay>
+            {renderItem(
               activeItem,
               activeIndex,
               { isDragging: true },
               { isOverlay: true, isListDragging: true },
-            )
-          : null}
+            )}
+          </DragLiftShell>
+        ) : null}
       </DragOverlay>
     </DndContext>
   );
