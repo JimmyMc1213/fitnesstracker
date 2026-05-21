@@ -761,8 +761,8 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               type="button"
               className="tap"
               aria-pressed={sessionEditMode}
-              aria-label="Edit workout layout"
-              title="Edit workout layout"
+              aria-label="Remove exercises from workout"
+              title="Remove exercises from workout"
               onClick={() => setSessionEditMode((v) => !v)}
               style={{
                 display: "grid",
@@ -868,9 +868,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               }}
             >
               <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
-                {sessionEditMode ? (
-                  <ExerciseDragHandle handle={handle} disabled={ctx.isListDragging && !handle.isDragging} />
-                ) : null}
+                <ExerciseDragHandle handle={handle} disabled={ctx.isListDragging && !handle.isDragging} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                     <span style={{ fontSize: METADATA_SIZE, color: "rgba(255,255,255,0.3)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
