@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { IconCheck, IconChevR, IconSettings } from "../icons";
-import { arizonaCalendarDateKey, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
+import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
 import { SettingsSheet } from "../SettingsSheet";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { SUNDAY_PREP_STEPS } from "../jimmy-seed-data";
@@ -13,35 +13,50 @@ import type { ScreenProps } from "../types";
 export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   const T = state.nutritionTargets;
   const dateKeyToday = localDateKey(new Date());
-  const totals = effectiveNutritionTotalsForDateKey(state.nutritionManualByDay, state.nutritionItemsByDay, dateKeyToday);
-  const todayEntry = state.weightLog.find((e) => e.dateKey === dateKeyToday);
+  const [viewDateKey, setViewDateKey] = useState(dateKeyToday);
+  const activeDateKey = viewDateKey;
+  const isViewingToday = activeDateKey === dateKeyToday;
+
+  const totals = effectiveNutritionTotalsForDateKey(state.nutritionManualByDay, state.nutritionItemsByDay, activeDateKey);
+  const dayEntry = state.weightLog.find((e) => e.dateKey === activeDateKey);
 
   const wUnit = state.unitPreferences.weightUnit;
   const [clock, setClock] = useState(() => new Date());
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const greetingName = state.displayName.trim();
-  const isLocalSunday = new Date().getDay() === 0;
+  const isLocalSunday = isViewingToday && new Date().getDay() === 0;
 
   useEffect(() => {
     const id = window.setInterval(() => setClock(new Date()), 60_000);
     return () => window.clearInterval(id);
   }, []);
 
-  const todayEyebrow = new Date()
-    .toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
-    .replace(",", "")
-    .toUpperCase();
+  useEffect(() => {
+    if (viewDateKey > dateKeyToday) setViewDateKey(dateKeyToday);
+  }, [dateKeyToday, viewDateKey]);
+
+  const headerEyebrow = formatDateKeyEyebrow(activeDateKey);
+  const headerTitle = isViewingToday
+    ? greetingName
+      ? `Morning, ${greetingName}`
+      : "Morning"
+    : new Date(activeDateKey.replace(/-/g, "/")).toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      });
 
   const arizonaTodayKey = arizonaCalendarDateKey(clock);
-  const showNightlyStretchWindow = isArizonaEightPmOrLater(clock);
+  const showNightlyStretchWindow = isViewingToday && isArizonaEightPmOrLater(clock);
   const nightlyStretchDone = state.nightlyStretchCompletedArizonaKey === arizonaTodayKey;
+  const fuelLabel = isViewingToday ? "Fuel · Today" : "Fuel";
 
   return (
     <div className="screen page-transition" style={{ position: "relative" }}>
       <ScreenHeader
-        eyebrow={todayEyebrow}
-        title={greetingName ? `Morning, ${greetingName}` : "Morning"}
+        eyebrow={headerEyebrow}
+        title={headerTitle}
         right={
           <button
             type="button"
@@ -63,17 +78,42 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         }
       />
 
-      <StreakWeeklyHeader state={state} todayKey={dateKeyToday} />
+      <StreakWeeklyHeader
+        state={state}
+        todayKey={dateKeyToday}
+        selectedDateKey={activeDateKey}
+        onSelectDateKey={setViewDateKey}
+      />
+
+      {!isViewingToday ? (
+        <button
+          type="button"
+          className="tap"
+          onClick={() => setViewDateKey(dateKeyToday)}
+          style={{
+            marginTop: 4,
+            padding: 0,
+            border: "none",
+            background: "none",
+            color: "rgba(255,255,255,0.5)",
+            fontSize: 13,
+            fontWeight: 600,
+            textAlign: "left",
+          }}
+        >
+          Back to today
+        </button>
+      ) : null}
 
       <button
         type="button"
         className="tap card"
         onClick={() => navigate("progress")}
-        aria-label={todayEntry ? "View or update weigh-in on Progress" : "Log weigh-in on Progress"}
+        aria-label={dayEntry ? "View or update weigh-in on Progress" : "Log weigh-in on Progress"}
         style={{
           padding: 16,
           marginTop: 18,
-          borderColor: todayEntry ? "rgba(74,222,128,0.25)" : "rgba(74,222,128,0.18)",
+          borderColor: dayEntry ? "rgba(74,222,128,0.25)" : "rgba(74,222,128,0.18)",
           display: "flex",
           alignItems: "center",
           gap: 14,
@@ -87,13 +127,13 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
             width: 44,
             height: 44,
             borderRadius: 999,
-            background: todayEntry ? "rgba(74,222,128,0.18)" : "rgba(255,255,255,0.06)",
+            background: dayEntry ? "rgba(74,222,128,0.18)" : "rgba(255,255,255,0.06)",
             display: "grid",
             placeItems: "center",
             flexShrink: 0,
           }}
         >
-          {todayEntry ? (
+          {dayEntry ? (
             <IconCheck size={22} stroke={2.4} style={{ color: "rgb(74,222,128)" }} />
           ) : (
             <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>+</span>
@@ -101,12 +141,14 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "#fff" }}>
-            {todayEntry ? "Weigh-in logged" : "Morning weigh-in"}
+            {dayEntry ? "Weigh-in logged" : "Morning weigh-in"}
           </div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 4 }}>
-            {todayEntry
-              ? `${formatWeightFromLbs(todayEntry.weightLbs, wUnit)} ${weightUnitLabel(wUnit)} · tap to update on Progress`
-              : "Log weight and optional photo on the Progress tab"}
+            {dayEntry
+              ? `${formatWeightFromLbs(dayEntry.weightLbs, wUnit)} ${weightUnitLabel(wUnit)} · tap to update on Progress`
+              : isViewingToday
+                ? "Log weight and optional photo on the Progress tab"
+                : "No weigh-in logged this day"}
           </div>
         </div>
         <IconChevR size={14} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
@@ -243,7 +285,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
                   textTransform: "uppercase",
                 }}
               >
-                Fuel · Today
+                {fuelLabel}
               </div>
               <div
                 style={{

@@ -20,6 +20,10 @@ export type PersistedFitnessSlice = Pick<
   | "exerciseNotesByKey"
   | "workoutTemplates"
   | "workoutsCompletedByDay"
+  | "streakEligibleByDay"
+  | "fitnessStreakSnapshot"
+  | "streakSessionBaseline"
+  | "streakLossNoticeDismissedForKey"
   | "exercisePersonalBests"
   | "exerciseSessionHistoryByKey"
   | "workoutHistory"
@@ -59,6 +63,10 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     exerciseNotesByKey: state.exerciseNotesByKey,
     workoutTemplates: state.workoutTemplates,
     workoutsCompletedByDay: state.workoutsCompletedByDay,
+    streakEligibleByDay: state.streakEligibleByDay,
+    fitnessStreakSnapshot: state.fitnessStreakSnapshot,
+    streakSessionBaseline: state.streakSessionBaseline,
+    streakLossNoticeDismissedForKey: state.streakLossNoticeDismissedForKey,
     exercisePersonalBests: state.exercisePersonalBests,
     exerciseSessionHistoryByKey: state.exerciseSessionHistoryByKey,
     workoutHistory: state.workoutHistory,

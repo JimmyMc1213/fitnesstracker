@@ -1,11 +1,46 @@
+import { useState } from "react";
+
 import { IconCheck } from "./icons";
 
 import type { MouseEvent } from "react";
 
-import { formatDayHeading, getDayProgressDetail } from "./dailyStreak";
-import type { AppState } from "./types";
+import {
+  formatDayHeading,
+  getDayHabitProgress,
+  getDayStreakSummary,
+  type StreakDayStatus,
+} from "./dailyStreak";
+import type { AppState, TabId } from "./types";
 
-function ListBlock({ title, lines, muted }: { title: string; lines: string[]; muted?: boolean }) {
+function streakStatusLabel(status: StreakDayStatus): string {
+  switch (status) {
+    case "earned":
+      return "Counts toward streak";
+    case "not_yet":
+      return "Streak not earned yet";
+    case "missed":
+      return "Did not count";
+    default:
+      return "Upcoming";
+  }
+}
+
+function RowCheck({ done }: { done: boolean }) {
+  if (done) {
+    return (
+      <span aria-hidden style={{ color: "#4ade80", display: "flex" }}>
+        <IconCheck size={14} stroke={2.25} />
+      </span>
+    );
+  }
+  return (
+    <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.35)", fontVariantNumeric: "tabular-nums" }}>
+      —
+    </span>
+  );
+}
+
+function HabitListBlock({ title, lines, muted }: { title: string; lines: string[]; muted?: boolean }) {
   if (lines.length === 0) return null;
   return (
     <div style={{ marginTop: 14 }}>
@@ -59,14 +94,18 @@ export function DayProgressSheet({
   dateKey,
   todayKey,
   onClose,
+  onNavigate,
 }: {
   state: AppState;
   dateKey: string;
   todayKey: string;
   onClose: () => void;
+  onNavigate?: (tab: TabId) => void;
 }) {
+  const [showFullLog, setShowFullLog] = useState(false);
   const isFuture = dateKey > todayKey;
-  const detail = isFuture ? null : getDayProgressDetail(state, dateKey);
+  const streak = getDayStreakSummary(state, dateKey, todayKey);
+  const habits = isFuture ? null : getDayHabitProgress(state, dateKey);
 
   function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) onClose();
@@ -118,37 +157,100 @@ export function DayProgressSheet({
 
         {isFuture ? (
           <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.42)", lineHeight: 1.45 }}>
-            This day hasn’t started yet — check back when it arrives.
+            This day hasn&apos;t started yet.
           </p>
-        ) : detail ? (
+        ) : (
           <>
-            <div
-              style={{
-                borderRadius: 12,
-                border: "0.5px solid var(--border)",
-                padding: "14px 16px",
-                background: "rgba(255,255,255,0.03)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 6,
-              }}
-            >
-              <div style={{ fontSize: 11, letterSpacing: "0.08em", color: "var(--tertiary)", fontWeight: 500 }}>
-                CALORIES (LOGGED)
+            <p style={{ margin: "0 0 16px", fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.45)", lineHeight: 1.45 }}>
+              {streakStatusLabel(streak.status)}. Finish a workout or hit 90% of calories and protein.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div className="between" style={{ alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>Workout finished</span>
+                <RowCheck done={streak.workoutDone} />
               </div>
-              <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>
-                {Math.round(detail.calories)}
-                <span style={{ fontSize: 12, fontWeight: 550, marginLeft: 6, color: "rgba(255,255,255,0.4)" }}>kcal</span>
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 550, color: "rgba(255,255,255,0.35)", marginTop: 4 }}>
-                P {Math.round(detail.protein)} · C {Math.round(detail.carbs)} · F {Math.round(detail.fat)} g
+              <div>
+                <div className="between" style={{ alignItems: "center", gap: 12 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>Nutrition goal</span>
+                  <RowCheck done={streak.nutritionGoalHit} />
+                </div>
+                <div style={{ marginTop: 4, fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.4)", fontVariantNumeric: "tabular-nums" }}>
+                  {streak.nutritionCalPct}% cal · {streak.nutritionProteinPct}% protein
+                </div>
               </div>
             </div>
 
-            <ListBlock title="Complete" lines={detail.items.filter((i) => i.done).map((i) => i.label)} />
-            <ListBlock title="Not yet" lines={detail.items.filter((i) => !i.done).map((i) => i.label)} muted />
+            <div
+              style={{
+                marginTop: 18,
+                paddingTop: 14,
+                borderTop: "0.5px solid var(--border)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
+              <button
+                type="button"
+                className="tap"
+                onClick={() => setShowFullLog((v) => !v)}
+                style={{
+                  padding: 0,
+                  border: "none",
+                  background: "none",
+                  color: "rgba(255,255,255,0.55)",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textAlign: "left",
+                }}
+              >
+                {showFullLog ? "Hide day log" : "Day log"}
+              </button>
+              {onNavigate ? (
+                <button
+                  type="button"
+                  className="tap"
+                  onClick={() => {
+                    onNavigate("habits");
+                    onClose();
+                  }}
+                  style={{
+                    padding: 0,
+                    border: "none",
+                    background: "none",
+                    color: "rgba(255,255,255,0.55)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    textAlign: "left",
+                  }}
+                >
+                  Habits
+                </button>
+              ) : null}
+            </div>
+
+            {showFullLog && habits ? (
+              <div style={{ marginTop: 16, paddingTop: 16, borderTop: "0.5px solid var(--border)" }}>
+                <div style={{ marginBottom: 4 }}>
+                  <div className="label" style={{ marginBottom: 6 }}>
+                    Calories logged
+                  </div>
+                  <div style={{ fontSize: 20, fontWeight: 700, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>
+                    {Math.round(habits.calories)}
+                    <span style={{ fontSize: 12, fontWeight: 500, marginLeft: 6, color: "rgba(255,255,255,0.4)" }}>kcal</span>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>
+                    P {Math.round(habits.protein)} · C {Math.round(habits.carbs)} · F {Math.round(habits.fat)} g
+                  </div>
+                </div>
+
+                <HabitListBlock title="Complete" lines={habits.items.filter((i) => i.done).map((i) => i.label)} />
+                <HabitListBlock title="Not yet" lines={habits.items.filter((i) => !i.done).map((i) => i.label)} muted />
+              </div>
+            ) : null}
           </>
-        ) : null}
+        )}
       </div>
     </div>
   );

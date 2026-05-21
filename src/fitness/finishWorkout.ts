@@ -1,4 +1,5 @@
 import { appendExerciseSessionHistory } from "./exerciseSessionHistory";
+import { applyStreakEligibility } from "./dailyStreak";
 import type { AppState, WorkoutSessionSummary } from "./types";
 import { appendWorkoutHistory, buildCompletedWorkoutSession } from "./workoutHistory";
 import { buildWorkoutSessionSummary, personalBestsAfterSession } from "./workoutSummary";
@@ -33,7 +34,7 @@ export function finishWorkout(state: AppState, endedAtMs = Date.now()): FinishWo
   const workoutsCompletedByDay =
     dayKey != null ? { ...state.workoutsCompletedByDay, [dayKey]: true } : state.workoutsCompletedByDay;
 
-  const nextState: AppState = {
+  const nextState: AppState = applyStreakEligibility({
     ...state,
     exercisePersonalBests,
     exerciseSessionHistoryByKey,
@@ -49,7 +50,7 @@ export function finishWorkout(state: AppState, endedAtMs = Date.now()): FinishWo
       sessionTitle: "Workout",
       exercises: [],
     },
-  };
+  });
 
   return { state: nextState, summary };
 }

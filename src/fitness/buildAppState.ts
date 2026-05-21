@@ -16,6 +16,12 @@ import { normalizeWorkoutHistory } from "./workoutHistory";
 import { normalizeExerciseNotesByKey } from "./exerciseNotes";
 import { normalizeExperienceLevel } from "./experienceLevel";
 import { normalizeEquipmentSetup } from "./equipmentSetup";
+import {
+  applyStreakEligibility,
+  normalizeFitnessStreakSnapshot,
+  normalizeStreakEligibleByDay,
+  normalizeStreakSessionBaseline,
+} from "./dailyStreak";
 import { isJimmySummerPlanTemplates } from "./jimmyWeekly";
 import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
 import { normalizeOnboardingProfile } from "./onboardingProfile";
@@ -281,7 +287,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     (p?.weightLog?.length ?? 0) > 0 ||
     isJimmySummerPlanTemplates(workoutTemplates);
 
-  return {
+  const baseState: AppState = {
     displayName,
     habitTemplates,
     habitsDoneByDay,
@@ -296,6 +302,14 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     exerciseNotesByKey: normalizeExerciseNotesByKey(p?.exerciseNotesByKey),
     workoutTemplates,
     workoutsCompletedByDay: normalizeWorkoutsCompletedByDay(p?.workoutsCompletedByDay),
+    streakEligibleByDay: normalizeStreakEligibleByDay(p?.streakEligibleByDay),
+    fitnessStreakSnapshot: normalizeFitnessStreakSnapshot(p?.fitnessStreakSnapshot),
+    streakSessionBaseline: normalizeStreakSessionBaseline(p?.streakSessionBaseline),
+    streakLossNoticeDismissedForKey:
+      typeof p?.streakLossNoticeDismissedForKey === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(p.streakLossNoticeDismissedForKey)
+        ? p.streakLossNoticeDismissedForKey
+        : null,
     exercisePersonalBests: normalizeExercisePersonalBests(p?.exercisePersonalBests),
     exerciseSessionHistoryByKey: normalizeExerciseSessionHistoryByKey(p?.exerciseSessionHistoryByKey),
     workoutHistory: normalizeWorkoutHistory(p?.workoutHistory),
@@ -330,4 +344,6 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     onboardingProfile: normalizeOnboardingProfile(p?.onboardingProfile),
     onboardingComplete: p?.onboardingComplete === true || hasLegacyFitnessData,
   };
+
+  return applyStreakEligibility(baseState, todayKey);
 }

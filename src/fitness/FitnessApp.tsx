@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 
 
 import { buildSundayReviewPreview } from "./weeklyAdjustment";
 import { buildAppStateFromPersisted } from "./buildAppState";
+import { dismissStreakLossNotice, getPendingStreakLossNotice } from "./dailyStreak";
 import { seedJimmyData } from "./jimmy-seed-data";
 import {
   loadTasksForToday,
@@ -36,7 +37,8 @@ import { SundayReviewSheet } from "./SundayReviewSheet";
 import { OnboardingFlow } from "./OnboardingFlow";
 import { shouldSkipOnboarding } from "./onboardingSkip";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
-import type { AppState, ScreenProps, TabId } from "./types";
+import { StreakLostSheet } from "./StreakLostSheet";
+import type { AppState, ScreenProps, StreakLossNotice, TabId } from "./types";
 
 /** Dev only: `?previewSunday=1` treats "now" as noon on this week's Sunday so the review sheet is visible any day. */
 function sundayNoonForCurrentWeek(d: Date): Date {
@@ -90,11 +92,13 @@ function OnboardingGate({
 export function FitnessApp() {
   const [tab, setTab] = useState<TabId>("home");
   const [state, setState] = useState<AppState>(buildInitialState);
+  const [previewStreakLostDismissed, setPreviewStreakLostDismissed] = useState(false);
 
   const syncSig = JSON.stringify(sliceFromAppState(state));
   const fitnessSync = useFitnessCloudSync(syncSig, state, setState);
 
   const activeDayKey = useRef(localDateKey(new Date()));
+  const todayKey = localDateKey(new Date());
 
   useEffect(() => {
     persistTasksForToday(
@@ -149,17 +153,34 @@ export function FitnessApp() {
 
   const Current = screens[tab];
   const showWorkoutSummary = state.workoutSummary != null;
-  const hideTabBar = tab === "stretch" || showWorkoutSummary;
 
   const previewSundayUi =
     import.meta.env.DEV &&
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("previewSunday") === "1";
+  const previewStreakLostUi =
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("previewStreakLost") === "1";
+  const pendingStreakLoss = getPendingStreakLossNotice(state, todayKey);
+  const previewStreakLossNotice: StreakLossNotice = {
+    lostCount: Math.max(state.streakSessionBaseline?.count ?? 3, 1),
+    breakDateKey: todayKey,
+  };
+  const streakLossNotice = previewStreakLostUi ? previewStreakLossNotice : pendingStreakLoss;
+  const showStreakLost =
+    state.onboardingComplete &&
+    streakLossNotice !== null &&
+    !showWorkoutSummary &&
+    !(previewStreakLostUi && previewStreakLostDismissed);
+
   const reviewNow = previewSundayUi ? sundayNoonForCurrentWeek(new Date()) : new Date();
   const sundayPreview = buildSundayReviewPreview(state, reviewNow);
   const showSundayReview =
     sundayPreview !== null &&
     (previewSundayUi || sundayPreview.thisSundayKey !== state.sundayReviewCompletedKey);
+
+  const hideTabBar = tab === "stretch" || showWorkoutSummary || showStreakLost;
 
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
@@ -211,6 +232,21 @@ export function FitnessApp() {
               );
             })}
           </nav>
+        ) : null}
+
+        {showStreakLost && streakLossNotice ? (
+          <StreakLostSheet
+            state={state}
+            notice={streakLossNotice}
+            todayKey={todayKey}
+            onContinue={() => {
+              if (previewStreakLostUi) {
+                setPreviewStreakLostDismissed(true);
+                return;
+              }
+              setState((s) => dismissStreakLossNotice(s, streakLossNotice));
+            }}
+          />
         ) : null}
 
         {showSundayReview && sundayPreview ? (
