@@ -11,6 +11,7 @@ import { NotificationPreferencesPicker } from "./NotificationPreferencesPicker";
 import { getNotificationPermission } from "./notificationPermission";
 import { SectionLabel } from "./shared";
 import { REST_TIMER_PRESETS } from "./restTimerPreferences";
+import { PRESET_SELECTED_BG, PRESET_SELECTED_BORDER, PRESET_SELECTED_COLOR } from "./workoutUiTokens";
 import {
   formatWaterLitersFromOz,
   normalizeWaterDailyTargetOz,
@@ -190,7 +191,7 @@ export function SettingsSheet({
       </div>
 
       <div className="screen" style={{ flex: 1, overflow: "auto", paddingBottom: 28 }}>
-        <SectionLabel>Sync & backup</SectionLabel>
+        <SectionLabel>Account</SectionLabel>
         <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
           Sign in with the same account on your phone and computer. Data merges when both sides edit, and the cloud copy is updated after changes (about a second delay).
         </p>
@@ -330,7 +331,32 @@ export function SettingsSheet({
           </div>
         )}
 
-        <SectionLabel>Units</SectionLabel>
+        <div style={{ marginTop: 24 }}>
+          <SectionLabel>You</SectionLabel>
+        </div>
+        <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
+          <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            First name (home greeting)
+            <input
+              className="input"
+              style={{ marginTop: 8 }}
+              value={state.displayName}
+              onChange={(e) =>
+                setState((s) => ({
+                  ...s,
+                  displayName: sanitizeUserText(e.target.value),
+                }))
+              }
+              placeholder="Your name"
+              autoCapitalize="words"
+              aria-label="Display name"
+            />
+          </label>
+        </div>
+
+        <div style={{ marginTop: 24 }}>
+          <SectionLabel>Units</SectionLabel>
+        </div>
         <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
           Weight and height display units. Logged values are stored consistently — switching units only changes how numbers are shown.
         </p>
@@ -369,9 +395,9 @@ export function SettingsSheet({
                   style={{
                     padding: "10px 14px",
                     borderRadius: 10,
-                    border: selected ? "0.5px solid rgba(10,132,255,0.55)" : "0.5px solid var(--border)",
-                    background: selected ? "rgba(10,132,255,0.15)" : "rgba(255,255,255,0.04)",
-                    color: selected ? "#0A84FF" : "rgba(255,255,255,0.65)",
+                    border: selected ? `0.5px solid ${PRESET_SELECTED_BORDER}` : "0.5px solid var(--border)",
+                    background: selected ? PRESET_SELECTED_BG : "rgba(255,255,255,0.04)",
+                    color: selected ? PRESET_SELECTED_COLOR : "rgba(255,255,255,0.65)",
                     fontSize: 13,
                     fontWeight: 600,
                     fontVariantNumeric: "tabular-nums",
@@ -385,10 +411,6 @@ export function SettingsSheet({
         </div>
 
         <SectionLabel>Reminders</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
-          Workout and nutrition check-in reminders at your chosen times. Reminders appear while Fitcoach is open or
-          recently active.
-        </p>
         <div style={{ marginBottom: 18 }}>
           <NotificationPreferencesPicker
             value={state.notificationPreferences}
@@ -422,9 +444,9 @@ export function SettingsSheet({
                   style={{
                     padding: "10px 14px",
                     borderRadius: 10,
-                    border: selected ? "0.5px solid rgba(10,132,255,0.55)" : "0.5px solid var(--border)",
-                    background: selected ? "rgba(10,132,255,0.15)" : "rgba(255,255,255,0.04)",
-                    color: selected ? "#0A84FF" : "rgba(255,255,255,0.65)",
+                    border: selected ? `0.5px solid ${PRESET_SELECTED_BORDER}` : "0.5px solid var(--border)",
+                    background: selected ? PRESET_SELECTED_BG : "rgba(255,255,255,0.04)",
+                    color: selected ? PRESET_SELECTED_COLOR : "rgba(255,255,255,0.65)",
                     fontSize: 13,
                     fontWeight: 600,
                     fontVariantNumeric: "tabular-nums",
@@ -496,27 +518,6 @@ export function SettingsSheet({
           </>
         ) : null}
 
-        <SectionLabel>You</SectionLabel>
-        <div className="card" style={{ padding: "16px 18px" }}>
-          <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            First name (home greeting)
-            <input
-              className="input"
-              style={{ marginTop: 8 }}
-              value={state.displayName}
-              onChange={(e) =>
-                setState((s) => ({
-                  ...s,
-                  displayName: sanitizeUserText(e.target.value),
-                }))
-              }
-              placeholder="Your name"
-              autoCapitalize="words"
-              aria-label="Display name"
-            />
-          </label>
-        </div>
-
         <SectionLabel>Fuel targets</SectionLabel>
         <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
           Daily calorie and macro goals used on Home, Fuel, habits copy, and weekly review math.
@@ -544,7 +545,7 @@ export function SettingsSheet({
 
         <SectionLabel>Habits checklist</SectionLabel>
         <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
-          Rename, pick an icon, or add rows. The runner icon shows your steps goal and program week on the Habits tab.
+          Rename, pick an icon, or add rows. The runner icon shows your steps goal and program week on the Home daily habits card.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {state.habitTemplates.map((h) => (

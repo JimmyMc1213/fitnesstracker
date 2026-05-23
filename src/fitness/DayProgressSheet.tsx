@@ -212,7 +212,7 @@ export function DayProgressSheet({
                   type="button"
                   className="tap"
                   onClick={() => {
-                    onNavigate("habits");
+                    onNavigate("home");
                     onClose();
                   }}
                   style={{
@@ -225,7 +225,7 @@ export function DayProgressSheet({
                     textAlign: "left",
                   }}
                 >
-                  Habits
+                  Home habits
                 </button>
               ) : null}
             </div>

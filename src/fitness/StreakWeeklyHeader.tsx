@@ -112,12 +112,14 @@ export function StreakWeeklyHeader({
   selectedDateKey,
   onSelectDateKey,
   variant = "default",
+  showLegend = false,
 }: {
   state: AppState;
   todayKey: string;
   selectedDateKey: string;
   onSelectDateKey: (dateKey: string) => void;
   variant?: "default" | "compact";
+  showLegend?: boolean;
 }) {
   const streak = state.fitnessStreakSnapshot?.currentCount ?? 0;
   const week = buildStreakCalendarWeek(state, todayKey);
@@ -243,6 +245,11 @@ export function StreakWeeklyHeader({
           );
         })}
       </div>
+      {showLegend ? (
+        <p style={{ margin: "6px 0 0", fontSize: 10, lineHeight: 1.4, color: "rgba(255,255,255,0.35)", fontWeight: 400, textAlign: "center" }}>
+          Ring = workout + fuel progress that day
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -224,8 +224,7 @@ export function NotificationPreferencesPicker({
       ) : null}
 
       <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.38)" }}>
-        Reminders appear while Fitcoach is open or recently active. On iPhone, add Fitcoach to your Home Screen for the
-        best experience. Closed-app reminders require a future update.
+        Reminders work while Fitcoach is open. Background notifications coming soon.
       </p>
     </div>
   );

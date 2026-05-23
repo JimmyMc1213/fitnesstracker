@@ -1,6 +1,11 @@
 /** Shared typography & color tokens for workout UI (FTI-19, FTI-17). */
-export const ACCENT_GREEN = "#34C759";
+/** Primary CTA fill — matches `--pos` / `--lime` in index.css (FTI-42). */
+export const PRIMARY_GREEN = "#4ade80";
+export const ACCENT_GREEN = PRIMARY_GREEN;
 export const COACH_BLUE = "#0A84FF";
+export const PRESET_SELECTED_BORDER = "rgba(74,222,128,0.55)";
+export const PRESET_SELECTED_BG = "rgba(74,222,128,0.15)";
+export const PRESET_SELECTED_COLOR = PRIMARY_GREEN;
 export const COACH_BLUE_LABEL = "rgba(10,132,255,0.75)";
 export const COACH_BLUE_MUTED = "rgba(10,132,255,0.65)";
 export const COACH_CARD_BG = "rgba(10,132,255,0.08)";

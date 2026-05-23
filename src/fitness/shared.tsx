@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 
 import { useAnimatedMacroProgress } from "./useAnimatedMacroProgress";
 import type { FoodItem, MacroTotals } from "./types";
@@ -217,6 +217,66 @@ export function SectionLabel({ children, right }: { children: ReactNode; right?:
       <span className="label">{children}</span>
       {right}
     </div>
+  );
+}
+
+type SharedButtonProps = {
+  children: ReactNode;
+  block?: boolean;
+  className?: string;
+  style?: CSSProperties;
+} & Pick<ButtonHTMLAttributes<HTMLButtonElement>, "onClick" | "disabled" | "aria-label" | "type">;
+
+export function PrimaryButton({ children, onClick, disabled, block, "aria-label": ariaLabel, className, type = "button", style }: SharedButtonProps) {
+  return (
+    <button
+      type={type}
+      className={`tap${className ? ` ${className}` : ""}`}
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      style={{
+        width: block ? "100%" : undefined,
+        minHeight: 44,
+        background: disabled ? "rgba(255,255,255,0.08)" : "var(--pos)",
+        color: disabled ? "rgba(255,255,255,0.35)" : "#0a0a0a",
+        borderRadius: 12,
+        padding: "12px 16px",
+        fontSize: 15,
+        fontWeight: 600,
+        letterSpacing: "-0.01em",
+        border: "none",
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function SecondaryButton({ children, onClick, disabled, block, "aria-label": ariaLabel, className, type = "button", style }: SharedButtonProps) {
+  return (
+    <button
+      type={type}
+      className={`tap${className ? ` ${className}` : ""}`}
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      style={{
+        width: block ? "100%" : undefined,
+        minHeight: 44,
+        background: "var(--card-2)",
+        border: "0.5px solid var(--border)",
+        color: disabled ? "rgba(255,255,255,0.35)" : "#fff",
+        borderRadius: 12,
+        padding: "12px 16px",
+        fontSize: 14,
+        fontWeight: 600,
+        ...style,
+      }}
+    >
+      {children}
+    </button>
   );
 }
 

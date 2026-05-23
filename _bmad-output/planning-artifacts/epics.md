@@ -1,7 +1,7 @@
 # Fitcoach — Epics & Stories
 
 **Project:** fitnesstracker  
-**Last updated:** 2026-05-21  
+**Last updated:** 2026-05-23  
 **Sprint tracking:** `_bmad-output/implementation-artifacts/sprint-status.yaml`
 
 **Positioning:** Fitcoach is the all-in-one fitness app that coaches you through every workout, meal, and check-in — so you never need another app to hit your goals.
@@ -12,11 +12,15 @@
 
 **Sprint 1 (done):** Multi-user Fitcoach — onboarding foundation, full onboarding flow, progress/weigh-in, workout UX polish, session tools, and progress insights.
 
-**Sprint 2 (active):** Coaching-led polish — personalized home identity, onboarding session-time estimates, notification setup, macro ring animation, and water intake tracking. Stories map 1:1 to Linear FTI issues and `development_status` keys in sprint-status.
+**Sprint 2 (done):** Coaching-led polish — personalized home identity, onboarding session-time estimates, notification setup, macro ring animation, and water intake tracking.
+
+**Sprint 3 (done):** Coaching orchestration — `coachEngine`, Today's Coach Plan, in-session coach, fuel quick-log, weigh-in reactions, notification copy, weekly review narrative. Vitest harness (69+ tests).
+
+**Sprint 4 (active):** UI polish & IA from screenshot audit — dev copy scrub, design-system buttons, Home density, habits folded into Home, Progress empty states, Settings IA. **Nutrition tab rebuild explicitly out of scope.**
 
 **Prerequisite (done):** [FTI-15](https://linear.app/ftiness-tracker/issue/FTI-15/save-workouts-and-workout-history) — `story_key: fti-15-save-workouts-and-workout-history`
 
-**Deferred (backlog):** [FTI-13](https://linear.app/ftiness-tracker/issue/FTI-13/ai-coach-note-per-exercise-on-workout-start) — AI session coaching; Sprint 3+ after silent coaching voice is defined.
+**Deferred (backlog):** [FTI-13](https://linear.app/ftiness-tracker/issue/FTI-13/ai-coach-note-per-exercise-on-workout-start) — AI session coaching; Sprint 5+ after UI polish + nutrition rebuild decision.
 
 ---
 
@@ -409,3 +413,114 @@ As a user, I want to log daily water intake against a target on the home dashboa
 - story_key: fti-32-water-intake-tracking
 - linear_url: https://linear.app/ftiness-tracker/issue/FTI-32/water-intake-tracking
 - persistence: follow standard pipeline (`types.ts` → `persistFitnessSlice` → `buildAppState` → merge)
+
+---
+
+## Epic 4: FTI Sprint 4 — UI polish & IA
+
+**Epic key (sprint-status):** `epic-fti-sprint-4`
+
+**Goal:** Close the gap between "coaching engine shipped" and "app feels finished" — fix screenshot-audit bugs, unify primary CTAs (lime green), reduce Home scroll weight, fold habits into Home, polish Progress empty states, and regroup Settings. Nutrition tab rebuild remains deferred.
+
+**Sprint execution order:** FTI-41 → 42 → 43 → 44 → 45 → 46
+
+**Scope locks:** No `ScreenNutrition` rebuild; Home Fuel strip unchanged; FTI-13 AI coach deferred; Habits nav tab removed.
+
+---
+
+### Story 4.1: UI bug sweep (FTI-41)
+
+As a user, I want no developer debug copy or Settings parse errors, so the app feels production-ready.
+
+**Acceptance criteria:**
+
+- Steps habit subtitle: `10,000 steps · Week N` (no anchor/program week dev strings)
+- Scrub user-visible `dailyPlan.ts` titles
+- Fix `--lime: #ffffff` → `#4ade80` in `index.css`
+- Sanitize displayName/habit names; safe JSON.parse on persist
+
+**Dev Notes:**
+
+- story_key: fti-41-ui-bug-sweep-dev-copy-token-fix
+
+---
+
+### Story 4.2: Design system buttons (FTI-42)
+
+As a user, I want consistent lime-green primary CTAs across the app.
+
+**Acceptance criteria:**
+
+- Shared `PrimaryButton` / `SecondaryButton`
+- Workout "Start empty workout", Home coach CTAs, stretch card — lime not white/blue
+- Settings preset pills selected state — green not blue
+
+**Dev Notes:**
+
+- story_key: fti-42-design-system-primary-secondary-buttons
+- depends_on: FTI-41 (`--lime` token)
+
+---
+
+### Story 4.3: Home density (FTI-43)
+
+As a user, I want a personal greeting, lighter weigh-in UI, and streak legend on Home.
+
+**Acceptance criteria:**
+
+- Onboarding first-name step after Units
+- Logged weigh-in → inline row; scheduled missing → full card
+- Streak legend under week dots
+
+**Dev Notes:**
+
+- story_key: fti-43-home-density-greeting-weigh-in-legend
+
+---
+
+### Story 4.4: Daily habits on Home (FTI-44)
+
+As a user, I want habits on Home with a progress bar instead of a dead Habits tab.
+
+**Acceptance criteria:**
+
+- Remove Habits from bottom nav (4 tabs)
+- `HomeDailyHabitsCard` with progress bar + toggles
+- Delete `ScreenHabits.tsx`
+
+**Dev Notes:**
+
+- story_key: fti-44-daily-habits-on-home-remove-habits-tab
+- depends_on: FTI-41, FTI-43
+
+---
+
+### Story 4.5: Progress polish (FTI-45)
+
+As a user, I want weight delta colors that match my bulk/cut/maintain goal and no empty Fuel updates card.
+
+**Acceptance criteria:**
+
+- Goal-aware delta color + "vs start" label
+- Vitest for sentiment helper
+- Hide Fuel updates when empty; workout calendar empty overlay
+
+**Dev Notes:**
+
+- story_key: fti-45-progress-goal-aware-delta-empty-states
+
+---
+
+### Story 4.6: Settings IA (FTI-46)
+
+As a user, I want grouped Settings sections and confident notification copy.
+
+**Acceptance criteria:**
+
+- Section order: Account → You → Units → Training → Nutrition → Reminders → Habits → Program
+- Rewrite notification footer; remove duplicate disclaimer
+
+**Dev Notes:**
+
+- story_key: fti-46-settings-section-ia-notification-copy
+- depends_on: FTI-44 (habits tab copy references)

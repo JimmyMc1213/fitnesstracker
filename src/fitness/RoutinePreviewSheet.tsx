@@ -1,14 +1,14 @@
 import type { MouseEvent } from "react";
 
+import { PrimaryButton } from "./shared";
 import type { WorkoutRoutineTemplate } from "./types";
 import {
   COACH_BLUE_LABEL,
   COACH_CARD_BG,
   COACH_CARD_BORDER,
   labelStyle,
+  SECONDARY_ACTION_COLOR,
 } from "./workoutUiTokens";
-
-const ACCENT_BLUE = "#0A84FF";
 
 export type CoachBriefContent = {
   headline: string;
@@ -84,7 +84,7 @@ export function RoutinePreviewSheet({ template, coachBrief, onClose, onEdit, onS
                 {template.name}
               </div>
             </div>
-            <button type="button" className="tap" onClick={onEdit} style={{ fontSize: 14, fontWeight: 600, color: ACCENT_BLUE, padding: 4, flexShrink: 0 }}>
+            <button type="button" className="tap" onClick={onEdit} style={{ fontSize: 14, fontWeight: 600, color: SECONDARY_ACTION_COLOR, padding: 4, flexShrink: 0 }}>
               Edit
             </button>
           </div>
@@ -185,25 +185,14 @@ export function RoutinePreviewSheet({ template, coachBrief, onClose, onEdit, onS
         </div>
 
         <div style={{ padding: "12px 16px 16px", flexShrink: 0, borderTop: "0.5px solid var(--border)" }}>
-          <button
-            type="button"
-            className="tap"
+          <PrimaryButton
+            block
             onClick={onStart}
             disabled={template.exercises.length === 0}
-            style={{
-              width: "100%",
-              background: template.exercises.length === 0 ? "rgba(255,255,255,0.08)" : ACCENT_BLUE,
-              color: template.exercises.length === 0 ? "rgba(255,255,255,0.35)" : "#fff",
-              borderRadius: 12,
-              padding: 14,
-              fontSize: 15,
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              border: "none",
-            }}
+            style={{ fontWeight: 700 }}
           >
             Start workout
-          </button>
+          </PrimaryButton>
           {template.exercises.length === 0 ? (
             <p style={{ margin: "8px 0 0", textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
               Add exercises in Edit before starting.

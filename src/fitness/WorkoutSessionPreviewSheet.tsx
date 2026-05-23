@@ -1,10 +1,9 @@
 import type { MouseEvent } from "react";
 
+import { SecondaryButton } from "./shared";
 import { formatWorkoutDuration } from "./workoutSummary";
 import { formatWorkoutHistoryDate } from "./workoutHistory";
 import type { CompletedWorkoutSession } from "./types";
-
-const ACCENT_BLUE = "#0A84FF";
 
 function formatSet(w: number, r: number): string {
   if (w > 0) return `${w} lb × ${r} rep${r === 1 ? "" : "s"}`;
@@ -179,24 +178,9 @@ export function WorkoutSessionPreviewSheet({ session, onClose, onDelete }: Props
               Delete workout
             </button>
           ) : null}
-          <button
-            type="button"
-            className="tap"
-            onClick={onClose}
-            style={{
-              width: "100%",
-              background: ACCENT_BLUE,
-              color: "#fff",
-              borderRadius: 12,
-              padding: 14,
-              fontSize: 15,
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              border: "none",
-            }}
-          >
+          <SecondaryButton block onClick={onClose} style={{ fontWeight: 700 }}>
             Close
-          </button>
+          </SecondaryButton>
         </div>
       </div>
     </div>

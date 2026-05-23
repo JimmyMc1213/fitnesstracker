@@ -3,9 +3,9 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { EXERCISE_DB, newTemplateExerciseLine, resizeWorkoutSets } from "../data";
 import { IconPlus, IconSearch, IconTrash } from "../icons";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
-import { ScreenHeader } from "../shared";
+import { ScreenHeader, PrimaryButton } from "../shared";
 import type { CustomExerciseTemplate, WorkoutExercise, WorkoutRoutineTemplate } from "../types";
-import { ACCENT_GREEN, CARD_PADDING, EDITOR_LIST_GAP, labelStyle } from "../workoutUiTokens";
+import { CARD_PADDING, EDITOR_LIST_GAP, labelStyle, SECONDARY_ACTION_COLOR } from "../workoutUiTokens";
 
 /** Pass as `editingRoutineId` to open the editor for a brand-new routine. */
 export const NEW_ROUTINE_EDITOR_ID = "__new__";
@@ -152,7 +152,7 @@ export function WorkoutRoutineEditor({
           type="button"
           className="tap"
           onClick={onClose}
-          style={{ color: ACCENT_BLUE, fontSize: 15, fontWeight: 600, padding: 8, marginLeft: -8 }}
+          style={{ color: SECONDARY_ACTION_COLOR, fontSize: 15, fontWeight: 600, padding: 8, marginLeft: -8 }}
         >
           ← Back
         </button>
@@ -321,24 +321,14 @@ export function WorkoutRoutineEditor({
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
             <input value={draftName} onChange={(e) => setDraftName(e.target.value)} placeholder="New name" style={inputStyle} />
             <input value={draftLabel} onChange={(e) => setDraftLabel(e.target.value)} placeholder="Label (optional)" style={inputStyle} />
-            <button
-              type="button"
-              className="tap"
+            <PrimaryButton
+              block
               onClick={appendDraftCustom}
               disabled={!draftName.trim()}
-              style={{
-                width: "100%",
-                background: draftName.trim() ? ACCENT_BLUE : "rgba(255,255,255,0.06)",
-                border: "none",
-                borderRadius: 10,
-                padding: 12,
-                color: draftName.trim() ? "#fff" : "rgba(255,255,255,0.35)",
-                fontSize: 14,
-                fontWeight: 600,
-              }}
+              style={{ borderRadius: 10, padding: 12, fontSize: 14 }}
             >
               Add with this name
-            </button>
+            </PrimaryButton>
           </div>
           <div style={{ position: "relative" }}>
             <IconSearch size={16} style={{ position: "absolute", left: 12, top: 13, color: "rgba(255,255,255,0.4)" }} />
@@ -447,24 +437,9 @@ export function WorkoutRoutineEditor({
         </button>
       )}
 
-      <button
-        type="button"
-        className="tap"
-        onClick={handleSave}
-        style={{
-          marginTop: 20,
-          width: "100%",
-          background: ACCENT_GREEN,
-          color: "#0a0a0a",
-          borderRadius: 12,
-          padding: 16,
-          fontSize: 15,
-          fontWeight: 700,
-          border: "none",
-        }}
-      >
+      <PrimaryButton block onClick={handleSave} style={{ marginTop: 20, fontWeight: 700 }}>
         Save routine
-      </button>
+      </PrimaryButton>
 
       {onDelete && template?.id ? (
         <button
