@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-21
+# last_updated: 2026-05-22 (FTI-40 story file ready-for-dev)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -10,8 +10,12 @@
 # Fitcoach is the all-in-one fitness app that coaches you through every workout,
 # meal, and check-in — so you never need another app to hit your goals.
 #
-# Sprint 2 order (execute in this sequence):
-#   FTI-29 → 30 → 28 → 31 → 32
+# Sprint 3 order (execute in this sequence):
+#   FTI-40 → 34 → 33 → 37 → 35 → 36 → 38 → 39
+#
+# WATER (FTI-32 / FTI-33 — locked 2026-05-22):
+#   Nutrition tab only (ScreenNutrition.tsx → WaterTrackerCard).
+#   No Home water card, no compact Home row.
 #
 # STATUS DEFINITIONS:
 # ==================
@@ -35,22 +39,22 @@
 # ===============
 # - Linear is the product backlog; BMad story files live under story_location
 # - Create next story with bmad-create-story after previous story reaches done
-# - FTI-13 (AI coach notes) deferred to Sprint 3+ — extend rule-based coach.ts first
+# - FTI-13 (AI coach notes) deferred to Sprint 4+ — after Epic 3 deterministic voice
 #
 # ENVIRONMENT (dev / swarm test phases):
 # =====================================
 # - Copy .env.example → .env at project root; fill Supabase URL + client key (publishable or anon JWT).
 # - Vite embeds VITE_* at build time (vite.config.ts define); file must be saved on disk.
-# - Swarm does not run npm run dev; automated gate is npm run build (prebuild runs env check like predev).
+# - Swarm gate: npm run build; after FTI-40 also npm test
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
 # - bmad-swarm next: scans development_status top → bottom; picks FIRST story with status "backlog"
-#   → FTI-29 is the next target (29 → 30 → 28 → 31 → 32 per sprint order above)
+#   → FTI-40 is the next target (40 → 34 → 33 → 37 → 35 → 36 → 38 → 39 per sprint order above)
 # - in-progress / ready-for-dev: Swarm skips story creation (Phase 1) and continues dev/review
 
 generated: 2026-05-20
-last_updated: 2026-05-21
+last_updated: 2026-05-22
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -77,7 +81,7 @@ development_status:
 
   epic-fti-sprint-1-retrospective: done
 
-  # --- Sprint 2 (active) — coaching-led OS polish ---
+  # --- Sprint 2 (complete) — coaching-led OS polish ---
   epic-fti-sprint-2: done
 
   fti-29-personalized-home-screen-greeting-post-onboarding: done
@@ -86,4 +90,18 @@ development_status:
   fti-31-animated-macro-rings-on-home-dashboard: done
   fti-32-water-intake-tracking: done
 
-  epic-fti-sprint-2-retrospective: optional
+  epic-fti-sprint-2-retrospective: done
+
+  # --- Sprint 3 (planned) — coaching orchestration ---
+  epic-fti-sprint-3: in-progress
+
+  fti-40-vitest-harness-coach-dailyplan-unit-tests: done
+  fti-34-cross-domain-coach-engine: backlog
+  fti-33-todays-coach-plan-home-redesign: backlog
+  fti-37-in-session-coach-prominence-set-autofill: backlog
+  fti-35-home-fuel-quick-log-coach-pace: backlog
+  fti-36-check-in-triggered-micro-adjustments: backlog
+  fti-38-context-aware-notification-copy: backlog
+  fti-39-weekly-coach-review-narrative: backlog
+
+  epic-fti-sprint-3-retrospective: optional
