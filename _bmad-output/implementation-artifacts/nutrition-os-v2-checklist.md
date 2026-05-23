@@ -1,8 +1,8 @@
 # Nutrition OS v2 — Master Checklist
 
-**Last updated:** 2026-05-23 (Sprint 8 planned)  
-**Current chunk:** Sprint 8 (Chunk 2 of 3) — **planned**  
-**Progress:** 38 / 47 steps complete (S7 done; S8–9 remain)
+**Last updated:** 2026-05-23 (Sprint 8 complete)  
+**Current chunk:** Sprint 9 (Chunk 3 of 3) — **planned**  
+**Progress:** 44 / 47 steps complete (S8 done; S9 remains)
 
 ---
 
@@ -46,10 +46,10 @@
 - [x] Create FTI-57 story file (first dev story) `[S7]`
 
 ### 0.2 — API keys & backend proxy
-- [ ] Sign up for USDA FoodData Central API key (data.gov) `[S8]`
-- [ ] Create Supabase Edge Function: `food-search` (proxies USDA + OFF) `[S8]`
-- [ ] Add server-side env: `USDA_FDC_API_KEY` (never in client) `[S8]`
-- [ ] Define shared types: `FoodSearchResult`, `FoodServing` `[S8]`
+- [~] Sign up for USDA FoodData Central API key (data.gov) `[S8]` — code ready; deploy secret pending
+- [x] Create Supabase Edge Function: `food-search` (proxies USDA + OFF) `[S8]`
+- [~] Add server-side env: `USDA_FDC_API_KEY` (never in client) `[S8]` — deploy to Supabase secrets
+- [x] Define shared types: `FoodSearchResult`, `FoodServing` `[S8]`
 
 ### 0.3 — Data model extensions
 - [x] Extend `NutritionLoggedItem`: `servingLabel`, `source`, `externalId`, `loggedAtMs` `[S7]`
@@ -108,44 +108,44 @@
 ## Phase 3 — USDA food database search
 
 ### 3.1 — Search service
-- [ ] Client `foodSearchService.ts` calls Supabase Edge Function `[S8]`
-- [ ] Edge function hits USDA `/foods/search` `[S8]`
-- [ ] Map response → id, name, brand, cal, p, c, f, defaultServing, source `[S8]`
+- [x] Client `foodSearchService.ts` calls Supabase Edge Function `[S8]`
+- [x] Edge function hits USDA `/foods/search` `[S8]`
+- [x] Map response → id, name, brand, cal, p, c, f, defaultServing, source `[S8]`
 
 ### 3.2 — Search UX (All tab)
-- [ ] Debounced search while typing (~300ms) `[S8]`
-- [ ] Results list with calories + brand `[S8]`
-- [ ] Tap result → serving picker (size affects macros) `[S8]`
-- [ ] Confirm → log → close Log Food → rings update `[S8]`
+- [x] Debounced search while typing (~300ms) `[S8]`
+- [x] Results list with calories + brand `[S8]`
+- [x] Tap result → serving picker (size affects macros) `[S8]`
+- [x] Confirm → log → close Log Food → rings update `[S8]`
 
 ### 3.3 — Error & empty states
-- [ ] Loading spinner during search `[S8]`
-- [ ] "No results" empty state `[S8]`
-- [ ] Offline / API error message + retry `[S8]`
+- [x] Loading spinner during search `[S8]`
+- [x] "No results" empty state `[S8]`
+- [x] Offline / API error message + retry `[S8]`
 
 ---
 
 ## Phase 4 — Open Food Facts (branded / packaged foods)
 
 ### 4.1 — Extend edge function
-- [ ] Parallel search: USDA + Open Food Facts `[S8]`
-- [ ] Merge + rank results; dedupe similar names `[S8]`
+- [x] Parallel search: USDA + Open Food Facts `[S8]`
+- [x] Merge + rank results; dedupe similar names `[S8]`
 
 ### 4.2 — Branded results
-- [ ] Show brand in results (e.g. "Cane's Sauce · Raising Cane's") `[S8]`
-- [ ] Serving from OFF per-100g or default portion `[S8]`
+- [x] Show brand in results (e.g. "Cane's Sauce · Raising Cane's") `[S8]`
+- [x] Serving from OFF per-100g or default portion `[S8]`
 
 ---
 
 ## Phase 5 — My foods tab
 
 ### 5.1 — My foods list
-- [ ] Tab shows user-created manual entries + saved search foods `[S8]`
-- [ ] Tap row → log again `[S8]`
-- [ ] Edit / delete user foods `[S8]`
+- [x] Tab shows user-created manual entries + saved search foods `[S8]`
+- [x] Tap row → log again `[S8]`
+- [x] Edit / delete user foods `[S8]`
 
 ### 5.2 — Save from search
-- [ ] Optional "Save to My foods" when logging from database (without logging today) `[S8]`
+- [x] Optional "Save to My foods" when logging from database (without logging today) `[S8]`
 
 ---
 
@@ -170,9 +170,9 @@
 ## Phase 7 — Saved foods tab
 
 ### 7.1 — Wire existing presets
-- [ ] Saved foods tab uses `nutritionPresets` `[S8]`
-- [ ] Tap `+` → log → close → rings update `[S8]`
-- [ ] Remove from saved (does not delete log history) `[S8]`
+- [x] Saved foods tab uses `nutritionPresets` `[S8]`
+- [x] Tap `+` → log → close → rings update `[S8]`
+- [x] Remove from saved (does not delete log history) `[S8]`
 
 ---
 
@@ -221,7 +221,7 @@
 - [x] Nutrition tab shows rings + hydration only (no old logging UI) `[S7]`
 - [x] FAB opens Log Food `[S7]`
 - [x] Manual add → rings update `[S7]`
-- [ ] Search → select → log → rings update `[S8]`
+- [x] Search → select → log → rings update `[S8]`
 - [ ] Log saved meal → rings update `[S9]`
 - [x] Coach task opens Log Food on Nutrition tab `[S7]`
 - [x] Update/remove broken `fuel-quick-log` e2e tests `[S7]`
@@ -258,7 +258,7 @@
 
 | Date | Story / issue | Steps checked off |
 |------|---------------|-------------------|
-| 2026-05-23 | Sprint 8 planning | Epic 8 + FTI-60–62 in epics.md, sprint-status.yaml, Linear FTI-54–56 |
+| 2026-05-23 | FTI-60–62 / PR #30 | Phases 0.2 (code), 3, 4, 5, 7 — search, My foods, Favorite foods, E2E |
 | 2026-05-23 | FTI-57 / FTI-51 | Phases 0.3 (S7), 1, 2 — Log Food shell + data model |
 | 2026-05-23 | FTI-58 / FTI-52 | Phase 8 — Home read-only + coach routing |
 | 2026-05-23 | FTI-59 / FTI-53 | Phase 10 (partial) — E2E + unit tests for S7 |
