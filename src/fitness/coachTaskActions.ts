@@ -1,9 +1,9 @@
 import type { CoachTask } from "./coachEngine";
-import type { TabId } from "./types";
+import type { NavigateFn, TabId } from "./types";
 
 /** Whether a task should expose a tappable CTA (incomplete + routable). */
 export function coachTaskHasAction(task: CoachTask): boolean {
-  return resolveCoachTaskNavigation(task) !== null;
+  return resolveCoachTaskNavigation(task) !== null || coachTaskOpensLogFood(task);
 }
 
 /** Display label for task CTA; null when no button should render. */
@@ -50,16 +50,23 @@ export function resolveCoachTaskNavigation(task: CoachTask): TabId | null {
   }
 }
 
-/** Fuel tasks that open Home quick-log instead of tab navigation (FTI-35). */
-export function coachTaskOpensFuelQuickLog(task: CoachTask): boolean {
+/** Fuel tasks that open Log Food on the Nutrition tab (FTI-58). */
+export function coachTaskOpensLogFood(task: CoachTask): boolean {
   if (task.completed) return false;
   if (task.kind === "hit_protein") return true;
   if (task.kind === "post_workout_review" && task.ctaLabel === "Log fuel") return true;
   return false;
 }
 
+/** @deprecated Use coachTaskOpensLogFood — kept for test migration only. */
+export const coachTaskOpensFuelQuickLog = coachTaskOpensLogFood;
+
 /** ScreenHome wires this to `navigate`: guard skips completed tasks. */
-export function handleCoachTaskAction(task: CoachTask, navigate: (tab: TabId) => void): void {
+export function handleCoachTaskAction(task: CoachTask, navigate: NavigateFn): void {
+  if (coachTaskOpensLogFood(task)) {
+    navigate("nutrition", { openLogFood: true });
+    return;
+  }
   const target = resolveCoachTaskNavigation(task);
   if (target) navigate(target);
 }

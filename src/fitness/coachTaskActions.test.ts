@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import type { CoachTask } from "./coachEngine";
-import { coachTaskOpensFuelQuickLog } from "./coachTaskActions";
+import { coachTaskOpensLogFood, handleCoachTaskAction } from "./coachTaskActions";
 
-describe("coachTaskOpensFuelQuickLog", () => {
-  it("opens quick log for incomplete hit_protein", () => {
+describe("coachTaskOpensLogFood", () => {
+  it("opens Log Food for incomplete hit_protein", () => {
     const task: CoachTask = {
       kind: "hit_protein",
       label: "Hit 180g protein",
@@ -12,10 +12,10 @@ describe("coachTaskOpensFuelQuickLog", () => {
       priority: 2,
       ctaLabel: "Log fuel",
     };
-    expect(coachTaskOpensFuelQuickLog(task)).toBe(true);
+    expect(coachTaskOpensLogFood(task)).toBe(true);
   });
 
-  it("opens quick log for post_workout Log fuel CTA", () => {
+  it("opens Log Food for post_workout Log fuel CTA", () => {
     const task: CoachTask = {
       kind: "post_workout_review",
       label: "Log post-workout fuel",
@@ -23,16 +23,38 @@ describe("coachTaskOpensFuelQuickLog", () => {
       priority: 1,
       ctaLabel: "Log fuel",
     };
-    expect(coachTaskOpensFuelQuickLog(task)).toBe(true);
+    expect(coachTaskOpensLogFood(task)).toBe(true);
   });
 
-  it("does not open quick log for completed tasks", () => {
+  it("does not open Log Food for completed tasks", () => {
     const task: CoachTask = {
       kind: "hit_protein",
       label: "Protein floor hit",
       completed: true,
       priority: 2,
     };
-    expect(coachTaskOpensFuelQuickLog(task)).toBe(false);
+    expect(coachTaskOpensLogFood(task)).toBe(false);
+  });
+});
+
+describe("handleCoachTaskAction", () => {
+  it("routes fuel tasks to Nutrition with openLogFood", () => {
+    const calls: Array<{ tab: string; options?: { openLogFood?: boolean } }> = [];
+    const navigate = (tab: string, options?: { openLogFood?: boolean }) => {
+      calls.push({ tab, options });
+    };
+
+    handleCoachTaskAction(
+      {
+        kind: "hit_protein",
+        label: "Hit protein",
+        completed: false,
+        priority: 2,
+        ctaLabel: "Log fuel",
+      },
+      navigate,
+    );
+
+    expect(calls).toEqual([{ tab: "nutrition", options: { openLogFood: true } }]);
   });
 });

@@ -1,7 +1,7 @@
 # Fitcoach, Epics & Stories
 
 **Project:** fitnesstracker  
-**Last updated:** 2026-05-23 (Sprint 6 planned)  
+**Last updated:** 2026-05-23 (Sprint 7 planned)  
 **Sprint tracking:** `_bmad-output/implementation-artifacts/sprint-status.yaml`
 
 **Positioning:** Fitcoach is the all-in-one fitness app that coaches you through every workout, meal, and check-in, so you never need another app to hit your goals.
@@ -20,7 +20,11 @@
 
 **Sprint 5 (done):** Quality foundation & nutrition OS, Playwright E2E smoke, `coachEngine` refactor, Nutrition tab rebuild, Home Fuel strip alignment, week-boundary rules.
 
-**Sprint 6 (planned):** Workout architecture & session coaching, workout E2E smoke, `ScreenWorkout` phase-1 decomposition, rule-based per-exercise notes (FTI-13 phase 1), optional LLM notes, retro cleanup.
+**Sprint 6 (done):** Workout architecture & session coaching, workout E2E smoke, `ScreenWorkout` phase-1 decomposition, rule-based per-exercise notes (FTI-13 phase 1), FTI-55 LLM skipped, retro cleanup.
+
+**Sprint 7 (planned):** Nutrition OS v2 — Chunk 1 of 3. Strip Nutrition tab to rings + hydration + FAB, build Log Food overlay (manual add + recently logged), extend logged-item schema, remove Home quick-log, coach task routing to Log Food, partial E2E refresh.
+
+**Sprint 8–9 (planned):** Nutrition OS v2 — Chunks 2–3. USDA/OFF search, My foods / Saved tabs, meal prep, polish, full test gate. See `nutrition-os-v2-checklist.md`.
 
 **Prerequisite (done):** [FTI-15](https://linear.app/ftiness-tracker/issue/FTI-15/save-workouts-and-workout-history), `story_key: fti-15-save-workouts-and-workout-history`
 
@@ -767,3 +771,98 @@ As a developer, I want `waterIntake.ts` unit tests and optional persistence of w
 - linear: FTI-48
 - MoSCoW: Could, retro carryover
 - depends_on: FTI-52 (Linear FTI-46); can parallelize after FTI-54 if needed
+
+---
+
+## Epic 7: FTI Sprint 7, Nutrition OS v2 (Chunk 1)
+
+**Epic key (sprint-status):** `epic-fti-sprint-7`
+
+**Goal:** Replace scattered fuel logging (Nutrition tab today list + Home quick-log sheet) with a Cal AI–style Nutrition tab (rings + hydration only) and a full-screen Log Food overlay. Manual add and recently-logged re-log work without external APIs; Home becomes read-only for fuel progress.
+
+**Master checklist:** `_bmad-output/implementation-artifacts/nutrition-os-v2-checklist.md`
+
+**Sprint execution order:** FTI-57 → 58 → 59 (one story per PR)
+
+**Scope locks:** USDA/OFF search, My meals, barcode, voice log, and LLM parse are OUT OF SCOPE (Sprints 8–9 / future backlog). ScreenWorkout phase 2 OUT OF SCOPE. No native wrapper. No new Home cards. Search bar in Log Food is UI-only in S7. Primary CTA = lime green (`--pos` / `#4ade80`).
+
+---
+
+### Story 7.1: Nutrition tab strip + Log Food shell + data model (FTI-57)
+
+As a user,
+I want a focused Nutrition tab with macro rings, hydration, and a Log Food flow for manual logging and re-logging recent foods,
+so fuel tracking has one clear entry point without clutter on the main tab.
+
+**Acceptance criteria:**
+
+- **Data model:** `NutritionLoggedItem` extended with optional `servingLabel`, `source`, `externalId`, `loggedAtMs`; existing persisted logs load without migration breakage (default `loggedAtMs` for legacy rows)
+- **Persist + sync:** New fields included in persist slice and cloud merge (`mergePersistedFitnessSlices.ts`, `normalizeNutritionItemsByDay`)
+- **Nutrition tab strip:** Keep macro ring hero, P/C/F bars, macro pace hint, and `WaterTrackerCard`; remove Today/Saved segment tabs, quick-add chips, today's log list, add-custom form, and whole-day manual totals fallback
+- **FAB:** Floating `+` below hydration opens full-screen Log Food overlay (not bottom sheet)
+- **Log Food shell:** Back closes without logging; title "Log Food"; tabs All · My foods · My meals · Saved foods (empty states OK); search placeholder "Describe what you ate" (UI only); Recently logged section with name, calories, serving, `+` quick-add; bottom Manual Add button
+- **Manual add:** Form for name + calories + P/C/F + optional serving label → log to today → close overlay → rings animate/update
+- **Recently logged:** `getRecentlyLoggedFoods()` dedupes by name, sorts by `loggedAtMs`; tap `+` re-logs one tap → close → rings update; legacy data appears after migration defaults
+- **Return flow:** After any log, overlay closes and user lands on Nutrition tab with updated totals; streak/coach pace pipeline unchanged
+- **Quality:** `npm run build` + `npm test` pass; existing workout E2E still pass (Home quick-log E2E may fail until FTI-59)
+
+**Dev Notes:**
+
+- story_key: fti-57-nutrition-tab-log-food-shell-data-model
+- linear: FTI-51
+- MoSCoW: Must, sprint opener
+- partial_impl: `ScreenNutrition.tsx`, `nutritionLog.ts`, `types.ts`
+- blocks: FTI-58, FTI-59
+- checklist phases: 0.3, 1, 2
+
+---
+
+### Story 7.2: Remove Home logging + coach routing to Log Food (FTI-58)
+
+As a user,
+I want Home fuel progress to be read-only and coach "log fuel" tasks to open Log Food on the Nutrition tab,
+so there is a single logging path across the app.
+
+**Acceptance criteria:**
+
+- Remove `HomeFuelQuickLogSheet` usage from `ScreenHome`; remove `+ Log` from `HomeFuelStrip`
+- `HomeFuelStrip` remains read-only protein/kcal progress (no logging affordance)
+- Deprecate/remove `HomeFuelQuickLogSheet.tsx` if unused after routing change
+- Update `coachTaskActions.ts`: `hit_protein` and `Log fuel` post-workout tasks navigate to Nutrition tab and open Log Food (not Home sheet)
+- Colocate unit tests for updated coach task routing
+- `npm run build` + `npm test` pass
+
+**Dev Notes:**
+
+- story_key: fti-58-remove-home-logging-coach-routing-log-food
+- linear: FTI-52
+- MoSCoW: Must
+- depends_on: FTI-57
+- blocks: FTI-59
+- checklist phase: 8
+
+---
+
+### Story 7.3: Nutrition OS v2 E2E partial + fuel-quick-log refresh (FTI-59)
+
+As a developer,
+I want Playwright coverage for the new Nutrition logging path and updated coach routing,
+so Home quick-log removal does not regress fuel tracking.
+
+**Acceptance criteria:**
+
+- E2E: Nutrition tab shows rings + hydration only (no legacy today/saved logging UI)
+- E2E: FAB opens Log Food overlay
+- E2E: Manual add → close → macro ring/totals update visible
+- E2E: Coach fuel task navigates to Nutrition + opens Log Food
+- Update or remove `e2e/fuel-quick-log.spec.ts`; replace with Nutrition-tab Log Food flow
+- Vitest for `getRecentlyLoggedFoods()` if not added in FTI-57
+- `npm run build` + `npm test` + `npm run test:e2e` pass
+
+**Dev Notes:**
+
+- story_key: fti-59-nutrition-os-v2-e2e-partial
+- linear: FTI-53
+- MoSCoW: Must, sprint closer
+- depends_on: FTI-58
+- checklist phase: 10 (partial)

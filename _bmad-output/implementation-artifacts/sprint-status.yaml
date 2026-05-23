@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (Sprint 6 complete, retro done)
+# last_updated: 2026-05-23 (Sprint 7 planned)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -14,6 +14,20 @@
 #   BMad: FTI-52 → 53 → 54 → 55 → 56
 #   Linear: FTI-46 → 47 → 49 → 50 → 48
 #   (BMad FTI-52-56 map to Linear FTI-46-50; FTI-56 retro cleanup = Linear FTI-48)
+#
+# Sprint 7 order (execute in this sequence):
+#   BMad: FTI-57 → 58 → 59
+#   Linear: FTI-51 → 52 → 53
+#
+# SPRINT 7 SCOPE LOCKS (2026-05-23 sprint planning):
+#   - Nutrition OS v2 Chunk 1 only (FTI-57 → 58 → 59); one story per PR
+#   - USDA/OFF search, My meals wiring, barcode, voice log: OUT OF SCOPE (S8–9 / future)
+#   - ScreenWorkout phase 2: OUT OF SCOPE (Nutrition OS priority)
+#   - FTI-55 LLM coach notes: OUT OF SCOPE (cancelled Sprint 6)
+#   - Native App Store wrapper: OUT OF SCOPE
+#   - Log Food search bar: UI-only in S7 (no API calls)
+#   - No new Home cards; Home fuel strip read-only after FTI-58
+#   - Primary CTA = lime green (--pos / #4ade80); design system carries forward
 #
 # SPRINT 6 SCOPE LOCKS (2026-05-23 sprint planning):
 #   - FTI-55 LLM (Claude API): OPTIONAL, product decision at FTI-54 review; skip if rule-based notes suffice
@@ -61,11 +75,11 @@
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next retro: epic-fti-sprint-6-retrospective → done (2026-05-23)
-# - bmad-swarm next retro: epic-fti-sprint-5-retrospective → done (2026-05-23)
+# - bmad-swarm next: epic-fti-sprint-7 → done (2026-05-23)
+# - bmad-swarm next retro: epic-fti-sprint-7-retrospective (optional)
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # Sprint 6 complete, retro done
+last_updated: 2026-05-23  # Sprint 7 planned
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -150,3 +164,12 @@ development_status:
   fti-56-waterintake-tests-weigh-in-macro-nudge-persist: done
 
   epic-fti-sprint-6-retrospective: done
+
+  # --- Sprint 7 (planned): Nutrition OS v2 — Chunk 1 ---
+  epic-fti-sprint-7: done
+
+  fti-57-nutrition-tab-log-food-shell-data-model: done
+  fti-58-remove-home-logging-coach-routing-log-food: done
+  fti-59-nutrition-os-v2-e2e-partial: done
+
+  epic-fti-sprint-7-retrospective: optional

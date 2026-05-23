@@ -33,19 +33,73 @@ export const PROTEIN_QUICK_ADD_PRESETS: readonly NutritionQuickAddPreset[] = [
   { id: "p50", label: "+50g protein", cal: 200, p: 50, c: 0, f: 0 },
 ];
 
+type BuildNutritionLoggedItemExtras = Partial<
+  Pick<NutritionLoggedItem, "id" | "servingLabel" | "source" | "externalId" | "loggedAtMs">
+>;
+
+/**
+ * Build a fuel row. Third argument may be a legacy string `id`, or an object with `id` and optional metadata.
+ */
 export function buildNutritionLoggedItem(
   macros: MacroTotals,
   name = "",
-  id = newNutritionItemId(),
+  idOrExtras?: string | BuildNutritionLoggedItemExtras,
 ): NutritionLoggedItem {
-  return {
+  const extras = typeof idOrExtras === "object" && idOrExtras !== null ? idOrExtras : undefined;
+  const id = typeof idOrExtras === "string" ? idOrExtras : (extras?.id ?? newNutritionItemId());
+  const loggedAtMs = extras?.loggedAtMs ?? Date.now();
+  const base: NutritionLoggedItem = {
     id,
     name,
     cal: Number(macros.cal) || 0,
     p: Number(macros.p) || 0,
     c: Number(macros.c) || 0,
     f: Number(macros.f) || 0,
+    loggedAtMs,
   };
+  const sl =
+    typeof extras?.servingLabel === "string" && extras.servingLabel.trim()
+      ? extras.servingLabel.trim()
+      : undefined;
+  const src = typeof extras?.source === "string" && extras.source.trim() ? extras.source.trim() : undefined;
+  const ext =
+    typeof extras?.externalId === "string" && extras.externalId.trim() ? extras.externalId.trim() : undefined;
+  return {
+    ...base,
+    ...(sl ? { servingLabel: sl } : {}),
+    ...(src ? { source: src } : {}),
+    ...(ext ? { externalId: ext } : {}),
+  };
+}
+
+function normalizedLoggedFoodNameKey(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+/**
+ * Recent unique foods across all logged days (normalized name dedupe; keep most recently logged variant).
+ */
+export function getRecentlyLoggedFoods(itemsByDay: Record<string, NutritionLoggedItem[]>): NutritionLoggedItem[] {
+  const scored: { item: NutritionLoggedItem; loggedAtMs: number }[] = [];
+  for (const [dateKey, rows] of Object.entries(itemsByDay ?? {})) {
+    if (!rows?.length) continue;
+    const dayAnchor = /^\d{4}-\d{2}-\d{2}$/.test(dateKey) ? Date.parse(`${dateKey}T12:00:00`) : NaN;
+    const base = Number.isFinite(dayAnchor) ? dayAnchor : 0;
+    rows.forEach((item, idx) => {
+      const raw = item.loggedAtMs;
+      const loggedAtMs =
+        typeof raw === "number" && Number.isFinite(raw) && raw > 0 ? raw : base + idx;
+      scored.push({ item, loggedAtMs });
+    });
+  }
+  const byKey = new Map<string, { item: NutritionLoggedItem; loggedAtMs: number }>();
+  for (const row of scored) {
+    const nk = normalizedLoggedFoodNameKey(row.item.name);
+    const dedupeKey = nk.length > 0 ? nk : `id:${row.item.id}`;
+    const prev = byKey.get(dedupeKey);
+    if (!prev || row.loggedAtMs >= prev.loggedAtMs) byKey.set(dedupeKey, row);
+  }
+  return [...byKey.values()].sort((a, b) => b.loggedAtMs - a.loggedAtMs).map((x) => x.item);
 }
 
 /** Append a fuel row for a calendar day and refresh saved presets. */

@@ -2,9 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildCoachContext, getHomeCoachPlan, getWeighInReactionForDisplay } from "../coachEngine";
 import { buildMacroPaceSnapshot } from "../macroPace";
-import { coachTaskOpensFuelQuickLog, handleCoachTaskAction } from "../coachTaskActions";
+import { handleCoachTaskAction } from "../coachTaskActions";
 import { habitsForDateKey, HomeDailyHabitsCard } from "../HomeDailyHabitsCard";
-import { HomeFuelQuickLogSheet } from "../HomeFuelQuickLogSheet";
 import { HomeWeighInInline } from "../HomeWeighInInline";
 import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
 import { HomeFuelStrip } from "../HomeFuelStrip";
@@ -32,7 +31,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
 
   const wUnit = state.unitPreferences.weightUnit;
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [fuelQuickLogOpen, setFuelQuickLogOpen] = useState(false);
 
   const greetingName = state.displayName.trim();
   const todayForGreeting = isViewingToday ? clock : new Date(activeDateKey.replace(/-/g, "/"));
@@ -158,13 +156,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
       {isViewingToday && coachPlan ? (
         <TodaysCoachPlanCard
           plan={coachPlan}
-          onTaskAction={(task) => {
-            if (coachTaskOpensFuelQuickLog(task)) {
-              setFuelQuickLogOpen(true);
-              return;
-            }
-            handleCoachTaskAction(task, navigate);
-          }}
+          onTaskAction={(task) => handleCoachTaskAction(task, navigate)}
         />
       ) : null}
 
@@ -177,13 +169,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         showLegend={isViewingToday}
       />
 
-      <HomeFuelStrip
-        totals={totals}
-        targets={T}
-        label={fuelLabel}
-        paceHint={fuelPaceHint}
-        onLogClick={isViewingToday ? () => setFuelQuickLogOpen(true) : undefined}
-      />
+      <HomeFuelStrip totals={totals} targets={T} label={fuelLabel} paceHint={fuelPaceHint} />
 
       <HomeDailyHabitsCard
         habits={activeHabits}
@@ -326,17 +312,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
       <div style={{ height: 8 }} />
 
       {settingsOpen ? <SettingsSheet state={state} setState={setState} onClose={() => setSettingsOpen(false)} /> : null}
-
-      {fuelQuickLogOpen && isViewingToday ? (
-        <HomeFuelQuickLogSheet
-          open={fuelQuickLogOpen}
-          onClose={() => setFuelQuickLogOpen(false)}
-          dateKey={dateKeyToday}
-          state={state}
-          setState={setState}
-          onOpenFullLog={() => navigate("nutrition")}
-        />
-      ) : null}
     </div>
   );
 }

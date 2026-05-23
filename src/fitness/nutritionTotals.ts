@@ -2,6 +2,14 @@ import type { MacroTotals, NutritionLoggedItem, NutritionPreset } from "./types"
 
 export const ZERO_MACROS: MacroTotals = { cal: 0, p: 0, c: 0, f: 0 };
 
+/** Deterministic timestamp for legacy rows missing `loggedAtMs` (same across reloads for a given day + index). */
+export function stableLegacyNutritionLoggedAtMs(dayKey: string, indexWithinDay: number): number {
+  const parts = dayKey.split("-").map((x) => Number(x));
+  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return indexWithinDay;
+  const [y, m, d] = parts;
+  return new Date(y, m - 1, d, 12, 0, 0, 0).getTime() + indexWithinDay;
+}
+
 /** Totals copied from an external tracker for a given local calendar day (YYYY-MM-DD). */
 export function manualTotalsForDateKey(byDay: Record<string, MacroTotals> | undefined, dateKey: string): MacroTotals {
   const t = byDay?.[dateKey];
@@ -63,14 +71,29 @@ export function normalizeNutritionItemsByDay(raw: unknown): Record<string, Nutri
       const o = v[i];
       if (!o || typeof o !== "object") continue;
       const r = o as Record<string, unknown>;
-      rows.push({
+      const loggedAtRaw = r.loggedAtMs;
+      const loggedAtMs =
+        typeof loggedAtRaw === "number" && Number.isFinite(loggedAtRaw)
+          ? loggedAtRaw
+          : stableLegacyNutritionLoggedAtMs(k, i);
+      const servingLabel =
+        typeof r.servingLabel === "string" && r.servingLabel.trim() ? r.servingLabel.trim() : undefined;
+      const source = typeof r.source === "string" && r.source.trim() ? r.source.trim() : undefined;
+      const externalId =
+        typeof r.externalId === "string" && r.externalId.trim() ? r.externalId.trim() : undefined;
+      const row: NutritionLoggedItem = {
         id: typeof r.id === "string" && r.id ? r.id : `${k}-row-${i}`,
         name: typeof r.name === "string" ? r.name : "",
         cal: Number(r.cal) || 0,
         p: Number(r.p) || 0,
         c: Number(r.c) || 0,
         f: Number(r.f) || 0,
-      });
+        loggedAtMs,
+        ...(servingLabel ? { servingLabel } : {}),
+        ...(source ? { source } : {}),
+        ...(externalId ? { externalId } : {}),
+      };
+      rows.push(row);
     }
     if (rows.length) out[k] = rows;
   }
@@ -106,6 +129,7 @@ export function mergePersistedNutritionDays(
           p: Number(t.p) || 0,
           c: Number(t.c) || 0,
           f: Number(t.f) || 0,
+          loggedAtMs: stableLegacyNutritionLoggedAtMs(k, 0),
         },
       ];
       delete nextManual[k];
