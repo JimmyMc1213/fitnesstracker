@@ -1,19 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { IconCheck, IconChevR, IconSettings } from "../icons";
+import { buildCoachContext, getHomeCoachPlan } from "../coachEngine";
+import { handleCoachTaskAction } from "../coachTaskActions";
 import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
-import { homeGreetingTitle, homePlanSubline } from "../homeGreeting";
+import { HomeFuelStrip } from "../HomeFuelStrip";
+import { homeGreetingTitle } from "../homeGreeting";
+import { IconCheck, IconChevR, IconSettings } from "../icons";
 import { SettingsSheet } from "../SettingsSheet";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { StreakWeeklyHeader } from "../StreakWeeklyHeader";
+import { TodaysCoachPlanCard } from "../TodaysCoachPlanCard";
 import { WeeklySummaryCard } from "../WeeklySummaryCard";
-import { MacroBar, MacroRing, ScreenHeader } from "../shared";
+import { ScreenHeader } from "../shared";
 import { formatWeightFromLbs, weightUnitLabel } from "../unitPreferences";
 import type { ScreenProps } from "../types";
 
 export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   const T = state.nutritionTargets;
-  const dateKeyToday = localDateKey(new Date());
+  const [clock, setClock] = useState(() => new Date());
+  const dateKeyToday = localDateKey(clock);
   const [viewDateKey, setViewDateKey] = useState(dateKeyToday);
   const activeDateKey = viewDateKey;
   const isViewingToday = activeDateKey === dateKeyToday;
@@ -22,7 +27,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   const dayEntry = state.weightLog.find((e) => e.dateKey === activeDateKey);
 
   const wUnit = state.unitPreferences.weightUnit;
-  const [clock, setClock] = useState(() => new Date());
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const greetingName = state.displayName.trim();
@@ -46,6 +50,12 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
     }
   }, [dateKeyToday]);
 
+  const { coachPlan, coachCtx } = useMemo(() => {
+    if (!isViewingToday) return { coachPlan: null, coachCtx: null };
+    const ctx = buildCoachContext(state, dateKeyToday, clock);
+    return { coachPlan: getHomeCoachPlan(ctx), coachCtx: ctx };
+  }, [state, dateKeyToday, clock, isViewingToday]);
+
   const headerEyebrow = formatDateKeyEyebrow(activeDateKey);
   const headerTitle = isViewingToday
     ? homeGreetingTitle(greetingName, todayForGreeting)
@@ -54,12 +64,14 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         month: "long",
         day: "numeric",
       });
-  const headerSubtitle = isViewingToday ? homePlanSubline(state, todayForGreeting) ?? undefined : undefined;
+  const headerSubtitle = isViewingToday && coachPlan ? coachPlan.headline : undefined;
 
   const arizonaTodayKey = arizonaCalendarDateKey(clock);
   const showNightlyStretchWindow = isViewingToday && isArizonaEightPmOrLater(clock);
   const nightlyStretchDone = state.nightlyStretchCompletedArizonaKey === arizonaTodayKey;
   const fuelLabel = isViewingToday ? "Fuel · Today" : "Fuel";
+
+  const showWeighInCard = !isViewingToday || coachCtx?.scheduledWeighInDay === true || !!dayEntry;
 
   return (
     <div className="screen page-transition" style={{ position: "relative" }}>
@@ -88,15 +100,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         }
       />
 
-      <StreakWeeklyHeader
-        state={state}
-        todayKey={dateKeyToday}
-        selectedDateKey={activeDateKey}
-        onSelectDateKey={setViewDateKey}
-      />
-
-      {isViewingToday ? <WeeklySummaryCard state={state} todayKey={dateKeyToday} /> : null}
-
       {!isViewingToday ? (
         <button
           type="button"
@@ -117,54 +120,75 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         </button>
       ) : null}
 
-      <button
-        type="button"
-        className="tap card"
-        onClick={() => navigate("progress")}
-        aria-label={dayEntry ? "View or update weigh-in on Progress" : "Log weigh-in on Progress"}
-        style={{
-          padding: 16,
-          marginTop: 18,
-          borderColor: dayEntry ? "rgba(74,222,128,0.25)" : "rgba(74,222,128,0.18)",
-          display: "flex",
-          alignItems: "center",
-          gap: 14,
-          width: "100%",
-          textAlign: "left",
-          background: "var(--card)",
-        }}
-      >
-        <div
+      {isViewingToday && coachPlan ? (
+        <TodaysCoachPlanCard plan={coachPlan} onTaskAction={(task) => handleCoachTaskAction(task, navigate)} />
+      ) : null}
+
+      <StreakWeeklyHeader
+        state={state}
+        todayKey={dateKeyToday}
+        selectedDateKey={activeDateKey}
+        onSelectDateKey={setViewDateKey}
+        variant="compact"
+      />
+
+      <HomeFuelStrip
+        totals={totals}
+        targets={T}
+        label={fuelLabel}
+        onLogClick={isViewingToday ? () => navigate("nutrition") : undefined}
+      />
+
+      {showWeighInCard ? (
+        <button
+          type="button"
+          className="tap card"
+          onClick={() => navigate("progress")}
+          aria-label={dayEntry ? "View or update weigh-in on Progress" : "Log weigh-in on Progress"}
           style={{
-            width: 44,
-            height: 44,
-            borderRadius: 999,
-            background: dayEntry ? "rgba(74,222,128,0.18)" : "rgba(255,255,255,0.06)",
-            display: "grid",
-            placeItems: "center",
-            flexShrink: 0,
+            padding: 16,
+            marginTop: 18,
+            borderColor: dayEntry ? "rgba(74,222,128,0.25)" : "rgba(74,222,128,0.18)",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            width: "100%",
+            textAlign: "left",
+            background: "var(--card)",
           }}
         >
-          {dayEntry ? (
-            <IconCheck size={22} stroke={2.4} style={{ color: "rgb(74,222,128)" }} />
-          ) : (
-            <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>+</span>
-          )}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "#fff" }}>
-            {dayEntry ? "Weigh-in logged" : "Morning weigh-in"}
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 999,
+              background: dayEntry ? "rgba(74,222,128,0.18)" : "rgba(255,255,255,0.06)",
+              display: "grid",
+              placeItems: "center",
+              flexShrink: 0,
+            }}
+          >
+            {dayEntry ? (
+              <IconCheck size={22} stroke={2.4} style={{ color: "rgb(74,222,128)" }} />
+            ) : (
+              <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>+</span>
+            )}
           </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 4 }}>
-            {dayEntry
-              ? `${formatWeightFromLbs(dayEntry.weightLbs, wUnit)} ${weightUnitLabel(wUnit)} · tap to update on Progress`
-              : isViewingToday
-                ? "Log weight and optional photo on the Progress tab"
-                : "No weigh-in logged this day"}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "#fff" }}>
+              {dayEntry ? "Weigh-in logged" : "Morning weigh-in"}
+            </div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 4 }}>
+              {dayEntry
+                ? `${formatWeightFromLbs(dayEntry.weightLbs, wUnit)} ${weightUnitLabel(wUnit)} · tap to update on Progress`
+                : isViewingToday
+                  ? "Log weight and optional photo on the Progress tab"
+                  : "No weigh-in logged this day"}
+            </div>
           </div>
-        </div>
-        <IconChevR size={14} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
-      </button>
+          <IconChevR size={14} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
+        </button>
+      ) : null}
 
       {showNightlyStretchWindow ? (
         nightlyStretchDone ? (
@@ -259,40 +283,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         )
       ) : null}
 
-      <div className="card" style={{ padding: 18, marginTop: 18 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <MacroRing value={totals.cal} target={T.cal} size={132} stroke={6} />
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ marginBottom: 2 }}>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "rgba(255,255,255,0.25)",
-                  fontWeight: 500,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {fuelLabel}
-              </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "rgba(255,255,255,0.5)",
-                  fontWeight: 500,
-                  marginTop: 4,
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {Math.max(0, T.cal - totals.cal)} kcal left
-              </div>
-            </div>
-            <MacroBar label="Protein" value={totals.p} target={T.p} />
-            <MacroBar label="Carbs" value={totals.c} target={T.c} />
-            <MacroBar label="Fat" value={totals.f} target={T.f} />
-          </div>
-        </div>
-      </div>
+      {isViewingToday ? <WeeklySummaryCard state={state} todayKey={dateKeyToday} defaultCollapsed /> : null}
 
       <div style={{ height: 8 }} />
 

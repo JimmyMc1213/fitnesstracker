@@ -111,57 +111,77 @@ export function StreakWeeklyHeader({
   todayKey,
   selectedDateKey,
   onSelectDateKey,
+  variant = "default",
 }: {
   state: AppState;
   todayKey: string;
   selectedDateKey: string;
   onSelectDateKey: (dateKey: string) => void;
+  variant?: "default" | "compact";
 }) {
   const streak = state.fitnessStreakSnapshot?.currentCount ?? 0;
   const week = buildStreakCalendarWeek(state, todayKey);
+  const isCompact = variant === "compact";
+  const ringSize = isCompact ? 28 : 32;
+  const dayCellMinHeight = isCompact ? 48 : 64;
+
+  const streakPill = (
+    <div
+      aria-label={`${streak} day streak`}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: isCompact ? 5 : 6,
+        padding: isCompact ? "5px 11px" : "6px 13px",
+        borderRadius: 999,
+        background: "rgba(250,250,252,0.97)",
+        boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
+      }}
+    >
+      <StreakFlameGlyph size={isCompact ? 15 : 17} />
+      <span
+        style={{
+          fontSize: isCompact ? 14 : 16,
+          fontWeight: 800,
+          color: "#0a0a0a",
+          fontVariantNumeric: "tabular-nums",
+          lineHeight: 1,
+        }}
+      >
+        {streak}
+      </span>
+    </div>
+  );
 
   return (
-    <div style={{ marginTop: 14, marginBottom: 14 }}>
-      <div className="between" style={{ alignItems: "center", padding: "6px 0 14px", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-          <div style={{ flexShrink: 0, opacity: 0.95 }}>
-            <IconDumbbell size={24} stroke={2} />
+    <div style={{ marginTop: isCompact ? 8 : 14, marginBottom: isCompact ? 8 : 14 }}>
+      {isCompact ? (
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "0 0 6px" }}>{streakPill}</div>
+      ) : (
+        <div className="between" style={{ alignItems: "center", padding: "6px 0 14px", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <div style={{ flexShrink: 0, opacity: 0.95 }}>
+              <IconDumbbell size={24} stroke={2} />
+            </div>
+            <span
+              style={{
+                fontFamily: "var(--ui)",
+                fontWeight: 800,
+                fontSize: 20,
+                letterSpacing: "-0.04em",
+                color: "#fff",
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Fit Coach
+            </span>
           </div>
-          <span
-            style={{
-              fontFamily: "var(--ui)",
-              fontWeight: 800,
-              fontSize: 20,
-              letterSpacing: "-0.04em",
-              color: "#fff",
-              lineHeight: 1,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Fit Coach
-          </span>
+          {streakPill}
         </div>
+      )}
 
-        <div
-          aria-label={`${streak} day streak`}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "6px 13px",
-            borderRadius: 999,
-            background: "rgba(250,250,252,0.97)",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
-          }}
-        >
-          <StreakFlameGlyph size={17} />
-          <span style={{ fontSize: 16, fontWeight: 800, color: "#0a0a0a", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
-            {streak}
-          </span>
-        </div>
-      </div>
-
-      <div className="between" style={{ alignItems: "flex-start", gap: 2, padding: "0 0 2px" }}>
+      <div className="between" style={{ alignItems: "flex-start", gap: isCompact ? 0 : 2, padding: "0 0 2px" }}>
         {week.map((cell) => {
           const isFuture = cell.kind === "future";
           const isSelected = cell.dateKey === selectedDateKey;
@@ -189,22 +209,27 @@ export function StreakWeeklyHeader({
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "flex-start",
-                gap: 5,
-                padding: "4px 2px 6px",
+                gap: isCompact ? 3 : 5,
+                padding: isCompact ? "2px 1px 4px" : "4px 2px 6px",
                 margin: 0,
                 background: isSelected ? "rgba(255,255,255,0.1)" : "transparent",
                 border: "none",
-                borderRadius: 12,
+                borderRadius: isCompact ? 10 : 12,
                 color: "inherit",
                 cursor: isFuture ? "default" : "pointer",
-                minHeight: 64,
+                minHeight: dayCellMinHeight,
                 opacity: isFuture ? 0.55 : 1,
               }}
             >
-              <DayLetterProgressRing letter={cell.letter} progress={cell.progress} kind={cell.kind} />
+              <DayLetterProgressRing
+                letter={cell.letter}
+                progress={cell.progress}
+                kind={cell.kind}
+                size={ringSize}
+              />
               <span
                 style={{
-                  fontSize: 11,
+                  fontSize: isCompact ? 10 : 11,
                   fontWeight: domWeight,
                   color: domColor,
                   fontVariantNumeric: "tabular-nums",

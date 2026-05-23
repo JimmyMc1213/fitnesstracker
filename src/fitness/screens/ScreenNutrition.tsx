@@ -8,7 +8,7 @@ import {
   touchNutritionPresetById,
   upsertNutritionPresetList,
 } from "../nutritionTotals";
-import { MacroBar, ScreenHeader, SectionLabel } from "../shared";
+import { MacroBar, MacroRing, ScreenHeader, SectionLabel } from "../shared";
 import { WaterTrackerCard } from "../WaterTrackerCard";
 import { appendWaterLogEntry, removeWaterLogEntry } from "../waterIntake";
 import type { MacroTotals, NutritionLoggedItem, NutritionPreset, ScreenProps } from "../types";
@@ -252,29 +252,37 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
       />
 
       <div className="card" style={{ padding: 18, marginTop: 18 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 16 }}>
-          <span style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", fontVariantNumeric: "tabular-nums" }}>
-            {Math.round(totals.cal)}
-          </span>
-          <span
-            style={{
-              fontSize: 11,
-              color: "rgba(255,255,255,0.4)",
-              fontWeight: 500,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-            }}
-          >
-            / {T.cal} kcal
-          </span>
-          <span style={{ marginLeft: "auto", fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-            {Math.max(0, Math.round(T.cal - totals.cal))} left
-          </span>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <MacroBar label="Protein" value={totals.p} target={T.p} />
-          <MacroBar label="Carbs" value={totals.c} target={T.c} />
-          <MacroBar label="Fat" value={totals.f} target={T.f} />
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <MacroRing value={totals.cal} target={T.cal} size={132} stroke={6} animate={true} />
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ marginBottom: 2 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "rgba(255,255,255,0.25)",
+                  fontWeight: 500,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Today
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "rgba(255,255,255,0.5)",
+                  fontWeight: 500,
+                  marginTop: 4,
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {Math.max(0, T.cal - totals.cal)} kcal left
+              </div>
+            </div>
+            <MacroBar label="Protein" value={totals.p} target={T.p} />
+            <MacroBar label="Carbs" value={totals.c} target={T.c} />
+            <MacroBar label="Fat" value={totals.f} target={T.f} />
+          </div>
         </div>
       </div>
 
