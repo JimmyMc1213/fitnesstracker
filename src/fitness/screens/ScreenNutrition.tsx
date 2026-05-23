@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildCoachContext } from "../coachEngine";
 import { localDateKey } from "../dailyPlan";
@@ -9,7 +9,7 @@ import { MacroBar, MacroRing, ScreenHeader } from "../shared";
 import { TodayFoodLogCard, todayFoodLogHandlers } from "../TodayFoodLogCard";
 import { WaterTrackerCard } from "../WaterTrackerCard";
 import { appendWaterLogEntry, removeWaterLogEntry } from "../waterIntake";
-import type { ScreenProps } from "../types";
+import type { NutritionLoggedItem, ScreenProps } from "../types";
 
 /**
  * Nutrition tab: hero macro rings, coached pace copy, hydration, today's food log, and Log Food FAB.
@@ -28,6 +28,16 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
   const kcalLeft = Math.max(0, T.cal - totals.cal);
 
   const [logFoodOpen, setLogFoodOpen] = useState(false);
+  const [editingFoodItem, setEditingFoodItem] = useState<NutritionLoggedItem | null>(null);
+  const [ringAnimKey, setRingAnimKey] = useState(0);
+  const prevLogFoodOpen = useRef(false);
+
+  useEffect(() => {
+    if (prevLogFoodOpen.current && !logFoodOpen) {
+      setRingAnimKey((k) => k + 1);
+    }
+    prevLogFoodOpen.current = logFoodOpen;
+  }, [logFoodOpen]);
 
   useEffect(() => {
     if (logFoodOpenRequest && logFoodOpenRequest > 0) setLogFoodOpen(true);
@@ -51,7 +61,7 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
 
       <div className="card" style={{ padding: 18, marginTop: 18 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <MacroRing value={totals.cal} target={T.cal} size={132} stroke={6} animate={true} />
+          <MacroRing key={ringAnimKey} value={totals.cal} target={T.cal} size={132} stroke={6} animate={true} />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ marginBottom: 2 }}>
               <div
@@ -113,14 +123,20 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
         dateKey={todayKey}
         items={todayFoodItems}
         onRemove={foodHandlers.onRemove}
-        onUpdate={foodHandlers.onUpdate}
+        onEdit={(item) => {
+          setEditingFoodItem(item);
+          setLogFoodOpen(true);
+        }}
       />
 
       <button
         type="button"
         className="tap"
         aria-label="Log food"
-        onClick={() => setLogFoodOpen(true)}
+        onClick={() => {
+          setEditingFoodItem(null);
+          setLogFoodOpen(true);
+        }}
         style={{
           position: "fixed",
           right: 22,
@@ -129,7 +145,7 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
           height: 56,
           borderRadius: 999,
           border: "none",
-          background: "var(--pos, #d4d4d4)",
+          background: "var(--pos, #4ade80)",
           color: "#07080c",
           fontSize: 28,
           fontWeight: 600,
@@ -145,10 +161,14 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
 
       <LogFoodScreen
         open={logFoodOpen}
-        onClose={() => setLogFoodOpen(false)}
+        onClose={() => {
+          setLogFoodOpen(false);
+          setEditingFoodItem(null);
+        }}
         dateKey={todayKey}
         state={state}
         setState={setState}
+        editItem={editingFoodItem}
       />
 
       <div style={{ height: 96 }} />
