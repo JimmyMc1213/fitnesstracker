@@ -23,6 +23,8 @@ type WorkoutCoachCardProps = {
   activeRoutine?: WorkoutRoutineTemplate;
   mobilityItems: readonly string[];
   warmupItems: readonly string[];
+  /** When true, card mounts expanded (e.g. training days). Session-local collapse via header toggle. */
+  defaultExpanded?: boolean;
 };
 
 export function WorkoutCoachCard({
@@ -31,8 +33,9 @@ export function WorkoutCoachCard({
   activeRoutine,
   mobilityItems,
   warmupItems,
+  defaultExpanded = false,
 }: WorkoutCoachCardProps) {
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(!defaultExpanded);
 
   return (
     <div

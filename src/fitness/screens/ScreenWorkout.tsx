@@ -1,5 +1,6 @@
-import { useEffect, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from "react";
 
+import { buildPreWorkoutCoachBrief, shouldDefaultExpandCoachCard } from "../preWorkoutCoachBrief";
 import { localDateKey } from "../dailyPlan";
 import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
@@ -12,7 +13,13 @@ import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader } from "../shared";
 import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
-import type { ExercisePersonalBest, ScreenProps, WeightUnit, WorkoutExercise } from "../types";
+import type {
+  ExercisePersonalBest,
+  ScreenProps,
+  WeightUnit,
+  WorkoutExercise,
+} from "../types";
+import { autofillExerciseSets, buildSetsForExercise } from "../workoutAutofill";
 import { WorkoutCoachCard } from "../WorkoutCoachCard";
 import { WorkoutSessionStickyHeader } from "../WorkoutSessionStickyHeader";
 import { normalizeExerciseKey } from "../workoutSummary";
@@ -23,6 +30,7 @@ import {
   restDurationForExercise,
 } from "../restTimerPreferences";
 import { ExerciseSwapSheet } from "../ExerciseSwapSheet";
+import { isTrainingDay } from "../notificationScheduler";
 import { RestTimerBar } from "../RestTimerBar";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
 
@@ -206,6 +214,23 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
   const split = activeRoutine ? { day: activeRoutine.dayLabel, name: activeRoutine.name } : SPLIT.find((s) => s.id === w.splitId);
   const phase = w.sessionPhase;
+  const todayTemplateId = useMemo(
+    () => buildPreWorkoutCoachBrief(state)?.todayTemplateId ?? null,
+    [state.workoutTemplates, state.onboardingProfile?.workoutDaysPerWeek],
+  );
+  const preWorkoutCoach = useMemo(
+    () => buildPreWorkoutCoachBrief(state),
+    [
+      state.workoutTemplates,
+      state.onboardingProfile,
+      state.nutritionManualByDay,
+      state.nutritionItemsByDay,
+      state.nutritionTargets,
+      state.workoutsCompletedByDay,
+      state.weightLog,
+      state.planStartIso,
+    ],
+  );
 
   useEffect(() => {
     if (phase !== "idle" || editingRoutineId === null) return;
@@ -253,6 +278,9 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     (a, e) => a + e.sets.filter((s) => s.done).reduce((b, st) => b + st.w * st.r, 0),
     0,
   );
+
+  const daysPerWeek = state.onboardingProfile?.workoutDaysPerWeek ?? 5;
+  const isTrainingDayToday = isTrainingDay(new Date(), state.workoutTemplates, daysPerWeek);
 
   function updateSet(eid: string, idx: number, patch: Partial<{ w: number; r: number; done: boolean }>) {
     setState((s) => ({
@@ -395,7 +423,12 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             id: exercise.id,
             name: trimmedName,
             target: exercise.target,
-            sets: exercise.sets,
+            sets: buildSetsForExercise(
+              trimmedName,
+              trimmedLabel,
+              exercise.sets.length,
+              s.workoutHistory,
+            ),
           };
           if (trimmedLabel) next.label = trimmedLabel;
           return next;
@@ -418,14 +451,6 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     return `e${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   }
 
-  function blankSets() {
-    return [
-      { w: 0, r: 0, done: false },
-      { w: 0, r: 0, done: false },
-      { w: 0, r: 0, done: false },
-    ];
-  }
-
   function addExerciseToSession(name: string, label?: string, closeSheet = true) {
     const trimmedLabel = label?.trim();
     setState((s) => ({
@@ -439,7 +464,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             name,
             ...(trimmedLabel ? { label: trimmedLabel } : {}),
             target: "3 × 10",
-            sets: blankSets(),
+            sets: buildSetsForExercise(name, trimmedLabel, 3, s.workoutHistory),
           },
         ],
       },
@@ -466,7 +491,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             name: n,
             ...(lb ? { label: lb } : {}),
             target: "3 × 10",
-            sets: blankSets(),
+            sets: buildSetsForExercise(n, lb || undefined, 3, s.workoutHistory),
           },
         ],
       },
@@ -501,7 +526,9 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         workout: {
           ...s.workout,
           splitId: templateId,
-          exercises: cloneExercisesForNewSession(tpl.exercises),
+          exercises: cloneExercisesForNewSession(tpl.exercises).map((ex) =>
+            autofillExerciseSets(ex, s.workoutHistory),
+          ),
           startedAt: formatSessionClock(new Date()),
           sessionDayKey: localDateKey(new Date()),
           sessionPhase: "lifting",
@@ -633,12 +660,19 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
 
   if (phase === "idle") {
     const previewTpl = previewRoutineId ? state.workoutTemplates.find((t) => t.id === previewRoutineId) : null;
+    const idleCoachSubtitle = preWorkoutCoach?.brief.headline;
+    const previewCoachBrief =
+      previewTpl && preWorkoutCoach && previewTpl.id === preWorkoutCoach.todayTemplateId
+        ? preWorkoutCoach.brief
+        : undefined;
+
     return (
       <>
       <div key="workout-idle" className="screen page-transition">
         <ScreenHeader
           eyebrow="TRAINING"
           title="Start Workout"
+          subtitle={idleCoachSubtitle}
           right={<HistoryHeaderButton onClick={() => setShowHistoryPage(true)} />}
         />
 
@@ -819,6 +853,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
       {previewTpl ? (
         <RoutinePreviewSheet
           template={previewTpl}
+          coachBrief={previewCoachBrief}
           onClose={() => setPreviewRoutineId(null)}
           onEdit={() => {
             setPreviewRoutineId(null);
@@ -925,6 +960,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         activeRoutine={activeRoutine}
         mobilityItems={MOBILITY_ITEMS}
         warmupItems={WARMUP_ITEMS}
+        defaultExpanded={shouldDefaultExpandCoachCard(isTrainingDayToday, w.splitId, todayTemplateId)}
       />
 
       <WorkoutSessionStickyHeader

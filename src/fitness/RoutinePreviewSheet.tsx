@@ -1,17 +1,29 @@
 import type { MouseEvent } from "react";
 
 import type { WorkoutRoutineTemplate } from "./types";
+import {
+  COACH_BLUE_LABEL,
+  COACH_CARD_BG,
+  COACH_CARD_BORDER,
+  labelStyle,
+} from "./workoutUiTokens";
 
 const ACCENT_BLUE = "#0A84FF";
 
+export type CoachBriefContent = {
+  headline: string;
+  rationale?: string;
+};
+
 type RoutinePreviewSheetProps = {
   template: WorkoutRoutineTemplate;
+  coachBrief?: CoachBriefContent;
   onClose: () => void;
   onEdit: () => void;
   onStart: () => void;
 };
 
-export function RoutinePreviewSheet({ template, onClose, onEdit, onStart }: RoutinePreviewSheetProps) {
+export function RoutinePreviewSheet({ template, coachBrief, onClose, onEdit, onStart }: RoutinePreviewSheetProps) {
   const totalSets = template.exercises.reduce((a, e) => a + e.sets.length, 0);
 
   function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
@@ -83,9 +95,31 @@ export function RoutinePreviewSheet({ template, onClose, onEdit, onStart }: Rout
             </p>
           ) : null}
 
-          <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.38)", fontVariantNumeric: "tabular-nums", marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.38)", fontVariantNumeric: "tabular-nums", marginBottom: coachBrief ? 10 : 12 }}>
             {template.exercises.length} exercise{template.exercises.length === 1 ? "" : "s"} · {totalSets} set{totalSets === 1 ? "" : "s"}
           </div>
+
+          {coachBrief ? (
+            <div
+              style={{
+                marginBottom: 12,
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: `0.5px solid ${COACH_CARD_BORDER}`,
+                background: COACH_CARD_BG,
+              }}
+            >
+              <div style={{ ...labelStyle, color: COACH_BLUE_LABEL, marginBottom: 6 }}>Coach</div>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, lineHeight: 1.45, color: "rgba(255,255,255,0.85)" }}>
+                {coachBrief.headline}
+              </p>
+              {coachBrief.rationale ? (
+                <p style={{ margin: "6px 0 0", fontSize: 12, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.55)" }}>
+                  {coachBrief.rationale}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         <div style={{ flex: 1, overflowY: "auto", padding: "0 16px", WebkitOverflowScrolling: "touch" }}>
