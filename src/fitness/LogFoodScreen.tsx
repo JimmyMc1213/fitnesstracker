@@ -6,6 +6,7 @@ import {
   computeServingMultiplier,
   formatServingLabel,
   getBaseGrams,
+  loggedItemToPickerEdit,
   parseQuantityInput,
 } from "./foodMeasurements";
 import { FoodSearchError, searchFoods } from "./foodSearchService";
@@ -20,11 +21,23 @@ import {
   nutritionUserFoodFromLoggedItem,
   removeNutritionPresetFromState,
   removeNutritionUserFoodFromState,
+  updateNutritionLoggedItem,
   updateNutritionUserFoodInState,
 } from "./nutritionLog";
+import {
+  appendNutritionMeal,
+  formatMealServingLabel,
+  logNutritionMealToDay,
+  mealItemFromUserFood,
+  removeNutritionMeal,
+  sumMealMacros,
+  updateNutritionMeal,
+} from "./nutritionMeals";
 import { PrimaryButton } from "./shared";
 import { FullScreenOverlay } from "./motion";
-import type { AppState, NutritionLoggedItem, NutritionPreset, NutritionUserFood } from "./types";
+import type { AppState, NutritionLoggedItem, NutritionMeal, NutritionMealItem, NutritionPreset, NutritionUserFood } from "./types";
+
+type PickerContext = "log" | "mealIngredient";
 
 function parseMacro(raw: string): number {
   const n = parseFloat(raw);
@@ -43,6 +56,8 @@ type Props = {
   dateKey: string;
   state: AppState;
   setState: Dispatch<SetStateAction<AppState>>;
+  /** When set, opens directly into serving picker or manual edit for this logged row. */
+  editItem?: NutritionLoggedItem | null;
 };
 
 function tabLabel(t: LogFoodTab): string {
@@ -60,7 +75,7 @@ function tabLabel(t: LogFoodTab): string {
   }
 }
 
-export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props) {
+export function LogFoodScreen({ open, onClose, dateKey, state, setState, editItem }: Props) {
   const [tab, setTab] = useState<LogFoodTab>("all");
   const [search, setSearch] = useState("");
   const [manualOpen, setManualOpen] = useState(false);
@@ -80,11 +95,30 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
   const [draftF, setDraftF] = useState("");
   const [draftServing, setDraftServing] = useState("");
   const [editingUserFoodId, setEditingUserFoodId] = useState<string | null>(null);
+  const [editingLoggedItemId, setEditingLoggedItemId] = useState<string | null>(null);
+
+  const [mealEditorOpen, setMealEditorOpen] = useState(false);
+  const [editingMealId, setEditingMealId] = useState<string | null>(null);
+  const [mealDraftName, setMealDraftName] = useState("");
+  const [mealDraftItems, setMealDraftItems] = useState<NutritionMealItem[]>([]);
+  const [pickerContext, setPickerContext] = useState<PickerContext>("log");
+  const [mealAddSearchOpen, setMealAddSearchOpen] = useState(false);
+  const [mealAddMyFoodsOpen, setMealAddMyFoodsOpen] = useState(false);
+  const [mealIngredientManualOpen, setMealIngredientManualOpen] = useState(false);
+  const [mealIngredientName, setMealIngredientName] = useState("");
+  const [mealIngredientCal, setMealIngredientCal] = useState("");
+  const [mealIngredientP, setMealIngredientP] = useState("");
+  const [mealIngredientC, setMealIngredientC] = useState("");
+  const [mealIngredientF, setMealIngredientF] = useState("");
+  const [mealIngredientServing, setMealIngredientServing] = useState("");
 
   const userFoods = state.nutritionUserFoods ?? [];
+  const savedMeals = state.nutritionMeals ?? [];
   const favoritePresets = state.nutritionPresets ?? [];
 
   const recentlyLogged = useMemo(() => getRecentlyLoggedFoods(state.nutritionItemsByDay), [state.nutritionItemsByDay]);
+
+  const mealDraftMacros = useMemo(() => sumMealMacros(mealDraftItems), [mealDraftItems]);
 
   const pickerMeasurements = useMemo(
     () => (pickerFood ? buildMeasurements(pickerFood) : []),
@@ -112,10 +146,13 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
     return recentlyLogged.filter((it) => (it.name || "").toLowerCase().includes(q));
   }, [recentlyLogged, search]);
 
-  const searchActive = tab === "all" && search.trim().length >= MIN_SEARCH_LEN;
+  const searchActive =
+    (tab === "all" || (mealEditorOpen && mealAddSearchOpen)) && search.trim().length >= MIN_SEARCH_LEN;
 
   useEffect(() => {
-    if (!open || tab !== "all") return;
+    if (!open) return;
+    const mealSearch = mealEditorOpen && mealAddSearchOpen;
+    if (!mealSearch && tab !== "all") return;
     const q = search.trim();
     if (q.length < MIN_SEARCH_LEN) {
       setApiResults([]);
@@ -146,7 +183,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
     }, SEARCH_DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [open, tab, search]);
+  }, [open, tab, search, mealEditorOpen, mealAddSearchOpen]);
 
   useEffect(() => {
     if (!open) {
@@ -159,10 +196,92 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
       setSearchLoading(false);
       setSearchError(null);
       setEditingUserFoodId(null);
+      setEditingLoggedItemId(null);
+      resetMealEditor();
     }
   }, [open]);
 
+  function resetMealEditor() {
+    setMealEditorOpen(false);
+    setEditingMealId(null);
+    setMealDraftName("");
+    setMealDraftItems([]);
+    setPickerContext("log");
+    setMealAddSearchOpen(false);
+    setMealAddMyFoodsOpen(false);
+    setMealIngredientManualOpen(false);
+    resetMealIngredientDraft();
+  }
+
+  function resetMealIngredientDraft() {
+    setMealIngredientName("");
+    setMealIngredientCal("");
+    setMealIngredientP("");
+    setMealIngredientC("");
+    setMealIngredientF("");
+    setMealIngredientServing("");
+  }
+
+  useEffect(() => {
+    if (!open || !editItem) return;
+    openEditLoggedItem(editItem);
+  }, [open, editItem]);
+
+  function openEditLoggedItem(item: NutritionLoggedItem) {
+    setEditingLoggedItemId(item.id);
+    setTab("all");
+    setSearch("");
+    setEditingUserFoodId(null);
+
+    const pickerEdit = loggedItemToPickerEdit(item);
+    if (pickerEdit) {
+      setPickerFood(pickerEdit.food);
+      setPickerMeasurementId(pickerEdit.measurementId);
+      setPickerQuantity(pickerEdit.quantity);
+      setManualOpen(false);
+      resetManualDraft();
+      return;
+    }
+
+    setPickerFood(null);
+    setPickerMeasurementId("g");
+    setPickerQuantity("");
+    setDraftName(item.name.trim() || "Food");
+    setDraftCal(String(Math.round(Number(item.cal) || 0)));
+    setDraftP(String(Number(item.p) || 0));
+    setDraftC(String(Number(item.c) || 0));
+    setDraftF(String(Number(item.f) || 0));
+    setDraftServing(item.servingLabel?.trim() ?? "");
+    setManualOpen(true);
+  }
+
   function handleBack() {
+    if (editingLoggedItemId) {
+      onClose();
+      return;
+    }
+    if (mealEditorOpen) {
+      if (pickerFood && pickerContext === "mealIngredient") {
+        setPickerFood(null);
+        setPickerMeasurementId("g");
+        setPickerQuantity("");
+        return;
+      }
+      if (mealIngredientManualOpen) {
+        setMealIngredientManualOpen(false);
+        resetMealIngredientDraft();
+        return;
+      }
+      if (mealAddSearchOpen || mealAddMyFoodsOpen) {
+        setMealAddSearchOpen(false);
+        setMealAddMyFoodsOpen(false);
+        setSearch("");
+        setApiResults([]);
+        return;
+      }
+      resetMealEditor();
+      return;
+    }
     if (manualOpen) {
       setManualOpen(false);
       setEditingUserFoodId(null);
@@ -202,6 +321,23 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
       return;
     }
 
+    if (editingLoggedItemId) {
+      const existing = editItem && editItem.id === editingLoggedItemId ? editItem : null;
+      const row = buildNutritionLoggedItem(macros, name, {
+        id: editingLoggedItemId,
+        loggedAtMs: existing?.loggedAtMs ?? Date.now(),
+        ...(servingLabel ? { servingLabel } : {}),
+        ...(existing?.source?.trim() ? { source: existing.source.trim() } : {}),
+        ...(existing?.externalId?.trim() ? { externalId: existing.externalId.trim() } : {}),
+      });
+      setState((s) => updateNutritionLoggedItem(s, dateKey, editingLoggedItemId, row));
+      setEditingLoggedItemId(null);
+      setManualOpen(false);
+      resetManualDraft();
+      onClose();
+      return;
+    }
+
     const row = buildNutritionLoggedItem(macros, name, {
       loggedAtMs: Date.now(),
       ...(servingLabel ? { servingLabel } : {}),
@@ -222,6 +358,73 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
     setDraftC("");
     setDraftF("");
     setDraftServing("");
+  }
+
+  function openCreateMeal() {
+    resetMealEditor();
+    setMealEditorOpen(true);
+    setTab("myMeals");
+  }
+
+  function openEditMeal(meal: NutritionMeal) {
+    setEditingMealId(meal.id);
+    setMealDraftName(meal.name);
+    setMealDraftItems(meal.items.map((item) => ({ ...item })));
+    setMealEditorOpen(true);
+    setTab("myMeals");
+  }
+
+  function saveMealDraft() {
+    const name = mealDraftName.trim();
+    if (!name || mealDraftItems.length === 0) return;
+    if (editingMealId) {
+      setState((s) => updateNutritionMeal(s, editingMealId, { name, items: mealDraftItems }));
+    } else {
+      setState((s) =>
+        appendNutritionMeal(s, {
+          id: newNutritionItemId(),
+          name,
+          items: mealDraftItems,
+        }),
+      );
+    }
+    resetMealEditor();
+  }
+
+  function logSavedMeal(meal: NutritionMeal) {
+    setState((s) => logNutritionMealToDay(s, dateKey, meal));
+    onClose();
+  }
+
+  function deleteSavedMeal(meal: NutritionMeal) {
+    const ok = window.confirm(`Delete "${meal.name}" from My meals? Past logs will stay in your history.`);
+    if (!ok) return;
+    setState((s) => removeNutritionMeal(s, meal.id));
+  }
+
+  function addMealIngredientFromManual() {
+    const name = mealIngredientName.trim() || "Food";
+    const item: NutritionMealItem = {
+      id: newNutritionItemId(),
+      name,
+      cal: parseMacro(mealIngredientCal),
+      p: parseMacro(mealIngredientP),
+      c: parseMacro(mealIngredientC),
+      f: parseMacro(mealIngredientF),
+      ...(mealIngredientServing.trim() ? { servingLabel: mealIngredientServing.trim() } : {}),
+    };
+    setMealDraftItems((prev) => [...prev, item]);
+    setMealIngredientManualOpen(false);
+    resetMealIngredientDraft();
+  }
+
+  function addMealIngredientFromUserFood(food: NutritionUserFood) {
+    setMealDraftItems((prev) => [...prev, mealItemFromUserFood(food)]);
+    setMealAddMyFoodsOpen(false);
+  }
+
+  function removeMealDraftItem(itemId: string) {
+    setMealDraftItems((prev) => prev.filter((item) => item.id !== itemId));
   }
 
   function openEditUserFood(food: NutritionUserFood) {
@@ -266,9 +469,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
     onClose();
   }
 
-  function openPicker(food: FoodSearchResult) {
+  function openPicker(food: FoodSearchResult, context: PickerContext = "log") {
     const measurements = buildMeasurements(food);
     const defaultMeasurement = measurements.find((m) => m.id === "g") ?? measurements[0] ?? null;
+    setPickerContext(context);
     setPickerFood(food);
     setPickerMeasurementId(defaultMeasurement?.id ?? "g");
     setPickerQuantity(defaultMeasurement ? String(defaultMeasurement.defaultQuantity) : "100");
@@ -282,9 +486,51 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
   function logPickerAndClose() {
     if (!pickerFood || !pickerMeasurement) return;
     const macros = scaleMacros(pickerFood, pickerMultiplier);
+    const servingLabel = formatServingLabel(pickerMeasurement, pickerQuantityNum);
+
+    if (pickerContext === "mealIngredient") {
+      setMealDraftItems((prev) => [
+        ...prev,
+        {
+          id: newNutritionItemId(),
+          name: pickerFood.name,
+          ...macros,
+          servingLabel,
+          source: pickerFood.source,
+          externalId: pickerFood.externalId,
+        },
+      ]);
+      setPickerFood(null);
+      setPickerMeasurementId("g");
+      setPickerQuantity("");
+      setPickerContext("log");
+      setMealAddSearchOpen(false);
+      setSearch("");
+      setApiResults([]);
+      return;
+    }
+
+    if (editingLoggedItemId) {
+      const existing = editItem && editItem.id === editingLoggedItemId ? editItem : null;
+      const row = buildNutritionLoggedItem(macros, pickerFood.name, {
+        id: editingLoggedItemId,
+        loggedAtMs: existing?.loggedAtMs ?? Date.now(),
+        servingLabel,
+        source: pickerFood.source,
+        externalId: pickerFood.externalId,
+      });
+      setState((s) => updateNutritionLoggedItem(s, dateKey, editingLoggedItemId, row));
+      setEditingLoggedItemId(null);
+      setPickerFood(null);
+      setPickerMeasurementId("g");
+      setPickerQuantity("");
+      onClose();
+      return;
+    }
+
     const row = buildNutritionLoggedItem(macros, pickerFood.name, {
       loggedAtMs: Date.now(),
-      servingLabel: formatServingLabel(pickerMeasurement, pickerQuantityNum),
+      servingLabel,
       source: pickerFood.source,
       externalId: pickerFood.externalId,
     });
@@ -406,7 +652,17 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
           type="button"
           className="tap"
           onClick={handleBack}
-          aria-label={manualOpen || pickerFood ? "Back" : "Close log food"}
+          aria-label={
+            pickerFood
+              ? "Back"
+              : mealEditorOpen
+                ? "Back from meal editor"
+                : manualOpen
+                  ? "Back"
+                  : editingLoggedItemId
+                    ? "Close edit food"
+                    : "Close log food"
+          }
           style={{
             width: 40,
             height: 40,
@@ -424,103 +680,23 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
           ←
         </button>
         <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff" }}>
-          {pickerFood ? "Choose serving" : "Log Food"}
+          {pickerFood
+            ? pickerContext === "mealIngredient"
+              ? "Add ingredient"
+              : editingLoggedItemId
+                ? "Edit serving"
+                : "Choose serving"
+            : mealEditorOpen
+              ? editingMealId
+                ? "Edit meal"
+                : "Create meal"
+              : editingLoggedItemId
+                ? "Edit food"
+                : "Log Food"}
         </h1>
       </div>
 
-      {manualOpen ? (
-        <>
-          <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px 100px", WebkitOverflowScrolling: "touch" }}>
-            <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
-              <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                Name
-                <input
-                  placeholder="e.g. Greek yogurt"
-                  aria-label="Food name"
-                  value={draftName}
-                  onChange={(e) => setDraftName(e.target.value)}
-                  className="input"
-                  style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
-                />
-              </label>
-              <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                Calories (kcal)
-                <input
-                  placeholder="0"
-                  aria-label="Calories"
-                  value={draftCal}
-                  onChange={(e) => setDraftCal(e.target.value)}
-                  inputMode="decimal"
-                  className="input"
-                  style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
-                />
-              </label>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                  Protein (g)
-                  <input
-                    placeholder="0"
-                    aria-label="Protein grams"
-                    value={draftP}
-                    onChange={(e) => setDraftP(e.target.value)}
-                    inputMode="decimal"
-                    className="input"
-                    style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
-                  />
-                </label>
-                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                  Carbs (g)
-                  <input
-                    placeholder="0"
-                    aria-label="Carbs grams"
-                    value={draftC}
-                    onChange={(e) => setDraftC(e.target.value)}
-                    inputMode="decimal"
-                    className="input"
-                    style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
-                  />
-                </label>
-                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                  Fat (g)
-                  <input
-                    placeholder="0"
-                    aria-label="Fat grams"
-                    value={draftF}
-                    onChange={(e) => setDraftF(e.target.value)}
-                    inputMode="decimal"
-                    className="input"
-                    style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
-                  />
-                </label>
-              </div>
-              <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                Serving (optional)
-                <input
-                  placeholder="e.g. 1 cup"
-                  aria-label="Serving label"
-                  value={draftServing}
-                  onChange={(e) => setDraftServing(e.target.value)}
-                  className="input"
-                  style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
-                />
-              </label>
-            </div>
-          </div>
-          <div
-            style={{
-              flexShrink: 0,
-              padding: "12px 18px calc(14px + env(safe-area-inset-bottom))",
-              borderTop: "0.5px solid rgba(255,255,255,0.08)",
-              background: "rgba(7,8,12,0.94)",
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            <PrimaryButton block onClick={logManualAndClose} style={{ fontWeight: 700 }}>
-              {editingUserFoodId ? "Save food" : "Log food"}
-            </PrimaryButton>
-          </div>
-        </>
-      ) : pickerFood ? (
+      {pickerFood ? (
         <>
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px 100px", WebkitOverflowScrolling: "touch" }}>
             <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16, marginBottom: 12 }}>
@@ -695,8 +871,13 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
               disabled={!pickerMeasurement || !parseQuantityInput(pickerQuantity)}
               style={{ fontWeight: 700 }}
             >
-              Log food
+              {pickerContext === "mealIngredient"
+                ? "Add to meal"
+                : editingLoggedItemId
+                  ? "Save changes"
+                  : "Log food"}
             </PrimaryButton>
+            {pickerContext !== "mealIngredient" && !editingLoggedItemId ? (
             <button
               type="button"
               className="tap"
@@ -715,6 +896,287 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
             >
               Save to My foods
             </button>
+            ) : null}
+          </div>
+        </>
+      ) : mealEditorOpen ? (
+        <>
+          <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px 100px", WebkitOverflowScrolling: "touch" }}>
+            {mealIngredientManualOpen ? (
+              <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
+                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  Ingredient name
+                  <input
+                    placeholder="e.g. Greek yogurt"
+                    aria-label="Ingredient name"
+                    value={mealIngredientName}
+                    onChange={(e) => setMealIngredientName(e.target.value)}
+                    className="input"
+                    style={{ marginTop: 8 }}
+                  />
+                </label>
+                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  Calories (kcal)
+                  <input
+                    placeholder="0"
+                    aria-label="Ingredient calories"
+                    value={mealIngredientCal}
+                    onChange={(e) => setMealIngredientCal(e.target.value)}
+                    inputMode="decimal"
+                    className="input"
+                    style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
+                  />
+                </label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                  {(
+                    [
+                      { label: "Protein (g)", key: "p", value: mealIngredientP, set: setMealIngredientP },
+                      { label: "Carbs (g)", key: "c", value: mealIngredientC, set: setMealIngredientC },
+                      { label: "Fat (g)", key: "f", value: mealIngredientF, set: setMealIngredientF },
+                    ] as const
+                  ).map((field) => (
+                    <label key={field.key} style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                      {field.label}
+                      <input
+                        placeholder="0"
+                        aria-label={field.label}
+                        value={field.value}
+                        onChange={(e) => field.set(e.target.value)}
+                        inputMode="decimal"
+                        className="input"
+                        style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
+                      />
+                    </label>
+                  ))}
+                </div>
+                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  Serving (optional)
+                  <input
+                    placeholder="e.g. 1 cup"
+                    aria-label="Ingredient serving"
+                    value={mealIngredientServing}
+                    onChange={(e) => setMealIngredientServing(e.target.value)}
+                    className="input"
+                    style={{ marginTop: 8 }}
+                  />
+                </label>
+              </div>
+            ) : mealAddSearchOpen ? (
+              <>
+                <input
+                  aria-label="Search foods for meal"
+                  placeholder="Search foods to add"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="input"
+                  style={{ width: "100%", marginBottom: 16, fontSize: 15, borderRadius: 12 }}
+                />
+                {searchActive ? (
+                  searchLoading ? (
+                    <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.42)" }}>Searching…</p>
+                  ) : searchError ? (
+                    <p style={{ margin: 0, fontSize: 14, color: "rgba(255,180,180,0.9)" }}>{searchError}</p>
+                  ) : apiResults.length === 0 ? (
+                    <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.42)" }}>No results. Try another search.</p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                      {apiResults.map((food) => (
+                        <button
+                          key={food.id}
+                          type="button"
+                          className="tap between"
+                          style={foodRowStyle}
+                          onClick={() => openPicker(food, "mealIngredient")}
+                        >
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{food.name}</div>
+                            <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontVariantNumeric: "tabular-nums" }}>
+                              {Math.round(Number(food.cal) || 0)} kcal · {food.defaultServing}
+                            </div>
+                          </div>
+                          <span style={{ flexShrink: 0, fontSize: 18, color: "rgba(255,255,255,0.35)" }}>›</span>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.42)" }}>Type at least 2 characters to search.</p>
+                )}
+              </>
+            ) : mealAddMyFoodsOpen ? (
+              userFoods.length === 0 ? (
+                <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.42)" }}>No saved foods yet. Add foods in My foods first.</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  {userFoods.map((food) => (
+                    <button
+                      key={food.id}
+                      type="button"
+                      className="tap"
+                      style={foodRowStyle}
+                      onClick={() => addMealIngredientFromUserFood(food)}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{food.name}</div>
+                        <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontVariantNumeric: "tabular-nums" }}>
+                          {Math.round(Number(food.cal) || 0)} kcal · {food.servingLabel?.trim() || DEFAULT_SERVING}
+                        </div>
+                      </div>
+                      <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 600, color: "var(--pos, #4ade80)" }}>Add</span>
+                    </button>
+                  ))}
+                </div>
+              )
+            ) : (
+              <>
+                <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14, marginBottom: 12 }}>
+                  <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    Meal name
+                    <input
+                      placeholder="e.g. Meal prep lunch"
+                      aria-label="Meal name"
+                      value={mealDraftName}
+                      onChange={(e) => setMealDraftName(e.target.value)}
+                      className="input"
+                      style={{ marginTop: 8 }}
+                    />
+                  </label>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontVariantNumeric: "tabular-nums" }}>
+                    {Math.round(mealDraftMacros.cal)} kcal · {Math.round(mealDraftMacros.p)}g protein · {mealDraftItems.length} ingredient{mealDraftItems.length === 1 ? "" : "s"}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 10 }}>
+                  Ingredients
+                </div>
+                {mealDraftItems.length === 0 ? (
+                  <p style={{ margin: "0 0 16px", fontSize: 14, color: "rgba(255,255,255,0.42)" }}>Add at least one ingredient below.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 0, marginBottom: 16 }}>
+                    {mealDraftItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="between"
+                        style={{ alignItems: "center", gap: 12, padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{item.name}</div>
+                          <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontVariantNumeric: "tabular-nums" }}>
+                            {Math.round(Number(item.cal) || 0)} kcal · {item.servingLabel?.trim() || DEFAULT_SERVING}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="tap"
+                          aria-label={`Remove ${item.name}`}
+                          onClick={() => removeMealDraftItem(item.id)}
+                          style={{ flexShrink: 0, fontSize: 13, fontWeight: 600, color: "rgba(255,160,160,0.85)", background: "none", border: "none", padding: "8px" }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <button type="button" className="tap" onClick={() => { setMealAddSearchOpen(true); setMealAddMyFoodsOpen(false); setMealIngredientManualOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid rgba(255,255,255,0.14)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
+                    Add from search
+                  </button>
+                  <button type="button" className="tap" onClick={() => { setMealAddMyFoodsOpen(true); setMealAddSearchOpen(false); setMealIngredientManualOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid rgba(255,255,255,0.14)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
+                    Add from My foods
+                  </button>
+                  <button type="button" className="tap" onClick={() => { setMealIngredientManualOpen(true); setMealAddSearchOpen(false); setMealAddMyFoodsOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid rgba(255,255,255,0.14)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
+                    Add manually
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+          <div
+            style={{
+              flexShrink: 0,
+              padding: "12px 18px calc(14px + env(safe-area-inset-bottom))",
+              borderTop: "0.5px solid rgba(255,255,255,0.08)",
+              background: "rgba(7,8,12,0.94)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            {mealIngredientManualOpen ? (
+              <PrimaryButton block onClick={addMealIngredientFromManual} style={{ fontWeight: 700 }}>
+                Add ingredient
+              </PrimaryButton>
+            ) : mealAddSearchOpen || mealAddMyFoodsOpen ? null : (
+              <PrimaryButton
+                block
+                onClick={saveMealDraft}
+                disabled={!mealDraftName.trim() || mealDraftItems.length === 0}
+                style={{ fontWeight: 700 }}
+              >
+                {editingMealId ? "Save meal" : "Create meal"}
+              </PrimaryButton>
+            )}
+          </div>
+        </>
+      ) : manualOpen ? (
+        <>
+          <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px 100px", WebkitOverflowScrolling: "touch" }}>
+            <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
+              <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                Name
+                <input
+                  placeholder="e.g. Greek yogurt"
+                  aria-label="Food name"
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  className="input"
+                  style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
+                />
+              </label>
+              <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                Calories (kcal)
+                <input
+                  placeholder="0"
+                  aria-label="Calories"
+                  value={draftCal}
+                  onChange={(e) => setDraftCal(e.target.value)}
+                  inputMode="decimal"
+                  className="input"
+                  style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
+                />
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  Protein (g)
+                  <input placeholder="0" aria-label="Protein grams" value={draftP} onChange={(e) => setDraftP(e.target.value)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
+                </label>
+                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  Carbs (g)
+                  <input placeholder="0" aria-label="Carbs grams" value={draftC} onChange={(e) => setDraftC(e.target.value)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
+                </label>
+                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  Fat (g)
+                  <input placeholder="0" aria-label="Fat grams" value={draftF} onChange={(e) => setDraftF(e.target.value)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
+                </label>
+              </div>
+              <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                Serving (optional)
+                <input placeholder="e.g. 1 cup" aria-label="Serving label" value={draftServing} onChange={(e) => setDraftServing(e.target.value)} className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
+              </label>
+            </div>
+          </div>
+          <div
+            style={{
+              flexShrink: 0,
+              padding: "12px 18px calc(14px + env(safe-area-inset-bottom))",
+              borderTop: "0.5px solid rgba(255,255,255,0.08)",
+              background: "rgba(7,8,12,0.94)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <PrimaryButton block onClick={logManualAndClose} style={{ fontWeight: 700 }}>
+              {editingUserFoodId ? "Save food" : editingLoggedItemId ? "Save changes" : "Log food"}
+            </PrimaryButton>
           </div>
         </>
       ) : (
@@ -983,19 +1445,67 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
                 )}
               </>
             ) : tab === "myMeals" ? (
-              <div
-                className="card"
-                style={{
-                  padding: "28px 18px",
-                  textAlign: "center",
-                  color: "rgba(255,255,255,0.45)",
-                  fontSize: 14,
-                  lineHeight: 1.55,
-                  fontWeight: 500,
-                }}
-              >
-                My meals (meal prep) coming in a future update.
-              </div>
+              <>
+                {savedMeals.length === 0 ? (
+                  <p style={{ margin: "8px 0 0", fontSize: 14, color: "rgba(255,255,255,0.42)", fontWeight: 400, lineHeight: 1.5 }}>
+                    Save meals you eat often — chicken and rice, overnight oats, whatever you prep. Log the whole meal in one tap instead of each ingredient.
+                  </p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                    {savedMeals.map((meal) => {
+                      const mealMacros = sumMealMacros(meal.items);
+                      const servingLabel = formatMealServingLabel(meal.items);
+                      return (
+                        <div
+                          key={meal.id}
+                          className="between"
+                          style={{
+                            alignItems: "center",
+                            gap: 12,
+                            padding: "14px 0",
+                            borderBottom: "1px solid rgba(255,255,255,0.06)",
+                          }}
+                        >
+                          <button
+                            type="button"
+                            className="tap"
+                            style={{ ...foodRowStyle, flex: 1, padding: 0, borderBottom: "none" }}
+                            onClick={() => logSavedMeal(meal)}
+                          >
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>
+                                {meal.name}
+                              </div>
+                              <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                                {Math.round(mealMacros.cal)} kcal · {Math.round(mealMacros.p)}g protein
+                                {servingLabel ? ` · ${servingLabel}` : ""}
+                              </div>
+                            </div>
+                          </button>
+                          <button
+                            type="button"
+                            className="tap"
+                            aria-label={`Edit ${meal.name}`}
+                            onClick={() => openEditMeal(meal)}
+                            style={{ flexShrink: 0, fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.55)", background: "none", border: "none", padding: "8px" }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="tap"
+                            aria-label={`Delete ${meal.name}`}
+                            onClick={() => deleteSavedMeal(meal)}
+                            style={{ flexShrink: 0, fontSize: 13, fontWeight: 600, color: "rgba(255,160,160,0.85)", background: "none", border: "none", padding: "8px" }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             ) : (
               <div
                 className="card"
@@ -1022,8 +1532,12 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
               backdropFilter: "blur(8px)",
             }}
           >
-            <PrimaryButton block onClick={() => setManualOpen(true)} style={{ fontWeight: 700 }}>
-              Manual Add
+            <PrimaryButton
+              block
+              onClick={() => (tab === "myMeals" ? openCreateMeal() : setManualOpen(true))}
+              style={{ fontWeight: 700 }}
+            >
+              {tab === "myMeals" ? "Create meal" : "Manual Add"}
             </PrimaryButton>
           </div>
         </>
