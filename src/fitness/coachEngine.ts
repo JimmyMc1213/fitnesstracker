@@ -12,6 +12,7 @@ import {
 } from "./dailyStreak";
 import { estimatedSessionLabel } from "./estimateSessionDuration";
 import { homePlanSubline } from "./homeGreeting";
+import { buildMacroPaceSnapshot } from "./macroPace";
 import { isTrainingDay } from "./notificationScheduler";
 import { effectiveNutritionTotalsForDateKey } from "./nutritionTotals";
 import {
@@ -291,10 +292,11 @@ function buildCandidateTasks(ctx: CoachContext): CoachTask[] {
   }
 
   if (ctx.proteinGap > 0 && !ctx.nutritionGoalHit) {
+    const pace = buildMacroPaceSnapshot(ctx);
     tasks.push({
       kind: "hit_protein",
       label: `Hit ${state.nutritionTargets.p}g protein (${Math.round(ctx.proteinGap)}g left)`,
-      rationale: "Protein anchors recovery and keeps the streak eligible today.",
+      rationale: pace.hint,
       ctaLabel: "Log fuel",
       completed: false,
       priority: 2,
