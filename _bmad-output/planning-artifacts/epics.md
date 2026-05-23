@@ -16,11 +16,13 @@
 
 **Sprint 3 (done):** Coaching orchestration — `coachEngine`, Today's Coach Plan, in-session coach, fuel quick-log, weigh-in reactions, notification copy, weekly review narrative. Vitest harness (69+ tests).
 
-**Sprint 4 (active):** UI polish & IA from screenshot audit — dev copy scrub, design-system buttons, Home density, habits folded into Home, Progress empty states, Settings IA. **Nutrition tab rebuild explicitly out of scope.**
+**Sprint 4 (done):** UI polish & IA from screenshot audit — dev copy scrub, design-system buttons, Home density, habits folded into Home, Progress empty states, Settings IA.
+
+**Sprint 5 (planned):** Quality foundation & nutrition OS — Playwright E2E smoke, `coachEngine` refactor, Nutrition tab rebuild (deferred from Sprint 4), Home Fuel strip alignment, week-boundary rules.
 
 **Prerequisite (done):** [FTI-15](https://linear.app/ftiness-tracker/issue/FTI-15/save-workouts-and-workout-history) — `story_key: fti-15-save-workouts-and-workout-history`
 
-**Deferred (backlog):** [FTI-13](https://linear.app/ftiness-tracker/issue/FTI-13/ai-coach-note-per-exercise-on-workout-start) — AI session coaching; Sprint 5+ after UI polish + nutrition rebuild decision.
+**Deferred (backlog):** [FTI-13](https://linear.app/ftiness-tracker/issue/FTI-13/ai-coach-note-per-exercise-on-workout-start) — AI session coaching; Sprint 6 product decision (Epic 3 gate met).
 
 ---
 
@@ -524,3 +526,123 @@ As a user, I want grouped Settings sections and confident notification copy.
 
 - story_key: fti-46-settings-section-ia-notification-copy
 - depends_on: FTI-44 (habits tab copy references)
+
+---
+
+## Epic 5: FTI Sprint 5 — quality foundation & nutrition OS
+
+**Epic key (sprint-status):** `epic-fti-sprint-5`
+
+**Goal:** Close Sprint 3 retro debt (E2E coverage, `coachEngine` cohesion) and ship the Nutrition tab rebuild deferred from Sprint 4 — making fuel logging a coached first-class surface aligned with Home quick-log.
+
+**Sprint execution order:** FTI-47 → 48 → 49 → 50 → 51 (Linear: FTI-41 → 42 → 43 → 44 → 45)
+
+**Scope locks:** No FTI-13 LLM integration; no native wrapper; no `ScreenWorkout.tsx` full decomposition; no new Home cards beyond Fuel strip alignment.
+
+---
+
+### Story 5.1: Playwright E2E harness (FTI-47)
+
+As a developer, I want Playwright smoke tests for coach navigation flows, so Home → Nutrition and fuel quick-log regressions are caught automatically.
+
+**Acceptance criteria:**
+
+- Playwright initialized with `npm run test:e2e` script
+- Smoke: Home coach task navigates to Nutrition tab
+- Smoke: Home fuel quick-log sheet opens and logs a preset
+- Tests run headless in CI-compatible mode; dev server bootstrapped in config
+- `npm run build` + `npm test` still pass (Vitest unchanged)
+
+**Dev Notes:**
+
+- story_key: fti-47-playwright-e2e-harness-coach-navigation-smoke
+- linear: FTI-41
+- linear_url: https://linear.app/ftiness-tracker/issue/FTI-41/playwright-e2e-harness-coach-navigation-smoke
+- MoSCoW: Must — sprint opener (mirrors FTI-40 pattern)
+- blocks: FTI-49, FTI-50 (Linear FTI-43, FTI-44)
+
+---
+
+### Story 5.2: coachEngine refactor (FTI-48)
+
+As a developer, I want shared date/training helpers extracted from `coachEngine.ts`, so the notification scheduler cycle is broken before further coach expansion.
+
+**Acceptance criteria:**
+
+- Extract `isTrainingDay` and week-boundary helpers to a pure module (e.g. `trainingCalendar.ts`)
+- Break circular import between `coachEngine.ts` and `notificationScheduler.ts`
+- All 76+ existing Vitest tests pass with zero behavior change
+- No new UI surfaces
+
+**Dev Notes:**
+
+- story_key: fti-48-coachengine-refactor-shared-date-training-helpers
+- linear: FTI-42
+- linear_url: https://linear.app/ftiness-tracker/issue/FTI-42/coachengine-refactor-shared-datetraining-helpers
+- MoSCoW: Must
+- depends_on: FTI-47 (Linear FTI-41)
+- blocks: FTI-49 (Linear FTI-43)
+
+---
+
+### Story 5.3: Nutrition tab rebuild (FTI-49)
+
+As a user, I want a polished Nutrition tab with hero macro rings and streamlined today logging, so fuel tracking feels as coached as workouts.
+
+**Acceptance criteria:**
+
+- `ScreenNutrition.tsx` rebuilt: animated MacroRing hero at top (reuse FTI-31 patterns)
+- Today log list with quick-add presets; Saved tab preserved
+- Water tracker card integrated below rings
+- Lime `PrimaryButton` for add/save actions; dark theme consistent with Sprint 4
+- Coach macro-pace rationale visible when applicable (from `macroPace.ts`)
+
+**Dev Notes:**
+
+- story_key: fti-49-nutrition-tab-rebuild-hero-rings-coached-today-log
+- linear: FTI-43
+- linear_url: https://linear.app/ftiness-tracker/issue/FTI-43/nutrition-tab-rebuild-hero-rings-coached-today-log
+- MoSCoW: Must — deferred from Sprint 4 party-mode
+- depends_on: FTI-48 (Linear FTI-42)
+
+---
+
+### Story 5.4: Home Fuel strip alignment (FTI-50)
+
+As a user, I want Home fuel quick-log to match the rebuilt Nutrition tab patterns, so logging from Home and Nutrition feels consistent.
+
+**Acceptance criteria:**
+
+- `HomeFuelStrip` + `HomeFuelQuickLogSheet` visual/interaction alignment with FTI-49 Nutrition patterns
+- Preset list, macro pace copy, and ring progress indicators consistent
+- No duplicate logging paths or persist schema changes
+- Playwright smoke from FTI-47 still passes
+
+**Dev Notes:**
+
+- story_key: fti-50-home-fuel-strip-alignment-post-nutrition-rebuild
+- linear: FTI-44
+- linear_url: https://linear.app/ftiness-tracker/issue/FTI-44/home-fuel-strip-alignment-post-nutrition-rebuild
+- MoSCoW: Should
+- depends_on: FTI-49 (Linear FTI-43)
+
+---
+
+### Story 5.5: Week boundary rules (FTI-51)
+
+As a user, I want streak and weekly summary to use documented, consistent week boundaries, so progress metrics don't contradict each other.
+
+**Acceptance criteria:**
+
+- Document week-start rules (streak vs weekly summary) in `_bmad-output/project-context.md` or architecture doc
+- Fix any Sun/Mon inconsistency between `dailyStreak.ts` and `weeklySummary.ts`
+- Vitest for extracted boundary helpers
+- No UI redesign
+
+**Dev Notes:**
+
+- story_key: fti-51-week-boundary-rules-streak-vs-weekly-summary
+- linear: FTI-45
+- linear_url: https://linear.app/ftiness-tracker/issue/FTI-45/week-boundary-rules-streak-vs-weekly-summary
+- MoSCoW: Could — Sprint 3 retro carryover
+- depends_on: FTI-48 (Linear FTI-42)

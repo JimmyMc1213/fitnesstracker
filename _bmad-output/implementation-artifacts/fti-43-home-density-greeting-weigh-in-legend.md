@@ -1,6 +1,6 @@
 # Story 4.3: Home density — greeting, weigh-in inline, streak legend (FTI-43)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

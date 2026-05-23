@@ -1,6 +1,6 @@
 # Story 4.5: Progress polish — goal-aware delta, empty states (FTI-45)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

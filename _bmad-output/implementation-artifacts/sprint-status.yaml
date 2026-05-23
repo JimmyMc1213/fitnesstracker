@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (Sprint 4 planned — UI polish & IA from screenshot audit)
+# last_updated: 2026-05-23 (Sprint 5 planned — quality foundation & nutrition OS)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -10,15 +10,17 @@
 # Fitcoach is the all-in-one fitness app that coaches you through every workout,
 # meal, and check-in — so you never need another app to hit your goals.
 #
-# Sprint 4 order (execute in this sequence):
-#   FTI-41 → 42 → 43 → 44 → 45 → 46
+# Sprint 5 order (execute in this sequence):
+#   BMad: FTI-47 → 48 → 49 → 50 → 51
+#   Linear: FTI-41 → 42 → 43 → 44 → 45
+#   (Sprint 4 stories FTI-41–46 exist in BMad only; Linear IDs start fresh at FTI-41)
 #
-# SPRINT 4 SCOPE LOCKS (2026-05-23 party-mode):
-#   - Nutrition tab rebuild: OUT OF SCOPE (deferred)
-#   - Home Fuel strip / quick-log: keep as-is until nutrition rebuild
-#   - FTI-13 AI coach: Sprint 5+ candidate
-#   - Habits tab removed from nav; daily habits move to Home card
-#   - Primary CTA = lime green (--pos / #4ade80); no white blobs; no blue primaries
+# SPRINT 5 SCOPE LOCKS (2026-05-23 sprint planning):
+#   - FTI-13 AI coach (LLM): OUT OF SCOPE — gate met; Sprint 6 product decision
+#   - Native App Store wrapper: OUT OF SCOPE
+#   - ScreenWorkout.tsx full decomposition: OUT OF SCOPE
+#   - No new Home cards beyond Fuel strip alignment (FTI-50)
+#   - Primary CTA = lime green (--pos / #4ade80); design system from Sprint 4 carries forward
 #
 # STATUS DEFINITIONS:
 # ==================
@@ -42,20 +44,21 @@
 # ===============
 # - Linear is the product backlog; BMad story files live under story_location
 # - Create next story with bmad-create-story after previous story reaches done
-# - FTI-13 (AI coach notes) deferred to Sprint 5+ — after UI polish + nutrition rebuild decision
+# - FTI-13 (AI coach notes) deferred to Sprint 6 — after nutrition rebuild + E2E safety net
 #
 # ENVIRONMENT (dev / swarm test phases):
 # =====================================
 # - Copy .env.example → .env at project root; fill Supabase URL + client key (publishable or anon JWT).
 # - Vite embeds VITE_* at build time (vite.config.ts define); file must be saved on disk.
-# - Swarm gate: npm run build; npm test
+# - Swarm gate: npm run build; npm test; npm run test:e2e (after FTI-47)
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next retro: epic-fti-sprint-4-retrospective → optional (after epic done)
+# - bmad-swarm next retro: epic-fti-sprint-4-retrospective → optional (before Sprint 5 kickoff)
+# - Sprint 5 opener: FTI-47 (Playwright) mirrors FTI-40 Vitest-first pattern
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # Sprint 4 planned
+last_updated: 2026-05-23  # Sprint 5 planned
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -107,7 +110,7 @@ development_status:
 
   epic-fti-sprint-3-retrospective: done
 
-  # --- Sprint 4 (planned) — UI polish & IA (screenshot audit) ---
+  # --- Sprint 4 (complete) — UI polish & IA (screenshot audit) ---
   epic-fti-sprint-4: done
 
   fti-41-ui-bug-sweep-dev-copy-token-fix: done
@@ -118,3 +121,14 @@ development_status:
   fti-46-settings-section-ia-notification-copy: done
 
   epic-fti-sprint-4-retrospective: optional
+
+  # --- Sprint 5 (planned) — quality foundation & nutrition OS ---
+  epic-fti-sprint-5: backlog
+
+  fti-47-playwright-e2e-harness-coach-navigation-smoke: ready-for-dev
+  fti-48-coachengine-refactor-shared-date-training-helpers: backlog
+  fti-49-nutrition-tab-rebuild-hero-rings-coached-today-log: backlog
+  fti-50-home-fuel-strip-alignment-post-nutrition-rebuild: backlog
+  fti-51-week-boundary-rules-streak-vs-weekly-summary: backlog
+
+  epic-fti-sprint-5-retrospective: optional

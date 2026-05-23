@@ -1,6 +1,6 @@
 # Story 4.6: Settings section IA + notification copy (FTI-46)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

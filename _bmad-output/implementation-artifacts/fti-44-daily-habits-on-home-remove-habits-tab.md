@@ -1,6 +1,6 @@
 # Story 4.4: Daily habits on Home — remove Habits tab (FTI-44)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

@@ -1,6 +1,6 @@
 # Story 4.2: Design system — primary & secondary buttons (FTI-42)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
