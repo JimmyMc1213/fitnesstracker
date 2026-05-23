@@ -1,6 +1,6 @@
 /**
  * AppState fixtures for notificationScheduler tests and FTI-34 coachEngine snapshot tests.
- * Built via buildAppStateFromPersisted — no React or DOM imports.
+ * Built via buildAppStateFromPersisted, no React or DOM imports.
  */
 import { buildAppStateFromPersisted } from "../buildAppState";
 import { DEFAULT_ONBOARDING_PROFILE } from "../onboardingProfile";

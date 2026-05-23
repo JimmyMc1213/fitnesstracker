@@ -309,7 +309,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
               Nightly stretching · Arizona 8pm+
             </div>
             <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", fontWeight: 400 }}>
-              Open your routine for the full checklist — hips, hamstrings, spine, activation. Mark complete when you finish.
+              Open your routine for the full checklist, hips, hamstrings, spine, activation. Mark complete when you finish.
             </p>
             <PrimaryButton
               block

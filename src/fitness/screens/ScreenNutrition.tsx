@@ -293,7 +293,7 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
 
             {presets.length === 0 ? (
               <div className="card" style={{ padding: "22px 18px", fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
-                Nothing saved yet. Add items on Today — they&apos;ll show up here automatically.
+                Nothing saved yet. Add items on Today, they&apos;ll show up here automatically.
               </div>
             ) : (
               <div className="card" style={{ padding: "14px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -481,7 +481,7 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
                 <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Protein (g)
                   <input
-                    placeholder="—"
+                    placeholder="-"
                     aria-label="Item protein grams"
                     value={draftP}
                     onChange={(e) => setDraftP(e.target.value)}
@@ -493,7 +493,7 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
                 <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Carbs (g)
                   <input
-                    placeholder="—"
+                    placeholder="-"
                     aria-label="Item carbs grams"
                     value={draftC}
                     onChange={(e) => setDraftC(e.target.value)}
@@ -505,7 +505,7 @@ export function ScreenNutrition({ state, setState }: ScreenProps) {
                 <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Fat (g)
                   <input
-                    placeholder="—"
+                    placeholder="-"
                     aria-label="Item fat grams"
                     value={draftF}
                     onChange={(e) => setDraftF(e.target.value)}

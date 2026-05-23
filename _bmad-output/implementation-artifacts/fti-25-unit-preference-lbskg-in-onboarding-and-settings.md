@@ -31,7 +31,7 @@ so that all weight and measurement values match my preference.
 ## Dev Notes
 
 - Canonical: `weightLbs`, `heightIn`, workout set `w` in lbs. Display-only conversion.
-- Defaults: lbs + ft_in. No test runner — gate is `npm run build`.
+- Defaults: lbs + ft_in. No test runner, gate is `npm run build`.
 - linear: FTI-25
 
 ### References

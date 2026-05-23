@@ -1,29 +1,25 @@
-import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 import { buildPreWorkoutCoachBrief, shouldDefaultExpandCoachCard } from "../preWorkoutCoachBrief";
 import { localDateKey } from "../dailyPlan";
 import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
-import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
 import { exerciseNoteKey, getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { progressiveOverloadInsight } from "../coach";
 import { finishWorkout } from "../finishWorkout";
-import { IconCheck, IconClock, IconMinus, IconPencil, IconPlus, IconSearch, IconTrash } from "../icons";
+import { IconClock, IconPlus, IconSearch } from "../icons";
 import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
-import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
+import { SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader, PrimaryButton, SecondaryButton } from "../shared";
-import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
-import type {
-  ExercisePersonalBest,
-  ScreenProps,
-  WeightUnit,
-  WorkoutExercise,
-} from "../types";
+import type { ScreenProps, WorkoutExercise } from "../types";
 import { autofillExerciseSets, buildSetsForExercise } from "../workoutAutofill";
+import {
+  buildSessionCoachNoteForExercise,
+  buildSessionCoachNotesByExerciseId,
+} from "../exerciseSessionNotes";
 import { WorkoutCoachCard } from "../WorkoutCoachCard";
 import { WorkoutSessionStickyHeader } from "../WorkoutSessionStickyHeader";
-import { normalizeExerciseKey } from "../workoutSummary";
-import { COACH_BLUE, METADATA_SIZE, SECONDARY_ACTION_COLOR, TITLE_SIZE, USER_NOTE_GRAY_MUTED, labelStyle } from "../workoutUiTokens";
+import { SECONDARY_ACTION_COLOR } from "../workoutUiTokens";
 import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
 import {
   nextRestTimerPreset,
@@ -31,20 +27,14 @@ import {
 } from "../restTimerPreferences";
 import { ExerciseSwapSheet } from "../ExerciseSwapSheet";
 import { isTrainingDay } from "../trainingCalendar";
-import { RestTimerBar } from "../RestTimerBar";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
+import { EmptyFinishConfirmSheet } from "../workout/EmptyFinishConfirmSheet";
+import { WorkoutExerciseCard } from "../workout/WorkoutExerciseCard";
+import { WorkoutSessionHeader } from "../workout/WorkoutSessionHeader";
 
 function formatSessionClock(d: Date): string {
   return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }
-
-function formatElapsed(totalSec: number): string {
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
-}
-
-const ACCENT_BLUE = COACH_BLUE;
 
 type ActiveRestTimer = {
   exerciseId: string;
@@ -54,17 +44,6 @@ type ActiveRestTimer = {
   durationSec: number;
   completed: boolean;
 };
-
-function formatExercisePr(
-  name: string,
-  bests: Record<string, ExercisePersonalBest>,
-  unit: WeightUnit,
-): string | null {
-  const best = bests[normalizeExerciseKey(name)];
-  if (!best || (best.maxWeight <= 0 && best.maxReps <= 0)) return null;
-  const w = formatSetWeight(best.maxWeight, unit);
-  return `PR ${w}×${best.maxReps}`;
-}
 
 function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
   return (
@@ -92,92 +71,17 @@ function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
 }
 
 const MOBILITY_ITEMS = [
-  "90/90 hips or World's greatest stretch — 45–60s each side",
-  "Thoracic extension over bench or foam roller — 8–10 slow reps",
-  "Shoulder circles + band dislocates (light) — easy range, no forcing",
+  "90/90 hips or World's greatest stretch, 45-60s each side",
+  "Thoracic extension over bench or foam roller, 8-10 slow reps",
+  "Shoulder circles + band dislocates (light), easy range, no forcing",
   "Ankles/calves: knee-to-wall or calf rocks if squatting today",
 ];
 
 const WARMUP_ITEMS = [
-  "5–8 min easy cardio (bike, walk incline, or row) until you break a light sweat",
-  "Band pull-aparts or face pulls — 2–3 sets × 15–20, shoulders back & down",
-  "2–4 ramp sets on your first main lift — empty bar → light → working weight",
+  "5-8 min easy cardio (bike, walk incline, or row) until you break a light sweat",
+  "Band pull-aparts or face pulls, 2-3 sets × 15-20, shoulders back & down",
+  "2-4 ramp sets on your first main lift, empty bar → light → working weight",
 ];
-
-function EmptyFinishConfirmSheet({
-  onKeepTraining,
-  onQuit,
-}: {
-  onKeepTraining: () => void;
-  onQuit: () => void;
-}) {
-  function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onKeepTraining();
-  }
-
-  return (
-    <div
-      role="presentation"
-      onMouseDown={onBackdropMouseDown}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1100,
-        background: "rgba(0,0,0,0.52)",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        padding: "12px 12px calc(16px + env(safe-area-inset-bottom, 0px))",
-      }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="empty-finish-title"
-        className="card page-transition"
-        style={{
-          width: "100%",
-          maxWidth: 440,
-          background: "#121212",
-          borderColor: "var(--border)",
-          padding: 20,
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div id="empty-finish-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff" }}>
-          Nothing logged yet
-        </div>
-        <p style={{ margin: "10px 0 18px", fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.55)" }}>
-          You haven&apos;t checked off any sets. Quit without saving this workout?
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <PrimaryButton block onClick={onKeepTraining} style={{ fontWeight: 700 }}>
-            Keep training
-          </PrimaryButton>
-          <button
-            type="button"
-            className="tap"
-            onClick={onQuit}
-            style={{
-              width: "100%",
-              padding: 14,
-              borderRadius: 12,
-              border: "0.5px solid rgba(255,69,58,0.35)",
-              background: "rgba(255,69,58,0.12)",
-              color: "#FF6961",
-              fontSize: 15,
-              fontWeight: 600,
-            }}
-          >
-            Quit workout
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [showExSearch, setShowExSearch] = useState(false);
@@ -385,13 +289,17 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   }
 
   function removeExerciseFromSession(eid: string) {
-    setState((s) => ({
-      ...s,
-      workout: {
-        ...s.workout,
-        exercises: s.workout.exercises.filter((exercise) => exercise.id !== eid),
-      },
-    }));
+    setState((s) => {
+      const { [eid]: _removed, ...remainingNotes } = s.workout.sessionCoachNotesByExerciseId ?? {};
+      return {
+        ...s,
+        workout: {
+          ...s.workout,
+          exercises: s.workout.exercises.filter((exercise) => exercise.id !== eid),
+          sessionCoachNotesByExerciseId: remainingNotes,
+        },
+      };
+    });
   }
 
   function swapExerciseInSession(eid: string, newName: string, newLabel?: string) {
@@ -418,6 +326,19 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           if (trimmedLabel) next.label = trimmedLabel;
           return next;
         }),
+        sessionCoachNotesByExerciseId: {
+          ...s.workout.sessionCoachNotesByExerciseId,
+          [eid]: buildSessionCoachNoteForExercise(
+            s.workoutHistory,
+            {
+              id: eid,
+              name: trimmedName,
+              ...(trimmedLabel ? { label: trimmedLabel } : {}),
+              target: "",
+              sets: [],
+            },
+          ),
+        },
       },
     }));
     setRestTimer((current) =>
@@ -438,22 +359,26 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
 
   function addExerciseToSession(name: string, label?: string, closeSheet = true) {
     const trimmedLabel = label?.trim();
-    setState((s) => ({
-      ...s,
-      workout: {
-        ...s.workout,
-        exercises: [
-          ...s.workout.exercises,
-          {
-            id: newWorkoutExerciseId(),
-            name,
-            ...(trimmedLabel ? { label: trimmedLabel } : {}),
-            target: "3 × 10",
-            sets: buildSetsForExercise(name, trimmedLabel, 3, s.workoutHistory),
+    setState((s) => {
+      const newExercise: WorkoutExercise = {
+        id: newWorkoutExerciseId(),
+        name,
+        ...(trimmedLabel ? { label: trimmedLabel } : {}),
+        target: "3 × 10",
+        sets: buildSetsForExercise(name, trimmedLabel, 3, s.workoutHistory),
+      };
+      return {
+        ...s,
+        workout: {
+          ...s.workout,
+          exercises: [...s.workout.exercises, newExercise],
+          sessionCoachNotesByExerciseId: {
+            ...s.workout.sessionCoachNotesByExerciseId,
+            [newExercise.id]: buildSessionCoachNoteForExercise(s.workoutHistory, newExercise),
           },
-        ],
-      },
-    }));
+        },
+      };
+    });
     if (closeSheet) {
       setShowExSearch(false);
       setExQuery("");
@@ -464,23 +389,27 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     const n = draftExName.trim();
     if (!n) return;
     const lb = draftExLabel.trim();
-    setState((s) => ({
-      ...s,
-      customExercises: [...s.customExercises, { id: `c${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: n, label: lb }],
-      workout: {
-        ...s.workout,
-        exercises: [
-          ...s.workout.exercises,
-          {
-            id: newWorkoutExerciseId(),
-            name: n,
-            ...(lb ? { label: lb } : {}),
-            target: "3 × 10",
-            sets: buildSetsForExercise(n, lb || undefined, 3, s.workoutHistory),
+    setState((s) => {
+      const newExercise: WorkoutExercise = {
+        id: newWorkoutExerciseId(),
+        name: n,
+        ...(lb ? { label: lb } : {}),
+        target: "3 × 10",
+        sets: buildSetsForExercise(n, lb || undefined, 3, s.workoutHistory),
+      };
+      return {
+        ...s,
+        customExercises: [...s.customExercises, { id: `c${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: n, label: lb }],
+        workout: {
+          ...s.workout,
+          exercises: [...s.workout.exercises, newExercise],
+          sessionCoachNotesByExerciseId: {
+            ...s.workout.sessionCoachNotesByExerciseId,
+            [newExercise.id]: buildSessionCoachNoteForExercise(s.workoutHistory, newExercise),
           },
-        ],
-      },
-    }));
+        },
+      };
+    });
     setDraftExName("");
     setDraftExLabel("");
     setExQuery("");
@@ -498,6 +427,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         sessionStartedAtMs: Date.now(),
         sessionTitle: "Workout",
         exercises: [],
+        sessionCoachNotesByExerciseId: {},
       },
     }));
   }
@@ -506,19 +436,21 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     setState((s) => {
       const tpl = s.workoutTemplates.find((t) => t.id === templateId);
       if (!tpl) return s;
+      const exercises = cloneExercisesForNewSession(tpl.exercises).map((ex) =>
+        autofillExerciseSets(ex, s.workoutHistory),
+      );
       return {
         ...s,
         workout: {
           ...s.workout,
           splitId: templateId,
-          exercises: cloneExercisesForNewSession(tpl.exercises).map((ex) =>
-            autofillExerciseSets(ex, s.workoutHistory),
-          ),
+          exercises,
           startedAt: formatSessionClock(new Date()),
           sessionDayKey: localDateKey(new Date()),
           sessionPhase: "lifting",
           sessionStartedAtMs: Date.now(),
           sessionTitle: tpl.name,
+          sessionCoachNotesByExerciseId: buildSessionCoachNotesByExerciseId(s.workoutHistory, exercises),
         },
       };
     });
@@ -545,11 +477,12 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         workout: {
           ...s.workout,
           sessionPhase: "idle",
-          startedAt: "—",
+          startedAt: "-",
           sessionDayKey: null,
           sessionStartedAtMs: null,
           sessionTitle: "Workout",
           exercises: [],
+          sessionCoachNotesByExerciseId: undefined,
         },
       }));
     }
@@ -815,75 +748,17 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
 
   return (
     <div key="workout-lifting" className="screen page-transition">
-      <div style={{ paddingTop: 8 }}>
-        <div className="between" style={{ alignItems: "center", marginBottom: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
-            <span style={{ fontSize: 20, lineHeight: 1 }} aria-hidden>
-              ⏱
-            </span>
-            <span
-              style={{
-                fontSize: TITLE_SIZE,
-                fontWeight: 700,
-                fontVariantNumeric: "tabular-nums",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {formatElapsed(elapsedSec)}
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            <button
-              type="button"
-              className="tap"
-              aria-pressed={sessionEditMode}
-              aria-label="Remove exercises from workout"
-              title="Remove exercises from workout"
-              onClick={() => setSessionEditMode((v) => !v)}
-              style={{
-                display: "grid",
-                placeItems: "center",
-                width: 40,
-                height: 40,
-                padding: 0,
-                borderRadius: 10,
-                border: sessionEditMode ? `0.5px solid ${ACCENT_BLUE}` : "0.5px solid var(--border)",
-                background: sessionEditMode ? "rgba(10,132,255,0.12)" : "transparent",
-                color: sessionEditMode ? ACCENT_BLUE : "rgba(255,255,255,0.5)",
-              }}
-            >
-              <IconPencil size={18} stroke={1.75} />
-            </button>
-            <PrimaryButton onClick={requestFinishWorkout} style={{ borderRadius: 10, padding: "10px 18px", fontSize: 14, fontWeight: 700, minHeight: 0 }}>
-              Finish workout
-            </PrimaryButton>
-          </div>
-        </div>
-
-        <input
-          value={w.sessionTitle}
-          onChange={(e) => updateSessionTitle(e.target.value)}
-          placeholder="Workout name"
-          style={{
-            marginTop: 6,
-            marginBottom: 4,
-            width: "100%",
-            fontSize: TITLE_SIZE,
-            fontWeight: 700,
-            letterSpacing: "-0.03em",
-            background: "transparent",
-            border: "none",
-            padding: "6px 0",
-            color: "#fff",
-            outline: "none",
-            fontFamily: "var(--ui)",
-          }}
-        />
-        <div style={{ fontSize: METADATA_SIZE, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginBottom: 10 }}>
-          Started {w.startedAt}
-          {split ? ` · ${split.day}` : ""} · {w.exercises.length} exercise{w.exercises.length === 1 ? "" : "s"}
-        </div>
-      </div>
+      <WorkoutSessionHeader
+        elapsedSec={elapsedSec}
+        sessionEditMode={sessionEditMode}
+        onToggleSessionEditMode={() => setSessionEditMode((v) => !v)}
+        onFinishWorkout={requestFinishWorkout}
+        sessionTitle={w.sessionTitle}
+        onSessionTitleChange={updateSessionTitle}
+        startedAt={w.startedAt}
+        splitDay={split?.day}
+        exerciseCount={w.exercises.length}
+      />
 
       <WorkoutCoachCard
         overloadTip={overloadTip}
@@ -918,272 +793,37 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               workout: { ...s.workout, exercises: next },
             }))
           }
-          renderItem={(exercise, ei, handle, ctx) => {
-          const done = exercise.sets.filter((st) => st.done).length;
-          const exerciseNote = getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label);
-          const prLabel = formatExercisePr(exercise.name, state.exercisePersonalBests, wUnit);
-          const progressExpanded = expandedProgressId === exercise.id;
-          return (
-            <div
-              className="card"
-              style={{
-                padding: 16,
-                pointerEvents: ctx.isOverlay ? "none" : undefined,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
-                <ExerciseDragHandle handle={handle} disabled={ctx.isListDragging && !handle.isDragging} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: METADATA_SIZE, color: "rgba(255,255,255,0.3)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                      {String(ei + 1).padStart(2, "0")}
-                    </span>
-                    {exercise.name}
-                    {exercise.label ? (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 600,
-                          letterSpacing: "0.04em",
-                          textTransform: "uppercase",
-                          color: "rgba(10,132,255,0.95)",
-                          background: "rgba(10,132,255,0.15)",
-                          border: "0.5px solid rgba(10,132,255,0.35)",
-                          borderRadius: 6,
-                          padding: "3px 8px",
-                        }}
-                      >
-                        {exercise.label}
-                      </span>
-                    ) : null}
-                  </div>
-                  <div style={{ fontSize: METADATA_SIZE, color: "rgba(255,255,255,0.4)", marginTop: 4, fontWeight: 400, fontVariantNumeric: "tabular-nums" }}>
-                    Target {exercise.target} · {done}/{exercise.sets.length} sets
-                  </div>
-                </div>
-                {sessionEditMode ? (
-                  <button
-                    type="button"
-                    className="tap"
-                    aria-label={`Remove ${exercise.name}`}
-                    disabled={ctx.isListDragging}
-                    onClick={() => removeExerciseFromSession(exercise.id)}
-                    style={{
-                      flexShrink: 0,
-                      display: "grid",
-                      placeItems: "center",
-                      width: 36,
-                      height: 36,
-                      padding: 0,
-                      border: "none",
-                      background: "transparent",
-                      color: "#FF6961",
-                    }}
-                  >
-                    <IconTrash size={18} stroke={1.75} />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="tap"
-                    aria-label={`Swap ${exercise.name}`}
-                    disabled={ctx.isListDragging}
-                    onClick={() => setSwapExerciseId(exercise.id)}
-                    style={{
-                      flexShrink: 0,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: SECONDARY_ACTION_COLOR,
-                      background: "none",
-                      border: "none",
-                      padding: "4px 0",
-                    }}
-                  >
-                    Swap
-                  </button>
-                )}
-              </div>
-
-              {restTimer?.exerciseId === exercise.id ? (
-                <RestTimerBar
-                  remainingSec={restTimerRemainingSec}
-                  durationSec={restTimer.durationSec}
-                  completed={restTimer.completed}
-                  presetLabel={`${restDurationForExercise(
-                    exercise.name,
-                    exercise.label,
-                    state.restTimerDefaultSeconds,
-                    state.restTimerSecondsByExerciseKey,
-                    exerciseNoteKey,
-                  )}s`}
-                  onDismiss={clearRestTimer}
-                  onCyclePreset={() => cycleRestPreset(exercise)}
-                />
-              ) : null}
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "32px 1fr 1fr 44px 32px",
-                  gap: 6,
-                  alignItems: "center",
-                  marginBottom: 6,
-                }}
-              >
-                <div style={{ ...labelStyle, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Set</div>
-                <div style={{ ...labelStyle, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>{weightUnitLabel(wUnit)}</div>
-                <div style={{ ...labelStyle, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Reps</div>
-                <div />
-                <div />
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {exercise.sets.map((st, si) => (
-                  <div
-                    key={si}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "32px 1fr 1fr 44px 32px",
-                      gap: 6,
-                      alignItems: "center",
-                      background: st.done ? "rgba(255,255,255,0.04)" : "transparent",
-                      borderRadius: 8,
-                      padding: "4px 4px",
-                    }}
-                  >
-                    <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.5)", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>
-                      {si + 1}
-                    </div>
-                    <input
-                      type="number"
-                      value={st.w ? formatSetWeight(st.w, wUnit) : ""}
-                      onChange={(ev) => updateSet(exercise.id, si, { w: parseSetWeightInput(ev.target.value, wUnit) })}
-                      placeholder="—"
-                      style={{
-                        background: "#1A1A1A",
-                        border: "0.5px solid var(--border)",
-                        borderRadius: 8,
-                        padding: "8px 10px",
-                        color: "#fff",
-                        fontFamily: "var(--ui)",
-                        fontSize: 14,
-                        fontWeight: 500,
-                        width: "100%",
-                        outline: "none",
-                        textAlign: "center",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    />
-                    <input
-                      type="number"
-                      value={st.r || ""}
-                      onChange={(ev) => updateSet(exercise.id, si, { r: +ev.target.value || 0 })}
-                      placeholder="—"
-                      style={{
-                        background: "#1A1A1A",
-                        border: "0.5px solid var(--border)",
-                        borderRadius: 8,
-                        padding: "8px 10px",
-                        color: "#fff",
-                        fontFamily: "var(--ui)",
-                        fontSize: 14,
-                        fontWeight: 500,
-                        width: "100%",
-                        outline: "none",
-                        textAlign: "center",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    />
-                    <button
-                      type="button"
-                      className="tap"
-                      onClick={() => toggleSetDone(exercise, si)}
-                      aria-label="Done"
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 999,
-                        background: st.done ? "#ffffff" : "transparent",
-                        border: st.done ? "0.5px solid #fff" : "0.5px solid var(--border)",
-                        color: st.done ? "#000" : "rgba(255,255,255,0.4)",
-                        display: "grid",
-                        placeItems: "center",
-                        margin: "0 auto",
-                      }}
-                    >
-                      <IconCheck size={16} stroke={2.4} />
-                    </button>
-                    <button type="button" className="tap" onClick={() => removeSet(exercise.id, si)} aria-label="Remove" style={{ width: 32, height: 36, color: "rgba(255,255,255,0.2)", display: "grid", placeItems: "center" }}>
-                      <IconMinus size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                className="tap"
-                onClick={() => addSet(exercise.id)}
-                style={{
-                  marginTop: 10,
-                  width: "100%",
-                  border: "0.5px dashed rgba(255,255,255,0.1)",
-                  borderRadius: 8,
-                  padding: "10px",
-                  color: "rgba(255,255,255,0.5)",
-                  fontSize: 12,
-                  fontWeight: 500,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                }}
-              >
-                <IconPlus size={14} stroke={2} /> Add set
-              </button>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 16,
-                  marginTop: 10,
-                  paddingTop: 8,
-                  borderTop: "0.5px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                <ExerciseNoteRow
-                  note={exerciseNote}
-                  onPress={() => setNotesEdit({ name: exercise.name, label: exercise.label })}
-                  style={{ flex: 1, minWidth: 0 }}
-                />
-                {prLabel ? (
-                  <button
-                    type="button"
-                    className="tap"
-                    aria-expanded={progressExpanded}
-                    onClick={() => setExpandedProgressId((id) => (id === exercise.id ? null : exercise.id))}
-                    style={{
-                      padding: "4px 0",
-                      border: "none",
-                      background: "transparent",
-                      fontSize: 12,
-                      fontWeight: 500,
-                      color: SECONDARY_ACTION_COLOR,
-                      flexShrink: 0,
-                    }}
-                  >
-                    Progress
-                  </button>
-                ) : null}
-              </div>
-              {progressExpanded && prLabel ? (
-                <p style={{ margin: "4px 0 0", fontSize: 12, fontWeight: 600, color: USER_NOTE_GRAY_MUTED, fontVariantNumeric: "tabular-nums" }}>
-                  {prLabel} · {weightUnitLabel(wUnit)}
-                </p>
-              ) : null}
-            </div>
-          );
-          }}
+          renderItem={(exercise, ei, handle, ctx) => (
+            <WorkoutExerciseCard
+              exercise={exercise}
+              exerciseIndex={ei}
+              handle={handle}
+              isOverlay={ctx.isOverlay}
+              isListDragging={ctx.isListDragging}
+              sessionEditMode={sessionEditMode}
+              weightUnit={wUnit}
+              exerciseNote={getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label)}
+              sessionCoachNote={w.sessionCoachNotesByExerciseId?.[exercise.id]}
+              exercisePersonalBests={state.exercisePersonalBests}
+              progressExpanded={expandedProgressId === exercise.id}
+              restTimer={restTimer}
+              restTimerRemainingSec={restTimerRemainingSec}
+              restTimerDefaultSeconds={state.restTimerDefaultSeconds}
+              restTimerSecondsByExerciseKey={state.restTimerSecondsByExerciseKey}
+              onRemoveExercise={removeExerciseFromSession}
+              onSwapExercise={setSwapExerciseId}
+              onClearRestTimer={clearRestTimer}
+              onCycleRestPreset={cycleRestPreset}
+              onUpdateSet={updateSet}
+              onToggleSetDone={toggleSetDone}
+              onRemoveSet={removeSet}
+              onAddSet={addSet}
+              onPressNote={(name, label) => setNotesEdit({ name, label })}
+              onToggleProgress={(exerciseId) =>
+                setExpandedProgressId((id) => (id === exerciseId ? null : exerciseId))
+              }
+            />
+          )}
         />
       </div>
 

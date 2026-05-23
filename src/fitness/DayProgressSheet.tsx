@@ -35,7 +35,7 @@ function RowCheck({ done }: { done: boolean }) {
   }
   return (
     <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.35)", fontVariantNumeric: "tabular-nums" }}>
-      —
+      , 
     </span>
   );
 }

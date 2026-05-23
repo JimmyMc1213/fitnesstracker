@@ -11,9 +11,9 @@ export const EXPERIENCE_LEVEL_LABELS: Record<ExperienceLevel, string> = {
 };
 
 export const EXPERIENCE_LEVEL_DESCRIPTIONS: Record<ExperienceLevel, string> = {
-  beginner: "New to lifting — higher reps, lighter starting weights",
-  intermediate: "Comfortable with main lifts — balanced reps and load",
-  advanced: "Experienced — lower reps, heavier starting weights",
+  beginner: "New to lifting, higher reps, lighter starting weights",
+  intermediate: "Comfortable with main lifts, balanced reps and load",
+  advanced: "Experienced, lower reps, heavier starting weights",
 };
 
 export function normalizeExperienceLevel(raw: unknown): ExperienceLevel {
@@ -57,7 +57,7 @@ export function adjustRepRangeForExperience(range: string, level: ExperienceLeve
   return `${nextLow}${dash}${nextHigh}`;
 }
 
-/** Parse "4 × 5–8" style targets and adjust rep portion for experience. */
+/** Parse "4 × 5-8" style targets and adjust rep portion for experience. */
 export function adjustWorkoutTargetForExperience(target: string, level: ExperienceLevel): string {
   const m = target.match(/^(\d+\s*×\s*)(.+)$/i);
   if (!m) return adjustRepRangeForExperience(target, level);

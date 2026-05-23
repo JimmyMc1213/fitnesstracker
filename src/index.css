@@ -27,7 +27,7 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* Mobile shell: avoid `position: fixed` + JS visualViewport pinning — it fights
+/* Mobile shell: avoid `position: fixed` + JS visualViewport pinning, it fights
  * iOS keyboards and can jitter. Use explicit `100dvh` on `html`: on modern Safari
  * the *dynamic* viewport tracks URL bar show/hide, so the shell matches what you
  * see without layout-vs-visual hacks. Fallback `100vh` for older engines.
@@ -335,7 +335,7 @@ input[type="number"] {
 }
 
 /* Auth / login: prevent iOS auto-zoom on focus (needs ≥16px inputs) and keep layout
- * stable when the keyboard opens — scroll inside the screen instead of fixed center. */
+ * stable when the keyboard opens, scroll inside the screen instead of fixed center. */
 .auth-screen {
   flex: 1;
   width: 100%;

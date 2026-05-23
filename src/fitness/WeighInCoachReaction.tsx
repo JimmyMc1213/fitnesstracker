@@ -4,7 +4,7 @@ type Props = {
   adjustment: CoachAdjustment;
 };
 
-/** Inline coach copy after a logged weigh-in — engine message only (FTI-36). */
+/** Inline coach copy after a logged weigh-in, engine message only (FTI-36). */
 export function WeighInCoachReaction({ adjustment }: Props) {
   const nudge = adjustment.macroNudge;
 
@@ -36,7 +36,7 @@ export function WeighInCoachReaction({ adjustment }: Props) {
       </p>
       {nudge?.deltaCal != null ? (
         <p style={{ margin: "8px 0 0", fontSize: 11, lineHeight: 1.45, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
-          +{nudge.deltaCal} cal suggested — {nudge.reason}
+          +{nudge.deltaCal} cal suggested, {nudge.reason}
         </p>
       ) : null}
     </div>

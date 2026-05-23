@@ -49,7 +49,7 @@ export function SundayReviewSheet({ preview, nutritionTargets, unitPreferences, 
           <div key={r.dateKey} className="between" style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>
             <span style={{ color: "rgba(255,255,255,0.45)" }}>{r.label}</span>
             <span style={{ fontVariantNumeric: "tabular-nums" }}>
-              {r.weightLbs != null ? `${formatWeightFromLbs(r.weightLbs, wUnit)} ${weightUnitLabel(wUnit)}` : "—"}
+              {r.weightLbs != null ? `${formatWeightFromLbs(r.weightLbs, wUnit)} ${weightUnitLabel(wUnit)}` : ", "}
             </span>
           </div>
         ))}
@@ -88,21 +88,21 @@ export function SundayReviewSheet({ preview, nutritionTargets, unitPreferences, 
         <h2 style={{ margin: "8px 0 4px", fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em" }}>Week ending {preview.thisSundayKey}</h2>
         <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
           Each Sunday we compare your <strong style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>average weight</strong> from this
-          Mon–Sun week to the prior week. Approve a calorie change (carbs follow) or skip — nothing updates until you approve.
+          Mon–Sun week to the prior week. Approve a calorie change (carbs follow) or skip, nothing updates until you approve.
         </p>
 
         <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "rgba(255,255,255,0.55)" }}>Previous week ({preview.prevRange.mon} → {preview.prevRange.sun})</div>
         {rowList(preview.prevDays)}
         <div style={{ marginTop: 10, fontSize: 12, color: "rgba(255,255,255,0.4)", fontVariantNumeric: "tabular-nums" }}>
           {preview.distinctPrev} days logged · avg{" "}
-          {preview.avgPrev != null ? `${formatWeightFromLbs(preview.avgPrev, wUnit)} ${weightUnitLabel(wUnit)}` : "—"}
+          {preview.avgPrev != null ? `${formatWeightFromLbs(preview.avgPrev, wUnit)} ${weightUnitLabel(wUnit)}` : ", "}
         </div>
 
         <div style={{ fontSize: 12, fontWeight: 600, margin: "20px 0 8px", color: "rgba(255,255,255,0.55)" }}>This week ({preview.currRange.mon} → {preview.currRange.sun})</div>
         {rowList(preview.currDays)}
         <div style={{ marginTop: 10, fontSize: 12, color: "rgba(255,255,255,0.4)", fontVariantNumeric: "tabular-nums" }}>
           {preview.distinctCurr} days logged · avg{" "}
-          {preview.avgCurr != null ? `${formatWeightFromLbs(preview.avgCurr, wUnit)} ${weightUnitLabel(wUnit)}` : "—"}
+          {preview.avgCurr != null ? `${formatWeightFromLbs(preview.avgCurr, wUnit)} ${weightUnitLabel(wUnit)}` : ", "}
         </div>
 
         {preview.ready && preview.weeklyLoss !== null ? (
@@ -186,7 +186,7 @@ export function SundayReviewSheet({ preview, nutritionTargets, unitPreferences, 
               background: "transparent",
             }}
           >
-            {preview.ready ? "Not now — skip (no change)" : "Dismiss for this Sunday"}
+            {preview.ready ? "Not now, skip (no change)" : "Dismiss for this Sunday"}
           </button>
         </div>
       </div>

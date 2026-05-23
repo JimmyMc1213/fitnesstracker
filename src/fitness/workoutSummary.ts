@@ -5,7 +5,7 @@ export function normalizeExerciseKey(name: string): string {
   return name.trim().toLowerCase();
 }
 
-/** Parse targets like "4 × 5–8", "3 x 10", "3 × 10-12". */
+/** Parse targets like "4 × 5-8", "3 x 10", "3 × 10-12". */
 export function parseWorkoutTarget(target: string): { repMin: number; repMax: number } | null {
   const m = target.trim().match(/(\d+)\s*[×x]\s*(\d+)(?:\s*[–\-]\s*(\d+))?/i);
   if (!m) return null;

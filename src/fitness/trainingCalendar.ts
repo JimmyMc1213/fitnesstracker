@@ -61,7 +61,7 @@ function parseDateKeyNoonLocal(dateKey: string): Date {
   return new Date(y, m - 1, d, 12, 0, 0, 0);
 }
 
-/** Sunday (local) containing the given date key — streak calendar week start. */
+/** Sunday (local) containing the given date key, streak calendar week start. */
 export function startOfWeekSunday(dateKey: string): string {
   const d = parseDateKeyNoonLocal(dateKey);
   d.setDate(d.getDate() - d.getDay());

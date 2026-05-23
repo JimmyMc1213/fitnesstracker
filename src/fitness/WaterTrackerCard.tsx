@@ -99,7 +99,7 @@ export function WaterTrackerCard({
     e?.preventDefault();
     const n = parseInt(customOz, 10);
     if (!Number.isFinite(n) || n <= 0 || n > 128) {
-      setCustomError("Enter 1–128 oz");
+      setCustomError("Enter 1-128 oz");
       return;
     }
     onAddOz(n);

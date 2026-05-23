@@ -347,7 +347,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 10 }}>
               <span style={{ fontSize: 36, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", fontVariantNumeric: "tabular-nums" }}>
-                {chartSeries.length ? todayDisplay.toFixed(1) : "—"}
+                {chartSeries.length ? todayDisplay.toFixed(1) : ", "}
               </span>
               <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>{weightUnitLabel(wUnit)}</span>
             </div>

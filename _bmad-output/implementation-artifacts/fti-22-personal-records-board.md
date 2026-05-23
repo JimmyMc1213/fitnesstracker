@@ -16,17 +16,17 @@ so that I can celebrate progress across exercises.
 2. **Exercise coverage:** Lists all exercises with logged session history (`exerciseSessionHistoryByKey`).
 3. **Summary row:** Each exercise shows best weight, best reps, and date of the overall best set.
 4. **Expand history:** Tap a row to expand full PR/session history for that exercise (newest first).
-5. **Auto-detection:** PR detection reuses existing `buildWorkoutSessionSummary` / `personalBestsAfterSession` logic — no duplicate PR rules.
+5. **Auto-detection:** PR detection reuses existing `buildWorkoutSessionSummary` / `personalBestsAfterSession` logic, no duplicate PR rules.
 6. **Workout summary highlight:** New PRs on the finished workout summary screen are visually emphasized (badge + accent border).
 
 ## Tasks / Subtasks
 
 - [x] **Task 1: PR board data layer** (AC: 2, 3, 4, 5)
-  - [x] Create `personalRecordsBoard.ts` — aggregate rows from `exerciseSessionHistoryByKey`, resolve display names from `workoutHistory`, compute PR flags per session snapshot
+  - [x] Create `personalRecordsBoard.ts`: aggregate rows from `exerciseSessionHistoryByKey`, resolve display names from `workoutHistory`, compute PR flags per session snapshot
   - [x] Export `buildPersonalRecordsBoard()` returning sorted rows with expandable history entries
 
 - [x] **Task 2: PR board UI on Progress tab** (AC: 1, 3, 4)
-  - [x] Create `PersonalRecordsSection.tsx` — collapsible exercise rows, empty state when no history
+  - [x] Create `PersonalRecordsSection.tsx`: collapsible exercise rows, empty state when no history
   - [x] Wire into `ScreenProgress.tsx` below Workouts section
 
 - [x] **Task 3: Workout summary PR highlight** (AC: 6)
@@ -40,20 +40,20 @@ so that I can celebrate progress across exercises.
 ### Primary implementation targets
 
 - **New:** `src/fitness/personalRecordsBoard.ts`, `src/fitness/PersonalRecordsSection.tsx`
-- **`src/fitness/screens/ScreenProgress.tsx`** — add SectionLabel + board
-- **`src/fitness/WorkoutSummarySheet.tsx`** — PR highlight styling
+- **`src/fitness/screens/ScreenProgress.tsx`**, add SectionLabel + board
+- **`src/fitness/WorkoutSummarySheet.tsx`**, PR highlight styling
 
-### Existing PR infrastructure (reuse — do not duplicate)
+### Existing PR infrastructure (reuse, do not duplicate)
 
-- **`workoutSummary.ts`** — `buildWorkoutSessionSummary`, `personalBestsAfterSession`, `sessionBestForExercise`, `normalizeExerciseKey`
-- **`exerciseSessionHistory.ts`** — per-exercise session snapshots keyed by `exerciseNoteKey(name, label)`
-- **`finishWorkout.ts`** — updates bests + history on finish; summary already includes `prs[]`
+- **`workoutSummary.ts`**, `buildWorkoutSessionSummary`, `personalBestsAfterSession`, `sessionBestForExercise`, `normalizeExerciseKey`
+- **`exerciseSessionHistory.ts`**, per-exercise session snapshots keyed by `exerciseNoteKey(name, label)`
+- **`finishWorkout.ts`**, updates bests + history on finish; summary already includes `prs[]`
 
 ### Data model notes
 
 - History keys: `exerciseNoteKey` (lowercase name + optional label). Resolve display casing from `workoutHistory` exercises when available.
 - Weights stored in **lbs** internally; format with `formatSetWeight` + `weightUnitLabel` for display.
-- **No new persisted fields** — board reads existing `exerciseSessionHistoryByKey` and `workoutHistory`.
+- **No new persisted fields**, board reads existing `exerciseSessionHistoryByKey` and `workoutHistory`.
 
 ### Architecture & constraints
 
@@ -98,4 +98,4 @@ Composer
 
 ## Change Log
 
-- 2026-05-21: FTI-22 — Personal records board on Progress tab; workout summary PR highlight
+- 2026-05-21: FTI-22: Personal records board on Progress tab; workout summary PR highlight

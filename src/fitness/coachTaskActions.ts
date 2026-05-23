@@ -22,7 +22,7 @@ export function coachTaskCtaLabel(task: CoachTask): string | null {
   return task.ctaLabel ?? null;
 }
 
-/** Coupled to coachEngine copy — prefer engine-driven navTarget when FTI-37+ extends CoachTask. */
+/** Coupled to coachEngine copy, prefer engine-driven navTarget when FTI-37+ extends CoachTask. */
 function restDayReferencesStretch(task: CoachTask): boolean {
   const text = `${task.label} ${task.rationale ?? ""}`.toLowerCase();
   return text.includes("mobility") || text.includes("stretch");
@@ -58,7 +58,7 @@ export function coachTaskOpensFuelQuickLog(task: CoachTask): boolean {
   return false;
 }
 
-/** ScreenHome wires this to `navigate` — guard skips completed tasks. */
+/** ScreenHome wires this to `navigate`: guard skips completed tasks. */
 export function handleCoachTaskAction(task: CoachTask, navigate: (tab: TabId) => void): void {
   const target = resolveCoachTaskNavigation(task);
   if (target) navigate(target);

@@ -235,7 +235,7 @@ export function useFitnessCloudSync(
       options: { data: { full_name: name.trim() } },
     });
 
-    // Account already exists — try signing in with the supplied password.
+    // Account already exists, try signing in with the supplied password.
     if (error?.message?.toLowerCase().includes("already registered") ||
         error?.message?.toLowerCase().includes("already exists") ||
         error?.message?.toLowerCase().includes("user already")) {
@@ -245,9 +245,9 @@ export function useFitnessCloudSync(
     }
 
     if (error) return { error: error.message };
-    // Email confirmation disabled — session arrives immediately.
+    // Email confirmation disabled, session arrives immediately.
     if (data.session) return {};
-    // Email confirmation still enabled — try sign-in in case already confirmed.
+    // Email confirmation still enabled, try sign-in in case already confirmed.
     const { error: signInError } = await sb.auth.signInWithPassword({ email: email.trim(), password });
     if (!signInError) return {};
     return { needsConfirmation: true };

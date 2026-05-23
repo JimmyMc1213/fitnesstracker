@@ -14,7 +14,7 @@ export type StreakCalendarCell = {
   letter: string;
   dom: number;
   kind: StreakCalendarCellKind;
-  /** 0–1; always 0 for future days */
+  /** 0-1; always 0 for future days */
   progress: number;
 };
 
@@ -43,14 +43,14 @@ export type DayHabitProgress = {
   items: DayProgressLineItem[];
 };
 
-/** @deprecated Composed view — prefer getDayStreakSummary + getDayHabitProgress. */
+/** @deprecated Composed view, prefer getDayStreakSummary + getDayHabitProgress. */
 export type DayProgressDetail = {
   dateKey: string;
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
-  /** 0–1 */
+  /** 0-1 */
   progress: number;
   items: DayProgressLineItem[];
 };
@@ -294,7 +294,7 @@ function nutritionTargetPct(actual: number, target: number): number {
   return Math.round((actual / target) * 100);
 }
 
-/** Streak-only summary for calendar day tap — workout OR nutrition goal. */
+/** Streak-only summary for calendar day tap, workout OR nutrition goal. */
 export function getDayStreakSummary(state: AppState, dateKey: string, todayKey: string): DayStreakSummary {
   if (dateKey > todayKey) {
     return {
@@ -343,7 +343,7 @@ function habitTemplateMentionsWeighIn(name: string): boolean {
   return /weigh/i.test(name);
 }
 
-/** Habits + optional weigh-in for expanded day log — excludes streak criteria. */
+/** Habits + optional weigh-in for expanded day log, excludes streak criteria. */
 export function getDayHabitProgress(state: AppState, dateKey: string): DayHabitProgress {
   const items: DayProgressLineItem[] = [];
   const t = effectiveNutritionTotalsForDateKey(state.nutritionManualByDay, state.nutritionItemsByDay, dateKey);

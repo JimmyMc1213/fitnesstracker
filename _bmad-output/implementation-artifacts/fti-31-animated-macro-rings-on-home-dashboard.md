@@ -14,29 +14,29 @@ so daily nutrition feels satisfying without being gimmicky.
 2. **Incremental updates:** Ring animates smoothly when `value` changes (e.g. new food logged, date switched on home).
 3. **Timing & quality:** ~500ms ease-out; no jank, flicker, or layout shift.
 4. **Edge states:** Works at 0% (empty), 100% (full), and over-target (ring capped at full circle; center shows actual kcal).
-5. **Restrained motion:** Single ring progress animation only — no bounce, pulse, or decorative loops.
+5. **Restrained motion:** Single ring progress animation only, no bounce, pulse, or decorative loops.
 
 ## Tasks / Subtasks
 
 - [x] **Task 1: Animated progress hook** (AC: 1, 2, 3, 4)
-  - [x] 1.1 Add `src/fitness/useAnimatedMacroProgress.ts` — `easeOutCubic`, `RING_DURATION_MS = 500`, hook accepting `value`, `target`, `enabled`
+  - [x] 1.1 Add `src/fitness/useAnimatedMacroProgress.ts`: `easeOutCubic`, `RING_DURATION_MS = 500`, hook accepting `value`, `target`, `enabled`
   - [x] 1.2 Return `{ ringPct, displayCalories }` where `ringPct = min(1, max(0, value/target))` for stroke; `displayCalories` lerps for center label
   - [x] 1.3 On `enabled === false` or `prefers-reduced-motion: reduce`, snap immediately (no RAF loop)
   - [x] 1.4 Cancel in-flight RAF on dependency change; start next animation from current interpolated position (no flicker)
 
-- [x] **Task 2: Wire MacroRing** (AC: 1–5)
+- [x] **Task 2: Wire MacroRing** (AC: 1-5)
   - [x] 2.1 Update `MacroRing` in `shared.tsx` to use hook; drive `strokeDasharray` from animated `ringPct`
   - [x] 2.2 Center label uses `Math.round(displayCalories)`; "of {target} kcal" unchanged
   - [x] 2.3 Optional prop `animate?: boolean` (default `true`) for reuse without animation if needed later
 
 - [x] **Task 3: Home integration** (AC: 2)
-  - [x] 3.1 Confirm `ScreenHome.tsx` passes live `totals.cal` / `T.cal` — no extra wiring unless `animate={false}` needed for historical dates (animate on all views for consistency)
+  - [x] 3.1 Confirm `ScreenHome.tsx` passes live `totals.cal` / `T.cal`: no extra wiring unless `animate={false}` needed for historical dates (animate on all views for consistency)
 
 - [x] **Task 4: Verification** (AC: all)
   - [x] 4.1 Run `npm run build`
 
 - [x] **Review Follow-ups (AI)**
-  - [x] (none required — approved as implemented)
+  - [x] (none required, approved as implemented)
 
 ## Senior Developer Review (AI)
 
@@ -44,7 +44,7 @@ so daily nutrition feels satisfying without being gimmicky.
 
 | ID | Severity | Finding | Resolution |
 | --- | --- | --- | --- |
-| — | — | No blocking issues | — |
+|, |, | No blocking issues |, |
 
 **AC validation:** All 5 ACs met. Build PASS. No automated test suite (project standard).
 
@@ -73,7 +73,7 @@ Composer (BMAD Swarm orchestrator)
 ### Completion Notes List
 
 - `useAnimatedMacroProgress` drives ring stroke and center kcal lerp; respects `prefers-reduced-motion`.
-- `ScreenHome` unchanged — existing `totals.cal` / `T.cal` props trigger re-animation on food log and date change.
+- `ScreenHome` unchanged, existing `totals.cal` / `T.cal` props trigger re-animation on food log and date change.
 
 ### File List
 

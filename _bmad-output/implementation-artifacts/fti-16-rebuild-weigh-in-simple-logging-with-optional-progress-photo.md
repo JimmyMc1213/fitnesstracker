@@ -69,7 +69,7 @@ Composer
 
 - Verified weigh-in respects `unitPreferences`; canonical lbs unchanged.
 - Removed `MIN_WEIGH_INS_PER_WEEK` and `averageWeightInRange`; no remaining 7-day cut workflow in app code.
-- Sunday review still uses week-over-week means (not per-entry trend) with a lower bar (2 days) — intentional simplification vs. 7/7 requirement.
+- Sunday review still uses week-over-week means (not per-entry trend) with a lower bar (2 days), intentional simplification vs. 7/7 requirement.
 
 ## Review Follow-ups (AI)
 

@@ -1,12 +1,12 @@
-/** Parsed prescription from strings like `4 × 6–8` or `3 × 10–12 / arm`. */
+/** Parsed prescription from strings like `4 × 6-8` or `3 × 10-12 / arm`. */
 export type ParsedWorkoutTarget = {
-  /** Rep range / suffix after the multiply sign (e.g. `6–8`, `near failure`). */
+  /** Rep range / suffix after the multiply sign (e.g. `6-8`, `near failure`). */
   repRange: string;
 };
 
 const TARGET_SPLIT_RE = /^(\d+)\s*[×x]\s*(.+)$/iu;
 
-/** Split `4 × 6–8` into set count hint + rep range; non-matching strings keep the whole value as rep range. */
+/** Split `4 × 6-8` into set count hint + rep range; non-matching strings keep the whole value as rep range. */
 export function parseWorkoutTarget(target: string): ParsedWorkoutTarget {
   const trimmed = target.trim();
   const m = trimmed.match(TARGET_SPLIT_RE);

@@ -41,8 +41,8 @@ so that consistency feels rewarding.
 
 ### Primary implementation targets
 
-- **`src/fitness/dailyStreak.ts`** — eligibility, streak count, snapshot recompute
-- **`src/fitness/types.ts`** — new persisted fields
+- **`src/fitness/dailyStreak.ts`**, eligibility, streak count, snapshot recompute
+- **`src/fitness/types.ts`**, new persisted fields
 - **`src/fitness/persistFitnessSlice.ts`**, **`buildAppState.ts`**, **`mergePersistedFitnessSlices.ts`**
 - **`src/fitness/finishWorkout.ts`**, **`src/fitness/screens/ScreenNutrition.tsx`**
 - **`src/fitness/StreakWeeklyHeader.tsx`**, **`src/fitness/DayProgressSheet.tsx`**
@@ -103,5 +103,5 @@ Composer
 
 ## Change Log
 
-- 2026-05-21: FTI-23 — Streak tracker with Supabase-synced eligibility, nutrition goal rules, and home UI polish
-- 2026-05-21: Streak day sheet simplified — streak-only default glance, full habit log collapsed; split getDayStreakSummary / getDayHabitProgress; dedupe weigh-in
+- 2026-05-21: FTI-23: Streak tracker with Supabase-synced eligibility, nutrition goal rules, and home UI polish
+- 2026-05-21: Streak day sheet simplified, streak-only default glance, full habit log collapsed; split getDayStreakSummary / getDayHabitProgress; dedupe weigh-in

@@ -1,6 +1,6 @@
 /**
  * WorkoutState fixtures for coach.ts unit tests and FTI-34 coachEngine snapshot tests.
- * No React or DOM imports — safe for Vitest node environment.
+ * No React or DOM imports, safe for Vitest node environment.
  */
 import type { WorkoutExercise, WorkoutState } from "../types";
 

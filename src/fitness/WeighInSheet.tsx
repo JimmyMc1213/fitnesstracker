@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+import { buildCoachContext, getWeighInReaction } from "./coachEngine";
 import { compressImageToJpegDataUrl } from "./imageCompress";
 import { localDateKey } from "./dailyPlan";
 import {
@@ -50,14 +51,28 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
     if (!isValidWeighInLbs(lbs)) return;
     const loggedAtIso = new Date().toISOString();
     setState((s) => {
-      const nextLog = s.weightLog.filter((e) => e.dateKey !== dateKey);
-      nextLog.push({
+      const withoutDay = s.weightLog.filter((e) => e.dateKey !== dateKey);
+      const draft: WeightEntry = {
         dateKey,
         weightLbs: lbs,
         loggedAtIso,
         photoDataUrl: photoPreview ?? undefined,
-      });
-      nextLog.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+      };
+      const ctx = buildCoachContext({ ...s, weightLog: withoutDay }, dateKey, new Date());
+      const reaction = getWeighInReaction(ctx, draft);
+      const entry: WeightEntry = {
+        ...draft,
+        ...(reaction?.message ? { coachMessage: reaction.message } : {}),
+        ...(reaction?.macroNudge?.deltaCal != null
+          ? {
+              macroNudge: {
+                deltaCal: reaction.macroNudge.deltaCal,
+                reason: reaction.macroNudge.reason,
+              },
+            }
+          : {}),
+      };
+      const nextLog = [...withoutDay, entry].sort((a, b) => a.dateKey.localeCompare(b.dateKey));
       return { ...s, weightLog: nextLog };
     });
     onClose();
@@ -101,7 +116,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
           Weigh-in
         </div>
         <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", fontWeight: 400 }}>
-          Morning scale, post-bathroom, before food. Optional progress photo — same stance and lighting when you can.
+          Morning scale, post-bathroom, before food. Optional progress photo, same stance and lighting when you can.
         </p>
         <div className="between" style={{ alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 100 }}>

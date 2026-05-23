@@ -10,29 +10,29 @@ so that I know what I'm committing to before confirming my program.
 
 ## Acceptance Criteria
 
-1. **Per-day estimate on review screen:** Given the user is on onboarding step 8 ("Review your program"), when each workout-day card is shown (collapsed or expanded), then a duration estimate is visible for that day (e.g. `Push — ~55 min` or equivalent secondary copy tied to that routine).
+1. **Per-day estimate on review screen:** Given the user is on onboarding step 8 ("Review your program"), when each workout-day card is shown (collapsed or expanded), then a duration estimate is visible for that day (e.g. `Push, ~55 min` or equivalent secondary copy tied to that routine).
 
-2. **Formula inputs:** Given a `WorkoutRoutineTemplate` with `exercises[]` and each exercise's `sets.length`, when the estimate is computed, then it incorporates exercise count, total/average sets, and a default average rest duration (use `DEFAULT_REST_TIMER_SECONDS` from `restTimerPreferences.ts` — user rest prefs are not set yet during onboarding).
+2. **Formula inputs:** Given a `WorkoutRoutineTemplate` with `exercises[]` and each exercise's `sets.length`, when the estimate is computed, then it incorporates exercise count, total/average sets, and a default average rest duration (use `DEFAULT_REST_TIMER_SECONDS` from `restTimerPreferences.ts`: user rest prefs are not set yet during onboarding).
 
-3. **Subtle presentation:** Given the routine card header (`dayLabel · name` + `focus` subline), when the estimate renders, then it uses muted secondary styling (`fontSize: 12`, `rgba(255,255,255,0.45)` or existing `--muted` patterns) — not bold or primary emphasis.
+3. **Subtle presentation:** Given the routine card header (`dayLabel · name` + `focus` subline), when the estimate renders, then it uses muted secondary styling (`fontSize: 12`, `rgba(255,255,255,0.45)` or existing `--muted` patterns), not bold or primary emphasis.
 
 4. **Live updates on edit:** Given the user changes exercises (swap, remove, reorder) or set counts on the review step, when `draftTemplates` updates via `OnboardingTemplateReview` `onChange`, then the displayed estimate for that routine recalculates immediately without navigation or refresh.
 
-5. **No persistence change:** Given onboarding completes, when templates are saved to `workoutTemplates`, then no new `AppState` fields are required — estimates are derived at display time only.
+5. **No persistence change:** Given onboarding completes, when templates are saved to `workoutTemplates`, then no new `AppState` fields are required, estimates are derived at display time only.
 
 6. **Build gate:** `npm run build` passes with strict TypeScript.
 
 ## Tasks / Subtasks
 
 - [x] **Task 1: Session duration estimation module** (AC: 2, 4, 5)
-  - [x] 1.1 Create `src/fitness/estimateSessionDuration.ts` with exported constants: `AVG_WORK_SECONDS_PER_SET` (default 45), `EXERCISE_TRANSITION_SECONDS` (default 60), `SESSION_WARMUP_BUFFER_SECONDS` (default 300 / 5 min) — document rationale in file comment only if non-obvious
-  - [x] 1.2 Implement `estimateRoutineSessionSeconds(routine: WorkoutRoutineTemplate, restSeconds?: number): number` — sum per exercise: `sets × workSec + max(0, sets−1) × restSec`, plus transitions between exercises and warmup buffer; use `DEFAULT_REST_TIMER_SECONDS` when `restSeconds` omitted
+  - [x] 1.1 Create `src/fitness/estimateSessionDuration.ts` with exported constants: `AVG_WORK_SECONDS_PER_SET` (default 45), `EXERCISE_TRANSITION_SECONDS` (default 60), `SESSION_WARMUP_BUFFER_SECONDS` (default 300 / 5 min), document rationale in file comment only if non-obvious
+  - [x] 1.2 Implement `estimateRoutineSessionSeconds(routine: WorkoutRoutineTemplate, restSeconds?: number): number`: sum per exercise: `sets × workSec + max(0, sets−1) × restSec`, plus transitions between exercises and warmup buffer; use `DEFAULT_REST_TIMER_SECONDS` when `restSeconds` omitted
   - [x] 1.3 Implement `formatEstimatedSessionMinutes(totalSec: number): string` returning rounded human copy like `~55 min` (round total minutes to nearest 5 before formatting; minimum display `~15 min` for non-empty routines)
-  - [x] 1.4 Implement `estimatedSessionLabel(routine: WorkoutRoutineTemplate): string` composing `{routine.name} — ~{N} min` for header use (matches Linear example)
+  - [x] 1.4 Implement `estimatedSessionLabel(routine: WorkoutRoutineTemplate): string` composing `{routine.name}, ~{N} min` for header use (matches Linear example)
 
 - [x] **Task 2: Wire estimate into onboarding template review UI** (AC: 1, 3, 4)
   - [x] 2.1 In `OnboardingTemplateReview.tsx`, import helpers and compute `estimatedSessionLabel(routine)` inside the `templates.map` loop (recomputes automatically on prop change)
-  - [x] 2.2 Render estimate as muted secondary text on each routine card — preferred placement: third line under `focus`, or append to focus line as `{focus} · ~55 min`; do not replace the primary `dayLabel · name` title
+  - [x] 2.2 Render estimate as muted secondary text on each routine card, preferred placement: third line under `focus`, or append to focus line as `{focus} · ~55 min`; do not replace the primary `dayLabel · name` title
   - [x] 2.3 When `routine.exercises.length === 0`, omit estimate (edge case; step continue is already disabled via `templatesValid` in `OnboardingFlow.tsx`)
 
 - [x] **Task 3: Onboarding shell copy alignment (optional polish)** (AC: 1)
@@ -40,7 +40,7 @@ so that I know what I'm committing to before confirming my program.
   - [x] 3.2 Skip if subtitle already clear enough after UI shows per-day estimates
 
 - [x] **Task 4: Verification** (AC: 4, 6)
-  - [x] 4.1 Run `npm run build` — must pass `tsc -b` and Vite build
+  - [x] 4.1 Run `npm run build`: must pass `tsc -b` and Vite build
   - [x] 4.2 Manual smoke: code-path verified (label in `templates.map`, all edit handlers call `onChange`); live UI blocked by AuthGate when Supabase configured without session
 
 - [x] **Review Follow-ups (AI)**
@@ -65,17 +65,17 @@ so that I know what I'm committing to before confirming my program.
 ## Change Log
 
 - 2026-05-21: Initial implementation (estimateSessionDuration + OnboardingTemplateReview wiring)
-- 2026-05-21: Review fixes — empty-routine guard in formatters
+- 2026-05-21: Review fixes, empty-routine guard in formatters
 
 ### Scope & placement
 
-- **Target screen:** Onboarding step 7 (0-indexed step 7, label "Templates") — `OnboardingFlow.tsx` renders `<OnboardingTemplateReview templates={draftTemplates} onChange={setDraftTemplates} />`.
-- **Do not** add estimates to post-onboarding workout tab, home screen, or template editor — FTI-30 is onboarding review only.
+- **Target screen:** Onboarding step 7 (0-indexed step 7, label "Templates"), `OnboardingFlow.tsx` renders `<OnboardingTemplateReview templates={draftTemplates} onChange={setDraftTemplates} />`.
+- **Do not** add estimates to post-onboarding workout tab, home screen, or template editor, FTI-30 is onboarding review only.
 - **Do not** implement FTI-28 (notifications), FTI-31 (macro rings), or FTI-32 (water) in this story.
 
-### Estimation formula (recommended — reconcile with Linear heuristic)
+### Estimation formula (recommended, reconcile with Linear heuristic)
 
-Linear describes: *exercises × average sets × average rest time*. That omits work time per set and transitions. **Use the fuller formula below** so estimates are plausible (~45–75 min for typical templates):
+Linear describes: *exercises × average sets × average rest time*. That omits work time per set and transitions. **Use the fuller formula below** so estimates are plausible (~45-75 min for typical templates):
 
 ```
 warmupBuffer
@@ -85,37 +85,37 @@ warmupBuffer
 
 - `restSec` = `DEFAULT_REST_TIMER_SECONDS` (60) during onboarding
 - Round displayed minutes to nearest 5 (`~55 min`, not `~57 min`)
-- Pure function over `WorkoutRoutineTemplate` — no reads from `AppState`
+- Pure function over `WorkoutRoutineTemplate`: no reads from `AppState`
 
 ### Existing code to reuse
 
 | Area | File | Notes |
 | --- | --- | --- |
-| Review UI | `OnboardingTemplateReview.tsx` | Card header at lines 48–50; all edit paths call `onChange` → live recalc |
-| Template shape | `types.ts` `WorkoutRoutineTemplate`, `WorkoutExercise` | `sets: WorkoutSet[]` — count via `sets.length` |
+| Review UI | `OnboardingTemplateReview.tsx` | Card header at lines 48-50; all edit paths call `onChange` → live recalc |
+| Template shape | `types.ts` `WorkoutRoutineTemplate`, `WorkoutExercise` | `sets: WorkoutSet[]`: count via `sets.length` |
 | Rest default | `restTimerPreferences.ts` `DEFAULT_REST_TIMER_SECONDS` | Same default used in active workouts pre-preference |
 | Template builder | `workoutSplitByDays.ts` `buildWorkoutTemplatesForDays` | Seeds `draftTemplates` when user picks schedule (step 6→7) |
-| Duration formatting | `workoutSummary.ts` `formatWorkoutDuration` | Elapsed-time formatter (mm:ss) — **not** suitable for estimates; use new `formatEstimatedSessionMinutes` |
-| Prior sprint pattern | `homeGreeting.ts` (FTI-29) | Small pure helper module + minimal screen wiring — follow same pattern |
+| Duration formatting | `workoutSummary.ts` `formatWorkoutDuration` | Elapsed-time formatter (mm:ss), **not** suitable for estimates; use new `formatEstimatedSessionMinutes` |
+| Prior sprint pattern | `homeGreeting.ts` (FTI-29) | Small pure helper module + minimal screen wiring, follow same pattern |
 
 ### Persistence & architecture (from project-context.md)
 
-- **No new `AppState` fields** — estimates are computed at render time from in-memory `draftTemplates` during onboarding; persisted templates unchanged.
+- **No new `AppState` fields**, estimates are computed at render time from in-memory `draftTemplates` during onboarding; persisted templates unchanged.
 - **Do not** write to localStorage directly; onboarding finish already sets `workoutTemplates: draftTemplates` in `OnboardingFlow.finish()`.
-- **No Tailwind, no test runner** — verification is `npm run build` only + manual `?previewOnboarding=1` smoke.
-- **Styling:** match existing onboarding cards — inline styles + `.card`; muted secondary `rgba(255,255,255,0.45)`.
+- **No Tailwind, no test runner**, verification is `npm run build` only + manual `?previewOnboarding=1` smoke.
+- **Styling:** match existing onboarding cards, inline styles + `.card`; muted secondary `rgba(255,255,255,0.45)`.
 - **Strict TS:** new module must satisfy `noUnusedLocals` / `noUnusedParameters`.
 
 ### UX presentation
 
-- Linear example: `Push — ~55 min`
+- Linear example: `Push, ~55 min`
 - Keep `dayLabel · name` as primary title; show estimate as secondary detail (not competing with exercise list when expanded)
-- Tilde prefix signals approximation — always use `~` in display string
+- Tilde prefix signals approximation, always use `~` in display string
 
 ### Prior story learnings (FTI-29)
 
 - FTI-29 established helper-module + thin UI wiring pattern (`homeGreeting.ts` → `ScreenHome.tsx`).
-- FTI-29 explicitly scoped out FTI-30+ — this story owns session-time estimates only.
+- FTI-29 explicitly scoped out FTI-30+, this story owns session-time estimates only.
 - Onboarding step indices: schedule = step 6, template review = step 7, nutrition = step 8.
 
 ### Linear issue (primary product input)
@@ -124,23 +124,23 @@ warmupBuffer
 - **linear_url:** https://linear.app/ftiness-tracker/issue/FTI-30/estimated-session-time-shown-per-split-in-onboarding
 - **Title:** Estimated session time shown per split in onboarding
 - **Status (Linear):** Todo | **Priority:** Low
-- **Linear-only detail:** Description specifies estimate on "split selection/review screen" and formula as exercises × avg sets × avg rest — epics.md matches AC list; use recommended fuller formula above for realistic durations.
+- **Linear-only detail:** Description specifies estimate on "split selection/review screen" and formula as exercises × avg sets × avg rest, epics.md matches AC list; use recommended fuller formula above for realistic durations.
 
 ### Concerns / ambiguities for dev
 
-1. **Formula ambiguity:** Linear's multiplicative heuristic vs. sum-of-sets model — story recommends sum-of-sets + transitions; if product wants strict Linear formula, estimates will skew low.
-2. **Warmup buffer:** Templates may include `warmupItems` — not required to parse for v1; fixed buffer constant is acceptable.
-3. **Experience/equipment variants:** Different templates from `buildWorkoutTemplatesForDays` change exercise count — estimates should vary accordingly (automatic if formula reads live `draftTemplates`).
+1. **Formula ambiguity:** Linear's multiplicative heuristic vs. sum-of-sets model, story recommends sum-of-sets + transitions; if product wants strict Linear formula, estimates will skew low.
+2. **Warmup buffer:** Templates may include `warmupItems`: not required to parse for v1; fixed buffer constant is acceptable.
+3. **Experience/equipment variants:** Different templates from `buildWorkoutTemplatesForDays` change exercise count, estimates should vary accordingly (automatic if formula reads live `draftTemplates`).
 4. **Empty routine:** Should not occur when Continue enabled; omit label if `exercises.length === 0`.
 
 ### Parallel implementation groups
 
 | Group | Tasks | Can run in parallel with |
 | --- | --- | --- |
-| A — Pure logic | Task 1 (all subtasks) | — (start here) |
-| B — UI wiring | Task 2 | After Task 1 exports exist |
-| C — Copy polish | Task 3 | After Task 2 (or parallel if dev reads estimate labels) |
-| D — Verification | Task 4 | After Tasks 1–2 complete |
+| A, Pure logic | Task 1 (all subtasks) |, (start here) |
+| B, UI wiring | Task 2 | After Task 1 exports exist |
+| C, Copy polish | Task 3 | After Task 2 (or parallel if dev reads estimate labels) |
+| D, Verification | Task 4 | After Tasks 1-2 complete |
 
 ### Project Structure Notes
 
@@ -177,7 +177,7 @@ Composer (swarm story-dev)
 ### Completion Notes List
 
 - Added `estimateSessionDuration.ts` pure helpers: warmup buffer + per-set work/rest + exercise transitions; display rounds to nearest 5 min with `~` prefix and 15 min floor.
-- `OnboardingTemplateReview`: third muted line per card (`Push — ~55 min` pattern); omitted when `exercises.length === 0`; recalculates on every `onChange` via props.
+- `OnboardingTemplateReview`: third muted line per card (`Push, ~55 min` pattern); omitted when `exercises.length === 0`; recalculates on every `onChange` via props.
 - `OnboardingFlow` step 7 subtitle mentions per-day session time estimates.
 - `npm run build` PASS (tsc -b + Vite).
 - Review fix: empty-routine guard prevents misleading `~15 min` for zero-exercise routines.

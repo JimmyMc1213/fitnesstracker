@@ -14,7 +14,7 @@ export type MacroPaceSnapshot = {
 const MIN_DAY_FRACTION = 0.12;
 const ON_PACE_GRAMS = 8;
 
-/** Time-weighted protein pace for coach copy — pure, no side effects. */
+/** Time-weighted protein pace for coach copy, pure, no side effects. */
 export function buildMacroPaceSnapshot(ctx: CoachContext): MacroPaceSnapshot {
   const targetP = ctx.state.nutritionTargets.p;
   const actualP = ctx.nutritionTotals.p;
@@ -33,7 +33,7 @@ export function buildMacroPaceSnapshot(ctx: CoachContext): MacroPaceSnapshot {
       status: "hit",
       expectedProtein: targetP,
       proteinPaceDelta: 0,
-      hint: "Protein floor hit — on pace for today.",
+      hint: "Protein floor hit, on pace for today.",
     };
   }
 
@@ -56,7 +56,7 @@ export function buildMacroPaceSnapshot(ctx: CoachContext): MacroPaceSnapshot {
       status: "behind",
       expectedProtein,
       proteinPaceDelta,
-      hint: `${Math.round(proteinPaceDelta)}g behind pace — log fuel to stay on track.`,
+      hint: `${Math.round(proteinPaceDelta)}g behind pace, log fuel to stay on track.`,
     };
   }
 
@@ -64,6 +64,6 @@ export function buildMacroPaceSnapshot(ctx: CoachContext): MacroPaceSnapshot {
     status: "ahead",
     expectedProtein,
     proteinPaceDelta,
-    hint: `${Math.round(Math.abs(proteinPaceDelta))}g ahead of pace — keep the floor locked.`,
+    hint: `${Math.round(Math.abs(proteinPaceDelta))}g ahead of pace, keep the floor locked.`,
   };
 }

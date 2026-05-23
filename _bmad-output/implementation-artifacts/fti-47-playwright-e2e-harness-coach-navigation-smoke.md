@@ -16,7 +16,7 @@ so regressions in the highest-traffic coached flows are caught before merge.
 
 3. **Fuel quick-log smoke:** Given Home with fuel quick-log available, when the user opens the quick-log sheet and taps a preset, then today's macro totals update (DOM or data attribute assertion).
 
-4. **Vitest unchanged:** Given existing unit tests, when `npm test` runs, then all 76+ Vitest tests still pass — no Playwright/Vitest conflict.
+4. **Vitest unchanged:** Given existing unit tests, when `npm test` runs, then all 76+ Vitest tests still pass, no Playwright/Vitest conflict.
 
 5. **Build gate:** `npm run build` passes.
 
@@ -26,7 +26,7 @@ so regressions in the highest-traffic coached flows are caught before merge.
 
 - [ ] **Task 1: Playwright setup** (AC: 1)
   - [ ] 1.1 Add `@playwright/test` dev dependency.
-  - [ ] 1.2 Add `playwright.config.ts` — baseURL, webServer hook for `vite preview` or dev.
+  - [ ] 1.2 Add `playwright.config.ts`: baseURL, webServer hook for `vite preview` or dev.
   - [ ] 1.3 Add `npm run test:e2e` script to `package.json`.
 
 - [ ] **Task 2: Test fixtures / seed** (AC: 2, 3)
@@ -34,10 +34,10 @@ so regressions in the highest-traffic coached flows are caught before merge.
   - [ ] 2.2 Document fixture approach in story Dev Agent Record.
 
 - [ ] **Task 3: Coach navigation smoke** (AC: 2)
-  - [ ] 3.1 `e2e/coach-task-nutrition.spec.ts` — tap coach task → assert Nutrition tab active.
+  - [ ] 3.1 `e2e/coach-task-nutrition.spec.ts`: tap coach task → assert Nutrition tab active.
 
 - [ ] **Task 4: Fuel quick-log smoke** (AC: 3)
-  - [ ] 4.1 `e2e/fuel-quick-log.spec.ts` — open sheet → tap preset → assert macro delta visible.
+  - [ ] 4.1 `e2e/fuel-quick-log.spec.ts`: open sheet → tap preset → assert macro delta visible.
 
 - [ ] **Task 5: Verification** (AC: 4, 5)
   - [ ] 5.1 `npm run build` + `npm test` + `npm run test:e2e`.
@@ -52,11 +52,11 @@ Sprint 3 retro: "Never add navigation-heavy features without E2E." Sprint 4 defe
 
 ### Key files
 
-- `package.json` — scripts + devDependency
-- `playwright.config.ts` — new
-- `e2e/` — new smoke specs
-- `src/fitness/coachTaskActions.ts` — task routing under test
-- `src/fitness/HomeFuelQuickLogSheet.tsx` — quick-log under test
+- `package.json`: scripts + devDependency
+- `playwright.config.ts`: new
+- `e2e/`: new smoke specs
+- `src/fitness/coachTaskActions.ts`: task routing under test
+- `src/fitness/HomeFuelQuickLogSheet.tsx`: quick-log under test
 
 ### References
 

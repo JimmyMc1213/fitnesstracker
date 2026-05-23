@@ -17,7 +17,7 @@ so that edit mode feels polished and safe.
 3. **No note/Progress rows in editor:** Remove `ExerciseNoteRow` (Add note) from `WorkoutRoutineEditor`; Progress is live-workout-only (FTI-19) and must not appear here.
 4. **Drag handle tap target ≥ 44px:** Reorder grip in the routine editor meets minimum 44×44px touch target.
 5. **Delete demoted + confirmed:** Delete routine is visually secondary (muted text/link style); confirmation dialog names the routine before delete executes.
-6. **Save button matches design system:** Save routine uses lime green (`#34C759`) with dark text — same primary action pattern as workout Finish / Keep training.
+6. **Save button matches design system:** Save routine uses lime green (`#34C759`) with dark text, same primary action pattern as workout Finish / Keep training.
 7. **Consistent card spacing:** Exercise cards use 16px inner padding; 12px gap between cards in the sortable list.
 
 ## Tasks / Subtasks
@@ -43,16 +43,16 @@ so that edit mode feels polished and safe.
 
 ### Primary target
 
-- **`src/fitness/screens/WorkoutRoutineEditor.tsx`** — routine edit UI
-- **`src/fitness/SortableExerciseList.tsx`** — optional `tapSize` on drag handle
-- **`src/fitness/screens/ScreenWorkout.tsx`** — remove editor note sheet props
-- **`src/fitness/workoutUiTokens.ts`** — reuse `labelStyle`; add `ACCENT_GREEN`, `CARD_PADDING`, `EDITOR_LIST_GAP` if helpful
+- **`src/fitness/screens/WorkoutRoutineEditor.tsx`**, routine edit UI
+- **`src/fitness/SortableExerciseList.tsx`**, optional `tapSize` on drag handle
+- **`src/fitness/screens/ScreenWorkout.tsx`**, remove editor note sheet props
+- **`src/fitness/workoutUiTokens.ts`**, reuse `labelStyle`; add `ACCENT_GREEN`, `CARD_PADDING`, `EDITOR_LIST_GAP` if helpful
 
 ### Scope discipline
 
-- Do **not** change live workout lifting UI (`ScreenWorkout` lifting phase) — FTI-19 done
+- Do **not** change live workout lifting UI (`ScreenWorkout` lifting phase), FTI-19 done
 - Do **not** implement FTI-18 drag animation in this story
-- Quality gate: **`npm run build` only** — no Vitest/Playwright/dev server
+- Quality gate: **`npm run build` only**, no Vitest/Playwright/dev server
 
 ### Design tokens
 

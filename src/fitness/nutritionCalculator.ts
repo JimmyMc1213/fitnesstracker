@@ -46,9 +46,9 @@ export function calculateNutritionTargets(input: NutritionCalcInput): MacroTotal
 export function activityLevelLabel(level: ActivityLevel): string {
   const labels: Record<ActivityLevel, string> = {
     sedentary: "Mostly seated",
-    light: "Light (1–2 days/wk)",
-    moderate: "Moderate (3–4 days/wk)",
-    active: "Active (5–6 days/wk)",
+    light: "Light (1-2 days/wk)",
+    moderate: "Moderate (3-4 days/wk)",
+    active: "Active (5-6 days/wk)",
     very_active: "Very active (daily + physical job)",
   };
   return labels[level];

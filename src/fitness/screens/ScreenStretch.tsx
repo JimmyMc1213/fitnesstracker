@@ -114,7 +114,7 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
         </p>
       ) : (
         <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
-          Aim for about <strong style={{ color: "#fff", fontWeight: 600 }}>15–20 minutes total</strong> — drift longer on what feels glued from the day.
+          Aim for about <strong style={{ color: "#fff", fontWeight: 600 }}>15-20 minutes total</strong>, drift longer on what feels glued from the day.
         </p>
       )}
 

@@ -75,7 +75,7 @@ export function NotificationPreferencesPicker({
   showPermissionHint?: boolean;
   permission?: NotificationPermissionState;
   onPermissionChange?: (next: NotificationPermissionState) => void;
-  /** Opens in-app Settings (e.g. from Home gear) — used when permission was denied during onboarding. */
+  /** Opens in-app Settings (e.g. from Home gear), used when permission was denied during onboarding. */
   onOpenSettings?: () => void;
 }) {
   const [internalPermission, setInternalPermission] = useState(getNotificationPermission);

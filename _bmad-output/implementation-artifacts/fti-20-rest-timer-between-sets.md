@@ -28,16 +28,16 @@ so that I stay on pace without a separate timer app.
   - [x] Use `exerciseNoteKey(name, label)` for per-exercise map keys (same as exercise notes)
 
 - [x] **Task 2: Rest timer UI component** (AC: 2, 4, 5)
-  - [x] Create `RestTimerBar.tsx` under `src/fitness/` — shows remaining time, progress track, Dismiss button
+  - [x] Create `RestTimerBar.tsx` under `src/fitness/`: shows remaining time, progress track, Dismiss button
   - [x] Visual completion state (accent pulse / "Rest complete" copy) when countdown hits 0
   - [x] Call `navigator.vibrate?.([200, 100, 200])` once on completion
 
 - [x] **Task 3: Session integration in ScreenWorkout** (AC: 1, 2, 4, 6)
-  - [x] Session-local `ActiveRestTimer` state (`exerciseId`, `endsAtMs`, `completed`) — not persisted
+  - [x] Session-local `ActiveRestTimer` state (`exerciseId`, `endsAtMs`, `completed`), not persisted
   - [x] On set marked done, resolve duration from per-exercise map or global default; start timer for that exercise card
   - [x] Reuse existing 1s `tick` interval for countdown updates
   - [x] Render `RestTimerBar` inside matching exercise card (below target line or above set grid)
-  - [x] Per-exercise duration stepper on bar (cycles presets) — updates `restTimerSecondsByExerciseKey` and resets active countdown
+  - [x] Per-exercise duration stepper on bar (cycles presets), updates `restTimerSecondsByExerciseKey` and resets active countdown
   - [x] Clear timer on session end (`endSessionToIdle`) and when dismissing
 
 - [x] **Task 4: Settings global default** (AC: 3, 6)
@@ -46,20 +46,20 @@ so that I stay on pace without a separate timer app.
 
 - [x] **Task 5: Verification** (AC: all)
   - [x] Manual: mark set done → timer appears on card; dismiss works; completion vibrates + visual flash
-  - [x] Run `npm run build` (project quality gate — no unit tests)
+  - [x] Run `npm run build` (project quality gate, no unit tests)
 
 ## Dev Notes
 
 ### Primary implementation targets
 
-- **`src/fitness/screens/ScreenWorkout.tsx`** — set toggle at ~999 (`updateSet` / done button); lifting phase exercise cards ~857–1060
+- **`src/fitness/screens/ScreenWorkout.tsx`**, set toggle at ~999 (`updateSet` / done button); lifting phase exercise cards ~857-1060
 - **New:** `RestTimerBar.tsx`, `restTimerPreferences.ts`
 - **Touch:** `types.ts`, `persistFitnessSlice.ts`, `buildAppState.ts`, `mergePersistedFitnessSlices.ts`, `SettingsSheet.tsx`
 
 ### Architecture & constraints
 
-- **Session timer is ephemeral** — `useState` in `ScreenWorkout` only; do not add to `WorkoutState` / persisted slice.
-- **Preferences are persisted** — follow full pipeline: `types.ts` → `persistFitnessSlice` → `buildAppStateFromPersisted` → `mergePersistedFitnessSlices`.
+- **Session timer is ephemeral**, `useState` in `ScreenWorkout` only; do not add to `WorkoutState` / persisted slice.
+- **Preferences are persisted**, follow full pipeline: `types.ts` → `persistFitnessSlice` → `buildAppStateFromPersisted` → `mergePersistedFitnessSlices`.
 - **No React Router;** no new tabs. Settings entry remains Home → gear sheet.
 - **Quality gate:** `npm run build` only. No Vitest/Playwright.
 - **Scope discipline:** Do not implement FTI-21 (swap exercise) or FTI-22+ in this story.
@@ -106,4 +106,4 @@ Composer
 
 ## Change Log
 
-- 2026-05-21: FTI-20 rest timer — auto-start on set complete, RestTimerBar on exercise card, Settings global default, per-exercise preset override
+- 2026-05-21: FTI-20 rest timer, auto-start on set complete, RestTimerBar on exercise card, Settings global default, per-exercise preset override

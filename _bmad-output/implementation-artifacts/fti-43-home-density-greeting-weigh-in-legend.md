@@ -1,4 +1,4 @@
-# Story 4.3: Home density — greeting, weigh-in inline, streak legend (FTI-43)
+# Story 4.3: Home density, greeting, weigh-in inline, streak legend (FTI-43)
 
 Status: done
 
@@ -12,17 +12,17 @@ so Home feels coached but not overwhelming.
 
 1. **First name in onboarding:** Given a new user in `OnboardingFlow`, when they pass the Units step, then a **"What should we call you?"** step collects first name into `displayName` (optional skip → empty string). Step inserted after Units (adjust `STEP_LABELS` + step index wiring).
 
-2. **Greeting shows name:** Given `displayName` is `"Jimmy McCarthy"`, when Home today view renders, then header title is `"Good morning, Jimmy"` (first token only — existing `homeGreetingTitle` behavior).
+2. **Greeting shows name:** Given `displayName` is `"Jimmy McCarthy"`, when Home today view renders, then header title is `"Good morning, Jimmy"` (first token only, existing `homeGreetingTitle` behavior).
 
-3. **Logged weigh-in inline:** Given today has a weigh-in logged and it is **not** a scheduled check-in promo scenario, when Home renders, then weigh-in shows as **one inline row** under the greeting area (or directly below header): checkmark + weight + "Weigh-in logged" — **not** a full card. Tapping navigates to Progress.
+3. **Logged weigh-in inline:** Given today has a weigh-in logged and it is **not** a scheduled check-in promo scenario, when Home renders, then weigh-in shows as **one inline row** under the greeting area (or directly below header): checkmark + weight + "Weigh-in logged", **not** a full card. Tapping navigates to Progress.
 
 4. **Weigh-in full card when needed:** Given scheduled weigh-in day (`ctx.scheduledWeighInDay`) and **no** entry yet, when Home renders, then show the existing prominent weigh-in card (unchanged CTA intent).
 
-5. **Home stack order (today):** ScreenHeader → Today's Plan → StreakWeeklyHeader (compact) → Fuel strip → *(Daily habits card added in FTI-44 — leave hook or placeholder gap)* → Weigh-in inline/card → Weigh-in coach reaction → Nightly stretch → Weekly summary (collapsed).
+5. **Home stack order (today):** ScreenHeader → Today's Plan → StreakWeeklyHeader (compact) → Fuel strip → *(Daily habits card added in FTI-44: leave hook or placeholder gap)* → Weigh-in inline/card → Weigh-in coach reaction → Nightly stretch → Weekly summary (collapsed).
 
-6. **Streak legend:** Given compact streak week row on Home, when rendered, then a one-line muted legend appears below the week dots: `Ring = workout + fuel progress that day` (10–11px, `rgba(255,255,255,0.35)`).
+6. **Streak legend:** Given compact streak week row on Home, when rendered, then a one-line muted legend appears below the week dots: `Ring = workout + fuel progress that day` (10-11px, `rgba(255,255,255,0.35)`).
 
-7. **Weekly summary:** Remains `defaultCollapsed` on Home — no change unless header needs tighter padding (optional polish only).
+7. **Weekly summary:** Remains `defaultCollapsed` on Home, no change unless header needs tighter padding (optional polish only).
 
 8. **FTI-29 completion:** Settings "First name" field remains as edit path; onboarding is now the primary capture (closes FTI-29 gap noted in retro).
 
@@ -38,7 +38,7 @@ so Home feels coached but not overwhelming.
   - [ ] 1.3 Update `totalSteps` / back navigation.
 
 - [ ] **Task 2: Inline weigh-in row component** (AC: 3, 4)
-  - [ ] 2.1 Create `HomeWeighInInline.tsx` — single tappable row.
+  - [ ] 2.1 Create `HomeWeighInInline.tsx`: single tappable row.
   - [ ] 2.2 `ScreenHome.tsx` logic: if `dayEntry && !(scheduledWeighInDay && !dayEntry)` → inline; elif scheduled + no entry → full card; elif historical view → existing behavior.
 
 - [ ] **Task 3: Streak legend** (AC: 6)
@@ -54,8 +54,8 @@ so Home feels coached but not overwhelming.
 
 ### Partial impl
 
-- `homeGreeting.ts` already supports name — onboarding never collected it (FTI-29 story claimed onboarding set `displayName` — incorrect).
-- Weigh-in full card exists in `ScreenHome.tsx` ~159–208.
+- `homeGreeting.ts` already supports name, onboarding never collected it (FTI-29 story claimed onboarding set `displayName`: incorrect).
+- Weigh-in full card exists in `ScreenHome.tsx` ~159-208.
 
 ### Depends on
 

@@ -62,12 +62,12 @@ export function RepRangeEditSheet({ exerciseName, repRange, onSave, onClose }: R
         </div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 14, fontWeight: 500 }}>{exerciseName}</div>
         <p style={{ margin: "0 0 12px", fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.45 }}>
-          Shown in the target label (e.g. 4 × 6–8). Saved to your routine when this workout came from a template.
+          Shown in the target label (e.g. 4 × 6-8). Saved to your routine when this workout came from a template.
         </p>
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="e.g. 6–8"
+          placeholder="e.g. 6-8"
           autoFocus
           style={{
             background: "#1A1A1A",

@@ -1,6 +1,6 @@
 /**
  * Set autofill from workoutHistory (per-set w/r snapshots).
- * Does NOT use exerciseSessionHistoryByKey — that stores best-only snapshots.
+ * Does NOT use exerciseSessionHistoryByKey, that stores best-only snapshots.
  */
 import { exerciseNoteKey } from "./exerciseNotes";
 import { getWorkoutHistorySorted } from "./workoutHistory";

@@ -2,6 +2,7 @@ import {
   loadTasksForToday,
   localDateKey,
 } from "./dailyPlan";
+import { sanitizeCoachCopy } from "./exerciseSessionNotes";
 import {
   DEFAULT_NUTRITION_TARGETS,
   INITIAL_WORKOUT,
@@ -39,8 +40,38 @@ import type {
   LoggedFood,
   MacroTotals,
   ProgressGoalConfig,
+  WeightEntry,
   WorkoutState,
 } from "./types";
+
+function normalizeWeightMacroNudge(raw: unknown): { deltaCal: number; reason: string } | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const o = raw as Record<string, unknown>;
+  const deltaCal = Number(o.deltaCal);
+  const reason = typeof o.reason === "string" ? o.reason.trim() : "";
+  if (!Number.isFinite(deltaCal) || !reason) return undefined;
+  return { deltaCal, reason };
+}
+
+function normalizeWeightLog(raw: unknown): WeightEntry[] {
+  if (!Array.isArray(raw)) return [];
+  const out: WeightEntry[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    if (typeof o.dateKey !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(o.dateKey)) continue;
+    const weightLbs = Number(o.weightLbs);
+    if (!Number.isFinite(weightLbs) || weightLbs <= 0) continue;
+    const entry: WeightEntry = { dateKey: o.dateKey, weightLbs };
+    if (typeof o.loggedAtIso === "string" && o.loggedAtIso.trim()) entry.loggedAtIso = o.loggedAtIso.trim();
+    if (typeof o.photoDataUrl === "string" && o.photoDataUrl.trim()) entry.photoDataUrl = o.photoDataUrl;
+    if (typeof o.coachMessage === "string" && o.coachMessage.trim()) entry.coachMessage = o.coachMessage.trim();
+    const macroNudge = normalizeWeightMacroNudge(o.macroNudge);
+    if (macroNudge) entry.macroNudge = macroNudge;
+    out.push(entry);
+  }
+  return out;
+}
 
 function normalizeAdjustmentHistory(raw: unknown): AdjustmentEvent[] {
   if (!Array.isArray(raw)) return [];
@@ -87,27 +118,37 @@ function normalizePersistedWorkout(raw: WorkoutState | undefined): WorkoutState 
     base.sessionStartedAtMs = Date.now();
   }
 
+  if (sessionPhase === "idle") {
+    return {
+      ...base,
+      startedAt: "-",
+      sessionDayKey: null,
+      sessionStartedAtMs: null,
+      exercises: [],
+      sessionTitle: "Workout",
+      sessionCoachNotesByExerciseId: undefined,
+    };
+  }
+
   if (sessionPhase === "lifting" && base.sessionDayKey !== today) {
     return {
       ...base,
       sessionPhase: "idle",
-      startedAt: "—",
+      startedAt: "-",
       sessionDayKey: null,
       sessionStartedAtMs: null,
       exercises: [],
       sessionTitle: "Workout",
+      sessionCoachNotesByExerciseId: undefined,
     };
   }
 
-  if (sessionPhase === "idle") {
-    return {
-      ...base,
-      startedAt: "—",
-      sessionDayKey: null,
-      sessionStartedAtMs: null,
-      exercises: [],
-      sessionTitle: "Workout",
-    };
+  if (base.sessionCoachNotesByExerciseId) {
+    const notes: Record<string, string> = {};
+    for (const [id, note] of Object.entries(base.sessionCoachNotesByExerciseId)) {
+      notes[id] = sanitizeCoachCopy(note);
+    }
+    base.sessionCoachNotesByExerciseId = notes;
   }
 
   return base;
@@ -316,7 +357,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey),
     dailyTasks: loadTasksForToday(nutritionTargets, planStartIso, stepsTarget, workoutTemplates),
     nutritionTargets,
-    weightLog: p?.weightLog ?? [],
+    weightLog: normalizeWeightLog(p?.weightLog),
     lastAdjustmentSundayKey: lastAdj,
     sundayReviewCompletedKey: reviewDone,
     adjustmentHistory: normalizeAdjustmentHistory(p?.adjustmentHistory),
