@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { buildWeeklySummary, formatWeeklySummaryRange } from "./weeklySummary";
 import { LBS_PER_KG } from "./unitPreferences";
@@ -7,9 +7,11 @@ import type { AppState } from "./types";
 type Props = {
   state: AppState;
   todayKey: string;
+  defaultCollapsed?: boolean;
 };
 
-export function WeeklySummaryCard({ state, todayKey }: Props) {
+export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }: Props) {
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const wUnit = state.unitPreferences.weightUnit;
   const summary = useMemo(() => buildWeeklySummary(state, todayKey), [state, todayKey]);
 
@@ -21,53 +23,113 @@ export function WeeklySummaryCard({ state, todayKey }: Props) {
 
   const rangeLabel = formatWeeklySummaryRange(summary.weekStartKey, summary.weekEndKey);
 
+  const statGrid = (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+      <StatBlock
+        label="Workouts"
+        value={`${summary.workoutsCompleted}/${summary.workoutsPlanned}`}
+        sub="days done"
+      />
+      <StatBlock
+        label="Volume"
+        value={summary.totalVolumeLbs > 0 ? displayVolume.toLocaleString() : "—"}
+        sub={volLabel}
+      />
+      <StatBlock
+        label="Fuel"
+        value={`${summary.nutritionDaysHit}/${summary.daysInWeek}`}
+        sub="days on target"
+      />
+    </div>
+  );
+
+  const headerContent = (
+    <div style={{ minWidth: 0 }}>
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: "rgba(96,165,250,0.85)",
+        }}
+      >
+        This week
+      </div>
+      <div style={{ marginTop: 4, fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+        {rangeLabel} · resets Monday
+      </div>
+    </div>
+  );
+
+  if (!defaultCollapsed) {
+    return (
+      <div
+        className="card"
+        style={{
+          padding: 16,
+          marginTop: 18,
+          borderColor: "rgba(96,165,250,0.22)",
+          background: "linear-gradient(180deg, rgba(96,165,250,0.06) 0%, transparent 48%)",
+        }}
+      >
+        <div className="between" style={{ alignItems: "flex-start", gap: 10, marginBottom: 14 }}>
+          {headerContent}
+          <WeekGlyph size={22} />
+        </div>
+        {statGrid}
+      </div>
+    );
+  }
+
   return (
     <div
       className="card"
       style={{
-        padding: 16,
+        padding: 0,
         marginTop: 18,
+        overflow: "hidden",
         borderColor: "rgba(96,165,250,0.22)",
         background: "linear-gradient(180deg, rgba(96,165,250,0.06) 0%, transparent 48%)",
       }}
     >
-      <div className="between" style={{ alignItems: "flex-start", gap: 10, marginBottom: 14 }}>
-        <div style={{ minWidth: 0 }}>
-          <div
+      <button
+        type="button"
+        className="tap"
+        onClick={() => setCollapsed((v) => !v)}
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? "This week summary — tap to expand" : "This week summary — tap to collapse"}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 10,
+          padding: 16,
+          border: "none",
+          background: "transparent",
+          color: "#fff",
+          textAlign: "left",
+        }}
+      >
+        {headerContent}
+        <span style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <WeekGlyph size={22} />
+          <span
+            aria-hidden
             style={{
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "rgba(96,165,250,0.85)",
+              fontSize: 12,
+              color: "rgba(96,165,250,0.75)",
+              transform: collapsed ? "rotate(0deg)" : "rotate(180deg)",
+              transition: "transform 0.15s ease",
             }}
           >
-            This week
-          </div>
-          <div style={{ marginTop: 4, fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-            {rangeLabel} · resets Monday
-          </div>
-        </div>
-        <WeekGlyph size={22} />
-      </div>
+            ▼
+          </span>
+        </span>
+      </button>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-        <StatBlock
-          label="Workouts"
-          value={`${summary.workoutsCompleted}/${summary.workoutsPlanned}`}
-          sub="days done"
-        />
-        <StatBlock
-          label="Volume"
-          value={summary.totalVolumeLbs > 0 ? displayVolume.toLocaleString() : "—"}
-          sub={volLabel}
-        />
-        <StatBlock
-          label="Fuel"
-          value={`${summary.nutritionDaysHit}/${summary.daysInWeek}`}
-          sub="days on target"
-        />
-      </div>
+      {!collapsed ? <div style={{ padding: "0 16px 16px" }}>{statGrid}</div> : null}
     </div>
   );
 }
