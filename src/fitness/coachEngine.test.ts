@@ -105,6 +105,7 @@ describe("getHomeCoachPlan", () => {
     const proteinTask = plan.tasks.find((t) => t.kind === "hit_protein");
     expect(proteinTask).toBeDefined();
     expect(proteinTask?.label).toMatch(/160g left|180g protein/i);
+    expect(proteinTask?.rationale).toMatch(/pace/i);
   });
 
   it("includes insight strip when streak and protein gap both apply", () => {

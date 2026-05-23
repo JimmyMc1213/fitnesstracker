@@ -50,6 +50,14 @@ export function resolveCoachTaskNavigation(task: CoachTask): TabId | null {
   }
 }
 
+/** Fuel tasks that open Home quick-log instead of tab navigation (FTI-35). */
+export function coachTaskOpensFuelQuickLog(task: CoachTask): boolean {
+  if (task.completed) return false;
+  if (task.kind === "hit_protein") return true;
+  if (task.kind === "post_workout_review" && task.ctaLabel === "Log fuel") return true;
+  return false;
+}
+
 /** ScreenHome wires this to `navigate` — guard skips completed tasks. */
 export function handleCoachTaskAction(task: CoachTask, navigate: (tab: TabId) => void): void {
   const target = resolveCoachTaskNavigation(task);
