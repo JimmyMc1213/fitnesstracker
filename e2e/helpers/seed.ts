@@ -121,6 +121,25 @@ export function fuelQuickLogPersistSeed(dateKey = localDateKey()) {
   };
 }
 
+/** Saved meal in library + light breakfast logged → My meals one-tap log E2E. */
+export function mealLogPersistSeed(dateKey = localDateKey()) {
+  const base = fuelQuickLogPersistSeed(dateKey);
+  return {
+    ...base,
+    nutritionMeals: [
+      {
+        id: "e2e-meal-prep",
+        name: "E2E prep bowl",
+        createdAtMs: 1_700_000_000_000,
+        items: [
+          { id: "e2e-chicken", name: "Chicken", cal: 200, p: 40, c: 0, f: 4, servingLabel: "4 oz" },
+          { id: "e2e-rice", name: "Rice", cal: 150, p: 3, c: 30, f: 1, servingLabel: "1 cup" },
+        ],
+      },
+    ],
+  };
+}
+
 export async function seedPersist(page: Page, slice: Record<string, unknown>): Promise<void> {
   const { _dateKey: _, ...persist } = slice;
   await page.addInitScript(

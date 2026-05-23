@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (FTI-63 merged — Sprint 9 in progress)
+# last_updated: 2026-05-23 (FTI-65 — Sprint 9 complete)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -110,13 +110,13 @@
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next: fti-64-log-food-cal-ai-visual-polish → backlog (2026-05-23, FTI-63 merged)
+# - bmad-swarm next: (Sprint 9 complete — run sprint planning for next epic)
 # - Linear FTI-57, FTI-58, FTI-59 → Backlog (2026-05-23)
 # - bmad-swarm next retro: epic-fti-sprint-8-retrospective → done (2026-05-23)
 # - Sprint 9 planning complete (2026-05-23): epics.md Epic 9 + FTI-63 story file
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # FTI-63 merged; Sprint 9 in progress
+last_updated: 2026-05-23  # FTI-65 complete; Sprint 9 done
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -220,11 +220,11 @@ development_status:
 
   epic-fti-sprint-8-retrospective: done
 
-  # --- Sprint 9 (in progress): Nutrition OS v2 — Chunk 3 ---
-  epic-fti-sprint-9: in-progress
+  # --- Sprint 9 (complete): Nutrition OS v2 — Chunk 3 ---
+  epic-fti-sprint-9: done
 
   fti-63-my-meals-meal-prep-data-model: done
   fti-64-log-food-cal-ai-visual-polish: done
-  fti-65-nutrition-os-v2-full-test-persistence-gate: backlog
+  fti-65-nutrition-os-v2-full-test-persistence-gate: done
 
-  epic-fti-sprint-9-retrospective: optional
+  epic-fti-sprint-9-retrospective: done
