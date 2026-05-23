@@ -6,6 +6,7 @@ import {
   getNotificationBody,
   getPostWorkoutRecap,
   getWeighInReaction,
+  getWeighInReactionForDisplay,
 } from "./coachEngine";
 import type { CompletedWorkoutSession, WeightEntry } from "./types";
 import {
@@ -141,6 +142,14 @@ describe("getWeighInReaction", () => {
     const ctx = buildCoachContext(state, MONDAY_KEY, MONDAY);
     const reaction = getWeighInReaction(ctx, { dateKey: MONDAY_KEY, weightLbs: 181 });
     expect(reaction).toBeNull();
+  });
+
+  it("getWeighInReactionForDisplay returns message for logged same-day entry", () => {
+    const state = weighInTrendAppState([{ dateKey: MONDAY_KEY, weightLbs: 180 }]);
+    const ctx = buildCoachContext(state, MONDAY_KEY, MONDAY);
+    const display = getWeighInReactionForDisplay(ctx, { dateKey: MONDAY_KEY, weightLbs: 180 });
+    expect(display).not.toBeNull();
+    expect(display?.message.length).toBeGreaterThan(0);
   });
 
   it("returns message for aggressive downward trend", () => {
