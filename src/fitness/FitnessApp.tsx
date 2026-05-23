@@ -38,7 +38,7 @@ import { registerNotificationServiceWorker } from "./registerNotificationService
 import { checkAndFireDueNotifications } from "./notificationScheduler";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
 import { StreakLostSheet } from "./StreakLostSheet";
-import type { AppState, ScreenProps, StreakLossNotice, TabId } from "./types";
+import type { AppState, NavigateFn, ScreenProps, StreakLossNotice, TabId } from "./types";
 
 /** Dev only: `?previewSunday=1` treats "now" as noon on this week's Sunday so the review sheet is visible any day. */
 function sundayNoonForCurrentWeek(d: Date): Date {
@@ -103,6 +103,7 @@ function OnboardingGate({
 
 export function FitnessApp() {
   const [tab, setTab] = useState<TabId>("home");
+  const [logFoodOpenRequest, setLogFoodOpenRequest] = useState(0);
   const [state, setState] = useState<AppState>(buildInitialState);
   const [previewStreakLostDismissed, setPreviewStreakLostDismissed] = useState(false);
 
@@ -198,6 +199,11 @@ export function FitnessApp() {
     stretch: ScreenStretch,
   };
 
+  const navigate: NavigateFn = (nextTab, options) => {
+    setTab(nextTab);
+    if (options?.openLogFood) setLogFoodOpenRequest((n) => n + 1);
+  };
+
   const Current = screens[tab];
   const showWorkoutSummary = state.workoutSummary != null;
 
@@ -258,7 +264,13 @@ export function FitnessApp() {
             flexDirection: "column",
           }}
         >
-          <Current key={tab} state={state} setState={setState} navigate={setTab} />
+          <Current
+            key={tab}
+            state={state}
+            setState={setState}
+            navigate={navigate}
+            logFoodOpenRequest={tab === "nutrition" ? logFoodOpenRequest : undefined}
+          />
         </div>
 
         {!hideTabBar ? (
@@ -271,7 +283,7 @@ export function FitnessApp() {
                   type="button"
                   className="tab tap"
                   aria-current={active}
-                  onClick={() => setTab(t.id)}
+                  onClick={() => navigate(t.id)}
                 >
                   <t.Icon size={22} stroke={1.6} />
                   <span className="tlabel">{t.label}</span>
@@ -312,7 +324,7 @@ export function FitnessApp() {
             unitPreferences={state.unitPreferences}
             onDone={() => {
               setState((s) => dismissWorkoutSummary(s));
-              setTab("home");
+              navigate("home");
             }}
           />
         ) : null}

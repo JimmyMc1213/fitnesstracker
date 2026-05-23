@@ -7,6 +7,14 @@ export type NutritionLoggedItem = MacroTotals & {
   id: string;
   /** Optional label (e.g. meal or food name). */
   name: string;
+  /** Human-readable portion (e.g. "1 cup"). */
+  servingLabel?: string;
+  /** Origin of the row (e.g. manual, catalog). */
+  source?: string;
+  /** Stable id from an external food database when linked. */
+  externalId?: string;
+  /** When the row was logged (ms since epoch); used for recency UI. */
+  loggedAtMs?: number;
 };
 
 /** Reusable template from something you logged before (macros can be all zero). */
@@ -328,10 +336,19 @@ export type AppState = {
   waterDailyTargetOz: number;
 };
 
+export type NavigateOptions = {
+  /** When navigating to Nutrition, open the Log Food overlay after tab switch. */
+  openLogFood?: boolean;
+};
+
+export type NavigateFn = (tab: TabId, options?: NavigateOptions) => void;
+
 export type ScreenProps = {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
-  navigate: (tab: TabId) => void;
+  navigate: NavigateFn;
+  /** Incremented by FitnessApp when coach/home routes to Log Food on Nutrition tab. */
+  logFoodOpenRequest?: number;
 };
 
 export type IconProps = {

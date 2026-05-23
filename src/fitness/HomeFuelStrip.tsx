@@ -5,12 +5,12 @@ type Props = {
   totals: MacroTotals;
   targets: MacroTotals;
   label?: string;
-  onLogClick?: () => void;
   /** Brief coached pace hint, shown only when user is behind protein pace. */
   paceHint?: string;
 };
 
-export function HomeFuelStrip({ totals, targets, label = "Fuel · Today", onLogClick, paceHint }: Props) {
+/** Read-only fuel progress on Home (logging lives on Nutrition tab → Log Food). */
+export function HomeFuelStrip({ totals, targets, label = "Fuel · Today", paceHint }: Props) {
   const kcalLeft = Math.max(0, targets.cal - totals.cal);
 
   return (
@@ -40,26 +40,6 @@ export function HomeFuelStrip({ totals, targets, label = "Fuel · Today", onLogC
             {kcalLeft} kcal left
           </div>
         </div>
-        {onLogClick ? (
-          <button
-            type="button"
-            className="tap"
-            onClick={onLogClick}
-            aria-label="Log fuel on Nutrition tab"
-            style={{
-              flexShrink: 0,
-              padding: "8px 12px",
-              borderRadius: 999,
-              border: "0.5px solid rgba(255,255,255,0.12)",
-              background: "rgba(255,255,255,0.06)",
-              color: "#fff",
-              fontSize: 12,
-              fontWeight: 600,
-            }}
-          >
-            + Log
-          </button>
-        ) : null}
       </div>
       <MacroBar label="Protein" value={totals.p} target={targets.p} />
       {paceHint ? (

@@ -2,7 +2,7 @@
 
 **Project:** fitnesstracker  
 **Product:** Fitcoach, mobile-first PWA personal fitness OS  
-**Last updated:** 2026-05-21
+**Last updated:** 2026-05-23
 
 ---
 
@@ -20,7 +20,8 @@ Fitcoach is a **mobile PWA** for tracking workouts, nutrition, habits, and progr
 | **Workouts** | Log sets/reps/weight, finish sessions, history, edit routines, rest timer, mid-workout swap |
 | **Progress** | Weight log (optional photo), calendar, PR board, streaks, weekly summary |
 | **Sync** | Local persist slice + Supabase JSONB payload with merge across devices |
-| **UX** | Dark theme, tab navigation (Home, Workout, Progress, Settings), iOS PWA-safe layout |
+| **Nutrition** | Macro rings, hydration, Log Food overlay (Sprint 7+); USDA/OFF search planned Sprint 8 |
+| **UX** | Dark theme, tab navigation (Home, Workout, Nutrition, Progress, Settings), iOS PWA-safe layout |
 
 ### Users
 
@@ -70,6 +71,22 @@ Detailed acceptance criteria, priorities, and status live in Linear. BMad story 
 **Sprint 1 (done):** FTI-15, FTI-25 → 26 → 27 → 14 → 16 → 19 → 17 → 18 → 20 → 21 → 22 → 23 → 24  
 **Sprint 2 (active):** FTI-29 → 30 → 28 → 31 → 32 (see `epics.md` and `sprint-status.yaml`)  
 **Backlog:** FTI-13 (AI coach notes per exercise)
+
+---
+
+## Nutrition OS v2 (Sprints 7–9)
+
+**Vision:** Cal AI–style fuel logging — Nutrition tab shows progress only (rings + hydration); all logging happens in a full-screen **Log Food** overlay with search, manual add, recently logged, My foods, My meals, and Saved foods.
+
+**Sprint 7 (Chunk 1 — in planning):** Strip legacy Nutrition tab UI; extend `NutritionLoggedItem` schema; build Log Food shell with manual add + recently logged; remove Home quick-log; route coach fuel tasks to Log Food; partial E2E refresh. No external food APIs yet.
+
+**Sprint 8 (Chunk 2):** USDA FoodData Central + Open Food Facts via Supabase Edge Function proxy; wire All-tab search; My foods and Saved foods tabs.
+
+**Sprint 9 (Chunk 3):** My meals (meal prep); visual polish; full unit + E2E gate.
+
+**Out of scope (future backlog):** Barcode scan, AI natural-language parse, paid APIs (Nutritionix/Edamam), voice log.
+
+**Checklist:** `_bmad-output/implementation-artifacts/nutrition-os-v2-checklist.md`
 
 ---
 
