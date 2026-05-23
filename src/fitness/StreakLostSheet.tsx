@@ -2,6 +2,7 @@ import { useId } from "react";
 
 import { buildStreakCalendarWeek, dayEligibleForStreak } from "./dailyStreak";
 import { IconCheck } from "./icons";
+import { CenterDialog } from "./motion";
 import type { AppState, StreakLossNotice } from "./types";
 
 function StreakFlameGlyph({
@@ -98,43 +99,31 @@ function WeekDayDot({
 }
 
 type Props = {
+  open: boolean;
   state: AppState;
   notice: StreakLossNotice;
   todayKey: string;
   onContinue: () => void;
 };
 
-export function StreakLostSheet({ state, notice, todayKey, onContinue }: Props) {
+export function StreakLostSheet({ open, state, notice, todayKey, onContinue }: Props) {
   const week = buildStreakCalendarWeek(state, todayKey);
   const lostLabel = notice.lostCount === 1 ? "1 day streak lost" : `${notice.lostCount} day streak lost`;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="streak-lost-title"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 280,
-        background: "rgba(0,0,0,0.78)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 20,
+    <CenterDialog
+      open={open}
+      zIndex={280}
+      ariaLabelledBy="streak-lost-title"
+      panelStyle={{
+        width: "100%",
+        maxWidth: 360,
+        padding: "18px 18px 20px",
+        borderRadius: 20,
+        border: "0.5px solid var(--border)",
+        background: "#1a1a1a",
       }}
     >
-      <div
-        className="card"
-        style={{
-          width: "100%",
-          maxWidth: 360,
-          padding: "18px 18px 20px",
-          borderRadius: 20,
-          border: "0.5px solid var(--border)",
-          background: "#1a1a1a",
-        }}
-      >
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 28 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 5, opacity: 0.45 }}>
             <StreakFlameGlyph size={15} muted />
@@ -202,7 +191,6 @@ export function StreakLostSheet({ state, notice, todayKey, onContinue }: Props) 
         >
           Continue
         </button>
-      </div>
-    </div>
+    </CenterDialog>
   );
 }

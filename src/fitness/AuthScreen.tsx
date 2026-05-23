@@ -97,6 +97,7 @@ export function AuthScreen() {
   if (view === "landing")
     return (
       <div className="auth-screen">
+        <div key="landing" className="motion-step" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <div style={s.logo}>Fit Coach</div>
         <div style={s.sub}>Your personal training companion</div>
         <button
@@ -118,13 +119,14 @@ export function AuthScreen() {
         >
           Sign In
         </button>
+        </div>
       </div>
     );
 
   if (view === "signup")
     return (
       <div className="auth-screen">
-        <div style={s.card}>
+        <div key="signup" className="motion-step" style={s.card}>
           <div style={s.title}>Create Account</div>
           <input
             style={s.input}
@@ -171,7 +173,7 @@ export function AuthScreen() {
 
   return (
     <div className="auth-screen">
-      <div style={s.card}>
+      <div key="signin" className="motion-step" style={s.card}>
         <div style={s.title}>Sign In</div>
         <input
           style={s.input}

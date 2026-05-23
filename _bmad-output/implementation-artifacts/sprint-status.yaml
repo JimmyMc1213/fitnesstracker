@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (Sprint 7 merged — PR #29)
+# last_updated: 2026-05-23 (Sprint 8 planned)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -9,6 +9,23 @@
 # ============
 # Fitcoach is the all-in-one fitness app that coaches you through every workout,
 # meal, and check-in, so you never need another app to hit your goals.
+#
+# Sprint 8 order (execute in this sequence):
+#   BMad: FTI-60 → 61 → 62
+#   Linear: FTI-54 → 55 → 56
+#
+# SPRINT 8 SCOPE LOCKS (2026-05-23 sprint planning):
+#   - Nutrition OS v2 Chunk 2 only (FTI-60 → 61 → 62); one story per PR (target)
+#   - My meals meal prep: OUT OF SCOPE (Sprint 9)
+#   - Cal AI visual polish: OUT OF SCOPE (Sprint 9)
+#   - Barcode, voice log, AI natural-language parse: OUT OF SCOPE (future backlog)
+#   - ScreenWorkout phase 2: OUT OF SCOPE
+#   - FTI-55 LLM coach notes: OUT OF SCOPE (cancelled Sprint 6)
+#   - Native App Store wrapper: OUT OF SCOPE
+#   - Search bar: must call USDA/OFF APIs (no longer UI-only)
+#   - No new Home cards; Home fuel strip stays read-only
+#   - Primary CTA = lime green (--pos / #4ade80); design system carries forward
+#   - USDA API key server-side only (Supabase Edge Function env)
 #
 # Sprint 6 order (execute in this sequence):
 #   BMad: FTI-52 → 53 → 54 → 55 → 56
@@ -75,13 +92,13 @@
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next: epic-fti-sprint-7 → done (2026-05-23, PR #29 merged)
-# - Linear FTI-51, FTI-52, FTI-53 → Done (2026-05-23)
+# - bmad-swarm next: epic-fti-sprint-8 → backlog (2026-05-23 sprint planning)
+# - Linear FTI-54, FTI-55, FTI-56 → Backlog (2026-05-23)
 # - bmad-swarm next retro: epic-fti-sprint-7-retrospective → done (2026-05-23)
-# - bmad-swarm next: Sprint 8 planning (Nutrition OS Chunk 2)
+# - bmad-swarm next: Sprint 9 planning (Nutrition OS Chunk 3) — after S8 merge
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # Sprint 7 merged (PR #29)
+last_updated: 2026-05-23  # Sprint 8 planned
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -175,3 +192,12 @@ development_status:
   fti-59-nutrition-os-v2-e2e-partial: done
 
   epic-fti-sprint-7-retrospective: done
+
+  # --- Sprint 8 (planned): Nutrition OS v2 — Chunk 2 ---
+  epic-fti-sprint-8: done
+
+  fti-60-usda-food-search-edge-function-all-tab: done
+  fti-61-open-food-facts-merge-branded-results: done
+  fti-62-my-foods-favorite-foods-tabs-search-e2e: done
+
+  epic-fti-sprint-8-retrospective: optional

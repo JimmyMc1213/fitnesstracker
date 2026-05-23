@@ -1,49 +1,29 @@
-import type { MouseEvent } from "react";
-
 import { PrimaryButton } from "../shared";
+import { BottomSheet } from "../motion";
 
 export function EmptyFinishConfirmSheet({
+  open = true,
   onKeepTraining,
   onQuit,
 }: {
+  open?: boolean;
   onKeepTraining: () => void;
   onQuit: () => void;
 }) {
-  function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onKeepTraining();
-  }
-
   return (
-    <div
-      role="presentation"
-      onMouseDown={onBackdropMouseDown}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1100,
-        background: "rgba(0,0,0,0.52)",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        padding: "12px 12px calc(16px + env(safe-area-inset-bottom, 0px))",
+    <BottomSheet
+      open={open}
+      onClose={onKeepTraining}
+      zIndex={1100}
+      ariaLabelledBy="empty-finish-title"
+      panelStyle={{
+        width: "100%",
+        maxWidth: 440,
+        background: "#121212",
+        borderColor: "var(--border)",
+        padding: 20,
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="empty-finish-title"
-        className="card page-transition"
-        style={{
-          width: "100%",
-          maxWidth: 440,
-          background: "#121212",
-          borderColor: "var(--border)",
-          padding: 20,
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
         <div id="empty-finish-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff" }}>
           Nothing logged yet
         </div>
@@ -72,7 +52,6 @@ export function EmptyFinishConfirmSheet({
             Quit workout
           </button>
         </div>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }

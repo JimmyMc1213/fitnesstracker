@@ -1,0 +1,3 @@
+# Minimal config for Edge Function deploy (linked project: ztedlrvvkcjxoomwavyd)
+[functions.food-search]
+verify_jwt = false

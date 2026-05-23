@@ -1,9 +1,12 @@
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useState } from "react";
+
+import { BottomSheet } from "./motion";
 
 const ACCENT_BLUE = "#0A84FF";
 const DESTRUCTIVE = "#FF6961";
 
 type ExerciseNotesEditSheetProps = {
+  open?: boolean;
   exerciseName: string;
   note: string;
   onSave: (note: string) => void;
@@ -11,16 +14,19 @@ type ExerciseNotesEditSheetProps = {
   onClose: () => void;
 };
 
-export function ExerciseNotesEditSheet({ exerciseName, note, onSave, onDelete, onClose }: ExerciseNotesEditSheetProps) {
+export function ExerciseNotesEditSheet({
+  open = true,
+  exerciseName,
+  note,
+  onSave,
+  onDelete,
+  onClose,
+}: ExerciseNotesEditSheetProps) {
   const [draft, setDraft] = useState(note);
 
   useEffect(() => {
     setDraft(note);
   }, [note]);
-
-  function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onClose();
-  }
 
   function handleSave() {
     const trimmed = draft.trim();
@@ -38,36 +44,19 @@ export function ExerciseNotesEditSheet({ exerciseName, note, onSave, onDelete, o
   const hasExisting = Boolean(note.trim());
 
   return (
-    <div
-      role="presentation"
-      onMouseDown={onBackdropMouseDown}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1100,
-        background: "rgba(0,0,0,0.52)",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        padding: "12px 12px calc(16px + env(safe-area-inset-bottom, 0px))",
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      zIndex={1100}
+      ariaLabelledBy="exercise-notes-edit-title"
+      panelStyle={{
+        width: "100%",
+        maxWidth: 440,
+        background: "#121212",
+        borderColor: "var(--border)",
+        padding: 20,
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="exercise-notes-edit-title"
-        className="card page-transition"
-        style={{
-          width: "100%",
-          maxWidth: 440,
-          background: "#121212",
-          borderColor: "var(--border)",
-          padding: 20,
-        }}
-      >
-
         <div id="exercise-notes-edit-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff", marginBottom: 4 }}>
           Exercise note
         </div>
@@ -155,7 +144,6 @@ export function ExerciseNotesEditSheet({ exerciseName, note, onSave, onDelete, o
             Delete note
           </button>
         ) : null}
-      </div>
-    </div>
+    </BottomSheet>
   );
 }

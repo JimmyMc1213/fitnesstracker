@@ -1,4 +1,4 @@
-import type { MacroTotals, NutritionLoggedItem, NutritionPreset } from "./types";
+import type { MacroTotals, NutritionLoggedItem, NutritionPreset, NutritionUserFood } from "./types";
 
 export const ZERO_MACROS: MacroTotals = { cal: 0, p: 0, c: 0, f: 0 };
 
@@ -223,4 +223,44 @@ export function normalizeNutritionPresets(raw: unknown): NutritionPreset[] {
   const out = [...byFp.values()];
   out.sort((a, b) => b.lastUsedAtMs - a.lastUsedAtMs);
   return out.slice(0, MAX_NUTRITION_PRESETS);
+}
+
+const MAX_NUTRITION_USER_FOODS = 200;
+
+export function normalizeNutritionUserFoods(raw: unknown): NutritionUserFood[] {
+  if (!Array.isArray(raw)) return [];
+  const byId = new Map<string, NutritionUserFood>();
+  for (let i = 0; i < raw.length; i++) {
+    const o = raw[i];
+    if (!o || typeof o !== "object") continue;
+    const r = o as Record<string, unknown>;
+    const name = typeof r.name === "string" ? r.name.trim() : "";
+    if (!name) continue;
+    const id = typeof r.id === "string" && r.id ? r.id : `user-food-${i}`;
+    const savedAtMs = typeof r.savedAtMs === "number" ? r.savedAtMs : Date.now() - i * 1000;
+    const updatedAtMs = typeof r.updatedAtMs === "number" ? r.updatedAtMs : undefined;
+    const servingLabel =
+      typeof r.servingLabel === "string" && r.servingLabel.trim() ? r.servingLabel.trim() : undefined;
+    const source = typeof r.source === "string" && r.source.trim() ? r.source.trim() : undefined;
+    const externalId =
+      typeof r.externalId === "string" && r.externalId.trim() ? r.externalId.trim() : undefined;
+    const food: NutritionUserFood = {
+      id,
+      name,
+      cal: Number(r.cal) || 0,
+      p: Number(r.p) || 0,
+      c: Number(r.c) || 0,
+      f: Number(r.f) || 0,
+      savedAtMs,
+      ...(updatedAtMs ? { updatedAtMs } : {}),
+      ...(servingLabel ? { servingLabel } : {}),
+      ...(source ? { source } : {}),
+      ...(externalId ? { externalId } : {}),
+    };
+    const prev = byId.get(id);
+    if (!prev || food.savedAtMs >= prev.savedAtMs) byId.set(id, food);
+  }
+  const out = [...byId.values()];
+  out.sort((a, b) => (b.updatedAtMs ?? b.savedAtMs) - (a.updatedAtMs ?? a.savedAtMs));
+  return out.slice(0, MAX_NUTRITION_USER_FOODS);
 }

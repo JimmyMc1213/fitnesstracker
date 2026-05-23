@@ -1,5 +1,3 @@
-import type { MouseEvent } from "react";
-
 import { PrimaryButton } from "./shared";
 import type { WorkoutRoutineTemplate } from "./types";
 import {
@@ -9,6 +7,7 @@ import {
   labelStyle,
   SECONDARY_ACTION_COLOR,
 } from "./workoutUiTokens";
+import { BottomSheet } from "./motion";
 
 export type CoachBriefContent = {
   headline: string;
@@ -16,6 +15,7 @@ export type CoachBriefContent = {
 };
 
 type RoutinePreviewSheetProps = {
+  open?: boolean;
   template: WorkoutRoutineTemplate;
   coachBrief?: CoachBriefContent;
   onClose: () => void;
@@ -23,48 +23,34 @@ type RoutinePreviewSheetProps = {
   onStart: () => void;
 };
 
-export function RoutinePreviewSheet({ template, coachBrief, onClose, onEdit, onStart }: RoutinePreviewSheetProps) {
+export function RoutinePreviewSheet({
+  open = true,
+  template,
+  coachBrief,
+  onClose,
+  onEdit,
+  onStart,
+}: RoutinePreviewSheetProps) {
   const totalSets = template.exercises.reduce((a, e) => a + e.sets.length, 0);
 
-  function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onClose();
-  }
-
   return (
-    <div
-      role="presentation"
-      onMouseDown={onBackdropMouseDown}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        background: "rgba(0,0,0,0.52)",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      zIndex={1000}
+      ariaLabelledBy="routine-preview-title"
+      panelStyle={{
+        width: "100%",
+        maxWidth: 440,
+        maxHeight: "min(78vh, 520px)",
         display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        padding: "12px 12px calc(16px + env(safe-area-inset-bottom, 0px))",
+        flexDirection: "column",
+        background: "#121212",
+        borderColor: "var(--border)",
+        boxShadow: "0 -8px 40px rgba(0,0,0,0.45)",
+        overflow: "hidden",
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="routine-preview-title"
-        className="card page-transition"
-        style={{
-          width: "100%",
-          maxWidth: 440,
-          maxHeight: "min(78vh, 520px)",
-          display: "flex",
-          flexDirection: "column",
-          background: "#121212",
-          borderColor: "var(--border)",
-          boxShadow: "0 -8px 40px rgba(0,0,0,0.45)",
-          overflow: "hidden",
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
         <div style={{ padding: "16px 16px 0", flexShrink: 0 }}>
           <div className="between" style={{ alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -217,7 +203,6 @@ export function RoutinePreviewSheet({ template, coachBrief, onClose, onEdit, onS
             </button>
           )}
         </div>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }

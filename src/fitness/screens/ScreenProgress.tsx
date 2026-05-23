@@ -7,6 +7,7 @@ import { WorkoutCalendarCard } from "../WorkoutCalendarCard";
 import { PersonalRecordsSection } from "../PersonalRecordsSection";
 import { WeeklySummaryCard } from "../WeeklySummaryCard";
 import { LineChart, ScreenHeader, SectionLabel } from "../shared";
+import { BottomSheet } from "../motion";
 import { WeighInSheet, weighInDateKeyToday } from "../WeighInSheet";
 import {
   formatWeightDeltaLbs,
@@ -40,10 +41,12 @@ function daysInMonthCount(y: number, monthIndex: number): number {
 }
 
 function YearPickerSheet({
+  open,
   selectedYear,
   onPick,
   onClose,
 }: {
+  open: boolean;
   selectedYear: number;
   onPick: (y: number) => void;
   onClose: () => void;
@@ -51,32 +54,32 @@ function YearPickerSheet({
   const anchorYear = new Date().getFullYear();
   const years = useMemo(() => Array.from({ length: 9 }, (_, i) => anchorYear - 4 + i), [anchorYear]);
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 190,
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      zIndex={190}
+      ariaLabel="Choose year"
+      backdropStyle={{
         background: "rgba(0,0,0,0.78)",
-        display: "flex",
+        alignItems: "stretch",
         flexDirection: "column",
         justifyContent: "flex-end",
         padding: 10,
+        backdropFilter: "none",
+        WebkitBackdropFilter: "none",
       }}
-      onClick={onClose}
+      panelStyle={{
+        padding: 18,
+        borderRadius: 16,
+        marginBottom: 8,
+        maxHeight: "72%",
+        overflowY: "auto",
+        border: "0.5px solid rgba(255,255,255,0.14)",
+        background: "var(--card)",
+        width: "100%",
+        maxWidth: "100%",
+      }}
     >
-      <div
-        className="card page-transition"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          padding: 18,
-          borderRadius: 16,
-          marginBottom: 8,
-          maxHeight: "72%",
-          overflowY: "auto",
-          border: "0.5px solid rgba(255,255,255,0.14)",
-          background: "var(--card)",
-        }}
-      >
         <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
           Choose year
         </div>
@@ -126,8 +129,7 @@ function YearPickerSheet({
         >
           Close
         </button>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }
 
@@ -336,7 +338,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
   const T = state.nutritionTargets;
 
   return (
-    <div className="screen page-transition">
+    <div className="screen">
       <ScreenHeader eyebrow={`Week ${weekIn}/12 · Day ${daysIn}/${daysTotal}`} title="Progress" />
 
       <div className="card" style={{ padding: 18, marginTop: 18 }}>
@@ -434,13 +436,12 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
         completedByDay={state.workoutsCompletedByDay}
       />
 
-      {yearSheetOpen ? (
-        <YearPickerSheet
-          selectedYear={calView.y}
-          onPick={(y) => setCalView((v) => ({ ...v, y }))}
-          onClose={() => setYearSheetOpen(false)}
-        />
-      ) : null}
+      <YearPickerSheet
+        open={yearSheetOpen}
+        selectedYear={calView.y}
+        onPick={(y) => setCalView((v) => ({ ...v, y }))}
+        onClose={() => setYearSheetOpen(false)}
+      />
 
       <SectionLabel>Workouts</SectionLabel>
       <WorkoutCalendarCard state={state} />

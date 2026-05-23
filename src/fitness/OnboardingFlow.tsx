@@ -99,7 +99,9 @@ function OnboardingShell({
       </div>
       <h1 style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", margin: "0 0 8px" }}>{title}</h1>
       <p style={{ margin: "0 0 20px", fontSize: 14, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>{subtitle}</p>
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>{children}</div>
+      <div key={step} className="motion-step" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+        {children}
+      </div>
       <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
         {onBack ? (
           <button

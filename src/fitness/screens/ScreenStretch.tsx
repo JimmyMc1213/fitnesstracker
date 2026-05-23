@@ -5,6 +5,7 @@ import {
   isArizonaEightPmOrLater,
 } from "../dailyPlan";
 import { IconCheck, IconChevL, IconChevR, IconX } from "../icons";
+import { BottomSheet } from "../motion";
 import { ScreenHeader, SectionLabel } from "../shared";
 import { STRETCH_BLOCKS, STRETCH_INTRO } from "../stretchRoutine";
 import type { ScreenProps } from "../types";
@@ -84,7 +85,7 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
   }
 
   return (
-    <div className="screen page-transition" style={{ paddingBottom: 28 }}>
+    <div className="screen" style={{ paddingBottom: 28 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
         <button
           type="button"
@@ -241,38 +242,25 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
         Checkboxes save for tonight&apos;s Arizona date · tapping a row opens cues and timing.
       </p>
 
-      {openBlock ? (
-        <div
-          role="presentation"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 200,
-            background: "rgba(0,0,0,0.55)",
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            padding: 16,
-          }}
-          onClick={() => setOpenBlockId(null)}
-        >
-          <div
-            key={openBlock.id}
-            role="dialog"
-            aria-labelledby="stretch-detail-title"
-            className="card page-transition"
-            style={{
-              width: "100%",
-              maxWidth: 375,
-              maxHeight: "78vh",
-              overflow: "auto",
-              padding: 0,
-              marginBottom: 8,
-              borderColor: "rgba(196,181,253,0.35)",
-              background: "var(--card)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
+      <BottomSheet
+        open={openBlock != null}
+        onClose={() => setOpenBlockId(null)}
+        zIndex={200}
+        ariaLabelledBy="stretch-detail-title"
+        backdropStyle={{ padding: 16 }}
+        panelStyle={{
+          width: "100%",
+          maxWidth: 375,
+          maxHeight: "78vh",
+          overflow: "auto",
+          padding: 0,
+          marginBottom: 8,
+          borderColor: "rgba(196,181,253,0.35)",
+          background: "var(--card)",
+        }}
+      >
+        {openBlock ? (
+          <>
             <div style={{ padding: "16px 16px 12px", position: "sticky", top: 0, background: "var(--card)", borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}>
               <div className="between" style={{ alignItems: "flex-start", gap: 12 }}>
                 <div style={{ minWidth: 0 }}>
@@ -312,9 +300,9 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
                 ))}
               </ul>
             </div>
-          </div>
-        </div>
-      ) : null}
+          </>
+        ) : null}
+      </BottomSheet>
     </div>
   );
 }

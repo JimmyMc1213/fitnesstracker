@@ -1,9 +1,8 @@
-import type { MouseEvent } from "react";
-
 import { SecondaryButton } from "./shared";
 import { formatWorkoutDuration } from "./workoutSummary";
 import { formatWorkoutHistoryDate } from "./workoutHistory";
 import type { CompletedWorkoutSession } from "./types";
+import { BottomSheet } from "./motion";
 
 function formatSet(w: number, r: number): string {
   if (w > 0) return `${w} lb × ${r} rep${r === 1 ? "" : "s"}`;
@@ -11,57 +10,37 @@ function formatSet(w: number, r: number): string {
 }
 
 type Props = {
+  open?: boolean;
   session: CompletedWorkoutSession;
   onClose: () => void;
   onDelete?: () => void;
 };
 
-export function WorkoutSessionPreviewSheet({ session, onClose, onDelete }: Props) {
+export function WorkoutSessionPreviewSheet({ open = true, session, onClose, onDelete }: Props) {
   const totalSets = session.exercises.reduce((a, e) => a + e.sets.length, 0);
   const totalVolume = session.exercises.reduce(
     (a, e) => a + e.sets.reduce((b, st) => b + st.w * st.r, 0),
     0,
   );
 
-  function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onClose();
-  }
-
   return (
-    <div
-      role="presentation"
-      onMouseDown={onBackdropMouseDown}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1100,
-        background: "rgba(0,0,0,0.52)",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      zIndex={1100}
+      ariaLabelledBy="workout-session-preview-title"
+      panelStyle={{
+        width: "100%",
+        maxWidth: 440,
+        maxHeight: "min(78vh, 520px)",
         display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        padding: "12px 12px calc(16px + env(safe-area-inset-bottom, 0px))",
+        flexDirection: "column",
+        background: "#121212",
+        borderColor: "var(--border)",
+        boxShadow: "0 -8px 40px rgba(0,0,0,0.45)",
+        overflow: "hidden",
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="workout-session-preview-title"
-        className="card page-transition"
-        style={{
-          width: "100%",
-          maxWidth: 440,
-          maxHeight: "min(78vh, 520px)",
-          display: "flex",
-          flexDirection: "column",
-          background: "#121212",
-          borderColor: "var(--border)",
-          boxShadow: "0 -8px 40px rgba(0,0,0,0.45)",
-          overflow: "hidden",
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
         <div style={{ padding: "16px 16px 0", flexShrink: 0 }}>
           <div className="between" style={{ alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -182,7 +161,6 @@ export function WorkoutSessionPreviewSheet({ session, onClose, onDelete }: Props
             Close
           </SecondaryButton>
         </div>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }

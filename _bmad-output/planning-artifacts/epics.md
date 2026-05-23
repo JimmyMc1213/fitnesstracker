@@ -1,7 +1,7 @@
 # Fitcoach, Epics & Stories
 
 **Project:** fitnesstracker  
-**Last updated:** 2026-05-23 (Sprint 7 planned)  
+**Last updated:** 2026-05-23 (Sprint 8 planned)  
 **Sprint tracking:** `_bmad-output/implementation-artifacts/sprint-status.yaml`
 
 **Positioning:** Fitcoach is the all-in-one fitness app that coaches you through every workout, meal, and check-in, so you never need another app to hit your goals.
@@ -22,9 +22,11 @@
 
 **Sprint 6 (done):** Workout architecture & session coaching, workout E2E smoke, `ScreenWorkout` phase-1 decomposition, rule-based per-exercise notes (FTI-13 phase 1), FTI-55 LLM skipped, retro cleanup.
 
-**Sprint 7 (planned):** Nutrition OS v2 — Chunk 1 of 3. Strip Nutrition tab to rings + hydration + FAB, build Log Food overlay (manual add + recently logged), extend logged-item schema, remove Home quick-log, coach task routing to Log Food, partial E2E refresh.
+**Sprint 7 (done):** Nutrition OS v2 — Chunk 1 of 3. Strip Nutrition tab to rings + hydration + FAB, build Log Food overlay (manual add + recently logged), extend logged-item schema, remove Home quick-log, coach task routing to Log Food, partial E2E refresh.
 
-**Sprint 8–9 (planned):** Nutrition OS v2 — Chunks 2–3. USDA/OFF search, My foods / Saved tabs, meal prep, polish, full test gate. See `nutrition-os-v2-checklist.md`.
+**Sprint 8 (planned):** Nutrition OS v2 — Chunk 2 of 3. USDA FoodData Central + Open Food Facts via Supabase Edge Function; wire All-tab search; My foods + Favorite foods tabs; partial E2E for search path. See `nutrition-os-v2-checklist.md`.
+
+**Sprint 9 (planned):** Nutrition OS v2 — Chunk 3. My meals meal prep, Cal AI visual polish, full unit + E2E gate.
 
 **Prerequisite (done):** [FTI-15](https://linear.app/ftiness-tracker/issue/FTI-15/save-workouts-and-workout-history), `story_key: fti-15-save-workouts-and-workout-history`
 
@@ -866,3 +868,96 @@ so Home quick-log removal does not regress fuel tracking.
 - MoSCoW: Must, sprint closer
 - depends_on: FTI-58
 - checklist phase: 10 (partial)
+
+---
+
+## Epic 8: FTI Sprint 8, Nutrition OS v2 (Chunk 2)
+
+**Epic key (sprint-status):** `epic-fti-sprint-8`
+
+**Goal:** Wire external food search into the Log Food overlay — USDA + Open Food Facts via a Supabase Edge Function proxy, debounced All-tab search with serving picker, and fill the My foods and Favorite foods tabs so empty placeholders become usable libraries.
+
+**Master checklist:** `_bmad-output/implementation-artifacts/nutrition-os-v2-checklist.md`
+
+**Sprint execution order:** FTI-60 → 61 → 62 (one story per PR)
+
+**Scope locks:** My meals meal prep OUT OF SCOPE (Sprint 9). Cal AI visual polish OUT OF SCOPE (Sprint 9). Barcode, voice log, AI natural-language parse OUT OF SCOPE (future backlog). ScreenWorkout phase 2 OUT OF SCOPE. Native App Store wrapper OUT OF SCOPE. No new Home cards. Primary CTA = lime green (`--pos` / `#4ade80`). Search bar must call APIs in S8 (no longer UI-only).
+
+---
+
+### Story 8.1: USDA search + Edge Function + All-tab wiring (FTI-60)
+
+As a user,
+I want to search a food database from the Log Food screen and log a selected item with the correct serving,
+so I can track meals without manual macro entry for common foods.
+
+**Acceptance criteria:**
+
+- **API setup:** USDA FoodData Central API key stored server-side only (`USDA_FDC_API_KEY` on Supabase Edge Function env); never in client bundle
+- **Edge Function:** `food-search` Supabase Edge Function proxies USDA `/foods/search`; returns normalized results
+- **Shared types:** `FoodSearchResult`, `FoodServing` in client + function (id, name, brand, cal, p, c, f, defaultServing, source, externalId)
+- **Client service:** `foodSearchService.ts` calls Edge Function with debounced query (~300ms)
+- **All tab UX:** Typing in search bar triggers search; results list shows name, calories, brand; tap result → serving picker (size scales macros); confirm → log with `source` + `externalId` + `servingLabel` → close overlay → rings update
+- **Recently logged:** Search-logged foods appear in recently logged (existing pipeline)
+- **States:** Loading spinner during search; "No results" empty state; offline/API error message with retry
+- **Quality:** `npm run build` + `npm test` pass; existing nutrition E2E still pass (search E2E deferred to FTI-62)
+
+**Dev Notes:**
+
+- story_key: fti-60-usda-food-search-edge-function-all-tab
+- linear: FTI-54
+- MoSCoW: Must, sprint opener
+- partial_impl: `LogFoodScreen.tsx` (search input UI-only today), `NutritionLoggedItem` metadata fields from FTI-57
+- blocks: FTI-61, FTI-62
+- checklist phases: 0.2, 3
+
+---
+
+### Story 8.2: Open Food Facts merge + branded results (FTI-61)
+
+As a user searching packaged or branded foods,
+I want results from Open Food Facts merged with USDA,
+so restaurant chains and grocery items show up with brand names.
+
+**Acceptance criteria:**
+
+- **Edge Function:** Parallel search USDA + Open Food Facts; merge + rank; dedupe similar names
+- **Branded results:** Show brand in results (e.g. "Cane's Sauce · Raising Cane's"); OFF serving from per-100g or default portion
+- **All tab:** Branded rows distinguishable from generic USDA entries (brand subline)
+- **Error handling:** Partial failure (one API down) still returns results from the other source
+- **Quality:** Colocated Vitest for merge/rank helpers (mocked API payloads); `npm run build` + `npm test` pass
+
+**Dev Notes:**
+
+- story_key: fti-61-open-food-facts-merge-branded-results
+- linear: FTI-55
+- MoSCoW: Must
+- depends_on: FTI-60
+- blocks: FTI-62
+- checklist phase: 4
+
+---
+
+### Story 8.3: My foods + Favorite foods tabs + search E2E (FTI-62)
+
+As a user,
+I want My foods and Favorite foods tabs wired to my saved library and presets,
+so I can re-log custom entries and favorites without searching every time.
+
+**Acceptance criteria:**
+
+- **Data model:** `NutritionUserFood` type + `nutritionUserFoods` on `AppState`; persist slice + cloud sync include user foods (manual entries + saved-from-search without logging today)
+- **My foods tab:** List user-created manual entries + foods saved from search; tap row → log again; edit / delete user foods
+- **Save from search:** Optional "Save to My foods" when confirming a search result (can save without logging today)
+- **Favorite foods tab:** Wire to existing `nutritionPresets`; tap `+` → log → close → rings update; remove from favorites (does not delete log history)
+- **Empty states:** Replace placeholder copy on My foods and Favorite foods with helpful empty-state messaging
+- **E2E:** Search → select serving → log → rings update visible on Nutrition tab
+- **Quality:** `npm run build` + `npm test` + `npm run test:e2e` pass
+
+**Dev Notes:**
+
+- story_key: fti-62-my-foods-favorite-foods-tabs-search-e2e
+- linear: FTI-56
+- MoSCoW: Must, sprint closer
+- depends_on: FTI-61
+- checklist phases: 5, 7, 0.3 (finish), 10 (partial E2E)

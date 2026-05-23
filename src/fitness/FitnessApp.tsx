@@ -31,6 +31,7 @@ import { ScreenProgress } from "./screens/ScreenProgress";
 import { ScreenStretch } from "./screens/ScreenStretch";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
+import { ScreenTransition } from "./motion";
 import { SundayReviewSheet } from "./SundayReviewSheet";
 import { OnboardingFlow } from "./OnboardingFlow";
 import { shouldSkipOnboarding } from "./onboardingSkip";
@@ -104,8 +105,13 @@ function OnboardingGate({
 export function FitnessApp() {
   const [tab, setTab] = useState<TabId>("home");
   const [logFoodOpenRequest, setLogFoodOpenRequest] = useState(0);
+  const [logFoodOverlayOpen, setLogFoodOverlayOpen] = useState(false);
   const [state, setState] = useState<AppState>(buildInitialState);
   const [previewStreakLostDismissed, setPreviewStreakLostDismissed] = useState(false);
+
+  useEffect(() => {
+    if (tab !== "nutrition") setLogFoodOverlayOpen(false);
+  }, [tab]);
 
   const syncSig = JSON.stringify(sliceFromAppState(state));
   const fitnessSync = useFitnessCloudSync(syncSig, state, setState);
@@ -233,7 +239,7 @@ export function FitnessApp() {
     sundayPreview !== null &&
     (previewSundayUi || sundayPreview.thisSundayKey !== state.sundayReviewCompletedKey);
 
-  const hideTabBar = tab === "stretch" || showWorkoutSummary || showStreakLost;
+  const hideTabBar = tab === "stretch" || showWorkoutSummary || showStreakLost || logFoodOverlayOpen;
 
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
@@ -264,13 +270,15 @@ export function FitnessApp() {
             flexDirection: "column",
           }}
         >
-          <Current
-            key={tab}
-            state={state}
-            setState={setState}
-            navigate={navigate}
-            logFoodOpenRequest={tab === "nutrition" ? logFoodOpenRequest : undefined}
-          />
+          <ScreenTransition activeKey={tab}>
+            <Current
+              state={state}
+              setState={setState}
+              navigate={navigate}
+              logFoodOpenRequest={tab === "nutrition" ? logFoodOpenRequest : undefined}
+              onLogFoodOpenChange={tab === "nutrition" ? setLogFoodOverlayOpen : undefined}
+            />
+          </ScreenTransition>
         </div>
 
         {!hideTabBar ? (
@@ -293,8 +301,9 @@ export function FitnessApp() {
           </nav>
         ) : null}
 
-        {showStreakLost && streakLossNotice ? (
+        {streakLossNotice ? (
           <StreakLostSheet
+            open={showStreakLost}
             state={state}
             notice={streakLossNotice}
             todayKey={todayKey}
@@ -308,8 +317,9 @@ export function FitnessApp() {
           />
         ) : null}
 
-        {showSundayReview && sundayPreview ? (
+        {sundayPreview ? (
           <SundayReviewSheet
+            open={showSundayReview}
             preview={sundayPreview}
             nutritionTargets={state.nutritionTargets}
             unitPreferences={state.unitPreferences}
@@ -318,8 +328,9 @@ export function FitnessApp() {
           />
         ) : null}
 
-        {showWorkoutSummary && state.workoutSummary ? (
+        {state.workoutSummary ? (
           <WorkoutSummarySheet
+            open={showWorkoutSummary}
             summary={state.workoutSummary}
             unitPreferences={state.unitPreferences}
             onDone={() => {

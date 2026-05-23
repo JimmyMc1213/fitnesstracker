@@ -4,6 +4,7 @@ import { EXERCISE_DB, newTemplateExerciseLine, resizeWorkoutSets } from "../data
 import { IconPlus, IconSearch, IconTrash } from "../icons";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader, PrimaryButton } from "../shared";
+import { FullScreenOverlay } from "../motion";
 import type { CustomExerciseTemplate, WorkoutExercise, WorkoutRoutineTemplate } from "../types";
 import { CARD_PADDING, EDITOR_LIST_GAP, labelStyle, SECONDARY_ACTION_COLOR } from "../workoutUiTokens";
 
@@ -146,7 +147,8 @@ export function WorkoutRoutineEditor({
   }
 
   return (
-    <div className="screen page-transition">
+    <FullScreenOverlay open zIndex={120}>
+      <div className="screen" style={{ flex: 1, overflowY: "auto" }}>
       <div className="between" style={{ alignItems: "center", marginBottom: 8, marginTop: 4 }}>
         <button
           type="button"
@@ -463,6 +465,7 @@ export function WorkoutRoutineEditor({
       ) : null}
 
       <div style={{ height: 16 }} />
-    </div>
+      </div>
+    </FullScreenOverlay>
   );
 }

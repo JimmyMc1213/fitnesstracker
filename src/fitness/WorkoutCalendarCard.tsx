@@ -1,4 +1,4 @@
-import { useMemo, useState, type MouseEvent } from "react";
+import { useMemo, useState } from "react";
 
 import { localDateKey } from "./dailyPlan";
 import { formatWorkoutDuration } from "./workoutSummary";
@@ -8,6 +8,7 @@ import {
   workoutDaysInMonth,
 } from "./workoutHistory";
 import { IconDumbbell } from "./icons";
+import { BottomSheet } from "./motion";
 import { WorkoutSessionPreviewSheet } from "./WorkoutSessionPreviewSheet";
 import type { AppState, CompletedWorkoutSession } from "./types";
 
@@ -33,53 +34,34 @@ function buildMonthGrid(year: number, monthIndex: number): (string | null)[] {
 }
 
 function DayDetailSheet({
+  open,
   sessions,
   dayKey,
   onClose,
   onViewSession,
 }: {
+  open: boolean;
   sessions: CompletedWorkoutSession[];
   dayKey: string;
   onClose: () => void;
   onViewSession: (session: CompletedWorkoutSession) => void;
 }) {
-  function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onClose();
-  }
-
   return (
-    <div
-      role="presentation"
-      onMouseDown={onBackdropMouseDown}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1100,
-        background: "rgba(0,0,0,0.52)",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      zIndex={1100}
+      panelStyle={{
+        width: "100%",
+        maxWidth: 440,
+        maxHeight: "min(78vh, 520px)",
         display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        padding: "12px 12px calc(16px + env(safe-area-inset-bottom, 0px))",
+        flexDirection: "column",
+        background: "#121212",
+        borderColor: "var(--border)",
+        overflow: "hidden",
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        className="card page-transition"
-        style={{
-          width: "100%",
-          maxWidth: 440,
-          maxHeight: "min(78vh, 520px)",
-          display: "flex",
-          flexDirection: "column",
-          background: "#121212",
-          borderColor: "var(--border)",
-          overflow: "hidden",
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
         <div className="between" style={{ padding: "16px 16px 12px", flexShrink: 0 }}>
           <div>
             <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.03em" }}>
@@ -122,8 +104,7 @@ function DayDetailSheet({
             </button>
           ))}
         </div>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }
 
@@ -306,17 +287,16 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
         )}
       </div>
 
-      {selectedDay && selectedSessions.length > 0 ? (
-        <DayDetailSheet
-          sessions={selectedSessions}
-          dayKey={selectedDay}
-          onClose={() => setSelectedDay(null)}
-          onViewSession={(session) => {
-            setSelectedDay(null);
-            setPreviewSession(session);
-          }}
-        />
-      ) : null}
+      <DayDetailSheet
+        open={Boolean(selectedDay && selectedSessions.length > 0)}
+        sessions={selectedSessions}
+        dayKey={selectedDay ?? ""}
+        onClose={() => setSelectedDay(null)}
+        onViewSession={(session) => {
+          setSelectedDay(null);
+          setPreviewSession(session);
+        }}
+      />
 
       {previewSession ? (
         <WorkoutSessionPreviewSheet session={previewSession} onClose={() => setPreviewSession(null)} />

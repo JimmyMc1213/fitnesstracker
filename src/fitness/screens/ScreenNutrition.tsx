@@ -6,14 +6,15 @@ import { LogFoodScreen } from "../LogFoodScreen";
 import { buildMacroPaceSnapshot } from "../macroPace";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { MacroBar, MacroRing, ScreenHeader } from "../shared";
+import { TodayFoodLogCard, todayFoodLogHandlers } from "../TodayFoodLogCard";
 import { WaterTrackerCard } from "../WaterTrackerCard";
 import { appendWaterLogEntry, removeWaterLogEntry } from "../waterIntake";
 import type { ScreenProps } from "../types";
 
 /**
- * Nutrition tab: hero macro rings, coached pace copy, hydration, and Log Food FAB.
+ * Nutrition tab: hero macro rings, coached pace copy, hydration, today's food log, and Log Food FAB.
  */
-export function ScreenNutrition({ state, setState, logFoodOpenRequest }: ScreenProps) {
+export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFoodOpenChange }: ScreenProps) {
   const T = state.nutritionTargets;
   const todayKey = localDateKey(new Date());
   const totals = effectiveNutritionTotalsForDateKey(
@@ -32,7 +33,13 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest }: ScreenP
     if (logFoodOpenRequest && logFoodOpenRequest > 0) setLogFoodOpen(true);
   }, [logFoodOpenRequest]);
 
+  useEffect(() => {
+    onLogFoodOpenChange?.(logFoodOpen);
+  }, [logFoodOpen, onLogFoodOpenChange]);
+
   const waterEntries = state.waterLogByDay[todayKey] ?? [];
+  const todayFoodItems = state.nutritionItemsByDay[todayKey] ?? [];
+  const foodHandlers = useMemo(() => todayFoodLogHandlers(setState, todayKey), [setState, todayKey]);
   const showMacroPace = T.p > 0;
 
   return (
@@ -100,6 +107,13 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest }: ScreenP
         isToday
         onAddOz={(oz) => setState((s) => appendWaterLogEntry(s, todayKey, oz))}
         onRemoveEntry={(entryId) => setState((s) => removeWaterLogEntry(s, todayKey, entryId))}
+      />
+
+      <TodayFoodLogCard
+        dateKey={todayKey}
+        items={todayFoodItems}
+        onRemove={foodHandlers.onRemove}
+        onUpdate={foodHandlers.onUpdate}
       />
 
       <button

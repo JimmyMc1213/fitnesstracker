@@ -20,6 +20,9 @@ export default defineConfig(({ mode }) => {
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
         loaded.VITE_SUPABASE_PUBLISHABLE_KEY ?? "",
       ),
+      "import.meta.env.VITE_E2E_MOCK_FOOD_SEARCH": JSON.stringify(
+        loaded.VITE_E2E_MOCK_FOOD_SEARCH ?? "",
+      ),
     },
     test: {
       environment: "node",
