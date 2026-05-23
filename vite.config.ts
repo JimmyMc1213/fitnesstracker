@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,6 +20,10 @@ export default defineConfig(({ mode }) => {
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
         loaded.VITE_SUPABASE_PUBLISHABLE_KEY ?? "",
       ),
+    },
+    test: {
+      environment: "node",
+      include: ["src/**/*.test.ts"],
     },
   };
 });
