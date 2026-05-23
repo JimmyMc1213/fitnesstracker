@@ -1,8 +1,8 @@
 # Nutrition OS v2 — Master Checklist
 
-**Last updated:** 2026-05-23 (Sprint 8 complete)  
+**Last updated:** 2026-05-23 (Sprint 9 planning complete)  
 **Current chunk:** Sprint 9 (Chunk 3 of 3) — **planned**  
-**Progress:** 44 / 47 steps complete (S8 done; S9 remains)
+**Progress:** 44 / 47 steps complete (S9 planning done; dev not started)
 
 ---
 
@@ -53,9 +53,9 @@
 
 ### 0.3 — Data model extensions
 - [x] Extend `NutritionLoggedItem`: `servingLabel`, `source`, `externalId`, `loggedAtMs` `[S7]`
-- [ ] Add `NutritionMeal` type + `nutritionMeals` on `AppState` `[S8/S9]`
+- [x] Add `NutritionMeal` type + `nutritionMeals` on `AppState` `[S9]`
 - [x] Migration: existing logs keep working; default `loggedAtMs` for old items `[S7]`
-- [x] Persist slice + cloud sync include new fields (S7 fields) `[S7]` · full meal sync `[S8/S9]`
+- [x] Persist slice + cloud sync include new fields (S7 fields) `[S7]` · full meal sync `[S9]`
 
 ---
 
@@ -152,18 +152,18 @@
 ## Phase 6 — My meals (meal prep)
 
 ### 6.1 — Create meal flow
-- [ ] "Create meal" from My meals tab `[S9]`
-- [ ] Add items from: search results, My foods, or manual entry `[S9]`
-- [ ] Set meal name; macros = sum of items `[S9]`
-- [ ] Save to `nutritionMeals` `[S9]`
+- [x] "Create meal" from My meals tab `[S9]`
+- [x] Add items from: search results, My foods, or manual entry `[S9]`
+- [x] Set meal name; macros = sum of items `[S9]`
+- [x] Save to `nutritionMeals` `[S9]`
 
 ### 6.2 — Log meal
-- [ ] One tap on saved meal → log as single item (meal name + total macros) `[S9]`
-- [ ] Show in recently logged `[S9]`
+- [x] One tap on saved meal → log as single item (meal name + total macros) `[S9]`
+- [x] Show in recently logged `[S9]`
 
 ### 6.3 — Edit / delete meals
-- [ ] Edit ingredients / rename meal `[S9]`
-- [ ] Delete meal from library `[S9]`
+- [x] Edit ingredients / rename meal `[S9]`
+- [x] Delete meal from library `[S9]`
 
 ---
 
@@ -213,9 +213,9 @@
 ### 10.1 — Unit tests
 - [ ] `foodSearchService` (mocked) `[S9]`
 - [x] `getRecentlyLoggedFoods` `[S7/S9]`
-- [ ] Meal macro summing `[S9]`
-- [ ] Persist slice includes `nutritionMeals` `[S9]`
-- [ ] Cloud sync merge for new fields `[S8/S9]`
+- [x] Meal macro summing `[S9]`
+- [x] Persist slice includes `nutritionMeals` `[S9]`
+- [x] Cloud sync merge for `nutritionMeals` `[S9]`
 
 ### 10.2 — E2E tests
 - [x] Nutrition tab shows rings + hydration only (no old logging UI) `[S7]`
@@ -258,6 +258,7 @@
 
 | Date | Story / issue | Steps checked off |
 |------|---------------|-------------------|
+| 2026-05-23 | FTI-63 / PR #31 | Phase 0.3 (meals), 6, 10.1 (partial) — My meals meal prep + data model |
 | 2026-05-23 | FTI-60–62 / PR #30 | Phases 0.2 (code), 3, 4, 5, 7 — search, My foods, Favorite foods, E2E |
 | 2026-05-23 | FTI-57 / FTI-51 | Phases 0.3 (S7), 1, 2 — Log Food shell + data model |
 | 2026-05-23 | FTI-58 / FTI-52 | Phase 8 — Home read-only + coach routing |
