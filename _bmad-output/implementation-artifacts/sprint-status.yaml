@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (Sprint 7 planned)
+# last_updated: 2026-05-23 (Sprint 7 merged — PR #29)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -75,11 +75,12 @@
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next: epic-fti-sprint-7 → done (2026-05-23)
+# - bmad-swarm next: epic-fti-sprint-7 → done (2026-05-23, PR #29 merged)
+# - Linear FTI-51, FTI-52, FTI-53 → Done (2026-05-23)
 # - bmad-swarm next retro: epic-fti-sprint-7-retrospective (optional)
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # Sprint 7 planned
+last_updated: 2026-05-23  # Sprint 7 merged (PR #29)
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear

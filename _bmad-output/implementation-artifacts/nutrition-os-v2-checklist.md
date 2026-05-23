@@ -1,8 +1,8 @@
 # Nutrition OS v2 — Master Checklist
 
-**Last updated:** 2026-05-23  
-**Current chunk:** Sprint 7 (Chunk 1 of 3) — planned, FTI-57 ready-for-dev  
-**Progress:** 0 / 47 steps complete
+**Last updated:** 2026-05-23 (Sprint 7 merged — PR #29)  
+**Current chunk:** Sprint 7 (Chunk 1 of 3) — **complete**  
+**Progress:** 38 / 47 steps complete (S7 scope done; S8–9 remain)
 
 ---
 
@@ -52,56 +52,56 @@
 - [ ] Define shared types: `FoodSearchResult`, `FoodServing` `[S8]`
 
 ### 0.3 — Data model extensions
-- [ ] Extend `NutritionLoggedItem`: `servingLabel`, `source`, `externalId`, `loggedAtMs` `[S7]`
+- [x] Extend `NutritionLoggedItem`: `servingLabel`, `source`, `externalId`, `loggedAtMs` `[S7]`
 - [ ] Add `NutritionMeal` type + `nutritionMeals` on `AppState` `[S8/S9]`
-- [ ] Migration: existing logs keep working; default `loggedAtMs` for old items `[S7]`
-- [ ] Persist slice + cloud sync include new fields `[S7/S8]`
+- [x] Migration: existing logs keep working; default `loggedAtMs` for old items `[S7]`
+- [x] Persist slice + cloud sync include new fields (S7 fields) `[S7]` · full meal sync `[S8/S9]`
 
 ---
 
 ## Phase 1 — Nutrition main tab (rings + hydration only)
 
 ### 1.1 — Strip the nutrition tab
-- [ ] Keep: macro ring hero, P/C/F bars, macro pace hint `[S7]`
-- [ ] Keep: `WaterTrackerCard` (hydration) `[S7]`
-- [ ] Remove: Today / Saved segment tabs `[S7]`
-- [ ] Remove: quick-add protein chips `[S7]`
-- [ ] Remove: today's log list on main tab `[S7]`
-- [ ] Remove: add custom item form on main tab `[S7]`
-- [ ] Remove: whole-day manual totals fallback on main tab `[S7]`
+- [x] Keep: macro ring hero, P/C/F bars, macro pace hint `[S7]`
+- [x] Keep: `WaterTrackerCard` (hydration) `[S7]`
+- [x] Remove: Today / Saved segment tabs `[S7]`
+- [x] Remove: quick-add protein chips `[S7]`
+- [x] Remove: today's log list on main tab `[S7]`
+- [x] Remove: add custom item form on main tab `[S7]`
+- [x] Remove: whole-day manual totals fallback on main tab `[S7]`
 
 ### 1.2 — Add FAB (+ button)
-- [ ] Floating `+` button below hydration card `[S7]`
-- [ ] Opens full-screen Log Food overlay (not bottom sheet) `[S7]`
+- [x] Floating `+` button below hydration card `[S7]`
+- [x] Opens full-screen Log Food overlay (not bottom sheet) `[S7]`
 
 ### 1.3 — Return flow
-- [ ] After food logged → close Log Food → back on Nutrition tab `[S7]`
-- [ ] Macro ring animates with updated totals `[S7]`
-- [ ] Streak / coach pace still update via existing logging pipeline `[S7]`
+- [x] After food logged → close Log Food → back on Nutrition tab `[S7]`
+- [x] Macro ring animates with updated totals `[S7]`
+- [x] Streak / coach pace still update via existing logging pipeline `[S7]`
 
 ---
 
 ## Phase 2 — Log Food screen shell (Cal AI layout)
 
 ### 2.1 — Build `LogFoodScreen` overlay
-- [ ] Back arrow ← closes without logging `[S7]`
-- [ ] Title: "Log Food" `[S7]`
-- [ ] Tab bar: All · My foods · My meals · Saved foods `[S7]`
-- [ ] Search bar with placeholder "Describe what you ate" (UI only in S7) `[S7]`
-- [ ] "Recently logged" section with food rows `[S7]`
-- [ ] Each row: name, calories, serving, `+` quick-add button `[S7]`
-- [ ] Bottom: Manual Add button (no Voice Log) `[S7]`
-- [ ] Empty states on tabs not yet wired (S7) `[S7]`
+- [x] Back arrow ← closes without logging `[S7]`
+- [x] Title: "Log Food" `[S7]`
+- [x] Tab bar: All · My foods · My meals · Favorite foods `[S7]`
+- [x] Search bar with placeholder "Describe what you ate" (UI only in S7) `[S7]`
+- [x] "Recently logged" section with food rows `[S7]`
+- [x] Each row: name, calories, serving, `+` quick-add button `[S7]`
+- [x] Bottom: Manual Add button (no Voice Log) `[S7]`
+- [x] Empty states on tabs not yet wired (S7) `[S7]`
 
 ### 2.2 — Manual Add flow
-- [ ] Form: name + calories + P/C/F + optional serving label `[S7]`
-- [ ] Save → log to today → close Log Food → rings update `[S7]`
-- [ ] Auto-save to My foods library (basic — full tab in S8) `[S7/S8]`
+- [x] Form: name + calories + P/C/F + optional serving label `[S7]`
+- [x] Save → log to today → close Log Food → rings update `[S7]`
+- [x] Auto-save to My foods library (basic — full tab in S8) `[S7/S8]`
 
 ### 2.3 — Recently logged logic
-- [ ] `getRecentlyLoggedFoods()` — dedupe by name, sort by `loggedAtMs` `[S7]`
-- [ ] Tap `+` on row → one-tap re-log → close → rings update `[S7]`
-- [ ] Existing user data shows in recently logged (migrate keep) `[S7]`
+- [x] `getRecentlyLoggedFoods()` — dedupe by name, sort by `loggedAtMs` `[S7]`
+- [x] Tap `+` on row → one-tap re-log → close → rings update `[S7]`
+- [x] Existing user data shows in recently logged (migrate keep) `[S7]`
 
 ---
 
@@ -179,14 +179,14 @@
 ## Phase 8 — Remove Home logging & unify coach flows
 
 ### 8.1 — Home tab cleanup
-- [ ] Remove `HomeFuelQuickLogSheet` from `ScreenHome` `[S7]`
-- [ ] Remove `+ Log` button from `HomeFuelStrip` `[S7]`
-- [ ] Keep fuel strip as read-only protein / kcal progress `[S7]`
-- [ ] Deprecate or remove `HomeFuelQuickLogSheet.tsx` if unused `[S7]`
+- [x] Remove `HomeFuelQuickLogSheet` from `ScreenHome` `[S7]`
+- [x] Remove `+ Log` button from `HomeFuelStrip` `[S7]`
+- [x] Keep fuel strip as read-only protein / kcal progress `[S7]`
+- [x] Deprecate or remove `HomeFuelQuickLogSheet.tsx` if unused `[S7]`
 
 ### 8.2 — Coach task routing
-- [ ] "Log fuel" / nutrition coach tasks → Nutrition tab + open Log Food `[S7]`
-- [ ] Update `coachTaskActions.ts` `[S7]`
+- [x] "Log fuel" / nutrition coach tasks → Nutrition tab + open Log Food `[S7]`
+- [x] Update `coachTaskActions.ts` `[S7]`
 
 ---
 
@@ -212,19 +212,19 @@
 
 ### 10.1 — Unit tests
 - [ ] `foodSearchService` (mocked) `[S9]`
-- [ ] `getRecentlyLoggedFoods` `[S7/S9]`
+- [x] `getRecentlyLoggedFoods` `[S7/S9]`
 - [ ] Meal macro summing `[S9]`
 - [ ] Persist slice includes `nutritionMeals` `[S9]`
 - [ ] Cloud sync merge for new fields `[S8/S9]`
 
 ### 10.2 — E2E tests
-- [ ] Nutrition tab shows rings + hydration only (no old logging UI) `[S7]`
-- [ ] FAB opens Log Food `[S7]`
-- [ ] Manual add → rings update `[S7]`
+- [x] Nutrition tab shows rings + hydration only (no old logging UI) `[S7]`
+- [x] FAB opens Log Food `[S7]`
+- [x] Manual add → rings update `[S7]`
 - [ ] Search → select → log → rings update `[S8]`
 - [ ] Log saved meal → rings update `[S9]`
-- [ ] Coach task opens Log Food on Nutrition tab `[S7]`
-- [ ] Update/remove broken `fuel-quick-log` e2e tests `[S7]`
+- [x] Coach task opens Log Food on Nutrition tab `[S7]`
+- [x] Update/remove broken `fuel-quick-log` e2e tests `[S7]`
 
 ### 10.3 — Build gate
 - [ ] `npm run build` passes `[S9]`
@@ -258,4 +258,6 @@
 
 | Date | Story / issue | Steps checked off |
 |------|---------------|-------------------|
-| — | — | — |
+| 2026-05-23 | FTI-57 / FTI-51 | Phases 0.3 (S7), 1, 2 — Log Food shell + data model |
+| 2026-05-23 | FTI-58 / FTI-52 | Phase 8 — Home read-only + coach routing |
+| 2026-05-23 | FTI-59 / FTI-53 | Phase 10 (partial) — E2E + unit tests for S7 |
