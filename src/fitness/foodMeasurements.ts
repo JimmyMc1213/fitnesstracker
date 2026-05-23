@@ -1,4 +1,6 @@
+import { scaleMacros } from "./foodSearchMacros";
 import type { FoodMeasurement, FoodSearchResult } from "./foodSearchTypes";
+import type { NutritionLoggedItem } from "./types";
 
 const OZ_TO_G = 28.3495;
 
@@ -134,4 +136,75 @@ export function formatServingLabel(measurement: FoodMeasurement, quantity: numbe
 export function parseQuantityInput(raw: string): number | null {
   const n = parseFloat(raw.trim());
   return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function isGramOrOzUnit(unit: string): boolean {
+  return (
+    unit === "g" ||
+    unit === "gram" ||
+    unit === "grams" ||
+    unit === "oz" ||
+    unit === "ounce" ||
+    unit === "ounces"
+  );
+}
+
+/** Reconstruct picker state when editing a catalog-logged food row. */
+export function loggedItemToPickerEdit(item: NutritionLoggedItem): {
+  food: FoodSearchResult;
+  measurementId: string;
+  quantity: string;
+} | null {
+  const externalId = item.externalId?.trim();
+  if (!externalId) return null;
+
+  const baseGrams = 100;
+  const servingLabel = item.servingLabel?.trim() || `${baseGrams} g`;
+  const parsed = parseServingLabel(servingLabel);
+
+  let userGrams = baseGrams;
+  if (parsed?.grams && parsed.grams > 0) {
+    userGrams = parsed.grams;
+  }
+
+  const multiplier = userGrams / baseGrams;
+  const baseMacros = scaleMacros(item, multiplier > 0 ? 1 / multiplier : 1);
+
+  const food: FoodSearchResult = {
+    id: externalId,
+    name: item.name.trim() || "Food",
+    ...baseMacros,
+    defaultServing: `${baseGrams} g`,
+    baseGrams,
+    portionLabels: parsed && !isGramOrOzUnit(parsed.unit) ? [servingLabel] : [],
+    source: item.source?.trim() || "usda",
+    externalId,
+    servings: [],
+  };
+
+  const measurements = buildMeasurements(food);
+  if (measurements.length === 0) return null;
+
+  let measurementId = "g";
+  let quantity = String(baseGrams);
+
+  if (parsed) {
+    quantity = String(parsed.quantity);
+    if (parsed.unit === "g" || parsed.unit === "gram" || parsed.unit === "grams") {
+      measurementId = "g";
+    } else if (parsed.unit === "oz" || parsed.unit === "ounce" || parsed.unit === "ounces") {
+      measurementId = "oz";
+    } else {
+      const custom = measurements.find((m) => m.id !== "g" && m.id !== "oz");
+      if (custom) measurementId = custom.id;
+    }
+  }
+
+  const matched = measurements.find((m) => m.id === measurementId) ?? measurements[0];
+
+  return {
+    food,
+    measurementId: matched.id,
+    quantity: parsed ? quantity : String(matched.defaultQuantity),
+  };
 }
