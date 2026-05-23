@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-22 (FTI-40 story file ready-for-dev)
+# last_updated: 2026-05-23 (FTI-34 story file ready-for-dev)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -50,11 +50,11 @@
 # BMAD SWARM ALIGNMENT:
 # =====================
 # - bmad-swarm next: scans development_status top → bottom; picks FIRST story with status "backlog"
-#   → FTI-40 is the next target (40 → 34 → 33 → 37 → 35 → 36 → 38 → 39 per sprint order above)
+#   → FTI-34 is the next target (40 → 34 → 33 → 37 → 35 → 36 → 38 → 39 per sprint order above)
 # - in-progress / ready-for-dev: Swarm skips story creation (Phase 1) and continues dev/review
 
 generated: 2026-05-20
-last_updated: 2026-05-22
+last_updated: 2026-05-23
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -96,7 +96,7 @@ development_status:
   epic-fti-sprint-3: in-progress
 
   fti-40-vitest-harness-coach-dailyplan-unit-tests: done
-  fti-34-cross-domain-coach-engine: backlog
+  fti-34-cross-domain-coach-engine: done
   fti-33-todays-coach-plan-home-redesign: backlog
   fti-37-in-session-coach-prominence-set-autofill: backlog
   fti-35-home-fuel-quick-log-coach-pace: backlog
