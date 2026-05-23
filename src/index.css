@@ -1,10 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
-  --bg: #0a0a0a;
-  --card: #141414;
-  --card-2: #1a1a1a;
-  --card-3: #1f1f1f;
+  --bg: #060608;
+  --bg-deep: #030305;
+  --void-blue: rgba(10, 132, 255, 0.1);
+  --void-violet: rgba(124, 106, 210, 0.07);
+  --void-vignette: rgba(0, 0, 0, 0.52);
+  --card: #131318;
+  --card-2: #18181f;
+  --card-3: #1e1e26;
   --border: rgba(255, 255, 255, 0.07);
   --border-strong: rgba(255, 255, 255, 0.14);
   --text: #ffffff;
@@ -12,7 +16,7 @@
   --tertiary: rgba(255, 255, 255, 0.25);
   --faint: rgba(255, 255, 255, 0.08);
   --primary: #ffffff;
-  --primary-fg: #0a0a0a;
+  --primary-fg: #060608;
   --pos: #d4d4d4;
   --neg: #ff5555;
   --danger: #ff5555;
@@ -41,7 +45,7 @@ html {
   padding: 0;
   width: 100%;
   overflow: hidden;
-  background: var(--bg);
+  background: var(--bg-deep);
   overscroll-behavior: none;
 
   height: 100vh;
@@ -66,7 +70,7 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
-  background: var(--bg);
+  background: var(--bg-deep);
   overflow: hidden;
   overscroll-behavior: none;
   color: var(--text);
@@ -76,11 +80,27 @@ body {
   flex-direction: column;
 }
 
+/* Fixed atmospheric layers — scrollable content stays transparent above this. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 110% 85% at 8% -8%, var(--void-blue) 0%, transparent 54%),
+    radial-gradient(ellipse 90% 75% at 102% 108%, var(--void-violet) 0%, transparent 50%),
+    radial-gradient(ellipse 140% 95% at 50% 38%, transparent 32%, var(--void-vignette) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.012) 0%, transparent 28%, transparent 72%, rgba(0, 0, 0, 0.22) 100%);
+}
+
 #root {
   flex: 1;
   width: 100%;
   min-height: 0;
-  background: var(--bg);
+  position: relative;
+  z-index: 1;
+  background: transparent;
   display: flex;
   flex-direction: column;
 }
@@ -91,7 +111,7 @@ body {
   max-width: 100%;
   min-height: 0;
   margin: 0;
-  background: var(--bg);
+  background: transparent;
   display: flex;
   flex-direction: column;
 }
@@ -142,9 +162,17 @@ textarea {
 }
 
 .card {
-  background: var(--card);
+  background: linear-gradient(
+    168deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    var(--card) 38%,
+    rgba(8, 8, 12, 0.94) 100%
+  );
   border: 0.5px solid var(--border);
   border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 10px 36px rgba(0, 0, 0, 0.28);
 }
 
 .pill {
@@ -286,8 +314,10 @@ textarea {
   /* `constant()` for older WebKit; `env()` wins when supported */
   padding-bottom: max(8px, constant(safe-area-inset-bottom));
   padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
-  background: var(--bg);
-  border-top: 0.5px solid var(--border);
+  background: rgba(6, 6, 8, 0.68);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border-top: 0.5px solid rgba(255, 255, 255, 0.05);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 4px;
@@ -346,7 +376,7 @@ input[type="number"] {
   align-items: center;
   justify-content: center;
   padding: max(32px, env(safe-area-inset-top, 0px)) 24px max(32px, env(safe-area-inset-bottom, 0px));
-  background: #0f0f0f;
+  background: transparent;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: none;

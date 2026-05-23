@@ -213,7 +213,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
             gap: 14,
             width: "100%",
             textAlign: "left",
-            background: "var(--card)",
           }}
         >
           <div
@@ -257,7 +256,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
               gap: 14,
               width: "100%",
               textAlign: "left",
-              background: "var(--card)",
             }}
           >
             <div
@@ -293,7 +291,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
               borderColor: "rgba(196,181,253,0.28)",
               width: "100%",
               textAlign: "left",
-              background: "var(--card)",
             }}
           >
             <div

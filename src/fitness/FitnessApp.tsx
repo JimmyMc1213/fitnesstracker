@@ -239,7 +239,7 @@ export function FitnessApp() {
           minHeight: 0,
           width: "100%",
           maxWidth: "100%",
-          background: "var(--bg)",
+          background: "transparent",
           color: "var(--text)",
           display: "flex",
           flexDirection: "column",
