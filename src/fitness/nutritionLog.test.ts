@@ -9,13 +9,14 @@ import {
   removeNutritionLoggedItem,
   removeNutritionPresetFromState,
   removeNutritionUserFoodFromState,
+  toggleNutritionFavoriteInState,
   updateNutritionLoggedItem,
   topProteinPresetsForQuickLog,
 } from "./nutritionLog";
 import { minimalAppState } from "./testFixtures/appStateFixtures";
 
 describe("nutritionLog", () => {
-  it("appends a row and upserts presets", () => {
+  it("appends a row without auto-adding favorites", () => {
     const state = minimalAppState();
     const row = buildNutritionLoggedItem({ cal: 120, p: 30, c: 0, f: 0 }, "Quick shake");
     const next = appendNutritionLoggedItem(state, "2026-05-18", row);
@@ -23,7 +24,31 @@ describe("nutritionLog", () => {
     expect(next.nutritionItemsByDay["2026-05-18"]).toHaveLength(1);
     expect(next.nutritionItemsByDay["2026-05-18"][0].p).toBe(30);
     expect(typeof next.nutritionItemsByDay["2026-05-18"][0].loggedAtMs).toBe("number");
-    expect(next.nutritionPresets.some((p) => p.name === "Quick shake")).toBe(true);
+    expect(next.nutritionPresets.some((p) => p.name === "Quick shake")).toBe(false);
+  });
+
+  it("adds favorites only when explicitly starred", () => {
+    const state = minimalAppState();
+    const favorited = toggleNutritionFavoriteInState(state, {
+      name: "Quick shake",
+      cal: 120,
+      p: 30,
+      c: 0,
+      f: 0,
+      servingLabel: "1 scoop",
+    });
+    expect(favorited.nutritionPresets).toHaveLength(1);
+    expect(favorited.nutritionPresets[0]?.favoritedAtMs).toBeGreaterThan(0);
+    expect(favorited.nutritionPresets[0]?.name).toBe("Quick shake");
+
+    const unfavorited = toggleNutritionFavoriteInState(favorited, {
+      name: "Quick shake",
+      cal: 120,
+      p: 30,
+      c: 0,
+      f: 0,
+    });
+    expect(unfavorited.nutritionPresets).toHaveLength(0);
   });
 
   it("buildNutritionLoggedItem sets loggedAtMs and optional metadata when provided", () => {
@@ -59,10 +84,10 @@ describe("nutritionLog", () => {
     expect(recent[2].loggedAtMs).toBe(50);
   });
 
-  it("filters favorites to protein presets by recency", () => {
+  it("filters favorites to starred protein presets by recency", () => {
     const presets = topProteinPresetsForQuickLog([
-      { id: "a", name: "Rice", cal: 200, p: 0, c: 45, f: 0, lastUsedAtMs: 100 },
-      { id: "b", name: "Shake", cal: 120, p: 30, c: 0, f: 0, lastUsedAtMs: 200 },
+      { id: "a", name: "Rice", cal: 200, p: 0, c: 45, f: 0, lastUsedAtMs: 0, favoritedAtMs: 100 },
+      { id: "b", name: "Shake", cal: 120, p: 30, c: 0, f: 0, lastUsedAtMs: 0, favoritedAtMs: 200 },
     ]);
 
     expect(presets).toHaveLength(1);
@@ -102,7 +127,7 @@ describe("nutritionLog", () => {
       nutritionUserFoods: [
         { id: "uf1", name: "Oats", cal: 150, p: 5, c: 27, f: 3, savedAtMs: 1 },
       ],
-      nutritionPresets: [{ id: "p1", name: "Oats", cal: 150, p: 5, c: 27, f: 3, lastUsedAtMs: 1 }],
+      nutritionPresets: [{ id: "p1", name: "Oats", cal: 150, p: 5, c: 27, f: 3, lastUsedAtMs: 0, favoritedAtMs: 1 }],
       nutritionItemsByDay: {
         "2026-05-18": [buildNutritionLoggedItem({ cal: 150, p: 5, c: 27, f: 3 }, "Oats", { id: "log1" })],
       },

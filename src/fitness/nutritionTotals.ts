@@ -149,39 +149,51 @@ export function nutritionPresetFingerprint(name: string, m: MacroTotals): string
 }
 
 /** Remember or refresh a preset after logging an item on Today. */
-export function upsertNutritionPresetList(presets: NutritionPreset[], row: NutritionLoggedItem): NutritionPreset[] {
-  const fp = nutritionPresetFingerprint(row.name, row);
+export function addNutritionFavorite(
+  presets: NutritionPreset[],
+  input: MacroTotals & { name: string; servingLabel?: string },
+): NutritionPreset[] {
+  const fp = nutritionPresetFingerprint(input.name, input);
   const now = Date.now();
-  const idx = presets.findIndex((p) => nutritionPresetFingerprint(p.name, p) === fp);
-  let next: NutritionPreset[];
+  const idx = presets.findIndex(
+    (p) => p.favoritedAtMs != null && nutritionPresetFingerprint(p.name, p) === fp,
+  );
   if (idx >= 0) {
-    const cur = presets[idx];
-    next = [...presets];
-    next[idx] = {
-      ...cur,
-      name: row.name.trim(),
-      cal: Number(row.cal) || 0,
-      p: Number(row.p) || 0,
-      c: Number(row.c) || 0,
-      f: Number(row.f) || 0,
-      lastUsedAtMs: now,
-    };
-  } else {
-    next = [
-      ...presets,
-      {
-        id: row.id,
-        name: row.name.trim(),
-        cal: Number(row.cal) || 0,
-        p: Number(row.p) || 0,
-        c: Number(row.c) || 0,
-        f: Number(row.f) || 0,
-        lastUsedAtMs: now,
-      },
-    ];
+    const next = [...presets];
+    next[idx] = { ...next[idx], favoritedAtMs: next[idx].favoritedAtMs ?? now };
+    next.sort((a, b) => (b.favoritedAtMs ?? 0) - (a.favoritedAtMs ?? 0));
+    return next.slice(0, MAX_NUTRITION_PRESETS);
   }
-  next.sort((a, b) => b.lastUsedAtMs - a.lastUsedAtMs);
+  const row: NutritionPreset = {
+    id: `fav-${now}-${Math.random().toString(36).slice(2, 9)}`,
+    name: input.name.trim() || "Food",
+    cal: Number(input.cal) || 0,
+    p: Number(input.p) || 0,
+    c: Number(input.c) || 0,
+    f: Number(input.f) || 0,
+    lastUsedAtMs: 0,
+    favoritedAtMs: now,
+    ...(input.servingLabel?.trim() ? { servingLabel: input.servingLabel.trim() } : {}),
+  };
+  const next = [
+    row,
+    ...presets.filter(
+      (p) => !(p.favoritedAtMs != null && nutritionPresetFingerprint(p.name, p) === fp),
+    ),
+  ];
+  next.sort((a, b) => (b.favoritedAtMs ?? 0) - (a.favoritedAtMs ?? 0));
   return next.slice(0, MAX_NUTRITION_PRESETS);
+}
+
+export function isNutritionFavorite(
+  presets: NutritionPreset[],
+  name: string,
+  macros: MacroTotals,
+): boolean {
+  const fp = nutritionPresetFingerprint(name, macros);
+  return presets.some(
+    (p) => p.favoritedAtMs != null && nutritionPresetFingerprint(p.name, p) === fp,
+  );
 }
 
 export function touchNutritionPresetById(presets: NutritionPreset[], presetId: string): NutritionPreset[] {
@@ -204,8 +216,12 @@ export function normalizeNutritionPresets(raw: unknown): NutritionPreset[] {
     const c = Number(r.c) || 0;
     const f = Number(r.f) || 0;
     const id = typeof r.id === "string" && r.id ? r.id : `preset-${i}`;
-    const lastUsedAtMs = typeof r.lastUsedAtMs === "number" ? r.lastUsedAtMs : Date.now() - i * 1000;
+    const lastUsedAtMs = typeof r.lastUsedAtMs === "number" ? r.lastUsedAtMs : 0;
+    const favoritedAtMs = typeof r.favoritedAtMs === "number" ? r.favoritedAtMs : undefined;
+    if (favoritedAtMs == null) continue;
     const notes = typeof r.notes === "string" && r.notes.trim() ? r.notes.trim() : undefined;
+    const servingLabel =
+      typeof r.servingLabel === "string" && r.servingLabel.trim() ? r.servingLabel.trim() : undefined;
     const preset: NutritionPreset = {
       id,
       name,
@@ -214,14 +230,16 @@ export function normalizeNutritionPresets(raw: unknown): NutritionPreset[] {
       c,
       f,
       lastUsedAtMs,
+      favoritedAtMs,
+      ...(servingLabel ? { servingLabel } : {}),
       ...(notes ? { notes } : {}),
     };
     const fp = nutritionPresetFingerprint(name, preset);
     const prev = byFp.get(fp);
-    if (!prev || preset.lastUsedAtMs > prev.lastUsedAtMs) byFp.set(fp, preset);
+    if (!prev || preset.favoritedAtMs >= prev.favoritedAtMs) byFp.set(fp, preset);
   }
   const out = [...byFp.values()];
-  out.sort((a, b) => b.lastUsedAtMs - a.lastUsedAtMs);
+  out.sort((a, b) => b.favoritedAtMs - a.favoritedAtMs);
   return out.slice(0, MAX_NUTRITION_PRESETS);
 }
 

@@ -19,11 +19,12 @@ import {
   getRecentlyLoggedFoods,
   newNutritionItemId,
   nutritionUserFoodFromLoggedItem,
-  removeNutritionPresetFromState,
   removeNutritionUserFoodFromState,
+  toggleNutritionFavoriteInState,
   updateNutritionLoggedItem,
   updateNutritionUserFoodInState,
 } from "./nutritionLog";
+import { isNutritionFavorite } from "./nutritionTotals";
 import {
   appendNutritionMeal,
   formatMealServingLabel,
@@ -149,7 +150,13 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
 
   const userFoods = state.nutritionUserFoods ?? [];
   const savedMeals = state.nutritionMeals ?? [];
-  const favoritePresets = state.nutritionPresets ?? [];
+  const favoritePresets = useMemo(
+    () =>
+      (state.nutritionPresets ?? [])
+        .filter((p) => p.favoritedAtMs != null)
+        .sort((a, b) => (b.favoritedAtMs ?? 0) - (a.favoritedAtMs ?? 0)),
+    [state.nutritionPresets],
+  );
 
   const recentlyLogged = useMemo(() => getRecentlyLoggedFoods(state.nutritionItemsByDay), [state.nutritionItemsByDay]);
 
@@ -606,6 +613,51 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     setTab("myFoods");
   }
 
+  function toggleFavorite(input: { name: string; cal: number; p: number; c: number; f: number; servingLabel?: string }) {
+    setState((s) => toggleNutritionFavoriteInState(s, input));
+  }
+
+  function isFavorite(input: { name: string; cal: number; p: number; c: number; f: number }) {
+    return isNutritionFavorite(state.nutritionPresets ?? [], input.name, input);
+  }
+
+  const favoriteButtonStyle = (active: boolean) =>
+    ({
+      flexShrink: 0,
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      border: "none",
+      background: "transparent",
+      color: active ? "#facc15" : "rgba(255,255,255,0.35)",
+      fontSize: 18,
+      lineHeight: 1,
+      display: "grid",
+      placeItems: "center",
+    }) as const;
+
+  function renderFavoriteButton(
+    input: { name: string; cal: number; p: number; c: number; f: number; servingLabel?: string },
+    label: string,
+  ) {
+    const active = isFavorite(input);
+    return (
+      <button
+        type="button"
+        className="tap"
+        aria-label={active ? `Remove ${label} from favorites` : `Add ${label} to favorites`}
+        aria-pressed={active}
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleFavorite(input);
+        }}
+        style={favoriteButtonStyle(active)}
+      >
+        {active ? "★" : "☆"}
+      </button>
+    );
+  }
+
   function retrySearch() {
     const q = search.trim();
     if (q.length < MIN_SEARCH_LEN) return;
@@ -750,14 +802,28 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px 100px", WebkitOverflowScrolling: "touch" }}>
             <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16, marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.25 }}>
-                  {pickerFood.name}
-                </div>
-                {pickerFood.brand ? (
-                  <div style={{ marginTop: 6, fontSize: 13, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
-                    {pickerFood.brand}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.25 }}>
+                      {pickerFood.name}
+                    </div>
+                    {pickerFood.brand ? (
+                      <div style={{ marginTop: 6, fontSize: 13, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
+                        {pickerFood.brand}
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
+                  {pickerMacros
+                    ? renderFavoriteButton(
+                        {
+                          name: pickerFood.name,
+                          ...pickerMacros,
+                          servingLabel: formatServingLabel(pickerMeasurement!, pickerQuantityNum),
+                        },
+                        pickerFood.name,
+                      )
+                    : null}
+                </div>
               </div>
 
               <div>
@@ -1171,6 +1237,22 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         <>
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px 100px", WebkitOverflowScrolling: "touch" }}>
             <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ flex: 1, fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  Manual food
+                </div>
+                {renderFavoriteButton(
+                  {
+                    name: draftName.trim() || "Food",
+                    cal: parseMacro(draftCal),
+                    p: parseMacro(draftP),
+                    c: parseMacro(draftC),
+                    f: parseMacro(draftF),
+                    servingLabel: draftServing.trim() || undefined,
+                  },
+                  draftName.trim() || "food",
+                )}
+              </div>
               <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Name
                 <input
@@ -1311,6 +1393,17 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                                 {food.brand ? ` · ${food.brand}` : ""}
                               </div>
                             </div>
+                            {renderFavoriteButton(
+                              {
+                                name: food.name,
+                                cal: Number(food.cal) || 0,
+                                p: Number(food.p) || 0,
+                                c: Number(food.c) || 0,
+                                f: Number(food.f) || 0,
+                                servingLabel: food.defaultServing,
+                              },
+                              food.name,
+                            )}
                             <span style={{ flexShrink: 0, fontSize: 18, color: "rgba(255,255,255,0.35)" }}>›</span>
                           </button>
                         ))}
@@ -1348,6 +1441,17 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                                 {Math.round(Number(it.cal) || 0)} kcal · {it.servingLabel?.trim() || DEFAULT_SERVING}
                               </div>
                             </div>
+                            {renderFavoriteButton(
+                              {
+                                name: it.name.trim() || "Food",
+                                cal: Number(it.cal) || 0,
+                                p: Number(it.p) || 0,
+                                c: Number(it.c) || 0,
+                                f: Number(it.f) || 0,
+                                servingLabel: it.servingLabel?.trim(),
+                              },
+                              it.name.trim() || "food",
+                            )}
                             <button
                               type="button"
                               className="tap"
@@ -1398,6 +1502,17 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                             </div>
                           </div>
                         </button>
+                        {renderFavoriteButton(
+                          {
+                            name: food.name,
+                            cal: Number(food.cal) || 0,
+                            p: Number(food.p) || 0,
+                            c: Number(food.c) || 0,
+                            f: Number(food.f) || 0,
+                            servingLabel: food.servingLabel?.trim(),
+                          },
+                          food.name,
+                        )}
                         <button
                           type="button"
                           className="tap"
@@ -1425,7 +1540,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
               <>
                 {favoritePresets.length === 0 ? (
                   <p style={{ margin: "8px 0 0", fontSize: 14, color: "rgba(255,255,255,0.42)", fontWeight: 400, lineHeight: 1.5 }}>
-                    Favorite foods appear here after you log something. Tap + to log again anytime.
+                    Tap the star on any food to save it here for one-tap logging.
                   </p>
                 ) : (
                   <div className="card" style={foodListCardStyle}>
@@ -1445,9 +1560,20 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                             {preset.name.trim() || "Food"}
                           </div>
                           <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                            {Math.round(Number(preset.cal) || 0)} kcal · {Math.round(Number(preset.p) || 0)}g protein
+                            {Math.round(Number(preset.cal) || 0)} kcal · {preset.servingLabel?.trim() || `${Math.round(Number(preset.p) || 0)}g protein`}
                           </div>
                         </div>
+                        {renderFavoriteButton(
+                          {
+                            name: preset.name.trim() || "Food",
+                            cal: Number(preset.cal) || 0,
+                            p: Number(preset.p) || 0,
+                            c: Number(preset.c) || 0,
+                            f: Number(preset.f) || 0,
+                            servingLabel: preset.servingLabel?.trim(),
+                          },
+                          preset.name.trim() || "food",
+                        )}
                         <button
                           type="button"
                           className="tap"
@@ -1456,15 +1582,6 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           style={addButtonStyle}
                         >
                           +
-                        </button>
-                        <button
-                          type="button"
-                          className="tap"
-                          aria-label={`Remove ${preset.name.trim() || "food"} from favorites`}
-                          onClick={() => setState((s) => removeNutritionPresetFromState(s, preset.id))}
-                          style={{ flexShrink: 0, fontSize: 13, fontWeight: 600, color: "rgba(255,160,160,0.85)", background: "none", border: "none", padding: "8px" }}
-                        >
-                          Remove
                         </button>
                       </div>
                     ))}
@@ -1509,6 +1626,17 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                               </div>
                             </div>
                           </button>
+                          {renderFavoriteButton(
+                            {
+                              name: meal.name,
+                              cal: mealMacros.cal,
+                              p: mealMacros.p,
+                              c: mealMacros.c,
+                              f: mealMacros.f,
+                              servingLabel: servingLabel ?? undefined,
+                            },
+                            meal.name,
+                          )}
                           <button
                             type="button"
                             className="tap"

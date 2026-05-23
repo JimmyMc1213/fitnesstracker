@@ -17,11 +17,15 @@ export type NutritionLoggedItem = MacroTotals & {
   loggedAtMs?: number;
 };
 
-/** Reusable template from something you logged before (macros can be all zero). */
+/** User-starred food for one-tap re-log (Favorite foods tab). */
 export type NutritionPreset = MacroTotals & {
   id: string;
   name: string;
+  /** When the user last logged this favorite. */
   lastUsedAtMs: number;
+  /** When the user tapped the favorite button; required to appear in Favorite foods. */
+  favoritedAtMs: number;
+  servingLabel?: string;
   /** Optional coaching / portion notes (e.g. cooked vs raw weight). */
   notes?: string;
 };

@@ -2,7 +2,7 @@
 
 **Project:** fitnesstracker  
 **Product:** Fitcoach, mobile-first PWA personal fitness OS  
-**Last updated:** 2026-05-23
+**Last updated:** 2026-05-23 (Sprint 10 planned)
 
 ---
 
@@ -82,9 +82,11 @@ Detailed acceptance criteria, priorities, and status live in Linear. BMad story 
 
 **Sprint 8 (Chunk 2 — planned):** USDA FoodData Central + Open Food Facts via Supabase Edge Function proxy; wire All-tab search; My foods and Favorite foods tabs; search E2E.
 
-**Sprint 9 (Chunk 3):** My meals (meal prep); visual polish; full unit + E2E gate.
+**Sprint 9 (Chunk 3 — done):** My meals (meal prep); visual polish; full unit + E2E gate. Nutrition OS v2 complete (47/47 checklist steps).
 
-**Out of scope (future backlog):** Barcode scan, AI natural-language parse, paid APIs (Nutritionix/Edamam), voice log.
+**Sprint 10 (planned):** Workout architecture phase 2 — idle dashboard + add-exercise search extraction; CI pipeline + E2E depth (coach notes, recently logged re-log).
+
+**Out of scope (future backlog):** Barcode scan, AI natural-language parse, paid APIs (Nutritionix/Edamam), voice log, native App Store wrapper.
 
 **Checklist:** `_bmad-output/implementation-artifacts/nutrition-os-v2-checklist.md`
 

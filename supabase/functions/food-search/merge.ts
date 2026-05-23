@@ -60,13 +60,31 @@ function areSimilarFoods(a: FoodSearchResult, b: FoodSearchResult): boolean {
   return true;
 }
 
-function brandedBoost(result: FoodSearchResult, query: string): number {
+/** Strong boost when the user is clearly searching for a brand name. */
+function brandQueryBoost(result: FoodSearchResult, query: string): number {
   const brand = (result.brand ?? "").trim();
   if (!brand) return 0;
-  const q = query.trim().toLowerCase();
-  const b = brand.toLowerCase();
-  if (q && (b.includes(q) || q.includes(b))) return 3;
-  return result.source === "off" ? 2 : 1;
+  const q = normalizeFoodName(query);
+  const b = normalizeFoodName(brand);
+  if (!q || !b) return 0;
+  if (b.includes(q) || q.includes(b)) return 15;
+  return 0;
+}
+
+function isBrandSearch(query: string, results: FoodSearchResult[]): boolean {
+  return results.some((r) => brandQueryBoost(r, query) > 0);
+}
+
+/** For basic ingredient searches, prefer unbranded reference foods over packaged brands. */
+function genericPreferenceBoost(
+  result: FoodSearchResult,
+  query: string,
+  results: FoodSearchResult[],
+): number {
+  if (isBrandSearch(query, results)) return 0;
+  const brand = (result.brand ?? "").trim();
+  if (brand) return -3;
+  return result.source === "usda" ? 5 : 2;
 }
 
 function queryRelevance(result: FoodSearchResult, query: string): number {
@@ -81,10 +99,49 @@ function queryRelevance(result: FoodSearchResult, query: string): number {
   return 0;
 }
 
+function foodSearchScore(result: FoodSearchResult, query: string, results: FoodSearchResult[]): number {
+  return (
+    queryRelevance(result, query) +
+    brandQueryBoost(result, query) +
+    genericPreferenceBoost(result, query, results)
+  );
+}
+
+function pickPreferredDuplicate(
+  existing: FoodSearchResult,
+  candidate: FoodSearchResult,
+  query: string,
+): FoodSearchResult {
+  const candidateBrandBoost = brandQueryBoost(candidate, query);
+  const existingBrandBoost = brandQueryBoost(existing, query);
+  if (candidateBrandBoost !== existingBrandBoost) {
+    return candidateBrandBoost > existingBrandBoost ? candidate : existing;
+  }
+
+  const candidateBranded = Boolean((candidate.brand ?? "").trim());
+  const existingBranded = Boolean((existing.brand ?? "").trim());
+  if (candidateBranded !== existingBranded) {
+    return candidateBranded ? existing : candidate;
+  }
+
+  if (candidateBranded && existingBranded) {
+    if (candidate.source === "off" && existing.source !== "off") return candidate;
+    if (existing.source === "off" && candidate.source !== "off") return existing;
+  }
+
+  const candidateRelevance = queryRelevance(candidate, query);
+  const existingRelevance = queryRelevance(existing, query);
+  if (candidateRelevance !== existingRelevance) {
+    return candidateRelevance > existingRelevance ? candidate : existing;
+  }
+
+  return existing;
+}
+
 function rankFoodSearchResults(results: FoodSearchResult[], query: string): FoodSearchResult[] {
   return [...results].sort((a, b) => {
-    const scoreA = queryRelevance(a, query) + brandedBoost(a, query) + (a.source === "off" && a.brand ? 0.5 : 0);
-    const scoreB = queryRelevance(b, query) + brandedBoost(b, query) + (b.source === "off" && b.brand ? 0.5 : 0);
+    const scoreA = foodSearchScore(a, query, results);
+    const scoreB = foodSearchScore(b, query, results);
     if (scoreB !== scoreA) return scoreB - scoreA;
     return a.name.localeCompare(b.name);
   });
@@ -95,7 +152,7 @@ export function mergeFoodSearchResults(
   off: FoodSearchResult[],
   query: string,
 ): FoodSearchResult[] {
-  const combined = [...off, ...usda];
+  const combined = [...usda, ...off];
   const kept: FoodSearchResult[] = [];
 
   for (const candidate of combined) {
@@ -104,12 +161,7 @@ export function mergeFoodSearchResults(
       kept.push(candidate);
       continue;
     }
-    const existing = kept[dupeIdx];
-    const preferCandidate =
-      (candidate.brand && !existing.brand) ||
-      (candidate.brand && existing.brand && candidate.source === "off" && existing.source !== "off") ||
-      brandedBoost(candidate, query) > brandedBoost(existing, query);
-    if (preferCandidate) kept[dupeIdx] = candidate;
+    kept[dupeIdx] = pickPreferredDuplicate(kept[dupeIdx], candidate, query);
   }
 
   return rankFoodSearchResults(kept, query).slice(0, MAX_RESULTS);

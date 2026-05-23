@@ -1,7 +1,7 @@
 # Fitcoach, Epics & Stories
 
 **Project:** fitnesstracker  
-**Last updated:** 2026-05-23 (Sprint 8 planned)  
+**Last updated:** 2026-05-23 (Sprint 10 planned)  
 **Sprint tracking:** `_bmad-output/implementation-artifacts/sprint-status.yaml`
 
 **Positioning:** Fitcoach is the all-in-one fitness app that coaches you through every workout, meal, and check-in, so you never need another app to hit your goals.
@@ -24,9 +24,11 @@
 
 **Sprint 7 (done):** Nutrition OS v2 — Chunk 1 of 3. Strip Nutrition tab to rings + hydration + FAB, build Log Food overlay (manual add + recently logged), extend logged-item schema, remove Home quick-log, coach task routing to Log Food, partial E2E refresh.
 
-**Sprint 8 (planned):** Nutrition OS v2 — Chunk 2 of 3. USDA FoodData Central + Open Food Facts via Supabase Edge Function; wire All-tab search; My foods + Favorite foods tabs; partial E2E for search path. See `nutrition-os-v2-checklist.md`.
+**Sprint 8 (done):** Nutrition OS v2 — Chunk 2 of 3. USDA FoodData Central + Open Food Facts via Supabase Edge Function; wire All-tab search; My foods + Favorite foods tabs; partial E2E for search path. See `nutrition-os-v2-checklist.md`.
 
-**Sprint 9 (planned):** Nutrition OS v2 — Chunk 3. My meals meal prep, Cal AI visual polish, full unit + E2E gate.
+**Sprint 9 (done):** Nutrition OS v2 — Chunk 3. My meals meal prep, Cal AI visual polish, full unit + E2E gate. All 47 checklist steps complete.
+
+**Sprint 10 (planned):** Workout architecture phase 2 + quality pipeline. Finish `ScreenWorkout.tsx` decomposition (idle dashboard + add-exercise search); scaffold CI with build/test/e2e gates; expand Playwright coverage (coach notes, recently logged re-log).
 
 **Prerequisite (done):** [FTI-15](https://linear.app/ftiness-tracker/issue/FTI-15/save-workouts-and-workout-history), `story_key: fti-15-save-workouts-and-workout-history`
 
@@ -961,3 +963,102 @@ so I can re-log custom entries and favorites without searching every time.
 - MoSCoW: Must, sprint closer
 - depends_on: FTI-61
 - checklist phases: 5, 7, 0.3 (finish), 10 (partial E2E)
+
+---
+
+## Epic 9: FTI Sprint 9, Nutrition OS v2 (Chunk 3)
+
+**Epic key (sprint-status):** `epic-fti-sprint-9`
+
+**Goal:** Complete Nutrition OS v2 — My meals meal prep, Cal AI visual polish, full unit + E2E gate.
+
+**Sprint execution order:** FTI-63 → 64 → 65 (one story per PR)
+
+**Status:** done (2026-05-23). See story files `fti-63-*`, `fti-64-*`, `fti-65-*` and `nutrition-os-v2-checklist.md`.
+
+---
+
+## Epic 10: FTI Sprint 10, Workout architecture phase 2 & quality pipeline
+
+**Epic key (sprint-status):** `epic-fti-sprint-10`
+
+**Goal:** Reduce remaining `ScreenWorkout.tsx` monolith risk (~1,070 lines after phase 1) by extracting idle dashboard and add-exercise search flows, then make the quality gate durable with CI and deeper Playwright coverage.
+
+**Sprint execution order:** FTI-66 → 67 → 68 (one story per PR)
+
+**Scope locks:** Barcode scan, voice log, AI natural-language parse OUT OF SCOPE (Sprint 11+ backlog). Native App Store wrapper OUT OF SCOPE. FTI-55 LLM coach notes OUT OF SCOPE. ScreenWorkout phase 3 (history page, routine editor shell) OUT OF SCOPE. No new Home cards. Primary CTA = lime green (`--pos` / `#4ade80`).
+
+**Prerequisite:** Sprint 9 complete; workout session E2E smoke (FTI-52) green on `main`.
+
+---
+
+### Story 10.1: ScreenWorkout idle dashboard extraction (FTI-66)
+
+As a developer,
+I want the workout idle phase (routine list, preview, empty states) extracted from `ScreenWorkout.tsx`,
+so further workout UX work does not grow the monolith.
+
+**Acceptance criteria:**
+
+- **Extract idle UI** → `WorkoutIdleDashboard.tsx` under `src/fitness/workout/`: Start empty workout CTA, routine cards, empty state, restore-default actions, `RoutinePreviewSheet` wiring
+- **Callback props** for `startEmptyWorkout`, `startTemplateWorkout`, `setEditingRoutineId`, `setPreviewRoutineId`, `setState` (restore templates only)
+- **Zero behavior change**; all 136+ Vitest tests pass
+- **Playwright workout smoke** (FTI-52) still passes
+- **`ScreenWorkout.tsx` reduced** by meaningful line count (~150+ lines); no new UI surfaces
+
+**Dev Notes:**
+
+- story_key: fti-66-screenworkout-idle-dashboard-extraction
+- linear: FTI-60
+- MoSCoW: Must, sprint opener (mirrors FTI-53 pattern)
+- partial_impl: idle branch ~lines 582–749 in `ScreenWorkout.tsx`
+- blocks: FTI-67
+
+---
+
+### Story 10.2: Add-exercise search sheet extraction (FTI-67)
+
+As a developer,
+I want the inline add-exercise search panel extracted from the lifting phase of `ScreenWorkout.tsx`,
+so exercise catalog search is isolated and testable alongside `ExerciseSwapSheet`.
+
+**Acceptance criteria:**
+
+- **Extract add-exercise panel** → `AddExerciseSearchSheet.tsx` under `src/fitness/workout/`: custom exercise draft form, catalog + custom filter lists, open/close state driven by parent
+- **Preserve filtering logic** for `EXERCISE_DB` + `state.customExercises` (same behavior as today)
+- **Callbacks:** `addExerciseToSession`, `saveDraftCustomAndAddToSession`, close/reset handlers remain wired from `ScreenWorkout`
+- **Zero behavior change**; Playwright workout smoke still passes
+- **`ScreenWorkout.tsx` reduced** further; `ExerciseSwapSheet` unchanged unless import cleanup needed
+
+**Dev Notes:**
+
+- story_key: fti-67-add-exercise-search-sheet-extraction
+- linear: FTI-61
+- MoSCoW: Must
+- depends_on: FTI-66
+- blocks: FTI-68
+- partial_impl: lifting-phase add-exercise block ~lines 820–987 in `ScreenWorkout.tsx`
+
+---
+
+### Story 10.3: CI pipeline + E2E depth gate (FTI-68)
+
+As a developer,
+I want GitHub Actions running build/test/e2e and Playwright coverage for coach notes and recently logged re-log,
+so quality gates are durable beyond local dev.
+
+**Acceptance criteria:**
+
+- **CI workflow:** `.github/workflows/ci.yml` runs `npm run build`, `npm test`, `npm run test:e2e` on push/PR to `main`
+- **E2E — coach note:** Workout session smoke asserts per-exercise coach note visible after session start (FTI-54 behavior)
+- **E2E — recently logged:** Nutrition tab → Log Food → tap `+` on recently logged row → rings update
+- **Quality gate:** `npm run build` + `npm test` (136+) + `npm run test:e2e` (7+) pass locally and in CI
+- **Sprint 10 retrospective** documented; no ScreenWorkout behavior changes in this story
+
+**Dev Notes:**
+
+- story_key: fti-68-ci-pipeline-e2e-depth-gate
+- linear: FTI-62
+- MoSCoW: Must, sprint closer
+- depends_on: FTI-67
+- carries: Sprint 6–9 retro action items (CI scaffold, coach-note E2E, recently-logged re-log)

@@ -190,12 +190,12 @@ function parseServingLabel(label: string): { quantity: number; unit: string; gra
   return { quantity, unit, grams };
 }
 
-async function searchUsda(query: string, apiKey: string): Promise<FoodSearchResult[]> {
+async function searchUsda(query: string, apiKey: string, dataType: string, pageSize: number): Promise<FoodSearchResult[]> {
   const url = new URL("https://api.nal.usda.gov/fdc/v1/foods/search");
   url.searchParams.set("api_key", apiKey);
   url.searchParams.set("query", query);
-  url.searchParams.set("pageSize", "20");
-  url.searchParams.set("dataType", "Foundation,SR Legacy,Branded");
+  url.searchParams.set("pageSize", String(pageSize));
+  url.searchParams.set("dataType", dataType);
 
   const usdaRes = await fetch(url.toString());
   if (!usdaRes.ok) {
@@ -213,6 +213,14 @@ async function searchUsda(query: string, apiKey: string): Promise<FoodSearchResu
     if (mapped) results.push(mapped);
   }
   return results;
+}
+
+async function searchUsdaAll(query: string, apiKey: string): Promise<FoodSearchResult[]> {
+  const [generic, branded] = await Promise.all([
+    searchUsda(query, apiKey, "Foundation,SR Legacy", 15).catch(() => [] as FoodSearchResult[]),
+    searchUsda(query, apiKey, "Branded", 10).catch(() => [] as FoodSearchResult[]),
+  ]);
+  return [...generic, ...branded];
 }
 
 async function searchOff(query: string): Promise<FoodSearchResult[]> {
@@ -262,7 +270,7 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get("USDA_FDC_API_KEY")?.trim();
     const usdaPromise = apiKey
-      ? searchUsda(query, apiKey).catch((e) => {
+      ? searchUsdaAll(query, apiKey).catch((e) => {
           console.error("USDA error", e);
           return [] as FoodSearchResult[];
         })

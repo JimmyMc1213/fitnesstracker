@@ -1,5 +1,5 @@
 import { applyStreakEligibility } from "./dailyStreak";
-import { touchNutritionPresetById, upsertNutritionPresetList } from "./nutritionTotals";
+import { addNutritionFavorite, isNutritionFavorite, nutritionPresetFingerprint, touchNutritionPresetById } from "./nutritionTotals";
 import type { AppState, MacroTotals, NutritionLoggedItem, NutritionPreset, NutritionUserFood } from "./types";
 
 export function newNutritionItemId(): string {
@@ -113,7 +113,6 @@ export function appendNutritionLoggedItem(
     {
       ...state,
       nutritionItemsByDay: { ...state.nutritionItemsByDay, [dateKey]: [...prev, row] },
-      nutritionPresets: upsertNutritionPresetList(state.nutritionPresets, row),
     },
     dateKey,
   );
@@ -157,7 +156,6 @@ export function updateNutritionLoggedItem(
     {
       ...state,
       nutritionItemsByDay: nutritionItemsForDay(state.nutritionItemsByDay, dateKey, nextRows),
-      nutritionPresets: upsertNutritionPresetList(state.nutritionPresets, nextRows[idx]),
     },
     dateKey,
   );
@@ -169,7 +167,11 @@ export function appendNutritionPresetToDay(
   dateKey: string,
   preset: NutritionPreset,
 ): AppState {
-  const row = buildNutritionLoggedItem(preset, preset.name, newNutritionItemId());
+  const row = buildNutritionLoggedItem(preset, preset.name, {
+    id: newNutritionItemId(),
+    loggedAtMs: Date.now(),
+    ...(preset.servingLabel?.trim() ? { servingLabel: preset.servingLabel.trim() } : {}),
+  });
   const prev = state.nutritionItemsByDay[dateKey] ?? [];
   return applyStreakEligibility(
     {
@@ -181,12 +183,49 @@ export function appendNutritionPresetToDay(
   );
 }
 
-/** Top saved foods with protein, sorted by recency, for Home quick-log favorites. */
+/** Explicitly starred foods with protein, sorted by favorite recency, for Home quick-log. */
 export function topProteinPresetsForQuickLog(
   presets: NutritionPreset[],
   limit = 5,
 ): NutritionPreset[] {
-  return presets.filter((p) => (Number(p.p) || 0) > 0).slice(0, limit);
+  return presets
+    .filter((p) => p.favoritedAtMs != null && (Number(p.p) || 0) > 0)
+    .sort((a, b) => (b.favoritedAtMs ?? 0) - (a.favoritedAtMs ?? 0))
+    .slice(0, limit);
+}
+
+export function addNutritionFavoriteToState(
+  state: AppState,
+  input: MacroTotals & { name: string; servingLabel?: string },
+): AppState {
+  return {
+    ...state,
+    nutritionPresets: addNutritionFavorite(state.nutritionPresets ?? [], input),
+  };
+}
+
+export function removeNutritionFavoriteFromState(
+  state: AppState,
+  name: string,
+  macros: MacroTotals,
+): AppState {
+  const fp = nutritionPresetFingerprint(name, macros);
+  return {
+    ...state,
+    nutritionPresets: (state.nutritionPresets ?? []).filter(
+      (p) => !(p.favoritedAtMs != null && nutritionPresetFingerprint(p.name, p) === fp),
+    ),
+  };
+}
+
+export function toggleNutritionFavoriteInState(
+  state: AppState,
+  input: MacroTotals & { name: string; servingLabel?: string },
+): AppState {
+  if (isNutritionFavorite(state.nutritionPresets ?? [], input.name, input)) {
+    return removeNutritionFavoriteFromState(state, input.name, input);
+  }
+  return addNutritionFavoriteToState(state, input);
 }
 
 export function upsertNutritionUserFood(

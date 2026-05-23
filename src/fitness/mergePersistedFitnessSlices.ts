@@ -160,11 +160,12 @@ function mergeNutritionManualByDay(
 function mergeNutritionPresets(a: NutritionPreset[], b: NutritionPreset[]): NutritionPreset[] {
   const byFp = new Map<string, NutritionPreset>();
   for (const p of [...a, ...b]) {
+    if (p.favoritedAtMs == null) continue;
     const fp = nutritionPresetFingerprint(p.name, p);
     const prev = byFp.get(fp);
-    if (!prev || p.lastUsedAtMs >= prev.lastUsedAtMs) byFp.set(fp, p);
+    if (!prev || p.favoritedAtMs >= prev.favoritedAtMs) byFp.set(fp, p);
   }
-  return [...byFp.values()].sort((x, y) => y.lastUsedAtMs - x.lastUsedAtMs).slice(0, 150);
+  return [...byFp.values()].sort((x, y) => y.favoritedAtMs - x.favoritedAtMs).slice(0, 150);
 }
 
 function mergeNutritionMeals(a: NutritionMeal[], b: NutritionMeal[]): NutritionMeal[] {
