@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (FTI-39 done)
+# last_updated: 2026-05-23 (FTI-39 merged PR #25; Sprint 3 complete)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -49,12 +49,11 @@
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next: scans development_status top → bottom; picks FIRST story with status "backlog"
-#   → FTI-39 is the next target (40 → 34 → 33 → 37 → 35 → 36 → 38 → 39 per sprint order above)
-# - in-progress / ready-for-dev: Swarm skips story creation (Phase 1) and continues dev/review
+# - bmad-swarm next: no backlog stories remain in Sprint 3 — run sprint planning for Sprint 4
+# - bmad-swarm next retro: epic-fti-sprint-3-retrospective → done (2026-05-23)
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # FTI-39 done
+last_updated: 2026-05-23  # FTI-39 merged PR #25; Sprint 3 complete
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -93,7 +92,7 @@ development_status:
   epic-fti-sprint-2-retrospective: done
 
   # --- Sprint 3 (planned) — coaching orchestration ---
-  epic-fti-sprint-3: in-progress
+  epic-fti-sprint-3: done
 
   fti-40-vitest-harness-coach-dailyplan-unit-tests: done
   fti-34-cross-domain-coach-engine: done
@@ -104,4 +103,4 @@ development_status:
   fti-38-context-aware-notification-copy: done
   fti-39-weekly-coach-review-narrative: done
 
-  epic-fti-sprint-3-retrospective: optional
+  epic-fti-sprint-3-retrospective: done
