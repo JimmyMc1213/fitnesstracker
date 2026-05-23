@@ -77,7 +77,8 @@
 # =====================
 # - bmad-swarm next: epic-fti-sprint-7 → done (2026-05-23, PR #29 merged)
 # - Linear FTI-51, FTI-52, FTI-53 → Done (2026-05-23)
-# - bmad-swarm next retro: epic-fti-sprint-7-retrospective (optional)
+# - bmad-swarm next retro: epic-fti-sprint-7-retrospective → done (2026-05-23)
+# - bmad-swarm next: Sprint 8 planning (Nutrition OS Chunk 2)
 
 generated: 2026-05-20
 last_updated: 2026-05-23  # Sprint 7 merged (PR #29)
@@ -173,4 +174,4 @@ development_status:
   fti-58-remove-home-logging-coach-routing-log-food: done
   fti-59-nutrition-os-v2-e2e-partial: done
 
-  epic-fti-sprint-7-retrospective: optional
+  epic-fti-sprint-7-retrospective: done
