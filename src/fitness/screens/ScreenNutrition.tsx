@@ -115,14 +115,14 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest }: ScreenP
           height: 56,
           borderRadius: 999,
           border: "none",
-          background: "var(--pos, #4ade80)",
+          background: "var(--pos, #d4d4d4)",
           color: "#07080c",
           fontSize: 28,
           fontWeight: 600,
           lineHeight: 1,
           display: "grid",
           placeItems: "center",
-          boxShadow: "0 8px 24px rgba(74, 222, 128, 0.35)",
+          boxShadow: "0 8px 24px rgba(0, 0, 0, 0.45)",
           zIndex: 50,
         }}
       >
