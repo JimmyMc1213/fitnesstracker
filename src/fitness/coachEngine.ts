@@ -397,13 +397,8 @@ export function getPostWorkoutRecap(ctx: CoachContext, session: CompletedWorkout
     .join(" ");
 }
 
-export function getWeighInReaction(ctx: CoachContext, entry: WeightEntry): CoachAdjustment | null {
+function buildWeighInReaction(ctx: CoachContext, entry: WeightEntry): CoachAdjustment | null {
   if (!entry.dateKey || entry.weightLbs <= 0) return null;
-
-  const priorSameDay = (ctx.state.weightLog ?? []).some(
-    (e) => e.dateKey === entry.dateKey && e.weightLbs > 0,
-  );
-  if (priorSameDay) return null;
 
   const trend = ctx.recentWeightTrend;
   const weekStart = startOfWeekMonday(ctx.dateKey);
@@ -436,6 +431,20 @@ export function getWeighInReaction(ctx: CoachContext, entry: WeightEntry): Coach
   return {
     message: `Weigh-in saved at ${entry.weightLbs.toFixed(1)} lb — trend looks stable. Keep executing the plan.`,
   };
+}
+
+/** At save time — returns null when updating an existing same-day entry. */
+export function getWeighInReaction(ctx: CoachContext, entry: WeightEntry): CoachAdjustment | null {
+  const priorSameDay = (ctx.state.weightLog ?? []).some(
+    (e) => e.dateKey === entry.dateKey && e.weightLbs > 0,
+  );
+  if (priorSameDay) return null;
+  return buildWeighInReaction(ctx, entry);
+}
+
+/** Home display when today's entry is already in the log. */
+export function getWeighInReactionForDisplay(ctx: CoachContext, entry: WeightEntry): CoachAdjustment | null {
+  return buildWeighInReaction(ctx, entry);
 }
 
 export function getNotificationBody(ctx: CoachContext, kind: CoachNotificationKind): string {

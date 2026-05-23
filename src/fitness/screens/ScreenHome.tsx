@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { buildCoachContext, getHomeCoachPlan } from "../coachEngine";
+import { buildCoachContext, getHomeCoachPlan, getWeighInReactionForDisplay } from "../coachEngine";
 import { coachTaskOpensFuelQuickLog, handleCoachTaskAction } from "../coachTaskActions";
 import { HomeFuelQuickLogSheet } from "../HomeFuelQuickLogSheet";
 import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
@@ -11,6 +11,7 @@ import { SettingsSheet } from "../SettingsSheet";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { StreakWeeklyHeader } from "../StreakWeeklyHeader";
 import { TodaysCoachPlanCard } from "../TodaysCoachPlanCard";
+import { WeighInCoachReaction } from "../WeighInCoachReaction";
 import { WeeklySummaryCard } from "../WeeklySummaryCard";
 import { ScreenHeader } from "../shared";
 import { formatWeightFromLbs, weightUnitLabel } from "../unitPreferences";
@@ -74,6 +75,11 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   const fuelLabel = isViewingToday ? "Fuel · Today" : "Fuel";
 
   const showWeighInCard = !isViewingToday || coachCtx?.scheduledWeighInDay === true || !!dayEntry;
+
+  const weighInReaction = useMemo(() => {
+    if (!isViewingToday || !dayEntry || !coachCtx) return null;
+    return getWeighInReactionForDisplay(coachCtx, dayEntry);
+  }, [isViewingToday, dayEntry, coachCtx]);
 
   return (
     <div className="screen page-transition" style={{ position: "relative" }}>
@@ -200,6 +206,8 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
           <IconChevR size={14} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
         </button>
       ) : null}
+
+      {weighInReaction ? <WeighInCoachReaction adjustment={weighInReaction} /> : null}
 
       {showNightlyStretchWindow ? (
         nightlyStretchDone ? (
