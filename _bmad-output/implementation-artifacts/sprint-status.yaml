@@ -52,7 +52,6 @@
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next: fti-42-design-system-primary-secondary-buttons (ready-for-dev)
 # - bmad-swarm next retro: epic-fti-sprint-4-retrospective → optional (after epic done)
 
 generated: 2026-05-20
@@ -109,13 +108,13 @@ development_status:
   epic-fti-sprint-3-retrospective: done
 
   # --- Sprint 4 (planned) — UI polish & IA (screenshot audit) ---
-  epic-fti-sprint-4: in-progress
+  epic-fti-sprint-4: done
 
   fti-41-ui-bug-sweep-dev-copy-token-fix: done
-  fti-42-design-system-primary-secondary-buttons: ready-for-dev
-  fti-43-home-density-greeting-weigh-in-legend: ready-for-dev
-  fti-44-daily-habits-on-home-remove-habits-tab: ready-for-dev
-  fti-45-progress-goal-aware-delta-empty-states: ready-for-dev
-  fti-46-settings-section-ia-notification-copy: ready-for-dev
+  fti-42-design-system-primary-secondary-buttons: done
+  fti-43-home-density-greeting-weigh-in-legend: done
+  fti-44-daily-habits-on-home-remove-habits-tab: done
+  fti-45-progress-goal-aware-delta-empty-states: done
+  fti-46-settings-section-ia-notification-copy: done
 
   epic-fti-sprint-4-retrospective: optional

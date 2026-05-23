@@ -1,4 +1,5 @@
 import type { CoachTask, HomeCoachPlan } from "./coachEngine";
+import { PrimaryButton } from "./shared";
 import { coachTaskCtaLabel, coachTaskHasAction } from "./coachTaskActions";
 
 type Props = {
@@ -114,25 +115,14 @@ function CoachTaskRow({
 
       {showCta && !completed ? (
         isPrimaryAction ? (
-          <button
-            type="button"
-            className="tap"
+          <PrimaryButton
+            block
             onClick={onAction}
             aria-label={`${ctaLabel}: ${task.label}`}
-            style={{
-              width: "100%",
-              marginTop: 12,
-              background: "#ffffff",
-              color: "#000",
-              borderRadius: 12,
-              padding: 14,
-              fontSize: 14,
-              fontWeight: 600,
-              border: "none",
-            }}
+            style={{ marginTop: 12, padding: 14, fontSize: 14 }}
           >
             {ctaLabel}
-          </button>
+          </PrimaryButton>
         ) : (
           <button
             type="button"

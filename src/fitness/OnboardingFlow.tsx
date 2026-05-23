@@ -36,6 +36,7 @@ import type {
 
 const STEP_LABELS = [
   "Units",
+  "Name",
   "Experience",
   "Equipment",
   "Goal",
@@ -151,6 +152,7 @@ export function OnboardingFlow({
 }) {
   const totalSteps = STEP_LABELS.length;
   const [step, setStep] = useState(0);
+  const [displayName, setDisplayName] = useState("");
   const [unitPreferences, setUnitPreferences] = useState<UnitPreferences>({ ...DEFAULT_UNIT_PREFERENCES });
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(DEFAULT_EXPERIENCE_LEVEL);
   const [equipmentSetup, setEquipmentSetup] = useState<EquipmentSetup>(DEFAULT_EQUIPMENT_SETUP);
@@ -176,10 +178,10 @@ export function OnboardingFlow({
   const computedMacros = useMemo(() => calculateNutritionTargets(profile), [profile]);
 
   function goNext() {
-    if (step === 6) {
+    if (step === 7) {
       setDraftTemplates(buildWorkoutTemplatesForDays(profile.workoutDaysPerWeek, experienceLevel, equipmentSetup));
     }
-    if (step === 7) {
+    if (step === 8) {
       setMacros(computedMacros);
     }
     setStep((s) => Math.min(s + 1, totalSteps - 1));
@@ -194,6 +196,7 @@ export function OnboardingFlow({
     const progressGoal = progressGoalFromOnboarding(profile);
     setState((s) => ({
       ...s,
+      displayName: displayName.trim(),
       unitPreferences,
       unitPreferencesChosen: true,
       experienceLevel,
@@ -232,6 +235,36 @@ export function OnboardingFlow({
 
   if (step === 1) {
     return (
+      <OnboardingShell
+        step={step}
+        totalSteps={totalSteps}
+        title="What should we call you?"
+        subtitle="Your first name appears in the Home greeting. You can skip or change this later in Settings."
+        onBack={goBack}
+        onContinue={goNext}
+        continueLabel={displayName.trim() ? "Continue" : "Skip for now"}
+      >
+        <div className="card" style={{ padding: 16 }}>
+          <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            First name
+            <input
+              className="input"
+              style={{ marginTop: 8 }}
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Jimmy"
+              autoCapitalize="words"
+              autoComplete="given-name"
+              aria-label="First name"
+            />
+          </label>
+        </div>
+      </OnboardingShell>
+    );
+  }
+
+  if (step === 2) {
+    return (
       <OnboardingShell step={step} totalSteps={totalSteps} title="Your experience level" subtitle="Rep ranges and starting weights in your templates." onBack={goBack} onContinue={goNext}>
         <div className="card" style={{ padding: 20 }}>
           <ExperienceLevelPicker value={experienceLevel} onChange={setExperienceLevel} />
@@ -240,7 +273,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 2) {
+  if (step === 3) {
     return (
       <OnboardingShell step={step} totalSteps={totalSteps} title="Your equipment" subtitle="Exercises will match what you can perform." onBack={goBack} onContinue={goNext}>
         <div className="card" style={{ padding: 20 }}>
@@ -250,7 +283,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 3) {
+  if (step === 4) {
     return (
       <OnboardingShell step={step} totalSteps={totalSteps} title="Your goal" subtitle="We'll adjust calories for bulk, cut, or maintenance." onBack={goBack} onContinue={goNext}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -264,7 +297,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 4) {
+  if (step === 5) {
     const wUnit = unitPreferences.weightUnit;
     const hUnit = unitPreferences.heightUnit;
     const weightDisplay = wUnit === "kg" ? profile.weightLbs / 2.2046226218 : profile.weightLbs;
@@ -371,7 +404,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 5) {
+  if (step === 6) {
     return (
       <OnboardingShell step={step} totalSteps={totalSteps} title="Activity level" subtitle="How active you are outside the gym." onBack={goBack} onContinue={goNext}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -385,7 +418,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 6) {
+  if (step === 7) {
     return (
       <OnboardingShell step={step} totalSteps={totalSteps} title="Training schedule" subtitle="How many days per week you plan to lift." onBack={goBack} onContinue={goNext}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
@@ -399,7 +432,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 7) {
+  if (step === 8) {
     return (
       <OnboardingShell
         step={step}
@@ -415,7 +448,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 8) {
+  if (step === 9) {
     return (
       <OnboardingShell
         step={step}

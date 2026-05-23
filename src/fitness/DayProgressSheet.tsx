@@ -28,7 +28,7 @@ function streakStatusLabel(status: StreakDayStatus): string {
 function RowCheck({ done }: { done: boolean }) {
   if (done) {
     return (
-      <span aria-hidden style={{ color: "#4ade80", display: "flex" }}>
+      <span aria-hidden style={{ color: "rgba(255,255,255,0.75)", display: "flex" }}>
         <IconCheck size={14} stroke={2.25} />
       </span>
     );
@@ -70,14 +70,14 @@ function HabitListBlock({ title, lines, muted }: { title: string; lines: string[
                     width: 16,
                     height: 16,
                     borderRadius: 999,
-                    background: "rgba(74,222,128,0.2)",
+                    background: "rgba(255,255,255,0.15)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                   aria-hidden
                 >
-                  <IconCheck size={10} stroke={2.25} style={{ color: "#4ade80" }} />
+                  <IconCheck size={10} stroke={2.25} style={{ color: "rgba(255,255,255,0.75)" }} />
                 </span>
               )}
             </span>
@@ -212,7 +212,7 @@ export function DayProgressSheet({
                   type="button"
                   className="tap"
                   onClick={() => {
-                    onNavigate("habits");
+                    onNavigate("home");
                     onClose();
                   }}
                   style={{
@@ -225,7 +225,7 @@ export function DayProgressSheet({
                     textAlign: "left",
                   }}
                 >
-                  Habits
+                  Home habits
                 </button>
               ) : null}
             </div>

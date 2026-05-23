@@ -11,7 +11,7 @@ import type { AppState, WeightUnit } from "./types";
 const PR_GOLD = "#FFD60A";
 const PR_SILVER = "#C8C8CC";
 const PR_BRONZE = "#CD7F32";
-const PR_GREEN = "#34C759";
+const PR_ACCENT = "#ffffff";
 const TOP_N = 3;
 
 type Props = {
@@ -224,8 +224,8 @@ function HistoryRow({
         gap: 8,
         padding: "6px 8px",
         borderRadius: 8,
-        background: highlight ? "rgba(52,199,89,0.08)" : "rgba(255,255,255,0.03)",
-        border: highlight ? "0.5px solid rgba(52,199,89,0.22)" : "0.5px solid rgba(255,255,255,0.05)",
+        background: highlight ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)",
+        border: highlight ? "0.5px solid rgba(255,255,255,0.18)" : "0.5px solid rgba(255,255,255,0.05)",
       }}
     >
       <div style={{ minWidth: 0 }}>
@@ -239,7 +239,7 @@ function HistoryRow({
       {isCurrentBest ? (
         <span style={badgeStyle(PR_GOLD, "rgba(255,214,10,0.15)")}>Best</span>
       ) : entry.isPr ? (
-        <span style={badgeStyle(PR_GREEN, "rgba(52,199,89,0.15)")}>PR</span>
+        <span style={badgeStyle(PR_ACCENT, "rgba(255,255,255,0.12)")}>PR</span>
       ) : null}
     </div>
   );

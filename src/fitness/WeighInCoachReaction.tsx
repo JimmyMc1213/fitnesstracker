@@ -14,8 +14,8 @@ export function WeighInCoachReaction({ adjustment }: Props) {
       style={{
         padding: 14,
         marginTop: 10,
-        borderColor: "rgba(74,222,128,0.2)",
-        background: "rgba(74,222,128,0.06)",
+        borderColor: "var(--border-strong)",
+        background: "rgba(255,255,255,0.04)",
       }}
       aria-live="polite"
     >
@@ -25,7 +25,7 @@ export function WeighInCoachReaction({ adjustment }: Props) {
           fontWeight: 600,
           letterSpacing: "0.1em",
           textTransform: "uppercase",
-          color: "rgba(74,222,128,0.85)",
+          color: "rgba(255,255,255,0.45)",
           marginBottom: 6,
         }}
       >

@@ -14,6 +14,7 @@ import {
   LBS_PER_KG,
   weightUnitLabel,
 } from "../unitPreferences";
+import { deltaColorForSentiment, weightDeltaSentiment } from "../weightProgress";
 import type { ScreenProps } from "../types";
 
 function shortWeekEnding(dateKey: string): string {
@@ -304,6 +305,9 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
   const todayWeightLbs = chartSeriesLbs.length ? chartSeriesLbs[chartSeriesLbs.length - 1]! : cutBarStart;
   const startWeightLbs = chartSeriesLbs.length ? chartSeriesLbs[0]! : todayWeightLbs;
   const deltaLbs = todayWeightLbs - startWeightLbs;
+  const goal = state.onboardingProfile?.goal ?? "maintain";
+  const deltaSentiment = weightDeltaSentiment(goal, deltaLbs);
+  const deltaColor = deltaColorForSentiment(deltaSentiment);
   const todayDisplay = wUnit === "kg" ? todayWeightLbs / LBS_PER_KG : todayWeightLbs;
   const goalLoDisplay = wUnit === "kg" ? goalLo / LBS_PER_KG : goalLo;
   const goalHiDisplay = wUnit === "kg" ? goalHi / LBS_PER_KG : goalHi;
@@ -352,7 +356,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
             <div
               style={{
                 fontSize: 12,
-                color: deltaLbs <= 0 ? "var(--pos)" : "var(--neg)",
+                color: deltaColor,
                 fontWeight: 600,
                 display: "flex",
                 alignItems: "center",
@@ -363,7 +367,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
             >
               {chartSeries.length >= 2 ? (
                 <>
-                  {deltaLbs <= 0 ? <IconArrowDown size={11} stroke={2.4} /> : <IconArrowUp size={11} stroke={2.4} />}
+                  {deltaLbs < 0 ? <IconArrowDown size={11} stroke={2.4} /> : deltaLbs > 0 ? <IconArrowUp size={11} stroke={2.4} /> : null}
                   {formatWeightDeltaLbs(deltaLbs, wUnit)}
                 </>
               ) : (
@@ -371,7 +375,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
               )}
             </div>
             <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 4, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-              vs first log
+              vs start
             </div>
           </div>
           <button
@@ -380,13 +384,13 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
             onClick={() => setWeighInOpen(true)}
             style={{
               flexShrink: 0,
-              border: "0.5px solid rgba(74,222,128,0.35)",
+              border: "0.5px solid var(--border-strong)",
               borderRadius: 10,
               padding: "10px 14px",
               fontSize: 12,
               fontWeight: 600,
-              color: "rgb(74,222,128)",
-              background: "rgba(74,222,128,0.1)",
+              color: "#fff",
+              background: "rgba(255,255,255,0.08)",
             }}
           >
             {todayEntry ? "Update weigh-in" : "Log weigh-in"}
@@ -472,44 +476,44 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
         </div>
       </div>
 
-      <SectionLabel>Fuel updates</SectionLabel>
-      <div className="card" style={{ padding: 18 }}>
-        {state.adjustmentHistory.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            {state.adjustmentHistory.slice(0, 6).map((ev, idx) => (
-              <div
-                key={`${ev.atIso}-${ev.weekEndingSunday}`}
-                className="between"
-                style={{
-                  alignItems: "flex-start",
-                  gap: 12,
-                  fontSize: 12,
-                  paddingTop: idx > 0 ? 12 : 0,
-                  borderTop: idx > 0 ? "0.5px solid var(--border)" : "none",
-                }}
-              >
-                <span style={{ color: "rgba(255,255,255,0.45)", flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
-                  {shortWeekEnding(ev.weekEndingSunday)}
-                </span>
-                <div style={{ textAlign: "right", minWidth: 0 }}>
-                  <div style={{ color: "rgba(255,255,255,0.82)", fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
-                    {ev.before.cal}→{ev.after.cal} kcal · {formatWeeklyRateLbsPerWeek(ev.weeklyLossLbs, wUnit)}
-                  </div>
-                  {ev.recommendedDeltaCal != null && ev.appliedDeltaCal != null && ev.recommendedDeltaCal !== ev.appliedDeltaCal ? (
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>
-                      rec {ev.recommendedDeltaCal >= 0 ? "+" : ""}
-                      {ev.recommendedDeltaCal} · applied {ev.appliedDeltaCal >= 0 ? "+" : ""}
-                      {ev.appliedDeltaCal}
+      {state.adjustmentHistory.length > 0 ? (
+        <>
+          <SectionLabel>Fuel updates</SectionLabel>
+          <div className="card" style={{ padding: 18 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              {state.adjustmentHistory.slice(0, 6).map((ev, idx) => (
+                <div
+                  key={`${ev.atIso}-${ev.weekEndingSunday}`}
+                  className="between"
+                  style={{
+                    alignItems: "flex-start",
+                    gap: 12,
+                    fontSize: 12,
+                    paddingTop: idx > 0 ? 12 : 0,
+                    borderTop: idx > 0 ? "0.5px solid var(--border)" : "none",
+                  }}
+                >
+                  <span style={{ color: "rgba(255,255,255,0.45)", flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
+                    {shortWeekEnding(ev.weekEndingSunday)}
+                  </span>
+                  <div style={{ textAlign: "right", minWidth: 0 }}>
+                    <div style={{ color: "rgba(255,255,255,0.82)", fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
+                      {ev.before.cal}→{ev.after.cal} kcal · {formatWeeklyRateLbsPerWeek(ev.weeklyLossLbs, wUnit)}
                     </div>
-                  ) : null}
+                    {ev.recommendedDeltaCal != null && ev.appliedDeltaCal != null && ev.recommendedDeltaCal !== ev.appliedDeltaCal ? (
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>
+                        rec {ev.recommendedDeltaCal >= 0 ? "+" : ""}
+                        {ev.recommendedDeltaCal} · applied {ev.appliedDeltaCal >= 0 ? "+" : ""}
+                        {ev.appliedDeltaCal}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        ) : (
-          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>No updates yet.</p>
-        )}
-      </div>
+        </>
+      ) : null}
 
       <SectionLabel>Targets</SectionLabel>
       <div className="card" style={{ padding: 18 }}>

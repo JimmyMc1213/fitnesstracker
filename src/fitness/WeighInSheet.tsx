@@ -94,7 +94,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
             fontWeight: 600,
             letterSpacing: "0.1em",
             textTransform: "uppercase",
-            color: "rgba(74,222,128,0.75)",
+            color: "rgba(255,255,255,0.45)",
             marginBottom: 8,
           }}
         >

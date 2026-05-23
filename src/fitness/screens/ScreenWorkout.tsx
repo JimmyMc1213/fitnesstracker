@@ -11,7 +11,7 @@ import { finishWorkout } from "../finishWorkout";
 import { IconCheck, IconClock, IconMinus, IconPencil, IconPlus, IconSearch, IconTrash } from "../icons";
 import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
-import { ScreenHeader } from "../shared";
+import { ScreenHeader, PrimaryButton, SecondaryButton } from "../shared";
 import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
 import type {
   ExercisePersonalBest,
@@ -45,7 +45,6 @@ function formatElapsed(totalSec: number): string {
 }
 
 const ACCENT_BLUE = COACH_BLUE;
-const ACCENT_GREEN = "#34C759";
 
 type ActiveRestTimer = {
   exerciseId: string;
@@ -154,23 +153,9 @@ function EmptyFinishConfirmSheet({
           You haven&apos;t checked off any sets. Quit without saving this workout?
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <button
-            type="button"
-            className="tap"
-            onClick={onKeepTraining}
-            style={{
-              width: "100%",
-              padding: 14,
-              borderRadius: 12,
-              border: "none",
-              background: ACCENT_GREEN,
-              color: "#0a0a0a",
-              fontSize: 15,
-              fontWeight: 700,
-            }}
-          >
+          <PrimaryButton block onClick={onKeepTraining} style={{ fontWeight: 700 }}>
             Keep training
-          </button>
+          </PrimaryButton>
           <button
             type="button"
             className="tap"
@@ -676,25 +661,9 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           right={<HistoryHeaderButton onClick={() => setShowHistoryPage(true)} />}
         />
 
-        <button
-          type="button"
-          className="tap"
-          onClick={startEmptyWorkout}
-          style={{
-            marginTop: 20,
-            width: "100%",
-            background: ACCENT_BLUE,
-            color: "#fff",
-            borderRadius: 12,
-            padding: 16,
-            fontSize: 15,
-            fontWeight: 600,
-            letterSpacing: "-0.01em",
-            border: "none",
-          }}
-        >
+        <PrimaryButton block onClick={startEmptyWorkout} style={{ marginTop: 20 }}>
           Start an empty workout
-        </button>
+        </PrimaryButton>
 
         <div className="between" style={{ marginTop: 28, marginBottom: 12, alignItems: "center" }}>
           <span className="label">Routines</span>
@@ -702,7 +671,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             type="button"
             className="tap"
             onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)}
-            style={{ fontSize: 13, fontWeight: 600, color: ACCENT_BLUE, padding: "6px 10px" }}
+            style={{ fontSize: 13, fontWeight: 600, color: SECONDARY_ACTION_COLOR, padding: "6px 10px" }}
           >
             + New routine
           </button>
@@ -713,41 +682,16 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             <p style={{ margin: "0 0 16px", fontSize: 14, color: "rgba(255,255,255,0.55)", fontWeight: 500, lineHeight: 1.5 }}>
               No routines yet. Create one or restore the built-in 5-day split.
             </p>
-            <button
-              type="button"
-              className="tap"
-              onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)}
-              style={{
-                width: "100%",
-                background: ACCENT_BLUE,
-                color: "#fff",
-                borderRadius: 12,
-                padding: 14,
-                fontSize: 14,
-                fontWeight: 600,
-                border: "none",
-              }}
-            >
+            <PrimaryButton block onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)} style={{ fontSize: 14, padding: 14 }}>
               New routine
-            </button>
-            <button
-              type="button"
-              className="tap"
+            </PrimaryButton>
+            <SecondaryButton
+              block
               onClick={() => setState((s) => ({ ...s, workoutTemplates: defaultWorkoutRoutineTemplates() }))}
-              style={{
-                marginTop: 12,
-                width: "100%",
-                background: "rgba(255,255,255,0.08)",
-                border: "0.5px solid var(--border)",
-                borderRadius: 12,
-                padding: 14,
-                color: "#fff",
-                fontSize: 14,
-                fontWeight: 600,
-              }}
+              style={{ marginTop: 12 }}
             >
               Restore default program
-            </button>
+            </SecondaryButton>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -910,22 +854,9 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             >
               <IconPencil size={18} stroke={1.75} />
             </button>
-            <button
-              type="button"
-              className="tap"
-              onClick={requestFinishWorkout}
-              style={{
-                background: ACCENT_GREEN,
-                color: "#0a0a0a",
-                borderRadius: 10,
-                padding: "10px 18px",
-                fontSize: 14,
-                fontWeight: 700,
-                border: "none",
-              }}
-            >
+            <PrimaryButton onClick={requestFinishWorkout} style={{ borderRadius: 10, padding: "10px 18px", fontSize: 14, fontWeight: 700, minHeight: 0 }}>
               Finish workout
-            </button>
+            </PrimaryButton>
           </div>
         </div>
 
@@ -1283,24 +1214,14 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               placeholder="Label (optional)"
               style={createInputStyle}
             />
-            <button
-              type="button"
-              className="tap"
+            <PrimaryButton
+              block
               onClick={saveDraftCustomAndAddToSession}
               disabled={!draftExName.trim()}
-              style={{
-                width: "100%",
-                background: draftExName.trim() ? ACCENT_BLUE : "rgba(255,255,255,0.06)",
-                border: "none",
-                borderRadius: 10,
-                padding: 12,
-                color: draftExName.trim() ? "#fff" : "rgba(255,255,255,0.35)",
-                fontSize: 14,
-                fontWeight: 600,
-              }}
+              style={{ borderRadius: 10, padding: 12, fontSize: 14 }}
             >
               Save to my list & add to workout
-            </button>
+            </PrimaryButton>
           </div>
 
           <div style={{ position: "relative", marginTop: 16 }}>

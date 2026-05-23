@@ -23,13 +23,11 @@ import {
   IconChart,
   IconDumbbell,
   IconFork,
-  IconHabits,
   IconHome,
 } from "./icons";
 import { ScreenHome } from "./screens/ScreenHome";
 import { ScreenNutrition } from "./screens/ScreenNutrition";
 import { ScreenProgress } from "./screens/ScreenProgress";
-import { ScreenHabits } from "./screens/ScreenHabits";
 import { ScreenStretch } from "./screens/ScreenStretch";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
@@ -187,7 +185,6 @@ export function FitnessApp() {
 
   const TABS: { id: TabId; label: string; Icon: typeof IconHome }[] = [
     { id: "home", label: "Home", Icon: IconHome },
-    { id: "habits", label: "Habits", Icon: IconHabits },
     { id: "nutrition", label: "Nutrition", Icon: IconFork },
     { id: "workout", label: "Workout", Icon: IconDumbbell },
     { id: "progress", label: "Progress", Icon: IconChart },
@@ -195,7 +192,6 @@ export function FitnessApp() {
 
   const screens: Record<TabId, ComponentType<ScreenProps>> = {
     home: ScreenHome,
-    habits: ScreenHabits,
     nutrition: ScreenNutrition,
     workout: ScreenWorkout,
     progress: ScreenProgress,

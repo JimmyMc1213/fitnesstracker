@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildCoachContext, getHomeCoachPlan, getWeighInReactionForDisplay } from "../coachEngine";
 import { coachTaskOpensFuelQuickLog, handleCoachTaskAction } from "../coachTaskActions";
+import { habitsForDateKey, HomeDailyHabitsCard } from "../HomeDailyHabitsCard";
 import { HomeFuelQuickLogSheet } from "../HomeFuelQuickLogSheet";
+import { HomeWeighInInline } from "../HomeWeighInInline";
 import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
 import { HomeFuelStrip } from "../HomeFuelStrip";
 import { homeGreetingTitle } from "../homeGreeting";
@@ -13,8 +15,7 @@ import { StreakWeeklyHeader } from "../StreakWeeklyHeader";
 import { TodaysCoachPlanCard } from "../TodaysCoachPlanCard";
 import { WeighInCoachReaction } from "../WeighInCoachReaction";
 import { WeeklySummaryCard } from "../WeeklySummaryCard";
-import { ScreenHeader } from "../shared";
-import { formatWeightFromLbs, weightUnitLabel } from "../unitPreferences";
+import { ScreenHeader, PrimaryButton } from "../shared";
 import type { ScreenProps } from "../types";
 
 export function ScreenHome({ state, setState, navigate }: ScreenProps) {
@@ -74,7 +75,27 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   const nightlyStretchDone = state.nightlyStretchCompletedArizonaKey === arizonaTodayKey;
   const fuelLabel = isViewingToday ? "Fuel · Today" : "Fuel";
 
-  const showWeighInCard = !isViewingToday || coachCtx?.scheduledWeighInDay === true || !!dayEntry;
+  const showWeighInFullCard = isViewingToday && coachCtx?.scheduledWeighInDay === true && !dayEntry;
+  const showWeighInInline = !!dayEntry && !showWeighInFullCard;
+
+  const activeHabits = habitsForDateKey(state, activeDateKey, dateKeyToday);
+
+  function toggleHabit(id: string) {
+    setState((s) => {
+      const hRow = s.habits.find((h) => h.id === id);
+      const nextDone = !hRow?.done;
+      const todayMap = { ...(s.habitsDoneByDay[activeDateKey] ?? {}), [id]: nextDone };
+      const habits =
+        activeDateKey === dateKeyToday
+          ? s.habits.map((h) => (h.id === id ? { ...h, done: nextDone } : h))
+          : s.habits;
+      return {
+        ...s,
+        habits,
+        habitsDoneByDay: { ...s.habitsDoneByDay, [activeDateKey]: todayMap },
+      };
+    });
+  }
 
   const weighInReaction = useMemo(() => {
     if (!isViewingToday || !dayEntry || !coachCtx) return null;
@@ -147,6 +168,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         selectedDateKey={activeDateKey}
         onSelectDateKey={setViewDateKey}
         variant="compact"
+        showLegend={isViewingToday}
       />
 
       <HomeFuelStrip
@@ -156,7 +178,20 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         onLogClick={isViewingToday ? () => setFuelQuickLogOpen(true) : undefined}
       />
 
-      {showWeighInCard ? (
+      <HomeDailyHabitsCard
+        habits={activeHabits}
+        stepsTarget={state.stepsTarget}
+        planStartIso={state.planStartIso}
+        dateKey={activeDateKey}
+        readOnly={!isViewingToday}
+        onToggle={toggleHabit}
+      />
+
+      {showWeighInInline && dayEntry ? (
+        <HomeWeighInInline entry={dayEntry} weightUnit={wUnit} onPress={() => navigate("progress")} />
+      ) : null}
+
+      {showWeighInFullCard ? (
         <button
           type="button"
           className="tap card"
@@ -165,7 +200,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
           style={{
             padding: 16,
             marginTop: 18,
-            borderColor: dayEntry ? "rgba(74,222,128,0.25)" : "rgba(74,222,128,0.18)",
+            borderColor: "var(--border-strong)",
             display: "flex",
             alignItems: "center",
             gap: 14,
@@ -179,28 +214,18 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
               width: 44,
               height: 44,
               borderRadius: 999,
-              background: dayEntry ? "rgba(74,222,128,0.18)" : "rgba(255,255,255,0.06)",
+              background: "rgba(255,255,255,0.06)",
               display: "grid",
               placeItems: "center",
               flexShrink: 0,
             }}
           >
-            {dayEntry ? (
-              <IconCheck size={22} stroke={2.4} style={{ color: "rgb(74,222,128)" }} />
-            ) : (
-              <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>+</span>
-            )}
+            <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>+</span>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "#fff" }}>
-              {dayEntry ? "Weigh-in logged" : "Morning weigh-in"}
-            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "#fff" }}>Morning weigh-in</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 4 }}>
-              {dayEntry
-                ? `${formatWeightFromLbs(dayEntry.weightLbs, wUnit)} ${weightUnitLabel(wUnit)} · tap to update on Progress`
-                : isViewingToday
-                  ? "Log weight and optional photo on the Progress tab"
-                  : "No weigh-in logged this day"}
+              Log weight and optional photo on the Progress tab
             </div>
           </div>
           <IconChevR size={14} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
@@ -279,25 +304,15 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
             <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", fontWeight: 400 }}>
               Open your routine for the full checklist — hips, hamstrings, spine, activation. Mark complete when you finish.
             </p>
-            <div
-              style={{
-                width: "100%",
-                background: "#ffffff",
-                color: "#000",
-                borderRadius: 12,
-                padding: 14,
-                fontSize: 14,
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                pointerEvents: "none",
-              }}
+            <PrimaryButton
+              block
+              disabled
+              aria-hidden
+              style={{ marginTop: 0, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
             >
               Open full routine
               <IconChevR size={16} stroke={2.5} />
-            </div>
+            </PrimaryButton>
           </button>
         )
       ) : null}

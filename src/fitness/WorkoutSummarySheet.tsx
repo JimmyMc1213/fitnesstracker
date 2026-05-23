@@ -96,7 +96,7 @@ export function WorkoutSummarySheet({ summary, unitPreferences, onDone }: Props)
         <SummarySection
           title="Personal records"
           empty="No PRs this session — keep stacking weight and reps."
-          accent="#34C759"
+          accent="#ffffff"
           highlight={summary.prs.length > 0}
         >
           {summary.prs.map((pr) => (
@@ -105,7 +105,7 @@ export function WorkoutSummarySheet({ summary, unitPreferences, onDone }: Props)
               title={pr.exerciseName}
               detail={pr.detail}
               badge="PR"
-              badgeColor="#34C759"
+              badgeColor="#ffffff"
               highlighted
             />
           ))}
@@ -143,7 +143,7 @@ export function WorkoutSummarySheet({ summary, unitPreferences, onDone }: Props)
           onClick={onDone}
           style={{
             width: "100%",
-            background: "#34C759",
+            background: "#ffffff",
             color: "#0a0a0a",
             borderRadius: 12,
             padding: "14px 20px",

@@ -7,11 +7,12 @@ import {
   getWorkoutsForDay,
   workoutDaysInMonth,
 } from "./workoutHistory";
+import { IconDumbbell } from "./icons";
 import { WorkoutSessionPreviewSheet } from "./WorkoutSessionPreviewSheet";
 import type { AppState, CompletedWorkoutSession } from "./types";
 
-const LIME = "#34C759";
 const ACCENT_BLUE = "#0A84FF";
+const WORKOUT_DAY = "#ffffff";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function monthLabel(year: number, monthIndex: number): string {
@@ -151,7 +152,7 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
 
   return (
     <>
-      <div className="card" style={{ padding: 18 }}>
+      <div className="card" style={{ padding: 18, position: "relative" }}>
         <div className="between" style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.02em" }}>{monthLabel(viewYear, viewMonth)}</div>
           <div style={{ display: "flex", gap: 4 }}>
@@ -243,7 +244,7 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
                   minHeight: 36,
                   borderRadius: 8,
                   border: isToday ? `1.5px solid rgba(255,255,255,0.35)` : "1px solid transparent",
-                  background: hasWorkout ? "rgba(52,199,89,0.18)" : "rgba(255,255,255,0.04)",
+                  background: hasWorkout ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.04)",
                   color: isFuture ? "rgba(255,255,255,0.25)" : "#fff",
                   fontSize: 13,
                   fontWeight: isToday ? 700 : 500,
@@ -266,7 +267,7 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
                       width: 5,
                       height: 5,
                       borderRadius: "50%",
-                      background: LIME,
+                      background: WORKOUT_DAY,
                     }}
                   />
                 ) : (
@@ -278,9 +279,26 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
         </div>
 
         {workoutDays.size === 0 ? (
-          <p style={{ margin: "14px 0 0", fontSize: 12, color: "rgba(255,255,255,0.35)", lineHeight: 1.45 }}>
-            No workouts logged this month. Finish a session to see days highlighted here.
-          </p>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              padding: 24,
+              textAlign: "center",
+              background: "rgba(10,10,10,0.72)",
+              borderRadius: 12,
+            }}
+          >
+            <IconDumbbell size={28} stroke={1.75} style={{ color: "rgba(255,255,255,0.25)" }} />
+            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.45, maxWidth: 260 }}>
+              No workouts yet — finish a session in Workout to light up your calendar
+            </p>
+          </div>
         ) : (
           <p style={{ margin: "14px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
             Tap a highlighted day for your session breakdown.

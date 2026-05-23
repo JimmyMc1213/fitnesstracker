@@ -172,7 +172,7 @@ export type UnitPreferences = {
   heightUnit: HeightDisplayUnit;
 };
 
-export type TabId = "home" | "habits" | "nutrition" | "workout" | "progress" | "stretch";
+export type TabId = "home" | "nutrition" | "workout" | "progress" | "stretch";
 
 /** One actionable item for the day — training, fuel, recovery. */
 export type DailyTask = {
