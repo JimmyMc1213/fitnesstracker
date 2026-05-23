@@ -2,8 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   appendNutritionLoggedItem,
+  appendNutritionUserFoodToState,
   buildNutritionLoggedItem,
   getRecentlyLoggedFoods,
+  nutritionUserFoodFromLoggedItem,
+  removeNutritionLoggedItem,
+  removeNutritionPresetFromState,
+  removeNutritionUserFoodFromState,
+  updateNutritionLoggedItem,
   topProteinPresetsForQuickLog,
 } from "./nutritionLog";
 import { minimalAppState } from "./testFixtures/appStateFixtures";
@@ -61,5 +67,50 @@ describe("nutritionLog", () => {
 
     expect(presets).toHaveLength(1);
     expect(presets[0].name).toBe("Shake");
+  });
+
+  it("removeNutritionLoggedItem drops a row for the day", () => {
+    const state = minimalAppState();
+    const row = buildNutritionLoggedItem({ cal: 100, p: 10, c: 0, f: 0 }, "Oats", { id: "o1" });
+    const withRow = appendNutritionLoggedItem(state, "2026-05-18", row);
+    const next = removeNutritionLoggedItem(withRow, "2026-05-18", "o1");
+    expect(next.nutritionItemsByDay["2026-05-18"]).toBeUndefined();
+  });
+
+  it("updateNutritionLoggedItem replaces macros in place", () => {
+    const state = minimalAppState();
+    const row = buildNutritionLoggedItem({ cal: 100, p: 10, c: 0, f: 0 }, "Oats", { id: "o1" });
+    const withRow = appendNutritionLoggedItem(state, "2026-05-18", row);
+    const updated = buildNutritionLoggedItem({ cal: 150, p: 12, c: 1, f: 2 }, "Oats bowl", {
+      id: "o1",
+      loggedAtMs: row.loggedAtMs,
+    });
+    const next = updateNutritionLoggedItem(withRow, "2026-05-18", "o1", updated);
+    expect(next.nutritionItemsByDay["2026-05-18"][0].cal).toBe(150);
+    expect(next.nutritionItemsByDay["2026-05-18"][0].name).toBe("Oats bowl");
+  });
+
+  it("manual log also saves to My foods library", () => {
+    const state = minimalAppState();
+    const row = buildNutritionLoggedItem({ cal: 120, p: 30, c: 0, f: 0 }, "Quick shake");
+    const withLibrary = appendNutritionUserFoodToState(state, nutritionUserFoodFromLoggedItem(row));
+    expect(withLibrary.nutritionUserFoods.some((f) => f.name === "Quick shake")).toBe(true);
+  });
+
+  it("removes user food and preset without touching log history", () => {
+    const state = minimalAppState({
+      nutritionUserFoods: [
+        { id: "uf1", name: "Oats", cal: 150, p: 5, c: 27, f: 3, savedAtMs: 1 },
+      ],
+      nutritionPresets: [{ id: "p1", name: "Oats", cal: 150, p: 5, c: 27, f: 3, lastUsedAtMs: 1 }],
+      nutritionItemsByDay: {
+        "2026-05-18": [buildNutritionLoggedItem({ cal: 150, p: 5, c: 27, f: 3 }, "Oats", { id: "log1" })],
+      },
+    });
+    const noFood = removeNutritionUserFoodFromState(state, "uf1");
+    const noPreset = removeNutritionPresetFromState(noFood, "p1");
+    expect(noPreset.nutritionUserFoods).toHaveLength(0);
+    expect(noPreset.nutritionPresets).toHaveLength(0);
+    expect(noPreset.nutritionItemsByDay["2026-05-18"]).toHaveLength(1);
   });
 });

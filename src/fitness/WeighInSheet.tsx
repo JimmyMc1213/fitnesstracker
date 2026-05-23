@@ -9,6 +9,7 @@ import {
   parseWeightToLbs,
   weightUnitLabel,
 } from "./unitPreferences";
+import { BottomSheet } from "./motion";
 import type { AppState, UnitPreferences, WeightEntry } from "./types";
 
 type Props = {
@@ -33,8 +34,6 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
     );
     setPhotoPreview(existing?.photoDataUrl ?? null);
   }, [open, dateKey, existing?.weightLbs, existing?.photoDataUrl, wUnit]);
-
-  if (!open) return null;
 
   async function onPickPhoto(f: File) {
     try {
@@ -79,30 +78,30 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
   }
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 190,
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      zIndex={190}
+      ariaLabel="Weigh in"
+      backdropStyle={{
         background: "rgba(0,0,0,0.78)",
-        display: "flex",
+        alignItems: "stretch",
         flexDirection: "column",
         justifyContent: "flex-end",
         padding: 10,
+        backdropFilter: "none",
+        WebkitBackdropFilter: "none",
       }}
-      onClick={onClose}
+      panelStyle={{
+        padding: 18,
+        borderRadius: 16,
+        marginBottom: 8,
+        border: "0.5px solid rgba(255,255,255,0.14)",
+        background: "var(--card)",
+        width: "100%",
+        maxWidth: "100%",
+      }}
     >
-      <div
-        className="card page-transition"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          padding: 18,
-          borderRadius: 16,
-          marginBottom: 8,
-          border: "0.5px solid rgba(255,255,255,0.14)",
-          background: "var(--card)",
-        }}
-      >
         <div
           style={{
             fontSize: 11,
@@ -207,8 +206,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
         >
           Cancel
         </button>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }
 

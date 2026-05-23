@@ -1,8 +1,8 @@
 # Nutrition OS v2 — Master Checklist
 
-**Last updated:** 2026-05-23 (Sprint 7 merged — PR #29)  
-**Current chunk:** Sprint 7 (Chunk 1 of 3) — **complete**  
-**Progress:** 38 / 47 steps complete (S7 scope done; S8–9 remain)
+**Last updated:** 2026-05-23 (Sprint 8 planned)  
+**Current chunk:** Sprint 8 (Chunk 2 of 3) — **planned**  
+**Progress:** 38 / 47 steps complete (S7 done; S8–9 remain)
 
 ---
 
@@ -258,6 +258,7 @@
 
 | Date | Story / issue | Steps checked off |
 |------|---------------|-------------------|
+| 2026-05-23 | Sprint 8 planning | Epic 8 + FTI-60–62 in epics.md, sprint-status.yaml, Linear FTI-54–56 |
 | 2026-05-23 | FTI-57 / FTI-51 | Phases 0.3 (S7), 1, 2 — Log Food shell + data model |
 | 2026-05-23 | FTI-58 / FTI-52 | Phase 8 — Home read-only + coach routing |
 | 2026-05-23 | FTI-59 / FTI-53 | Phase 10 (partial) — E2E + unit tests for S7 |

@@ -78,9 +78,9 @@ Detailed acceptance criteria, priorities, and status live in Linear. BMad story 
 
 **Vision:** Cal AI–style fuel logging — Nutrition tab shows progress only (rings + hydration); all logging happens in a full-screen **Log Food** overlay with search, manual add, recently logged, My foods, My meals, and Saved foods.
 
-**Sprint 7 (Chunk 1 — in planning):** Strip legacy Nutrition tab UI; extend `NutritionLoggedItem` schema; build Log Food shell with manual add + recently logged; remove Home quick-log; route coach fuel tasks to Log Food; partial E2E refresh. No external food APIs yet.
+**Sprint 7 (Chunk 1 — done):** Strip legacy Nutrition tab UI; extend `NutritionLoggedItem` schema; build Log Food shell with manual add + recently logged; remove Home quick-log; route coach fuel tasks to Log Food; partial E2E refresh.
 
-**Sprint 8 (Chunk 2):** USDA FoodData Central + Open Food Facts via Supabase Edge Function proxy; wire All-tab search; My foods and Saved foods tabs.
+**Sprint 8 (Chunk 2 — planned):** USDA FoodData Central + Open Food Facts via Supabase Edge Function proxy; wire All-tab search; My foods and Favorite foods tabs; search E2E.
 
 **Sprint 9 (Chunk 3):** My meals (meal prep); visual polish; full unit + E2E gate.
 

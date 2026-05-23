@@ -41,7 +41,7 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
   }
 
   return (
-    <div className="screen page-transition">
+    <div className="screen">
       <div className="between" style={{ alignItems: "center", marginBottom: 8, marginTop: 4 }}>
         <button
           type="button"

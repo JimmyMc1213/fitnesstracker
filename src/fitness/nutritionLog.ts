@@ -1,6 +1,6 @@
 import { applyStreakEligibility } from "./dailyStreak";
 import { touchNutritionPresetById, upsertNutritionPresetList } from "./nutritionTotals";
-import type { AppState, MacroTotals, NutritionLoggedItem, NutritionPreset } from "./types";
+import type { AppState, MacroTotals, NutritionLoggedItem, NutritionPreset, NutritionUserFood } from "./types";
 
 export function newNutritionItemId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -119,6 +119,50 @@ export function appendNutritionLoggedItem(
   );
 }
 
+function nutritionItemsForDay(
+  itemsByDay: Record<string, NutritionLoggedItem[]>,
+  dateKey: string,
+  rows: NutritionLoggedItem[],
+): Record<string, NutritionLoggedItem[]> {
+  const next = { ...itemsByDay };
+  if (rows.length) next[dateKey] = rows;
+  else delete next[dateKey];
+  return next;
+}
+
+/** Remove one logged food row for a calendar day. */
+export function removeNutritionLoggedItem(state: AppState, dateKey: string, itemId: string): AppState {
+  const prev = state.nutritionItemsByDay[dateKey] ?? [];
+  const filtered = prev.filter((row) => row.id !== itemId);
+  if (filtered.length === prev.length) return state;
+  return applyStreakEligibility(
+    { ...state, nutritionItemsByDay: nutritionItemsForDay(state.nutritionItemsByDay, dateKey, filtered) },
+    dateKey,
+  );
+}
+
+/** Replace one logged food row (same id) for a calendar day. */
+export function updateNutritionLoggedItem(
+  state: AppState,
+  dateKey: string,
+  itemId: string,
+  patch: NutritionLoggedItem,
+): AppState {
+  const prev = state.nutritionItemsByDay[dateKey] ?? [];
+  const idx = prev.findIndex((row) => row.id === itemId);
+  if (idx < 0) return state;
+  const nextRows = [...prev];
+  nextRows[idx] = { ...patch, id: itemId };
+  return applyStreakEligibility(
+    {
+      ...state,
+      nutritionItemsByDay: nutritionItemsForDay(state.nutritionItemsByDay, dateKey, nextRows),
+      nutritionPresets: upsertNutritionPresetList(state.nutritionPresets, nextRows[idx]),
+    },
+    dateKey,
+  );
+}
+
 /** Log a saved preset to today and bump its recency. */
 export function appendNutritionPresetToDay(
   state: AppState,
@@ -143,4 +187,88 @@ export function topProteinPresetsForQuickLog(
   limit = 5,
 ): NutritionPreset[] {
   return presets.filter((p) => (Number(p.p) || 0) > 0).slice(0, limit);
+}
+
+export function upsertNutritionUserFood(
+  foods: NutritionUserFood[],
+  input: Omit<NutritionUserFood, "savedAtMs" | "updatedAtMs"> & { id?: string },
+): NutritionUserFood[] {
+  const now = Date.now();
+  const id = input.id ?? newNutritionItemId();
+  const existing = foods.find((f) => f.id === id);
+  const row: NutritionUserFood = {
+    id,
+    name: input.name.trim() || "Food",
+    cal: Number(input.cal) || 0,
+    p: Number(input.p) || 0,
+    c: Number(input.c) || 0,
+    f: Number(input.f) || 0,
+    savedAtMs: existing?.savedAtMs ?? now,
+    updatedAtMs: now,
+    ...(input.servingLabel?.trim() ? { servingLabel: input.servingLabel.trim() } : {}),
+    ...(input.source?.trim() ? { source: input.source.trim() } : {}),
+    ...(input.externalId?.trim() ? { externalId: input.externalId.trim() } : {}),
+  };
+  const next = [row, ...foods.filter((f) => f.id !== id)];
+  next.sort((a, b) => (b.updatedAtMs ?? b.savedAtMs) - (a.updatedAtMs ?? a.savedAtMs));
+  return next.slice(0, 200);
+}
+
+export function removeNutritionUserFood(foods: NutritionUserFood[], foodId: string): NutritionUserFood[] {
+  return foods.filter((f) => f.id !== foodId);
+}
+
+export function removeNutritionPreset(presets: NutritionPreset[], presetId: string): NutritionPreset[] {
+  return presets.filter((p) => p.id !== presetId);
+}
+
+/** Save a logged or manual row to My foods without logging today. */
+export function nutritionUserFoodFromLoggedItem(item: NutritionLoggedItem): Omit<NutritionUserFood, "savedAtMs"> {
+  return {
+    id: newNutritionItemId(),
+    name: item.name.trim() || "Food",
+    cal: Number(item.cal) || 0,
+    p: Number(item.p) || 0,
+    c: Number(item.c) || 0,
+    f: Number(item.f) || 0,
+    ...(item.servingLabel?.trim() ? { servingLabel: item.servingLabel.trim() } : {}),
+    ...(item.source?.trim() ? { source: item.source.trim() } : {}),
+    ...(item.externalId?.trim() ? { externalId: item.externalId.trim() } : {}),
+  };
+}
+
+export function appendNutritionUserFoodToState(state: AppState, food: Omit<NutritionUserFood, "savedAtMs">): AppState {
+  return {
+    ...state,
+    nutritionUserFoods: upsertNutritionUserFood(state.nutritionUserFoods ?? [], food),
+  };
+}
+
+export function updateNutritionUserFoodInState(
+  state: AppState,
+  foodId: string,
+  patch: Partial<Omit<NutritionUserFood, "id" | "savedAtMs">>,
+): AppState {
+  const existing = (state.nutritionUserFoods ?? []).find((f) => f.id === foodId);
+  if (!existing) return state;
+  return appendNutritionUserFoodToState(state, {
+    ...existing,
+    ...patch,
+    id: foodId,
+    name: typeof patch.name === "string" ? patch.name : existing.name,
+  });
+}
+
+export function removeNutritionUserFoodFromState(state: AppState, foodId: string): AppState {
+  return {
+    ...state,
+    nutritionUserFoods: removeNutritionUserFood(state.nutritionUserFoods ?? [], foodId),
+  };
+}
+
+export function removeNutritionPresetFromState(state: AppState, presetId: string): AppState {
+  return {
+    ...state,
+    nutritionPresets: removeNutritionPreset(state.nutritionPresets, presetId),
+  };
 }

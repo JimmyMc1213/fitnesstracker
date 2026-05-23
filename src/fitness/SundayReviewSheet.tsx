@@ -9,9 +9,11 @@ import {
   type SundayReviewPreview,
 } from "./weeklyAdjustment";
 import { formatWeightFromLbs, formatWeeklyRateLbsPerWeek, weightUnitLabel } from "./unitPreferences";
+import { BottomSheet } from "./motion";
 import type { AppState, MacroTotals, UnitPreferences } from "./types";
 
 type Props = {
+  open: boolean;
   preview: SundayReviewPreview;
   nutritionTargets: MacroTotals;
   unitPreferences: UnitPreferences;
@@ -20,7 +22,7 @@ type Props = {
   reviewClock?: Date;
 };
 
-export function SundayReviewSheet({ preview, nutritionTargets, unitPreferences, setState, reviewClock }: Props) {
+export function SundayReviewSheet({ open, preview, nutritionTargets, unitPreferences, setState, reviewClock }: Props) {
   const wUnit = unitPreferences.weightUnit;
   const commitAt = reviewClock ?? new Date();
   const [customDelta, setCustomDelta] = useState(String(preview.recommendedTotalDelta));
@@ -58,30 +60,30 @@ export function SundayReviewSheet({ preview, nutritionTargets, unitPreferences, 
   }
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 200,
+    <BottomSheet
+      open={open}
+      zIndex={200}
+      backdropStyle={{
         background: "rgba(0,0,0,0.78)",
-        display: "flex",
+        alignItems: "stretch",
         flexDirection: "column",
         justifyContent: "flex-end",
         padding: 10,
+        backdropFilter: "none",
+        WebkitBackdropFilter: "none",
+      }}
+      panelStyle={{
+        maxHeight: "88%",
+        overflowY: "auto",
+        padding: 18,
+        borderRadius: 16,
+        marginBottom: 8,
+        border: "0.5px solid rgba(255,255,255,0.14)",
+        background: "var(--card)",
+        width: "100%",
+        maxWidth: "100%",
       }}
     >
-      <div
-        className="card page-transition"
-        style={{
-          maxHeight: "88%",
-          overflowY: "auto",
-          padding: 18,
-          borderRadius: 16,
-          marginBottom: 8,
-          border: "0.5px solid rgba(255,255,255,0.14)",
-          background: "var(--card)",
-        }}
-      >
         <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
           Sunday fuel review
         </div>
@@ -189,7 +191,6 @@ export function SundayReviewSheet({ preview, nutritionTargets, unitPreferences, 
             {preview.ready ? "Not now, skip (no change)" : "Dismiss for this Sunday"}
           </button>
         </div>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }

@@ -1,24 +1,23 @@
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useState } from "react";
+
+import { BottomSheet } from "./motion";
 
 const ACCENT_BLUE = "#0A84FF";
 
 type RepRangeEditSheetProps = {
+  open?: boolean;
   exerciseName: string;
   repRange: string;
   onSave: (repRange: string) => void;
   onClose: () => void;
 };
 
-export function RepRangeEditSheet({ exerciseName, repRange, onSave, onClose }: RepRangeEditSheetProps) {
+export function RepRangeEditSheet({ open = true, exerciseName, repRange, onSave, onClose }: RepRangeEditSheetProps) {
   const [draft, setDraft] = useState(repRange);
 
   useEffect(() => {
     setDraft(repRange);
   }, [repRange]);
-
-  function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onClose();
-  }
 
   function handleSave() {
     const next = draft.trim();
@@ -28,35 +27,19 @@ export function RepRangeEditSheet({ exerciseName, repRange, onSave, onClose }: R
   }
 
   return (
-    <div
-      role="presentation"
-      onMouseDown={onBackdropMouseDown}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1100,
-        background: "rgba(0,0,0,0.52)",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        padding: "12px 12px calc(16px + env(safe-area-inset-bottom, 0px))",
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      zIndex={1100}
+      ariaLabelledBy="rep-range-edit-title"
+      panelStyle={{
+        width: "100%",
+        maxWidth: 440,
+        background: "#121212",
+        borderColor: "var(--border)",
+        padding: 20,
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="rep-range-edit-title"
-        className="card page-transition"
-        style={{
-          width: "100%",
-          maxWidth: 440,
-          background: "#121212",
-          borderColor: "var(--border)",
-          padding: 20,
-        }}
-      >
         <div id="rep-range-edit-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff", marginBottom: 4 }}>
           Rep range
         </div>
@@ -123,7 +106,6 @@ export function RepRangeEditSheet({ exerciseName, repRange, onSave, onClose }: R
             Save
           </button>
         </div>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }

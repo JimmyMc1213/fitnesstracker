@@ -1,41 +1,45 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { fireConfetti } from "./confetti";
+import { closeAfterMotion, FullScreenOverlay, MOTION_DURATIONS } from "./motion";
 import { formatWorkoutDuration } from "./workoutSummary";
 import { LBS_PER_KG } from "./unitPreferences";
 import type { UnitPreferences, WorkoutSessionSummary } from "./types";
 
 type Props = {
+  open: boolean;
   summary: WorkoutSessionSummary;
   unitPreferences: UnitPreferences;
   onDone: () => void;
 };
 
-export function WorkoutSummarySheet({ summary, unitPreferences, onDone }: Props) {
+export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: Props) {
+  const [closing, setClosing] = useState(false);
+  const visible = open && !closing;
   const volLabel = unitPreferences.weightUnit === "kg" ? "kg·reps" : "lb·reps";
   const displayVolume =
     summary.totalVolume > 0 && unitPreferences.weightUnit === "kg"
       ? Math.round(summary.totalVolume / LBS_PER_KG)
       : summary.totalVolume;
+
+  useEffect(() => {
+    if (!open) setClosing(false);
+  }, [open]);
+
   useEffect(() => {
     const stop = fireConfetti();
     return stop;
   }, []);
 
+  function handleDone() {
+    setClosing(true);
+    closeAfterMotion(onDone, MOTION_DURATIONS.panel);
+  }
+
   return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 250,
-        background: "var(--bg)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}
-    >
+    <FullScreenOverlay open={visible} zIndex={250}>
       <div
-        className="screen page-transition"
+        className="screen"
         style={{
           flex: 1,
           overflowY: "auto",
@@ -140,7 +144,7 @@ export function WorkoutSummarySheet({ summary, unitPreferences, onDone }: Props)
         <button
           type="button"
           className="tap"
-          onClick={onDone}
+          onClick={handleDone}
           style={{
             width: "100%",
             background: "#ffffff",
@@ -155,7 +159,7 @@ export function WorkoutSummarySheet({ summary, unitPreferences, onDone }: Props)
           Back to home
         </button>
       </div>
-    </div>
+    </FullScreenOverlay>
   );
 }
 

@@ -26,6 +26,17 @@ export type NutritionPreset = MacroTotals & {
   notes?: string;
 };
 
+/** User-owned food library entry (manual or saved from search). */
+export type NutritionUserFood = MacroTotals & {
+  id: string;
+  name: string;
+  servingLabel?: string;
+  source?: string;
+  externalId?: string;
+  savedAtMs: number;
+  updatedAtMs?: number;
+};
+
 export type FoodItem = MacroTotals & {
   id: string;
   name: string;
@@ -269,6 +280,8 @@ export type AppState = {
   nutritionItemsByDay: Record<string, NutritionLoggedItem[]>;
   /** Saved labels + macros for quick re-add from the Nutrition “Saved” tab. */
   nutritionPresets: NutritionPreset[];
+  /** My foods library: manual entries and foods saved from search. */
+  nutritionUserFoods: NutritionUserFood[];
   workout: WorkoutState;
   /** Exercises you created (name + label); available when adding moves to a session. */
   customExercises: CustomExerciseTemplate[];
@@ -349,6 +362,8 @@ export type ScreenProps = {
   navigate: NavigateFn;
   /** Incremented by FitnessApp when coach/home routes to Log Food on Nutrition tab. */
   logFoodOpenRequest?: number;
+  /** Nutrition tab reports Log Food overlay open state so the main tab bar can hide. */
+  onLogFoodOpenChange?: (open: boolean) => void;
 };
 
 export type IconProps = {

@@ -11,6 +11,7 @@ export type PersistedFitnessSlice = Pick<
   | "nutritionManualByDay"
   | "nutritionItemsByDay"
   | "nutritionPresets"
+  | "nutritionUserFoods"
   | "nutritionTargets"
   | "weightLog"
   | "lastAdjustmentSundayKey"
@@ -57,6 +58,7 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     nutritionManualByDay: state.nutritionManualByDay,
     nutritionItemsByDay: state.nutritionItemsByDay,
     nutritionPresets: state.nutritionPresets,
+    nutritionUserFoods: state.nutritionUserFoods,
     nutritionTargets: state.nutritionTargets,
     weightLog: state.weightLog,
     lastAdjustmentSundayKey: state.lastAdjustmentSundayKey,

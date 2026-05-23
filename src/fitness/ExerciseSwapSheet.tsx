@@ -1,10 +1,12 @@
-import { useMemo, useState, type MouseEvent } from "react";
+import { useMemo, useState } from "react";
 
 import { EXERCISE_DB } from "./data";
 import { IconSearch } from "./icons";
+import { BottomSheet } from "./motion";
 import type { CustomExerciseTemplate } from "./types";
 
 type ExerciseSwapSheetProps = {
+  open?: boolean;
   currentName: string;
   currentLabel?: string;
   customExercises: CustomExerciseTemplate[];
@@ -13,6 +15,7 @@ type ExerciseSwapSheetProps = {
 };
 
 export function ExerciseSwapSheet({
+  open = true,
   currentName,
   currentLabel,
   customExercises,
@@ -34,48 +37,28 @@ export function ExerciseSwapSheet({
     [customExercises, qLow],
   );
 
-  function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onClose();
-  }
-
   function pick(name: string, label?: string) {
     onSelect(name, label?.trim() || undefined);
     onClose();
   }
 
   return (
-    <div
-      role="presentation"
-      onMouseDown={onBackdropMouseDown}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1100,
-        background: "rgba(0,0,0,0.52)",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      zIndex={1100}
+      ariaLabelledBy="exercise-swap-title"
+      panelStyle={{
+        width: "100%",
+        maxWidth: 440,
+        maxHeight: "min(78vh, 560px)",
         display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        padding: "12px 12px calc(16px + env(safe-area-inset-bottom, 0px))",
+        flexDirection: "column",
+        background: "#121212",
+        borderColor: "var(--border)",
+        padding: 20,
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="exercise-swap-title"
-        className="card page-transition"
-        style={{
-          width: "100%",
-          maxWidth: 440,
-          maxHeight: "min(78vh, 560px)",
-          display: "flex",
-          flexDirection: "column",
-          background: "#121212",
-          borderColor: "var(--border)",
-          padding: 20,
-        }}
-      >
         <div id="exercise-swap-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff", marginBottom: 4 }}>
           Swap exercise
         </div>
@@ -203,7 +186,6 @@ export function ExerciseSwapSheet({
         >
           Cancel
         </button>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }

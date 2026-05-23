@@ -9,6 +9,7 @@ import { progressiveOverloadInsight } from "../coach";
 import { finishWorkout } from "../finishWorkout";
 import { IconClock, IconPlus, IconSearch } from "../icons";
 import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
+import { FullScreenOverlay } from "../motion";
 import { SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader, PrimaryButton, SecondaryButton } from "../shared";
 import type { ScreenProps, WorkoutExercise } from "../types";
@@ -527,12 +528,14 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
 
   if (showHistoryPage) {
     return (
-      <ScreenWorkoutHistory
-        state={state}
-        setState={setState}
-        navigate={() => {}}
-        onBack={() => setShowHistoryPage(false)}
-      />
+      <FullScreenOverlay open={showHistoryPage} zIndex={120}>
+        <ScreenWorkoutHistory
+          state={state}
+          setState={setState}
+          navigate={() => {}}
+          onBack={() => setShowHistoryPage(false)}
+        />
+      </FullScreenOverlay>
     );
   }
 

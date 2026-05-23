@@ -23,7 +23,7 @@ import {
   normalizeStreakEligibleByDay,
   normalizeStreakSessionBaseline,
 } from "./dailyStreak";
-import { mergePersistedNutritionDays, normalizeNutritionPresets } from "./nutritionTotals";
+import { mergePersistedNutritionDays, normalizeNutritionPresets, normalizeNutritionUserFoods } from "./nutritionTotals";
 import { normalizeOnboardingProfile } from "./onboardingProfile";
 import { normalizeRestTimerDefaultSeconds, normalizeRestTimerSecondsByExerciseKey } from "./restTimerPreferences";
 import { normalizeNotificationPreferences } from "./notificationPreferences";
@@ -337,6 +337,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     nutritionManualByDay,
     nutritionItemsByDay,
     nutritionPresets: normalizeNutritionPresets(p?.nutritionPresets),
+    nutritionUserFoods: normalizeNutritionUserFoods(p?.nutritionUserFoods),
     workout: normalizePersistedWorkout(p?.workout),
     customExercises: normalizeCustomExercises(p?.customExercises),
     exerciseNotesByKey: normalizeExerciseNotesByKey(p?.exerciseNotesByKey),

@@ -107,7 +107,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   }, [isViewingToday, dayEntry, coachCtx]);
 
   return (
-    <div className="screen page-transition" style={{ position: "relative" }}>
+    <div className="screen" style={{ position: "relative" }}>
       <ScreenHeader
         eyebrow={headerEyebrow}
         title={headerTitle}
@@ -311,7 +311,12 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
 
       <div style={{ height: 8 }} />
 
-      {settingsOpen ? <SettingsSheet state={state} setState={setState} onClose={() => setSettingsOpen(false)} /> : null}
+      <SettingsSheet
+        open={settingsOpen}
+        state={state}
+        setState={setState}
+        onClose={() => setSettingsOpen(false)}
+      />
     </div>
   );
 }

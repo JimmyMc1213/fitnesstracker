@@ -10,6 +10,7 @@ import { buildWorkoutTemplates } from "./workoutTemplateBuilder";
 import { NotificationPreferencesPicker } from "./NotificationPreferencesPicker";
 import { getNotificationPermission } from "./notificationPermission";
 import { SectionLabel } from "./shared";
+import { FullScreenOverlay } from "./motion";
 import { REST_TIMER_PRESETS } from "./restTimerPreferences";
 import { PRESET_SELECTED_BG, PRESET_SELECTED_BORDER, PRESET_SELECTED_COLOR } from "./workoutUiTokens";
 import {
@@ -60,10 +61,12 @@ function iconButton(icon: HabitTemplate["icon"], selected: boolean, onPick: () =
 }
 
 export function SettingsSheet({
+  open,
   state,
   setState,
   onClose,
 }: {
+  open: boolean;
   state: AppState;
   setState: Dispatch<SetStateAction<AppState>>;
   onClose: () => void;
@@ -145,20 +148,18 @@ export function SettingsSheet({
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="settings-title"
-      className="page-transition"
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 250,
-        background: "var(--bg)",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <FullScreenOverlay open={open} zIndex={250}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+        style={{
+          flex: 1,
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
       <div
         style={{
           flexShrink: 0,
@@ -696,6 +697,7 @@ export function SettingsSheet({
           </label>
         </div>
       </div>
-    </div>
+      </div>
+    </FullScreenOverlay>
   );
 }

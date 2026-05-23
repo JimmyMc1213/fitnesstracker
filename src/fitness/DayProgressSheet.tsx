@@ -1,9 +1,6 @@
 import { useState } from "react";
 
 import { IconCheck } from "./icons";
-
-import type { MouseEvent } from "react";
-
 import {
   formatDayHeading,
   getDayHabitProgress,
@@ -11,6 +8,7 @@ import {
   type StreakDayStatus,
 } from "./dailyStreak";
 import type { AppState, TabId } from "./types";
+import { BottomSheet } from "./motion";
 
 function streakStatusLabel(status: StreakDayStatus): string {
   switch (status) {
@@ -90,12 +88,14 @@ function HabitListBlock({ title, lines, muted }: { title: string; lines: string[
 }
 
 export function DayProgressSheet({
+  open = true,
   state,
   dateKey,
   todayKey,
   onClose,
   onNavigate,
 }: {
+  open?: boolean;
   state: AppState;
   dateKey: string;
   todayKey: string;
@@ -107,45 +107,27 @@ export function DayProgressSheet({
   const streak = getDayStreakSummary(state, dateKey, todayKey);
   const habits = isFuture ? null : getDayHabitProgress(state, dateKey);
 
-  function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onClose();
-  }
-
   return (
-    <div
-      role="presentation"
-      onMouseDown={onBackdropMouseDown}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        background: "rgba(0,0,0,0.52)",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
+    <BottomSheet
+      key={dateKey}
+      open={open}
+      onClose={onClose}
+      zIndex={1000}
+      ariaLabelledBy="day-progress-title"
+      backdropStyle={{
         padding: "12px 12px calc(24px + env(safe-area-inset-bottom, 0px))",
       }}
+      panelStyle={{
+        width: "100%",
+        maxWidth: 440,
+        maxHeight: "min(82vh, 560px)",
+        overflow: "auto",
+        padding: "18px 18px 20px",
+        background: "#121212",
+        borderColor: "var(--border)",
+        boxShadow: "0 -8px 40px rgba(0,0,0,0.45)",
+      }}
     >
-      <div
-        key={dateKey}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="day-progress-title"
-        className="card page-transition"
-        style={{
-          width: "100%",
-          maxWidth: 440,
-          maxHeight: "min(82vh, 560px)",
-          overflow: "auto",
-          padding: "18px 18px 20px",
-          background: "#121212",
-          borderColor: "var(--border)",
-          boxShadow: "0 -8px 40px rgba(0,0,0,0.45)",
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
         <div className="between" style={{ alignItems: "center", gap: 12, marginBottom: 14 }}>
           <div id="day-progress-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", flex: 1, minWidth: 0 }}>
             {formatDayHeading(dateKey)}
@@ -251,7 +233,6 @@ export function DayProgressSheet({
             ) : null}
           </>
         )}
-      </div>
-    </div>
+    </BottomSheet>
   );
 }
