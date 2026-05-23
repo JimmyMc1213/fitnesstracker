@@ -139,8 +139,8 @@ export function WorkoutSessionPreviewSheet({ session, onClose, onDelete }: Props
                         style={{
                           padding: "8px 10px",
                           borderRadius: 8,
-                          background: "rgba(52,199,89,0.1)",
-                          border: "0.5px solid rgba(52,199,89,0.25)",
+                          background: "rgba(255,255,255,0.08)",
+                          border: "0.5px solid rgba(255,255,255,0.2)",
                           fontSize: 13,
                           fontWeight: 600,
                           fontVariantNumeric: "tabular-nums",

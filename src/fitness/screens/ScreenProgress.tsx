@@ -384,13 +384,13 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
             onClick={() => setWeighInOpen(true)}
             style={{
               flexShrink: 0,
-              border: "0.5px solid rgba(74,222,128,0.35)",
+              border: "0.5px solid var(--border-strong)",
               borderRadius: 10,
               padding: "10px 14px",
               fontSize: 12,
               fontWeight: 600,
-              color: "rgb(74,222,128)",
-              background: "rgba(74,222,128,0.1)",
+              color: "#fff",
+              background: "rgba(255,255,255,0.08)",
             }}
           >
             {todayEntry ? "Update weigh-in" : "Log weigh-in"}

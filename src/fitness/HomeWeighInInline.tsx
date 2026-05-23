@@ -23,12 +23,12 @@ export function HomeWeighInInline({ entry, weightUnit, onPress }: Props) {
         gap: 10,
         padding: "10px 12px",
         borderRadius: 10,
-        border: "0.5px solid rgba(74,222,128,0.2)",
-        background: "rgba(74,222,128,0.06)",
+        border: "0.5px solid var(--border-strong)",
+        background: "rgba(255,255,255,0.06)",
         textAlign: "left",
       }}
     >
-      <IconCheck size={16} stroke={2.4} style={{ color: "rgb(74,222,128)", flexShrink: 0 }} />
+      <IconCheck size={16} stroke={2.4} style={{ color: "rgba(255,255,255,0.7)", flexShrink: 0 }} />
       <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: "#fff" }}>
         {formatWeightFromLbs(entry.weightLbs, weightUnit)} {weightUnitLabel(weightUnit)}
       </span>

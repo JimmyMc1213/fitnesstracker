@@ -7,7 +7,7 @@ import {
 import { IconDumbbell } from "./icons";
 import type { AppState } from "./types";
 
-const GREEN_COMPLETE = "#4ade80";
+const COMPLETE_RING = "#ffffff";
 const AMBER_PARTIAL = "#fbbf24";
 const BLANK_RING = "rgba(255,255,255,0.1)";
 const MISSED_RING = "rgba(255,255,255,0.28)";
@@ -34,7 +34,7 @@ function DayLetterProgressRing({
   const dashLen =
     p >= 1 ? cLength - 0.5 : Math.max(cLength * p, p > 0 ? 2 : 0);
 
-  const arcStroke = p >= 1 ? GREEN_COMPLETE : p >= 0.5 ? AMBER_PARTIAL : "#ffffff";
+  const arcStroke = p >= 1 ? COMPLETE_RING : p >= 0.5 ? AMBER_PARTIAL : "#ffffff";
 
   let letterColor = "#fff";
   if (future) letterColor = "rgba(255,255,255,0.35)";

@@ -11,13 +11,15 @@
   --muted: rgba(255, 255, 255, 0.5);
   --tertiary: rgba(255, 255, 255, 0.25);
   --faint: rgba(255, 255, 255, 0.08);
-  --pos: #4ade80;
+  --primary: #ffffff;
+  --primary-fg: #0a0a0a;
+  --pos: #d4d4d4;
   --neg: #ff5555;
   --danger: #ff5555;
   --ui: "Inter", -apple-system, system-ui, sans-serif;
   --display: "Inter", -apple-system, system-ui, sans-serif;
   --mono: "Inter", -apple-system, system-ui, sans-serif;
-  --lime: #4ade80;
+  --lime: var(--primary);
 }
 
 * {
@@ -280,15 +282,15 @@ textarea {
   flex-shrink: 0;
   box-sizing: border-box;
   width: 100%;
-  padding: 8px 12px;
+  padding: 8px 16px;
   /* `constant()` for older WebKit; `env()` wins when supported */
   padding-bottom: max(8px, constant(safe-area-inset-bottom));
   padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
   background: var(--bg);
   border-top: 0.5px solid var(--border);
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 2px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
 }
 
 .tab {

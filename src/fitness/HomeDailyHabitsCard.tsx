@@ -27,7 +27,7 @@ export function HomeDailyHabitsCard({ habits, stepsTarget, planStartIso, dateKey
         </span>
       </div>
       <div className="barTrack" style={{ height: 3, marginBottom: 12 }}>
-        <div className="barFill" style={{ width: `${progressPct * 100}%`, background: "var(--pos)" }} />
+        <div className="barFill" style={{ width: `${progressPct * 100}%` }} />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {habits.map((habit) => {
@@ -78,7 +78,7 @@ export function HomeDailyHabitsCard({ habits, stepsTarget, planStartIso, dateKey
                     width: 40,
                     height: 22,
                     borderRadius: 999,
-                    background: habit.done ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.08)",
+                    background: habit.done ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.08)",
                     flexShrink: 0,
                   }}
                 />
@@ -92,7 +92,7 @@ export function HomeDailyHabitsCard({ habits, stepsTarget, planStartIso, dateKey
                     width: 40,
                     height: 22,
                     borderRadius: 999,
-                    background: habit.done ? "var(--pos)" : "rgba(255,255,255,0.1)",
+                    background: habit.done ? "#ffffff" : "rgba(255,255,255,0.1)",
                     position: "relative",
                     transition: "background .2s ease",
                     flexShrink: 0,

@@ -12,7 +12,7 @@ import { WorkoutSessionPreviewSheet } from "./WorkoutSessionPreviewSheet";
 import type { AppState, CompletedWorkoutSession } from "./types";
 
 const ACCENT_BLUE = "#0A84FF";
-const LIME = "#4ade80";
+const WORKOUT_DAY = "#ffffff";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function monthLabel(year: number, monthIndex: number): string {
@@ -244,7 +244,7 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
                   minHeight: 36,
                   borderRadius: 8,
                   border: isToday ? `1.5px solid rgba(255,255,255,0.35)` : "1px solid transparent",
-                  background: hasWorkout ? "rgba(52,199,89,0.18)" : "rgba(255,255,255,0.04)",
+                  background: hasWorkout ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.04)",
                   color: isFuture ? "rgba(255,255,255,0.25)" : "#fff",
                   fontSize: 13,
                   fontWeight: isToday ? 700 : 500,
@@ -267,7 +267,7 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
                       width: 5,
                       height: 5,
                       borderRadius: "50%",
-                      background: LIME,
+                      background: WORKOUT_DAY,
                     }}
                   />
                 ) : (

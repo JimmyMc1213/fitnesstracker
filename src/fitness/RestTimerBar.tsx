@@ -33,15 +33,15 @@ export function RestTimerBar({
   }, [completed]);
 
   const progress = durationSec > 0 ? Math.max(0, Math.min(1, remainingSec / durationSec)) : 0;
-  const accent = completed ? "#34C759" : COACH_BLUE;
+  const accent = completed ? "#ffffff" : COACH_BLUE;
 
   return (
     <div
       style={{
         marginBottom: 8,
         borderRadius: 8,
-        border: `0.5px solid ${completed ? "rgba(52,199,89,0.35)" : "rgba(10,132,255,0.25)"}`,
-        background: completed ? "rgba(52,199,89,0.12)" : "rgba(10,132,255,0.08)",
+        border: `0.5px solid ${completed ? "rgba(255,255,255,0.25)" : "rgba(10,132,255,0.25)"}`,
+        background: completed ? "rgba(255,255,255,0.08)" : "rgba(10,132,255,0.08)",
         padding: "6px 10px",
         overflow: "hidden",
         position: "relative",
@@ -68,7 +68,7 @@ export function RestTimerBar({
               fontWeight: 600,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
-              color: completed ? "rgba(52,199,89,0.95)" : "rgba(10,132,255,0.85)",
+              color: completed ? "rgba(255,255,255,0.85)" : "rgba(10,132,255,0.85)",
               marginBottom: 1,
               lineHeight: 1.2,
             }}

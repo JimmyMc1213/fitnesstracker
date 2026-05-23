@@ -200,7 +200,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
           style={{
             padding: 16,
             marginTop: 18,
-            borderColor: "rgba(74,222,128,0.18)",
+            borderColor: "var(--border-strong)",
             display: "flex",
             alignItems: "center",
             gap: 14,

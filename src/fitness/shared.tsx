@@ -238,8 +238,8 @@ export function PrimaryButton({ children, onClick, disabled, block, "aria-label"
       style={{
         width: block ? "100%" : undefined,
         minHeight: 44,
-        background: disabled ? "rgba(255,255,255,0.08)" : "var(--pos)",
-        color: disabled ? "rgba(255,255,255,0.35)" : "#0a0a0a",
+        background: disabled ? "rgba(255,255,255,0.08)" : "var(--primary)",
+        color: disabled ? "rgba(255,255,255,0.35)" : "var(--primary-fg)",
         borderRadius: 12,
         padding: "12px 16px",
         fontSize: 15,
