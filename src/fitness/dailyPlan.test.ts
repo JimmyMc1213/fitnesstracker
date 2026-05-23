@@ -69,7 +69,11 @@ describe("generateDailyTasksForDate", () => {
     expect(gymTasks.some((t) => t.navigateTo === "workout")).toBe(true);
     expect(gymTasks[0]?.title).toMatch(/Wed/i);
 
-    expect(tasks.some((t) => t.category === "nutrition")).toBe(true);
+    const nutritionTasks = tasks.filter((t) => t.category === "nutrition");
+    expect(nutritionTasks.length).toBeGreaterThan(0);
+    expect(nutritionTasks.every((t) => !/program week|anchor|started \d{4}-\d{2}-\d{2}/i.test(t.title))).toBe(true);
+    expect(nutritionTasks[0]?.title).toMatch(/Week \d+/);
+
     expect(tasks.some((t) => t.category === "life")).toBe(true);
   });
 

@@ -10,6 +10,15 @@ import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import { loadSyncMeta, saveSyncMeta } from "./syncMeta";
 import type { AppState } from "./types";
 
+function userFacingSyncError(e: unknown, fallback: string): string {
+  if (e instanceof SyntaxError) return "Saved data could not be read. Using your local defaults.";
+  const msg = e instanceof Error ? e.message : fallback;
+  if (/unicode escape|json\.parse|syntaxerror|unexpected token/i.test(msg)) {
+    return "Saved data could not be read. Using your local defaults.";
+  }
+  return msg || fallback;
+}
+
 type FitnessUserRow = {
   user_id: string;
   payload: unknown;
@@ -155,7 +164,7 @@ export function useFitnessCloudSync(
           setState(buildAppStateFromPersisted(pull.mergedSlice));
         }
       } catch (e) {
-        setLastError(e instanceof Error ? e.message : "Sync pull failed");
+        setLastError(userFacingSyncError(e, "Sync pull failed"));
       } finally {
         setBusy(false);
       }
@@ -201,7 +210,7 @@ export function useFitnessCloudSync(
           setLastSyncedAt(Date.now());
         }
       } catch (e) {
-        setLastError(e instanceof Error ? e.message : "Sync push failed");
+        setLastError(userFacingSyncError(e, "Sync push failed"));
       } finally {
         setBusy(false);
       }
@@ -284,7 +293,7 @@ export function useFitnessCloudSync(
         setLastSyncedAt(Date.now());
       }
     } catch (e) {
-      setLastError(e instanceof Error ? e.message : "Sync failed");
+      setLastError(userFacingSyncError(e, "Sync failed"));
     } finally {
       setBusy(false);
     }

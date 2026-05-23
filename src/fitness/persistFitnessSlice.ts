@@ -1,4 +1,5 @@
 import type { AppState } from "./types";
+import { safeJsonParse } from "./safeJsonParse";
 
 export const FITNESS_LOCAL_STORAGE_KEY = "fitcoach:persist:v1";
 
@@ -101,7 +102,8 @@ export function loadPersistedSlice(): Partial<PersistedFitnessSlice> | null {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as Partial<PersistedFitnessSlice>;
+    const parsed = safeJsonParse<Partial<PersistedFitnessSlice> | null>(raw, null, FITNESS_LOCAL_STORAGE_KEY);
+    return parsed;
   } catch {
     return null;
   }

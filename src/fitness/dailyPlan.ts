@@ -1,4 +1,5 @@
 import { PLAN_START_ISO, SPLIT, planWeekIndex } from "./data";
+import { safeJsonParse } from "./safeJsonParse";
 import type { DailyTask, MacroTotals, WorkoutRoutineTemplate } from "./types";
 
 export const DAILY_STORAGE_KEY = "fitcoach:daily:v5";
@@ -188,7 +189,7 @@ export function generateDailyTasksForDate(
   tasks.push({
     id: `${dateKey}_n0`,
     category: "nutrition",
-    title: `Hit ${targets.p}g protein · ~${targets.f}g fat · fill carbs toward ~${targets.cal} kcal — log honestly in Fuel (program week ${wk}/12, started ${planStartIso}).`,
+    title: `Hit ${targets.p}g protein · ~${targets.f}g fat · fill carbs toward ~${targets.cal} kcal — log honestly in Fuel (Week ${wk}).`,
     done: false,
     navigateTo: "nutrition",
   });
@@ -251,8 +252,9 @@ export function loadTasksForToday(
   try {
     const raw = localStorage.getItem(DAILY_STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw) as PersistedDaily;
+      const parsed = safeJsonParse<PersistedDaily | null>(raw, null, DAILY_STORAGE_KEY);
       if (
+        parsed &&
         parsed.dateKey === key &&
         Array.isArray(parsed.tasks) &&
         parsed.tasks.length > 0 &&
