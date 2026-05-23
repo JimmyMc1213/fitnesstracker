@@ -22,8 +22,8 @@ so that suggested exercises match what I can perform.
   - [x] Add `EquipmentSetup` to `types.ts`, `persistFitnessSlice.ts`, `buildAppState.ts`, `mergePersistedFitnessSlices.ts`
   - [x] Add `equipmentSetup.ts` with labels, defaults, and normalization
 - [x] Task 2: Template filtering (AC: 4)
-  - [x] Add `exerciseEquipment.ts` — compatibility map and substitutions per setup
-  - [x] Add `workoutTemplateBuilder.ts` — combine experience + equipment adaptation
+  - [x] Add `exerciseEquipment.ts`: compatibility map and substitutions per setup
+  - [x] Add `workoutTemplateBuilder.ts`: combine experience + equipment adaptation
 - [x] Task 3: Onboarding screen + gate (AC: 1, 2)
   - [x] `EquipmentOnboardingScreen.tsx` + `EquipmentSetupPicker.tsx`
   - [x] `EquipmentSetupGate` in `FitnessApp.tsx` after `ExperienceLevelGate`
@@ -35,7 +35,7 @@ so that suggested exercises match what I can perform.
 
 - Follow FTI-25/26 patterns: gate component, card UI, segment-style option buttons, legacy skip via workout history / weight log / Jimmy plan.
 - Canonical storage: `equipmentSetup` string enum + `equipmentSetupChosen` boolean.
-- Gate is `npm run build` only — no test runner.
+- Gate is `npm run build` only, no test runner.
 - linear: FTI-27
 
 ### References
@@ -76,7 +76,7 @@ Composer
 ## Senior Developer Review (AI)
 
 - Verified persistence pipeline and merge for `equipmentSetup` / `equipmentSetupChosen`.
-- Legacy skip reuses `hasLegacyFitnessData` — consistent with FTI-26.
+- Legacy skip reuses `hasLegacyFitnessData`: consistent with FTI-26.
 - Substitution map covers all default split exercises for limited-equipment setups.
 
 ### Review Follow-ups (AI)

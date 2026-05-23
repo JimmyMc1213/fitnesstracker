@@ -12,17 +12,17 @@ so I can close the fuel loop without leaving Home.
 
 ## Acceptance Criteria
 
-1. **Quick-log sheet from fuel strip:** Given the user is viewing **today** on Home, when they tap `[+ Log]` on `HomeFuelStrip`, then a bottom sheet (`HomeFuelQuickLogSheet`) opens with protein-first quick-add chips (+25/+30/+40/+50g) — **not** navigation to the Nutrition tab.
+1. **Quick-log sheet from fuel strip:** Given the user is viewing **today** on Home, when they tap `[+ Log]` on `HomeFuelStrip`, then a bottom sheet (`HomeFuelQuickLogSheet`) opens with protein-first quick-add chips (+25/+30/+40/+50g), **not** navigation to the Nutrition tab.
 
 2. **Quick-log from coach tasks:** Given an incomplete `hit_protein` task or `post_workout_review` with CTA `"Log fuel"`, when the user taps the task CTA, then the same quick-log sheet opens (FTI-33 stub navigation replaced).
 
-3. **Writes existing nutrition model:** Given a quick-add or saved favorite is tapped, when the sheet commits, then a row is appended to `nutritionItemsByDay[dateKey]` and presets update via `upsertNutritionPresetList` / `touchNutritionPresetById` — same persistence path as Nutrition tab; no new `AppState` fields.
+3. **Writes existing nutrition model:** Given a quick-add or saved favorite is tapped, when the sheet commits, then a row is appended to `nutritionItemsByDay[dateKey]` and presets update via `upsertNutritionPresetList` / `touchNutritionPresetById`: same persistence path as Nutrition tab; no new `AppState` fields.
 
 4. **Saved favorites:** Given `nutritionPresets` includes items with protein > 0, when the sheet renders, then up to 5 recency-sorted favorites appear as one-tap rows below the protein chips.
 
-5. **Coach plan updates after log:** Given protein is logged via quick-log, when Home re-renders, then `TodaysCoachPlanCard` reflects updated totals (protein task completes or gap shrinks) via existing `getHomeCoachPlan` / `buildCoachContext` — no duplicate coach state.
+5. **Coach plan updates after log:** Given protein is logged via quick-log, when Home re-renders, then `TodaysCoachPlanCard` reflects updated totals (protein task completes or gap shrinks) via existing `getHomeCoachPlan` / `buildCoachContext`: no duplicate coach state.
 
-6. **Macro pace in coach copy:** Given protein gap > 0, when `hit_protein` task rationale is built, then copy references time-weighted **macro pace** (`buildMacroPaceSnapshot`) — e.g. "On pace", "Xg behind pace", or "Protein floor hit — on pace for today."
+6. **Macro pace in coach copy:** Given protein gap > 0, when `hit_protein` task rationale is built, then copy references time-weighted **macro pace** (`buildMacroPaceSnapshot`), e.g. "On pace", "Xg behind pace", or "Protein floor hit, on pace for today."
 
 7. **Full log escape hatch:** Given the sheet is open, when the user taps "Open full Nutrition log", then the sheet closes and `navigate("nutrition")` runs.
 
@@ -33,16 +33,16 @@ so I can close the fuel loop without leaving Home.
 ## Tasks / Subtasks
 
 - [x] **Task 1: Shared nutrition log helpers** (AC: 3)
-  - [x] 1.1 Create `src/fitness/nutritionLog.ts` — `newNutritionItemId`, `PROTEIN_QUICK_ADD_PRESETS`, `appendNutritionLoggedItem`, `appendNutritionPresetToDay`, `topProteinPresetsForQuickLog`
+  - [x] 1.1 Create `src/fitness/nutritionLog.ts`: `newNutritionItemId`, `PROTEIN_QUICK_ADD_PRESETS`, `appendNutritionLoggedItem`, `appendNutritionPresetToDay`, `topProteinPresetsForQuickLog`
   - [x] 1.2 Colocate `nutritionLog.test.ts`
 
 - [x] **Task 2: Macro pace module** (AC: 6)
-  - [x] 2.1 Create `src/fitness/macroPace.ts` — `buildMacroPaceSnapshot(ctx)` pure time-weighted protein pace
+  - [x] 2.1 Create `src/fitness/macroPace.ts`: `buildMacroPaceSnapshot(ctx)` pure time-weighted protein pace
   - [x] 2.2 Wire into `coachEngine.ts` `hit_protein` task rationale
   - [x] 2.3 Colocate `macroPace.test.ts`; extend `coachEngine.test.ts` rationale assertion
 
 - [x] **Task 3: Home quick-log sheet** (AC: 1, 4, 7)
-  - [x] 3.1 Create `src/fitness/HomeFuelQuickLogSheet.tsx` — bottom sheet pattern (WeighInSheet), protein chips, favorites, MacroBar summary, full-log link
+  - [x] 3.1 Create `src/fitness/HomeFuelQuickLogSheet.tsx`: bottom sheet pattern (WeighInSheet), protein chips, favorites, MacroBar summary, full-log link
   - [x] 3.2 Export `canOpenHomeFuelQuickLog` guard
 
 - [x] **Task 4: ScreenHome wiring** (AC: 1, 2, 5, 8)
@@ -62,7 +62,7 @@ so I can close the fuel loop without leaving Home.
 
 ### Why FTI-35 follows FTI-37
 
-FTI-33 stubbed `[+ Log]` and fuel coach tasks → Nutrition tab. FTI-37 closed the in-session gap. **FTI-35 closes the Home fuel friction gap** — one tap from coach plan or fuel strip.
+FTI-33 stubbed `[+ Log]` and fuel coach tasks → Nutrition tab. FTI-37 closed the in-session gap. **FTI-35 closes the Home fuel friction gap**, one tap from coach plan or fuel strip.
 
 **Execution order:** FTI-40 ✅ → FTI-34 ✅ → FTI-33 ✅ → FTI-37 ✅ → **FTI-35** → FTI-36 → FTI-38 → FTI-39.
 
@@ -79,8 +79,8 @@ FTI-33 stubbed `[+ Log]` and fuel coach tasks → Nutrition tab. FTI-37 closed t
 
 ### Forward compatibility
 
-- `HomeFuelStrip.onLogClick` unchanged API — ScreenHome swaps handler body only
-- `TodaysCoachPlanCard` unchanged — ScreenHome intercepts `onTaskAction`
+- `HomeFuelStrip.onLogClick` unchanged API, ScreenHome swaps handler body only
+- `TodaysCoachPlanCard` unchanged, ScreenHome intercepts `onTaskAction`
 - FTI-36 may extend coach reactions on weigh-in; FTI-38 notification bodies already use protein gap
 
 ### References
@@ -118,4 +118,4 @@ Composer (BMAD Swarm orchestration)
 
 ## Change Log
 
-- 2026-05-23: Story created + implemented (BMAD Swarm next) — Home fuel quick-log + coach macro pace
+- 2026-05-23: Story created + implemented (BMAD Swarm next), Home fuel quick-log + coach macro pace

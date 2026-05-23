@@ -1,30 +1,30 @@
-# Fitcoach — Epics & Stories
+# Fitcoach, Epics & Stories
 
 **Project:** fitnesstracker  
 **Last updated:** 2026-05-23 (Sprint 6 planned)  
 **Sprint tracking:** `_bmad-output/implementation-artifacts/sprint-status.yaml`
 
-**Positioning:** Fitcoach is the all-in-one fitness app that coaches you through every workout, meal, and check-in — so you never need another app to hit your goals.
+**Positioning:** Fitcoach is the all-in-one fitness app that coaches you through every workout, meal, and check-in, so you never need another app to hit your goals.
 
 ---
 
 ## Overview
 
-**Sprint 1 (done):** Multi-user Fitcoach — onboarding foundation, full onboarding flow, progress/weigh-in, workout UX polish, session tools, and progress insights.
+**Sprint 1 (done):** Multi-user Fitcoach, onboarding foundation, full onboarding flow, progress/weigh-in, workout UX polish, session tools, and progress insights.
 
-**Sprint 2 (done):** Coaching-led polish — personalized home identity, onboarding session-time estimates, notification setup, macro ring animation, and water intake tracking.
+**Sprint 2 (done):** Coaching-led polish, personalized home identity, onboarding session-time estimates, notification setup, macro ring animation, and water intake tracking.
 
-**Sprint 3 (done):** Coaching orchestration — `coachEngine`, Today's Coach Plan, in-session coach, fuel quick-log, weigh-in reactions, notification copy, weekly review narrative. Vitest harness (69+ tests).
+**Sprint 3 (done):** Coaching orchestration, `coachEngine`, Today's Coach Plan, in-session coach, fuel quick-log, weigh-in reactions, notification copy, weekly review narrative. Vitest harness (69+ tests).
 
-**Sprint 4 (done):** UI polish & IA from screenshot audit — dev copy scrub, design-system buttons, Home density, habits folded into Home, Progress empty states, Settings IA.
+**Sprint 4 (done):** UI polish & IA from screenshot audit, dev copy scrub, design-system buttons, Home density, habits folded into Home, Progress empty states, Settings IA.
 
-**Sprint 5 (done):** Quality foundation & nutrition OS — Playwright E2E smoke, `coachEngine` refactor, Nutrition tab rebuild, Home Fuel strip alignment, week-boundary rules.
+**Sprint 5 (done):** Quality foundation & nutrition OS, Playwright E2E smoke, `coachEngine` refactor, Nutrition tab rebuild, Home Fuel strip alignment, week-boundary rules.
 
-**Sprint 6 (planned):** Workout architecture & session coaching — workout E2E smoke, `ScreenWorkout` phase-1 decomposition, rule-based per-exercise notes (FTI-13 phase 1), optional LLM notes, retro cleanup.
+**Sprint 6 (planned):** Workout architecture & session coaching, workout E2E smoke, `ScreenWorkout` phase-1 decomposition, rule-based per-exercise notes (FTI-13 phase 1), optional LLM notes, retro cleanup.
 
-**Prerequisite (done):** [FTI-15](https://linear.app/ftiness-tracker/issue/FTI-15/save-workouts-and-workout-history) — `story_key: fti-15-save-workouts-and-workout-history`
+**Prerequisite (done):** [FTI-15](https://linear.app/ftiness-tracker/issue/FTI-15/save-workouts-and-workout-history), `story_key: fti-15-save-workouts-and-workout-history`
 
-**Deferred (backlog):** [FTI-13](https://linear.app/ftiness-tracker/issue/FTI-13/ai-coach-note-per-exercise-on-workout-start) — split across Sprint 6 FTI-54 (rule-based) and FTI-55 (LLM, optional).
+**Deferred (backlog):** [FTI-13](https://linear.app/ftiness-tracker/issue/FTI-13/ai-coach-note-per-exercise-on-workout-start), split across Sprint 6 FTI-54 (rule-based) and FTI-55 (LLM, optional).
 
 ---
 
@@ -32,7 +32,7 @@
 
 **Epic key (sprint-status):** `epic-fti-sprint-1`
 
-**Goal:** Ship the Fitcoach multi-user experience end-to-end: personalized onboarding (with unit/experience/equipment inputs), reliable workout logging and history, a simplified weigh-in and progress surface, polished workout/edit UX (including drag-and-drop), session tools (rest timer, swap), and motivation features (PR board, streak, weekly summary)—all persisting through the existing Supabase JSONB sync pipeline.
+**Goal:** Ship the Fitcoach multi-user experience end-to-end: personalized onboarding (with unit/experience/equipment inputs), reliable workout logging and history, a simplified weigh-in and progress surface, polished workout/edit UX (including drag-and-drop), session tools (rest timer, swap), and motivation features (PR board, streak, weekly summary), all persisting through the existing Supabase JSONB sync pipeline.
 
 ---
 
@@ -98,7 +98,7 @@ As a new user, I want to select available equipment during onboarding, so that s
 
 ---
 
-### Story 1.4: New user onboarding — workout template + nutrition (FTI-14)
+### Story 1.4: New user onboarding, workout template + nutrition (FTI-14)
 
 As a new user, I want a guided onboarding flow that sets my workout split and nutrition targets, so that I land on the home dashboard fully configured.
 
@@ -117,7 +117,7 @@ As a new user, I want a guided onboarding flow that sets my workout split and nu
 - linear: FTI-14
 - story_key: fti-14-new-user-onboarding-workout-template-selection-nutrition-setup
 - linear_url: https://linear.app/ftiness-tracker/issue/FTI-14/new-user-onboarding-workout-template-selection-nutrition-setup
-- partial_impl: `src/fitness/OnboardingFlow.tsx` — extend after Stories 1.1–1.3
+- partial_impl: `src/fitness/OnboardingFlow.tsx`: extend after Stories 1.1-1.3
 - depends_on: Stories 1.1, 1.2, 1.3
 
 ---
@@ -171,7 +171,7 @@ As a user editing a routine, I want labeled fields and consistent spacing, so th
 **Acceptance criteria:**
 
 - Set/rep fields clearly labeled
-- Coach note no longer truncates awkwardly — expand or show full
+- Coach note no longer truncates awkwardly, expand or show full
 - Add note and Progress rows removed from edit mode
 - Drag handle tap target minimum 44px
 - Delete routine visually demoted; confirmation dialog before execute
@@ -238,7 +238,7 @@ As a user during a session, I want to swap one exercise for another, so that I c
 - Selecting replacement swaps only that exercise
 - Other exercises and logged sets unaffected
 - Swapped exercise inherits set/rep targets from original
-- Swap does not persist to the template — session only
+- Swap does not persist to the template, session only
 
 **Dev Notes:**
 
@@ -310,11 +310,11 @@ As a user, I want a weekly recap card, so that I see workouts, volume, and nutri
 
 ---
 
-## Epic 2: FTI Sprint 2 — coaching-led OS polish
+## Epic 2: FTI Sprint 2, coaching-led OS polish
 
 **Epic key (sprint-status):** `epic-fti-sprint-2`
 
-**Goal:** Make Fitcoach feel like a coached all-in-one OS from the first home screen visit — personalized greeting and plan context, thoughtful onboarding (session time + notifications), satisfying daily tracking (animated macros, water), all persisting through Supabase.
+**Goal:** Make Fitcoach feel like a coached all-in-one OS from the first home screen visit, personalized greeting and plan context, thoughtful onboarding (session time + notifications), satisfying daily tracking (animated macros, water), all persisting through Supabase.
 
 **Sprint execution order:** FTI-29 → 30 → 28 → 31 → 32
 
@@ -329,7 +329,7 @@ As a user who completed onboarding, I want a personalized home greeting that ref
 - Greeting uses user's first name from profile (time-of-day aware: morning/afternoon/evening)
 - Subline references selected split and current week (e.g. "Week 1 of your 5-day PPLUL split")
 - Falls back gracefully if name or split data is missing
-- Partial impl exists in `ScreenHome.tsx` ("Morning, {name}") — extend with subline and full time-of-day variants
+- Partial impl exists in `ScreenHome.tsx` ("Morning, {name}"), extend with subline and full time-of-day variants
 
 **Dev Notes:**
 
@@ -345,7 +345,7 @@ As a new user reviewing my split, I want to see estimated session duration per w
 
 **Acceptance criteria:**
 
-- Estimated session time displayed per workout day on split review screen (e.g. "Push — ~55 min")
+- Estimated session time displayed per workout day on split review screen (e.g. "Push, ~55 min")
 - Calculation based on exercise count, sets, and average rest time
 - Displayed as subtle secondary label, not main focus
 - Updates if user edits exercises or sets during review step
@@ -389,7 +389,7 @@ As a user logging food, I want macro rings to animate smoothly as progress updat
 - Rings animate incrementally when new food is logged
 - Animation ~500ms ease-out; no jank or flicker
 - Works in empty (0%) and full/over (100%+) states
-- Restrained motion — progress reinforcement, not "app store bait"
+- Restrained motion, progress reinforcement, not "app store bait"
 
 **Dev Notes:**
 
@@ -420,11 +420,11 @@ As a user, I want to log daily water intake against a target on the home dashboa
 
 ---
 
-## Epic 4: FTI Sprint 4 — UI polish & IA
+## Epic 4: FTI Sprint 4, UI polish & IA
 
 **Epic key (sprint-status):** `epic-fti-sprint-4`
 
-**Goal:** Close the gap between "coaching engine shipped" and "app feels finished" — fix screenshot-audit bugs, unify primary CTAs (lime green), reduce Home scroll weight, fold habits into Home, polish Progress empty states, and regroup Settings. Nutrition tab rebuild remains deferred.
+**Goal:** Close the gap between "coaching engine shipped" and "app feels finished", fix screenshot-audit bugs, unify primary CTAs (lime green), reduce Home scroll weight, fold habits into Home, polish Progress empty states, and regroup Settings. Nutrition tab rebuild remains deferred.
 
 **Sprint execution order:** FTI-41 → 42 → 43 → 44 → 45 → 46
 
@@ -456,8 +456,8 @@ As a user, I want consistent lime-green primary CTAs across the app.
 **Acceptance criteria:**
 
 - Shared `PrimaryButton` / `SecondaryButton`
-- Workout "Start empty workout", Home coach CTAs, stretch card — lime not white/blue
-- Settings preset pills selected state — green not blue
+- Workout "Start empty workout", Home coach CTAs, stretch card, lime not white/blue
+- Settings preset pills selected state, green not blue
 
 **Dev Notes:**
 
@@ -531,11 +531,11 @@ As a user, I want grouped Settings sections and confident notification copy.
 
 ---
 
-## Epic 5: FTI Sprint 5 — quality foundation & nutrition OS
+## Epic 5: FTI Sprint 5, quality foundation & nutrition OS
 
 **Epic key (sprint-status):** `epic-fti-sprint-5`
 
-**Goal:** Close Sprint 3 retro debt (E2E coverage, `coachEngine` cohesion) and ship the Nutrition tab rebuild deferred from Sprint 4 — making fuel logging a coached first-class surface aligned with Home quick-log.
+**Goal:** Close Sprint 3 retro debt (E2E coverage, `coachEngine` cohesion) and ship the Nutrition tab rebuild deferred from Sprint 4, making fuel logging a coached first-class surface aligned with Home quick-log.
 
 **Sprint execution order:** FTI-47 → 48 → 49 → 50 → 51 (Linear: FTI-41 → 42 → 43 → 44 → 45)
 
@@ -560,7 +560,7 @@ As a developer, I want Playwright smoke tests for coach navigation flows, so Hom
 - story_key: fti-47-playwright-e2e-harness-coach-navigation-smoke
 - linear: FTI-41
 - linear_url: https://linear.app/ftiness-tracker/issue/FTI-41/playwright-e2e-harness-coach-navigation-smoke
-- MoSCoW: Must — sprint opener (mirrors FTI-40 pattern)
+- MoSCoW: Must, sprint opener (mirrors FTI-40 pattern)
 - blocks: FTI-49, FTI-50 (Linear FTI-43, FTI-44)
 
 ---
@@ -604,7 +604,7 @@ As a user, I want a polished Nutrition tab with hero macro rings and streamlined
 - story_key: fti-49-nutrition-tab-rebuild-hero-rings-coached-today-log
 - linear: FTI-43
 - linear_url: https://linear.app/ftiness-tracker/issue/FTI-43/nutrition-tab-rebuild-hero-rings-coached-today-log
-- MoSCoW: Must — deferred from Sprint 4 party-mode
+- MoSCoW: Must, deferred from Sprint 4 party-mode
 - depends_on: FTI-48 (Linear FTI-42)
 
 ---
@@ -646,16 +646,16 @@ As a user, I want streak and weekly summary to use documented, consistent week b
 - story_key: fti-51-week-boundary-rules-streak-vs-weekly-summary
 - linear: FTI-45
 - linear_url: https://linear.app/ftiness-tracker/issue/FTI-45/week-boundary-rules-streak-vs-weekly-summary
-- MoSCoW: Could — Sprint 3 retro carryover
+- MoSCoW: Could, Sprint 3 retro carryover
 - depends_on: FTI-48 (Linear FTI-42)
 
 ---
 
-## Epic 6: FTI Sprint 6 — workout architecture & session coaching
+## Epic 6: FTI Sprint 6, workout architecture & session coaching
 
 **Epic key (sprint-status):** `epic-fti-sprint-6`
 
-**Goal:** Reduce `ScreenWorkout.tsx` monolith risk (1,400+ lines), expand E2E coverage into the workout loop, and deliver FTI-13 session coaching — rule-based notes first, LLM optional after product review.
+**Goal:** Reduce `ScreenWorkout.tsx` monolith risk (1,400+ lines), expand E2E coverage into the workout loop, and deliver FTI-13 session coaching, rule-based notes first, LLM optional after product review.
 
 **Sprint execution order:** FTI-52 → 53 → 54 → 55 → 56 (Linear: FTI-46 → 47 → 49 → 50 → 48)
 
@@ -678,7 +678,7 @@ As a developer, I want Playwright smoke tests for the workout session loop, so s
 
 - story_key: fti-52-playwright-e2e-workout-session-smoke
 - linear: FTI-46
-- MoSCoW: Must — sprint opener (mirrors FTI-47 pattern)
+- MoSCoW: Must, sprint opener (mirrors FTI-47 pattern)
 - blocks: FTI-54, FTI-55
 
 ---
@@ -690,7 +690,7 @@ As a developer, I want session header, lifting exercise card, and finish flow ex
 **Acceptance criteria:**
 
 - Extract at least: sticky session header, lifting `ExerciseCard` block, finish/summary trigger wiring into dedicated modules under `src/fitness/workout/`
-- Zero behavior change — all 83+ Vitest tests pass
+- Zero behavior change, all 83+ Vitest tests pass
 - `ScreenWorkout.tsx` reduced by meaningful line count; no new UI surfaces
 - Playwright workout smoke (FTI-52) still passes
 
@@ -712,7 +712,7 @@ As a user starting a workout, I want a short coaching note per exercise based on
 
 - Pure `getExerciseSessionNote(ctx, exerciseId)` in `coachEngine.ts` (or submodule) using `workoutHistory` / autofill data
 - Progressive overload copy when history exists; generic tip when none
-- Notes wired into existing `WorkoutCoachCard` / exercise coach surface — blue coach styling
+- Notes wired into existing `WorkoutCoachCard` / exercise coach surface, blue coach styling
 - Generated once per session start; persists for session duration only
 - Colocated Vitest for note builder; must extend engine, not fork parallel coach logic
 - Playwright workout smoke still passes
@@ -721,7 +721,7 @@ As a user starting a workout, I want a short coaching note per exercise based on
 
 - story_key: fti-54-rule-based-per-exercise-session-coach-notes
 - linear: FTI-49
-- MoSCoW: Must — FTI-13 phase 1 (deterministic)
+- MoSCoW: Must, FTI-13 phase 1 (deterministic)
 - related: FTI-13, FTI-37 autofill
 - depends_on: FTI-53 (Linear FTI-47)
 - blocks: FTI-55 (product review gate)
@@ -736,28 +736,28 @@ As a user, I want AI-generated coaching notes per exercise when I start a workou
 
 - Claude (or configured LLM) API call batched per session on workout start
 - Notes replace or augment rule-based notes from FTI-54 when API succeeds; graceful fallback to FTI-54 on failure/offline
-- API key via env (`VITE_*` or server proxy — document in project-context)
-- No duplicate coach logic — extends `coachEngine` contract
+- API key via env (`VITE_*` or server proxy, document in project-context)
+- No duplicate coach logic, extends `coachEngine` contract
 - Feature flag or settings toggle to disable LLM notes
 
 **Dev Notes:**
 
 - story_key: fti-55-llm-coach-notes-per-exercise-fti-13
 - linear: FTI-50
-- MoSCoW: Could — **product decision at FTI-54 review**; skip if rule-based notes suffice
+- MoSCoW: Could, **product decision at FTI-54 review**; skip if rule-based notes suffice
 - depends_on: FTI-54 (Linear FTI-49)
 - closes: FTI-13 when shipped
 
 ---
 
-### Story 6.5: Retro cleanup — waterIntake tests + macro nudge persist (FTI-56)
+### Story 6.5: Retro cleanup, waterIntake tests + macro nudge persist (FTI-56)
 
-As a developer, I want `waterIntake.ts` unit tests and optional persistence of weigh-in macro nudges, so Sprint 2–3 retro debt is closed.
+As a developer, I want `waterIntake.ts` unit tests and optional persistence of weigh-in macro nudges, so Sprint 2-3 retro debt is closed.
 
 **Acceptance criteria:**
 
 - Vitest for `waterIntake.ts` normalize/append/merge helpers
-- FTI-36 weigh-in macro guidance optionally persists suggested adjustment (display-only today) — product-minimal: save nudge text or dismiss state only if scope stays small
+- FTI-36 weigh-in macro guidance optionally persists suggested adjustment (display-only today), product-minimal: save nudge text or dismiss state only if scope stays small
 - No UI redesign
 - All quality gates pass
 
@@ -765,5 +765,5 @@ As a developer, I want `waterIntake.ts` unit tests and optional persistence of w
 
 - story_key: fti-56-waterintake-tests-weigh-in-macro-nudge-persist
 - linear: FTI-48
-- MoSCoW: Could — retro carryover
+- MoSCoW: Could, retro carryover
 - depends_on: FTI-52 (Linear FTI-46); can parallelize after FTI-54 if needed

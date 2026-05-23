@@ -1,5 +1,6 @@
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { exerciseNoteKey } from "../exerciseNotes";
+import { sanitizeCoachCopy } from "../exerciseSessionNotes";
 import { IconCheck, IconMinus, IconPlus, IconTrash } from "../icons";
 import { ExerciseDragHandle, type ExerciseDragHandleProps } from "../SortableExerciseList";
 import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
@@ -133,7 +134,7 @@ export function WorkoutExerciseCard({
               }}
             >
               <span style={{ ...labelStyle, color: COACH_BLUE_MUTED, marginRight: 6 }}>Coach</span>
-              {sessionCoachNote}
+              {sanitizeCoachCopy(sessionCoachNote)}
             </p>
           ) : null}
         </div>
@@ -233,7 +234,7 @@ export function WorkoutExerciseCard({
               type="number"
               value={st.w ? formatSetWeight(st.w, weightUnit) : ""}
               onChange={(ev) => onUpdateSet(exercise.id, si, { w: parseSetWeightInput(ev.target.value, weightUnit) })}
-              placeholder="—"
+              placeholder="-"
               style={{
                 background: "#1A1A1A",
                 border: "0.5px solid var(--border)",
@@ -253,7 +254,7 @@ export function WorkoutExerciseCard({
               type="number"
               value={st.r || ""}
               onChange={(ev) => onUpdateSet(exercise.id, si, { r: +ev.target.value || 0 })}
-              placeholder="—"
+              placeholder="-"
               style={{
                 background: "#1A1A1A",
                 border: "0.5px solid var(--border)",

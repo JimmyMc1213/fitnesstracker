@@ -29,10 +29,10 @@ export function isSupabaseConfigured(): boolean {
     else if (!urlOk) console.info("[Fitcoach] VITE_SUPABASE_URL must start with https://");
     if (!key) {
       console.info(
-        "[Fitcoach] Missing client key — set VITE_SUPABASE_PUBLISHABLE_KEY (recommended) or VITE_SUPABASE_ANON_KEY (legacy JWT anon).",
+        "[Fitcoach] Missing client key, set VITE_SUPABASE_PUBLISHABLE_KEY (recommended) or VITE_SUPABASE_ANON_KEY (legacy JWT anon).",
       );
     } else if (!keyOk) {
-      console.info("[Fitcoach] Supabase client key looks too short — paste the full publishable or anon JWT value.");
+      console.info("[Fitcoach] Supabase client key looks too short, paste the full publishable or anon JWT value.");
     }
   }
 

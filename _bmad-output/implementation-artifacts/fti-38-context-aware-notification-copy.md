@@ -26,12 +26,12 @@ so reminders feel like coaching nudges instead of generic alerts.
 
 - [x] **Task 1: Wire coach engine into payload builders** (AC: 1, 2, 3)
   - [x] 1.1 Import `buildCoachContext`, `getNotificationBody` from `./coachEngine`.
-  - [x] 1.2 `buildWorkoutNotificationPayload` — build ctx for today, set `body = getNotificationBody(ctx, "workout")`.
-  - [x] 1.3 `buildNutritionNotificationPayload` — build ctx for today, set `body = getNotificationBody(ctx, "nutrition")`.
+  - [x] 1.2 `buildWorkoutNotificationPayload`: build ctx for today, set `body = getNotificationBody(ctx, "workout")`.
+  - [x] 1.3 `buildNutritionNotificationPayload`: build ctx for today, set `body = getNotificationBody(ctx, "nutrition")`.
 
 - [x] **Task 2: Update scheduler tests** (AC: 1, 2, 5)
-  - [x] 2.1 Workout payload test — expect engine copy (template + streak phrasing), not legacy static string.
-  - [x] 2.2 Nutrition payload test — expect protein-gap or goal-hit copy from engine.
+  - [x] 2.1 Workout payload test, expect engine copy (template + streak phrasing), not legacy static string.
+  - [x] 2.2 Nutrition payload test, expect protein-gap or goal-hit copy from engine.
 
 - [x] **Task 3: Verification** (AC: 4, 5)
   - [x] 3.1 `npm test` (65 tests) + `npm run build`.
@@ -55,7 +55,7 @@ FTI-34 exported `getNotificationBody(ctx, kind)` but explicitly deferred `notifi
 
 ### Circular import note
 
-`coachEngine.ts` imports `isTrainingDay` from `notificationScheduler.ts`. Wiring bodies creates a module cycle; both sides use exports only at call time (no top-level side effects) — verified by build gate.
+`coachEngine.ts` imports `isTrainingDay` from `notificationScheduler.ts`. Wiring bodies creates a module cycle; both sides use exports only at call time (no top-level side effects), verified by build gate.
 
 ## Senior Developer Review (AI)
 
@@ -65,11 +65,11 @@ FTI-34 exported `getNotificationBody(ctx, kind)` but explicitly deferred `notifi
 
 ## File List
 
-- `src/fitness/notificationScheduler.ts` — wire `getNotificationBody`
-- `src/fitness/notificationScheduler.test.ts` — context-aware body assertions
-- `_bmad-output/implementation-artifacts/fti-38-context-aware-notification-copy.md` — story file
-- `_bmad-output/implementation-artifacts/sprint-status.yaml` — status update
+- `src/fitness/notificationScheduler.ts`: wire `getNotificationBody`
+- `src/fitness/notificationScheduler.test.ts`: context-aware body assertions
+- `_bmad-output/implementation-artifacts/fti-38-context-aware-notification-copy.md`: story file
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`: status update
 
 ## Change Log
 
-- 2026-05-23: FTI-38 — context-aware notification bodies via coach engine
+- 2026-05-23: FTI-38: context-aware notification bodies via coach engine

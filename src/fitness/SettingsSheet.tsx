@@ -198,7 +198,7 @@ export function SettingsSheet({
         {!sync.configured ? (
           <div className="card" style={{ padding: "16px 18px", marginBottom: 18, fontSize: 13, lineHeight: 1.55, color: "rgba(255,255,255,0.5)" }}>
             <p style={{ margin: "0 0 10px" }}>
-              Cloud sync is off — the app does not see valid Supabase env vars. Fix this, then restart{" "}
+              Cloud sync is off, the app does not see valid Supabase env vars. Fix this, then restart{" "}
               <code style={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>npm run dev</code>.
             </p>
             <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8 }}>
@@ -216,7 +216,7 @@ export function SettingsSheet({
                 URL must start with <code style={{ fontSize: 12 }}>https://</code>. Restart the dev server after saving.
               </li>
               <li style={{ color: "rgba(255,255,255,0.38)", fontSize: 12 }}>
-                Dev hint: open the browser console — if env still fails, you’ll see a short{" "}
+                Dev hint: open the browser console, if env still fails, you’ll see a short{" "}
                 <code style={{ fontSize: 11 }}>[Fitcoach]</code> message about what’s missing.
               </li>
             </ul>
@@ -358,7 +358,7 @@ export function SettingsSheet({
           <SectionLabel>Units</SectionLabel>
         </div>
         <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
-          Weight and height display units. Logged values are stored consistently — switching units only changes how numbers are shown.
+          Weight and height display units. Logged values are stored consistently, switching units only changes how numbers are shown.
         </p>
         <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
           <UnitPreferencePicker

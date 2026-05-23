@@ -116,7 +116,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
           Weigh-in
         </div>
         <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", fontWeight: 400 }}>
-          Morning scale, post-bathroom, before food. Optional progress photo — same stance and lighting when you can.
+          Morning scale, post-bathroom, before food. Optional progress photo, same stance and lighting when you can.
         </p>
         <div className="between" style={{ alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 100 }}>

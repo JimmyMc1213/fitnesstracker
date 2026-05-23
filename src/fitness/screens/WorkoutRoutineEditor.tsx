@@ -271,7 +271,7 @@ export function WorkoutRoutineEditor({
                 <input
                   value={row.target}
                   onChange={(e) => patchExercise(row.id, { target: e.target.value })}
-                  placeholder="e.g. 4 × 8–10"
+                  placeholder="e.g. 4 × 8-10"
                   style={inputStyle}
                   readOnly={ctx.isOverlay}
                 />

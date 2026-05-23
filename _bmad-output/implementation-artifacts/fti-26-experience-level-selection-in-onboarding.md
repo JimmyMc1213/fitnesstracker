@@ -22,7 +22,7 @@ so that generated workout templates use appropriate starting weights and rep ran
   - [x] Add `ExperienceLevel` to `types.ts`, `persistFitnessSlice.ts`, `buildAppState.ts`, `mergePersistedFitnessSlices.ts`
   - [x] Add `experienceLevel.ts` with labels, defaults, and normalization
 - [x] Task 2: Template generation (AC: 4, 5)
-  - [x] Add `workoutTemplatesForExperience.ts` — adjust rep ranges and starting weights per level
+  - [x] Add `workoutTemplatesForExperience.ts`: adjust rep ranges and starting weights per level
   - [x] Wire generation on onboarding continue
 - [x] Task 3: Onboarding screen + gate (AC: 1, 2)
   - [x] `ExperienceLevelOnboardingScreen.tsx` + `ExperienceLevelPicker.tsx`
@@ -32,7 +32,7 @@ so that generated workout templates use appropriate starting weights and rep ran
 ## Dev Notes
 
 - Follow FTI-25 patterns: gate component, card UI, segment buttons, legacy skip via workout history / weight log / Jimmy plan.
-- Canonical storage: `experienceLevel` string enum. No test runner — gate is `npm run build`.
+- Canonical storage: `experienceLevel` string enum. No test runner, gate is `npm run build`.
 - Full multi-step onboarding (FTI-14) comes later; this story adds the experience step only.
 - linear: FTI-26
 
@@ -71,7 +71,7 @@ Composer
 ## Senior Developer Review (AI)
 
 - Verified persistence pipeline and merge for `experienceLevel` / `experienceLevelChosen`.
-- Legacy skip uses workout completions, weight log, or Jimmy plan templates — avoids regressing demo users.
+- Legacy skip uses workout completions, weight log, or Jimmy plan templates, avoids regressing demo users.
 - Template generation scales baseline weights (70% beginner, 115% advanced) and shifts rep ranges ±2.
 
 ### Review Follow-ups (AI)

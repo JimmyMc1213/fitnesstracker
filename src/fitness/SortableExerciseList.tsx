@@ -45,7 +45,7 @@ const dropAnimation = {
 export type SortableListContext = {
   /** @deprecated Overlay uses built-in compact row; kept for API compatibility */
   isOverlay: boolean;
-  /** True while any item is being dragged — list shows compact name rows (Strong-style). */
+  /** True while any item is being dragged, list shows compact name rows (Strong-style). */
   isListDragging: boolean;
   isCompactReorder: boolean;
 };

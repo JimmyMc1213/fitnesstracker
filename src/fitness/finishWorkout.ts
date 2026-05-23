@@ -44,7 +44,7 @@ export function finishWorkout(state: AppState, endedAtMs = Date.now()): FinishWo
     workout: {
       ...w,
       sessionPhase: "idle",
-      startedAt: "—",
+      startedAt: "-",
       sessionDayKey: null,
       sessionStartedAtMs: null,
       sessionTitle: "Workout",

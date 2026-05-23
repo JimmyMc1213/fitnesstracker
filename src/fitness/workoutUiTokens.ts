@@ -1,5 +1,5 @@
 /** Shared typography & color tokens for workout UI (FTI-19, FTI-17). */
-/** Primary CTA fill — white on dark (see `--primary` in index.css). */
+/** Primary CTA fill, white on dark (see `--primary` in index.css). */
 export const PRIMARY_FILL = "#ffffff";
 /** @deprecated use PRIMARY_FILL */
 export const PRIMARY_GREEN = PRIMARY_FILL;

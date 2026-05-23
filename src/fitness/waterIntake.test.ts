@@ -18,7 +18,7 @@ describe("normalizeWaterDailyTargetOz", () => {
     expect(normalizeWaterDailyTargetOz("nope")).toBe(DEFAULT_WATER_DAILY_TARGET_OZ);
   });
 
-  it("clamps to 16–256 oz and rounds", () => {
+  it("clamps to 16-256 oz and rounds", () => {
     expect(normalizeWaterDailyTargetOz(10)).toBe(16);
     expect(normalizeWaterDailyTargetOz(300)).toBe(256);
     expect(normalizeWaterDailyTargetOz(64.4)).toBe(64);

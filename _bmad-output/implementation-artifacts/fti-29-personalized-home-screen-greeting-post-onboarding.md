@@ -36,9 +36,9 @@ so the app feels coached and personal from day one.
 
 ### Partial implementation
 
-- `ScreenHome.tsx` already shows `Morning, ${greetingName}` — extend, do not duplicate header layout.
+- `ScreenHome.tsx` already shows `Morning, ${greetingName}`: extend, do not duplicate header layout.
 - `displayName` persisted via standard pipeline; set during onboarding.
-- `planStartIso` set on onboarding complete in `OnboardingFlow.tsx` — use for week index.
+- `planStartIso` set on onboarding complete in `OnboardingFlow.tsx`: use for week index.
 
 ### Subline copy
 
@@ -48,7 +48,7 @@ so the app feels coached and personal from day one.
 ### Architecture
 
 - **Quality gate:** `npm run build` only.
-- **No new persistence** unless week tracking needs a new field (it should not — `planStartIso` exists).
+- **No new persistence** unless week tracking needs a new field (it should not, `planStartIso` exists).
 - **Scope:** Do not implement FTI-30+ in this story.
 
 ### References

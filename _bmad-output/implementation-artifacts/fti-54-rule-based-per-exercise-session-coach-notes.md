@@ -24,18 +24,18 @@ so in-session guidance feels personal without waiting on an API.
 
 ## Tasks / Subtasks
 
-- [x] **Task 1: Pure module** — `src/fitness/exerciseSessionNotes.ts` with `getExerciseSessionNote`, `buildSessionCoachNoteForExercise`, `buildSessionCoachNotesByExerciseId`; re-export from `coachEngine.ts`.
-- [x] **Task 2: WorkoutState** — Add optional `sessionCoachNotesByExerciseId?: Record<string, string>` to `types.ts`; strip on idle in `buildAppState.ts`, `finishWorkout.ts`.
-- [x] **Task 3: ScreenWorkout wiring** — Generate notes in `startTemplateWorkout`, `startEmptyWorkout`, `addExerciseToSession`, `saveDraftCustomAndAddToSession`, `swapExerciseInSession`; clear on `endSessionToIdle`; remove key on `removeExerciseFromSession`.
-- [x] **Task 4: WorkoutExerciseCard** — `sessionCoachNote` prop with blue coach styling.
-- [x] **Task 5: Tests** — `exerciseSessionNotes.test.ts` (5 tests); `npm test` 99 passed.
-- [x] **Task 6: E2E** — `npm run test:e2e` 3 passed.
+- [x] **Task 1: Pure module**: `src/fitness/exerciseSessionNotes.ts` with `getExerciseSessionNote`, `buildSessionCoachNoteForExercise`, `buildSessionCoachNotesByExerciseId`; re-export from `coachEngine.ts`.
+- [x] **Task 2: WorkoutState**: Add optional `sessionCoachNotesByExerciseId?: Record<string, string>` to `types.ts`; strip on idle in `buildAppState.ts`, `finishWorkout.ts`.
+- [x] **Task 3: ScreenWorkout wiring**: Generate notes in `startTemplateWorkout`, `startEmptyWorkout`, `addExerciseToSession`, `saveDraftCustomAndAddToSession`, `swapExerciseInSession`; clear on `endSessionToIdle`; remove key on `removeExerciseFromSession`.
+- [x] **Task 4: WorkoutExerciseCard**: `sessionCoachNote` prop with blue coach styling.
+- [x] **Task 5: Tests**: `exerciseSessionNotes.test.ts` (5 tests); `npm test` 99 passed.
+- [x] **Task 6: E2E**: `npm run test:e2e` 3 passed.
 
 ## Dev Agent Record
 
 ### Implementation Plan
 
-- Submodule `exerciseSessionNotes.ts` shares `findLastLoggedExerciseSets` with autofill — no parallel history scan.
+- Submodule `exerciseSessionNotes.ts` shares `findLastLoggedExerciseSets` with autofill, no parallel history scan.
 - Notes keyed by exercise instance `id` so mid-session adds/swaps get fresh copy without regenerating existing rows.
 - Session-only field on `WorkoutState`; cleared whenever session returns to idle.
 
@@ -62,4 +62,4 @@ so in-session guidance feels personal without waiting on an API.
 
 ## Change Log
 
-- 2026-05-23: FTI-54 — rule-based per-exercise session coach notes (session-scoped, history-driven).
+- 2026-05-23: FTI-54: rule-based per-exercise session coach notes (session-scoped, history-driven).

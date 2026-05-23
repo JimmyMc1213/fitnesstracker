@@ -14,7 +14,7 @@ export function safeJsonParse<T>(raw: string, fallback: T, logKey: string): T {
   }
 }
 
-/** Reset log dedupe — for tests only. */
+/** Reset log dedupe, for tests only. */
 export function resetSafeJsonParseLogs(): void {
   loggedKeys = new Set();
 }

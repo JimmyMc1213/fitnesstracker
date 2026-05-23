@@ -73,7 +73,7 @@ export function ExerciseNotesEditSheet({ exerciseName, note, onSave, onDelete, o
         </div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 14, fontWeight: 500 }}>{exerciseName}</div>
         <p style={{ margin: "0 0 12px", fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.45 }}>
-          Saved to this exercise everywhere it appears — seat height, form cues, machine settings, etc.
+          Saved to this exercise everywhere it appears, seat height, form cues, machine settings, etc.
         </p>
         <textarea
           value={draft}

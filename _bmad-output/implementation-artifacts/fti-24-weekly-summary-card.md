@@ -41,8 +41,8 @@ so that I see workouts, volume, and nutrition consistency at a glance.
 
 ### Primary implementation targets
 
-- **`src/fitness/weeklySummary.ts`** — week bounds (Monday start), aggregation
-- **`src/fitness/WeeklySummaryCard.tsx`** — presentation component
+- **`src/fitness/weeklySummary.ts`**, week bounds (Monday start), aggregation
+- **`src/fitness/WeeklySummaryCard.tsx`**, presentation component
 - **`src/fitness/screens/ScreenHome.tsx`**, **`src/fitness/screens/ScreenProgress.tsx`**
 
 ### Week boundary
@@ -69,7 +69,7 @@ so that I see workouts, volume, and nutrition consistency at a glance.
 ### Architecture & constraints
 
 - **Quality gate:** `npm run build` only. No Vitest/Playwright.
-- **No new persistence** — read-only aggregation from existing AppState fields.
+- **No new persistence**, read-only aggregation from existing AppState fields.
 - **Scope discipline:** Final story in sprint-1 epic.
 
 ### References
@@ -83,7 +83,7 @@ so that I see workouts, volume, and nutrition consistency at a glance.
 
 - Build gate: `npm run build` PASS
 - Monday week boundary implemented separately from Sunday-based streak calendar (intentional per AC)
-- Read-only aggregation — no new Supabase fields; data flows from existing synced JSONB slices
+- Read-only aggregation, no new Supabase fields; data flows from existing synced JSONB slices
 - Volume display follows `WorkoutSummarySheet` kg conversion pattern
 
 ## Review Follow-ups (AI)
@@ -112,4 +112,4 @@ Composer
 
 ## Change Log
 
-- 2026-05-21: Implemented weekly summary card (FTI-24) — final sprint-1 story
+- 2026-05-21: Implemented weekly summary card (FTI-24), final sprint-1 story

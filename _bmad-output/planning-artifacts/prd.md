@@ -1,14 +1,14 @@
-# Fitcoach — Product Requirements (summary)
+# Fitcoach, Product Requirements (summary)
 
 **Project:** fitnesstracker  
-**Product:** Fitcoach — mobile-first PWA personal fitness OS  
+**Product:** Fitcoach, mobile-first PWA personal fitness OS  
 **Last updated:** 2026-05-21
 
 ---
 
 ## Product overview
 
-**Positioning:** Fitcoach is the all-in-one fitness app that coaches you through every workout, meal, and check-in — so you never need another app to hit your goals.
+**Positioning:** Fitcoach is the all-in-one fitness app that coaches you through every workout, meal, and check-in, so you never need another app to hit your goals.
 
 Fitcoach is a **mobile PWA** for tracking workouts, nutrition, habits, and progress. It targets **multiple users** with Supabase auth and per-user cloud sync (not a single hardcoded profile). Coaching is rule-based and contextual today (`coach.ts`); AI session notes (FTI-13) are deferred until the voice is defined.
 
@@ -32,7 +32,7 @@ Fitcoach is a **mobile PWA** for tracking workouts, nutrition, habits, and progr
 
 - Native App Store wrapper, subscriptions / IAP (Sprint 3)
 - Social features, coach marketplace
-- FTI-13 AI coach API (Sprint 3+ — extend rule-based coaching first)
+- FTI-13 AI coach API (Sprint 3+, extend rule-based coaching first)
 - Automated test suite (gate is `npm run build` only)
 
 ---
@@ -47,9 +47,9 @@ Detailed acceptance criteria, priorities, and status live in Linear. BMad story 
 
 | ID | Title | URL |
 | --- | --- | --- |
-| FTI-14 | New user onboarding — workout template selection + nutrition setup | https://linear.app/ftiness-tracker/issue/FTI-14/new-user-onboarding-workout-template-selection-nutrition-setup |
+| FTI-14 | New user onboarding, workout template selection + nutrition setup | https://linear.app/ftiness-tracker/issue/FTI-14/new-user-onboarding-workout-template-selection-nutrition-setup |
 | FTI-15 | Save workouts and workout history | https://linear.app/ftiness-tracker/issue/FTI-15/save-workouts-and-workout-history |
-| FTI-16 | Rebuild weigh-in — simple logging with optional progress photo | https://linear.app/ftiness-tracker/issue/FTI-16/rebuild-weigh-in-simple-logging-with-optional-progress-photo |
+| FTI-16 | Rebuild weigh-in, simple logging with optional progress photo | https://linear.app/ftiness-tracker/issue/FTI-16/rebuild-weigh-in-simple-logging-with-optional-progress-photo |
 | FTI-17 | Clean up edit workout UI | https://linear.app/ftiness-tracker/issue/FTI-17/clean-up-edit-workout-ui |
 | FTI-18 | Drag and drop lift effect on exercise reorder | https://linear.app/ftiness-tracker/issue/FTI-18/drag-and-drop-lift-effect-on-exercise-reorder |
 | FTI-19 | Workout screen UI cleanup | https://linear.app/ftiness-tracker/issue/FTI-19/workout-screen-ui-cleanup |

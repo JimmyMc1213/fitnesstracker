@@ -26,7 +26,7 @@ export function heightUnitLabel(unit: HeightDisplayUnit): string {
 
 /** Format canonical lbs for display in the user's weight unit. */
 export function formatWeightFromLbs(lbs: number, unit: WeightUnit, decimals = 1): string {
-  if (!Number.isFinite(lbs)) return "—";
+  if (!Number.isFinite(lbs)) return ", ";
   if (unit === "kg") return (lbs / LBS_PER_KG).toFixed(decimals);
   return lbs.toFixed(decimals);
 }
@@ -37,13 +37,13 @@ export function parseWeightToLbs(value: number, unit: WeightUnit): number {
   return unit === "kg" ? value * LBS_PER_KG : value;
 }
 
-/** Valid display-range for weigh-in input (roughly 70–450 lb). */
+/** Valid display-range for weigh-in input (roughly 70-450 lb). */
 export function isValidWeighInLbs(lbs: number): boolean {
   return Number.isFinite(lbs) && lbs >= 70 && lbs <= 450;
 }
 
 export function formatHeightFromInches(inches: number, unit: HeightDisplayUnit): string {
-  if (!Number.isFinite(inches) || inches <= 0) return "—";
+  if (!Number.isFinite(inches) || inches <= 0) return ", ";
   if (unit === "cm") return String(Math.round(inches / IN_PER_CM));
   const ft = Math.floor(inches / 12);
   const inch = Math.round(inches % 12);

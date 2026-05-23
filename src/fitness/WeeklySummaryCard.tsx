@@ -76,7 +76,7 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
       />
       <StatBlock
         label="Volume"
-        value={summary.totalVolumeLbs > 0 ? displayVolume.toLocaleString() : "—"}
+        value={summary.totalVolumeLbs > 0 ? displayVolume.toLocaleString() : ", "}
         sub={volLabel}
       />
       <StatBlock
@@ -143,7 +143,7 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
         className="tap"
         onClick={() => setCollapsed((v) => !v)}
         aria-expanded={!collapsed}
-        aria-label={collapsed ? "This week summary — tap to expand" : "This week summary — tap to collapse"}
+        aria-label={collapsed ? "This week summary, tap to expand" : "This week summary, tap to collapse"}
         style={{
           width: "100%",
           display: "flex",

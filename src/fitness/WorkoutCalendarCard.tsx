@@ -296,7 +296,7 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
           >
             <IconDumbbell size={28} stroke={1.75} style={{ color: "rgba(255,255,255,0.25)" }} />
             <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.45, maxWidth: 260 }}>
-              No workouts yet — finish a session in Workout to light up your calendar
+              No workouts yet, finish a session in Workout to light up your calendar
             </p>
           </div>
         ) : (

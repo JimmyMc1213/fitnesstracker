@@ -6,7 +6,7 @@ Status: cancelled
 
 As a user, I want AI-generated coaching notes per exercise when I start a workout, so progressive overload guidance reads like a human coach.
 
-## Decision (Sprint 6 scope lock — 2026-05-23)
+## Decision (Sprint 6 scope lock, 2026-05-23)
 
 **Skipped at FTI-54 review.** Rule-based per-exercise session notes (FTI-54) satisfy the product bar for in-session coaching. FTI-55 remains backlog for a future sprint if LLM copy is still desired.
 
@@ -18,8 +18,8 @@ As a user, I want AI-generated coaching notes per exercise when I start a workou
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: LLM integration** — deferred
-- [ ] **Task 2: Feature flag** — deferred
+- [ ] **Task 1: LLM integration**: deferred
+- [ ] **Task 2: Feature flag**: deferred
 
 ## Dev Agent Record
 

@@ -14,7 +14,7 @@ so that reordering feels native on mobile.
 2. **Finger tracking:** Overlay follows pointer/touch in real time without perceptible lag.
 3. **Smooth sibling shift:** Non-dragged exercises animate to new slots; no hard cut/jump.
 4. **Clean drop:** Item animates into its final position on release.
-5. **Shared component:** Enhance `SortableExerciseList` (`@dnd-kit/sortable` already in stack) — used by live workout edit mode and routine editor.
+5. **Shared component:** Enhance `SortableExerciseList` (`@dnd-kit/sortable` already in stack), used by live workout edit mode and routine editor.
 
 ## Tasks / Subtasks
 
@@ -26,7 +26,7 @@ so that reordering feels native on mobile.
 - [x] **Task 2: Smooth layout transitions** (AC: 3, 4)
   - [x] Use `defaultAnimateLayoutChanges` on `useSortable` rows
   - [x] Configure `DndContext` measuring for reliable layout during drag
-  - [x] Tune row `transition` for transform (200–250ms ease)
+  - [x] Tune row `transition` for transform (200-250ms ease)
 
 - [x] **Task 3: Mobile sensors** (AC: 2)
   - [x] Add `TouchSensor` with same activation distance as `PointerSensor`
@@ -38,14 +38,14 @@ so that reordering feels native on mobile.
 
 ### Primary target
 
-- **`src/fitness/SortableExerciseList.tsx`** — all lift/animation behavior centralized here
+- **`src/fitness/SortableExerciseList.tsx`**, all lift/animation behavior centralized here
 - Consumers unchanged: `ScreenWorkout.tsx` (session edit mode), `WorkoutRoutineEditor.tsx`
 
 ### Scope discipline
 
 - Do **not** add rest timer, swap exercise, or PR board (FTI-20+)
 - Do **not** change edit-mode toggle UX from FTI-19
-- Quality gate: **`npm run build` only** — no Vitest/Playwright/dev server
+- Quality gate: **`npm run build` only**, no Vitest/Playwright/dev server
 
 ### dnd-kit patterns
 
@@ -79,7 +79,7 @@ Composer (bmad-swarm)
 | ID | Severity | Finding | Resolution |
 | --- | --- | --- | --- |
 | F1 | MEDIUM | Placeholder opacity 0.28 vs drop side-effect 0.4 could flash on release | Kept; drop animation restores over ~240ms |
-| F2 | LOW | Dual Pointer+Touch sensors — standard dnd-kit pattern for mobile | Accepted |
+| F2 | LOW | Dual Pointer+Touch sensors, standard dnd-kit pattern for mobile | Accepted |
 | F3 | LOW | `MeasuringStrategy.Always` adds layout work on long lists | Acceptable for typical exercise counts |
 
 **Recommendation:** APPROVE

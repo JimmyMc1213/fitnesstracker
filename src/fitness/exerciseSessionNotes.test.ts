@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildSessionCoachNotesByExerciseId,
   getExerciseSessionNote,
+  sanitizeCoachCopy,
 } from "./exerciseSessionNotes";
 import { getExerciseSessionNote as getExerciseSessionNoteFromEngine } from "./coachEngine";
 import { workoutHistoryAppState } from "./testFixtures/appStateFixtures";
@@ -47,6 +48,16 @@ function exercise(id: string, name: string, label?: string): WorkoutExercise {
   };
 }
 
+describe("sanitizeCoachCopy", () => {
+  it("strips em dashes and multiplication signs from legacy notes", () => {
+    const legacy =
+      "Last session: 135×8, 135×8. Match or beat 135 lb × 8 — add ~5 lb when every set hits the top of the range.";
+    expect(sanitizeCoachCopy(legacy)).toBe(
+      "Last session: 135x8, 135x8. Match or beat 135 lb x 8, add ~5 lb when every set hits the top of the range.",
+    );
+  });
+});
+
 describe("getExerciseSessionNote", () => {
   it("returns progressive overload copy when history exists", () => {
     const state = workoutHistoryAppState([
@@ -57,15 +68,15 @@ describe("getExerciseSessionNote", () => {
       ]),
     ]);
     const note = getExerciseSessionNote({ workoutHistory: state.workoutHistory }, exercise("e1", "Bench Press"));
-    expect(note).toContain("Last session: 135×8, 135×8, 135×7");
-    expect(note).toContain("135 lb × 8");
+    expect(note).toContain("Last session: 135x8, 135x8, 135x7");
+    expect(note).toContain("135x8 lb");
     expect(note).toContain("add ~5 lb");
   });
 
   it("returns generic tip when no history", () => {
     const note = getExerciseSessionNote({ workoutHistory: [] }, exercise("e1", "Squat"));
     expect(note).toContain("Lead with Squat");
-    expect(note).toContain("1–2 reps in reserve");
+    expect(note).toContain("1-2 reps in reserve");
     expect(note).not.toContain("Last session");
   });
 
@@ -104,8 +115,8 @@ describe("getExerciseSessionNote", () => {
       { workoutHistory: state.workoutHistory },
       exercise("e2", "Bench Press", "Dumbbell"),
     );
-    expect(barbellNote).toContain("135×8");
-    expect(dumbbellNote).toContain("60×10");
+    expect(barbellNote).toContain("135x8");
+    expect(dumbbellNote).toContain("60x10");
   });
 
   it("is re-exported from coachEngine", () => {

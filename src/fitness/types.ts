@@ -47,7 +47,7 @@ export type CustomExerciseTemplate = {
   label: string;
 };
 
-/** Saved workout blueprint (editable routines list — like Strong “routines”). */
+/** Saved workout blueprint (editable routines list, like Strong “routines”). */
 export type WorkoutRoutineTemplate = {
   id: string;
   name: string;
@@ -92,7 +92,7 @@ export type CompletedWorkoutSession = {
   exercises: WorkoutExercise[];
 };
 
-/** Snapshot shown after tapping Finish — not persisted (cleared on dismiss). */
+/** Snapshot shown after tapping Finish, not persisted (cleared on dismiss). */
 export type WorkoutSessionSummary = {
   title: string;
   durationSec: number;
@@ -133,7 +133,7 @@ export type Habit = HabitTemplate & {
 
 export type WeightUnit = "lbs" | "kg";
 
-/** Height entry/display mode — canonical storage is always inches (`heightIn`). */
+/** Height entry/display mode, canonical storage is always inches (`heightIn`). */
 export type HeightDisplayUnit = "ft_in" | "cm";
 
 export type ExperienceLevel = "beginner" | "intermediate" | "advanced";
@@ -153,7 +153,7 @@ export type NotificationPreferences = {
   workoutReminderTime: string;
   nutritionCheckInEnabled: boolean;
   nutritionCheckInTime: string;
-  /** Last local date keys a reminder was shown — prevents duplicate fires per day */
+  /** Last local date keys a reminder was shown, prevents duplicate fires per day */
   lastFiredWorkoutReminderDateKey: string | null;
   lastFiredNutritionReminderDateKey: string | null;
 };
@@ -176,7 +176,7 @@ export type UnitPreferences = {
 
 export type TabId = "home" | "nutrition" | "workout" | "progress" | "stretch";
 
-/** One actionable item for the day — training, fuel, recovery. */
+/** One actionable item for the day, training, fuel, recovery. */
 export type DailyTask = {
   id: string;
   title: string;
@@ -237,7 +237,7 @@ export type StreakLossNotice = {
 
 export type WaterLogEntry = {
   id: string;
-  /** Fluid ounces — canonical storage unit */
+  /** Fluid ounces, canonical storage unit */
   amountOz: number;
   loggedAtMs: number;
 };
@@ -292,7 +292,7 @@ export type AppState = {
   weightLog: WeightEntry[];
   /** Last Sunday you applied an approved fuel change. */
   lastAdjustmentSundayKey: string | null;
-  /** Last Sunday you finished the review flow (approve or skip) — blocks the sheet until next week. */
+  /** Last Sunday you finished the review flow (approve or skip), blocks the sheet until next week. */
   sundayReviewCompletedKey: string | null;
   adjustmentHistory: AdjustmentEvent[];
   /** Phoenix calendar date (YYYY-MM-DD) when nightly stretch was marked done. */

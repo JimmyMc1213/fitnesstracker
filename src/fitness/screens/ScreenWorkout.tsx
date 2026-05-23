@@ -71,16 +71,16 @@ function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
 }
 
 const MOBILITY_ITEMS = [
-  "90/90 hips or World's greatest stretch — 45–60s each side",
-  "Thoracic extension over bench or foam roller — 8–10 slow reps",
-  "Shoulder circles + band dislocates (light) — easy range, no forcing",
+  "90/90 hips or World's greatest stretch, 45-60s each side",
+  "Thoracic extension over bench or foam roller, 8-10 slow reps",
+  "Shoulder circles + band dislocates (light), easy range, no forcing",
   "Ankles/calves: knee-to-wall or calf rocks if squatting today",
 ];
 
 const WARMUP_ITEMS = [
-  "5–8 min easy cardio (bike, walk incline, or row) until you break a light sweat",
-  "Band pull-aparts or face pulls — 2–3 sets × 15–20, shoulders back & down",
-  "2–4 ramp sets on your first main lift — empty bar → light → working weight",
+  "5-8 min easy cardio (bike, walk incline, or row) until you break a light sweat",
+  "Band pull-aparts or face pulls, 2-3 sets × 15-20, shoulders back & down",
+  "2-4 ramp sets on your first main lift, empty bar → light → working weight",
 ];
 
 export function ScreenWorkout({ state, setState }: ScreenProps) {
@@ -477,7 +477,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         workout: {
           ...s.workout,
           sessionPhase: "idle",
-          startedAt: "—",
+          startedAt: "-",
           sessionDayKey: null,
           sessionStartedAtMs: null,
           sessionTitle: "Workout",

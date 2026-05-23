@@ -21,7 +21,7 @@ so set-logging and finish-flow regressions are caught before session-coaching ch
   - [x] 1.1 `workoutSessionPersistSeed()` in `e2e/helpers/seed.ts` with routine + exercise + sets
 
 - [x] **Task 2: Workout session smoke spec** (AC: 1, 2)
-  - [x] 2.1 `e2e/workout-session-smoke.spec.ts` — start → Done → Finish → summary assertions
+  - [x] 2.1 `e2e/workout-session-smoke.spec.ts`: start → Done → Finish → summary assertions
 
 - [x] **Task 3: Verification** (AC: 3, 4)
   - [x] 3.1 `npm run build` + `npm test` + `npm run test:e2e`
@@ -49,4 +49,4 @@ Composer (bmad-swarm epic-6)
 
 ## Senior Developer Review (AI)
 
-No findings — new E2E only, no production code changes.
+No findings, new E2E only, no production code changes.

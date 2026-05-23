@@ -2,6 +2,7 @@ import {
   loadTasksForToday,
   localDateKey,
 } from "./dailyPlan";
+import { sanitizeCoachCopy } from "./exerciseSessionNotes";
 import {
   DEFAULT_NUTRITION_TARGETS,
   INITIAL_WORKOUT,
@@ -120,7 +121,7 @@ function normalizePersistedWorkout(raw: WorkoutState | undefined): WorkoutState 
   if (sessionPhase === "idle") {
     return {
       ...base,
-      startedAt: "—",
+      startedAt: "-",
       sessionDayKey: null,
       sessionStartedAtMs: null,
       exercises: [],
@@ -133,13 +134,21 @@ function normalizePersistedWorkout(raw: WorkoutState | undefined): WorkoutState 
     return {
       ...base,
       sessionPhase: "idle",
-      startedAt: "—",
+      startedAt: "-",
       sessionDayKey: null,
       sessionStartedAtMs: null,
       exercises: [],
       sessionTitle: "Workout",
       sessionCoachNotesByExerciseId: undefined,
     };
+  }
+
+  if (base.sessionCoachNotesByExerciseId) {
+    const notes: Record<string, string> = {};
+    for (const [id, note] of Object.entries(base.sessionCoachNotesByExerciseId)) {
+      notes[id] = sanitizeCoachCopy(note);
+    }
+    base.sessionCoachNotesByExerciseId = notes;
   }
 
   return base;

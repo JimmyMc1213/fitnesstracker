@@ -37,10 +37,10 @@ export function formatEstimatedSessionMinutes(totalSec: number): string {
   return `~${display} min`;
 }
 
-/** Secondary header label: `Push — ~55 min`. Empty string when routine has no exercises. */
+/** Secondary header label: `Push, ~55 min`. Empty string when routine has no exercises. */
 export function estimatedSessionLabel(routine: WorkoutRoutineTemplate): string {
   if (routine.exercises.length === 0) return "";
   const mins = formatEstimatedSessionMinutes(estimateRoutineSessionSeconds(routine));
   if (!mins) return "";
-  return `${routine.name} — ${mins}`;
+  return `${routine.name}, ${mins}`;
 }

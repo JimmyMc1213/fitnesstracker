@@ -53,7 +53,7 @@ export function WorkoutCoachCard({
         className="tap"
         onClick={() => setCollapsed((v) => !v)}
         aria-expanded={!collapsed}
-        aria-label={collapsed ? "Coach tips — tap to expand" : "Coach tips — tap to collapse"}
+        aria-label={collapsed ? "Coach tips, tap to expand" : "Coach tips, tap to collapse"}
         style={{
           width: "100%",
           display: "flex",

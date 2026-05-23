@@ -22,20 +22,20 @@ so that exercises are the focus.
 ## Tasks / Subtasks
 
 - [x] **Task 1: Collapsible coach card** (AC: 1, 5, 6)
-  - [x] Add `WorkoutCoachCard.tsx` (or equivalent) under `src/fitness/` — single expand/collapse control, default `collapsed=true`
+  - [x] Add `WorkoutCoachCard.tsx` (or equivalent) under `src/fitness/`: single expand/collapse control, default `collapsed=true`
   - [x] **Merge into expanded body** (preserve content, remove duplicate cards):
     - Coach note block (`overloadTip` from `progressiveOverloadInsight` + optional `jimmyIntensityCoachingLine`)
     - “After this session” (`activeRoutine?.sessionTip`) when present
     - Template warm-up list (`activeRoutine.warmupItems`) + coach callout (`warmupTip`)
     - Generic mobility + warm-up lists (`MOBILITY_ITEMS`, `WARMUP_ITEMS` currently in `ScreenWorkout.tsx`)
-  - [x] Remove standalone `showWarmup` toggle + separate coach/session/warmup `.card` stack in lifting phase (~lines 799–918 in `ScreenWorkout.tsx`)
+  - [x] Remove standalone `showWarmup` toggle + separate coach/session/warmup `.card` stack in lifting phase (~lines 799-918 in `ScreenWorkout.tsx`)
   - [x] Collapsed header: 10px uppercase “Coach” label + chevron; expanded sections use blue labels for AI/coach blocks
-  - [x] Keep `MOBILITY_ITEMS` / `WARMUP_ITEMS` constants in `ScreenWorkout` or move to `data.ts` only if reuse is needed — minimal move
+  - [x] Keep `MOBILITY_ITEMS` / `WARMUP_ITEMS` constants in `ScreenWorkout` or move to `data.ts` only if reuse is needed, minimal move
 
 - [x] **Task 2: Sticky session stats header** (AC: 2, 6)
-  - [x] Extract stats UI from current session `.card` (~920–944) into `WorkoutSessionStickyHeader` (inline in `ScreenWorkout` is OK if <~80 lines)
+  - [x] Extract stats UI from current session `.card` (~920-944) into `WorkoutSessionStickyHeader` (inline in `ScreenWorkout` is OK if <~80 lines)
   - [x] Apply `position: sticky`, `top: 0`, solid `var(--bg)` or `var(--card)` background, subtle bottom border, `z-index: 2` **inside** `.screen` (see `ScreenStretch.tsx` sticky pattern ~276)
-  - [x] Place sticky bar **below** timer + Finish row and editable session title (or include title in sticky zone — prefer stats-only sticky to maximize exercise viewport)
+  - [x] Place sticky bar **below** timer + Finish row and editable session title (or include title in sticky zone, prefer stats-only sticky to maximize exercise viewport)
   - [x] Verify scroll on iOS PWA: no double-scroll; tab bar safe-area unchanged
 
 - [x] **Task 3: Session edit mode toggle** (AC: 3)
@@ -43,44 +43,44 @@ so that exercises are the focus.
   - [x] Add `IconPencil` (or reuse minimal edit glyph) in `src/fitness/icons.tsx`
   - [x] Place pencil toggle in header row (near Finish or opposite timer); `aria-pressed` + label “Edit workout layout”
   - [x] In `SortableExerciseList` `renderItem`: render `ExerciseDragHandle` only when `sessionEditMode`; render trash `IconTrash` only when `sessionEditMode`
-  - [x] When edit mode off, list remains reorderable only if product requires — **default off means no drag affordance** (listeners only on handle today)
+  - [x] When edit mode off, list remains reorderable only if product requires, **default off means no drag affordance** (listeners only on handle today)
 
 - [x] **Task 4: Exercise card secondary actions** (AC: 4, 5)
-  - [x] Update `ExerciseNoteRow.tsx`: user note text/empty state uses **dark gray** (`rgba(255,255,255,0.45–0.65)`), border `var(--border)`; reserve blue for “Add note” hint only if desired, or keep CTA muted gray per AC
-  - [x] Add compact **Progress** secondary action on each exercise card: show `exercisePersonalBests` entry for `exercise.name` when present (e.g. “PR 185×8” via `formatSetWeight` + unit label); tap opens small read-only detail or inline expand — **no new persistence**
+  - [x] Update `ExerciseNoteRow.tsx`: user note text/empty state uses **dark gray** (`rgba(255,255,255,0.45-0.65)`), border `var(--border)`; reserve blue for “Add note” hint only if desired, or keep CTA muted gray per AC
+  - [x] Add compact **Progress** secondary action on each exercise card: show `exercisePersonalBests` entry for `exercise.name` when present (e.g. “PR 185×8” via `formatSetWeight` + unit label); tap opens small read-only detail or inline expand, **no new persistence**
   - [x] Layout: single footer row with muted text buttons (`Add note` | `Progress`) below set grid, `fontSize: 12`, low contrast; hide Progress when no PR data (or show “No history yet” on tap only)
   - [x] Do **not** change `WorkoutRoutineEditor` (FTI-17 scope)
 
 - [x] **Task 5: Typography & color audit** (AC: 5, 6)
   - [x] Session title input: `fontSize: 24`, `fontWeight: 700`
-  - [x] Audit lifting-phase labels (Set / weight / reps headers already 10px uppercase — keep)
+  - [x] Audit lifting-phase labels (Set / weight / reps headers already 10px uppercase, keep)
   - [x] Replace ad-hoc coach greens for “After this session” inside unified coach card with blue AI styling for consistency, unless copy is explicitly post-session user reminder (then neutral gray subsection)
   - [x] Document shared constants at top of `ScreenWorkout.tsx` or tiny `workoutUiTokens.ts` if reused: `COACH_BLUE`, `USER_NOTE_GRAY`, `TITLE_SIZE`, `LABEL_SIZE`
 
 - [x] **Task 6: Verification** (AC: all)
   - [x] Manual: start lifting session → coach card collapsed; expand shows all prior coach blocks; sticky stats stay visible while scrolling 3+ exercises
   - [x] Manual: edit mode off → no handles/trash; on → handles/trash return; reorder still works when on
-  - [x] Run `npm run build` (project quality gate — no unit tests)
+  - [x] Run `npm run build` (project quality gate, no unit tests)
 
 ## Dev Notes
 
 ### Primary implementation target
 
-- **`src/fitness/screens/ScreenWorkout.tsx`** — lifting phase UI (~737–1390): coach banners, session stats card, exercise `renderItem`, warmup toggle
+- **`src/fitness/screens/ScreenWorkout.tsx`**, lifting phase UI (~737-1390): coach banners, session stats card, exercise `renderItem`, warmup toggle
 - **New/extracted:** `WorkoutCoachCard.tsx`, optional `WorkoutSessionStickyHeader.tsx`
 - **Touch:** `ExerciseNoteRow.tsx`, `icons.tsx` (pencil), possibly `unitPreferences.ts` formatters for Progress display
 
-### Current UI map (lifting phase) — what to merge/remove
+### Current UI map (lifting phase), what to merge/remove
 
 | Current block | Location (approx.) | Fate |
 | --- | --- | --- |
-| “Show warm-up checklist” toggle | 799–813 | Absorbed into coach card expand |
-| Session warm-up + Coach callout cards | 817–847 | Inside coach card |
-| Mobility + Warm-up generic cards | 850–891 | Inside coach card |
-| Coach note card (`overloadTip`) | 895–909 | Inside coach card |
-| “After this session” green card | 911–918 | Inside coach card (restyle) |
-| Session stats card | 920–944 | **Sticky header** (not coach) |
-| Always-visible drag + trash | 974–1023 | Gated by edit mode |
+| “Show warm-up checklist” toggle | 799-813 | Absorbed into coach card expand |
+| Session warm-up + Coach callout cards | 817-847 | Inside coach card |
+| Mobility + Warm-up generic cards | 850-891 | Inside coach card |
+| Coach note card (`overloadTip`) | 895-909 | Inside coach card |
+| “After this session” green card | 911-918 | Inside coach card (restyle) |
+| Session stats card | 920-944 | **Sticky header** (not coach) |
+| Always-visible drag + trash | 974-1023 | Gated by edit mode |
 
 Coach content sources:
 
@@ -93,10 +93,10 @@ Coach content sources:
 
 ### Architecture & constraints
 
-- **No React Router;** `AppState` via `setState` only — `sessionEditMode` is **local UI state** (do not persist).
+- **No React Router;** `AppState` via `setState` only, `sessionEditMode` is **local UI state** (do not persist).
 - **No new AppState fields** unless Progress needs persistence (it should read `state.exercisePersonalBests` only).
-- **DnD:** `@dnd-kit/core` ^6.3.1, `@dnd-kit/sortable` ^10.0.0 — keep `SortableExerciseList`; FTI-18 will enhance drag **feel** later; this story only toggles visibility.
-- **Sticky scroll:** Per `_bmad-output/project-context.md` — scrolling stays inside `.screen`; avoid `position: fixed` on root shell. Reference `ScreenStretch.tsx` sticky header pattern.
+- **DnD:** `@dnd-kit/core` ^6.3.1, `@dnd-kit/sortable` ^10.0.0, keep `SortableExerciseList`; FTI-18 will enhance drag **feel** later; this story only toggles visibility.
+- **Sticky scroll:** Per `_bmad-output/project-context.md`: scrolling stays inside `.screen`; avoid `position: fixed` on root shell. Reference `ScreenStretch.tsx` sticky header pattern.
 - **Quality gate:** `npm run build` only (`tsc -b && vite build`). No Vitest/Playwright.
 - **Scope discipline:** Do not implement FTI-17 (routine editor), FTI-18 (drag lift animation), FTI-20+ in this story.
 
@@ -104,8 +104,8 @@ Coach content sources:
 
 | Element | Spec |
 | --- | --- |
-| AI / coach body text | Blue accent labels; body `rgba(255,255,255,0.72–0.88)` on `rgba(10,132,255,0.06–0.08)` card bg |
-| User exercise notes | Dark gray text `rgba(255,255,255,0.55–0.72)`, neutral border — update `ExerciseNoteRow` |
+| AI / coach body text | Blue accent labels; body `rgba(255,255,255,0.72-0.88)` on `rgba(10,132,255,0.06-0.08)` card bg |
+| User exercise notes | Dark gray text `rgba(255,255,255,0.55-0.72)`, neutral border, update `ExerciseNoteRow` |
 | Session title | 24px, 700, `#fff` |
 | Section labels | 10px, 600, uppercase, `letterSpacing: 0.08em` |
 | Volume number | 24px, 700, tabular-nums |
@@ -116,8 +116,8 @@ Existing blue constant in file: `ACCENT_BLUE = "#0A84FF"`.
 ### Previous story learnings (same epic)
 
 - **FTI-16:** Weigh-in rebuilt with sheet pattern; gate is build-only; minimal diff discipline.
-- **FTI-25:** `formatSetWeight` / `weightUnitLabel` — use for volume and Progress display.
-- **FTI-14–27:** Onboarding/templates supply `warmupItems`, `warmupTip`, `sessionTip` on `WorkoutRoutineTemplate` — coach card must handle **missing** optional fields gracefully.
+- **FTI-25:** `formatSetWeight` / `weightUnitLabel`: use for volume and Progress display.
+- **FTI-14-27:** Onboarding/templates supply `warmupItems`, `warmupTip`, `sessionTip` on `WorkoutRoutineTemplate`: coach card must handle **missing** optional fields gracefully.
 
 ### “Progress” secondary action (clarification for dev)
 
@@ -163,7 +163,7 @@ Composer (bmad-story-dev autonomous)
 - src/fitness/screens/ScreenWorkout.tsx (modified)
 - src/fitness/ExerciseNoteRow.tsx (modified)
 - src/fitness/icons.tsx (modified)
-- src/fitness/screens/WorkoutRoutineEditor.tsx (modified — `variant="editor"` only)
+- src/fitness/screens/WorkoutRoutineEditor.tsx (modified, `variant="editor"` only)
 - _bmad-output/implementation-artifacts/sprint-status.yaml (modified)
 
 ## Senior Developer Review (AI)

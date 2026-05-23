@@ -61,7 +61,7 @@ function basePersistSlice(dateKey: string) {
       splitId: "mon-upper",
       exercises: [],
       sessionPhase: "idle",
-      startedAt: "—",
+      startedAt: "-",
       sessionDayKey: null,
       sessionStartedAtMs: null,
       sessionTitle: "Workout",

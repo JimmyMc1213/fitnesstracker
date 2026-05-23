@@ -6,7 +6,7 @@ Status: done
 
 As a developer,
 I want `waterIntake.ts` unit tests and persistence of weigh-in macro nudges on save,
-so Sprint 2–3 retro debt is closed and Home coach copy survives refresh without recomputing away.
+so Sprint 2-3 retro debt is closed and Home coach copy survives refresh without recomputing away.
 
 ## Acceptance Criteria
 
@@ -36,14 +36,14 @@ so Sprint 2–3 retro debt is closed and Home coach copy survives refresh withou
 
 ### File List
 
-- `src/fitness/types.ts` — `WeightEntry` coach persist fields
-- `src/fitness/WeighInSheet.tsx` — save attaches coach reaction
-- `src/fitness/coachEngine.ts` — display prefers persisted fields
-- `src/fitness/buildAppState.ts` — `normalizeWeightLog`
-- `src/fitness/mergePersistedFitnessSlices.ts` — merge coach fields
-- `src/fitness/waterIntake.test.ts` — new unit tests
-- `src/fitness/coachEngine.test.ts` — persisted display test
+- `src/fitness/types.ts`: `WeightEntry` coach persist fields
+- `src/fitness/WeighInSheet.tsx`: save attaches coach reaction
+- `src/fitness/coachEngine.ts`: display prefers persisted fields
+- `src/fitness/buildAppState.ts`: `normalizeWeightLog`
+- `src/fitness/mergePersistedFitnessSlices.ts`: merge coach fields
+- `src/fitness/waterIntake.test.ts`: new unit tests
+- `src/fitness/coachEngine.test.ts`: persisted display test
 
 ### Change Log
 
-- 2026-05-23: FTI-56 — waterIntake Vitest + weigh-in macro nudge persist at save time.
+- 2026-05-23: FTI-56: waterIntake Vitest + weigh-in macro nudge persist at save time.

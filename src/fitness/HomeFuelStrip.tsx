@@ -6,7 +6,7 @@ type Props = {
   targets: MacroTotals;
   label?: string;
   onLogClick?: () => void;
-  /** Brief coached pace hint — shown only when user is behind protein pace. */
+  /** Brief coached pace hint, shown only when user is behind protein pace. */
   paceHint?: string;
 };
 

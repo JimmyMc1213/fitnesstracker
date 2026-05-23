@@ -10,15 +10,15 @@
 
 ## Epic summary
 
-**Goal:** Ship deterministic coaching orchestration across Home, Workout, check-in, notifications, and weekly review — one cross-domain `coachEngine` that turns existing app data into actionable coach copy without LLM dependency.
+**Goal:** Ship deterministic coaching orchestration across Home, Workout, check-in, notifications, and weekly review, one cross-domain `coachEngine` that turns existing app data into actionable coach copy without LLM dependency.
 
 | Metric | Value |
 | --- | --- |
 | Stories completed | 8 / 8 |
 | PRs merged | 8 (FTI-40–FTI-39 via PRs #18–#25) |
 | Quality gate | `npm run build` + `npm test` on every story |
-| Test automation | Vitest — **69 tests** (from 0 at Sprint 2 end) |
-| Epic status | **done** — all stories on `main` |
+| Test automation | Vitest, **69 tests** (from 0 at Sprint 2 end) |
+| Epic status | **done**, all stories on `main` |
 
 ### Stories delivered
 
@@ -26,7 +26,7 @@
 | --- | --- | --- |
 | fti-40-vitest-harness-coach-dailyplan-unit-tests | FTI-40 | Test harness + regression safety |
 | fti-34-cross-domain-coach-engine | FTI-34 | Pure coaching brain (`coachEngine.ts`) |
-| fti-33-todays-coach-plan-home-redesign | FTI-33 | Home IA — Today's Coach Plan |
+| fti-33-todays-coach-plan-home-redesign | FTI-33 | Home IA, Today's Coach Plan |
 | fti-37-in-session-coach-prominence-set-autofill | FTI-37 | In-session coach + set autofill |
 | fti-35-home-fuel-quick-log-coach-pace | FTI-35 | Home fuel quick-log + macro pace |
 | fti-36-check-in-triggered-micro-adjustments | FTI-36 | Weigh-in coach reactions on Home |
@@ -50,7 +50,7 @@
 | 7 | Live smoke with `?previewOnboarding=1` checklist | ⏳ Partial | Adversarial review caught real bugs (FTI-33 historical log, FTI-37 off-plan coach expand) but no formal checklist artifact |
 | 8 | Document week-boundary rules (Sun vs Mon) | ❌ Not verified | Streak vs weekly summary boundaries still implicit |
 
-**Continuity insight:** Sprint 2's highest-priority test debt (#3) was resolved decisively — FTI-40 as sprint opener was the right call. Every subsequent story extended the same harness. Untracked BMAD artifacts (#6) and Linear sync (#1) remain recurring process gaps.
+**Continuity insight:** Sprint 2's highest-priority test debt (#3) was resolved decisively, FTI-40 as sprint opener was the right call. Every subsequent story extended the same harness. Untracked BMAD artifacts (#6) and Linear sync (#1) remain recurring process gaps.
 
 ---
 
@@ -58,7 +58,7 @@
 
 1. **FTI-40 first unlocked the whole epic.** Vitest + fixtures before `coachEngine.ts` meant FTI-34 shipped with 12 snapshot-style tests on day one. Test count grew predictably: 30 → 42 → 57 → 64 → 65 → 69.
 
-2. **Pure `coachEngine` pattern scaled across surfaces.** One module feeds Home plan card, weigh-in reactions, notification bodies, macro pace rationale, and weekly review — UI stories stayed thin wiring layers.
+2. **Pure `coachEngine` pattern scaled across surfaces.** One module feeds Home plan card, weigh-in reactions, notification bodies, macro pace rationale, and weekly review, UI stories stayed thin wiring layers.
 
 3. **Sprint order was correct.** Engine (34) before Home redesign (33); in-session gap (37) before Home fuel loop (35); notification wiring (38) after all context builders existed; weekly narrative (39) last as retention capstone.
 
@@ -66,27 +66,27 @@
 
 5. **Adversarial review caught high-impact UX bugs.** FTI-33: historical `[+ Log]` navigated to today (HIGH). FTI-37: coach card expanded on off-plan sessions (CRITICAL/HIGH). Both fixed before merge.
 
-6. **Deterministic coaching shipped without FTI-13.** Rule-based voice across 8 stories proves the product thesis — coached feel without API cost or latency.
+6. **Deterministic coaching shipped without FTI-13.** Rule-based voice across 8 stories proves the product thesis, coached feel without API cost or latency.
 
-7. **Shared helper extraction paid off.** `nutritionLog.ts`, `macroPace.ts`, `workoutAutofill.ts`, `coachTaskActions.ts` each got colocated tests — pattern from Sprint 2 matured into standard practice.
+7. **Shared helper extraction paid off.** `nutritionLog.ts`, `macroPace.ts`, `workoutAutofill.ts`, `coachTaskActions.ts` each got colocated tests, pattern from Sprint 2 matured into standard practice.
 
 ---
 
 ## Challenges and growth areas
 
-1. **FTI-33 was the complexity spike.** Home IA touched 7+ components (`TodaysCoachPlanCard`, `HomeFuelStrip`, `coachTaskActions`, streak/summary variants, Nutrition MacroRing hero). Similar surface-area risk to FTI-28 in Sprint 2 — multi-component stories need explicit integration task groups.
+1. **FTI-33 was the complexity spike.** Home IA touched 7+ components (`TodaysCoachPlanCard`, `HomeFuelStrip`, `coachTaskActions`, streak/summary variants, Nutrition MacroRing hero). Similar surface-area risk to FTI-28 in Sprint 2, multi-component stories need explicit integration task groups.
 
-2. **`coachEngine.ts` is becoming a god module.** Exports now include plan, recap, weigh-in, notifications, macro pace inputs, weekly review. Circular import with `notificationScheduler.ts` is documented but fragile — extract shared date/training helpers before Sprint 4.
+2. **`coachEngine.ts` is becoming a god module.** Exports now include plan, recap, weigh-in, notifications, macro pace inputs, weekly review. Circular import with `notificationScheduler.ts` is documented but fragile, extract shared date/training helpers before Sprint 4.
 
-3. **FTI-39 merged ([PR #25](https://github.com/JimmyMc1213/fitnesstracker/pull/25)).** Sprint 3 is fully on `main` — 8/8 PRs merged.
+3. **FTI-39 merged ([PR #25](https://github.com/JimmyMc1213/fitnesstracker/pull/25)).** Sprint 3 is fully on `main`: 8/8 PRs merged.
 
 4. **`ScreenWorkout.tsx` monolith persists.** FTI-37 added autofill wiring across 4 code paths inside the workout screen. Sprint 1/2 carryover still unaddressed.
 
 5. **No E2E coverage.** Vitest covers pure logic well; Home navigation flows (coach task → tab, quick-log sheet, weigh-in reaction) remain manual-only. Playwright deferred again.
 
-6. **Display vs save API duplication.** FTI-36 needed `getWeighInReactionForDisplay` separate from `getWeighInReaction` — pattern may repeat as more surfaces show engine copy for already-logged data.
+6. **Display vs save API duplication.** FTI-36 needed `getWeighInReactionForDisplay` separate from `getWeighInReaction`: pattern may repeat as more surfaces show engine copy for already-logged data.
 
-7. **Story file drift on early Sprint 3 stories.** FTI-34 Tasks 8–9 still show unchecked `[ ]` in story file despite completion notes saying done — audit trail inconsistency continues from Sprint 2.
+7. **Story file drift on early Sprint 3 stories.** FTI-34 Tasks 8-9 still show unchecked `[ ]` in story file despite completion notes saying done, audit trail inconsistency continues from Sprint 2.
 
 ---
 
@@ -97,8 +97,8 @@
 | Test-first sprint opener de-risks domain expansion | FTI-40 → FTI-34 chain; zero regressions reported across 39 new tests |
 | Engine-before-UI ordering prevents rework | FTI-33 consumed `getHomeCoachPlan` verbatim; no duplicate coach strings in UI |
 | Home coach tasks need routing layer | `coachTaskActions.ts` centralizes kind→tab/sheet mapping; FTI-35 extended without card changes |
-| Module cycles are acceptable only at call-time | FTI-38 coachEngine ↔ notificationScheduler — works but needs refactor before more imports |
-| Collapsed-by-default cards save scroll budget | Weekly summary + coach copy hidden until expand — retro action from FTI-33 preserved ~80px |
+| Module cycles are acceptable only at call-time | FTI-38 coachEngine ↔ notificationScheduler, works but needs refactor before more imports |
+| Collapsed-by-default cards save scroll budget | Weekly summary + coach copy hidden until expand, retro action from FTI-33 preserved ~80px |
 | Review remains the integration test suite | FTI-33 (5 findings), FTI-37 (6 findings); FTI-36/38 shipped clean |
 
 ---
@@ -107,10 +107,10 @@
 
 | Item | Severity | Notes |
 | --- | --- | --- |
-| ~~Merge PR #25 (FTI-39)~~ | — | ✅ Merged 2026-05-23 |
+| ~~Merge PR #25 (FTI-39)~~ |, | ✅ Merged 2026-05-23 |
 | `coachEngine` / `notificationScheduler` cycle | Medium | Extract `isTrainingDay` + shared date helpers to break cycle |
 | `coachEngine.ts` size / cohesion | Medium | Consider submodules: plan, checkIn, notifications, weeklyReview |
-| `ScreenWorkout.tsx` decomposition | Medium | Sprint 1–3 carryover; autofill wiring adds pressure |
+| `ScreenWorkout.tsx` decomposition | Medium | Sprint 1-3 carryover; autofill wiring adds pressure |
 | No Playwright smoke | Medium | Home coach task navigation highest-value E2E candidate |
 | `waterIntake.ts` tests (FTI-40 P2) | Low | Still optional from retro item |
 | Untracked BMAD/planning docs | Low | Cross-machine drift risk |
@@ -123,7 +123,7 @@
 
 | # | Action | Owner | Priority |
 | --- | --- | --- | --- |
-| 1 | ~~Merge PR #25 (FTI-39)~~ — done | Jimmymccarthy | ✅ |
+| 1 | ~~Merge PR #25 (FTI-39)~~, done | Jimmymccarthy | ✅ |
 | 2 | Close FTI-40–FTI-39 in Linear to match sprint-status | Jimmymccarthy | High |
 | 3 | Mark `epic-fti-sprint-3` → `done` in sprint-status after FTI-39 merge | Dev | High |
 | 4 | Extract shared training-day / date helpers to break coachEngine ↔ scheduler cycle | Dev | Medium |
@@ -140,7 +140,7 @@
 
 **Sprint 4 is not yet defined in `epics.md`.** PRD backlog highlights:
 
-- **FTI-13** — AI coach notes per exercise (deferred until rule-based voice proven — **now proven**)
+- **FTI-13**, AI coach notes per exercise (deferred until rule-based voice proven, **now proven**)
 - Native App Store wrapper + reliable background notifications
 - Playwright E2E smoke paths
 - `ScreenWorkout.tsx` refactor
@@ -158,10 +158,10 @@
 
 ### Critical preparation before Sprint 4 kickoff
 
-1. **Sprint 4 planning session** — define scope in Linear + `epics.md` + `sprint-status.yaml`
-2. **FTI-13 architecture spike** — extend `coach.ts` / `coachEngine` vs. external LLM API (cost, latency, offline)
-3. **E2E framework decision** — Playwright for Home coach flows before adding more navigation-heavy features
-4. **coachEngine refactor plan** — break god module before FTI-13 adds more exports
+1. **Sprint 4 planning session**, define scope in Linear + `epics.md` + `sprint-status.yaml`
+2. **FTI-13 architecture spike**, extend `coach.ts` / `coachEngine` vs. external LLM API (cost, latency, offline)
+3. **E2E framework decision**, Playwright for Home coach flows before adding more navigation-heavy features
+4. **coachEngine refactor plan**, break god module before FTI-13 adds more exports
 
 ### Readiness assessment
 
@@ -179,11 +179,11 @@
 
 ## Significant discoveries
 
-**Epic update required for Sprint 4:** YES — Sprint 3 validated deterministic coaching; Sprint 4 must decide AI augmentation path.
+**Epic update required for Sprint 4:** YES, Sprint 3 validated deterministic coaching; Sprint 4 must decide AI augmentation path.
 
-1. **Rule-based coaching is sufficient for v1 retention hooks** — weekly narrative, macro pace, weigh-in reactions, and notification nudges all ship without LLM. FTI-13 is now an explicit product choice, not a technical blocker.
-2. **Home is at scroll capacity** — further Home features need tab reorganization or deeper collapse defaults.
-3. **Vitest ROI confirmed** — Sprint 2's deferred action item became Sprint 3's foundation. Never start a domain-expansion epic without test harness again.
+1. **Rule-based coaching is sufficient for v1 retention hooks**, weekly narrative, macro pace, weigh-in reactions, and notification nudges all ship without LLM. FTI-13 is now an explicit product choice, not a technical blocker.
+2. **Home is at scroll capacity**, further Home features need tab reorganization or deeper collapse defaults.
+3. **Vitest ROI confirmed**, Sprint 2's deferred action item became Sprint 3's foundation. Never start a domain-expansion epic without test harness again.
 
 ---
 
@@ -191,13 +191,13 @@
 
 **Alice (Product Owner):** "Sprint 3 is the coaching promise delivered. Home tells you what to do today; workout feels guided; notifications sound human; weekly review closes the loop."
 
-**Charlie (Senior Dev):** "FTI-34 + FTI-40 was the keystone. FTI-33 was the messy integration story — plan more buffer for IA pivots."
+**Charlie (Senior Dev):** "FTI-34 + FTI-40 was the keystone. FTI-33 was the messy integration story, plan more buffer for IA pivots."
 
 **Dana (QA Engineer):** "69 unit tests is real progress. I still want one Playwright path through coach task → fuel quick-log before we add AI."
 
-**Elena (Junior Dev):** "Set autofill from history — users will feel that immediately. Small module, big UX win."
+**Elena (Junior Dev):** "Set autofill from history, users will feel that immediately. Small module, big UX win."
 
-**Amelia (Developer):** "Epic complete — all 8 PRs on `main`. Retro documented. Run sprint-plan for Sprint 4."
+**Amelia (Developer):** "Epic complete, all 8 PRs on `main`. Retro documented. Run sprint-plan for Sprint 4."
 
 ---
 

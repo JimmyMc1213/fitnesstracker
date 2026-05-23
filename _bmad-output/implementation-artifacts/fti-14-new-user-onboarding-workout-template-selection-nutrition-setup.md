@@ -1,4 +1,4 @@
-# Story 1.4: New user onboarding — workout template + nutrition (FTI-14)
+# Story 1.4: New user onboarding, workout template + nutrition (FTI-14)
 
 Status: done
 
@@ -24,7 +24,7 @@ so that I land on the home dashboard fully configured.
   - [x] `OnboardingProfile` type, `onboardingComplete`, persist pipeline
   - [x] `nutritionCalculator.ts`, `onboardingSkip.ts`, legacy email env
 - [x] Task 2: Split + templates (AC: 2, 4)
-  - [x] `workoutSplitByDays.ts` — 3/4/5/6 day templates from experience + equipment
+  - [x] `workoutSplitByDays.ts`: 3/4/5/6 day templates from experience + equipment
 - [x] Task 3: Unified OnboardingFlow (AC: 2, 4, 5, 6)
   - [x] `OnboardingFlow.tsx` with progress bar, back/continue, all steps
   - [x] Template review with reorder, swap, target edits

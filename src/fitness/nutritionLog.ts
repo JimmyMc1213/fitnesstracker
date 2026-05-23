@@ -83,7 +83,7 @@ export function appendNutritionPresetToDay(
   );
 }
 
-/** Top saved foods with protein, sorted by recency — for Home quick-log favorites. */
+/** Top saved foods with protein, sorted by recency, for Home quick-log favorites. */
 export function topProteinPresetsForQuickLog(
   presets: NutritionPreset[],
   limit = 5,

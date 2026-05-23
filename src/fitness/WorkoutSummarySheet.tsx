@@ -68,7 +68,7 @@ export function WorkoutSummarySheet({ summary, unitPreferences, onDone }: Props)
             {summary.title}
           </h1>
           <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
-            Nice work — session saved
+            Nice work, session saved
           </p>
         </div>
 
@@ -88,14 +88,14 @@ export function WorkoutSummarySheet({ summary, unitPreferences, onDone }: Props)
           />
           <StatCard
             label="Volume"
-            value={summary.totalVolume > 0 ? displayVolume.toLocaleString() : "—"}
+            value={summary.totalVolume > 0 ? displayVolume.toLocaleString() : ", "}
             sub={summary.totalVolume > 0 ? volLabel : undefined}
           />
         </div>
 
         <SummarySection
           title="Personal records"
-          empty="No PRs this session — keep stacking weight and reps."
+          empty="No PRs this session, keep stacking weight and reps."
           accent="#ffffff"
           highlight={summary.prs.length > 0}
         >

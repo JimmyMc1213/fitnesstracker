@@ -1,4 +1,4 @@
-# Story 4.2: Design system — primary & secondary buttons (FTI-42)
+# Story 4.2: Design system, primary & secondary buttons (FTI-42)
 
 Status: done
 
@@ -10,21 +10,21 @@ so CTAs are obvious and on-brand.
 
 ## Acceptance Criteria
 
-1. **Shared button components:** Given any screen needs a primary or secondary CTA, when implemented, then developers use `PrimaryButton` and `SecondaryButton` exported from `shared.tsx` (or colocated `Button.tsx` re-exported from shared) — not ad-hoc inline `#ffffff` / `#0A84FF` fills for primary actions.
+1. **Shared button components:** Given any screen needs a primary or secondary CTA, when implemented, then developers use `PrimaryButton` and `SecondaryButton` exported from `shared.tsx` (or colocated `Button.tsx` re-exported from shared), not ad-hoc inline `#ffffff` / `#0A84FF` fills for primary actions.
 
 2. **Primary styling:** `PrimaryButton` uses background `var(--pos)` / `#4ade80`, text `#0a0a0a`, border-radius 12px, full-width when `block` prop set, min tap height 44px.
 
-3. **Secondary styling:** `SecondaryButton` uses background `var(--card-2)`, border `var(--border)`, text `#fff` or muted white — **not** blue.
+3. **Secondary styling:** `SecondaryButton` uses background `var(--card-2)`, border `var(--border)`, text `#fff` or muted white, **not** blue.
 
 4. **Workout tab:** "Start an empty workout" uses `PrimaryButton` (lime). "+ New routine" link uses secondary/muted text styling, not `ACCENT_BLUE`.
 
-5. **Home coach + stretch:** `TodaysCoachPlanCard` primary task CTA and nightly stretch inner CTA use `PrimaryButton` — no white blob (`#ffffff` fill removed from primary CTAs).
+5. **Home coach + stretch:** `TodaysCoachPlanCard` primary task CTA and nightly stretch inner CTA use `PrimaryButton`: no white blob (`#ffffff` fill removed from primary CTAs).
 
 6. **Blue reserved for coach info:** Informational coach chips (e.g. Weekly summary "Next week" panel) may keep blue tint; **primary actions** on those surfaces still use lime when they are buttons.
 
 7. **Settings preset pills:** Rest timer and water target selected state uses green border/fill tint (match `--pos`), not `#0A84FF` selected styling.
 
-8. **Token consolidation:** `workoutUiTokens.ts` exports `PRIMARY_GREEN = "#4ade80"` (or references CSS var pattern documented in Dev Notes); migrate `ACCENT_GREEN` call sites for **primary** CTAs only — coach blue tokens remain for coach card accents.
+8. **Token consolidation:** `workoutUiTokens.ts` exports `PRIMARY_GREEN = "#4ade80"` (or references CSS var pattern documented in Dev Notes); migrate `ACCENT_GREEN` call sites for **primary** CTAs only, coach blue tokens remain for coach card accents.
 
 9. **Scope guard:** No Home layout / habits IA (FTI-43/44), no Progress changes (FTI-45).
 
@@ -37,8 +37,8 @@ so CTAs are obvious and on-brand.
   - [ ] 1.2 Props: `children`, `onClick`, `disabled`, `block`, `aria-label`, `className` optional.
 
 - [ ] **Task 2: Workout screen sweep** (AC: 4)
-  - [ ] 2.1 `ScreenWorkout.tsx` — empty workout CTA, finish session CTA where primary.
-  - [ ] 2.2 `WorkoutRoutineEditor.tsx`, `RoutinePreviewSheet.tsx`, `WorkoutSessionPreviewSheet.tsx` — primary start/save → lime.
+  - [ ] 2.1 `ScreenWorkout.tsx`: empty workout CTA, finish session CTA where primary.
+  - [ ] 2.2 `WorkoutRoutineEditor.tsx`, `RoutinePreviewSheet.tsx`, `WorkoutSessionPreviewSheet.tsx`: primary start/save → lime.
   - [ ] 2.3 Demote blue text links to secondary/muted.
 
 - [ ] **Task 3: Home + coach card sweep** (AC: 5)
@@ -70,8 +70,8 @@ so CTAs are obvious and on-brand.
 ### Key files
 
 - `src/fitness/shared.tsx`
-- `src/fitness/screens/ScreenWorkout.tsx` — `ACCENT_BLUE` on line ~686
-- `src/fitness/TodaysCoachPlanCard.tsx` — `#ffffff` primary
+- `src/fitness/screens/ScreenWorkout.tsx`: `ACCENT_BLUE` on line ~686
+- `src/fitness/TodaysCoachPlanCard.tsx`: `#ffffff` primary
 - `src/fitness/workoutUiTokens.ts`
 
 ## Dev Agent Record

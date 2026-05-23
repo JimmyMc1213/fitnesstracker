@@ -18,9 +18,9 @@ export const EQUIPMENT_SETUP_LABELS: Record<EquipmentSetup, string> = {
 
 export const EQUIPMENT_SETUP_DESCRIPTIONS: Record<EquipmentSetup, string> = {
   full_gym: "Barbells, machines, cables, and free weights",
-  home_gym: "Rack, barbell, dumbbells, and bench — no large machines",
+  home_gym: "Rack, barbell, dumbbells, and bench, no large machines",
   dumbbells_only: "Adjustable or fixed dumbbells and a bench",
-  bodyweight_only: "No equipment — bodyweight and pull-up bar if available",
+  bodyweight_only: "No equipment, bodyweight and pull-up bar if available",
 };
 
 export function normalizeEquipmentSetup(raw: unknown): EquipmentSetup {

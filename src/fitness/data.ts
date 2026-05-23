@@ -1,11 +1,11 @@
 import type { FoodItem, Habit, HabitTemplate, MacroTotals, WorkoutExercise, WorkoutRoutineTemplate, WorkoutSet, WorkoutState } from "./types";
 
-/** Phase 1 cutting — starting targets; app may auto-adjust weekly from weigh-ins. */
+/** Phase 1 cutting, starting targets; app may auto-adjust weekly from weigh-ins. */
 export const DEFAULT_NUTRITION_TARGETS: MacroTotals = { cal: 2200, p: 180, c: 220, f: 65 };
 /** @deprecated Use `state.nutritionTargets` or DEFAULT_NUTRITION_TARGETS */
 export const TARGETS = DEFAULT_NUTRITION_TARGETS;
 
-/** Day 1 of your 12-week block — used for program-week context (e.g. habits subtitle). */
+/** Day 1 of your 12-week block, used for program-week context (e.g. habits subtitle). */
 export const PLAN_START_ISO = "2026-05-07";
 
 export function planWeekIndex(d: Date = new Date(), planStartIso: string = PLAN_START_ISO): number {
@@ -28,7 +28,7 @@ export function stepsTargetForPlanWeek(_week: number): number {
   return 10_000;
 }
 
-/** Food rows for search / add — unused in UI for now; kept for a future in-app food database. */
+/** Food rows for search / add, unused in UI for now; kept for a future in-app food database. */
 export type FoodDbRow = FoodItem & { id: string };
 
 export const FOOD_DB: FoodDbRow[] = [
@@ -66,56 +66,56 @@ function ex(id: string, name: string, target: string, setCount: number): Workout
 }
 
 const TEMPLATE_MON_UPPER: WorkoutExercise[] = [
-  ex("u1", "Bench press", "4 × 5–8", 4),
-  ex("u2", "Pull-up or lat pulldown", "4 × 6–10", 4),
-  ex("u3", "Incline dumbbell press", "3 × 8–10", 3),
-  ex("u4", "Seated cable row", "3 × 8–10", 3),
-  ex("u5", "Dumbbell shoulder press", "3 × 8–10", 3),
-  ex("u6", "Lateral raise", "3 × 12–20", 3),
-  ex("u7", "Triceps pushdown", "3 × 10–15", 3),
-  ex("u8", "Dumbbell curl", "3 × 10–15", 3),
+  ex("u1", "Bench press", "4 × 5-8", 4),
+  ex("u2", "Pull-up or lat pulldown", "4 × 6-10", 4),
+  ex("u3", "Incline dumbbell press", "3 × 8-10", 3),
+  ex("u4", "Seated cable row", "3 × 8-10", 3),
+  ex("u5", "Dumbbell shoulder press", "3 × 8-10", 3),
+  ex("u6", "Lateral raise", "3 × 12-20", 3),
+  ex("u7", "Triceps pushdown", "3 × 10-15", 3),
+  ex("u8", "Dumbbell curl", "3 × 10-15", 3),
 ];
 
 const TEMPLATE_TUE_LOWER: WorkoutExercise[] = [
-  ex("l1", "Goblet squat or hack squat", "4 × 6–10", 4),
-  ex("l2", "Romanian deadlift (light/moderate)", "3 × 8–10", 3),
-  ex("l3", "Leg press", "3 × 10–12", 3),
-  ex("l4", "Leg curl", "3 × 10–15", 3),
-  ex("l5", "Calf raise", "4 × 10–15", 4),
-  ex("l6", "Cable crunch", "3 × 10–15", 3),
-  ex("l7", "Plank", "3 × 45–60s", 3),
+  ex("l1", "Goblet squat or hack squat", "4 × 6-10", 4),
+  ex("l2", "Romanian deadlift (light/moderate)", "3 × 8-10", 3),
+  ex("l3", "Leg press", "3 × 10-12", 3),
+  ex("l4", "Leg curl", "3 × 10-15", 3),
+  ex("l5", "Calf raise", "4 × 10-15", 4),
+  ex("l6", "Cable crunch", "3 × 10-15", 3),
+  ex("l7", "Plank", "3 × 45-60s", 3),
 ];
 
 const TEMPLATE_WED_PUSH: WorkoutExercise[] = [
-  ex("p1", "Incline bench press", "4 × 8–10", 4),
-  ex("p2", "Machine chest press", "3 × 10–12", 3),
-  ex("p3", "Cable fly", "3 × 12–15", 3),
-  ex("p4", "Seated dumbbell shoulder press", "3 × 8–12", 3),
-  ex("p5", "Lateral raise", "4 × 15–25", 4),
-  ex("p6", "Rear delt fly", "3 × 15–20", 3),
-  ex("p7", "Overhead triceps extension", "3 × 10–15", 3),
+  ex("p1", "Incline bench press", "4 × 8-10", 4),
+  ex("p2", "Machine chest press", "3 × 10-12", 3),
+  ex("p3", "Cable fly", "3 × 12-15", 3),
+  ex("p4", "Seated dumbbell shoulder press", "3 × 8-12", 3),
+  ex("p5", "Lateral raise", "4 × 15-25", 4),
+  ex("p6", "Rear delt fly", "3 × 15-20", 3),
+  ex("p7", "Overhead triceps extension", "3 × 10-15", 3),
   ex("p8", "Push-up", "2 × near failure", 2),
 ];
 
 const TEMPLATE_THU_PULL: WorkoutExercise[] = [
-  ex("b1", "Lat pulldown", "4 × 8–12", 4),
-  ex("b2", "Chest-supported row", "4 × 8–12", 4),
-  ex("b3", "Single-arm cable row", "3 × 10–12 / arm", 3),
-  ex("b4", "Straight-arm pulldown", "3 × 12–15", 3),
-  ex("b5", "Face pull", "3 × 15–20", 3),
-  ex("b6", "Incline dumbbell curl", "3 × 10–12", 3),
-  ex("b7", "Hammer curl", "3 × 10–15", 3),
-  ex("b8", "Back extension", "2 × 12–15", 2),
+  ex("b1", "Lat pulldown", "4 × 8-12", 4),
+  ex("b2", "Chest-supported row", "4 × 8-12", 4),
+  ex("b3", "Single-arm cable row", "3 × 10-12 / arm", 3),
+  ex("b4", "Straight-arm pulldown", "3 × 12-15", 3),
+  ex("b5", "Face pull", "3 × 15-20", 3),
+  ex("b6", "Incline dumbbell curl", "3 × 10-12", 3),
+  ex("b7", "Hammer curl", "3 × 10-15", 3),
+  ex("b8", "Back extension", "2 × 12-15", 2),
 ];
 
 const TEMPLATE_FRI_LEGS: WorkoutExercise[] = [
-  ex("g1", "Front squat, goblet squat, or hack squat", "3 × 8–10", 3),
-  ex("g2", "Bulgarian split squat", "3 × 8–12 / leg", 3),
-  ex("g3", "Leg extension", "3 × 12–15", 3),
-  ex("g4", "Leg curl", "3 × 12–15", 3),
-  ex("g5", "Lateral raise", "5 × 15–25", 5),
-  ex("g6", "Cable crunch", "3 × 10–15", 3),
-  ex("g7", "Hanging knee raise", "3 × 8–15", 3),
+  ex("g1", "Front squat, goblet squat, or hack squat", "3 × 8-10", 3),
+  ex("g2", "Bulgarian split squat", "3 × 8-12 / leg", 3),
+  ex("g3", "Leg extension", "3 × 12-15", 3),
+  ex("g4", "Leg curl", "3 × 12-15", 3),
+  ex("g5", "Lateral raise", "5 × 15-25", 5),
+  ex("g6", "Cable crunch", "3 × 10-15", 3),
+  ex("g7", "Hanging knee raise", "3 × 8-15", 3),
   ex("g8", "Farmer carry", "3 rounds", 3),
 ];
 
@@ -263,7 +263,7 @@ export function resizeWorkoutSets(existing: WorkoutSet[], n: number): WorkoutSet
 
 export const INITIAL_WORKOUT: WorkoutState = {
   splitId: "mon-upper",
-  startedAt: "—",
+  startedAt: "-",
   sessionDayKey: null,
   sessionPhase: "idle",
   sessionTitle: "Workout",

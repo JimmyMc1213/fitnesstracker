@@ -96,20 +96,20 @@ function splitForWeekday(d: Date): SplitEntry | null {
 }
 
 const LIFE_LINES = [
-  "Night-before gym: clothes, bottle, headphones, know tomorrow's session + warm-up — decision fatigue is the enemy at 5 a.m.",
-  "Hard stop screens 45 minutes before bed — book, breathwork, or light stretch instead.",
+  "Night-before gym: clothes, bottle, headphones, know tomorrow's session + warm-up, decision fatigue is the enemy at 5 a.m.",
+  "Hard stop screens 45 minutes before bed, book, breathwork, or light stretch instead.",
   "No binge triggers at home: sweets only outside the house; build the environment, not more willpower.",
-  "After a binge: next day is normal calories, normal protein, normal training — no starvation payback.",
-  "Two outdoor walks if possible — treat the second as recovery, not a podcast multitask.",
-  "Extra easy walk (10–20 min): stack steps without turning it into a second workout.",
+  "After a binge: next day is normal calories, normal protein, normal training, no starvation payback.",
+  "Two outdoor walks if possible, treat the second as recovery, not a podcast multitask.",
+  "Extra easy walk (10-20 min): stack steps without turning it into a second workout.",
 ] as const;
 
 function nutritionExtraLines(targets: MacroTotals): string[] {
   return [
-    `Protein anchor: ${targets.p}g every day — partial days still need this floor.`,
+    `Protein anchor: ${targets.p}g every day, partial days still need this floor.`,
     `Structure, not perfection: most meals = protein + carb + produce; you pick the foods inside ~${targets.cal} kcal.`,
-    `Fat around ${targets.f}g — don't zero-fat while cutting and training 5×/week.`,
-    `Sweet rule: water/diet drink → 30g protein → wait 10 minutes — then one measured serving if you still want it.`,
+    `Fat around ${targets.f}g, don't zero-fat while cutting and training 5×/week.`,
+    `Sweet rule: water/diet drink → 30g protein → wait 10 minutes, then one measured serving if you still want it.`,
     `Weekly scale rule: log morning weight on Progress (post-bathroom, fasted); Sunday review compares week averages.`,
     `Planned treat beats random binge: one controlled dessert still works if totals stay honest in Fuel.`,
   ];
@@ -133,20 +133,20 @@ export function generateDailyTasksForDate(
     tasks.push({
       id: `${dateKey}_g0`,
       category: "gym",
-      title: "Saturday · Active recovery: 45–60 min easy walk, light mobility, optional easy bike — not a hard workout.",
+      title: "Saturday · Active recovery: 45-60 min easy walk, light mobility, optional easy bike, not a hard workout.",
       done: false,
     });
     tasks.push({
       id: `${dateKey}_g1`,
       category: "gym",
-      title: `Light movement day — aim ${steps.toLocaleString()} steps when you can.`,
+      title: `Light movement day, aim ${steps.toLocaleString()} steps when you can.`,
       done: false,
     });
   } else if (dow === 0) {
     tasks.push({
       id: `${dateKey}_g0`,
       category: "gym",
-      title: "Sunday · Rest. No lifting mindset — optional easy stretch or breathwork only.",
+      title: "Sunday · Rest. No lifting mindset, optional easy stretch or breathwork only.",
       done: false,
     });
     tasks.push({
@@ -162,7 +162,7 @@ export function generateDailyTasksForDate(
     tasks.push({
       id: `${dateKey}_g0`,
       category: "gym",
-      title: `${split.day} · ${split.name} — warm-up 8–10 min (easy cardio + mobility + band pull-aparts) then ramp sets before first heavy lift. ${split.focus}.`,
+      title: `${split.day} · ${split.name}, warm-up 8-10 min (easy cardio + mobility + band pull-aparts) then ramp sets before first heavy lift. ${split.focus}.`,
       done: false,
       navigateTo: "workout",
     });
@@ -171,8 +171,8 @@ export function generateDailyTasksForDate(
       id: `${dateKey}_g1`,
       category: "gym",
       title: cardioToday
-        ? "Post-lift cardio: 20 min incline walk, 8–12% grade, ~2.8–3.5 mph — easy nose breathing."
-        : "Progression: keep weight until you hit the top of the rep range on every working set — then add ~5 lb.",
+        ? "Post-lift cardio: 20 min incline walk, 8-12% grade, ~2.8-3.5 mph, easy nose breathing."
+        : "Progression: keep weight until you hit the top of the rep range on every working set, then add ~5 lb.",
       done: false,
       navigateTo: "workout",
     });
@@ -180,7 +180,7 @@ export function generateDailyTasksForDate(
     tasks.push({
       id: `${dateKey}_g2`,
       category: "gym",
-      title: "Effort: leave 1–2 reps in the tank on most sets — don't max out every session.",
+      title: "Effort: leave 1-2 reps in the tank on most sets, don't max out every session.",
       done: false,
       navigateTo: "workout",
     });
@@ -189,7 +189,7 @@ export function generateDailyTasksForDate(
   tasks.push({
     id: `${dateKey}_n0`,
     category: "nutrition",
-    title: `Hit ${targets.p}g protein · ~${targets.f}g fat · fill carbs toward ~${targets.cal} kcal — log honestly in Fuel (Week ${wk}).`,
+    title: `Hit ${targets.p}g protein · ~${targets.f}g fat · fill carbs toward ~${targets.cal} kcal, log honestly in Fuel (Week ${wk}).`,
     done: false,
     navigateTo: "nutrition",
   });
@@ -216,7 +216,7 @@ export function generateDailyTasksForDate(
       id: `${dateKey}_l1`,
       category: "life",
       title:
-        "Sunday: weekly fuel review from Mon–Sun averages (7 weigh-in days this week & last). Approve or edit the kcal change — nothing updates until you do. Recovery flag adds +100 kcal to the recommendation.",
+        "Sunday: weekly fuel review from Mon–Sun averages (7 weigh-in days this week & last). Approve or edit the kcal change, nothing updates until you do. Recovery flag adds +100 kcal to the recommendation.",
       done: false,
       navigateTo: "progress",
     });
@@ -232,7 +232,7 @@ export function generateDailyTasksForDate(
       id: `${dateKey}_l1`,
       category: "life",
       title:
-        "Low-back fix ~8 min (4–6×/week): child's pose breathing, couch stretch, hamstrings, figure-4 glutes, dead bugs, side planks — no aggressive low-back stretching.",
+        "Low-back fix ~8 min (4-6×/week): child's pose breathing, couch stretch, hamstrings, figure-4 glutes, dead bugs, side planks, no aggressive low-back stretching.",
       done: false,
     });
   }

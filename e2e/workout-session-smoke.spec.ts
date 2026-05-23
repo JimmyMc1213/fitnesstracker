@@ -18,6 +18,6 @@ test("Workout tab: start session → log set → finish → summary", async ({ p
   await page.getByRole("button", { name: "Finish workout" }).click();
 
   await expect(page.getByText("Workout complete")).toBeVisible();
-  await expect(page.getByText("Nice work — session saved")).toBeVisible();
+  await expect(page.getByText("Nice work, session saved")).toBeVisible();
   await expect(page.getByRole("heading", { name: "E2E Upper strength" })).toBeVisible();
 });
