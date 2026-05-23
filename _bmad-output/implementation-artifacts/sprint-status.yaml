@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (FTI-38 done)
+# last_updated: 2026-05-23 (FTI-39 done)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -54,7 +54,7 @@
 # - in-progress / ready-for-dev: Swarm skips story creation (Phase 1) and continues dev/review
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # FTI-38 done
+last_updated: 2026-05-23  # FTI-39 done
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -102,6 +102,6 @@ development_status:
   fti-35-home-fuel-quick-log-coach-pace: done
   fti-36-check-in-triggered-micro-adjustments: done
   fti-38-context-aware-notification-copy: done
-  fti-39-weekly-coach-review-narrative: backlog
+  fti-39-weekly-coach-review-narrative: done
 
   epic-fti-sprint-3-retrospective: optional
