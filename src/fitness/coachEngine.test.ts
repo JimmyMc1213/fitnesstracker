@@ -164,6 +164,20 @@ describe("getWeighInReaction", () => {
     expect(display?.message.length).toBeGreaterThan(0);
   });
 
+  it("getWeighInReactionForDisplay prefers persisted coach fields on entry", () => {
+    const state = weighInTrendAppState([{ dateKey: MONDAY_KEY, weightLbs: 180 }]);
+    const ctx = buildCoachContext(state, MONDAY_KEY, MONDAY);
+    const persisted = {
+      dateKey: MONDAY_KEY,
+      weightLbs: 180,
+      coachMessage: "Saved nudge copy",
+      macroNudge: { deltaCal: 100, reason: "Persisted reason" },
+    };
+    const display = getWeighInReactionForDisplay(ctx, persisted);
+    expect(display?.message).toBe("Saved nudge copy");
+    expect(display?.macroNudge).toEqual({ deltaCal: 100, reason: "Persisted reason" });
+  });
+
   it("returns message for aggressive downward trend", () => {
     const entries: WeightEntry[] = [];
     for (let day = 5; day <= 11; day++) {

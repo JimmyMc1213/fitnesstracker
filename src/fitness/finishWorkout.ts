@@ -49,6 +49,7 @@ export function finishWorkout(state: AppState, endedAtMs = Date.now()): FinishWo
       sessionStartedAtMs: null,
       sessionTitle: "Workout",
       exercises: [],
+      sessionCoachNotesByExerciseId: undefined,
     },
   });
 

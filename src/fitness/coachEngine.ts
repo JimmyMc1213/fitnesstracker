@@ -423,6 +423,12 @@ export function getWeighInReaction(ctx: CoachContext, entry: WeightEntry): Coach
 
 /** Home display when today's entry is already in the log. */
 export function getWeighInReactionForDisplay(ctx: CoachContext, entry: WeightEntry): CoachAdjustment | null {
+  if (entry.coachMessage?.trim()) {
+    return {
+      message: entry.coachMessage.trim(),
+      macroNudge: entry.macroNudge,
+    };
+  }
   return buildWeighInReaction(ctx, entry);
 }
 
@@ -444,6 +450,13 @@ export function getNotificationBody(ctx: CoachContext, kind: CoachNotificationKi
 
   return "Log today's fuel in Fitcoach — protein and calories keep the coach plan honest.";
 }
+
+export {
+  buildSessionCoachNoteForExercise,
+  buildSessionCoachNotesByExerciseId,
+  getExerciseSessionNote,
+  type ExerciseSessionNoteContext,
+} from "./exerciseSessionNotes";
 
 export function getWeeklyCoachReview(ctx: CoachContext): WeeklyCoachReview {
   const { weeklySummary, streakCount, recentWeightTrend } = ctx;

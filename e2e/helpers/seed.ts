@@ -57,7 +57,15 @@ function basePersistSlice(dateKey: string) {
       lastFiredWorkoutReminderDateKey: null,
       lastFiredNutritionReminderDateKey: null,
     },
-    workout: { splitId: "mon-upper", exercises: [] },
+    workout: {
+      splitId: "mon-upper",
+      exercises: [],
+      sessionPhase: "idle",
+      startedAt: "—",
+      sessionDayKey: null,
+      sessionStartedAtMs: null,
+      sessionTitle: "Workout",
+    },
     _dateKey: dateKey,
   };
 }
@@ -71,6 +79,34 @@ export function coachNutritionPersistSeed(dateKey = localDateKey()) {
     nutritionItemsByDay: {
       [dateKey]: [{ id: "e2e-meal", name: "Post-workout meal", cal: 600, p: 180, c: 40, f: 12 }],
     },
+  };
+}
+
+/** Routine with one exercise → Workout tab session smoke (start → log set → finish → summary). */
+export function workoutSessionPersistSeed(dateKey = localDateKey()) {
+  const base = basePersistSlice(dateKey);
+  return {
+    ...base,
+    workoutTemplates: [
+      {
+        id: "e2e-upper",
+        name: "E2E Upper strength",
+        dayLabel: "Mon",
+        focus: "Bench · Smoke test",
+        exercises: [
+          {
+            id: "e2e-bench",
+            name: "Bench press",
+            target: "3 × 10",
+            sets: [
+              { w: 135, r: 10, done: false },
+              { w: 135, r: 10, done: false },
+              { w: 135, r: 10, done: false },
+            ],
+          },
+        ],
+      },
+    ],
   };
 }
 

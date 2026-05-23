@@ -114,6 +114,8 @@ export type WorkoutState = {
   /** Monotonic clock ms when the active session started; null when idle. */
   sessionStartedAtMs: number | null;
   exercises: WorkoutExercise[];
+  /** Rule-based coach notes generated at session start; cleared when session ends. */
+  sessionCoachNotesByExerciseId?: Record<string, string>;
 };
 
 /** Habit row template (completion lives in `habitsDoneByDay` + today’s `habits` list). */
@@ -189,6 +191,10 @@ export type WeightEntry = {
   /** ISO timestamp when the entry was saved (synced via JSONB payload). */
   loggedAtIso?: string;
   photoDataUrl?: string;
+  /** Coach macro guidance captured at save time (survives refresh without recomputing). */
+  macroNudge?: { deltaCal: number; reason: string };
+  /** Coach reaction message captured at save time. */
+  coachMessage?: string;
 };
 
 export type AdjustmentEvent = {

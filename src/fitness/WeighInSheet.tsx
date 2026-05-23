@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+import { buildCoachContext, getWeighInReaction } from "./coachEngine";
 import { compressImageToJpegDataUrl } from "./imageCompress";
 import { localDateKey } from "./dailyPlan";
 import {
@@ -50,14 +51,28 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
     if (!isValidWeighInLbs(lbs)) return;
     const loggedAtIso = new Date().toISOString();
     setState((s) => {
-      const nextLog = s.weightLog.filter((e) => e.dateKey !== dateKey);
-      nextLog.push({
+      const withoutDay = s.weightLog.filter((e) => e.dateKey !== dateKey);
+      const draft: WeightEntry = {
         dateKey,
         weightLbs: lbs,
         loggedAtIso,
         photoDataUrl: photoPreview ?? undefined,
-      });
-      nextLog.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+      };
+      const ctx = buildCoachContext({ ...s, weightLog: withoutDay }, dateKey, new Date());
+      const reaction = getWeighInReaction(ctx, draft);
+      const entry: WeightEntry = {
+        ...draft,
+        ...(reaction?.message ? { coachMessage: reaction.message } : {}),
+        ...(reaction?.macroNudge?.deltaCal != null
+          ? {
+              macroNudge: {
+                deltaCal: reaction.macroNudge.deltaCal,
+                reason: reaction.macroNudge.reason,
+              },
+            }
+          : {}),
+      };
+      const nextLog = [...withoutDay, entry].sort((a, b) => a.dateKey.localeCompare(b.dateKey));
       return { ...s, weightLog: nextLog };
     });
     onClose();

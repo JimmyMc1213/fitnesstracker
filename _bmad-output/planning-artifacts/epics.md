@@ -1,7 +1,7 @@
 # Fitcoach — Epics & Stories
 
 **Project:** fitnesstracker  
-**Last updated:** 2026-05-23  
+**Last updated:** 2026-05-23 (Sprint 6 planned)  
 **Sprint tracking:** `_bmad-output/implementation-artifacts/sprint-status.yaml`
 
 **Positioning:** Fitcoach is the all-in-one fitness app that coaches you through every workout, meal, and check-in — so you never need another app to hit your goals.
@@ -20,9 +20,11 @@
 
 **Sprint 5 (done):** Quality foundation & nutrition OS — Playwright E2E smoke, `coachEngine` refactor, Nutrition tab rebuild, Home Fuel strip alignment, week-boundary rules.
 
+**Sprint 6 (planned):** Workout architecture & session coaching — workout E2E smoke, `ScreenWorkout` phase-1 decomposition, rule-based per-exercise notes (FTI-13 phase 1), optional LLM notes, retro cleanup.
+
 **Prerequisite (done):** [FTI-15](https://linear.app/ftiness-tracker/issue/FTI-15/save-workouts-and-workout-history) — `story_key: fti-15-save-workouts-and-workout-history`
 
-**Deferred (backlog):** [FTI-13](https://linear.app/ftiness-tracker/issue/FTI-13/ai-coach-note-per-exercise-on-workout-start) — AI session coaching; Sprint 6 product decision (Epic 3 gate met).
+**Deferred (backlog):** [FTI-13](https://linear.app/ftiness-tracker/issue/FTI-13/ai-coach-note-per-exercise-on-workout-start) — split across Sprint 6 FTI-54 (rule-based) and FTI-55 (LLM, optional).
 
 ---
 
@@ -646,3 +648,122 @@ As a user, I want streak and weekly summary to use documented, consistent week b
 - linear_url: https://linear.app/ftiness-tracker/issue/FTI-45/week-boundary-rules-streak-vs-weekly-summary
 - MoSCoW: Could — Sprint 3 retro carryover
 - depends_on: FTI-48 (Linear FTI-42)
+
+---
+
+## Epic 6: FTI Sprint 6 — workout architecture & session coaching
+
+**Epic key (sprint-status):** `epic-fti-sprint-6`
+
+**Goal:** Reduce `ScreenWorkout.tsx` monolith risk (1,400+ lines), expand E2E coverage into the workout loop, and deliver FTI-13 session coaching — rule-based notes first, LLM optional after product review.
+
+**Sprint execution order:** FTI-52 → 53 → 54 → 55 → 56 (Linear: FTI-46 → 47 → 49 → 50 → 48)
+
+**Scope locks:** No native wrapper; no full ScreenWorkout decomposition (phase 1 only); no new Home cards; FTI-55 LLM skippable if FTI-54 satisfies product bar.
+
+---
+
+### Story 6.1: Playwright workout session smoke (FTI-52)
+
+As a developer, I want Playwright smoke tests for the workout session loop, so set-logging and finish-flow regressions are caught before session-coaching changes land.
+
+**Acceptance criteria:**
+
+- E2E: Workout tab → start today's session → mark one set complete → finish workout → summary visible
+- Tests run headless; dev server bootstrapped in Playwright config
+- Existing coach-navigation + fuel quick-log E2E still pass
+- `npm run build` + `npm test` unchanged
+
+**Dev Notes:**
+
+- story_key: fti-52-playwright-e2e-workout-session-smoke
+- linear: FTI-46
+- MoSCoW: Must — sprint opener (mirrors FTI-47 pattern)
+- blocks: FTI-54, FTI-55
+
+---
+
+### Story 6.2: ScreenWorkout decomposition phase 1 (FTI-53)
+
+As a developer, I want session header, lifting exercise card, and finish flow extracted from `ScreenWorkout.tsx`, so coach-note wiring does not grow the monolith further.
+
+**Acceptance criteria:**
+
+- Extract at least: sticky session header, lifting `ExerciseCard` block, finish/summary trigger wiring into dedicated modules under `src/fitness/workout/`
+- Zero behavior change — all 83+ Vitest tests pass
+- `ScreenWorkout.tsx` reduced by meaningful line count; no new UI surfaces
+- Playwright workout smoke (FTI-52) still passes
+
+**Dev Notes:**
+
+- story_key: fti-53-screenworkout-decomposition-phase-1
+- linear: FTI-47
+- MoSCoW: Must
+- depends_on: FTI-52 (Linear FTI-46)
+- blocks: FTI-54
+
+---
+
+### Story 6.3: Rule-based per-exercise session coach notes (FTI-54)
+
+As a user starting a workout, I want a short coaching note per exercise based on my last session, so in-session guidance feels personal without waiting on an API.
+
+**Acceptance criteria:**
+
+- Pure `getExerciseSessionNote(ctx, exerciseId)` in `coachEngine.ts` (or submodule) using `workoutHistory` / autofill data
+- Progressive overload copy when history exists; generic tip when none
+- Notes wired into existing `WorkoutCoachCard` / exercise coach surface — blue coach styling
+- Generated once per session start; persists for session duration only
+- Colocated Vitest for note builder; must extend engine, not fork parallel coach logic
+- Playwright workout smoke still passes
+
+**Dev Notes:**
+
+- story_key: fti-54-rule-based-per-exercise-session-coach-notes
+- linear: FTI-49
+- MoSCoW: Must — FTI-13 phase 1 (deterministic)
+- related: FTI-13, FTI-37 autofill
+- depends_on: FTI-53 (Linear FTI-47)
+- blocks: FTI-55 (product review gate)
+
+---
+
+### Story 6.4: LLM coach notes per exercise (FTI-55 / FTI-13)
+
+As a user, I want AI-generated coaching notes per exercise when I start a workout, so progressive overload guidance reads like a human coach.
+
+**Acceptance criteria:**
+
+- Claude (or configured LLM) API call batched per session on workout start
+- Notes replace or augment rule-based notes from FTI-54 when API succeeds; graceful fallback to FTI-54 on failure/offline
+- API key via env (`VITE_*` or server proxy — document in project-context)
+- No duplicate coach logic — extends `coachEngine` contract
+- Feature flag or settings toggle to disable LLM notes
+
+**Dev Notes:**
+
+- story_key: fti-55-llm-coach-notes-per-exercise-fti-13
+- linear: FTI-50
+- MoSCoW: Could — **product decision at FTI-54 review**; skip if rule-based notes suffice
+- depends_on: FTI-54 (Linear FTI-49)
+- closes: FTI-13 when shipped
+
+---
+
+### Story 6.5: Retro cleanup — waterIntake tests + macro nudge persist (FTI-56)
+
+As a developer, I want `waterIntake.ts` unit tests and optional persistence of weigh-in macro nudges, so Sprint 2–3 retro debt is closed.
+
+**Acceptance criteria:**
+
+- Vitest for `waterIntake.ts` normalize/append/merge helpers
+- FTI-36 weigh-in macro guidance optionally persists suggested adjustment (display-only today) — product-minimal: save nudge text or dismiss state only if scope stays small
+- No UI redesign
+- All quality gates pass
+
+**Dev Notes:**
+
+- story_key: fti-56-waterintake-tests-weigh-in-macro-nudge-persist
+- linear: FTI-48
+- MoSCoW: Could — retro carryover
+- depends_on: FTI-52 (Linear FTI-46); can parallelize after FTI-54 if needed

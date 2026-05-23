@@ -46,6 +46,8 @@ function mergeWeightLog(a: WeightEntry[], b: WeightEntry[]): WeightEntry[] {
         ...newer,
         photoDataUrl: newer.photoDataUrl ?? older.photoDataUrl,
         loggedAtIso: newer.loggedAtIso ?? older.loggedAtIso,
+        coachMessage: newer.coachMessage ?? older.coachMessage,
+        macroNudge: newer.macroNudge ?? older.macroNudge,
       });
     }
   }

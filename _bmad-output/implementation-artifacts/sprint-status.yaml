@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (Sprint 5 planned — quality foundation & nutrition OS)
+# last_updated: 2026-05-23 (Sprint 6 planned — workout architecture & session coaching)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -10,10 +10,17 @@
 # Fitcoach is the all-in-one fitness app that coaches you through every workout,
 # meal, and check-in — so you never need another app to hit your goals.
 #
-# Sprint 5 order (execute in this sequence):
-#   BMad: FTI-47 → 48 → 49 → 50 → 51
-#   Linear: FTI-41 → 42 → 43 → 44 → 45
-#   (Sprint 4 stories FTI-41–46 exist in BMad only; Linear IDs start fresh at FTI-41)
+# Sprint 6 order (execute in this sequence):
+#   BMad: FTI-52 → 53 → 54 → 55 → 56
+#   Linear: FTI-46 → 47 → 49 → 50 → 48
+#   (BMad FTI-52–56 map to Linear FTI-46–50; FTI-56 retro cleanup = Linear FTI-48)
+#
+# SPRINT 6 SCOPE LOCKS (2026-05-23 sprint planning):
+#   - FTI-55 LLM (Claude API): OPTIONAL — product decision at FTI-54 review; skip if rule-based notes suffice
+#   - Native App Store wrapper: OUT OF SCOPE
+#   - ScreenWorkout.tsx full decomposition: OUT OF SCOPE — phase 1 only (FTI-53)
+#   - No new Home cards
+#   - Primary CTA = lime green (--pos / #4ade80); design system carries forward
 #
 # SPRINT 5 SCOPE LOCKS (2026-05-23 sprint planning):
 #   - FTI-13 AI coach (LLM): OUT OF SCOPE — gate met; Sprint 6 product decision
@@ -44,7 +51,7 @@
 # ===============
 # - Linear is the product backlog; BMad story files live under story_location
 # - Create next story with bmad-create-story after previous story reaches done
-# - FTI-13 (AI coach notes) deferred to Sprint 6 — after nutrition rebuild + E2E safety net
+# - FTI-13 split: FTI-54 rule-based notes (Must) + FTI-55 LLM (optional product decision)
 #
 # ENVIRONMENT (dev / swarm test phases):
 # =====================================
@@ -54,11 +61,12 @@
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next retro: epic-fti-sprint-4-retrospective → optional (before Sprint 5 kickoff)
-# - Sprint 5 opener: FTI-47 (Playwright) mirrors FTI-40 Vitest-first pattern
+# - bmad-swarm next retro: epic-fti-sprint-5-retrospective → done (2026-05-23)
+# - bmad-swarm next retro: epic-fti-sprint-4-retrospective → done (2026-05-23)
+# - Sprint 6 opener: FTI-52 (Playwright workout smoke) mirrors FTI-47 E2E-first pattern
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # Sprint 5 planned
+last_updated: 2026-05-23  # Sprint 6 planned
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -120,9 +128,9 @@ development_status:
   fti-45-progress-goal-aware-delta-empty-states: done
   fti-46-settings-section-ia-notification-copy: done
 
-  epic-fti-sprint-4-retrospective: optional
+  epic-fti-sprint-4-retrospective: done
 
-  # --- Sprint 5 (planned) — quality foundation & nutrition OS ---
+  # --- Sprint 5 (complete) — quality foundation & nutrition OS ---
   epic-fti-sprint-5: done
 
   fti-47-playwright-e2e-harness-coach-navigation-smoke: done
@@ -131,4 +139,15 @@ development_status:
   fti-50-home-fuel-strip-alignment-post-nutrition-rebuild: done
   fti-51-week-boundary-rules-streak-vs-weekly-summary: done
 
-  epic-fti-sprint-5-retrospective: optional
+  epic-fti-sprint-5-retrospective: done
+
+  # --- Sprint 6 (complete) — workout architecture & session coaching ---
+  epic-fti-sprint-6: done
+
+  fti-52-playwright-e2e-workout-session-smoke: done
+  fti-53-screenworkout-decomposition-phase-1: done
+  fti-54-rule-based-per-exercise-session-coach-notes: done
+  fti-55-llm-coach-notes-per-exercise-fti-13: cancelled  # scope skip — FTI-54 satisfies product bar (2026-05-23)
+  fti-56-waterintake-tests-weigh-in-macro-nudge-persist: done
+
+  epic-fti-sprint-6-retrospective: optional
