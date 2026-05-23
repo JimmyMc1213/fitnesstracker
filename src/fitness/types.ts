@@ -37,6 +37,24 @@ export type NutritionUserFood = MacroTotals & {
   updatedAtMs?: number;
 };
 
+/** One ingredient in a saved meal prep recipe. */
+export type NutritionMealItem = MacroTotals & {
+  id: string;
+  name: string;
+  servingLabel?: string;
+  source?: string;
+  externalId?: string;
+};
+
+/** Saved meal prep recipe (composite of ingredients). */
+export type NutritionMeal = {
+  id: string;
+  name: string;
+  items: NutritionMealItem[];
+  createdAtMs: number;
+  updatedAtMs?: number;
+};
+
 export type FoodItem = MacroTotals & {
   id: string;
   name: string;
@@ -282,6 +300,8 @@ export type AppState = {
   nutritionPresets: NutritionPreset[];
   /** My foods library: manual entries and foods saved from search. */
   nutritionUserFoods: NutritionUserFood[];
+  /** My meals library: saved meal prep recipes. */
+  nutritionMeals: NutritionMeal[];
   workout: WorkoutState;
   /** Exercises you created (name + label); available when adding moves to a session. */
   customExercises: CustomExerciseTemplate[];

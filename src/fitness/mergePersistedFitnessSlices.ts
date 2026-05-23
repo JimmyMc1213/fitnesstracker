@@ -18,6 +18,7 @@ import type {
   ExperienceLevel,
   LoggedFood,
   NutritionLoggedItem,
+  NutritionMeal,
   NutritionPreset,
   NutritionUserFood,
   ProgressGoalConfig,
@@ -166,6 +167,19 @@ function mergeNutritionPresets(a: NutritionPreset[], b: NutritionPreset[]): Nutr
   return [...byFp.values()].sort((x, y) => y.lastUsedAtMs - x.lastUsedAtMs).slice(0, 150);
 }
 
+function mergeNutritionMeals(a: NutritionMeal[], b: NutritionMeal[]): NutritionMeal[] {
+  const byId = new Map<string, NutritionMeal>();
+  for (const m of [...a, ...b]) {
+    const prev = byId.get(m.id);
+    const mTs = m.updatedAtMs ?? m.createdAtMs;
+    const prevTs = prev ? (prev.updatedAtMs ?? prev.createdAtMs) : -1;
+    if (!prev || mTs >= prevTs) byId.set(m.id, m);
+  }
+  return [...byId.values()]
+    .sort((x, y) => (y.updatedAtMs ?? y.createdAtMs) - (x.updatedAtMs ?? x.createdAtMs))
+    .slice(0, 100);
+}
+
 function mergeNutritionUserFoods(a: NutritionUserFood[], b: NutritionUserFood[]): NutritionUserFood[] {
   const byId = new Map<string, NutritionUserFood>();
   for (const f of [...a, ...b]) {
@@ -248,6 +262,7 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
       local.nutritionUserFoods ?? [],
       remote.nutritionUserFoods ?? [],
     ),
+    nutritionMeals: mergeNutritionMeals(local.nutritionMeals ?? [], remote.nutritionMeals ?? []),
     nutritionTargets: { ...local.nutritionTargets, ...remote.nutritionTargets },
     weightLog: mergeWeightLog(local.weightLog, remote.weightLog),
     lastAdjustmentSundayKey:

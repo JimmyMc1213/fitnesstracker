@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (Sprint 8 retro complete)
+# last_updated: 2026-05-23 (Sprint 9 planning complete)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -10,9 +10,27 @@
 # Fitcoach is the all-in-one fitness app that coaches you through every workout,
 # meal, and check-in, so you never need another app to hit your goals.
 #
+# Sprint 9 order (execute in this sequence):
+#   BMad: FTI-63 → 64 → 65
+#   Linear: FTI-57 → 58 → 59
+#
 # Sprint 8 order (execute in this sequence):
 #   BMad: FTI-60 → 61 → 62
 #   Linear: FTI-54 → 55 → 56
+#
+# SPRINT 9 SCOPE LOCKS (2026-05-23 sprint planning):
+#   - Nutrition OS v2 Chunk 3 only (FTI-63 → 64 → 65); one story per PR (target)
+#   - My meals meal prep: IN SCOPE (FTI-63) — replaces placeholder tab
+#   - Cal AI visual polish: IN SCOPE (FTI-64) — dark cards, tab underline, safe-area, perf
+#   - Full unit + E2E gate: IN SCOPE (FTI-65) — meal tests, sync, build gate, retro
+#   - Barcode, voice log, AI natural-language parse: OUT OF SCOPE (future backlog)
+#   - ScreenWorkout phase 2: OUT OF SCOPE
+#   - FTI-55 LLM coach notes: OUT OF SCOPE (cancelled Sprint 6)
+#   - Native App Store wrapper: OUT OF SCOPE
+#   - No new Home cards; Home fuel strip stays read-only
+#   - Primary CTA = lime green (--pos / #4ade80); design system carries forward
+#   - Reuse foodMeasurements.ts + serving picker for meal ingredients (no fork)
+#   - Edge Function deploy (USDA key) is ops prep — not a code blocker for S9
 #
 # SPRINT 8 SCOPE LOCKS (2026-05-23 sprint planning):
 #   - Nutrition OS v2 Chunk 2 only (FTI-60 → 61 → 62); one story per PR (target)
@@ -92,13 +110,13 @@
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next: epic-fti-sprint-8 → backlog (2026-05-23 sprint planning)
-# - Linear FTI-54, FTI-55, FTI-56 → Backlog (2026-05-23)
+# - bmad-swarm next: epic-fti-sprint-9 → backlog (2026-05-23 sprint planning)
+# - Linear FTI-57, FTI-58, FTI-59 → Backlog (2026-05-23)
 # - bmad-swarm next retro: epic-fti-sprint-8-retrospective → done (2026-05-23)
-# - bmad-swarm next: Sprint 9 planning (Nutrition OS Chunk 3) — My meals, polish, full test finish
+# - Sprint 9 planning complete (2026-05-23): epics.md Epic 9 + FTI-63 story file
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # Sprint 8 retro complete
+last_updated: 2026-05-23  # Sprint 9 planning complete
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -201,3 +219,12 @@ development_status:
   fti-62-my-foods-favorite-foods-tabs-search-e2e: done
 
   epic-fti-sprint-8-retrospective: done
+
+  # --- Sprint 9 (planned): Nutrition OS v2 — Chunk 3 ---
+  epic-fti-sprint-9: backlog
+
+  fti-63-my-meals-meal-prep-data-model: done
+  fti-64-log-food-cal-ai-visual-polish: backlog
+  fti-65-nutrition-os-v2-full-test-persistence-gate: backlog
+
+  epic-fti-sprint-9-retrospective: optional
