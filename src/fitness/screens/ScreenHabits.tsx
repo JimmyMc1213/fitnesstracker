@@ -83,7 +83,7 @@ export function ScreenHabits({ state, setState }: ScreenProps) {
                     : habit.subtitle?.trim()
                       ? habit.subtitle.trim()
                       : habit.icon === "run"
-                        ? `Target ${stepsGoal.toLocaleString()} steps · program week ${progWeek}/12 (anchor ${state.planStartIso})`
+                        ? `Target ${stepsGoal.toLocaleString()} steps · Week ${progWeek}`
                         : "Not yet today"}
                 </div>
               </div>

@@ -22,6 +22,7 @@ import {
   weightUnitLabel,
 } from "./unitPreferences";
 import type { AppState, EquipmentSetup, HabitTemplate, MacroTotals, UnitPreferences } from "./types";
+import { sanitizeUserText } from "./userText";
 
 function newHabitId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
@@ -506,7 +507,7 @@ export function SettingsSheet({
               onChange={(e) =>
                 setState((s) => ({
                   ...s,
-                  displayName: e.target.value,
+                  displayName: sanitizeUserText(e.target.value),
                 }))
               }
               placeholder="Your name"
@@ -552,7 +553,7 @@ export function SettingsSheet({
                 className="input"
                 value={h.name}
                 onChange={(e) => {
-                  const name = e.target.value;
+                  const name = sanitizeUserText(e.target.value);
                   setState((s) => {
                     const templates = s.habitTemplates.map((x) => (x.id === h.id ? { ...x, name } : x));
                     return {

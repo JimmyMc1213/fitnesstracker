@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (FTI-39 merged PR #25; Sprint 3 complete)
+# last_updated: 2026-05-23 (Sprint 4 planned — UI polish & IA from screenshot audit)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -10,12 +10,15 @@
 # Fitcoach is the all-in-one fitness app that coaches you through every workout,
 # meal, and check-in — so you never need another app to hit your goals.
 #
-# Sprint 3 order (execute in this sequence):
-#   FTI-40 → 34 → 33 → 37 → 35 → 36 → 38 → 39
+# Sprint 4 order (execute in this sequence):
+#   FTI-41 → 42 → 43 → 44 → 45 → 46
 #
-# WATER (FTI-32 / FTI-33 — locked 2026-05-22):
-#   Nutrition tab only (ScreenNutrition.tsx → WaterTrackerCard).
-#   No Home water card, no compact Home row.
+# SPRINT 4 SCOPE LOCKS (2026-05-23 party-mode):
+#   - Nutrition tab rebuild: OUT OF SCOPE (deferred)
+#   - Home Fuel strip / quick-log: keep as-is until nutrition rebuild
+#   - FTI-13 AI coach: Sprint 5+ candidate
+#   - Habits tab removed from nav; daily habits move to Home card
+#   - Primary CTA = lime green (--pos / #4ade80); no white blobs; no blue primaries
 #
 # STATUS DEFINITIONS:
 # ==================
@@ -39,21 +42,21 @@
 # ===============
 # - Linear is the product backlog; BMad story files live under story_location
 # - Create next story with bmad-create-story after previous story reaches done
-# - FTI-13 (AI coach notes) deferred to Sprint 4+ — after Epic 3 deterministic voice
+# - FTI-13 (AI coach notes) deferred to Sprint 5+ — after UI polish + nutrition rebuild decision
 #
 # ENVIRONMENT (dev / swarm test phases):
 # =====================================
 # - Copy .env.example → .env at project root; fill Supabase URL + client key (publishable or anon JWT).
 # - Vite embeds VITE_* at build time (vite.config.ts define); file must be saved on disk.
-# - Swarm gate: npm run build; after FTI-40 also npm test
+# - Swarm gate: npm run build; npm test
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next: no backlog stories remain in Sprint 3 — run sprint planning for Sprint 4
-# - bmad-swarm next retro: epic-fti-sprint-3-retrospective → done (2026-05-23)
+# - bmad-swarm next: fti-42-design-system-primary-secondary-buttons (ready-for-dev)
+# - bmad-swarm next retro: epic-fti-sprint-4-retrospective → optional (after epic done)
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # FTI-39 merged PR #25; Sprint 3 complete
+last_updated: 2026-05-23  # Sprint 4 planned
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -91,7 +94,7 @@ development_status:
 
   epic-fti-sprint-2-retrospective: done
 
-  # --- Sprint 3 (planned) — coaching orchestration ---
+  # --- Sprint 3 (complete) — coaching orchestration ---
   epic-fti-sprint-3: done
 
   fti-40-vitest-harness-coach-dailyplan-unit-tests: done
@@ -104,3 +107,15 @@ development_status:
   fti-39-weekly-coach-review-narrative: done
 
   epic-fti-sprint-3-retrospective: done
+
+  # --- Sprint 4 (planned) — UI polish & IA (screenshot audit) ---
+  epic-fti-sprint-4: in-progress
+
+  fti-41-ui-bug-sweep-dev-copy-token-fix: done
+  fti-42-design-system-primary-secondary-buttons: ready-for-dev
+  fti-43-home-density-greeting-weigh-in-legend: ready-for-dev
+  fti-44-daily-habits-on-home-remove-habits-tab: ready-for-dev
+  fti-45-progress-goal-aware-delta-empty-states: ready-for-dev
+  fti-46-settings-section-ia-notification-copy: ready-for-dev
+
+  epic-fti-sprint-4-retrospective: optional
