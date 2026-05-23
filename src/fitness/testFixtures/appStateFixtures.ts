@@ -4,7 +4,7 @@
  */
 import { buildAppStateFromPersisted } from "../buildAppState";
 import { DEFAULT_ONBOARDING_PROFILE } from "../onboardingProfile";
-import type { AppState, MacroTotals, WorkoutDaysPerWeek } from "../types";
+import type { AppState, CompletedWorkoutSession, MacroTotals, WeightEntry, WorkoutDaysPerWeek } from "../types";
 
 export { workoutStateFixtures } from "./workoutStateFixtures";
 
@@ -70,4 +70,50 @@ export function nutritionLoggedAppState(
       ],
     },
   });
+}
+
+/** Sunday or other non-training day for a 5-day split (no Mon template match). */
+export function restDayAppState(dateKey: string, daysPerWeek: WorkoutDaysPerWeek = 5): AppState {
+  return trainingDayAppState({ dateKey, daysPerWeek });
+}
+
+export function weighInTrendAppState(entries: WeightEntry[]): AppState {
+  return minimalAppState({ weightLog: entries });
+}
+
+export function workoutHistoryAppState(sessions: CompletedWorkoutSession[]): AppState {
+  return minimalAppState({ workoutHistory: sessions });
+}
+
+/** Training day with exercises on the Monday template for session estimate tests. */
+export function trainingDayWithExercisesAppState(opts: {
+  dateKey: string;
+  templateName?: string;
+}): AppState {
+  const { dateKey, templateName = "Push" } = opts;
+  const base = trainingDayAppState({ dateKey, templateName });
+  return {
+    ...base,
+    workoutTemplates: [
+      {
+        id: "mon-push",
+        name: templateName,
+        dayLabel: "Mon",
+        focus: "Bench · OHP · Accessories",
+        exercises: [
+          {
+            id: "bench-1",
+            name: "Bench Press",
+            label: "Barbell",
+            target: "3×8",
+            sets: [
+              { w: 135, r: 8, done: false },
+              { w: 135, r: 8, done: false },
+              { w: 135, r: 8, done: false },
+            ],
+          },
+        ],
+      },
+    ],
+  };
 }
