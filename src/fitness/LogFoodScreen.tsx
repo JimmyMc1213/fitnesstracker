@@ -34,7 +34,7 @@ function tabLabel(t: LogFoodTab): string {
     case "myMeals":
       return "My meals";
     case "saved":
-      return "Saved foods";
+      return "Favorite foods";
     default:
       return t;
   }
@@ -130,6 +130,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState }: Props
   return (
     <div
       role="presentation"
+      className="screen page-transition"
       style={{
         position: "fixed",
         inset: 0,
