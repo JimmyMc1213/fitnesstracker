@@ -59,6 +59,11 @@ export type CoachAdjustment = {
 
 export type CoachNotificationKind = "workout" | "nutrition";
 
+export type WeeklyCoachReview = {
+  narrative: string;
+  nextWeekFocus: string;
+};
+
 /** Read-only snapshot of cross-domain inputs for a single calendar day. */
 export type CoachContext = {
   state: AppState;
@@ -464,4 +469,70 @@ export function getNotificationBody(ctx: CoachContext, kind: CoachNotificationKi
   }
 
   return "Log today's fuel in Fitcoach — protein and calories keep the coach plan honest.";
+}
+
+export function getWeeklyCoachReview(ctx: CoachContext): WeeklyCoachReview {
+  const { weeklySummary, streakCount, recentWeightTrend } = ctx;
+  const { workoutsCompleted, workoutsPlanned, nutritionDaysHit, daysInWeek, totalVolumeLbs } =
+    weeklySummary;
+
+  const trainingOnPace = workoutsCompleted >= workoutsPlanned;
+  const nutritionOnPace = nutritionDaysHit >= 4;
+
+  const trainingClause = trainingOnPace
+    ? `${workoutsCompleted}/${workoutsPlanned} sessions completed`
+    : `${workoutsCompleted}/${workoutsPlanned} sessions — ${workoutsPlanned - workoutsCompleted} left on the table`;
+
+  const fuelClause = nutritionOnPace
+    ? `${nutritionDaysHit}/${daysInWeek} fuel days on target`
+    : `${nutritionDaysHit}/${daysInWeek} fuel days logged — protein floor slipped`;
+
+  const volumeClause =
+    totalVolumeLbs > 0
+      ? `${Math.round(totalVolumeLbs).toLocaleString()} lb total volume`
+      : null;
+
+  const streakClause = streakCount > 0 ? `${streakCount}-day streak holding` : null;
+
+  const trendClause =
+    recentWeightTrend.entryCount >= 2 && recentWeightTrend.deltaFromPriorWeek != null
+      ? Math.abs(recentWeightTrend.deltaFromPriorWeek) >= 0.5
+        ? recentWeightTrend.deltaFromPriorWeek < 0
+          ? `scale down ${Math.abs(recentWeightTrend.deltaFromPriorWeek).toFixed(1)} lb vs last week`
+          : `scale up ${recentWeightTrend.deltaFromPriorWeek.toFixed(1)} lb vs last week`
+        : "weight trend stable week-over-week"
+      : null;
+
+  let narrative: string;
+  if (trainingOnPace && nutritionOnPace) {
+    narrative = `Solid week — ${trainingClause}, ${fuelClause}.`;
+    if (volumeClause) narrative += ` ${volumeClause}.`;
+    if (streakClause) narrative += ` ${streakClause}.`;
+  } else if (!trainingOnPace && !nutritionOnPace) {
+    narrative = `Mixed week — ${trainingClause} and ${fuelClause}.`;
+    if (trendClause) narrative += ` ${trendClause}.`;
+  } else if (!trainingOnPace) {
+    narrative = `Training lagged — ${trainingClause}, though ${fuelClause}.`;
+    if (volumeClause) narrative += ` ${volumeClause}.`;
+  } else {
+    narrative = `Fuel trailed training — ${trainingClause}, but ${fuelClause}.`;
+    if (streakClause) narrative += ` ${streakClause}.`;
+  }
+
+  const trainingGap = Math.max(0, workoutsPlanned - workoutsCompleted);
+  const nutritionGap = Math.max(0, 5 - nutritionDaysHit);
+
+  let nextWeekFocus: string;
+  if (trainingGap > 0 && trainingGap >= nutritionGap) {
+    const leftLabel = trainingGap === 1 ? "1 session" : `${trainingGap} sessions`;
+    nextWeekFocus = `Stack all ${workoutsPlanned} sessions — you left ${leftLabel} on the table.`;
+  } else if (!nutritionOnPace) {
+    nextWeekFocus = "Log fuel 5+ days — protein floor drives every adjustment.";
+  } else if (recentWeightTrend.entryCount < 2 && ctx.isSunday) {
+    nextWeekFocus = "Sunday weigh-in sets the week — log before the plan resets.";
+  } else {
+    nextWeekFocus = "Keep executing — training and fuel both on pace.";
+  }
+
+  return { narrative, nextWeekFocus };
 }

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+import { buildCoachContext, getWeeklyCoachReview } from "./coachEngine";
 import { buildWeeklySummary, formatWeeklySummaryRange } from "./weeklySummary";
 import { LBS_PER_KG } from "./unitPreferences";
 import type { AppState } from "./types";
@@ -14,6 +15,10 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const wUnit = state.unitPreferences.weightUnit;
   const summary = useMemo(() => buildWeeklySummary(state, todayKey), [state, todayKey]);
+  const coachReview = useMemo(() => {
+    const ctx = buildCoachContext(state, todayKey);
+    return getWeeklyCoachReview(ctx);
+  }, [state, todayKey]);
 
   const displayVolume =
     summary.totalVolumeLbs > 0 && wUnit === "kg"
@@ -22,6 +27,45 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
   const volLabel = summary.totalVolumeLbs > 0 ? (wUnit === "kg" ? "kg·reps" : "lb·reps") : undefined;
 
   const rangeLabel = formatWeeklySummaryRange(summary.weekStartKey, summary.weekEndKey);
+
+  const coachCopy = (
+    <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+      <p
+        style={{
+          margin: 0,
+          fontSize: 13,
+          lineHeight: 1.45,
+          color: "rgba(255,255,255,0.72)",
+          fontWeight: 500,
+        }}
+      >
+        {coachReview.narrative}
+      </p>
+      <div
+        style={{
+          padding: "10px 12px",
+          borderRadius: 10,
+          background: "rgba(96,165,250,0.08)",
+          border: "0.5px solid rgba(96,165,250,0.18)",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 9,
+            fontWeight: 600,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "rgba(96,165,250,0.85)",
+          }}
+        >
+          Next week
+        </div>
+        <div style={{ marginTop: 5, fontSize: 12, lineHeight: 1.4, color: "rgba(255,255,255,0.88)", fontWeight: 600 }}>
+          {coachReview.nextWeekFocus}
+        </div>
+      </div>
+    </div>
+  );
 
   const statGrid = (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
@@ -78,6 +122,7 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
           <WeekGlyph size={22} />
         </div>
         {statGrid}
+        {coachCopy}
       </div>
     );
   }
@@ -129,7 +174,7 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
         </span>
       </button>
 
-      {!collapsed ? <div style={{ padding: "0 16px 16px" }}>{statGrid}</div> : null}
+      {!collapsed ? <div style={{ padding: "0 16px 16px" }}>{statGrid}{coachCopy}</div> : null}
     </div>
   );
 }

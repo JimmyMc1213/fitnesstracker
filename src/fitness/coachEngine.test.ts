@@ -5,10 +5,12 @@ import {
   getHomeCoachPlan,
   getNotificationBody,
   getPostWorkoutRecap,
+  getWeeklyCoachReview,
   getWeighInReaction,
   getWeighInReactionForDisplay,
 } from "./coachEngine";
-import type { CompletedWorkoutSession, WeightEntry } from "./types";
+import type { CompletedWorkoutSession, MacroTotals, WeightEntry, WorkoutDaysPerWeek } from "./types";
+import { DEFAULT_ONBOARDING_PROFILE } from "./onboardingProfile";
 import {
   minimalAppState,
   restDayAppState,
@@ -44,6 +46,16 @@ const sampleSession: CompletedWorkoutSession = {
     },
   ],
 };
+
+const NUTRITION_TARGETS: MacroTotals = { cal: 2500, p: 180, c: 250, f: 70 };
+
+function weekSession(dayKey: string, title = "Push"): CompletedWorkoutSession {
+  return { ...sampleSession, id: `sess-${dayKey}`, dayKey, title };
+}
+
+function nutritionDaysHitState(dayKeys: string[]): Record<string, MacroTotals> {
+  return Object.fromEntries(dayKeys.map((key) => [key, { ...NUTRITION_TARGETS }]));
+}
 
 describe("buildCoachContext", () => {
   it("flags training day on Monday with Mon template", () => {
@@ -191,5 +203,73 @@ describe("getNotificationBody", () => {
 
     expect(body).toMatch(/180g protein/i);
     expect(body).not.toMatch(/Log today's fuel in Fitcoach to stay on track with your targets/i);
+  });
+});
+
+describe("getWeeklyCoachReview", () => {
+  const FRIDAY = new Date(2026, 4, 22, 9, 0);
+  const FRIDAY_KEY = "2026-05-22";
+  const weekDayKeys = ["2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22"];
+
+  it("returns strong-week narrative with maintenance focus", () => {
+    const state = workoutHistoryAppState(weekDayKeys.map((dayKey) => weekSession(dayKey)));
+    const fullState = {
+      ...state,
+      nutritionManualByDay: nutritionDaysHitState(weekDayKeys),
+      nutritionTargets: NUTRITION_TARGETS,
+      onboardingProfile: { ...DEFAULT_ONBOARDING_PROFILE, workoutDaysPerWeek: 5 as WorkoutDaysPerWeek },
+    };
+    const ctx = buildCoachContext(fullState, FRIDAY_KEY, FRIDAY);
+    const review = getWeeklyCoachReview(ctx);
+
+    expect(review.narrative).toMatch(/Solid week/i);
+    expect(review.narrative).toMatch(/sessions/i);
+    expect(review.narrative).toMatch(/fuel/i);
+    expect(review.nextWeekFocus).toMatch(/Keep executing/i);
+  });
+
+  it("nudges training when sessions lag", () => {
+    const state = workoutHistoryAppState([weekSession("2026-05-18")]);
+    const fullState = {
+      ...state,
+      nutritionManualByDay: nutritionDaysHitState(weekDayKeys),
+      nutritionTargets: NUTRITION_TARGETS,
+      onboardingProfile: { ...DEFAULT_ONBOARDING_PROFILE, workoutDaysPerWeek: 5 as WorkoutDaysPerWeek },
+    };
+    const ctx = buildCoachContext(fullState, FRIDAY_KEY, FRIDAY);
+    const review = getWeeklyCoachReview(ctx);
+
+    expect(review.narrative).toMatch(/Training lagged|left on the table/i);
+    expect(review.nextWeekFocus).toMatch(/Stack all 5 sessions/i);
+  });
+
+  it("nudges fuel logging when nutrition days slip", () => {
+    const state = workoutHistoryAppState(weekDayKeys.map((dayKey) => weekSession(dayKey)));
+    const fullState = {
+      ...state,
+      nutritionManualByDay: nutritionDaysHitState(["2026-05-18"]),
+      nutritionTargets: NUTRITION_TARGETS,
+      onboardingProfile: { ...DEFAULT_ONBOARDING_PROFILE, workoutDaysPerWeek: 5 as WorkoutDaysPerWeek },
+    };
+    const ctx = buildCoachContext(fullState, FRIDAY_KEY, FRIDAY);
+    const review = getWeeklyCoachReview(ctx);
+
+    expect(review.narrative).toMatch(/Fuel trailed training/i);
+    expect(review.nextWeekFocus).toMatch(/Log fuel 5\+ days/i);
+  });
+
+  it("returns deterministic copy for the same context", () => {
+    const state = workoutHistoryAppState(weekDayKeys.map((dayKey) => weekSession(dayKey)));
+    const fullState = {
+      ...state,
+      nutritionManualByDay: nutritionDaysHitState(weekDayKeys),
+      nutritionTargets: NUTRITION_TARGETS,
+      onboardingProfile: { ...DEFAULT_ONBOARDING_PROFILE, workoutDaysPerWeek: 5 as WorkoutDaysPerWeek },
+    };
+    const ctx = buildCoachContext(fullState, FRIDAY_KEY, FRIDAY);
+    const first = getWeeklyCoachReview(ctx);
+    const second = getWeeklyCoachReview(ctx);
+
+    expect(first).toEqual(second);
   });
 });
