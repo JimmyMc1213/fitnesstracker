@@ -4,6 +4,7 @@ import {
   buildMeasurements,
   computeServingMultiplier,
   formatServingLabel,
+  loggedItemToPickerEdit,
   parseQuantityInput,
   parseServingLabel,
 } from "./foodMeasurements";
@@ -54,5 +55,42 @@ describe("foodMeasurements", () => {
     expect(parseQuantityInput("150")).toBe(150);
     expect(parseQuantityInput("0")).toBeNull();
     expect(parseQuantityInput("abc")).toBeNull();
+  });
+
+  it("reconstructs picker edit state from a catalog logged row", () => {
+    const edit = loggedItemToPickerEdit({
+      id: "log-1",
+      name: "Chicken breast",
+      cal: 293,
+      p: 45,
+      c: 0,
+      f: 12,
+      servingLabel: "150 g",
+      source: "usda",
+      externalId: "usda-1",
+      loggedAtMs: 1,
+    });
+    expect(edit).not.toBeNull();
+    expect(edit!.measurementId).toBe("g");
+    expect(edit!.quantity).toBe("150");
+    expect(edit!.food.cal).toBe(195);
+    expect(computeServingMultiplier(
+      buildMeasurements(edit!.food).find((m) => m.id === "g")!,
+      150,
+      100,
+    )).toBe(1.5);
+  });
+
+  it("returns null for manual logged rows without external id", () => {
+    expect(
+      loggedItemToPickerEdit({
+        id: "log-2",
+        name: "Shake",
+        cal: 300,
+        p: 40,
+        c: 0,
+        f: 0,
+      }),
+    ).toBeNull();
   });
 });

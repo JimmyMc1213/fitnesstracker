@@ -1,6 +1,27 @@
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import type { FoodSearchErrorResponse, FoodSearchResponse, FoodSearchResult } from "./foodSearchTypes";
 
+/** Max merged USDA + OFF rows returned to the UI (matches Edge Function cap). */
+export const FOOD_SEARCH_RESULT_LIMIT = 20;
+
+const searchCache = new Map<string, FoodSearchResult[]>();
+const MAX_CACHE_ENTRIES = 32;
+
+export function clearFoodSearchCache(): void {
+  searchCache.clear();
+}
+
+function cacheResults(query: string, results: FoodSearchResult[]): FoodSearchResult[] {
+  const limited = results.slice(0, FOOD_SEARCH_RESULT_LIMIT);
+  const key = query.trim().toLowerCase();
+  searchCache.set(key, limited);
+  if (searchCache.size > MAX_CACHE_ENTRIES) {
+    const oldest = searchCache.keys().next().value;
+    if (oldest !== undefined) searchCache.delete(oldest);
+  }
+  return limited;
+}
+
 export class FoodSearchError extends Error {
   constructor(message: string) {
     super(message);
@@ -53,8 +74,12 @@ export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
   const q = query.trim();
   if (q.length < 2) return [];
 
+  const cacheKey = q.toLowerCase();
+  const cached = searchCache.get(cacheKey);
+  if (cached) return cached;
+
   const mocked = e2eMockResults(q);
-  if (mocked !== null) return mocked;
+  if (mocked !== null) return cacheResults(q, mocked);
 
   if (!isSupabaseConfigured()) {
     throw new FoodSearchError("Supabase is not configured — check your .env file.");
@@ -73,7 +98,7 @@ export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
     throw new FoodSearchError(error.message || "Food search failed.");
   }
 
-  return parseResults(data);
+  return cacheResults(q, parseResults(data));
 }
 
 /** Debounce helper for search input (~300ms). */

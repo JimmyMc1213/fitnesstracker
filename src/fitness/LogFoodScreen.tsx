@@ -50,6 +50,38 @@ const DEFAULT_SERVING = "1 serving";
 const MIN_SEARCH_LEN = 2;
 const SEARCH_DEBOUNCE_MS = 300;
 
+const searchInputStyle = {
+  width: "100%",
+  marginBottom: 16,
+  fontSize: 15,
+  borderRadius: 14,
+  padding: "12px 14px",
+  background: "rgba(255,255,255,0.06)",
+  border: "0.5px solid rgba(255,255,255,0.08)",
+  color: "#fff",
+} as const;
+
+const foodListCardStyle = {
+  padding: "4px 14px",
+  marginBottom: 16,
+  overflow: "hidden" as const,
+};
+
+const addButtonStyle = {
+  flexShrink: 0,
+  width: 36,
+  height: 36,
+  borderRadius: 10,
+  border: "none",
+  background: "var(--pos, #4ade80)",
+  color: "#07080c",
+  fontSize: 20,
+  fontWeight: 700,
+  lineHeight: 1,
+  display: "grid",
+  placeItems: "center",
+} as const;
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -111,6 +143,9 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   const [mealIngredientC, setMealIngredientC] = useState("");
   const [mealIngredientF, setMealIngredientF] = useState("");
   const [mealIngredientServing, setMealIngredientServing] = useState("");
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const userFoods = state.nutritionUserFoods ?? [];
   const savedMeals = state.nutritionMeals ?? [];
@@ -226,6 +261,17 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     if (!open || !editItem) return;
     openEditLoggedItem(editItem);
   }, [open, editItem]);
+
+  useEffect(() => {
+    if (!open || tab !== "all" || manualOpen || mealEditorOpen || pickerFood) return;
+    const t = setTimeout(() => searchInputRef.current?.focus(), 80);
+    return () => clearTimeout(t);
+  }, [open, tab, manualOpen, mealEditorOpen, pickerFood]);
+
+  function focusSearchInput() {
+    searchInputRef.current?.focus({ preventScroll: true });
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   function openEditLoggedItem(item: NutritionLoggedItem) {
     setEditingLoggedItemId(item.id);
@@ -582,17 +628,18 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
 
   const tabs: LogFoodTab[] = ["all", "myFoods", "myMeals", "saved"];
 
-  const pill = (active: boolean) =>
+  const tabButtonStyle = (active: boolean) =>
     ({
       flex: 1,
-      padding: "8px 10px",
-      borderRadius: 10,
+      padding: "10px 6px",
       border: "none",
-      fontWeight: 600,
-      fontSize: 12,
+      borderBottom: active ? "2px solid var(--pos, #4ade80)" : "2px solid transparent",
+      marginBottom: -1,
+      background: "transparent",
+      fontWeight: active ? 600 : 500,
+      fontSize: 13,
       letterSpacing: "-0.02em",
       cursor: "pointer",
-      background: active ? "rgba(255,255,255,0.18)" : "transparent",
       color: active ? "#fff" : "rgba(255,255,255,0.45)",
       whiteSpace: "nowrap",
     }) as const;
@@ -616,12 +663,14 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     display: "flex",
     alignItems: "center" as const,
     gap: 12,
-    padding: "14px 0",
+    padding: "12px 0",
     borderBottom: "1px solid rgba(255,255,255,0.06)",
     cursor: "pointer" as const,
     width: "100%",
     background: "transparent",
-    border: "none",
+    borderLeft: "none",
+    borderRight: "none",
+    borderTop: "none",
     textAlign: "left" as const,
   };
 
@@ -1181,17 +1230,15 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         </>
       ) : (
         <>
-          <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px 108px", WebkitOverflowScrolling: "touch" }}>
+          <div ref={scrollContainerRef} style={{ flex: 1, overflowY: "auto", padding: "12px 16px 108px", WebkitOverflowScrolling: "touch" }}>
             <div
               role="tablist"
               aria-label="Food sources"
               style={{
                 display: "flex",
-                gap: 4,
-                padding: 4,
+                gap: 0,
                 marginBottom: 16,
-                borderRadius: 12,
-                background: "rgba(255,255,255,0.06)",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
               }}
             >
               {tabs.map((t) => (
@@ -1201,7 +1248,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   role="tab"
                   aria-selected={tab === t}
                   className="tap"
-                  style={pill(tab === t)}
+                  style={tabButtonStyle(tab === t)}
                   onClick={() => setTab(t)}
                 >
                   {tabLabel(t)}
@@ -1212,17 +1259,16 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             {tab === "all" ? (
               <>
                 <input
+                  ref={searchInputRef}
                   aria-label="Search foods"
                   placeholder="Search foods (e.g. chicken breast)"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
+                  onFocus={focusSearchInput}
+                  enterKeyHint="search"
+                  autoComplete="off"
                   className="input"
-                  style={{
-                    width: "100%",
-                    marginBottom: 16,
-                    fontSize: 15,
-                    borderRadius: 12,
-                  }}
+                  style={searchInputStyle}
                 />
 
                 {searchActive ? (
@@ -1246,13 +1292,16 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                         No results. Try a different search or use Manual Add.
                       </p>
                     ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 0, marginBottom: 24 }}>
-                        {apiResults.map((food) => (
+                      <div className="card" style={foodListCardStyle}>
+                        {apiResults.map((food, idx) => (
                           <button
                             key={food.id}
                             type="button"
                             className="tap between"
-                            style={foodRowStyle}
+                            style={{
+                              ...foodRowStyle,
+                              borderBottom: idx === apiResults.length - 1 ? "none" : foodRowStyle.borderBottom,
+                            }}
                             onClick={() => openPicker(food)}
                           >
                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -1279,16 +1328,16 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                         Nothing logged recently. Search above or use Manual Add.
                       </p>
                     ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                        {filteredRecent.map((it) => (
+                      <div className="card" style={foodListCardStyle}>
+                        {filteredRecent.map((it, idx) => (
                           <div
                             key={`${it.id}-${it.name}`}
                             className="between"
                             style={{
                               alignItems: "center",
                               gap: 12,
-                              padding: "14px 0",
-                              borderBottom: "1px solid rgba(255,255,255,0.06)",
+                              padding: "12px 0",
+                              borderBottom: idx === filteredRecent.length - 1 ? "none" : "1px solid rgba(255,255,255,0.06)",
                             }}
                           >
                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -1304,18 +1353,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                               className="tap"
                               aria-label={`Log again ${it.name.trim() || "food"}`}
                               onClick={() => relogItem(it)}
-                              style={{
-                                flexShrink: 0,
-                                width: 40,
-                                height: 40,
-                                borderRadius: 12,
-                                border: "0.5px solid rgba(255,255,255,0.14)",
-                                background: "rgba(120,200,255,0.14)",
-                                color: "rgba(200,235,255,0.95)",
-                                fontSize: 22,
-                                fontWeight: 600,
-                                lineHeight: 1,
-                              }}
+                              style={addButtonStyle}
                             >
                               +
                             </button>
@@ -1333,16 +1371,16 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                     No saved foods yet. Manual Add or search and tap Save to My foods.
                   </p>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                    {userFoods.map((food) => (
+                  <div className="card" style={foodListCardStyle}>
+                    {userFoods.map((food, idx) => (
                       <div
                         key={food.id}
                         className="between"
                         style={{
                           alignItems: "center",
                           gap: 12,
-                          padding: "14px 0",
-                          borderBottom: "1px solid rgba(255,255,255,0.06)",
+                          padding: "12px 0",
+                          borderBottom: idx === userFoods.length - 1 ? "none" : "1px solid rgba(255,255,255,0.06)",
                         }}
                       >
                         <button
@@ -1390,16 +1428,16 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                     Favorite foods appear here after you log something. Tap + to log again anytime.
                   </p>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                    {favoritePresets.map((preset) => (
+                  <div className="card" style={foodListCardStyle}>
+                    {favoritePresets.map((preset, idx) => (
                       <div
                         key={preset.id}
                         className="between"
                         style={{
                           alignItems: "center",
                           gap: 12,
-                          padding: "14px 0",
-                          borderBottom: "1px solid rgba(255,255,255,0.06)",
+                          padding: "12px 0",
+                          borderBottom: idx === favoritePresets.length - 1 ? "none" : "1px solid rgba(255,255,255,0.06)",
                         }}
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -1415,18 +1453,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           className="tap"
                           aria-label={`Log ${preset.name.trim() || "food"}`}
                           onClick={() => logFavoritePreset(preset)}
-                          style={{
-                            flexShrink: 0,
-                            width: 40,
-                            height: 40,
-                            borderRadius: 12,
-                            border: "0.5px solid rgba(255,255,255,0.14)",
-                            background: "rgba(120,200,255,0.14)",
-                            color: "rgba(200,235,255,0.95)",
-                            fontSize: 22,
-                            fontWeight: 600,
-                            lineHeight: 1,
-                          }}
+                          style={addButtonStyle}
                         >
                           +
                         </button>
@@ -1451,8 +1478,8 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                     Save meals you eat often — chicken and rice, overnight oats, whatever you prep. Log the whole meal in one tap instead of each ingredient.
                   </p>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                    {savedMeals.map((meal) => {
+                  <div className="card" style={foodListCardStyle}>
+                    {savedMeals.map((meal, idx) => {
                       const mealMacros = sumMealMacros(meal.items);
                       const servingLabel = formatMealServingLabel(meal.items);
                       return (
@@ -1462,8 +1489,8 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           style={{
                             alignItems: "center",
                             gap: 12,
-                            padding: "14px 0",
-                            borderBottom: "1px solid rgba(255,255,255,0.06)",
+                            padding: "12px 0",
+                            borderBottom: idx === savedMeals.length - 1 ? "none" : "1px solid rgba(255,255,255,0.06)",
                           }}
                         >
                           <button
@@ -1506,21 +1533,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   </div>
                 )}
               </>
-            ) : (
-              <div
-                className="card"
-                style={{
-                  padding: "28px 18px",
-                  textAlign: "center",
-                  color: "rgba(255,255,255,0.45)",
-                  fontSize: 14,
-                  lineHeight: 1.55,
-                  fontWeight: 500,
-                }}
-              >
-                {tabLabel(tab)} will show here once synced.
-              </div>
-            )}
+            ) : null}
           </div>
 
           <div

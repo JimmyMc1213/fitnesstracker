@@ -193,18 +193,18 @@
 ## Phase 9 — Polish & Cal AI fidelity
 
 ### 9.1 — Visual pass
-- [ ] Match Cal AI: dark cards, rounded search, tab underline `[S9]`
-- [ ] Row `+` buttons styled like reference `[S9]`
-- [ ] Safe-area padding for FAB and bottom Manual Add `[S9]`
+- [x] Match Cal AI: dark cards, rounded search, tab underline `[S9]`
+- [x] Row `+` buttons styled like reference `[S9]`
+- [x] Safe-area padding for FAB and bottom Manual Add `[S9]`
 
 ### 9.2 — UX polish
-- [ ] Keyboard-friendly search on mobile `[S9]`
-- [ ] Ring animation on return from Log Food `[S9]`
-- [ ] Empty states per tab (helpful copy) `[S9]`
+- [x] Keyboard-friendly search on mobile `[S9]`
+- [x] Ring animation on return from Log Food `[S9]`
+- [x] Empty states per tab (helpful copy) `[S9]`
 
 ### 9.3 — Performance
-- [ ] Cache recent searches in session memory `[S9]`
-- [ ] Limit USDA/OFF to top ~20 results `[S9]`
+- [x] Cache recent searches in session memory `[S9]`
+- [x] Limit USDA/OFF to top ~20 results `[S9]`
 
 ---
 

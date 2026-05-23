@@ -1,18 +1,14 @@
-import { useEffect, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
-import {
-  buildNutritionLoggedItem,
-  removeNutritionLoggedItem,
-  updateNutritionLoggedItem,
-} from "./nutritionLog";
 import { IconPencil, IconTrash } from "./icons";
+import { removeNutritionLoggedItem } from "./nutritionLog";
 import type { AppState, NutritionLoggedItem } from "./types";
 
 type Props = {
   dateKey: string;
   items: NutritionLoggedItem[];
   onRemove: (itemId: string) => void;
-  onUpdate: (itemId: string, row: NutritionLoggedItem) => void;
+  onEdit: (item: NutritionLoggedItem) => void;
 };
 
 function formatLoggedTime(ms: number | undefined): string {
@@ -20,20 +16,8 @@ function formatLoggedTime(ms: number | undefined): string {
   return new Date(t).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
-function parseMacro(raw: string): number {
-  const n = parseFloat(raw);
-  return Number.isFinite(n) && n >= 0 ? n : 0;
-}
-
-export function TodayFoodLogCard({ items, onRemove, onUpdate }: Props) {
+export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
   const [showEarlier, setShowEarlier] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [draftName, setDraftName] = useState("");
-  const [draftCal, setDraftCal] = useState("");
-  const [draftP, setDraftP] = useState("");
-  const [draftC, setDraftC] = useState("");
-  const [draftF, setDraftF] = useState("");
-  const [draftServing, setDraftServing] = useState("");
 
   const sorted = [...items].sort((a, b) => {
     const ta = typeof a.loggedAtMs === "number" ? a.loggedAtMs : 0;
@@ -48,150 +32,7 @@ export function TodayFoodLogCard({ items, onRemove, onUpdate }: Props) {
     if (sorted.length <= 1) setShowEarlier(false);
   }, [sorted.length]);
 
-  useEffect(() => {
-    if (editingId && !sorted.some((it) => it.id === editingId)) setEditingId(null);
-  }, [editingId, sorted]);
-
-  function startEdit(item: NutritionLoggedItem) {
-    setEditingId(item.id);
-    setDraftName(item.name || "");
-    setDraftCal(String(Math.round(Number(item.cal) || 0)));
-    setDraftP(String(Number(item.p) || 0));
-    setDraftC(String(Number(item.c) || 0));
-    setDraftF(String(Number(item.f) || 0));
-    setDraftServing(item.servingLabel?.trim() ?? "");
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-  }
-
-  function saveEdit(e: FormEvent, item: NutritionLoggedItem) {
-    e.preventDefault();
-    const row = buildNutritionLoggedItem(
-      {
-        cal: parseMacro(draftCal),
-        p: parseMacro(draftP),
-        c: parseMacro(draftC),
-        f: parseMacro(draftF),
-      },
-      draftName.trim() || "Food",
-      {
-        id: item.id,
-        loggedAtMs: item.loggedAtMs ?? Date.now(),
-        ...(draftServing.trim() ? { servingLabel: draftServing.trim() } : {}),
-        ...(item.source?.trim() ? { source: item.source.trim() } : {}),
-        ...(item.externalId?.trim() ? { externalId: item.externalId.trim() } : {}),
-      },
-    );
-    onUpdate(item.id, row);
-    setEditingId(null);
-  }
-
   function renderRow(item: NutritionLoggedItem, showDivider: boolean) {
-    const isEditing = editingId === item.id;
-
-    if (isEditing) {
-      return (
-        <form
-          key={item.id}
-          onSubmit={(e) => saveEdit(e, item)}
-          style={{
-            paddingBottom: showDivider ? 12 : 0,
-            marginBottom: showDivider ? 12 : 0,
-            borderBottom: showDivider ? "1px solid rgba(255,255,255,0.06)" : undefined,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
-        >
-          <input
-            aria-label="Food name"
-            value={draftName}
-            onChange={(e) => setDraftName(e.target.value)}
-            className="input"
-            placeholder="Name"
-          />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <input
-              aria-label="Calories"
-              value={draftCal}
-              onChange={(e) => setDraftCal(e.target.value)}
-              className="input"
-              inputMode="decimal"
-              placeholder="kcal"
-            />
-            <input
-              aria-label="Protein grams"
-              value={draftP}
-              onChange={(e) => setDraftP(e.target.value)}
-              className="input"
-              inputMode="decimal"
-              placeholder="Protein (g)"
-            />
-            <input
-              aria-label="Carbs grams"
-              value={draftC}
-              onChange={(e) => setDraftC(e.target.value)}
-              className="input"
-              inputMode="decimal"
-              placeholder="Carbs (g)"
-            />
-            <input
-              aria-label="Fat grams"
-              value={draftF}
-              onChange={(e) => setDraftF(e.target.value)}
-              className="input"
-              inputMode="decimal"
-              placeholder="Fat (g)"
-            />
-          </div>
-          <input
-            aria-label="Serving"
-            value={draftServing}
-            onChange={(e) => setDraftServing(e.target.value)}
-            className="input"
-            placeholder="Serving (optional)"
-          />
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              className="tap"
-              onClick={cancelEdit}
-              style={{
-                flex: 1,
-                padding: "10px 12px",
-                borderRadius: 10,
-                border: "0.5px solid rgba(255,255,255,0.14)",
-                background: "transparent",
-                color: "rgba(255,255,255,0.65)",
-                fontSize: 13,
-                fontWeight: 600,
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="tap"
-              style={{
-                flex: 1,
-                padding: "10px 12px",
-                borderRadius: 10,
-                border: "none",
-                background: "var(--pos, #4ade80)",
-                color: "#07080c",
-                fontSize: 13,
-                fontWeight: 700,
-              }}
-            >
-              Save
-            </button>
-          </div>
-        </form>
-      );
-    }
-
     return (
       <div
         key={item.id}
@@ -230,7 +71,7 @@ export function TodayFoodLogCard({ items, onRemove, onUpdate }: Props) {
             type="button"
             className="tap"
             aria-label={`Edit ${item.name.trim() || "food"}`}
-            onClick={() => startEdit(item)}
+            onClick={() => onEdit(item)}
             style={{
               display: "grid",
               placeItems: "center",
@@ -322,9 +163,8 @@ export function TodayFoodLogCard({ items, onRemove, onUpdate }: Props) {
 export function todayFoodLogHandlers(
   setState: Dispatch<SetStateAction<AppState>>,
   dateKey: string,
-): { onRemove: (itemId: string) => void; onUpdate: (itemId: string, row: NutritionLoggedItem) => void } {
+): { onRemove: (itemId: string) => void } {
   return {
     onRemove: (itemId) => setState((s) => removeNutritionLoggedItem(s, dateKey, itemId)),
-    onUpdate: (itemId, row) => setState((s) => updateNutritionLoggedItem(s, dateKey, itemId, row)),
   };
 }
