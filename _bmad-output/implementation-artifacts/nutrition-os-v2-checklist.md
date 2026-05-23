@@ -1,8 +1,8 @@
 # Nutrition OS v2 — Master Checklist
 
-**Last updated:** 2026-05-23 (Sprint 9 planning complete)  
-**Current chunk:** Sprint 9 (Chunk 3 of 3) — **planned**  
-**Progress:** 44 / 47 steps complete (S9 planning done; dev not started)
+**Last updated:** 2026-05-23 (Sprint 9 complete — FTI-65 merged)  
+**Current chunk:** Sprint 9 (Chunk 3 of 3) — **complete**  
+**Progress:** 47 / 47 steps complete
 
 ---
 
@@ -211,7 +211,7 @@
 ## Phase 10 — Tests, persistence & ship
 
 ### 10.1 — Unit tests
-- [ ] `foodSearchService` (mocked) `[S9]`
+- [x] `foodSearchService` (mocked) `[S9]`
 - [x] `getRecentlyLoggedFoods` `[S7/S9]`
 - [x] Meal macro summing `[S9]`
 - [x] Persist slice includes `nutritionMeals` `[S9]`
@@ -222,15 +222,15 @@
 - [x] FAB opens Log Food `[S7]`
 - [x] Manual add → rings update `[S7]`
 - [x] Search → select → log → rings update `[S8]`
-- [ ] Log saved meal → rings update `[S9]`
+- [x] Log saved meal → rings update `[S9]`
 - [x] Coach task opens Log Food on Nutrition tab `[S7]`
 - [x] Update/remove broken `fuel-quick-log` e2e tests `[S7]`
 
 ### 10.3 — Build gate
-- [ ] `npm run build` passes `[S9]`
-- [ ] `npm test` passes `[S9]`
-- [ ] `npm run test:e2e` passes `[S9]`
-- [ ] Sprint 9 retrospective done `[S9]`
+- [x] `npm run build` passes `[S9]`
+- [x] `npm test` passes `[S9]`
+- [x] `npm run test:e2e` passes `[S9]`
+- [x] Sprint 9 retrospective done `[S9]`
 
 ---
 
@@ -258,6 +258,8 @@
 
 | Date | Story / issue | Steps checked off |
 |------|---------------|-------------------|
+| 2026-05-23 | FTI-65 | Phase 10 (full) — meal E2E, build gate, Sprint 9 retro |
+| 2026-05-23 | FTI-64 / PR #32 | Phase 9 — Cal AI visual polish |
 | 2026-05-23 | FTI-63 / PR #31 | Phase 0.3 (meals), 6, 10.1 (partial) — My meals meal prep + data model |
 | 2026-05-23 | FTI-60–62 / PR #30 | Phases 0.2 (code), 3, 4, 5, 7 — search, My foods, Favorite foods, E2E |
 | 2026-05-23 | FTI-57 / FTI-51 | Phases 0.3 (S7), 1, 2 — Log Food shell + data model |

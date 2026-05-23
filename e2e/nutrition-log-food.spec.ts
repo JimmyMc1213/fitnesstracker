@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import { fuelQuickLogPersistSeed, seedPersist } from "./helpers/seed";
+import { fuelQuickLogPersistSeed, mealLogPersistSeed, seedPersist } from "./helpers/seed";
 
 test("Nutrition tab: rings + hydration only, FAB opens Log Food, manual add updates totals", async ({ page }) => {
   await seedPersist(page, fuelQuickLogPersistSeed());
@@ -47,4 +47,24 @@ test("Log Food: search → serving → log updates nutrition rings", async ({ pa
   await expect(page.getByRole("heading", { name: "Log Food" })).not.toBeVisible();
   await expect(page.getByText("1835 kcal left")).toBeVisible();
   await expect(page.getByText("51 / 180g")).toBeVisible();
+});
+
+test("Log Food: saved meal from My meals updates nutrition rings", async ({ page }) => {
+  await seedPersist(page, mealLogPersistSeed());
+  await page.goto("/");
+
+  await page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "Nutrition" }).click();
+  await expect(page.getByText("2000 kcal left")).toBeVisible();
+  await expect(page.getByText("20 / 180g")).toBeVisible();
+
+  await page.getByLabel("Log food").click();
+  await expect(page.getByRole("heading", { name: "Log Food" })).toBeVisible();
+  await page.getByRole("tab", { name: "My meals" }).click();
+  await expect(page.getByText("E2E prep bowl")).toBeVisible();
+  await page.getByRole("button", { name: /E2E prep bowl 350 kcal/i }).click();
+
+  await expect(page.getByRole("heading", { name: "Log Food" })).not.toBeVisible();
+  await expect(page.getByText("1650 kcal left")).toBeVisible();
+  await expect(page.getByText("63 / 180g")).toBeVisible();
+  await expect(page.getByText("E2E prep bowl")).toBeVisible();
 });
