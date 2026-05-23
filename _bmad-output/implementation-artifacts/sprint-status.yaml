@@ -123,12 +123,12 @@ development_status:
   epic-fti-sprint-4-retrospective: optional
 
   # --- Sprint 5 (planned) — quality foundation & nutrition OS ---
-  epic-fti-sprint-5: backlog
+  epic-fti-sprint-5: done
 
-  fti-47-playwright-e2e-harness-coach-navigation-smoke: ready-for-dev
-  fti-48-coachengine-refactor-shared-date-training-helpers: backlog
-  fti-49-nutrition-tab-rebuild-hero-rings-coached-today-log: backlog
-  fti-50-home-fuel-strip-alignment-post-nutrition-rebuild: backlog
-  fti-51-week-boundary-rules-streak-vs-weekly-summary: backlog
+  fti-47-playwright-e2e-harness-coach-navigation-smoke: done
+  fti-48-coachengine-refactor-shared-date-training-helpers: done
+  fti-49-nutrition-tab-rebuild-hero-rings-coached-today-log: done
+  fti-50-home-fuel-strip-alignment-post-nutrition-rebuild: done
+  fti-51-week-boundary-rules-streak-vs-weekly-summary: done
 
   epic-fti-sprint-5-retrospective: optional

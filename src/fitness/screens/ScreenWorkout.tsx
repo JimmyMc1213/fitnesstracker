@@ -30,7 +30,7 @@ import {
   restDurationForExercise,
 } from "../restTimerPreferences";
 import { ExerciseSwapSheet } from "../ExerciseSwapSheet";
-import { isTrainingDay } from "../notificationScheduler";
+import { isTrainingDay } from "../trainingCalendar";
 import { RestTimerBar } from "../RestTimerBar";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
 

@@ -18,7 +18,7 @@
 
 **Sprint 4 (done):** UI polish & IA from screenshot audit — dev copy scrub, design-system buttons, Home density, habits folded into Home, Progress empty states, Settings IA.
 
-**Sprint 5 (planned):** Quality foundation & nutrition OS — Playwright E2E smoke, `coachEngine` refactor, Nutrition tab rebuild (deferred from Sprint 4), Home Fuel strip alignment, week-boundary rules.
+**Sprint 5 (done):** Quality foundation & nutrition OS — Playwright E2E smoke, `coachEngine` refactor, Nutrition tab rebuild, Home Fuel strip alignment, week-boundary rules.
 
 **Prerequisite (done):** [FTI-15](https://linear.app/ftiness-tracker/issue/FTI-15/save-workouts-and-workout-history) — `story_key: fti-15-save-workouts-and-workout-history`
 

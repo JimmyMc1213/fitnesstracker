@@ -3,3 +3,6 @@ dist
 .env
 *.local
 .DS_Store
+.playwright-browsers
+test-results
+playwright-report

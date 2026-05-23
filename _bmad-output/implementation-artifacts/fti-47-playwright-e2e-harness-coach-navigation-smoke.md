@@ -1,6 +1,6 @@
 # Story 5.1: Playwright E2E harness + coach navigation smoke (FTI-47)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

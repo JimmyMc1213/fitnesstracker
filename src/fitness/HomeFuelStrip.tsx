@@ -6,9 +6,11 @@ type Props = {
   targets: MacroTotals;
   label?: string;
   onLogClick?: () => void;
+  /** Brief coached pace hint — shown only when user is behind protein pace. */
+  paceHint?: string;
 };
 
-export function HomeFuelStrip({ totals, targets, label = "Fuel · Today", onLogClick }: Props) {
+export function HomeFuelStrip({ totals, targets, label = "Fuel · Today", onLogClick, paceHint }: Props) {
   const kcalLeft = Math.max(0, targets.cal - totals.cal);
 
   return (
@@ -60,6 +62,19 @@ export function HomeFuelStrip({ totals, targets, label = "Fuel · Today", onLogC
         ) : null}
       </div>
       <MacroBar label="Protein" value={totals.p} target={targets.p} />
+      {paceHint ? (
+        <p
+          style={{
+            margin: "10px 0 0",
+            fontSize: 12,
+            lineHeight: 1.45,
+            color: "rgba(255,200,120,0.95)",
+            fontWeight: 500,
+          }}
+        >
+          {paceHint}
+        </p>
+      ) : null}
     </div>
   );
 }

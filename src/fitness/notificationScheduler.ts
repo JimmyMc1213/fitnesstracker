@@ -5,21 +5,13 @@ import { getNotificationPermission } from "./notificationPermission";
 import { normalizeTimeHHmm } from "./notificationPreferences";
 import { showFitcoachNotification, type FitcoachNotificationTag } from "./registerNotificationServiceWorker";
 import { effectiveNutritionTotalsForDateKey } from "./nutritionTotals";
+import { isTrainingDay } from "./trainingCalendar";
 import type {
   AppState,
   NotificationPreferences,
-  WorkoutDaysPerWeek,
-  WorkoutRoutineTemplate,
 } from "./types";
 
-const WEEKDAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
-
-const DEFAULT_TRAINING_DAYS: Record<WorkoutDaysPerWeek, readonly string[]> = {
-  3: ["Mon", "Tue", "Thu"],
-  4: ["Mon", "Tue", "Wed", "Thu"],
-  5: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-  6: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-};
+export { isTrainingDay } from "./trainingCalendar";
 
 const NOTIFICATION_ICON = "/favicon.svg";
 
@@ -29,44 +21,6 @@ export type NotificationPayload = {
   tag: FitcoachNotificationTag;
   icon: string;
 };
-
-function weekdayShort(d: Date): string {
-  return WEEKDAY_SHORT[d.getDay()] ?? "Sun";
-}
-
-function normalizeDayLabel(label: string): string | null {
-  const t = label.trim();
-  if (!t) return null;
-  const lower = t.toLowerCase();
-  if (lower.startsWith("sun")) return "Sun";
-  if (lower.startsWith("mon")) return "Mon";
-  if (lower.startsWith("tue")) return "Tue";
-  if (lower.startsWith("wed")) return "Wed";
-  if (lower.startsWith("thu")) return "Thu";
-  if (lower.startsWith("fri")) return "Fri";
-  if (lower.startsWith("sat")) return "Sat";
-  if (t.length >= 3) return t.slice(0, 3);
-  return null;
-}
-
-function trainingDaysFromTemplates(templates: WorkoutRoutineTemplate[]): Set<string> | null {
-  const labels = templates
-    .map((t) => normalizeDayLabel(t.dayLabel))
-    .filter((x): x is string => x != null);
-  if (labels.length === 0) return null;
-  return new Set(labels);
-}
-
-export function isTrainingDay(
-  date: Date,
-  templates: WorkoutRoutineTemplate[],
-  daysPerWeek: WorkoutDaysPerWeek,
-): boolean {
-  const today = weekdayShort(date);
-  const fromTemplates = trainingDaysFromTemplates(templates);
-  if (fromTemplates) return fromTemplates.has(today);
-  return DEFAULT_TRAINING_DAYS[daysPerWeek].includes(today);
-}
 
 function isAtOrPastHHmm(now: Date, hhmm: string): boolean {
   const normalized = normalizeTimeHHmm(hhmm, "00:00");

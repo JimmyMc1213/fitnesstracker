@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildCoachContext, getHomeCoachPlan, getWeighInReactionForDisplay } from "../coachEngine";
+import { buildMacroPaceSnapshot } from "../macroPace";
 import { coachTaskOpensFuelQuickLog, handleCoachTaskAction } from "../coachTaskActions";
 import { habitsForDateKey, HomeDailyHabitsCard } from "../HomeDailyHabitsCard";
 import { HomeFuelQuickLogSheet } from "../HomeFuelQuickLogSheet";
@@ -54,10 +55,15 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
     }
   }, [dateKeyToday]);
 
-  const { coachPlan, coachCtx } = useMemo(() => {
-    if (!isViewingToday) return { coachPlan: null, coachCtx: null };
+  const { coachPlan, coachCtx, fuelPaceHint } = useMemo(() => {
+    if (!isViewingToday) return { coachPlan: null, coachCtx: null, fuelPaceHint: undefined };
     const ctx = buildCoachContext(state, dateKeyToday, clock);
-    return { coachPlan: getHomeCoachPlan(ctx), coachCtx: ctx };
+    const pace = buildMacroPaceSnapshot(ctx);
+    return {
+      coachPlan: getHomeCoachPlan(ctx),
+      coachCtx: ctx,
+      fuelPaceHint: pace.status === "behind" ? pace.hint : undefined,
+    };
   }, [state, dateKeyToday, clock, isViewingToday]);
 
   const headerEyebrow = formatDateKeyEyebrow(activeDateKey);
@@ -175,6 +181,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         totals={totals}
         targets={T}
         label={fuelLabel}
+        paceHint={fuelPaceHint}
         onLogClick={isViewingToday ? () => setFuelQuickLogOpen(true) : undefined}
       />
 

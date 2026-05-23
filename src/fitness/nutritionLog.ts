@@ -14,6 +14,17 @@ export type NutritionQuickAddPreset = MacroTotals & {
   label: string;
 };
 
+export const QUICK_ADD_CHIP_STYLE = {
+  padding: "10px 14px",
+  borderRadius: 999,
+  border: "0.5px solid rgba(255,255,255,0.14)",
+  background: "rgba(255,255,255,0.08)",
+  color: "#fff",
+  fontSize: 13,
+  fontWeight: 600,
+  letterSpacing: "-0.02em",
+} as const;
+
 /** Protein-first one-tap adds for Home quick-log (calories from 4 kcal/g protein). */
 export const PROTEIN_QUICK_ADD_PRESETS: readonly NutritionQuickAddPreset[] = [
   { id: "p25", label: "+25g protein", cal: 100, p: 25, c: 0, f: 0 },

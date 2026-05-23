@@ -13,7 +13,7 @@ import {
 import { estimatedSessionLabel } from "./estimateSessionDuration";
 import { homePlanSubline } from "./homeGreeting";
 import { buildMacroPaceSnapshot } from "./macroPace";
-import { isTrainingDay } from "./notificationScheduler";
+import { isTrainingDay, templateForDate } from "./trainingCalendar";
 import { effectiveNutritionTotalsForDateKey } from "./nutritionTotals";
 import {
   buildWeeklySummary,
@@ -92,35 +92,9 @@ type WeightTrendSnapshot = {
   entryCount: number;
 };
 
-const WEEKDAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
-
 function parseDateKeyNoonLocal(dateKey: string): Date {
   const [y, m, d] = dateKey.split("-").map(Number);
   return new Date(y, m - 1, d, 12, 0, 0, 0);
-}
-
-function weekdayShort(d: Date): string {
-  return WEEKDAY_SHORT[d.getDay()] ?? "Sun";
-}
-
-function normalizeDayLabel(label: string): string | null {
-  const t = label.trim();
-  if (!t) return null;
-  const lower = t.toLowerCase();
-  if (lower.startsWith("sun")) return "Sun";
-  if (lower.startsWith("mon")) return "Mon";
-  if (lower.startsWith("tue")) return "Tue";
-  if (lower.startsWith("wed")) return "Wed";
-  if (lower.startsWith("thu")) return "Thu";
-  if (lower.startsWith("fri")) return "Fri";
-  if (lower.startsWith("sat")) return "Sat";
-  if (t.length >= 3) return t.slice(0, 3);
-  return null;
-}
-
-function templateForDate(templates: WorkoutRoutineTemplate[], date: Date): WorkoutRoutineTemplate | null {
-  const today = weekdayShort(date);
-  return templates.find((t) => normalizeDayLabel(t.dayLabel) === today) ?? null;
 }
 
 function dateKeyMinusDays(dateKey: string, days: number): string {
