@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { buildCoachContext, getNotificationBody } from "./coachEngine";
 import { localDateKey } from "./dailyPlan";
 import { getNotificationPermission } from "./notificationPermission";
 import { normalizeTimeHHmm } from "./notificationPreferences";
@@ -117,12 +118,11 @@ export function shouldFireNutritionReminder(now: Date, state: AppState): boolean
   return isAtOrPastHHmm(now, prefs.nutritionCheckInTime);
 }
 
-export function buildWorkoutNotificationPayload(state: AppState): NotificationPayload {
+export function buildWorkoutNotificationPayload(state: AppState, now: Date = new Date()): NotificationPayload {
   const title = "Workout day";
-  const template = state.workoutTemplates.find((t) => normalizeDayLabel(t.dayLabel) === weekdayShort(new Date()));
-  const body = template
-    ? `${template.name} — open Fitcoach to start your session.`
-    : "Open Fitcoach to start today's training session.";
+  const todayKey = localDateKey(now);
+  const ctx = buildCoachContext(state, todayKey, now);
+  const body = getNotificationBody(ctx, "workout");
   return {
     title,
     body,
@@ -131,10 +131,13 @@ export function buildWorkoutNotificationPayload(state: AppState): NotificationPa
   };
 }
 
-export function buildNutritionNotificationPayload(_state: AppState): NotificationPayload {
+export function buildNutritionNotificationPayload(state: AppState, now: Date = new Date()): NotificationPayload {
+  const todayKey = localDateKey(now);
+  const ctx = buildCoachContext(state, todayKey, now);
+  const body = getNotificationBody(ctx, "nutrition");
   return {
     title: "Nutrition check-in",
-    body: "Log today's fuel in Fitcoach to stay on track with your targets.",
+    body,
     tag: "fitcoach-nutrition",
     icon: NOTIFICATION_ICON,
   };

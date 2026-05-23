@@ -163,28 +163,40 @@ describe("shouldFireNutritionReminder", () => {
 });
 
 describe("notification payload builders", () => {
-  it("buildWorkoutNotificationPayload includes template name when Monday template matches", () => {
+  it("buildWorkoutNotificationPayload uses context-aware body from coach engine", () => {
     vi.useFakeTimers();
     vi.setSystemTime(mondayMorning);
 
     const state = minimalAppState({
       workoutTemplates: mondayTemplate("Push Day"),
     });
-    const payload = buildWorkoutNotificationPayload(state);
+    const payload = buildWorkoutNotificationPayload(state, mondayMorning);
 
     expect(payload.title).toBe("Workout day");
-    expect(payload.body).toContain("Push Day");
+    expect(payload.body).toMatch(/Push Day/i);
+    expect(payload.body).toMatch(/streak|chain alive/i);
+    expect(payload.body).not.toMatch(/open Fitcoach to start your session/i);
     expect(payload.tag).toBe("fitcoach-workout");
     expect(payload.icon).toBe("/favicon.svg");
 
     vi.useRealTimers();
   });
 
-  it("buildNutritionNotificationPayload returns stable title, body, and tag", () => {
-    const payload = buildNutritionNotificationPayload(minimalAppState());
+  it("buildNutritionNotificationPayload uses protein-gap copy from coach engine", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(eveningAfterNutritionReminder);
+
+    const state = minimalAppState({
+      nutritionTargets: { cal: 2500, p: 180, c: 250, f: 70 },
+    });
+    const payload = buildNutritionNotificationPayload(state, eveningAfterNutritionReminder);
+
     expect(payload.title).toBe("Nutrition check-in");
-    expect(payload.body).toContain("Log today's fuel");
+    expect(payload.body).toMatch(/180g protein/i);
+    expect(payload.body).not.toMatch(/Log today's fuel in Fitcoach to stay on track with your targets/i);
     expect(payload.tag).toBe("fitcoach-nutrition");
     expect(payload.icon).toBe("/favicon.svg");
+
+    vi.useRealTimers();
   });
 });
