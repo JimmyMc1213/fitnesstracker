@@ -96,20 +96,6 @@ function workoutDaysPerWeekFromState(s: AppState) {
   return resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek);
 }
 
-function AuthGate({
-  children,
-  initialAuthView,
-}: {
-  children: ReactNode;
-  initialAuthView: "landing" | "signin" | "signup";
-}) {
-  const sync = useFitnessSync();
-  if (sync.configured && !sync.sessionEmail) {
-    return <AuthScreen initialView={initialAuthView} />;
-  }
-  return <>{children}</>;
-}
-
 function OnboardingGate({
   state,
   setState,
@@ -381,10 +367,8 @@ function FitnessAppMain({
   const hideTabBar =
     tab === "stretch" || showWorkoutSummary || showStreakLost || logFoodOverlayOpen || routineEditorOpen;
 
-  const isNewUser = !state.onboardingComplete;
-  const needsAuth = fitnessSync.configured && !fitnessSync.sessionEmail;
   const devPreviewOnboarding = isOnboardingPreviewToolsActive() && isDevPreviewOnboardingEnabled();
-  const introEligible = isNewUser || devPreviewOnboarding;
+  const introEligible = !state.onboardingComplete || devPreviewOnboarding;
   const restorableIntroDraft = initialOnboardingWizardDraft(state.onboardingDraft);
   const resumeIntroStep = restorableIntroDraft?.stepIndex ?? 0;
   const showIntroWelcome =
@@ -451,10 +435,6 @@ function FitnessAppMain({
     return () => window.clearTimeout(id);
   }, [welcomeSignInFlow, fitnessSync.sessionEmail]);
 
-  const initialAuthView: "landing" | "signin" | "signup" =
-    authViewOverride ??
-    (isNewUser && needsAuth ? "signup" : "landing");
-
   if (authViewOverride === "signin") {
     if (fitnessSync.sessionEmail && welcomeSignInFlow) {
       return (
@@ -484,16 +464,6 @@ function FitnessAppMain({
     );
   }
 
-  const showAuthFromIntro = authViewOverride != null && needsAuth;
-
-  if (showAuthFromIntro) {
-    return (
-      <FitnessSyncContext.Provider value={fitnessSync}>
-        <AuthScreen initialView={authViewOverride} />
-      </FitnessSyncContext.Provider>
-    );
-  }
-
   const onboardingInProgress = !state.onboardingComplete;
 
   return (
@@ -510,7 +480,6 @@ function FitnessAppMain({
         onLeavePreview={() => setIntroWelcomeDone(true)}
         hideDevToolbar={routineEditorOpen}
       >
-      <AuthGate initialAuthView={initialAuthView}>
       <div
         style={{
           flex: 1,
@@ -601,7 +570,6 @@ function FitnessAppMain({
           />
         ) : null}
       </div>
-      </AuthGate>
       </OnboardingGate>
       </>
       )}
