@@ -31,6 +31,7 @@ export function AddExerciseSearchSheet({
   onClose: () => void;
 }) {
   const [exQuery, setExQuery] = useState("");
+  const [showCreateCard, setShowCreateCard] = useState(false);
   const [draftExName, setDraftExName] = useState("");
   const [draftExLabel, setDraftExLabel] = useState("");
 
@@ -49,6 +50,7 @@ export function AddExerciseSearchSheet({
 
   function handleClose() {
     setExQuery("");
+    setShowCreateCard(false);
     setDraftExName("");
     setDraftExLabel("");
     onClose();
@@ -57,6 +59,7 @@ export function AddExerciseSearchSheet({
   function handleAdd(name: string, label?: string) {
     onAddExercise(name, label);
     setExQuery("");
+    setShowCreateCard(false);
     setDraftExName("");
     setDraftExLabel("");
   }
@@ -66,48 +69,20 @@ export function AddExerciseSearchSheet({
     if (!n) return;
     onSaveCustomAndAdd(n, draftExLabel.trim());
     setExQuery("");
+    setShowCreateCard(false);
+    setDraftExName("");
+    setDraftExLabel("");
+  }
+
+  function closeCreateCard() {
+    setShowCreateCard(false);
     setDraftExName("");
     setDraftExLabel("");
   }
 
   return (
     <div className="card" style={{ padding: 12, marginTop: 16 }}>
-      <div
-        style={{
-          fontSize: 10,
-          fontWeight: 600,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "rgba(255,255,255,0.35)",
-          marginBottom: 10,
-        }}
-      >
-        Create new
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <input
-          value={draftExName}
-          onChange={(e) => setDraftExName(e.target.value)}
-          placeholder="Exercise name"
-          style={createInputStyle}
-        />
-        <input
-          value={draftExLabel}
-          onChange={(e) => setDraftExLabel(e.target.value)}
-          placeholder="Label (optional)"
-          style={createInputStyle}
-        />
-        <PrimaryButton
-          block
-          onClick={handleSaveCustomAndAdd}
-          disabled={!draftExName.trim()}
-          style={{ borderRadius: 10, padding: 12, fontSize: 14 }}
-        >
-          Save to my list & add to workout
-        </PrimaryButton>
-      </div>
-
-      <div style={{ position: "relative", marginTop: 16 }}>
+      <div style={{ position: "relative" }}>
         <IconSearch size={16} style={{ position: "absolute", left: 12, top: 13, color: "rgba(255,255,255,0.4)" }} />
         <input
           autoFocus
@@ -118,6 +93,76 @@ export function AddExerciseSearchSheet({
           onChange={(e) => setExQuery(e.target.value)}
         />
       </div>
+
+      {showCreateCard ? (
+        <div
+          className="card"
+          style={{
+            marginTop: 12,
+            padding: 14,
+            background: "rgba(255,255,255,0.04)",
+            border: "0.5px solid rgba(10,132,255,0.35)",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <input
+              autoFocus
+              value={draftExName}
+              onChange={(e) => setDraftExName(e.target.value)}
+              placeholder="Exercise name"
+              style={createInputStyle}
+            />
+            <input
+              value={draftExLabel}
+              onChange={(e) => setDraftExLabel(e.target.value)}
+              placeholder="Label (optional)"
+              style={createInputStyle}
+            />
+            <PrimaryButton
+              block
+              onClick={handleSaveCustomAndAdd}
+              disabled={!draftExName.trim()}
+              style={{ borderRadius: 10, padding: 12, fontSize: 14 }}
+            >
+              Save to my list & add to workout
+            </PrimaryButton>
+            <button
+              type="button"
+              className="tap"
+              onClick={closeCreateCard}
+              style={{
+                width: "100%",
+                color: "rgba(255,255,255,0.4)",
+                fontSize: 12,
+                padding: 6,
+                fontWeight: 500,
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="tap"
+          onClick={() => setShowCreateCard(true)}
+          style={{
+            marginTop: 12,
+            width: "100%",
+            background: "rgba(10,132,255,0.2)",
+            border: "0.5px solid rgba(10,132,255,0.45)",
+            borderRadius: 12,
+            padding: 14,
+            color: "#6EB7FF",
+            fontSize: 14,
+            fontWeight: 600,
+          }}
+        >
+          Create new
+        </button>
+      )}
+
       <div style={{ marginTop: 10, maxHeight: 320, overflowY: "auto", display: "flex", flexDirection: "column" }}>
         {filteredCustom.length > 0 ? (
           <>

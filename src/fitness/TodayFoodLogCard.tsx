@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type Dispatch, type MouseEvent, type PointerEvent, type SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
-import { IconTrash } from "./icons";
+import { SwipeToDelete } from "./SwipeToDelete";
 import { removeNutritionLoggedItem } from "./nutritionLog";
 import type { AppState, NutritionLoggedItem } from "./types";
 
@@ -10,11 +10,6 @@ type Props = {
   onRemove: (itemId: string) => void;
   onEdit: (item: NutritionLoggedItem) => void;
 };
-
-const REVEAL_WIDTH = 72;
-const SWIPE_START_PX = 10;
-const DELETE_THRESHOLD = REVEAL_WIDTH * 0.85;
-const SNAP_OPEN_THRESHOLD = REVEAL_WIDTH * 0.35;
 
 function formatLoggedTime(ms: number | undefined): string {
   const t = typeof ms === "number" && ms > 0 ? ms : Date.now();
@@ -40,193 +35,66 @@ function SwipeableFoodLogRow({
   onOpen,
   onClose,
 }: SwipeableFoodLogRowProps) {
-  const [revealed, setRevealed] = useState(false);
-  const [pressing, setPressing] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef(0);
-  const startXRef = useRef(0);
-  const startYRef = useRef(0);
-  const startOffsetRef = useRef(0);
-  const swipingRef = useRef(false);
-  const pointerIdRef = useRef<number | null>(null);
-
-  function clampOffset(value: number): number {
-    return Math.min(0, Math.max(-REVEAL_WIDTH, value));
-  }
-
-  function applyOffset(value: number, animate: boolean) {
-    const next = clampOffset(value);
-    offsetRef.current = next;
-    const el = contentRef.current;
-    if (!el) return;
-    el.style.transition = animate
-      ? "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)"
-      : "none";
-    el.style.transform = `translate3d(${next}px, 0, 0)`;
-    setRevealed(next < -4);
-  }
-
-  useEffect(() => {
-    applyOffset(isOpen ? -REVEAL_WIDTH : 0, true);
-  }, [isOpen]);
-
-  function settleOffset(current: number) {
-    if (current <= -DELETE_THRESHOLD) {
-      onRemove(item.id);
-      return;
-    }
-    if (current <= -SNAP_OPEN_THRESHOLD) {
-      applyOffset(-REVEAL_WIDTH, true);
-      onOpen(item.id);
-      return;
-    }
-    applyOffset(0, true);
-    onClose();
-  }
-
-  function handlePointerDown(e: PointerEvent<HTMLDivElement>) {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    swipingRef.current = false;
-    pointerIdRef.current = e.pointerId;
-    startXRef.current = e.clientX;
-    startYRef.current = e.clientY;
-    startOffsetRef.current = isOpen ? -REVEAL_WIDTH : offsetRef.current;
-    setPressing(true);
-    applyOffset(startOffsetRef.current, false);
-  }
-
-  function handlePointerMove(e: PointerEvent<HTMLDivElement>) {
-    if (pointerIdRef.current !== e.pointerId) return;
-
-    const dx = e.clientX - startXRef.current;
-    const dy = e.clientY - startYRef.current;
-
-    if (!swipingRef.current) {
-      if (Math.abs(dx) < SWIPE_START_PX) return;
-      if (Math.abs(dx) <= Math.abs(dy) * 1.15) return;
-      swipingRef.current = true;
-      e.currentTarget.setPointerCapture(e.pointerId);
-    }
-
-    applyOffset(startOffsetRef.current + dx, false);
-  }
-
-  function finishPointer(e: PointerEvent<HTMLDivElement>) {
-    if (pointerIdRef.current !== e.pointerId) return;
-    setPressing(false);
-    pointerIdRef.current = null;
-
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    }
-
-    if (!swipingRef.current) {
-      if (isOpen || offsetRef.current < -4) {
-        applyOffset(0, true);
-        onClose();
-        return;
-      }
-      onEdit(item);
-      return;
-    }
-
-    swipingRef.current = false;
-    settleOffset(offsetRef.current);
-  }
-
-  function handleDeleteClick(e: MouseEvent<HTMLButtonElement>) {
-    e.stopPropagation();
-    onRemove(item.id);
-  }
-
   const displayName = item.name.trim() || "Food";
 
   return (
     <div
       style={{
-        position: "relative",
-        overflow: "hidden",
         marginBottom: showDivider ? 12 : 0,
         borderBottom: showDivider ? "1px solid rgba(255,255,255,0.06)" : undefined,
         paddingBottom: showDivider ? 12 : 0,
-        touchAction: "pan-y",
       }}
     >
-      <button
-        type="button"
-        aria-label={`Delete ${displayName}`}
-        onClick={handleDeleteClick}
-        tabIndex={revealed ? 0 : -1}
-        style={{
-          position: "absolute",
-          inset: "0 0 0 auto",
-          width: REVEAL_WIDTH,
-          display: "grid",
-          placeItems: "center",
-          border: "none",
-          borderRadius: 12,
-          background: "rgba(255, 85, 85, 0.18)",
-          color: "#FF6961",
-          cursor: "pointer",
-          opacity: revealed ? 1 : 0,
-          pointerEvents: revealed ? "auto" : "none",
-          transition: "opacity 0.18s ease",
-        }}
+      <SwipeToDelete
+        deleteLabel={`Delete ${displayName}`}
+        onDelete={() => onRemove(item.id)}
+        isOpen={isOpen}
+        onOpen={() => onOpen(item.id)}
+        onClose={onClose}
+        onTap={() => onEdit(item)}
       >
-        <IconTrash size={20} stroke={1.75} />
-      </button>
-
-      <div
-        ref={contentRef}
-        role="button"
-        tabIndex={0}
-        aria-label={`Edit ${displayName}`}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={finishPointer}
-        onPointerCancel={finishPointer}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onEdit(item);
-          }
-        }}
-        style={{
-          position: "relative",
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 10,
-          padding: "2px 0",
-          background: "var(--card)",
-          transform: "translate3d(0, 0, 0)",
-          willChange: "transform",
-          cursor: "pointer",
-          opacity: pressing ? 0.88 : 1,
-          transition: "opacity 0.12s ease",
-        }}
-      >
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>
-            {displayName}
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: "rgba(255,255,255,0.42)",
-              fontWeight: 500,
-              marginTop: 4,
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {Math.round(Number(item.cal) || 0)} kcal · P {Math.round(Number(item.p) || 0)}g
-            {item.servingLabel?.trim() ? ` · ${item.servingLabel.trim()}` : ""}
-          </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, marginTop: 2 }}>
-            {formatLoggedTime(item.loggedAtMs)}
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={`Edit ${displayName}`}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onEdit(item);
+            }
+          }}
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 10,
+            padding: "2px 0",
+            background: "var(--card)",
+            cursor: "pointer",
+          }}
+        >
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>
+              {displayName}
+            </div>
+            <div
+              style={{
+                fontSize: 12,
+                color: "rgba(255,255,255,0.42)",
+                fontWeight: 500,
+                marginTop: 4,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {Math.round(Number(item.cal) || 0)} kcal · P {Math.round(Number(item.p) || 0)}g
+              {item.servingLabel?.trim() ? ` · ${item.servingLabel.trim()}` : ""}
+            </div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, marginTop: 2 }}>
+              {formatLoggedTime(item.loggedAtMs)}
+            </div>
           </div>
         </div>
-      </div>
+      </SwipeToDelete>
     </div>
   );
 }
