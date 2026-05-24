@@ -77,7 +77,7 @@ function HydrationSplash() {
   return (
     <div
       style={{
-        minHeight: "100dvh",
+        minHeight: "100lvh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

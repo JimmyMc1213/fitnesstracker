@@ -368,15 +368,11 @@ html.theme-transition *::after {
     box-shadow 0.38s ease !important;
 }
 
-/* Mobile shell: avoid `position: fixed` + JS visualViewport pinning, it fights
- * iOS keyboards and can jitter. Use explicit `100dvh` on `html`: on modern Safari
- * the *dynamic* viewport tracks URL bar show/hide, so the shell matches what you
- * see without layout-vs-visual hacks. Fallback `100vh` for older engines.
- * In PWA standalone mode we drop the final `100dvh` (see block below): cold start
- * can mis-size `dvh` vs the home indicator.
- *
- * Flex column fills that frame; scrolling stays inside `.screen`; tab bar + safe-area
- * insets unchanged. */
+/* Mobile shell: pair `interactive-widget=overlays-content` (index.html) with stable
+ * `100lvh` so the keyboard overlays without shrinking the layout frame. Avoid `100dvh`
+ * here — it tracks visual viewport changes and nudges content when iOS opens the keyboard.
+ * `body` is fixed to block iOS document scroll/pan on input focus. Scrolling stays inside
+ * `.screen`; tab bar + safe-area insets unchanged. */
 html {
   margin: 0;
   padding: 0;
@@ -386,14 +382,12 @@ html {
   overscroll-behavior: none;
 
   height: 100vh;
-  height: 100dvh;
-  min-height: -webkit-fill-available;
+  height: 100lvh;
 }
 
-/* iOS Add-to-Home / `display: standalone`: `100dvh` can report wrong height on
+/* iOS Add-to-Home / `display: standalone`: `100lvh`/`100dvh` can report wrong height on
  * cold start so the flex shell and tab bar misalign vs the home indicator.
- * Prefer classic viewport height + fill-available here; regular Safari tabs keep
- * `100dvh` above for URL-bar dynamics. */
+ * Prefer classic viewport height + fill-available here. */
 @media (display-mode: standalone) {
   html {
     height: 100vh;
@@ -404,9 +398,9 @@ html {
 body {
   margin: 0;
   padding: 0;
-  position: relative;
+  position: fixed;
+  inset: 0;
   width: 100%;
-  height: 100%;
   background: var(--bg-deep);
   overflow: hidden;
   overscroll-behavior: none;
@@ -453,12 +447,14 @@ body::before {
 #root {
   flex: 1;
   width: 100%;
+  height: 100%;
   min-height: 0;
   position: relative;
   z-index: 1;
   background: transparent;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .app-root {
@@ -466,10 +462,12 @@ body::before {
   width: 100%;
   max-width: 100%;
   min-height: 0;
+  height: 100%;
   margin: 0;
   background: transparent;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 button {
@@ -718,7 +716,7 @@ input[type="number"] {
 .auth-screen {
   flex: 1;
   width: 100%;
-  min-height: 100dvh;
+  min-height: 100lvh;
   min-height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
@@ -3067,7 +3065,7 @@ input[type="number"] {
 }
 
 .onboarding-plan-building-shell {
-  min-height: 100dvh;
+  min-height: 100lvh;
   display: flex;
   flex-direction: column;
 }
