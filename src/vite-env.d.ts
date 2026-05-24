@@ -8,4 +8,6 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string;
   /** Comma-separated emails that skip new-user onboarding (legacy accounts). */
   readonly VITE_LEGACY_USER_EMAILS?: string;
+  /** Set at build time on Vercel (`preview` | `production`). */
+  readonly VITE_VERCEL_ENV?: string;
 }

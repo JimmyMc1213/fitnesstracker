@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => {
       "import.meta.env.VITE_E2E_MOCK_FOOD_SEARCH": JSON.stringify(
         loaded.VITE_E2E_MOCK_FOOD_SEARCH ?? "",
       ),
+      "import.meta.env.VITE_VERCEL_ENV": JSON.stringify(process.env.VERCEL_ENV ?? ""),
     },
     test: {
       environment: "node",

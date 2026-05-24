@@ -36,6 +36,7 @@ import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
 import {
   clearDevPreviewOnboardingUrl,
   isDevPreviewOnboardingEnabled,
+  isOnboardingPreviewToolsActive,
 } from "./devPreviewOnboarding";
 import { OnboardingFlow } from "./OnboardingFlow";
 import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
@@ -125,16 +126,17 @@ function OnboardingGate({
   onLeavePreview?: () => void;
 }) {
   const sync = useFitnessSync();
+  const previewToolsActive = isOnboardingPreviewToolsActive();
   const [previewOnboardingDismissed, setPreviewOnboardingDismissed] = useState(false);
   const [previewOnboardingRequested, setPreviewOnboardingRequested] = useState(false);
-  const devPreviewEnabled = import.meta.env.DEV && isDevPreviewOnboardingEnabled();
+  const devPreviewEnabled = previewToolsActive && isDevPreviewOnboardingEnabled();
   const forcePreview =
-    import.meta.env.DEV &&
+    previewToolsActive &&
     !previewOnboardingDismissed &&
     (devPreviewEnabled || previewOnboardingRequested);
 
   function dismissPreviewOnboarding() {
-    if (!import.meta.env.DEV) return;
+    if (!previewToolsActive) return;
     setPreviewOnboardingDismissed(true);
     setPreviewOnboardingRequested(false);
     clearDevPreviewOnboardingUrl();
@@ -172,7 +174,7 @@ function OnboardingGate({
             initialDraft={restorableDraft}
             accountDisplayName={state.displayName}
             previewMode={forcePreview}
-            onComplete={import.meta.env.DEV ? dismissPreviewOnboarding : undefined}
+            onComplete={previewToolsActive ? dismissPreviewOnboarding : undefined}
             onSignIn={onSignIn}
             introWelcomeDone={introWelcomeDone}
           />
@@ -180,7 +182,7 @@ function OnboardingGate({
       ) : (
         children
       )}
-      {import.meta.env.DEV ? (
+      {previewToolsActive ? (
         <DevOnboardingToolbar
           onboardingOpen={showOnboarding}
           onOpenOnboarding={openPreviewOnboarding}
@@ -379,7 +381,7 @@ function FitnessAppMain({
 
   const isNewUser = !state.onboardingComplete;
   const needsAuth = fitnessSync.configured && !fitnessSync.sessionEmail;
-  const devPreviewOnboarding = import.meta.env.DEV && isDevPreviewOnboardingEnabled();
+  const devPreviewOnboarding = isOnboardingPreviewToolsActive() && isDevPreviewOnboardingEnabled();
   const introEligible = isNewUser || devPreviewOnboarding;
   const restorableIntroDraft = initialOnboardingWizardDraft(state.onboardingDraft);
   const resumeIntroStep = restorableIntroDraft?.stepIndex ?? 0;

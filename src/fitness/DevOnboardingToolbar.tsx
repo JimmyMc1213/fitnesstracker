@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import {
   isDevPreviewOnboardingStored,
+  isOnboardingPreviewToolsActive,
   setDevPreviewOnboardingStored,
 } from "./devPreviewOnboarding";
 
@@ -16,7 +17,7 @@ export function DevOnboardingToolbar({
 }) {
   const [persistOnReload, setPersistOnReload] = useState(isDevPreviewOnboardingStored);
 
-  if (!import.meta.env.DEV) return null;
+  if (!isOnboardingPreviewToolsActive()) return null;
 
   function togglePersist() {
     const next = !persistOnReload;
