@@ -15,6 +15,7 @@ import {
   syncTargetRepRange,
 } from "../workoutTarget";
 import { DeleteExerciseConfirmSheet } from "../workout/DeleteExerciseConfirmSheet";
+import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { CARD_PADDING, EDITOR_LIST_GAP, labelStyle, SECONDARY_ACTION_COLOR, workoutFieldInputStyle } from "../workoutUiTokens";
 
 /** Pass as `editingRoutineId` to open the editor for a brand-new routine. */
@@ -330,6 +331,7 @@ export function WorkoutRoutineEditor({
     name: string;
     label?: string;
   } | null>(null);
+  const [pendingRoutineDelete, setPendingRoutineDelete] = useState(false);
   const exerciseListEndRef = useRef<HTMLDivElement>(null);
   const pendingScrollToNewExerciseRef = useRef(false);
 
@@ -442,9 +444,13 @@ export function WorkoutRoutineEditor({
 
   function handleDelete() {
     if (!template?.id || !onDelete) return;
-    const routineName = name.trim() || template.name.trim() || "this routine";
-    if (typeof window !== "undefined" && !window.confirm(`Delete "${routineName}"? This cannot be undone.`)) return;
+    setPendingRoutineDelete(true);
+  }
+
+  function confirmDeleteRoutine() {
+    if (!template?.id || !onDelete) return;
     onDelete(template.id);
+    setPendingRoutineDelete(false);
     onClose();
   }
 
@@ -710,6 +716,23 @@ export function WorkoutRoutineEditor({
           exerciseLabel={pendingExerciseDelete.label}
           onCancel={() => setPendingExerciseDelete(null)}
           onConfirm={confirmDeleteExercise}
+        />
+      ) : null}
+
+      {pendingRoutineDelete ? (
+        <DeleteConfirmSheet
+          title="Delete routine?"
+          cancelLabel="Keep routine"
+          confirmLabel="Delete routine"
+          zIndex={1300}
+          message={
+            <>
+              Delete <strong style={{ color: "var(--text-primary)" }}>{name.trim() || template?.name.trim() || "this routine"}</strong>?
+              This can&apos;t be undone.
+            </>
+          }
+          onCancel={() => setPendingRoutineDelete(false)}
+          onConfirm={confirmDeleteRoutine}
         />
       ) : null}
     </FullScreenOverlay>

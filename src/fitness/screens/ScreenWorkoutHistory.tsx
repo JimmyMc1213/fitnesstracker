@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { IconTrash } from "../icons";
 import { ScreenHeader } from "../shared";
 import { WorkoutSessionPreviewSheet } from "../WorkoutSessionPreviewSheet";
@@ -20,15 +21,16 @@ type Props = ScreenProps & {
 
 export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
   const [previewSession, setPreviewSession] = useState<CompletedWorkoutSession | null>(null);
+  const [pendingDeleteSession, setPendingDeleteSession] = useState<CompletedWorkoutSession | null>(null);
   const sessions = getWorkoutHistorySorted(state.workoutHistory);
 
-  function deleteSession(session: CompletedWorkoutSession) {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(`Delete "${session.title}" from ${formatWorkoutHistoryDate(session.dayKey, session.endedAtMs)}? This cannot be undone.`)
-    ) {
-      return;
-    }
+  function requestDeleteSession(session: CompletedWorkoutSession) {
+    setPendingDeleteSession(session);
+  }
+
+  function confirmDeleteSession() {
+    if (!pendingDeleteSession) return;
+    const session = pendingDeleteSession;
     setState((s) => {
       const workoutHistory = removeWorkoutFromHistory(s.workoutHistory, session.id);
       return {
@@ -38,6 +40,7 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
       };
     });
     if (previewSession?.id === session.id) setPreviewSession(null);
+    setPendingDeleteSession(null);
   }
 
   return (
@@ -134,7 +137,7 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
                   <button
                     type="button"
                     className="tap"
-                    onClick={() => deleteSession(session)}
+                    onClick={() => requestDeleteSession(session)}
                     aria-label={`Delete ${session.title}`}
                     style={{
                       flex: 1,
@@ -163,7 +166,24 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
         <WorkoutSessionPreviewSheet
           session={previewSession}
           onClose={() => setPreviewSession(null)}
-          onDelete={() => deleteSession(previewSession)}
+          onDelete={() => requestDeleteSession(previewSession)}
+        />
+      ) : null}
+
+      {pendingDeleteSession ? (
+        <DeleteConfirmSheet
+          title="Delete workout?"
+          cancelLabel="Keep workout"
+          confirmLabel="Delete workout"
+          message={
+            <>
+              Delete <strong style={{ color: "var(--text-primary)" }}>{pendingDeleteSession.title}</strong> from{" "}
+              {formatWorkoutHistoryDate(pendingDeleteSession.dayKey, pendingDeleteSession.endedAtMs)}? This can&apos;t be
+              undone.
+            </>
+          }
+          onCancel={() => setPendingDeleteSession(null)}
+          onConfirm={confirmDeleteSession}
         />
       ) : null}
     </div>

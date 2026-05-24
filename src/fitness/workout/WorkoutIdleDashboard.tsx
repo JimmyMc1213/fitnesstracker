@@ -1,4 +1,7 @@
+import { useState } from "react";
+
 import { IconClock } from "../icons";
+import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
 import type { PreWorkoutCoachBrief } from "../preWorkoutCoachBrief";
 import { ScreenHeader, PrimaryButton, SecondaryButton } from "../shared";
@@ -53,6 +56,7 @@ export function WorkoutIdleDashboard({
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   onShowHistory: () => void;
 }) {
+  const [pendingRestoreDefaults, setPendingRestoreDefaults] = useState(false);
   const previewTpl = previewRoutineId ? state.workoutTemplates.find((t) => t.id === previewRoutineId) : null;
   const idleCoachSubtitle = preWorkoutCoach?.brief.headline;
   const previewCoachBrief =
@@ -96,7 +100,7 @@ export function WorkoutIdleDashboard({
             </PrimaryButton>
             <SecondaryButton
               block
-              onClick={() => setState((s) => ({ ...s, workoutTemplates: defaultWorkoutRoutineTemplates() }))}
+              onClick={() => setPendingRestoreDefaults(true)}
               style={{ marginTop: 12 }}
             >
               Restore default program
@@ -185,10 +189,7 @@ export function WorkoutIdleDashboard({
         <button
           type="button"
           className="tap"
-          onClick={() => {
-            if (typeof window !== "undefined" && !window.confirm("Replace all routines with the default 5-day program? Your edits will be lost.")) return;
-            setState((s) => ({ ...s, workoutTemplates: defaultWorkoutRoutineTemplates() }));
-          }}
+          onClick={() => setPendingRestoreDefaults(true)}
           style={{
             marginTop: 16,
             width: "100%",
@@ -215,6 +216,21 @@ export function WorkoutIdleDashboard({
           onStart={() => {
             startTemplateWorkout(previewTpl.id);
             setPreviewRoutineId(null);
+          }}
+        />
+      ) : null}
+
+      {pendingRestoreDefaults ? (
+        <DeleteConfirmSheet
+          title="Restore default program?"
+          cancelLabel="Keep my routines"
+          confirmLabel="Restore defaults"
+          placement="center"
+          message="Replace all routines with the built-in 5-day program? Your custom routines and edits will be lost."
+          onCancel={() => setPendingRestoreDefaults(false)}
+          onConfirm={() => {
+            setState((s) => ({ ...s, workoutTemplates: defaultWorkoutRoutineTemplates() }));
+            setPendingRestoreDefaults(false);
           }}
         />
       ) : null}

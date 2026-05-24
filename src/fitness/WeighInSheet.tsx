@@ -10,6 +10,7 @@ import {
   weightUnitLabel,
 } from "./unitPreferences";
 import { BottomSheet } from "./motion";
+import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import type { AppState, UnitPreferences, WeightEntry } from "./types";
 
 type Props = {
@@ -25,6 +26,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
   const wUnit = unitPreferences.weightUnit;
   const [weightDraft, setWeightDraft] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [confirmRemovePhoto, setConfirmRemovePhoto] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -33,6 +35,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
       existing ? formatWeightFromLbs(existing.weightLbs, wUnit, wUnit === "kg" ? 1 : 1) : "",
     );
     setPhotoPreview(existing?.photoDataUrl ?? null);
+    setConfirmRemovePhoto(false);
   }, [open, dateKey, existing?.weightLbs, existing?.photoDataUrl, wUnit]);
 
   async function onPickPhoto(f: File) {
@@ -78,6 +81,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
   }
 
   return (
+    <>
     <BottomSheet
       open={open}
       onClose={onClose}
@@ -161,7 +165,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
               <button
                 type="button"
                 className="tap"
-                onClick={() => setPhotoPreview(null)}
+                onClick={() => setConfirmRemovePhoto(true)}
                 style={{ fontSize: 11, color: "var(--text-faint-soft)", fontWeight: 500 }}
               >
                 Remove photo
@@ -207,6 +211,21 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
           Cancel
         </button>
     </BottomSheet>
+      {confirmRemovePhoto ? (
+        <DeleteConfirmSheet
+          title="Remove photo?"
+          cancelLabel="Keep photo"
+          confirmLabel="Remove photo"
+          zIndex={1200}
+          message="Remove the progress photo from this weigh-in?"
+          onCancel={() => setConfirmRemovePhoto(false)}
+          onConfirm={() => {
+            setPhotoPreview(null);
+            setConfirmRemovePhoto(false);
+          }}
+        />
+      ) : null}
+    </>
   );
 }
 

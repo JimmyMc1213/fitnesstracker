@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 
+import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { IconDroplet } from "./icons";
 import {
   formatWaterLitersFromOz,
@@ -31,6 +32,7 @@ export function WaterTrackerCard({
   const [customOz, setCustomOz] = useState("");
   const [customError, setCustomError] = useState<string | null>(null);
   const [showEarlier, setShowEarlier] = useState(false);
+  const [pendingRemoveEntryId, setPendingRemoveEntryId] = useState<string | null>(null);
 
   const total = totalWaterOzForDateKey({ [dateKey]: entries }, dateKey);
   const pct = targetOz > 0 ? Math.max(0, Math.min(1, total / targetOz)) : 0;
@@ -73,7 +75,7 @@ export function WaterTrackerCard({
             type="button"
             className="tap"
             aria-label={`Remove ${entry.amountOz} ounces logged at ${formatLoggedTime(entry.loggedAtMs)}`}
-            onClick={() => onRemoveEntry(entry.id)}
+            onClick={() => setPendingRemoveEntryId(entry.id)}
             style={{
               flexShrink: 0,
               fontSize: 12,
@@ -265,6 +267,27 @@ export function WaterTrackerCard({
             </div>
           ) : null}
         </>
+      ) : null}
+      {pendingRemoveEntryId && onRemoveEntry ? (
+        <DeleteConfirmSheet
+          title="Remove water entry?"
+          cancelLabel="Keep entry"
+          confirmLabel="Remove entry"
+          message={
+            <>
+              Remove{" "}
+              <strong style={{ color: "var(--text-primary)" }}>
+                {Math.round(entries.find((e) => e.id === pendingRemoveEntryId)?.amountOz ?? 0)} oz
+              </strong>{" "}
+              from today&apos;s log?
+            </>
+          }
+          onCancel={() => setPendingRemoveEntryId(null)}
+          onConfirm={() => {
+            onRemoveEntry(pendingRemoveEntryId);
+            setPendingRemoveEntryId(null);
+          }}
+        />
       ) : null}
     </div>
   );

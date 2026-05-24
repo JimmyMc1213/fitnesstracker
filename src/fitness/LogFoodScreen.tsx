@@ -35,6 +35,7 @@ import {
   updateNutritionMeal,
 } from "./nutritionMeals";
 import { PrimaryButton } from "./shared";
+import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { FullScreenOverlay } from "./motion";
 import type { AppState, NutritionLoggedItem, NutritionMeal, NutritionMealItem, NutritionPreset, NutritionUserFood } from "./types";
 
@@ -46,6 +47,11 @@ function parseMacro(raw: string): number {
 }
 
 type LogFoodTab = "all" | "myFoods" | "myMeals" | "saved";
+
+type PendingFoodDelete =
+  | { kind: "userFood"; food: NutritionUserFood }
+  | { kind: "meal"; meal: NutritionMeal }
+  | { kind: "mealDraftItem"; itemId: string; name: string };
 
 const DEFAULT_SERVING = "1 serving";
 const MIN_SEARCH_LEN = 2;
@@ -144,6 +150,8 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   const [mealIngredientC, setMealIngredientC] = useState("");
   const [mealIngredientF, setMealIngredientF] = useState("");
   const [mealIngredientServing, setMealIngredientServing] = useState("");
+
+  const [pendingDelete, setPendingDelete] = useState<PendingFoodDelete | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -450,9 +458,19 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   }
 
   function deleteSavedMeal(meal: NutritionMeal) {
-    const ok = window.confirm(`Delete "${meal.name}" from My meals? Past logs will stay in your history.`);
-    if (!ok) return;
-    setState((s) => removeNutritionMeal(s, meal.id));
+    setPendingDelete({ kind: "meal", meal });
+  }
+
+  function confirmPendingDelete() {
+    if (!pendingDelete) return;
+    if (pendingDelete.kind === "userFood") {
+      setState((s) => removeNutritionUserFoodFromState(s, pendingDelete.food.id));
+    } else if (pendingDelete.kind === "meal") {
+      setState((s) => removeNutritionMeal(s, pendingDelete.meal.id));
+    } else {
+      setMealDraftItems((prev) => prev.filter((item) => item.id !== pendingDelete.itemId));
+    }
+    setPendingDelete(null);
   }
 
   function addMealIngredientFromManual() {
@@ -474,10 +492,6 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   function addMealIngredientFromUserFood(food: NutritionUserFood) {
     setMealDraftItems((prev) => [...prev, mealItemFromUserFood(food)]);
     setMealAddMyFoodsOpen(false);
-  }
-
-  function removeMealDraftItem(itemId: string) {
-    setMealDraftItems((prev) => prev.filter((item) => item.id !== itemId));
   }
 
   function openEditUserFood(food: NutritionUserFood) {
@@ -1184,7 +1198,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           type="button"
                           className="tap"
                           aria-label={`Remove ${item.name}`}
-                          onClick={() => removeMealDraftItem(item.id)}
+                          onClick={() => setPendingDelete({ kind: "mealDraftItem", itemId: item.id, name: item.name.trim() || "this ingredient" })}
                           style={{ flexShrink: 0, fontSize: 13, fontWeight: 600, color: "rgba(255,160,160,0.85)", background: "none", border: "none", padding: "8px" }}
                         >
                           Remove
@@ -1526,7 +1540,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           type="button"
                           className="tap"
                           aria-label={`Delete ${food.name}`}
-                          onClick={() => setState((s) => removeNutritionUserFoodFromState(s, food.id))}
+                          onClick={() => setPendingDelete({ kind: "userFood", food })}
                           style={{ flexShrink: 0, fontSize: 13, fontWeight: 600, color: "rgba(255,160,160,0.85)", background: "none", border: "none", padding: "8px" }}
                         >
                           Delete
@@ -1684,6 +1698,51 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         </>
       )}
       </div>
+      {pendingDelete ? (
+        <DeleteConfirmSheet
+          title={
+            pendingDelete.kind === "userFood"
+              ? "Delete food?"
+              : pendingDelete.kind === "meal"
+                ? "Delete meal?"
+                : "Remove ingredient?"
+          }
+          cancelLabel={
+            pendingDelete.kind === "mealDraftItem"
+              ? "Keep ingredient"
+              : pendingDelete.kind === "meal"
+                ? "Keep meal"
+                : "Keep food"
+          }
+          confirmLabel={
+            pendingDelete.kind === "mealDraftItem"
+              ? "Remove ingredient"
+              : pendingDelete.kind === "meal"
+                ? "Delete meal"
+                : "Delete food"
+          }
+          zIndex={1300}
+          message={
+            pendingDelete.kind === "userFood" ? (
+              <>
+                Delete <strong style={{ color: "var(--text-primary)" }}>{pendingDelete.food.name.trim() || "this food"}</strong> from
+                My foods? Past logs will stay in your history.
+              </>
+            ) : pendingDelete.kind === "meal" ? (
+              <>
+                Delete <strong style={{ color: "var(--text-primary)" }}>{pendingDelete.meal.name.trim() || "this meal"}</strong> from
+                My meals? Past logs will stay in your history.
+              </>
+            ) : (
+              <>
+                Remove <strong style={{ color: "var(--text-primary)" }}>{pendingDelete.name}</strong> from this meal?
+              </>
+            )
+          }
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={confirmPendingDelete}
+        />
+      ) : null}
     </FullScreenOverlay>
   );
 }

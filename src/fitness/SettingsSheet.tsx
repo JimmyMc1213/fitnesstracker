@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type Dispatch, type SetStateAction } from "react";
 
+import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { generateDailyTasksForDate, localDateKey } from "./dailyPlan";
 import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
 import { buildHabitsForDateKey } from "./data";
@@ -90,6 +91,7 @@ export function SettingsSheet({
   const [syncPassword, setSyncPassword] = useState("");
   const [syncHint, setSyncHint] = useState<string | null>(null);
   const [notificationPermission, setNotificationPermission] = useState(getNotificationPermission);
+  const [pendingHabitRemove, setPendingHabitRemove] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     setCalIn(String(T.cal));
@@ -620,26 +622,7 @@ export function SettingsSheet({
                 <button
                   type="button"
                   className="tap"
-                  onClick={() => {
-                    setState((s) => {
-                      const templates = s.habitTemplates.filter((x) => x.id !== h.id);
-                      const nextDoneByDay = { ...s.habitsDoneByDay };
-                      for (const dk of Object.keys(nextDoneByDay)) {
-                        const m = nextDoneByDay[dk];
-                        if (!m || typeof m !== "object") continue;
-                        if (h.id in m) {
-                          const { [h.id]: _, ...rest } = m;
-                          nextDoneByDay[dk] = rest;
-                        }
-                      }
-                      return {
-                        ...s,
-                        habitTemplates: templates,
-                        habitsDoneByDay: nextDoneByDay,
-                        habits: buildHabitsForDateKey(templates, nextDoneByDay, todayKey),
-                      };
-                    });
-                  }}
+                  onClick={() => setPendingHabitRemove({ id: h.id, name: h.name.trim() || "this habit" })}
                   style={{
                     marginLeft: "auto",
                     fontSize: 12,
@@ -742,6 +725,43 @@ export function SettingsSheet({
         </div>
       </div>
       </div>
+      {pendingHabitRemove ? (
+        <DeleteConfirmSheet
+          title="Remove habit?"
+          cancelLabel="Keep habit"
+          confirmLabel="Remove habit"
+          zIndex={1300}
+          message={
+            <>
+              Remove <strong style={{ color: "var(--text-primary)" }}>{pendingHabitRemove.name}</strong> from your
+              daily checklist? This can&apos;t be undone.
+            </>
+          }
+          onCancel={() => setPendingHabitRemove(null)}
+          onConfirm={() => {
+            const habitId = pendingHabitRemove.id;
+            setState((s) => {
+              const templates = s.habitTemplates.filter((x) => x.id !== habitId);
+              const nextDoneByDay = { ...s.habitsDoneByDay };
+              for (const dk of Object.keys(nextDoneByDay)) {
+                const m = nextDoneByDay[dk];
+                if (!m || typeof m !== "object") continue;
+                if (habitId in m) {
+                  const { [habitId]: _, ...rest } = m;
+                  nextDoneByDay[dk] = rest;
+                }
+              }
+              return {
+                ...s,
+                habitTemplates: templates,
+                habitsDoneByDay: nextDoneByDay,
+                habits: buildHabitsForDateKey(templates, nextDoneByDay, todayKey),
+              };
+            });
+            setPendingHabitRemove(null);
+          }}
+        />
+      ) : null}
     </FullScreenOverlay>
   );
 }

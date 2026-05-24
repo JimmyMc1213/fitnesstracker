@@ -1,5 +1,6 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
+import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { SwipeToDelete } from "./SwipeToDelete";
 import { removeNutritionLoggedItem } from "./nutritionLog";
 import type { AppState, NutritionLoggedItem } from "./types";
@@ -20,7 +21,7 @@ type SwipeableFoodLogRowProps = {
   item: NutritionLoggedItem;
   showDivider: boolean;
   onEdit: (item: NutritionLoggedItem) => void;
-  onRemove: (itemId: string) => void;
+  onRequestRemove: (item: NutritionLoggedItem) => void;
   isOpen: boolean;
   onOpen: (itemId: string) => void;
   onClose: () => void;
@@ -30,7 +31,7 @@ function SwipeableFoodLogRow({
   item,
   showDivider,
   onEdit,
-  onRemove,
+  onRequestRemove,
   isOpen,
   onOpen,
   onClose,
@@ -47,7 +48,7 @@ function SwipeableFoodLogRow({
     >
       <SwipeToDelete
         deleteLabel={`Delete ${displayName}`}
-        onDelete={() => onRemove(item.id)}
+        onDelete={() => onRequestRemove(item)}
         isOpen={isOpen}
         onOpen={() => onOpen(item.id)}
         onClose={onClose}
@@ -102,6 +103,7 @@ function SwipeableFoodLogRow({
 export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
   const [showEarlier, setShowEarlier] = useState(false);
   const [openItemId, setOpenItemId] = useState<string | null>(null);
+  const [pendingRemove, setPendingRemove] = useState<NutritionLoggedItem | null>(null);
 
   const sorted = [...items].sort((a, b) => {
     const ta = typeof a.loggedAtMs === "number" ? a.loggedAtMs : 0;
@@ -149,7 +151,10 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
               item={item}
               showDivider={idx < visible.length - 1}
               onEdit={onEdit}
-              onRemove={onRemove}
+              onRequestRemove={(item) => {
+                setOpenItemId(null);
+                setPendingRemove(item);
+              }}
               isOpen={openItemId === item.id}
               onOpen={setOpenItemId}
               onClose={() => setOpenItemId(null)}
@@ -179,6 +184,24 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
           ) : null}
         </div>
       )}
+      {pendingRemove ? (
+        <DeleteConfirmSheet
+          title="Delete food entry?"
+          cancelLabel="Keep entry"
+          confirmLabel="Delete entry"
+          message={
+            <>
+              Remove <strong style={{ color: "var(--text-primary)" }}>{pendingRemove.name.trim() || "this food"}</strong>{" "}
+              from today&apos;s log? This can&apos;t be undone.
+            </>
+          }
+          onCancel={() => setPendingRemove(null)}
+          onConfirm={() => {
+            onRemove(pendingRemove.id);
+            setPendingRemove(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { BottomSheet, bottomSheetPanelTheme } from "./motion";
 import { workoutFieldInputStyle } from "./workoutUiTokens";
 
@@ -24,9 +25,11 @@ export function ExerciseNotesEditSheet({
   onClose,
 }: ExerciseNotesEditSheetProps) {
   const [draft, setDraft] = useState(note);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   useEffect(() => {
     setDraft(note);
+    setConfirmDeleteOpen(false);
   }, [note]);
 
   function handleSave() {
@@ -38,6 +41,7 @@ export function ExerciseNotesEditSheet({
 
   function handleDelete() {
     onDelete();
+    setConfirmDeleteOpen(false);
     onClose();
   }
 
@@ -45,6 +49,7 @@ export function ExerciseNotesEditSheet({
   const hasExisting = Boolean(note.trim());
 
   return (
+    <>
     <BottomSheet
       open={open}
       onClose={onClose}
@@ -120,7 +125,7 @@ export function ExerciseNotesEditSheet({
           <button
             type="button"
             className="tap"
-            onClick={handleDelete}
+            onClick={() => setConfirmDeleteOpen(true)}
             style={{
               width: "100%",
               marginTop: 10,
@@ -137,5 +142,22 @@ export function ExerciseNotesEditSheet({
           </button>
         ) : null}
     </BottomSheet>
+      {confirmDeleteOpen ? (
+        <DeleteConfirmSheet
+          title="Delete note?"
+          cancelLabel="Keep note"
+          confirmLabel="Delete note"
+          zIndex={1200}
+          message={
+            <>
+              Remove the saved note for <strong style={{ color: "var(--text-primary)" }}>{exerciseName}</strong>? This
+              can&apos;t be undone.
+            </>
+          }
+          onCancel={() => setConfirmDeleteOpen(false)}
+          onConfirm={handleDelete}
+        />
+      ) : null}
+    </>
   );
 }

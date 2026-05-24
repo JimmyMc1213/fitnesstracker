@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { newTemplateExerciseLine, resizeWorkoutSets } from "./data";
 import { estimatedSessionLabel } from "./estimateSessionDuration";
 import exerciseLibrary from "./exerciseLibrary";
@@ -14,6 +15,9 @@ type Props = {
 export function OnboardingTemplateReview({ templates, onChange }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(templates[0]?.id ?? null);
   const [swapTarget, setSwapTarget] = useState<{ routineId: string; exerciseId: string } | null>(null);
+  const [pendingRemove, setPendingRemove] = useState<{ routineId: string; exerciseId: string; name: string } | null>(
+    null,
+  );
 
   function updateRoutine(routineId: string, patch: Partial<WorkoutRoutineTemplate>) {
     onChange(templates.map((t) => (t.id === routineId ? { ...t, ...patch } : t)));
@@ -136,10 +140,7 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                             className="tap"
                             style={{ fontSize: 12, color: "#ff6b6b", background: "none", border: "none" }}
                             onClick={() =>
-                              updateExercises(
-                                routine.id,
-                                routine.exercises.filter((e) => e.id !== row.id),
-                              )
+                              setPendingRemove({ routineId: routine.id, exerciseId: row.id, name: row.name.trim() || "this exercise" })
                             }
                           >
                             Remove
@@ -199,6 +200,30 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
           </div>
         );
       })}
+      {pendingRemove ? (
+        <DeleteConfirmSheet
+          title="Remove exercise?"
+          cancelLabel="Keep exercise"
+          confirmLabel="Remove exercise"
+          message={
+            <>
+              Remove <strong style={{ color: "var(--text-primary)" }}>{pendingRemove.name}</strong> from this routine?
+              This can&apos;t be undone.
+            </>
+          }
+          onCancel={() => setPendingRemove(null)}
+          onConfirm={() => {
+            const routine = templates.find((t) => t.id === pendingRemove.routineId);
+            if (routine) {
+              updateExercises(
+                pendingRemove.routineId,
+                routine.exercises.filter((e) => e.id !== pendingRemove.exerciseId),
+              );
+            }
+            setPendingRemove(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
