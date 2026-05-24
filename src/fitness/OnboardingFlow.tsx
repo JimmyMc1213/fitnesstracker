@@ -76,7 +76,7 @@ import { ReferralSourcePicker } from "./ReferralSourcePicker";
 import { OnboardingDecimalInput } from "./OnboardingDecimalInput";
 import { sessionDurationFromSessionLength, sessionLengthFromDuration } from "./workoutSplitByDays";
 import { buildWeeklyRoutineTemplates } from "./buildWeeklyRoutine";
-import { ScreenTransition } from "./motion";
+import { ScreenTransition, type NavDirection } from "./motion";
 import type {
   ActivityLevel,
   AppState,
@@ -250,6 +250,7 @@ export function OnboardingFlow({
     () => initial?.notificationPrefs ?? { ...ONBOARDING_NOTIFICATION_DEFAULTS },
   );
   const [goalWeightReinforcement, setGoalWeightReinforcement] = useState(false);
+  const [navDirection, setNavDirection] = useState<NavDirection>("forward");
   const [coachingLoopCtaReady, setCoachingLoopCtaReady] = useState(false);
   const [coachingLoopCtaVisible, setCoachingLoopCtaVisible] = useState(false);
   const [draftTheme, setDraftTheme] = useState<AppTheme>(() => initial?.theme ?? restored?.theme ?? "light");
@@ -375,7 +376,8 @@ export function OnboardingFlow({
     setState((s) => ({ ...s, onboardingComplete: false, onboardingDraft: draft }));
   }
 
-  function goToStep(next: number, overrides?: Partial<OnboardingDraftInput>) {
+  function goToStep(next: number, overrides?: Partial<OnboardingDraftInput>, direction?: NavDirection) {
+    setNavDirection(direction ?? (next >= step ? "forward" : "back"));
     persistDraftSync(next, overrides);
     setStep(next);
   }
@@ -397,6 +399,7 @@ export function OnboardingFlow({
     }
 
     if (step === 9 && profile.goal !== "maintain" && !goalWeightReinforcement) {
+      setNavDirection("forward");
       setGoalWeightReinforcement(true);
       return;
     }
@@ -455,6 +458,7 @@ export function OnboardingFlow({
 
   function goBack() {
     if (step === 9 && goalWeightReinforcement) {
+      setNavDirection("back");
       setGoalWeightReinforcement(false);
       return;
     }
@@ -1187,6 +1191,8 @@ export function OnboardingFlow({
   return (
     <ScreenTransition
       activeKey={onboardingScreenKey(step, goalWeightReinforcement)}
+      variant="stack"
+      direction={navDirection}
       style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}
     >
       {screen}

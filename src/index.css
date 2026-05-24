@@ -1214,6 +1214,59 @@ input[type="number"] {
   animation: fadeSlideIn var(--motion-fast-duration, 180ms) cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.motion-stack {
+  position: relative;
+  overflow: hidden;
+}
+
+.motion-stack-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg, #060608);
+  will-change: transform, opacity;
+}
+
+.motion-stack-enter-forward {
+  animation: stackEnterForward var(--motion-stack-duration, 320ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+  z-index: 2;
+}
+
+.motion-stack-exit-forward {
+  animation: stackExitForward var(--motion-stack-duration, 320ms) cubic-bezier(0.4, 0, 0.2, 1) both;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.motion-stack-enter-back {
+  animation: stackEnterBack var(--motion-stack-duration, 320ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+  z-index: 2;
+}
+
+.motion-stack-exit-back {
+  animation: stackExitBack var(--motion-stack-duration, 320ms) cubic-bezier(0.4, 0, 0.2, 1) both;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.motion-stack-enter-forward .onboarding-headline,
+.motion-stack-enter-back .onboarding-headline,
+.motion-stack-enter-forward .onboarding-welcome__headline,
+.motion-stack-enter-back .onboarding-welcome__headline {
+  animation: onboardingContentReveal 420ms cubic-bezier(0.22, 1, 0.36, 1) 70ms both;
+}
+
+.motion-stack-enter-forward .onboarding-helper,
+.motion-stack-enter-back .onboarding-helper,
+.motion-stack-enter-forward .onboarding-shell__content,
+.motion-stack-enter-back .onboarding-shell__content,
+.motion-stack-enter-forward .onboarding-welcome__copy,
+.motion-stack-enter-back .onboarding-welcome__copy {
+  animation: onboardingContentReveal 420ms cubic-bezier(0.22, 1, 0.36, 1) 110ms both;
+}
+
 @keyframes fadeSlideIn {
   from {
     opacity: 0;
@@ -1315,6 +1368,61 @@ input[type="number"] {
   to {
     opacity: 0;
     transform: translateY(8px) scale(0.98);
+  }
+}
+
+@keyframes stackEnterForward {
+  from {
+    opacity: 0.88;
+    transform: translateX(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes stackExitForward {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0.55;
+    transform: translateX(-28px) scale(0.985);
+  }
+}
+
+@keyframes stackEnterBack {
+  from {
+    opacity: 0.88;
+    transform: translateX(-32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes stackExitBack {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0.55;
+    transform: translateX(28px) scale(0.985);
+  }
+}
+
+@keyframes onboardingContentReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -3475,6 +3583,20 @@ input[type="number"] {
   .motion-dialog-enter,
   .motion-dialog-exit,
   .motion-step,
+  .motion-stack-enter-forward,
+  .motion-stack-exit-forward,
+  .motion-stack-enter-back,
+  .motion-stack-exit-back,
+  .motion-stack-enter-forward .onboarding-headline,
+  .motion-stack-enter-back .onboarding-headline,
+  .motion-stack-enter-forward .onboarding-welcome__headline,
+  .motion-stack-enter-back .onboarding-welcome__headline,
+  .motion-stack-enter-forward .onboarding-helper,
+  .motion-stack-enter-back .onboarding-helper,
+  .motion-stack-enter-forward .onboarding-shell__content,
+  .motion-stack-enter-back .onboarding-shell__content,
+  .motion-stack-enter-forward .onboarding-welcome__copy,
+  .motion-stack-enter-back .onboarding-welcome__copy,
   .motion-splash-mark,
   .onboarding-welcome__splash-layer,
   .onboarding-welcome__landing,

@@ -18,6 +18,7 @@ import { OnboardingPillStack, OnboardingSegment } from "./OnboardingSegment";
 import { OnboardingShell } from "./OnboardingShell";
 import { DEFAULT_EQUIPMENT_SETUP } from "./equipmentSetup";
 import { DEFAULT_EXPERIENCE_LEVEL } from "./experienceLevel";
+import { DEFAULT_ONBOARDING_PROFILE } from "./onboardingProfile";
 import { WorkoutRoutineEditor } from "./screens/WorkoutRoutineEditor";
 import type { AppState, EquipmentSetup, ExperienceLevel, OnboardingProfile, SessionLength, WorkoutRoutineTemplate } from "./types";
 import { isTrainingScheduleValid, WorkoutWeekCalendarPicker } from "./WorkoutWeekCalendarPicker";
@@ -37,22 +38,29 @@ type WeeklyRoutineBuilderFlowProps = {
 };
 
 function initialProfile(state: AppState, mode: WeeklyRoutineBuilderMode): OnboardingProfile {
+  const base = state.onboardingProfile ?? DEFAULT_ONBOARDING_PROFILE;
+
   if (mode === "manual") {
-    return profileWithTrainingWeekdays({ workoutDaysPerWeek: 4, trainingWeekdays: [] }, []);
+    return {
+      ...base,
+      ...profileWithTrainingWeekdays({ workoutDaysPerWeek: 4, trainingWeekdays: [] }, []),
+    };
   }
 
-  const base = state.onboardingProfile;
   const weekdays =
-    base?.trainingWeekdays?.length ?
+    base.trainingWeekdays?.length ?
       base.trainingWeekdays
-    : defaultTrainingWeekdaysForProfile(base?.workoutDaysPerWeek ?? 4);
-  return profileWithTrainingWeekdays(
-    {
-      workoutDaysPerWeek: base?.workoutDaysPerWeek ?? (weekdays.length as OnboardingProfile["workoutDaysPerWeek"]),
-      trainingWeekdays: weekdays,
-    },
-    weekdays,
-  );
+    : defaultTrainingWeekdaysForProfile(base.workoutDaysPerWeek ?? 4);
+  return {
+    ...base,
+    ...profileWithTrainingWeekdays(
+      {
+        workoutDaysPerWeek: base.workoutDaysPerWeek ?? (weekdays.length as OnboardingProfile["workoutDaysPerWeek"]),
+        trainingWeekdays: weekdays,
+      },
+      weekdays,
+    ),
+  };
 }
 
 export function WeeklyRoutineBuilderFlow({ mode, state, onApply, onSaveCustomExercise, onClose }: WeeklyRoutineBuilderFlowProps) {

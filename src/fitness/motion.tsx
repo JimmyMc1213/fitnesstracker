@@ -1,11 +1,18 @@
-import { useEffect, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 
 export const MOTION_DURATIONS = {
   fast: 180,
   panel: 240,
+  stack: 320,
   sheet: 280,
   backdrop: 220,
 } as const;
+
+export type NavDirection = "forward" | "back";
+
+function prefersReducedMotion(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 /** Theme-aware panel chrome for bottom sheets (replaces hardcoded dark-only #121212). */
 export const bottomSheetPanelTheme: CSSProperties = {
@@ -195,22 +202,95 @@ export function CenterDialog({
   );
 }
 
+type ExitLayer = {
+  key: string;
+  node: ReactNode;
+};
+
 type ScreenTransitionProps = {
   activeKey: string;
+  /** `fade` for tabs; `stack` for wizard-style push/pop screens. */
+  variant?: "fade" | "stack";
+  direction?: NavDirection;
   className?: string;
   style?: CSSProperties;
   children: ReactNode;
 };
 
+function stackMotionClass(phase: "enter" | "exit", direction: NavDirection): string {
+  if (phase === "enter") {
+    return direction === "forward" ? "motion-stack-enter-forward" : "motion-stack-enter-back";
+  }
+  return direction === "forward" ? "motion-stack-exit-forward" : "motion-stack-exit-back";
+}
+
 /** Animate tab / route content when `activeKey` changes. */
-export function ScreenTransition({ activeKey, className = "", style, children }: ScreenTransitionProps) {
+export function ScreenTransition({
+  activeKey,
+  variant = "fade",
+  direction = "forward",
+  className = "",
+  style,
+  children,
+}: ScreenTransitionProps) {
+  const snapshotRef = useRef({ key: activeKey, node: children });
+  const [exitLayer, setExitLayer] = useState<ExitLayer | null>(null);
+  const [animDirection, setAnimDirection] = useState<NavDirection>(direction);
+
+  useLayoutEffect(() => {
+    if (variant !== "stack") {
+      snapshotRef.current = { key: activeKey, node: children };
+      return;
+    }
+
+    if (activeKey !== snapshotRef.current.key) {
+      setAnimDirection(direction);
+      if (prefersReducedMotion()) {
+        snapshotRef.current = { key: activeKey, node: children };
+        setExitLayer(null);
+        return;
+      }
+
+      setExitLayer({ key: snapshotRef.current.key, node: snapshotRef.current.node });
+      snapshotRef.current = { key: activeKey, node: children };
+
+      const id = window.setTimeout(() => setExitLayer(null), MOTION_DURATIONS.stack);
+      return () => window.clearTimeout(id);
+    }
+
+    snapshotRef.current.node = children;
+  }, [activeKey, children, direction, variant]);
+
+  const baseStyle: CSSProperties = {
+    flex: 1,
+    minHeight: 0,
+    display: "flex",
+    flexDirection: "column",
+    ...style,
+  };
+
+  if (variant === "fade") {
+    return (
+      <div key={activeKey} className={`motion-screen ${className}`.trim()} style={baseStyle}>
+        {children}
+      </div>
+    );
+  }
+
   return (
-    <div
-      key={activeKey}
-      className={`motion-screen ${className}`.trim()}
-      style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", ...style }}
-    >
-      {children}
+    <div className={`motion-stack ${className}`.trim()} style={baseStyle}>
+      {exitLayer ? (
+        <div
+          key={`${exitLayer.key}-exit`}
+          className={`motion-stack-layer ${stackMotionClass("exit", animDirection)}`}
+          aria-hidden
+        >
+          {exitLayer.node}
+        </div>
+      ) : null}
+      <div key={activeKey} className={`motion-stack-layer ${stackMotionClass("enter", animDirection)}`}>
+        {children}
+      </div>
     </div>
   );
 }

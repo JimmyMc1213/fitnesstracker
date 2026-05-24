@@ -130,7 +130,9 @@ export function OnboardingShell({
       ) : null}
 
       <div
-        className={contentClassName ?? undefined}
+        className={
+          contentClassName ? `onboarding-shell__content ${contentClassName}` : "onboarding-shell__content"
+        }
         style={{ flex: 1, minHeight: 0, overflowY: "auto", marginTop: hideHeader ? 0 : 24 }}
       >
         {children}
