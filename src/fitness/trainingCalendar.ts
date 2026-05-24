@@ -12,11 +12,25 @@ const DEFAULT_TRAINING_DAYS: Record<WorkoutDaysPerWeek, readonly string[]> = {
   6: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
 };
 
+export function defaultTrainingWeekdays(daysPerWeek: WorkoutDaysPerWeek): readonly string[] {
+  return DEFAULT_TRAINING_DAYS[daysPerWeek];
+}
+
 export function weekdayShort(d: Date): string {
   return WEEKDAY_SHORT[d.getDay()] ?? "Sun";
 }
 
-function normalizeDayLabel(label: string): string | null {
+export function resolveWorkoutDaysPerWeek(
+  templates: WorkoutRoutineTemplate[] | undefined,
+  profileDays?: WorkoutDaysPerWeek,
+): WorkoutDaysPerWeek {
+  if (profileDays && (DEFAULT_TRAINING_DAYS[profileDays] != null)) return profileDays;
+  const count = templates?.length ?? 0;
+  if (count === 3 || count === 4 || count === 5 || count === 6) return count;
+  return 5;
+}
+
+export function normalizeDayLabel(label: string): string | null {
   const t = label.trim();
   if (!t) return null;
   const lower = t.toLowerCase();

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_NUTRITION_TARGETS } from "./data";
+import { DEFAULT_NUTRITION_TARGETS, defaultWorkoutRoutineTemplates } from "./data";
+import { buildWorkoutTemplatesForDays } from "./workoutSplitByDays";
 import {
   arizonaCalendarDateKey,
   formatDailyPlanSubtitle,
@@ -56,11 +57,12 @@ describe("formatDailyPlanSubtitle", () => {
 
 describe("generateDailyTasksForDate", () => {
   const targets = DEFAULT_NUTRITION_TARGETS;
+  const fiveDayTemplates = defaultWorkoutRoutineTemplates();
 
   it("generates weekday training tasks with workout navigation and deterministic ids", () => {
     const wednesday = new Date(2026, 4, 20);
     const dateKey = localDateKey(wednesday);
-    const tasks = generateDailyTasksForDate(wednesday, targets);
+    const tasks = generateDailyTasksForDate(wednesday, targets, undefined, 10_000, fiveDayTemplates, 5);
 
     expect(tasks.length).toBeGreaterThan(0);
     expect(tasks.every((t) => t.id.startsWith(`${dateKey}_`))).toBe(true);
@@ -77,10 +79,29 @@ describe("generateDailyTasksForDate", () => {
     expect(tasks.some((t) => t.category === "life")).toBe(true);
   });
 
+  it("uses 3-day split template on Tuesday training day", () => {
+    const tuesday = new Date(2026, 4, 19);
+    const threeDayTemplates = buildWorkoutTemplatesForDays(3, "intermediate", "full_gym");
+    const tasks = generateDailyTasksForDate(tuesday, targets, undefined, 10_000, threeDayTemplates, 3);
+    const firstGym = tasks.find((t) => t.category === "gym");
+    expect(firstGym?.title).toMatch(/Tue/i);
+    expect(firstGym?.navigateTo).toBe("workout");
+  });
+
+  it("shows rest copy on 3-day split off day (Wednesday)", () => {
+    const wednesday = new Date(2026, 4, 20);
+    const threeDayTemplates = buildWorkoutTemplatesForDays(3, "intermediate", "full_gym");
+    const tasks = generateDailyTasksForDate(wednesday, targets, undefined, 10_000, threeDayTemplates, 3);
+    const firstGym = tasks.find((t) => t.category === "gym");
+    expect(firstGym?.title).toMatch(/Wed/i);
+    expect(firstGym?.title).toMatch(/Rest day/i);
+    expect(firstGym?.navigateTo).toBeUndefined();
+  });
+
   it("generates Saturday active-recovery tasks without workout navigation on first gym task", () => {
     const saturday = new Date(2026, 4, 23);
     const dateKey = localDateKey(saturday);
-    const tasks = generateDailyTasksForDate(saturday, targets);
+    const tasks = generateDailyTasksForDate(saturday, targets, undefined, 10_000, fiveDayTemplates, 5);
 
     const firstGym = tasks.find((t) => t.category === "gym");
     expect(firstGym?.title).toMatch(/Saturday/i);
@@ -92,7 +113,7 @@ describe("generateDailyTasksForDate", () => {
   it("generates Sunday rest and check-in life tasks", () => {
     const sunday = new Date(2026, 4, 24);
     const dateKey = localDateKey(sunday);
-    const tasks = generateDailyTasksForDate(sunday, targets);
+    const tasks = generateDailyTasksForDate(sunday, targets, undefined, 10_000, fiveDayTemplates, 5);
 
     const firstGym = tasks.find((t) => t.category === "gym");
     expect(firstGym?.title).toMatch(/Sunday/i);

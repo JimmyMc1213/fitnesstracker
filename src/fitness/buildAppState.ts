@@ -25,7 +25,9 @@ import {
 } from "./dailyStreak";
 import { normalizeNutritionMeals } from "./nutritionMeals";
 import { mergePersistedNutritionDays, normalizeNutritionPresets, normalizeNutritionUserFoods } from "./nutritionTotals";
-import { normalizeOnboardingProfile } from "./onboardingProfile";
+import { normalizeOnboardingProfile, DEFAULT_ONBOARDING_PROFILE } from "./onboardingProfile";
+import { normalizeOnboardingDraft } from "./onboardingDraft";
+import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
 import { normalizeRestTimerDefaultSeconds, normalizeRestTimerSecondsByExerciseKey } from "./restTimerPreferences";
 import { normalizeNotificationPreferences } from "./notificationPreferences";
 import { normalizeUnitPreferences } from "./unitPreferences";
@@ -41,6 +43,7 @@ import type {
   LoggedFood,
   MacroTotals,
   ProgressGoalConfig,
+  SubscriptionTier,
   WeightEntry,
   WorkoutState,
 } from "./types";
@@ -298,8 +301,15 @@ function normalizeHabitsDoneByDay(raw: unknown): Record<string, Record<string, b
   return out;
 }
 
+function normalizeSubscriptionTier(raw: unknown): SubscriptionTier | null {
+  return raw === "free" || raw === "pro" ? raw : null;
+}
+
 /** Build full app state from a persisted JSON blob (localStorage or Supabase). */
 export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | null | undefined): AppState {
+  const { slice: migrated } = migratePersistedFitnessSlice(p);
+  p = migrated;
+
   const nutritionTargets = p?.nutritionTargets ? { ...p.nutritionTargets } : { ...DEFAULT_NUTRITION_TARGETS };
   const lastAdj =
     typeof p?.lastAdjustmentSundayKey === "string" ? p.lastAdjustmentSundayKey : null;
@@ -325,8 +335,13 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     p?.workoutTemplates === undefined || p?.workoutTemplates === null
       ? defaultWorkoutRoutineTemplates()
       : normalizeWorkoutTemplates(p.workoutTemplates);
+  const onboardingProfile = normalizeOnboardingProfile(p?.onboardingProfile) ?? { ...DEFAULT_ONBOARDING_PROFILE };
   const hasLegacyFitnessData =
     Object.keys(p?.workoutsCompletedByDay ?? {}).length > 0 || (p?.weightLog?.length ?? 0) > 0;
+  const onboardingComplete = p?.onboardingComplete === true || hasLegacyFitnessData;
+  const onboardingDraft = onboardingComplete ? null : normalizeOnboardingDraft(p?.onboardingDraft);
+  const subscriptionTier = normalizeSubscriptionTier(p?.subscriptionTier);
+  const workoutDaysPerWeek = onboardingProfile.workoutDaysPerWeek;
 
   const baseState: AppState = {
     displayName,
@@ -358,7 +373,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     workoutHistory: normalizeWorkoutHistory(p?.workoutHistory),
     workoutSummary: null,
     habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey),
-    dailyTasks: loadTasksForToday(nutritionTargets, planStartIso, stepsTarget, workoutTemplates),
+    dailyTasks: loadTasksForToday(nutritionTargets, planStartIso, stepsTarget, workoutTemplates, workoutDaysPerWeek),
     nutritionTargets,
     weightLog: normalizeWeightLog(p?.weightLog),
     lastAdjustmentSundayKey: lastAdj,
@@ -384,8 +399,10 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
       p?.equipmentSetupChosen === true || hasLegacyFitnessData || p?.onboardingComplete === true,
     restTimerDefaultSeconds: normalizeRestTimerDefaultSeconds(p?.restTimerDefaultSeconds),
     restTimerSecondsByExerciseKey: normalizeRestTimerSecondsByExerciseKey(p?.restTimerSecondsByExerciseKey),
-    onboardingProfile: normalizeOnboardingProfile(p?.onboardingProfile),
-    onboardingComplete: p?.onboardingComplete === true || hasLegacyFitnessData,
+    onboardingProfile,
+    onboardingComplete,
+    onboardingDraft,
+    subscriptionTier,
     notificationPreferences: normalizeNotificationPreferences(p?.notificationPreferences),
     waterLogByDay: normalizeWaterLogByDay(p?.waterLogByDay),
     waterDailyTargetOz: normalizeWaterDailyTargetOz(p?.waterDailyTargetOz),

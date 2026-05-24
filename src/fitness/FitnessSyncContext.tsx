@@ -6,6 +6,8 @@ export type FitnessSyncContextValue = {
   busy: boolean;
   lastError: string | null;
   lastSyncedLabel: string | null;
+  /** False until session resolved and initial cloud pull completes (or timeout / no sync). */
+  fitnessHydrated: boolean;
   signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
   signUpWithEmail: (email: string, password: string, name: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
@@ -18,6 +20,7 @@ const disabledSync: FitnessSyncContextValue = {
   busy: false,
   lastError: null,
   lastSyncedLabel: null,
+  fitnessHydrated: true,
   signInWithPassword: async () => ({ error: "Sync unavailable" }),
   signUpWithEmail: async () => ({ error: "Sync unavailable" as string }),
   signOut: async () => {},

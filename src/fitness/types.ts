@@ -189,6 +189,10 @@ export type UserGender = "male" | "female" | "other";
 
 export type WorkoutDaysPerWeek = 3 | 4 | 5 | 6;
 
+export type GoalPace = "slow" | "balanced" | "aggressive";
+
+export type SubscriptionTier = "free" | "pro";
+
 export type NotificationPreferences = {
   workoutReminderEnabled: boolean;
   workoutReminderTime: string;
@@ -205,9 +209,33 @@ export type OnboardingProfile = {
   heightIn: number;
   weightLbs: number;
   age: number;
+  /** ISO YYYY-MM-DD; when set, age is derived at normalize time. */
+  dateOfBirth?: string;
   gender: UserGender;
   activityLevel: ActivityLevel;
   workoutDaysPerWeek: WorkoutDaysPerWeek;
+  /** Mon–Sun labels aligned to workout templates (backfilled on migrate). */
+  trainingWeekdays?: string[];
+  /** Target weight for cut/bulk progress bar. */
+  goalWeightLbs?: number;
+  /** Cut/bulk pace for calorie adjustment. */
+  pace?: GoalPace;
+};
+
+/** In-progress onboarding wizard state for resume (FTI-70). */
+export type OnboardingDraft = {
+  version: number;
+  stepIndex: number;
+  updatedAtIso: string;
+  displayName: string;
+  unitPreferences: UnitPreferences;
+  experienceLevel: ExperienceLevel;
+  equipmentSetup: EquipmentSetup;
+  profile: OnboardingProfile;
+  draftTemplates?: WorkoutRoutineTemplate[];
+  macros?: MacroTotals;
+  notificationPrefs?: NotificationPreferences;
+  subscriptionTier?: SubscriptionTier;
 };
 
 export type UnitPreferences = {
@@ -365,6 +393,10 @@ export type AppState = {
   onboardingProfile: OnboardingProfile | null;
   /** True after user finishes the guided onboarding wizard. */
   onboardingComplete: boolean;
+  /** Mid-flow onboarding snapshot; cleared on finish. */
+  onboardingDraft: OnboardingDraft | null;
+  /** Tier chosen on paywall; null until onboarding paywall (FTI-74). */
+  subscriptionTier: SubscriptionTier | null;
   /** Workout + nutrition reminder toggles, times, and last-fired dedupe keys. */
   notificationPreferences: NotificationPreferences;
   /** Per local calendar day, timestamped water intake entries. */

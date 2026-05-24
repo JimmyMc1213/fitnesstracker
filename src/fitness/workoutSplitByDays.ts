@@ -1,5 +1,6 @@
 import { SPLIT, workoutTemplateForSplitId } from "./data";
 import { adaptExerciseForEquipment } from "./exerciseEquipment";
+import { normalizeTrainingWeekdays } from "./workoutWeekCalendar";
 import { workoutTemplatesForExperience } from "./workoutTemplatesForExperience";
 import type { EquipmentSetup, ExperienceLevel, WorkoutDaysPerWeek, WorkoutRoutineTemplate } from "./types";
 
@@ -26,7 +27,9 @@ export function buildWorkoutTemplatesForDays(
   days: WorkoutDaysPerWeek,
   level: ExperienceLevel,
   equipment: EquipmentSetup,
+  trainingWeekdays?: string[],
 ): WorkoutRoutineTemplate[] {
+  const weekdays = normalizeTrainingWeekdays(trainingWeekdays);
   const experienced = workoutTemplatesForExperience(level);
   const byId = new Map(experienced.map((t) => [t.id, t]));
   const meta = splitMetaForDays(days);
@@ -44,18 +47,20 @@ export function buildWorkoutTemplatesForDays(
     });
   }
 
-  return meta.map((s) => {
+  return meta.map((s, i) => {
+    const dayLabel = weekdays[i] ?? s.day;
     const base = byId.get(s.id);
     if (base) {
       return {
         ...base,
+        dayLabel,
         exercises: base.exercises.map((e) => adaptExerciseForEquipment(e, equipment)),
       };
     }
     return {
       id: s.id,
       name: s.name,
-      dayLabel: s.day,
+      dayLabel,
       focus: s.focus,
       exercises: workoutTemplateForSplitId(s.id).map((e) => adaptExerciseForEquipment(e, equipment)),
     };

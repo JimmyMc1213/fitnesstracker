@@ -1,6 +1,7 @@
-import { PLAN_START_ISO, SPLIT, planWeekIndex } from "./data";
+import { PLAN_START_ISO, planWeekIndex } from "./data";
 import { safeJsonParse } from "./safeJsonParse";
-import type { DailyTask, MacroTotals, WorkoutRoutineTemplate } from "./types";
+import { isTrainingDay, templateForDate, weekdayShort } from "./trainingCalendar";
+import type { DailyTask, MacroTotals, WorkoutDaysPerWeek, WorkoutRoutineTemplate } from "./types";
 
 export const DAILY_STORAGE_KEY = "fitcoach:daily:v5";
 
@@ -10,8 +11,9 @@ function nutritionTargetsSig(t: MacroTotals): string {
   return `${t.cal}-${t.p}-${t.c}-${t.f}`;
 }
 
-function workoutTemplatesSig(templates: WorkoutRoutineTemplate[] | undefined): string {
-  return templates?.length ? `tpl-${templates.length}` : "def";
+function workoutTemplatesSig(templates: WorkoutRoutineTemplate[] | undefined, daysPerWeek: WorkoutDaysPerWeek): string {
+  const labels = templates?.map((t) => t.dayLabel).join(",") ?? "def";
+  return `tpl-${templates?.length ?? 0}-${daysPerWeek}-${labels}`;
 }
 
 function dailyPlanSig(
@@ -19,8 +21,9 @@ function dailyPlanSig(
   planStartIso: string,
   stepsTarget: number,
   templates: WorkoutRoutineTemplate[] | undefined,
+  daysPerWeek: WorkoutDaysPerWeek,
 ): string {
-  return `${nutritionTargetsSig(t)}|${planStartIso}|${stepsTarget}|${workoutTemplatesSig(templates)}`;
+  return `${nutritionTargetsSig(t)}|${planStartIso}|${stepsTarget}|${workoutTemplatesSig(templates, daysPerWeek)}`;
 }
 
 export function localDateKey(d: Date): string {
@@ -82,19 +85,6 @@ function pickDistinctIndices(seed: number, count: number, len: number): number[]
   return scored.slice(0, Math.min(count, len)).map((x) => x.i);
 }
 
-type SplitEntry = (typeof SPLIT)[number];
-
-function splitForWeekday(d: Date): SplitEntry | null {
-  const map: Record<number, SplitEntry | undefined> = {
-    1: SPLIT[0],
-    2: SPLIT[1],
-    3: SPLIT[2],
-    4: SPLIT[3],
-    5: SPLIT[4],
-  };
-  return map[d.getDay()] ?? null;
-}
-
 const LIFE_LINES = [
   "Night-before gym: clothes, bottle, headphones, know tomorrow's session + warm-up, decision fatigue is the enemy at 5 a.m.",
   "Hard stop screens 45 minutes before bed, book, breathwork, or light stretch instead.",
@@ -115,19 +105,25 @@ function nutritionExtraLines(targets: MacroTotals): string[] {
   ];
 }
 
-export function generateDailyTasksForDate(
-  d: Date,
-  targets: MacroTotals,
-  planStartIso: string = PLAN_START_ISO,
-  stepsTarget: number = 10_000,
-  _workoutTemplates?: WorkoutRoutineTemplate[],
-): DailyTask[] {
-  const dateKey = localDateKey(d);
-  const seed = hashSeed(dateKey);
+function appendRestDayGymTasks(tasks: DailyTask[], dateKey: string, d: Date, steps: number): void {
   const dow = d.getDay();
-  const wk = planWeekIndex(d, planStartIso);
-  const steps = stepsTarget;
-  const tasks: DailyTask[] = [];
+  const dayLabel = weekdayShort(d);
+
+  if (dow === 0) {
+    tasks.push({
+      id: `${dateKey}_g0`,
+      category: "gym",
+      title: "Sunday · Rest. No lifting mindset, optional easy stretch or breathwork only.",
+      done: false,
+    });
+    tasks.push({
+      id: `${dateKey}_g1`,
+      category: "gym",
+      title: `Still move if you can: easy steps toward ${steps.toLocaleString()} without a structured workout.`,
+      done: false,
+    });
+    return;
+  }
 
   if (dow === 6) {
     tasks.push({
@@ -142,48 +138,84 @@ export function generateDailyTasksForDate(
       title: `Light movement day, aim ${steps.toLocaleString()} steps when you can.`,
       done: false,
     });
-  } else if (dow === 0) {
-    tasks.push({
-      id: `${dateKey}_g0`,
-      category: "gym",
-      title: "Sunday · Rest. No lifting mindset, optional easy stretch or breathwork only.",
-      done: false,
-    });
-    tasks.push({
-      id: `${dateKey}_g1`,
-      category: "gym",
-      title: `Still move if you can: easy steps toward ${steps.toLocaleString()} without a structured workout.`,
-      done: false,
-    });
+    return;
+  }
+
+  tasks.push({
+    id: `${dateKey}_g0`,
+    category: "gym",
+    title: `${dayLabel} · Rest day. Optional easy walk or mobility — save energy for your next session.`,
+    done: false,
+  });
+  tasks.push({
+    id: `${dateKey}_g1`,
+    category: "gym",
+    title: `Light movement only: easy steps toward ${steps.toLocaleString()} without a structured workout.`,
+    done: false,
+  });
+}
+
+function appendTrainingDayGymTasks(
+  tasks: DailyTask[],
+  dateKey: string,
+  d: Date,
+  template: WorkoutRoutineTemplate | null,
+): void {
+  const dow = d.getDay();
+  const dayLabel = weekdayShort(d);
+  const cardioToday = dow === 1 || dow === 3 || dow === 5;
+
+  const sessionName = template?.name ?? "Training session";
+  const focus = template?.focus ?? "Open Workout for today's plan";
+  const label = template?.dayLabel ?? dayLabel;
+
+  tasks.push({
+    id: `${dateKey}_g0`,
+    category: "gym",
+    title: `${label} · ${sessionName}, warm-up 8-10 min (easy cardio + mobility + band pull-aparts) then ramp sets before first heavy lift. ${focus}.`,
+    done: false,
+    navigateTo: "workout",
+  });
+
+  tasks.push({
+    id: `${dateKey}_g1`,
+    category: "gym",
+    title: cardioToday
+      ? "Post-lift cardio: 20 min incline walk, 8-12% grade, ~2.8-3.5 mph, easy nose breathing."
+      : "Progression: keep weight until you hit the top of the rep range on every working set, then add ~5 lb.",
+    done: false,
+    navigateTo: "workout",
+  });
+
+  tasks.push({
+    id: `${dateKey}_g2`,
+    category: "gym",
+    title: "Effort: leave 1-2 reps in the tank on most sets, don't max out every session.",
+    done: false,
+    navigateTo: "workout",
+  });
+}
+
+export function generateDailyTasksForDate(
+  d: Date,
+  targets: MacroTotals,
+  planStartIso: string = PLAN_START_ISO,
+  stepsTarget: number = 10_000,
+  workoutTemplates: WorkoutRoutineTemplate[] = [],
+  daysPerWeek: WorkoutDaysPerWeek = 5,
+): DailyTask[] {
+  const dateKey = localDateKey(d);
+  const seed = hashSeed(dateKey);
+  const dow = d.getDay();
+  const wk = planWeekIndex(d, planStartIso);
+  const steps = stepsTarget;
+  const tasks: DailyTask[] = [];
+
+  const trainingToday = isTrainingDay(d, workoutTemplates, daysPerWeek);
+  if (trainingToday) {
+    appendTrainingDayGymTasks(tasks, dateKey, d, templateForDate(workoutTemplates, d));
   } else {
-    const split = splitForWeekday(d)!;
-    const cardioToday = dow === 1 || dow === 3 || dow === 5;
-
-    tasks.push({
-      id: `${dateKey}_g0`,
-      category: "gym",
-      title: `${split.day} · ${split.name}, warm-up 8-10 min (easy cardio + mobility + band pull-aparts) then ramp sets before first heavy lift. ${split.focus}.`,
-      done: false,
-      navigateTo: "workout",
-    });
-
-    tasks.push({
-      id: `${dateKey}_g1`,
-      category: "gym",
-      title: cardioToday
-        ? "Post-lift cardio: 20 min incline walk, 8-12% grade, ~2.8-3.5 mph, easy nose breathing."
-        : "Progression: keep weight until you hit the top of the rep range on every working set, then add ~5 lb.",
-      done: false,
-      navigateTo: "workout",
-    });
-
-    tasks.push({
-      id: `${dateKey}_g2`,
-      category: "gym",
-      title: "Effort: leave 1-2 reps in the tank on most sets, don't max out every session.",
-      done: false,
-      navigateTo: "workout",
-    });
+    appendRestDayGymTasks(tasks, dateKey, d, steps);
   }
 
   tasks.push({
@@ -244,11 +276,12 @@ export function loadTasksForToday(
   targets: MacroTotals,
   planStartIso: string = PLAN_START_ISO,
   stepsTarget: number = 10_000,
-  workoutTemplates?: WorkoutRoutineTemplate[],
+  workoutTemplates: WorkoutRoutineTemplate[] = [],
+  daysPerWeek: WorkoutDaysPerWeek = 5,
 ): DailyTask[] {
   const now = new Date();
   const key = localDateKey(now);
-  const sig = dailyPlanSig(targets, planStartIso, stepsTarget, workoutTemplates);
+  const sig = dailyPlanSig(targets, planStartIso, stepsTarget, workoutTemplates, daysPerWeek);
   try {
     const raw = localStorage.getItem(DAILY_STORAGE_KEY);
     if (raw) {
@@ -266,7 +299,7 @@ export function loadTasksForToday(
   } catch {
     /* ignore */
   }
-  const tasks = generateDailyTasksForDate(now, targets, planStartIso, stepsTarget, workoutTemplates);
+  const tasks = generateDailyTasksForDate(now, targets, planStartIso, stepsTarget, workoutTemplates, daysPerWeek);
   try {
     localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify({ dateKey: key, targetsSig: sig, tasks }));
   } catch {
@@ -280,7 +313,8 @@ export function persistTasksForToday(
   targets: MacroTotals,
   planStartIso: string = PLAN_START_ISO,
   stepsTarget: number = 10_000,
-  workoutTemplates?: WorkoutRoutineTemplate[],
+  workoutTemplates: WorkoutRoutineTemplate[] = [],
+  daysPerWeek: WorkoutDaysPerWeek = 5,
 ): void {
   const key = localDateKey(new Date());
   try {
@@ -288,7 +322,7 @@ export function persistTasksForToday(
       DAILY_STORAGE_KEY,
       JSON.stringify({
         dateKey: key,
-        targetsSig: dailyPlanSig(targets, planStartIso, stepsTarget, workoutTemplates),
+        targetsSig: dailyPlanSig(targets, planStartIso, stepsTarget, workoutTemplates, daysPerWeek),
         tasks,
       }),
     );

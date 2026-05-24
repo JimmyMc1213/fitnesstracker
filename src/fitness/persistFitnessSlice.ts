@@ -48,6 +48,8 @@ export type PersistedFitnessSlice = Pick<
   | "restTimerSecondsByExerciseKey"
   | "onboardingProfile"
   | "onboardingComplete"
+  | "onboardingDraft"
+  | "subscriptionTier"
   | "notificationPreferences"
   | "waterLogByDay"
   | "waterDailyTargetOz"
@@ -96,6 +98,8 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     restTimerSecondsByExerciseKey: state.restTimerSecondsByExerciseKey,
     onboardingProfile: state.onboardingProfile,
     onboardingComplete: state.onboardingComplete,
+    onboardingDraft: state.onboardingDraft,
+    subscriptionTier: state.subscriptionTier,
     notificationPreferences: state.notificationPreferences,
     waterLogByDay: state.waterLogByDay,
     waterDailyTargetOz: state.waterDailyTargetOz,

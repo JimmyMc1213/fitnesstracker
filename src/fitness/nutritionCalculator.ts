@@ -1,5 +1,5 @@
 import { LBS_PER_KG } from "./unitPreferences";
-import type { ActivityLevel, MacroTotals, NutritionGoal, UserGender } from "./types";
+import type { ActivityLevel, GoalPace, MacroTotals, NutritionGoal, UserGender } from "./types";
 
 export type NutritionCalcInput = {
   weightLbs: number;
@@ -8,6 +8,7 @@ export type NutritionCalcInput = {
   gender: UserGender;
   activityLevel: ActivityLevel;
   goal: NutritionGoal;
+  pace?: GoalPace;
 };
 
 function bmrKcal(input: NutritionCalcInput): number {
@@ -33,10 +34,24 @@ const GOAL_CAL_ADJUST: Record<NutritionGoal, number> = {
   bulk: 300,
 };
 
+/** Daily kcal delta vs balanced cut/bulk when pace is set. */
+const PACE_CAL_DELTA: Record<GoalPace, { cut: number; bulk: number }> = {
+  slow: { cut: 250, bulk: -150 },
+  balanced: { cut: 0, bulk: 0 },
+  aggressive: { cut: -250, bulk: 150 },
+};
+
+function goalCalAdjust(input: NutritionCalcInput): number {
+  const base = GOAL_CAL_ADJUST[input.goal];
+  if (input.goal === "maintain" || !input.pace) return base;
+  const paceDelta = PACE_CAL_DELTA[input.pace][input.goal];
+  return base + paceDelta;
+}
+
 /** Mifflin–St Jeor TDEE with goal adjustment; macros from body weight. */
 export function calculateNutritionTargets(input: NutritionCalcInput): MacroTotals {
   const tdee = Math.round(bmrKcal(input) * ACTIVITY_MULTIPLIER[input.activityLevel]);
-  const cal = Math.max(1200, tdee + GOAL_CAL_ADJUST[input.goal]);
+  const cal = Math.max(1200, tdee + goalCalAdjust(input));
   const p = Math.round(input.weightLbs * (input.goal === "cut" ? 1.0 : 0.85));
   const f = Math.round((cal * 0.28) / 9);
   const c = Math.max(0, Math.round((cal - p * 4 - f * 9) / 4));
