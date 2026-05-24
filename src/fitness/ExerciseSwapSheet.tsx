@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 
-import { EXERCISE_DB } from "./data";
+import { catalogExercisesForEquipment } from "./exerciseCatalog";
 import { IconSearch } from "./icons";
-import { BottomSheet } from "./motion";
-import type { CustomExerciseTemplate } from "./types";
+import { BottomSheet, bottomSheetPanelTheme } from "./motion";
+import type { CustomExerciseTemplate, EquipmentSetup } from "./types";
 
 type ExerciseSwapSheetProps = {
   open?: boolean;
+  equipmentSetup: EquipmentSetup;
   currentName: string;
   currentLabel?: string;
   customExercises: CustomExerciseTemplate[];
@@ -16,6 +17,7 @@ type ExerciseSwapSheetProps = {
 
 export function ExerciseSwapSheet({
   open = true,
+  equipmentSetup,
   currentName,
   currentLabel,
   customExercises,
@@ -25,9 +27,13 @@ export function ExerciseSwapSheet({
   const [query, setQuery] = useState("");
   const qLow = query.trim().toLowerCase();
 
+  const catalogExercises = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
   const filteredBuiltin = useMemo(
-    () => EXERCISE_DB.filter((n) => !qLow || n.toLowerCase().includes(qLow)),
-    [qLow],
+    () =>
+      catalogExercises.filter(
+        (c) => !qLow || c.name.toLowerCase().includes(qLow) || c.label.toLowerCase().includes(qLow),
+      ),
+    [catalogExercises, qLow],
   );
   const filteredCustom = useMemo(
     () =>
@@ -49,13 +55,12 @@ export function ExerciseSwapSheet({
       zIndex={1100}
       ariaLabelledBy="exercise-swap-title"
       panelStyle={{
+        ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
         maxHeight: "min(78vh, 560px)",
         display: "flex",
         flexDirection: "column",
-        background: "#121212",
-        borderColor: "var(--border)",
         padding: 20,
       }}
     >
@@ -75,7 +80,7 @@ export function ExerciseSwapSheet({
           <input
             autoFocus
             className="input"
-            style={{ paddingLeft: 36, background: "#1A1A1A" }}
+            style={{ paddingLeft: 36 }}
             placeholder="Search exercises..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -140,12 +145,12 @@ export function ExerciseSwapSheet({
               >
                 Catalog
               </div>
-              {filteredBuiltin.map((n) => (
+              {filteredBuiltin.map((c) => (
                 <button
-                  key={n}
+                  key={`${c.name}-${c.label}`}
                   type="button"
                   className="tap"
-                  onClick={() => pick(n)}
+                  onClick={() => pick(c.name, c.label)}
                   style={{
                     padding: "12px 8px",
                     textAlign: "left",
@@ -157,7 +162,10 @@ export function ExerciseSwapSheet({
                     color: "var(--text-primary)",
                   }}
                 >
-                  {n}
+                  <span style={{ display: "block" }}>{c.name}</span>
+                  <span style={{ display: "block", fontSize: 11, color: "var(--text-ghost)", marginTop: 3, fontWeight: 500 }}>
+                    {c.label}
+                  </span>
                 </button>
               ))}
             </>

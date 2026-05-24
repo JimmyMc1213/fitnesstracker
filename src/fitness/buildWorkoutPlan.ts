@@ -1,4 +1,5 @@
 import exerciseLibrary, { Exercise, Equipment, Experience, MovementPattern } from './exerciseLibrary';
+import type { ExerciseEquipmentLabel } from './exerciseLabels';
 import { splitTemplates as splits, SessionLength, SplitType, REP_RANGES, SET_COUNT } from './splitTemplates';
 
 export interface WorkoutSet {
@@ -11,6 +12,7 @@ export interface WorkoutSet {
 export interface WorkoutExercise {
   id: string;
   name: string;
+  label: ExerciseEquipmentLabel;
   muscleGroup: string;
   movementPattern: MovementPattern;
   coachNote?: string;
@@ -130,6 +132,7 @@ export function buildWorkoutPlan(input: BuildPlanInput): WorkoutPlan {
         exercises.push({
           id: exercise.id,
           name: exercise.name,
+          label: exercise.label,
           muscleGroup: exercise.muscleGroup,
           movementPattern: exercise.movementPattern,
           coachNote: exercise.coachNote,

@@ -1,3 +1,5 @@
+import type { ExerciseEquipmentLabel } from './exerciseLabels';
+
 export type Equipment = 'full_gym' | 'home_gym' | 'dumbbells_only' | 'bodyweight';
 export type Experience = 'beginner' | 'intermediate' | 'advanced';
 export type MuscleGroup = 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'quads' | 'hamstrings' | 'glutes' | 'calves' | 'core' | 'traps' | 'rear_delt';
@@ -25,6 +27,7 @@ export type MovementPattern =
 export interface Exercise {
   id: string;
   name: string;
+  label: ExerciseEquipmentLabel;
   muscleGroup: MuscleGroup;
   secondaryMuscles?: MuscleGroup[];
   movementPattern: MovementPattern;
@@ -40,6 +43,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'barbell_bench_press',
     name: 'Barbell bench press',
+    label: 'Barbell',
     muscleGroup: 'chest',
     secondaryMuscles: ['triceps', 'shoulders'],
     movementPattern: 'horizontal_push',
@@ -51,6 +55,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'dumbbell_bench_press',
     name: 'Dumbbell bench press',
+    label: 'Dumbbell',
     muscleGroup: 'chest',
     secondaryMuscles: ['triceps', 'shoulders'],
     movementPattern: 'horizontal_push',
@@ -62,6 +67,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'incline_barbell_press',
     name: 'Incline barbell press',
+    label: 'Barbell',
     muscleGroup: 'chest',
     secondaryMuscles: ['shoulders', 'triceps'],
     movementPattern: 'horizontal_push',
@@ -73,6 +79,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'incline_dumbbell_press',
     name: 'Incline dumbbell press',
+    label: 'Dumbbell',
     muscleGroup: 'chest',
     secondaryMuscles: ['shoulders', 'triceps'],
     movementPattern: 'horizontal_push',
@@ -84,6 +91,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'machine_chest_press',
     name: 'Machine chest press',
+    label: 'Machine',
     muscleGroup: 'chest',
     secondaryMuscles: ['triceps', 'shoulders'],
     movementPattern: 'horizontal_push',
@@ -95,6 +103,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'cable_chest_press',
     name: 'Cable chest press',
+    label: 'Cable',
     muscleGroup: 'chest',
     secondaryMuscles: ['triceps', 'shoulders'],
     movementPattern: 'horizontal_push',
@@ -106,6 +115,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'pushup',
     name: 'Push-up',
+    label: 'Bodyweight',
     muscleGroup: 'chest',
     secondaryMuscles: ['triceps', 'shoulders', 'core'],
     movementPattern: 'horizontal_push',
@@ -117,6 +127,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'pushup_weighted',
     name: 'Weighted push-up',
+    label: 'Bodyweight',
     muscleGroup: 'chest',
     secondaryMuscles: ['triceps', 'shoulders', 'core'],
     movementPattern: 'horizontal_push',
@@ -128,6 +139,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'dips_chest',
     name: 'Chest dips',
+    label: 'Bodyweight',
     muscleGroup: 'chest',
     secondaryMuscles: ['triceps', 'shoulders'],
     movementPattern: 'horizontal_push',
@@ -141,6 +153,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'cable_fly',
     name: 'Cable fly',
+    label: 'Cable',
     muscleGroup: 'chest',
     secondaryMuscles: [],
     movementPattern: 'horizontal_push',
@@ -152,6 +165,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'dumbbell_fly',
     name: 'Dumbbell fly',
+    label: 'Dumbbell',
     muscleGroup: 'chest',
     secondaryMuscles: [],
     movementPattern: 'horizontal_push',
@@ -163,6 +177,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'pec_deck',
     name: 'Pec deck / machine fly',
+    label: 'Machine',
     muscleGroup: 'chest',
     secondaryMuscles: [],
     movementPattern: 'horizontal_push',
@@ -176,6 +191,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'overhead_press_barbell',
     name: 'Barbell overhead press',
+    label: 'Barbell',
     muscleGroup: 'shoulders',
     secondaryMuscles: ['triceps', 'traps'],
     movementPattern: 'vertical_push',
@@ -187,6 +203,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'dumbbell_shoulder_press',
     name: 'Dumbbell shoulder press',
+    label: 'Dumbbell',
     muscleGroup: 'shoulders',
     secondaryMuscles: ['triceps'],
     movementPattern: 'vertical_push',
@@ -198,6 +215,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'machine_shoulder_press',
     name: 'Machine shoulder press',
+    label: 'Machine',
     muscleGroup: 'shoulders',
     secondaryMuscles: ['triceps'],
     movementPattern: 'vertical_push',
@@ -209,6 +227,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'arnold_press',
     name: 'Arnold press',
+    label: 'Dumbbell',
     muscleGroup: 'shoulders',
     secondaryMuscles: ['triceps'],
     movementPattern: 'vertical_push',
@@ -220,6 +239,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'pike_pushup',
     name: 'Pike push-up',
+    label: 'Bodyweight',
     muscleGroup: 'shoulders',
     secondaryMuscles: ['triceps'],
     movementPattern: 'vertical_push',
@@ -231,6 +251,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'handstand_pushup',
     name: 'Handstand push-up',
+    label: 'Bodyweight',
     muscleGroup: 'shoulders',
     secondaryMuscles: ['triceps', 'core'],
     movementPattern: 'vertical_push',
@@ -244,6 +265,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'dumbbell_lateral_raise',
     name: 'Dumbbell lateral raise',
+    label: 'Dumbbell',
     muscleGroup: 'shoulders',
     secondaryMuscles: [],
     movementPattern: 'lateral_raise',
@@ -255,6 +277,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'cable_lateral_raise',
     name: 'Cable lateral raise',
+    label: 'Cable',
     muscleGroup: 'shoulders',
     secondaryMuscles: [],
     movementPattern: 'lateral_raise',
@@ -266,6 +289,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'machine_lateral_raise',
     name: 'Machine lateral raise',
+    label: 'Machine',
     muscleGroup: 'shoulders',
     secondaryMuscles: [],
     movementPattern: 'lateral_raise',
@@ -279,6 +303,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'rear_delt_fly_dumbbell',
     name: 'Rear delt fly (dumbbell)',
+    label: 'Dumbbell',
     muscleGroup: 'shoulders',
     secondaryMuscles: ['traps'],
     movementPattern: 'rear_delt',
@@ -290,6 +315,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'face_pull',
     name: 'Face pull',
+    label: 'Cable',
     muscleGroup: 'shoulders',
     secondaryMuscles: ['traps', 'rear_delt'],
     movementPattern: 'rear_delt',
@@ -301,6 +327,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'rear_delt_machine',
     name: 'Rear delt machine',
+    label: 'Machine',
     muscleGroup: 'shoulders',
     secondaryMuscles: ['traps'],
     movementPattern: 'rear_delt',
@@ -314,6 +341,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'barbell_row',
     name: 'Barbell bent-over row',
+    label: 'Barbell',
     muscleGroup: 'back',
     secondaryMuscles: ['biceps', 'traps'],
     movementPattern: 'horizontal_pull',
@@ -325,6 +353,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'dumbbell_row',
     name: 'Single-arm dumbbell row',
+    label: 'Dumbbell',
     muscleGroup: 'back',
     secondaryMuscles: ['biceps'],
     movementPattern: 'horizontal_pull',
@@ -336,6 +365,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'cable_row',
     name: 'Seated cable row',
+    label: 'Cable',
     muscleGroup: 'back',
     secondaryMuscles: ['biceps', 'traps'],
     movementPattern: 'horizontal_pull',
@@ -347,6 +377,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'machine_row',
     name: 'Machine row',
+    label: 'Machine',
     muscleGroup: 'back',
     secondaryMuscles: ['biceps'],
     movementPattern: 'horizontal_pull',
@@ -358,6 +389,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'tbar_row',
     name: 'T-bar row',
+    label: 'Barbell',
     muscleGroup: 'back',
     secondaryMuscles: ['biceps', 'traps'],
     movementPattern: 'horizontal_pull',
@@ -369,6 +401,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'inverted_row',
     name: 'Inverted row',
+    label: 'Bodyweight',
     muscleGroup: 'back',
     secondaryMuscles: ['biceps', 'core'],
     movementPattern: 'horizontal_pull',
@@ -382,6 +415,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'pullup',
     name: 'Pull-up',
+    label: 'Bodyweight',
     muscleGroup: 'back',
     secondaryMuscles: ['biceps'],
     movementPattern: 'vertical_pull',
@@ -393,6 +427,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'assisted_pullup',
     name: 'Assisted pull-up',
+    label: 'Machine',
     muscleGroup: 'back',
     secondaryMuscles: ['biceps'],
     movementPattern: 'vertical_pull',
@@ -404,6 +439,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'lat_pulldown',
     name: 'Lat pulldown',
+    label: 'Machine',
     muscleGroup: 'back',
     secondaryMuscles: ['biceps'],
     movementPattern: 'vertical_pull',
@@ -415,6 +451,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'cable_pulldown',
     name: 'Cable straight-arm pulldown',
+    label: 'Cable',
     muscleGroup: 'back',
     secondaryMuscles: [],
     movementPattern: 'vertical_pull',
@@ -426,6 +463,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'chinup',
     name: 'Chin-up',
+    label: 'Bodyweight',
     muscleGroup: 'back',
     secondaryMuscles: ['biceps'],
     movementPattern: 'vertical_pull',
@@ -437,6 +475,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'neutral_grip_pullup',
     name: 'Neutral grip pull-up',
+    label: 'Bodyweight',
     muscleGroup: 'back',
     secondaryMuscles: ['biceps'],
     movementPattern: 'vertical_pull',
@@ -450,6 +489,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'barbell_squat',
     name: 'Barbell back squat',
+    label: 'Barbell',
     muscleGroup: 'quads',
     secondaryMuscles: ['glutes', 'hamstrings', 'core'],
     movementPattern: 'squat_pattern',
@@ -461,6 +501,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'front_squat',
     name: 'Front squat',
+    label: 'Barbell',
     muscleGroup: 'quads',
     secondaryMuscles: ['glutes', 'core'],
     movementPattern: 'squat_pattern',
@@ -472,6 +513,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'hack_squat',
     name: 'Hack squat machine',
+    label: 'Machine',
     muscleGroup: 'quads',
     secondaryMuscles: ['glutes'],
     movementPattern: 'squat_pattern',
@@ -483,6 +525,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'goblet_squat',
     name: 'Goblet squat',
+    label: 'Dumbbell',
     muscleGroup: 'quads',
     secondaryMuscles: ['glutes', 'core'],
     movementPattern: 'squat_pattern',
@@ -494,6 +537,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'dumbbell_squat',
     name: 'Dumbbell squat',
+    label: 'Dumbbell',
     muscleGroup: 'quads',
     secondaryMuscles: ['glutes'],
     movementPattern: 'squat_pattern',
@@ -505,6 +549,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'bulgarian_split_squat',
     name: 'Bulgarian split squat',
+    label: 'Dumbbell',
     muscleGroup: 'quads',
     secondaryMuscles: ['glutes', 'hamstrings'],
     movementPattern: 'squat_pattern',
@@ -516,6 +561,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'lunge',
     name: 'Walking lunge',
+    label: 'Dumbbell',
     muscleGroup: 'quads',
     secondaryMuscles: ['glutes', 'hamstrings'],
     movementPattern: 'squat_pattern',
@@ -527,6 +573,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'bodyweight_squat',
     name: 'Bodyweight squat',
+    label: 'Bodyweight',
     muscleGroup: 'quads',
     secondaryMuscles: ['glutes'],
     movementPattern: 'squat_pattern',
@@ -538,6 +585,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'pistol_squat',
     name: 'Pistol squat',
+    label: 'Bodyweight',
     muscleGroup: 'quads',
     secondaryMuscles: ['glutes', 'core'],
     movementPattern: 'squat_pattern',
@@ -551,6 +599,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'barbell_deadlift',
     name: 'Barbell deadlift',
+    label: 'Barbell',
     muscleGroup: 'hamstrings',
     secondaryMuscles: ['glutes', 'back', 'traps'],
     movementPattern: 'hinge_pattern',
@@ -562,6 +611,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'romanian_deadlift',
     name: 'Romanian deadlift',
+    label: 'Barbell',
     muscleGroup: 'hamstrings',
     secondaryMuscles: ['glutes', 'back'],
     movementPattern: 'hinge_pattern',
@@ -573,6 +623,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'trap_bar_deadlift',
     name: 'Trap bar deadlift',
+    label: 'Other',
     muscleGroup: 'hamstrings',
     secondaryMuscles: ['glutes', 'quads', 'back'],
     movementPattern: 'hinge_pattern',
@@ -584,6 +635,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'single_leg_rdl',
     name: 'Single-leg RDL',
+    label: 'Dumbbell',
     muscleGroup: 'hamstrings',
     secondaryMuscles: ['glutes', 'core'],
     movementPattern: 'hinge_pattern',
@@ -595,6 +647,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'good_morning',
     name: 'Good morning',
+    label: 'Barbell',
     muscleGroup: 'hamstrings',
     secondaryMuscles: ['glutes', 'back'],
     movementPattern: 'hinge_pattern',
@@ -606,6 +659,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'kettlebell_swing',
     name: 'Kettlebell swing',
+    label: 'Kettlebell',
     muscleGroup: 'hamstrings',
     secondaryMuscles: ['glutes', 'core', 'shoulders'],
     movementPattern: 'hinge_pattern',
@@ -617,6 +671,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'hip_thrust',
     name: 'Barbell hip thrust',
+    label: 'Barbell',
     muscleGroup: 'glutes',
     secondaryMuscles: ['hamstrings'],
     movementPattern: 'hinge_pattern',
@@ -628,6 +683,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'dumbbell_hip_thrust',
     name: 'Dumbbell hip thrust',
+    label: 'Dumbbell',
     muscleGroup: 'glutes',
     secondaryMuscles: ['hamstrings'],
     movementPattern: 'hinge_pattern',
@@ -639,6 +695,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'glute_bridge',
     name: 'Glute bridge',
+    label: 'Bodyweight',
     muscleGroup: 'glutes',
     secondaryMuscles: ['hamstrings'],
     movementPattern: 'hinge_pattern',
@@ -652,6 +709,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'leg_press',
     name: 'Leg press',
+    label: 'Machine',
     muscleGroup: 'quads',
     secondaryMuscles: ['glutes', 'hamstrings'],
     movementPattern: 'leg_press_pattern',
@@ -665,6 +723,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'lying_leg_curl',
     name: 'Lying leg curl',
+    label: 'Machine',
     muscleGroup: 'hamstrings',
     secondaryMuscles: [],
     movementPattern: 'leg_curl_pattern',
@@ -676,6 +735,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'seated_leg_curl',
     name: 'Seated leg curl',
+    label: 'Machine',
     muscleGroup: 'hamstrings',
     secondaryMuscles: [],
     movementPattern: 'leg_curl_pattern',
@@ -687,6 +747,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'nordic_curl',
     name: 'Nordic hamstring curl',
+    label: 'Bodyweight',
     muscleGroup: 'hamstrings',
     secondaryMuscles: [],
     movementPattern: 'leg_curl_pattern',
@@ -698,6 +759,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'dumbbell_leg_curl',
     name: 'Dumbbell leg curl',
+    label: 'Dumbbell',
     muscleGroup: 'hamstrings',
     secondaryMuscles: [],
     movementPattern: 'leg_curl_pattern',
@@ -711,6 +773,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'standing_calf_raise',
     name: 'Standing calf raise',
+    label: 'Machine',
     muscleGroup: 'calves',
     secondaryMuscles: [],
     movementPattern: 'calf_raise',
@@ -722,6 +785,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'seated_calf_raise',
     name: 'Seated calf raise',
+    label: 'Machine',
     muscleGroup: 'calves',
     secondaryMuscles: [],
     movementPattern: 'calf_raise',
@@ -733,6 +797,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'single_leg_calf_raise',
     name: 'Single-leg calf raise',
+    label: 'Dumbbell',
     muscleGroup: 'calves',
     secondaryMuscles: [],
     movementPattern: 'calf_raise',
@@ -744,6 +809,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'leg_press_calf_raise',
     name: 'Leg press calf raise',
+    label: 'Machine',
     muscleGroup: 'calves',
     secondaryMuscles: [],
     movementPattern: 'calf_raise',
@@ -757,6 +823,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'barbell_curl',
     name: 'Barbell curl',
+    label: 'Barbell',
     muscleGroup: 'biceps',
     secondaryMuscles: [],
     movementPattern: 'bicep_curl',
@@ -768,6 +835,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'ez_bar_curl',
     name: 'EZ bar curl',
+    label: 'EZ bar',
     muscleGroup: 'biceps',
     secondaryMuscles: [],
     movementPattern: 'bicep_curl',
@@ -779,6 +847,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'dumbbell_curl',
     name: 'Dumbbell curl',
+    label: 'Dumbbell',
     muscleGroup: 'biceps',
     secondaryMuscles: [],
     movementPattern: 'bicep_curl',
@@ -790,6 +859,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'hammer_curl',
     name: 'Hammer curl',
+    label: 'Dumbbell',
     muscleGroup: 'biceps',
     secondaryMuscles: [],
     movementPattern: 'bicep_curl',
@@ -801,6 +871,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'cable_curl',
     name: 'Cable curl',
+    label: 'Cable',
     muscleGroup: 'biceps',
     secondaryMuscles: [],
     movementPattern: 'bicep_curl',
@@ -812,6 +883,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'incline_dumbbell_curl',
     name: 'Incline dumbbell curl',
+    label: 'Dumbbell',
     muscleGroup: 'biceps',
     secondaryMuscles: [],
     movementPattern: 'bicep_curl',
@@ -823,6 +895,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'chin_up_bicep',
     name: 'Chin-up (bicep focus)',
+    label: 'Bodyweight',
     muscleGroup: 'biceps',
     secondaryMuscles: ['back'],
     movementPattern: 'bicep_curl',
@@ -836,6 +909,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'tricep_pushdown_cable',
     name: 'Cable tricep pushdown',
+    label: 'Cable',
     muscleGroup: 'triceps',
     secondaryMuscles: [],
     movementPattern: 'tricep_extension',
@@ -847,6 +921,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'skull_crusher',
     name: 'Skull crusher',
+    label: 'EZ bar',
     muscleGroup: 'triceps',
     secondaryMuscles: [],
     movementPattern: 'tricep_extension',
@@ -858,6 +933,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'overhead_tricep_extension',
     name: 'Overhead tricep extension',
+    label: 'Dumbbell',
     muscleGroup: 'triceps',
     secondaryMuscles: [],
     movementPattern: 'tricep_extension',
@@ -869,6 +945,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'tricep_dips',
     name: 'Tricep dips',
+    label: 'Bodyweight',
     muscleGroup: 'triceps',
     secondaryMuscles: ['chest', 'shoulders'],
     movementPattern: 'tricep_extension',
@@ -880,6 +957,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'close_grip_bench',
     name: 'Close-grip bench press',
+    label: 'Barbell',
     muscleGroup: 'triceps',
     secondaryMuscles: ['chest', 'shoulders'],
     movementPattern: 'tricep_extension',
@@ -891,6 +969,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'diamond_pushup',
     name: 'Diamond push-up',
+    label: 'Bodyweight',
     muscleGroup: 'triceps',
     secondaryMuscles: ['chest'],
     movementPattern: 'tricep_extension',
@@ -902,6 +981,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'kickback_dumbbell',
     name: 'Dumbbell kickback',
+    label: 'Dumbbell',
     muscleGroup: 'triceps',
     secondaryMuscles: [],
     movementPattern: 'tricep_extension',
@@ -915,6 +995,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'plank',
     name: 'Plank',
+    label: 'Bodyweight',
     muscleGroup: 'core',
     secondaryMuscles: [],
     movementPattern: 'core_anti_extension',
@@ -926,6 +1007,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'ab_wheel',
     name: 'Ab wheel rollout',
+    label: 'Other',
     muscleGroup: 'core',
     secondaryMuscles: [],
     movementPattern: 'core_anti_extension',
@@ -937,6 +1019,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'dead_bug',
     name: 'Dead bug',
+    label: 'Bodyweight',
     muscleGroup: 'core',
     secondaryMuscles: [],
     movementPattern: 'core_anti_extension',
@@ -948,6 +1031,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'hanging_leg_raise',
     name: 'Hanging leg raise',
+    label: 'Bodyweight',
     muscleGroup: 'core',
     secondaryMuscles: [],
     movementPattern: 'core_flexion',
@@ -959,6 +1043,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'cable_crunch',
     name: 'Cable crunch',
+    label: 'Cable',
     muscleGroup: 'core',
     secondaryMuscles: [],
     movementPattern: 'core_flexion',
@@ -970,6 +1055,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'lying_leg_raise',
     name: 'Lying leg raise',
+    label: 'Bodyweight',
     muscleGroup: 'core',
     secondaryMuscles: [],
     movementPattern: 'core_flexion',
@@ -981,6 +1067,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'russian_twist',
     name: 'Russian twist',
+    label: 'Bodyweight',
     muscleGroup: 'core',
     secondaryMuscles: [],
     movementPattern: 'core_rotation',
@@ -992,6 +1079,7 @@ export const exerciseLibrary: Exercise[] = [
   {
     id: 'pallof_press',
     name: 'Pallof press',
+    label: 'Cable',
     muscleGroup: 'core',
     secondaryMuscles: [],
     movementPattern: 'core_rotation',

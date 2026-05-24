@@ -1,7 +1,8 @@
 import { useState } from "react";
 
-import { EXERCISE_DB, newTemplateExerciseLine, resizeWorkoutSets } from "./data";
+import { newTemplateExerciseLine, resizeWorkoutSets } from "./data";
 import { estimatedSessionLabel } from "./estimateSessionDuration";
+import exerciseLibrary from "./exerciseLibrary";
 import { ExerciseDragHandle, SortableExerciseList } from "./SortableExerciseList";
 import type { WorkoutExercise, WorkoutRoutineTemplate } from "./types";
 
@@ -151,9 +152,9 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                 {swapTarget?.routineId === routine.id ? (
                   <div style={{ marginTop: 12, maxHeight: 160, overflowY: "auto" }}>
                     <div className="label" style={{ marginBottom: 8 }}>Pick replacement exercise</div>
-                    {EXERCISE_DB.slice(0, 24).map((name) => (
+                    {exerciseLibrary.slice(0, 24).map((ex) => (
                       <button
-                        key={name}
+                        key={ex.id}
                         type="button"
                         className="tap"
                         style={{
@@ -169,7 +170,7 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                           fontSize: 13,
                         }}
                         onClick={() => {
-                          const replacement = newTemplateExerciseLine(name);
+                          const replacement = newTemplateExerciseLine(ex.name, { label: ex.label });
                           updateExercises(
                             routine.id,
                             routine.exercises.map((e) =>
@@ -179,7 +180,8 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                           setSwapTarget(null);
                         }}
                       >
-                        {name}
+                        <span style={{ display: "block" }}>{ex.name}</span>
+                        <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 2 }}>{ex.label}</span>
                       </button>
                     ))}
                     <button

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { BottomSheet } from "./motion";
+import { BottomSheet, bottomSheetPanelTheme } from "./motion";
+import { workoutFieldInputStyle } from "./workoutUiTokens";
 
 const ACCENT_BLUE = "#0A84FF";
 
@@ -33,10 +34,9 @@ export function RepRangeEditSheet({ open = true, exerciseName, repRange, onSave,
       zIndex={1100}
       ariaLabelledBy="rep-range-edit-title"
       panelStyle={{
+        ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
-        background: "#121212",
-        borderColor: "var(--border)",
         padding: 20,
       }}
     >
@@ -53,17 +53,9 @@ export function RepRangeEditSheet({ open = true, exerciseName, repRange, onSave,
           placeholder="e.g. 6-8"
           autoFocus
           style={{
-            background: "#1A1A1A",
-            border: "0.5px solid var(--border)",
-            borderRadius: 10,
+            ...workoutFieldInputStyle,
             padding: "12px 14px",
-            color: "var(--text-primary)",
-            fontFamily: "var(--ui)",
             fontSize: 16,
-            fontWeight: 500,
-            width: "100%",
-            outline: "none",
-            boxSizing: "border-box",
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSave();

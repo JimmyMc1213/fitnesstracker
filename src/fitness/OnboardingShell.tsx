@@ -130,8 +130,7 @@ export function OnboardingShell({
       ) : null}
 
       <div
-        key={step}
-        className={contentClassName ? `motion-step ${contentClassName}` : "motion-step"}
+        className={contentClassName ?? undefined}
         style={{ flex: 1, minHeight: 0, overflowY: "auto", marginTop: hideHeader ? 0 : 24 }}
       >
         {children}

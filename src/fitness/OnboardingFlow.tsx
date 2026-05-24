@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { loadTasksForToday, localDateKey } from "./dailyPlan";
 import {
@@ -75,6 +75,7 @@ import { defaultGoalWeightLbs, goalWeightRangeLbs, WeightRulerPicker } from "./W
 import { ReferralSourcePicker } from "./ReferralSourcePicker";
 import { OnboardingDecimalInput } from "./OnboardingDecimalInput";
 import { buildWorkoutTemplatesForDays, sessionDurationFromSessionLength, sessionLengthFromDuration } from "./workoutSplitByDays";
+import { ScreenTransition } from "./motion";
 import type {
   ActivityLevel,
   AppState,
@@ -149,6 +150,11 @@ function isMacrosValid(macros: MacroTotals): boolean {
 /** Clamp saved step indices from older onboarding flows. */
 function migrateOnboardingStepIndex(stepIndex: number): number {
   return Math.min(Math.max(0, Math.round(stepIndex)), TOTAL_STEPS - 1);
+}
+
+function onboardingScreenKey(step: number, goalWeightReinforcement: boolean): string {
+  if (step === 9 && goalWeightReinforcement) return "9-reinforcement";
+  return String(step);
 }
 
 function buildDraftTemplatesFromSelections(
@@ -556,6 +562,7 @@ export function OnboardingFlow({
     finish(tier, prefs);
   }
 
+  function renderCurrentStep(): ReactNode {
   if (step === 0) {
     if (introWelcomeDone) return null;
     return <OnboardingWelcomeScreen onGetStarted={goNext} onSignIn={onSignIn} />;
@@ -1176,4 +1183,17 @@ export function OnboardingFlow({
   }
 
   return null;
+  }
+
+  const screen = renderCurrentStep();
+  if (!screen) return null;
+
+  return (
+    <ScreenTransition
+      activeKey={onboardingScreenKey(step, goalWeightReinforcement)}
+      style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}
+    >
+      {screen}
+    </ScreenTransition>
+  );
 }

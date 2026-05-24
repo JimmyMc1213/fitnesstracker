@@ -221,6 +221,7 @@ function FitnessAppMain({
   const [logFoodOpenRequest, setLogFoodOpenRequest] = useState(0);
   const [homeReselectRequest, setHomeReselectRequest] = useState(0);
   const [logFoodOverlayOpen, setLogFoodOverlayOpen] = useState(false);
+  const [routineEditorOpen, setRoutineEditorOpen] = useState(false);
   const [previewStreakLostDismissed, setPreviewStreakLostDismissed] = useState(false);
   const [authViewOverride, setAuthViewOverride] = useState<"landing" | "signin" | "signup" | null>(null);
   const [introWelcomeDone, setIntroWelcomeDone] = useState(false);
@@ -375,7 +376,8 @@ function FitnessAppMain({
     !showWorkoutSummary &&
     !(previewStreakLostUi && previewStreakLostDismissed);
 
-  const hideTabBar = tab === "stretch" || showWorkoutSummary || showStreakLost || logFoodOverlayOpen;
+  const hideTabBar =
+    tab === "stretch" || showWorkoutSummary || showStreakLost || logFoodOverlayOpen || routineEditorOpen;
 
   const isNewUser = !state.onboardingComplete;
   const needsAuth = fitnessSync.configured && !fitnessSync.sessionEmail;
@@ -541,6 +543,7 @@ function FitnessAppMain({
                 tab === "nutrition" ? () => setLogFoodOpenRequest(0) : undefined
               }
               onLogFoodOpenChange={tab === "nutrition" ? setLogFoodOverlayOpen : undefined}
+              onRoutineEditorOpenChange={tab === "workout" ? setRoutineEditorOpen : undefined}
               homeReselectRequest={homeReselectRequest}
               onHomeReselectHandled={() => setHomeReselectRequest(0)}
             />

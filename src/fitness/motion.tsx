@@ -7,6 +7,13 @@ export const MOTION_DURATIONS = {
   backdrop: 220,
 } as const;
 
+/** Theme-aware panel chrome for bottom sheets (replaces hardcoded dark-only #121212). */
+export const bottomSheetPanelTheme: CSSProperties = {
+  background: "var(--card)",
+  border: "0.5px solid var(--sheet-panel-border)",
+  boxShadow: "var(--card-shadow)",
+};
+
 export function useAnimatedPresence(active: boolean, durationMs: number = MOTION_DURATIONS.backdrop) {
   const [mounted, setMounted] = useState(active);
   const [exiting, setExiting] = useState(false);
@@ -77,7 +84,7 @@ export function BottomSheet({
         position: "fixed",
         inset: 0,
         zIndex,
-        background: "rgba(0,0,0,0.52)",
+        background: "var(--sheet-backdrop)",
         backdropFilter: "blur(6px)",
         WebkitBackdropFilter: "blur(6px)",
         display: "flex",

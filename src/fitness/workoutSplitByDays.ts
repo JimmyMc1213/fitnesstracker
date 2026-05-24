@@ -65,7 +65,7 @@ function mapExerciseToWorkoutExercise(ex: WorkoutSession["exercises"][number]): 
   return {
     id: ex.id,
     name: ex.name,
-    label: ex.muscleGroup,
+    label: ex.label,
     target: `${sets} × ${repsLow}-${repsHigh}`,
     sets: Array.from({ length: sets }, () => ({ w: 0, r: repsHigh, done: false })),
   };

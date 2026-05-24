@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildPreWorkoutCoachBrief, shouldDefaultExpandCoachCard } from "../preWorkoutCoachBrief";
 import { localDateKey } from "../dailyPlan";
@@ -30,6 +30,7 @@ import { isTrainingDay } from "../trainingCalendar";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
 import { AddExerciseSearchSheet } from "../workout/AddExerciseSearchSheet";
 import { EmptyFinishConfirmSheet } from "../workout/EmptyFinishConfirmSheet";
+import { DeleteExerciseConfirmSheet } from "../workout/DeleteExerciseConfirmSheet";
 import { WorkoutExerciseCard } from "../workout/WorkoutExerciseCard";
 import { WorkoutIdleDashboard } from "../workout/WorkoutIdleDashboard";
 import { WorkoutSessionHeader } from "../workout/WorkoutSessionHeader";
@@ -60,18 +61,30 @@ const WARMUP_ITEMS = [
   "2-4 ramp sets on your first main lift, empty bar → light → working weight",
 ];
 
-export function ScreenWorkout({ state, setState }: ScreenProps) {
+export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: ScreenProps) {
   const [showExSearch, setShowExSearch] = useState(false);
   const [openSwipeExerciseId, setOpenSwipeExerciseId] = useState<string | null>(null);
   const [expandedProgressId, setExpandedProgressId] = useState<string | null>(null);
   const [, setTick] = useState(0);
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
+
+  useEffect(() => {
+    onRoutineEditorOpenChange?.(editingRoutineId !== null);
+    return () => onRoutineEditorOpenChange?.(false);
+  }, [editingRoutineId, onRoutineEditorOpenChange]);
   const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
   const [showHistoryPage, setShowHistoryPage] = useState(false);
   const [restTimer, setRestTimer] = useState<ActiveRestTimer | null>(null);
   const [swapExerciseId, setSwapExerciseId] = useState<string | null>(null);
+  const [pendingExerciseDelete, setPendingExerciseDelete] = useState<{
+    id: string;
+    name: string;
+    label?: string;
+  } | null>(null);
+  const exerciseListEndRef = useRef<HTMLDivElement>(null);
+  const pendingScrollToNewExerciseRef = useRef(false);
   const w = state.workout;
   const wUnit = state.unitPreferences.weightUnit;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
@@ -115,6 +128,14 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     const id = window.setInterval(() => setTick((x) => x + 1), 1000);
     return () => window.clearInterval(id);
   }, [phase, w.sessionStartedAtMs]);
+
+  useEffect(() => {
+    if (!pendingScrollToNewExerciseRef.current) return;
+    pendingScrollToNewExerciseRef.current = false;
+    requestAnimationFrame(() => {
+      exerciseListEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+  }, [w.exercises.length]);
 
   useEffect(() => {
     if (!restTimer || restTimer.completed) return;
@@ -277,6 +298,17 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     });
   }
 
+  function requestDeleteExercise(exercise: { id: string; name: string; label?: string }) {
+    setOpenSwipeExerciseId(null);
+    setPendingExerciseDelete(exercise);
+  }
+
+  function confirmDeleteExercise() {
+    if (!pendingExerciseDelete) return;
+    removeExerciseFromSession(pendingExerciseDelete.id);
+    setPendingExerciseDelete(null);
+  }
+
   function swapExerciseInSession(eid: string, newName: string, newLabel?: string) {
     const trimmedName = newName.trim();
     if (!trimmedName) return;
@@ -359,40 +391,31 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         },
       };
     });
+    pendingScrollToNewExerciseRef.current = true;
     if (closeSheet) {
       setShowExSearch(false);
     }
+  }
+
+  function saveCustomExercise(name: string, label: string) {
+    const n = name.trim();
+    if (!n) return;
+    const lb = label.trim();
+    setState((s) => ({
+      ...s,
+      customExercises: [
+        ...s.customExercises,
+        { id: `c${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: n, label: lb },
+      ],
+    }));
   }
 
   function saveCustomAndAddToSession(name: string, label: string) {
     const n = name.trim();
     if (!n) return;
     const lb = label.trim();
-    setState((s) => {
-      const newExercise: WorkoutExercise = {
-        id: newWorkoutExerciseId(),
-        name: n,
-        ...(lb ? { label: lb } : {}),
-        target: "3 × 10",
-        sets: buildSetsForExercise(n, lb || undefined, 3, s.workoutHistory),
-      };
-      return {
-        ...s,
-        customExercises: [...s.customExercises, { id: `c${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: n, label: lb }],
-        workout: {
-          ...s.workout,
-          exercises: [...s.workout.exercises, newExercise],
-          sessionCoachNotesByExerciseId: {
-            ...s.workout.sessionCoachNotesByExerciseId,
-            [newExercise.id]: buildSessionCoachNoteForExercise(
-              s.workoutHistory,
-              newExercise,
-              s.onboardingProfile?.trainingStyle,
-            ),
-          },
-        },
-      };
-    });
+    saveCustomExercise(n, lb);
+    addExerciseToSession(n, lb || undefined, false);
   }
 
   function startEmptyWorkout() {
@@ -514,6 +537,8 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           key={editingRoutineId}
           template={editTemplate}
           customExercises={state.customExercises}
+          equipmentSetup={state.equipmentSetup}
+          onSaveCustomExercise={saveCustomExercise}
           onSave={(saved) => {
             setState((s) => {
               const i = s.workoutTemplates.findIndex((t) => t.id === saved.id);
@@ -604,7 +629,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           renderItem={(exercise, ei, handle, ctx) => (
             <SwipeToDelete
               deleteLabel={`Delete ${exercise.name}`}
-              onDelete={() => removeExerciseFromSession(exercise.id)}
+              onDelete={() => requestDeleteExercise(exercise)}
               disabled={ctx.isListDragging}
               isOpen={openSwipeExerciseId === exercise.id}
               onOpen={() => setOpenSwipeExerciseId(exercise.id)}
@@ -640,10 +665,12 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             </SwipeToDelete>
           )}
         />
+        <div ref={exerciseListEndRef} aria-hidden="true" style={{ height: 0 }} />
       </div>
 
       {showExSearch ? (
         <AddExerciseSearchSheet
+          equipmentSetup={state.equipmentSetup}
           customExercises={state.customExercises}
           onAddExercise={(name, label) => addExerciseToSession(name, label)}
           onSaveCustomAndAdd={saveCustomAndAddToSession}
@@ -704,6 +731,15 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         />
       ) : null}
 
+      {pendingExerciseDelete ? (
+        <DeleteExerciseConfirmSheet
+          exerciseName={pendingExerciseDelete.name}
+          exerciseLabel={pendingExerciseDelete.label}
+          onCancel={() => setPendingExerciseDelete(null)}
+          onConfirm={confirmDeleteExercise}
+        />
+      ) : null}
+
       {notesEdit ? (
         <ExerciseNotesEditSheet
           exerciseName={notesEdit.name}
@@ -720,6 +756,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             if (!swapRow) return null;
             return (
               <ExerciseSwapSheet
+                equipmentSetup={state.equipmentSetup}
                 currentName={swapRow.name}
                 currentLabel={swapRow.label}
                 customExercises={state.customExercises}

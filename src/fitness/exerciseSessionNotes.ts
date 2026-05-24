@@ -40,6 +40,12 @@ function muscleGroupPhrase(muscleGroup: string, secondary?: string[]): string {
 function findLibraryExercise(name: string, label?: string): Exercise | undefined {
   const normalized = name.toLowerCase().trim();
   const labelNorm = label?.toLowerCase().trim();
+  const exact = exerciseLibrary.find((ex) => {
+    if (ex.name.toLowerCase() !== normalized) return false;
+    if (labelNorm) return ex.label.toLowerCase() === labelNorm;
+    return true;
+  });
+  if (exact) return exact;
   return exerciseLibrary.find((ex) => {
     const exName = ex.name.toLowerCase();
     if (exName === normalized) return true;

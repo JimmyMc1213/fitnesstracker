@@ -1,4 +1,6 @@
 /** Shared typography & color tokens for workout UI (FTI-19, FTI-17). */
+import type { CSSProperties } from "react";
+
 /** Primary CTA fill (see `--primary` in index.css). */
 export const PRIMARY_FILL = "var(--primary)";
 /** @deprecated use PRIMARY_FILL */
@@ -30,3 +32,34 @@ export const labelStyle = {
 
 export const CARD_PADDING = 16;
 export const EDITOR_LIST_GAP = 12;
+
+/** Theme-aware field inputs for routine editor and workout sheets. */
+export const workoutFieldInputStyle: CSSProperties = {
+  background: "var(--card-2)",
+  border: "0.5px solid var(--border)",
+  borderRadius: 10,
+  padding: "10px 12px",
+  color: "var(--text-primary)",
+  fontFamily: "var(--ui)",
+  fontSize: 14,
+  fontWeight: 500,
+  width: "100%",
+  outline: "none",
+  boxSizing: "border-box",
+};
+
+/** Compact numeric inputs on in-session set rows. */
+export const workoutSetInputStyle: CSSProperties = {
+  background: "var(--card-2)",
+  border: "0.5px solid var(--border)",
+  borderRadius: 8,
+  padding: "8px 10px",
+  color: "var(--text-primary)",
+  fontFamily: "var(--ui)",
+  fontSize: 14,
+  fontWeight: 500,
+  width: "100%",
+  outline: "none",
+  textAlign: "center",
+  fontVariantNumeric: "tabular-nums",
+};

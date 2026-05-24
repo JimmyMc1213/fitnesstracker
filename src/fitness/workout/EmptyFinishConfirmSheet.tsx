@@ -1,5 +1,5 @@
 import { PrimaryButton } from "../shared";
-import { BottomSheet } from "../motion";
+import { BottomSheet, bottomSheetPanelTheme } from "../motion";
 
 export function EmptyFinishConfirmSheet({
   open = true,
@@ -17,10 +17,9 @@ export function EmptyFinishConfirmSheet({
       zIndex={1100}
       ariaLabelledBy="empty-finish-title"
       panelStyle={{
+        ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
-        background: "#121212",
-        borderColor: "var(--border)",
         padding: 20,
       }}
     >

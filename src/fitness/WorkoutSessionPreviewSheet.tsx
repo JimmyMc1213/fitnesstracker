@@ -2,7 +2,7 @@ import { SecondaryButton } from "./shared";
 import { formatWorkoutDuration } from "./workoutSummary";
 import { formatWorkoutHistoryDate } from "./workoutHistory";
 import type { CompletedWorkoutSession } from "./types";
-import { BottomSheet } from "./motion";
+import { BottomSheet, bottomSheetPanelTheme } from "./motion";
 
 function formatSet(w: number, r: number): string {
   if (w > 0) return `${w} lb × ${r} rep${r === 1 ? "" : "s"}`;
@@ -30,14 +30,12 @@ export function WorkoutSessionPreviewSheet({ open = true, session, onClose, onDe
       zIndex={1100}
       ariaLabelledBy="workout-session-preview-title"
       panelStyle={{
+        ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
         maxHeight: "min(78vh, 520px)",
         display: "flex",
         flexDirection: "column",
-        background: "#121212",
-        borderColor: "var(--border)",
-        boxShadow: "0 -8px 40px rgba(0,0,0,0.45)",
         overflow: "hidden",
       }}
     >

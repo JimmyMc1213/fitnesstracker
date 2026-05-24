@@ -1,3 +1,4 @@
+import exerciseLibrary from "./exerciseLibrary";
 import type { FoodItem, Habit, HabitTemplate, MacroTotals, WorkoutExercise, WorkoutRoutineTemplate, WorkoutSet, WorkoutState } from "./types";
 import { normalizeDayLabel, weekdayMonStartIndex } from "./trainingCalendar";
 import { DEFAULT_WATER_DAILY_TARGET_OZ, formatWaterOz } from "./waterIntake";
@@ -328,55 +329,8 @@ export const INITIAL_WORKOUT: WorkoutState = {
   exercises: [],
 };
 
-export const EXERCISE_DB = [
-  "Bench press",
-  "Incline bench",
-  "Incline dumbbell press",
-  "Dumbbell bench",
-  "Machine chest press",
-  "Overhead press",
-  "Dumbbell shoulder press",
-  "Seated dumbbell shoulder press",
-  "Lateral raise",
-  "Rear delt fly",
-  "Triceps pushdown",
-  "Overhead triceps extension",
-  "Skull crusher",
-  "Cable fly",
-  "Push-up",
-  "Dip",
-  "Pull-up",
-  "Lat pulldown",
-  "Straight-arm pulldown",
-  "Barbell row",
-  "Chest-supported row",
-  "Seated cable row",
-  "Single-arm cable row",
-  "Cable row",
-  "Face pull",
-  "Bicep curl",
-  "Dumbbell curl",
-  "Incline dumbbell curl",
-  "Hammer curl",
-  "Preacher curl",
-  "Back squat",
-  "Front squat",
-  "Goblet squat",
-  "Hack squat",
-  "Leg press",
-  "Romanian deadlift",
-  "Leg curl",
-  "Leg extension",
-  "Bulgarian split squat",
-  "Calf raise",
-  "Hip thrust",
-  "Walking lunge",
-  "Cable crunch",
-  "Plank",
-  "Hanging knee raise",
-  "Back extension",
-  "Farmer carry",
-] as const;
+/** Full built-in exercise catalog (names only — use exerciseLibrary or catalogExercisesForEquipment for tags). */
+export const EXERCISE_DB = exerciseLibrary.map((ex) => ex.name) as readonly string[];
 
 export function defaultHabitTemplates(): HabitTemplate[] {
   return [

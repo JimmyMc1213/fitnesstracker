@@ -1,30 +1,19 @@
-import { useMemo, useState, type CSSProperties } from "react";
+import { useMemo, useState } from "react";
 
-import { EXERCISE_DB } from "../data";
+import { CustomExerciseCreateForm } from "../CustomExerciseCreateForm";
+import { catalogExercisesForEquipment } from "../exerciseCatalog";
+import type { ExerciseEquipmentLabel } from "../exerciseLabels";
 import { IconPlus, IconSearch } from "../icons";
-import { PrimaryButton } from "../shared";
-import type { CustomExerciseTemplate } from "../types";
-
-const createInputStyle: CSSProperties = {
-  background: "#1A1A1A",
-  border: "0.5px solid var(--border)",
-  borderRadius: 10,
-  padding: "10px 12px",
-  color: "var(--text-primary)",
-  fontFamily: "var(--ui)",
-  fontSize: 14,
-  fontWeight: 500,
-  width: "100%",
-  outline: "none",
-  boxSizing: "border-box",
-};
+import type { CustomExerciseTemplate, EquipmentSetup } from "../types";
 
 export function AddExerciseSearchSheet({
+  equipmentSetup,
   customExercises,
   onAddExercise,
   onSaveCustomAndAdd,
   onClose,
 }: {
+  equipmentSetup: EquipmentSetup;
   customExercises: CustomExerciseTemplate[];
   onAddExercise: (name: string, label?: string) => void;
   onSaveCustomAndAdd: (name: string, label: string) => void;
@@ -33,12 +22,16 @@ export function AddExerciseSearchSheet({
   const [exQuery, setExQuery] = useState("");
   const [showCreateCard, setShowCreateCard] = useState(false);
   const [draftExName, setDraftExName] = useState("");
-  const [draftExLabel, setDraftExLabel] = useState("");
+  const [draftExLabel, setDraftExLabel] = useState<ExerciseEquipmentLabel | null>(null);
 
   const qLow = exQuery.trim().toLowerCase();
+  const catalogExercises = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
   const filteredBuiltin = useMemo(
-    () => EXERCISE_DB.filter((n) => !qLow || n.toLowerCase().includes(qLow)),
-    [qLow],
+    () =>
+      catalogExercises.filter(
+        (c) => !qLow || c.name.toLowerCase().includes(qLow) || c.label.toLowerCase().includes(qLow),
+      ),
+    [catalogExercises, qLow],
   );
   const filteredCustom = useMemo(
     () =>
@@ -52,7 +45,7 @@ export function AddExerciseSearchSheet({
     setExQuery("");
     setShowCreateCard(false);
     setDraftExName("");
-    setDraftExLabel("");
+    setDraftExLabel(null);
     onClose();
   }
 
@@ -61,23 +54,23 @@ export function AddExerciseSearchSheet({
     setExQuery("");
     setShowCreateCard(false);
     setDraftExName("");
-    setDraftExLabel("");
+    setDraftExLabel(null);
   }
 
   function handleSaveCustomAndAdd() {
     const n = draftExName.trim();
-    if (!n) return;
-    onSaveCustomAndAdd(n, draftExLabel.trim());
+    if (!n || !draftExLabel) return;
+    onSaveCustomAndAdd(n, draftExLabel);
     setExQuery("");
     setShowCreateCard(false);
     setDraftExName("");
-    setDraftExLabel("");
+    setDraftExLabel(null);
   }
 
   function closeCreateCard() {
     setShowCreateCard(false);
     setDraftExName("");
-    setDraftExLabel("");
+    setDraftExLabel(null);
   }
 
   return (
@@ -87,7 +80,7 @@ export function AddExerciseSearchSheet({
         <input
           autoFocus
           className="input"
-          style={{ paddingLeft: 36, background: "#1A1A1A" }}
+          style={{ paddingLeft: 36 }}
           placeholder="Search exercises..."
           value={exQuery}
           onChange={(e) => setExQuery(e.target.value)}
@@ -104,43 +97,15 @@ export function AddExerciseSearchSheet({
             border: "0.5px solid rgba(10,132,255,0.35)",
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <input
-              autoFocus
-              value={draftExName}
-              onChange={(e) => setDraftExName(e.target.value)}
-              placeholder="Exercise name"
-              style={createInputStyle}
-            />
-            <input
-              value={draftExLabel}
-              onChange={(e) => setDraftExLabel(e.target.value)}
-              placeholder="Label (optional)"
-              style={createInputStyle}
-            />
-            <PrimaryButton
-              block
-              onClick={handleSaveCustomAndAdd}
-              disabled={!draftExName.trim()}
-              style={{ borderRadius: 10, padding: 12, fontSize: 14 }}
-            >
-              Save to my list & add to workout
-            </PrimaryButton>
-            <button
-              type="button"
-              className="tap"
-              onClick={closeCreateCard}
-              style={{
-                width: "100%",
-                color: "var(--text-ghost)",
-                fontSize: 12,
-                padding: 6,
-                fontWeight: 500,
-              }}
-            >
-              Cancel
-            </button>
-          </div>
+          <CustomExerciseCreateForm
+            name={draftExName}
+            selectedLabel={draftExLabel}
+            saveButtonLabel="Save to my list & add to workout"
+            onNameChange={setDraftExName}
+            onLabelChange={setDraftExLabel}
+            onSave={handleSaveCustomAndAdd}
+            onCancel={closeCreateCard}
+          />
         </div>
       ) : (
         <button
@@ -221,12 +186,12 @@ export function AddExerciseSearchSheet({
             >
               Catalog
             </div>
-            {filteredBuiltin.map((n) => (
+            {filteredBuiltin.map((c) => (
               <button
-                key={n}
+                key={`${c.name}-${c.label}`}
                 type="button"
                 className="tap"
-                onClick={() => handleAdd(n)}
+                onClick={() => handleAdd(c.name, c.label)}
                 style={{
                   padding: "12px 8px",
                   textAlign: "left",
@@ -236,10 +201,14 @@ export function AddExerciseSearchSheet({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
+                  gap: 12,
                 }}
               >
-                <span>{n}</span>
-                <IconPlus size={14} stroke={2} style={{ color: "var(--text-primary)" }} />
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: "block", color: "var(--text-primary)" }}>{c.name}</span>
+                  <span style={{ display: "block", fontSize: 11, color: "var(--text-ghost)", marginTop: 3, fontWeight: 500 }}>{c.label}</span>
+                </span>
+                <IconPlus size={14} stroke={2} style={{ color: "var(--text-primary)", flexShrink: 0 }} />
               </button>
             ))}
           </>

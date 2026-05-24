@@ -27,6 +27,12 @@ export function isDevToolbarEnabled(): boolean {
   return isOnboardingPreviewToolsActive();
 }
 
+/** Explicit opt-in for floating dev toolbar buttons (`?devTools=1`). */
+export function isDevModeFlagEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("devTools") === "1";
+}
+
 export function setDevPreviewOnboardingStored(enabled: boolean): void {
   if (!isOnboardingPreviewToolsActive() || typeof window === "undefined") return;
   if (enabled) localStorage.setItem(STORAGE_KEY, "1");

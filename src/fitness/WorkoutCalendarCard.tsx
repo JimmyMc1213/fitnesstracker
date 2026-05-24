@@ -8,7 +8,7 @@ import {
   workoutDaysInMonth,
 } from "./workoutHistory";
 import { IconDumbbell } from "./icons";
-import { BottomSheet } from "./motion";
+import { BottomSheet, bottomSheetPanelTheme } from "./motion";
 import { WorkoutSessionPreviewSheet } from "./WorkoutSessionPreviewSheet";
 import type { AppState, CompletedWorkoutSession } from "./types";
 
@@ -52,13 +52,12 @@ function DayDetailSheet({
       onClose={onClose}
       zIndex={1100}
       panelStyle={{
+        ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
         maxHeight: "min(78vh, 520px)",
         display: "flex",
         flexDirection: "column",
-        background: "#121212",
-        borderColor: "var(--border)",
         overflow: "hidden",
       }}
     >

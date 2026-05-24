@@ -8,7 +8,7 @@ import type { ExercisePersonalBest, WeightUnit, WorkoutExercise } from "../types
 import { RestTimerBar } from "../RestTimerBar";
 import { restDurationForExercise } from "../restTimerPreferences";
 import { normalizeExerciseKey } from "../workoutSummary";
-import { METADATA_SIZE, SECONDARY_ACTION_COLOR, USER_NOTE_GRAY_MUTED, COACH_BLUE_MUTED, labelStyle } from "../workoutUiTokens";
+import { METADATA_SIZE, SECONDARY_ACTION_COLOR, USER_NOTE_GRAY_MUTED, COACH_BLUE_MUTED, labelStyle, workoutSetInputStyle } from "../workoutUiTokens";
 
 type ActiveRestTimer = {
   exerciseId: string;
@@ -210,40 +210,14 @@ export function WorkoutExerciseCard({
               value={st.w ? formatSetWeight(st.w, weightUnit) : ""}
               onChange={(ev) => onUpdateSet(exercise.id, si, { w: parseSetWeightInput(ev.target.value, weightUnit) })}
               placeholder="-"
-              style={{
-                background: "#1A1A1A",
-                border: "0.5px solid var(--border)",
-                borderRadius: 8,
-                padding: "8px 10px",
-                color: "var(--text-primary)",
-                fontFamily: "var(--ui)",
-                fontSize: 14,
-                fontWeight: 500,
-                width: "100%",
-                outline: "none",
-                textAlign: "center",
-                fontVariantNumeric: "tabular-nums",
-              }}
+              style={workoutSetInputStyle}
             />
             <input
               type="number"
               value={st.r || ""}
               onChange={(ev) => onUpdateSet(exercise.id, si, { r: +ev.target.value || 0 })}
               placeholder="-"
-              style={{
-                background: "#1A1A1A",
-                border: "0.5px solid var(--border)",
-                borderRadius: 8,
-                padding: "8px 10px",
-                color: "var(--text-primary)",
-                fontFamily: "var(--ui)",
-                fontSize: 14,
-                fontWeight: 500,
-                width: "100%",
-                outline: "none",
-                textAlign: "center",
-                fontVariantNumeric: "tabular-nums",
-              }}
+              style={workoutSetInputStyle}
             />
             <button
               type="button"

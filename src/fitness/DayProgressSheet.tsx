@@ -8,7 +8,7 @@ import {
   type StreakDayStatus,
 } from "./dailyStreak";
 import type { AppState, TabId } from "./types";
-import { BottomSheet } from "./motion";
+import { BottomSheet, bottomSheetPanelTheme } from "./motion";
 
 function streakStatusLabel(status: StreakDayStatus): string {
   switch (status) {
@@ -118,14 +118,12 @@ export function DayProgressSheet({
         padding: "12px 12px calc(24px + env(safe-area-inset-bottom, 0px))",
       }}
       panelStyle={{
+        ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
         maxHeight: "min(82vh, 560px)",
         overflow: "auto",
         padding: "18px 18px 20px",
-        background: "#121212",
-        borderColor: "var(--border)",
-        boxShadow: "0 -8px 40px rgba(0,0,0,0.45)",
       }}
     >
         <div className="between" style={{ alignItems: "center", gap: 12, marginBottom: 14 }}>

@@ -7,7 +7,7 @@ import {
   labelStyle,
   SECONDARY_ACTION_COLOR,
 } from "./workoutUiTokens";
-import { BottomSheet } from "./motion";
+import { BottomSheet, bottomSheetPanelTheme } from "./motion";
 
 export type CoachBriefContent = {
   headline: string;
@@ -40,14 +40,12 @@ export function RoutinePreviewSheet({
       zIndex={1000}
       ariaLabelledBy="routine-preview-title"
       panelStyle={{
+        ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
         maxHeight: "min(78vh, 520px)",
         display: "flex",
         flexDirection: "column",
-        background: "#121212",
-        borderColor: "var(--border)",
-        boxShadow: "0 -8px 40px rgba(0,0,0,0.45)",
         overflow: "hidden",
       }}
     >
@@ -66,7 +64,7 @@ export function RoutinePreviewSheet({
               >
                 {template.dayLabel.trim() || "Routine"}
               </div>
-              <div id="routine-preview-title" style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.2 }}>
+              <div id="routine-preview-title" style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.2, color: "var(--text-primary)" }}>
                 {template.name}
               </div>
             </div>

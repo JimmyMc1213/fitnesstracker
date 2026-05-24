@@ -491,6 +491,8 @@ export type ScreenProps = {
   onLogFoodOpenRequestHandled?: () => void;
   /** Nutrition tab reports Log Food overlay open state so the main tab bar can hide. */
   onLogFoodOpenChange?: (open: boolean) => void;
+  /** Workout tab reports routine editor open state so the main tab bar can hide. */
+  onRoutineEditorOpenChange?: (open: boolean) => void;
   /** Incremented when Home tab is tapped while already active — dismiss home overlays. */
   homeReselectRequest?: number;
   onHomeReselectHandled?: () => void;

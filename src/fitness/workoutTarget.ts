@@ -39,3 +39,27 @@ export function withSyncedTargetSetCount<T extends { target: string; sets: unkno
     target: syncTargetSetCount(exercise.target, exercise.sets.length),
   };
 }
+
+/** Parse `8-12` or `10` style rep ranges into numeric bounds. */
+export function parseRepRangeBounds(repRange: string): { low: number; high: number } {
+  const trimmed = repRange.trim();
+  const parts = trimmed.split(/[–-]/).map((p) => parseInt(p.trim(), 10));
+  if (parts.length >= 2 && Number.isFinite(parts[0]) && Number.isFinite(parts[1])) {
+    const low = Math.max(1, parts[0]!);
+    const high = Math.max(low, parts[1]!);
+    return { low, high };
+  }
+  const single = parseInt(trimmed, 10);
+  if (Number.isFinite(single)) {
+    const n = Math.max(1, single);
+    return { low: n, high: n };
+  }
+  return { low: 8, high: 12 };
+}
+
+/** Format rep bounds as `8-12` (ASCII dash for storage). */
+export function formatRepRangeBounds(low: number, high: number): string {
+  const lo = Math.max(1, low);
+  const hi = Math.max(lo, high);
+  return lo === hi ? String(lo) : `${lo}-${hi}`;
+}
