@@ -1,16 +1,29 @@
 import type { ReactNode } from "react";
 
-export const ONBOARDING_TOTAL_STEPS = 23;
+export const ONBOARDING_TOTAL_STEPS = 30;
 
 export function phaseForStep(step: number): { phaseLabel?: string; showStepCounter: boolean } {
-  if (step <= 0) return { showStepCounter: false };
-  if (step === 1) return { showStepCounter: false };
+  if (step <= 1) return { showStepCounter: false };
   if (step <= 7) return { phaseLabel: "About you", showStepCounter: true };
   if (step <= 11) return { phaseLabel: "Your goal", showStepCounter: true };
-  if (step <= 16) return { phaseLabel: "Your training", showStepCounter: true };
-  if (step <= 18) return { phaseLabel: "Your fuel", showStepCounter: true };
-  if (step <= 21) return { phaseLabel: "Launch", showStepCounter: true };
-  return { phaseLabel: "Launch", showStepCounter: false };
+  if (step <= 21) return { phaseLabel: "Your training", showStepCounter: true };
+  if (step <= 23) return { phaseLabel: "Your fuel", showStepCounter: true };
+  if (step <= 28) return { phaseLabel: "Launch", showStepCounter: true };
+  return { showStepCounter: false };
+}
+
+function BackArrow() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M15 18l-6-6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export function OnboardingShell({
@@ -18,6 +31,7 @@ export function OnboardingShell({
   totalSteps = ONBOARDING_TOTAL_STEPS,
   title,
   subtitle,
+  eyebrow,
   children,
   onBack,
   onContinue,
@@ -27,11 +41,20 @@ export function OnboardingShell({
   continueDisabled = false,
   hideProgress = false,
   hideFooter = false,
+  hideHeader = false,
+  contentClassName,
+  headlineClassName,
+  helperClassName,
+  continueTone = "light",
+  continueClassName,
+  footerGhostAction,
+  compactFooter = false,
 }: {
   step: number;
   totalSteps?: number;
-  title: string;
+  title: ReactNode;
   subtitle?: string;
+  eyebrow?: string;
   children: ReactNode;
   onBack?: () => void;
   onContinue: () => void;
@@ -41,32 +64,39 @@ export function OnboardingShell({
   continueDisabled?: boolean;
   hideProgress?: boolean;
   hideFooter?: boolean;
+  hideHeader?: boolean;
+  contentClassName?: string;
+  headlineClassName?: string;
+  helperClassName?: string;
+  /** Primary button style: light (default), dark outline, or blue accent. */
+  continueTone?: "light" | "dark" | "blue" | "gold";
+  continueClassName?: string;
+  footerGhostAction?: { label: string; onClick: () => void };
+  /** Tighter spacing between content and footer actions. */
+  compactFooter?: boolean;
 }) {
   const { phaseLabel, showStepCounter } = phaseForStep(step);
   const pct = Math.round(((step + 1) / totalSteps) * 100);
 
   return (
     <div
+      className="onboarding-shell"
       style={{
-        minHeight: "100%",
-        display: "flex",
-        flexDirection: "column",
-        padding: "20px 20px 28px",
-        background: "var(--bg)",
-        boxSizing: "border-box",
+        paddingTop: "max(0.5rem, env(safe-area-inset-top))",
+        paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))",
+        paddingLeft: 23,
+        paddingRight: 23,
       }}
     >
+      {onBack ? (
+        <button type="button" className="onboarding-back-btn tap" onClick={onBack} aria-label="Back">
+          <BackArrow />
+        </button>
+      ) : null}
+
       {!hideProgress ? (
         <div style={{ marginBottom: 20 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 12,
-              color: "rgba(255,255,255,0.45)",
-              marginBottom: 8,
-            }}
-          >
+          <div className="onboarding-step-meta">
             {showStepCounter ? (
               <span>
                 Step {step + 1} of {totalSteps}
@@ -76,85 +106,75 @@ export function OnboardingShell({
             )}
             {phaseLabel ? <span>{phaseLabel}</span> : <span />}
           </div>
-          <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
-            <div
-              style={{
-                width: `${pct}%`,
-                height: "100%",
-                background: "#fff",
-                borderRadius: 2,
-                transition: "width 0.2s",
-              }}
-            />
+          <div
+            className="onboarding-progress-track"
+            role="progressbar"
+            aria-valuenow={step + 1}
+            aria-valuemin={1}
+            aria-valuemax={totalSteps}
+            aria-label={`Step ${step + 1} of ${totalSteps}`}
+          >
+            <div className="onboarding-progress-fill" style={{ width: `${pct}%` }} />
           </div>
         </div>
       ) : null}
-      <h1 style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", margin: "0 0 8px" }}>{title}</h1>
-      {subtitle ? (
-        <p style={{ margin: "0 0 20px", fontSize: 14, lineHeight: 1.5, color: "rgba(255,255,255,0.5)" }}>{subtitle}</p>
+
+      {eyebrow ? <p className="onboarding-eyebrow">{eyebrow}</p> : null}
+      {!hideHeader ? (
+        <>
+          <h1 className={headlineClassName ? `onboarding-headline ${headlineClassName}` : "onboarding-headline"}>{title}</h1>
+          {subtitle ? (
+            <p className={helperClassName ? `onboarding-helper ${helperClassName}` : "onboarding-helper"}>{subtitle}</p>
+          ) : null}
+        </>
       ) : null}
-      <div key={step} className="motion-step" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+
+      <div
+        key={step}
+        className={contentClassName ? `motion-step ${contentClassName}` : "motion-step"}
+        style={{ flex: 1, minHeight: 0, overflowY: "auto", marginTop: hideHeader ? 0 : 24 }}
+      >
         {children}
       </div>
+
+      {!compactFooter ? <div style={{ minHeight: 16, flexShrink: 0 }} aria-hidden /> : null}
+
       {!hideFooter ? (
-      <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-        {onBack ? (
-          <button
-            type="button"
-            className="tap"
-            onClick={onBack}
-            style={{
-              flex: 1,
-              padding: 14,
-              borderRadius: 12,
-              fontWeight: 600,
-              fontSize: 15,
-              border: "0.5px solid var(--border)",
-              background: "transparent",
-              color: "#fff",
-            }}
-          >
-            Back
-          </button>
-        ) : null}
-        {onSecondary ? (
-          <button
-            type="button"
-            className="tap"
-            onClick={onSecondary}
-            style={{
-              flex: 1,
-              padding: 14,
-              borderRadius: 12,
-              fontWeight: 600,
-              fontSize: 15,
-              border: "0.5px solid var(--border)",
-              background: "transparent",
-              color: "#fff",
-            }}
-          >
-            {secondaryLabel}
-          </button>
-        ) : null}
-        <button
-          type="button"
-          className="tap"
-          disabled={continueDisabled}
-          onClick={onContinue}
-          style={{
-            flex: onBack || onSecondary ? 2 : 1,
-            padding: 14,
-            borderRadius: 12,
-            fontWeight: 700,
-            fontSize: 15,
-            border: "none",
-            background: continueDisabled ? "rgba(255,255,255,0.25)" : "#fff",
-            color: continueDisabled ? "rgba(0,0,0,0.4)" : "#000",
-          }}
+        <div
+          className={compactFooter ? "onboarding-shell__footer onboarding-shell__footer--compact" : "onboarding-shell__footer"}
         >
-          {continueLabel}
-        </button>
-      </div>
+          {onSecondary ? (
+            <button
+              type="button"
+              className="tap onboarding-pill"
+              onClick={onSecondary}
+              style={{ justifyContent: "center", textAlign: "center" }}
+            >
+              {secondaryLabel}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className={`tap onboarding-continue${
+              continueTone === "dark"
+                ? " onboarding-continue--dark"
+                : continueTone === "blue"
+                  ? " onboarding-continue--blue"
+                  : continueTone === "gold"
+                    ? " onboarding-continue--gold"
+                    : ""
+            }${continueClassName ? ` ${continueClassName}` : ""}`}
+            disabled={continueDisabled}
+            onClick={onContinue}
+          >
+            {continueLabel}
+          </button>
+          {footerGhostAction ? (
+            <button type="button" className="tap onboarding-footer-ghost" onClick={footerGhostAction.onClick}>
+              {footerGhostAction.label}
+            </button>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

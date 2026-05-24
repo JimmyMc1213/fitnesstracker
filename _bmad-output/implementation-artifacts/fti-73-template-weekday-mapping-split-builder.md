@@ -13,9 +13,9 @@ so the split reveal matches my real schedule without a separate alignment step.
 1. **`buildWorkoutTemplatesForDays`** accepts optional `trainingWeekdays?: string[]`.
 2. When provided and length matches template count, `dayLabel[i] = trainingWeekdays[i]`.
 3. When omitted, behavior unchanged (default split meta day labels).
-4. **Unit tests** — 4-day pick Mon/Tue/Thu/Fri → templates show those labels.
+4. **Unit tests** - 4-day pick Mon/Tue/Thu/Fri → templates show those labels.
 5. **OnboardingFlow** passes weekdays into builder; remove redundant `alignTemplatesToTrainingWeekdays` where builder covers it.
-6. **Build gate** — `npm test` + `npm run build` pass.
+6. **Build gate** - `npm test` + `npm run build` pass.
 
 ## Tasks / Subtasks
 

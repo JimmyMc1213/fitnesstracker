@@ -1,20 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildCoachContext, getHomeCoachPlan, getWeighInReactionForDisplay } from "../coachEngine";
-import { buildMacroPaceSnapshot } from "../macroPace";
-import { handleCoachTaskAction } from "../coachTaskActions";
+import { buildHabitsForDateKey } from "../data";
 import { habitsForDateKey, HomeDailyHabitsCard } from "../HomeDailyHabitsCard";
 import { HomeWeighInInline } from "../HomeWeighInInline";
 import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
-import { HomeFuelStrip } from "../HomeFuelStrip";
+import { HomeDashboardCarousel } from "../HomeDashboardCarousel";
 import { homeGreetingTitle } from "../homeGreeting";
 import { IconCheck, IconChevR, IconSettings } from "../icons";
 import { SettingsSheet } from "../SettingsSheet";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
-import { StreakWeeklyHeader } from "../StreakWeeklyHeader";
-import { TodaysCoachPlanCard } from "../TodaysCoachPlanCard";
 import { WeighInCoachReaction } from "../WeighInCoachReaction";
-import { WeeklySummaryCard } from "../WeeklySummaryCard";
+import { WeighInSheet } from "../WeighInSheet";
+import { SundayWeeklyCheckInCard } from "../SundayWeeklyCheckInCard";
+import {
+  buildSundayCheckInData,
+  dismissSundayCheckIn,
+  shouldShowSundayCheckIn,
+  sundayNoonForCurrentWeek,
+} from "../sundayCheckIn";
 import { ScreenHeader, PrimaryButton } from "../shared";
 import type { ScreenProps } from "../types";
 
@@ -31,6 +35,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
 
   const wUnit = state.unitPreferences.weightUnit;
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [weighInOpen, setWeighInOpen] = useState(false);
 
   const greetingName = state.displayName.trim();
   const todayForGreeting = isViewingToday ? clock : new Date(activeDateKey.replace(/-/g, "/"));
@@ -53,16 +58,13 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
     }
   }, [dateKeyToday]);
 
-  const { coachPlan, coachCtx, fuelPaceHint } = useMemo(() => {
-    if (!isViewingToday) return { coachPlan: null, coachCtx: null, fuelPaceHint: undefined };
-    const ctx = buildCoachContext(state, dateKeyToday, clock);
-    const pace = buildMacroPaceSnapshot(ctx);
+  const { coachPlan, coachCtx } = useMemo(() => {
+    const ctx = buildCoachContext(state, activeDateKey, isViewingToday ? clock : new Date(`${activeDateKey}T12:00:00`));
     return {
-      coachPlan: getHomeCoachPlan(ctx),
+      coachPlan: isViewingToday ? getHomeCoachPlan(ctx) : null,
       coachCtx: ctx,
-      fuelPaceHint: pace.status === "behind" ? pace.hint : undefined,
     };
-  }, [state, dateKeyToday, clock, isViewingToday]);
+  }, [state, activeDateKey, clock, isViewingToday]);
 
   const headerEyebrow = formatDateKeyEyebrow(activeDateKey);
   const headerTitle = isViewingToday
@@ -72,7 +74,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         month: "long",
         day: "numeric",
       });
-  const headerSubtitle = isViewingToday && coachPlan ? coachPlan.headline : undefined;
 
   const arizonaTodayKey = arizonaCalendarDateKey(clock);
   const showNightlyStretchWindow = isViewingToday && isArizonaEightPmOrLater(clock);
@@ -86,17 +87,20 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
 
   function toggleHabit(id: string) {
     setState((s) => {
-      const hRow = s.habits.find((h) => h.id === id);
-      const nextDone = !hRow?.done;
-      const todayMap = { ...(s.habitsDoneByDay[activeDateKey] ?? {}), [id]: nextDone };
+      const doneMap = s.habitsDoneByDay[activeDateKey] ?? {};
+      const nextDone = !doneMap[id];
+      const habitsDoneByDay = {
+        ...s.habitsDoneByDay,
+        [activeDateKey]: { ...doneMap, [id]: nextDone },
+      };
       const habits =
         activeDateKey === dateKeyToday
-          ? s.habits.map((h) => (h.id === id ? { ...h, done: nextDone } : h))
+          ? buildHabitsForDateKey(s.habitTemplates, habitsDoneByDay, activeDateKey)
           : s.habits;
       return {
         ...s,
         habits,
-        habitsDoneByDay: { ...s.habitsDoneByDay, [activeDateKey]: todayMap },
+        habitsDoneByDay,
       };
     });
   }
@@ -106,12 +110,29 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
     return getWeighInReactionForDisplay(coachCtx, dayEntry);
   }, [isViewingToday, dayEntry, coachCtx]);
 
+  const previewSundayUi =
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("previewSunday") === "1";
+  const reviewClock = previewSundayUi ? sundayNoonForCurrentWeek(clock) : clock;
+  const showSundayCheckIn =
+    isViewingToday &&
+    state.onboardingComplete &&
+    shouldShowSundayCheckIn(state, clock, previewSundayUi);
+  const sundayCheckInData = useMemo(() => {
+    if (!showSundayCheckIn) return null;
+    return buildSundayCheckInData(state, reviewClock);
+  }, [state, reviewClock, showSundayCheckIn]);
+
+  function dismissWeeklyCheckIn() {
+    setState((s) => dismissSundayCheckIn(s, reviewClock));
+  }
+
   return (
     <div className="screen" style={{ position: "relative" }}>
       <ScreenHeader
         eyebrow={headerEyebrow}
         title={headerTitle}
-        subtitle={headerSubtitle}
         right={
           <button
             type="button"
@@ -124,7 +145,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
               border: "0.5px solid var(--border)",
               display: "grid",
               placeItems: "center",
-              color: "rgba(255,255,255,0.5)",
+              color: "var(--text-secondary)",
             }}
             aria-label="Settings"
           >
@@ -143,7 +164,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
             padding: 0,
             border: "none",
             background: "none",
-            color: "rgba(255,255,255,0.5)",
+            color: "var(--text-secondary)",
             fontSize: 13,
             fontWeight: 600,
             textAlign: "left",
@@ -153,33 +174,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         </button>
       ) : null}
 
-      {isViewingToday && coachPlan ? (
-        <TodaysCoachPlanCard
-          plan={coachPlan}
-          onTaskAction={(task) => handleCoachTaskAction(task, navigate)}
-        />
-      ) : null}
-
-      <StreakWeeklyHeader
-        state={state}
-        todayKey={dateKeyToday}
-        selectedDateKey={activeDateKey}
-        onSelectDateKey={setViewDateKey}
-        variant="compact"
-        showLegend={isViewingToday}
-      />
-
-      <HomeFuelStrip totals={totals} targets={T} label={fuelLabel} paceHint={fuelPaceHint} />
-
-      <HomeDailyHabitsCard
-        habits={activeHabits}
-        stepsTarget={state.stepsTarget}
-        planStartIso={state.planStartIso}
-        dateKey={activeDateKey}
-        readOnly={!isViewingToday}
-        onToggle={toggleHabit}
-      />
-
       {showWeighInInline && dayEntry ? (
         <HomeWeighInInline entry={dayEntry} weightUnit={wUnit} onPress={() => navigate("progress")} />
       ) : null}
@@ -188,8 +182,8 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         <button
           type="button"
           className="tap card"
-          onClick={() => navigate("progress")}
-          aria-label={dayEntry ? "View or update weigh-in on Progress" : "Log weigh-in on Progress"}
+          onClick={() => setWeighInOpen(true)}
+          aria-label="Log morning weigh-in"
           style={{
             padding: 16,
             marginTop: 18,
@@ -206,25 +200,54 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
               width: 44,
               height: 44,
               borderRadius: 999,
-              background: "rgba(255,255,255,0.06)",
+              background: "var(--surface-3)",
               display: "grid",
               placeItems: "center",
               flexShrink: 0,
             }}
           >
-            <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>+</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: "var(--text-secondary)" }}>+</span>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "#fff" }}>Morning weigh-in</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 4 }}>
-              Log weight and optional photo on the Progress tab
+            <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "var(--text-primary)" }}>Morning weigh-in</div>
+            <div style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, marginTop: 4 }}>
+              Log weight and optional progress photo
             </div>
           </div>
-          <IconChevR size={14} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
+          <IconChevR size={14} style={{ color: "var(--text-tertiary)", flexShrink: 0 }} />
         </button>
       ) : null}
 
       {weighInReaction ? <WeighInCoachReaction adjustment={weighInReaction} /> : null}
+
+      <HomeDashboardCarousel
+        totals={totals}
+        targets={T}
+        dateKey={activeDateKey}
+        isToday={isViewingToday}
+        label={fuelLabel}
+        coachCtx={coachCtx}
+        coachPlan={coachPlan}
+        state={state}
+        onNavigate={navigate}
+      />
+
+      <HomeDailyHabitsCard
+        habits={activeHabits}
+        stepsTarget={state.stepsTarget}
+        planStartIso={state.planStartIso}
+        dateKey={activeDateKey}
+        readOnly={!isViewingToday}
+        onToggle={toggleHabit}
+      />
+
+      {sundayCheckInData ? (
+        <SundayWeeklyCheckInCard
+          data={sundayCheckInData}
+          unitPreferences={state.unitPreferences}
+          onDismiss={dismissWeeklyCheckIn}
+        />
+      ) : null}
 
       {showNightlyStretchWindow ? (
         nightlyStretchDone ? (
@@ -258,12 +281,12 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
               <IconCheck size={22} stroke={2.4} style={{ color: "rgb(196,181,253)" }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "#fff" }}>Nightly stretching</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 4 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "var(--text-primary)" }}>Nightly stretching</div>
+              <div style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, marginTop: 4 }}>
                 Finished · tap to open your full routine
               </div>
             </div>
-            <IconChevR size={18} stroke={2} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
+            <IconChevR size={18} stroke={2} style={{ color: "var(--text-tertiary)", flexShrink: 0 }} />
           </button>
         ) : (
           <button
@@ -291,7 +314,7 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
             >
               Nightly stretching · Arizona 8pm+
             </div>
-            <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", fontWeight: 400 }}>
+            <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
               Open your routine for the full checklist, hips, hamstrings, spine, activation. Mark complete when you finish.
             </p>
             <PrimaryButton
@@ -307,8 +330,6 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         )
       ) : null}
 
-      {isViewingToday ? <WeeklySummaryCard state={state} todayKey={dateKeyToday} defaultCollapsed /> : null}
-
       <div style={{ height: 8 }} />
 
       <SettingsSheet
@@ -316,6 +337,15 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
         state={state}
         setState={setState}
         onClose={() => setSettingsOpen(false)}
+      />
+
+      <WeighInSheet
+        open={weighInOpen}
+        onClose={() => setWeighInOpen(false)}
+        dateKey={dateKeyToday}
+        existing={dayEntry}
+        unitPreferences={state.unitPreferences}
+        setState={setState}
       />
     </div>
   );

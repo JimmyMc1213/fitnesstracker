@@ -7,10 +7,10 @@ import {
 import { IconDumbbell } from "./icons";
 import type { AppState } from "./types";
 
-const COMPLETE_RING = "#ffffff";
+const COMPLETE_RING = "var(--chart-stroke)";
 const AMBER_PARTIAL = "#fbbf24";
-const BLANK_RING = "rgba(255,255,255,0.1)";
-const MISSED_RING = "rgba(255,255,255,0.28)";
+const BLANK_RING = "var(--toggle-track-off)";
+const MISSED_RING = "var(--border-strong)";
 
 function DayLetterProgressRing({
   letter,
@@ -34,11 +34,11 @@ function DayLetterProgressRing({
   const dashLen =
     p >= 1 ? cLength - 0.5 : Math.max(cLength * p, p > 0 ? 2 : 0);
 
-  const arcStroke = p >= 1 ? COMPLETE_RING : p >= 0.5 ? AMBER_PARTIAL : "#ffffff";
+  const arcStroke = p >= 1 ? COMPLETE_RING : p >= 0.5 ? AMBER_PARTIAL : "var(--chart-stroke)";
 
-  let letterColor = "#fff";
-  if (future) letterColor = "rgba(255,255,255,0.35)";
-  else if (pastMissed) letterColor = "rgba(255,255,255,0.45)";
+  let letterColor = "var(--text-primary)";
+  if (future) letterColor = "var(--text-ghost)";
+  else if (pastMissed) letterColor = "var(--text-faint-soft)";
 
   return (
     <div style={{ position: "relative", width: size, height: size }}>
@@ -49,7 +49,7 @@ function DayLetterProgressRing({
           <circle cx={cx} cy={cy} r={r} fill="none" stroke={MISSED_RING} strokeWidth={2} strokeLinecap="round" />
         ) : (
           <>
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth={1} />
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--sheet-panel-border)" strokeWidth={1} />
             <circle
               cx={cx}
               cy={cy}
@@ -145,7 +145,7 @@ export function StreakWeeklyHeader({
         style={{
           fontSize: isCompact ? 14 : 16,
           fontWeight: 800,
-          color: "#0a0a0a",
+          color: "var(--primary-fg)",
           fontVariantNumeric: "tabular-nums",
           lineHeight: 1,
         }}
@@ -171,7 +171,7 @@ export function StreakWeeklyHeader({
                 fontWeight: 800,
                 fontSize: 20,
                 letterSpacing: "-0.04em",
-                color: "#fff",
+                color: "var(--text-primary)",
                 lineHeight: 1,
                 whiteSpace: "nowrap",
               }}
@@ -188,10 +188,10 @@ export function StreakWeeklyHeader({
           const isFuture = cell.kind === "future";
           const isSelected = cell.dateKey === selectedDateKey;
           const domColor = isFuture
-            ? "rgba(255,255,255,0.32)"
+            ? "var(--text-ghost)"
             : cell.kind === "past" && cell.progress <= 0
-              ? "rgba(255,255,255,0.45)"
-              : "#fff";
+              ? "var(--text-faint-soft)"
+              : "var(--text-primary)";
           const domWeight = isSelected ? 800 : cell.kind === "today" ? 800 : 600;
 
           return (
@@ -214,7 +214,7 @@ export function StreakWeeklyHeader({
                 gap: isCompact ? 3 : 5,
                 padding: isCompact ? "2px 1px 4px" : "4px 2px 6px",
                 margin: 0,
-                background: isSelected ? "rgba(255,255,255,0.1)" : "transparent",
+                background: isSelected ? "var(--surface-3)" : "transparent",
                 border: "none",
                 borderRadius: isCompact ? 10 : 12,
                 color: "inherit",
@@ -246,7 +246,7 @@ export function StreakWeeklyHeader({
         })}
       </div>
       {showLegend ? (
-        <p style={{ margin: "6px 0 0", fontSize: 10, lineHeight: 1.4, color: "rgba(255,255,255,0.35)", fontWeight: 400, textAlign: "center" }}>
+        <p style={{ margin: "6px 0 0", fontSize: 10, lineHeight: 1.4, color: "var(--text-ghost)", fontWeight: 400, textAlign: "center" }}>
           Ring = workout + fuel progress that day
         </p>
       ) : null}

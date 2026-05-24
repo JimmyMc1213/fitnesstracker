@@ -60,7 +60,7 @@ export function RoutinePreviewSheet({
                   fontWeight: 600,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.4)",
+                  color: "var(--text-ghost)",
                   marginBottom: 4,
                 }}
               >
@@ -76,12 +76,12 @@ export function RoutinePreviewSheet({
           </div>
 
           {template.focus.trim() ? (
-            <p style={{ margin: "0 0 10px", fontSize: 12, lineHeight: 1.45, color: "rgba(255,255,255,0.5)", fontWeight: 400 }}>
+            <p style={{ margin: "0 0 10px", fontSize: 12, lineHeight: 1.45, color: "var(--text-muted-soft)", fontWeight: 400 }}>
               {template.focus}
             </p>
           ) : null}
 
-          <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.38)", fontVariantNumeric: "tabular-nums", marginBottom: coachBrief ? 10 : 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-ghost)", fontVariantNumeric: "tabular-nums", marginBottom: coachBrief ? 10 : 12 }}>
             {template.exercises.length} exercise{template.exercises.length === 1 ? "" : "s"} · {totalSets} set{totalSets === 1 ? "" : "s"}
           </div>
 
@@ -96,11 +96,11 @@ export function RoutinePreviewSheet({
               }}
             >
               <div style={{ ...labelStyle, color: COACH_BLUE_LABEL, marginBottom: 6 }}>Coach</div>
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, lineHeight: 1.45, color: "rgba(255,255,255,0.85)" }}>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, lineHeight: 1.45, color: "var(--text-soft)" }}>
                 {coachBrief.headline}
               </p>
               {coachBrief.rationale ? (
-                <p style={{ margin: "6px 0 0", fontSize: 12, fontWeight: 500, lineHeight: 1.45, color: "rgba(255,255,255,0.55)" }}>
+                <p style={{ margin: "6px 0 0", fontSize: 12, fontWeight: 500, lineHeight: 1.45, color: "var(--text-muted-soft)" }}>
                   {coachBrief.rationale}
                 </p>
               ) : null}
@@ -116,7 +116,7 @@ export function RoutinePreviewSheet({
                 style={{
                   padding: "10px 12px",
                   borderRadius: 10,
-                  background: "rgba(255,255,255,0.04)",
+                  background: "var(--surface-1)",
                   border: "0.5px solid var(--border)",
                   display: "flex",
                   alignItems: "flex-start",
@@ -127,7 +127,7 @@ export function RoutinePreviewSheet({
                   style={{
                     fontSize: 11,
                     fontWeight: 600,
-                    color: "rgba(255,255,255,0.3)",
+                    color: "var(--text-ghost)",
                     fontVariantNumeric: "tabular-nums",
                     minWidth: 18,
                   }}
@@ -135,8 +135,8 @@ export function RoutinePreviewSheet({
                   {i + 1}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", letterSpacing: "-0.01em" }}>{ex.name}</div>
-                  <div style={{ marginTop: 2, fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>{ex.name}</div>
+                  <div style={{ marginTop: 2, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500 }}>
                     {ex.target.trim() || `${ex.sets.length} sets`}
                     {ex.target.trim() ? ` · ${ex.sets.length} set${ex.sets.length === 1 ? "" : "s"}` : ""}
                   </div>
@@ -153,7 +153,7 @@ export function RoutinePreviewSheet({
                   fontWeight: 600,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.35)",
+                  color: "var(--text-ghost)",
                   marginBottom: 6,
                 }}
               >
@@ -161,7 +161,7 @@ export function RoutinePreviewSheet({
               </div>
               <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 4 }}>
                 {template.warmupItems.map((item) => (
-                  <li key={item.description} style={{ fontSize: 11, lineHeight: 1.4, color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>
+                  <li key={item.description} style={{ fontSize: 11, lineHeight: 1.4, color: "var(--text-muted-soft)", fontWeight: 500 }}>
                     {item.description}
                   </li>
                 ))}
@@ -180,7 +180,7 @@ export function RoutinePreviewSheet({
             Start workout
           </PrimaryButton>
           {template.exercises.length === 0 ? (
-            <p style={{ margin: "8px 0 0", textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+            <p style={{ margin: "8px 0 0", textAlign: "center", fontSize: 11, color: "var(--text-ghost)" }}>
               Add exercises in Edit before starting.
             </p>
           ) : (
@@ -194,7 +194,7 @@ export function RoutinePreviewSheet({
                 padding: 8,
                 fontSize: 13,
                 fontWeight: 500,
-                color: "rgba(255,255,255,0.4)",
+                color: "var(--text-ghost)",
                 background: "transparent",
                 border: "none",
               }}

@@ -57,14 +57,14 @@ export function WaterTrackerCard({
           justifyContent: "space-between",
           gap: 10,
           paddingBottom: showDivider ? 8 : 0,
-          borderBottom: showDivider ? "1px solid rgba(255,255,255,0.06)" : undefined,
+          borderBottom: showDivider ? "1px solid var(--divider-subtle)" : undefined,
         }}
       >
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", fontVariantNumeric: "tabular-nums" }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
             +{Math.round(entry.amountOz)} oz
           </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, marginTop: 2 }}>
             {formatLoggedTime(entry.loggedAtMs)}
           </div>
         </div>
@@ -129,7 +129,7 @@ export function WaterTrackerCard({
             fontWeight: 600,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.45)",
+            color: "var(--text-faint-soft)",
           }}
         >
           {sectionLabel}
@@ -138,16 +138,16 @@ export function WaterTrackerCard({
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 400 }}>Water</span>
+          <span style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 400 }}>Water</span>
           <div style={{ textAlign: "right" }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "#fff", fontVariantNumeric: "tabular-nums" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
               {Math.round(total)}
-              <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 400 }}>
+              <span style={{ color: "var(--text-ghost)", fontWeight: 400 }}>
                 {" "}
                 / {targetOz} oz
               </span>
             </span>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500, marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: "var(--text-faint-soft)", fontWeight: 500, marginTop: 2 }}>
               {formatWaterLitersFromOz(total)} · target {formatWaterOz(targetOz)}
             </div>
           </div>
@@ -208,8 +208,8 @@ export function WaterTrackerCard({
                   padding: "10px 14px",
                   borderRadius: 10,
                   border: "0.5px solid var(--border)",
-                  background: "rgba(255,255,255,0.04)",
-                  color: "rgba(255,255,255,0.65)",
+                  background: "var(--surface-1)",
+                  color: "var(--text-muted-soft)",
                   fontSize: 13,
                   fontWeight: 600,
                   fontVariantNumeric: "tabular-nums",

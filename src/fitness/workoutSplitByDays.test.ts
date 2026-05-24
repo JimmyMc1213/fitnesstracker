@@ -7,6 +7,8 @@ describe("buildWorkoutTemplatesForDays", () => {
     const templates = buildWorkoutTemplatesForDays(4, "intermediate", "full_gym");
     expect(templates).toHaveLength(4);
     expect(templates.map((t) => t.dayLabel)).toEqual(["Mon", "Tue", "Wed", "Thu"]);
+    expect(templates.every((t) => t.exercises.length > 0)).toBe(true);
+    expect(templates.every((t) => t.estimatedMinutes != null)).toBe(true);
   });
 
   it("maps dayLabel from trainingWeekdays when provided", () => {
@@ -20,24 +22,21 @@ describe("buildWorkoutTemplatesForDays", () => {
     expect(templates.map((t) => t.dayLabel)).toEqual(["Mon", "Tue", "Thu", "Fri"]);
   });
 
-  it("maps 3-day custom weekdays", () => {
-    const templates = buildWorkoutTemplatesForDays(3, "beginner", "home_gym", ["Wed", "Fri", "Sun"]);
+  it("maps 3-day custom weekdays with PPL for intermediate", () => {
+    const templates = buildWorkoutTemplatesForDays(3, "intermediate", "full_gym", ["Wed", "Fri", "Sun"]);
     expect(templates).toHaveLength(3);
     expect(templates.map((t) => t.dayLabel)).toEqual(["Wed", "Fri", "Sun"]);
+    expect(templates.map((t) => t.name)).toEqual(["Push", "Pull", "Legs"]);
   });
 
-  it("ignores extra weekdays beyond template count", () => {
-    const templates = buildWorkoutTemplatesForDays(3, "intermediate", "full_gym", [
-      "Mon",
-      "Tue",
-      "Wed",
-      "Thu",
-    ]);
-    expect(templates.map((t) => t.dayLabel)).toEqual(["Mon", "Tue", "Wed"]);
+  it("uses full-body ABC for 3-day beginner", () => {
+    const templates = buildWorkoutTemplatesForDays(3, "beginner", "home_gym", ["Mon", "Tue", "Thu"]);
+    expect(templates.map((t) => t.name)).toEqual(["Full body A", "Full body B", "Full body C"]);
   });
 
-  it("falls back to meta labels when weekdays shorter than template count", () => {
-    const templates = buildWorkoutTemplatesForDays(4, "intermediate", "full_gym", ["Mon", "Wed"]);
-    expect(templates.map((t) => t.dayLabel)).toEqual(["Mon", "Wed", "Wed", "Thu"]);
+  it("sizes exercise count by session length", () => {
+    const short = buildWorkoutTemplatesForDays(4, "intermediate", "full_gym", undefined, "under_30");
+    const long = buildWorkoutTemplatesForDays(4, "intermediate", "full_gym", undefined, "90_plus");
+    expect(short[0]?.exercises.length).toBeLessThan(long[0]?.exercises.length ?? 0);
   });
 });

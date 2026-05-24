@@ -40,11 +40,11 @@ export function RepRangeEditSheet({ open = true, exerciseName, repRange, onSave,
         padding: 20,
       }}
     >
-        <div id="rep-range-edit-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff", marginBottom: 4 }}>
+        <div id="rep-range-edit-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)", marginBottom: 4 }}>
           Rep range
         </div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 14, fontWeight: 500 }}>{exerciseName}</div>
-        <p style={{ margin: "0 0 12px", fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.45 }}>
+        <div style={{ fontSize: 13, color: "var(--text-muted-soft)", marginBottom: 14, fontWeight: 500 }}>{exerciseName}</div>
+        <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--text-faint-soft)", lineHeight: 1.45 }}>
           Shown in the target label (e.g. 4 × 6-8). Saved to your routine when this workout came from a template.
         </p>
         <input
@@ -57,7 +57,7 @@ export function RepRangeEditSheet({ open = true, exerciseName, repRange, onSave,
             border: "0.5px solid var(--border)",
             borderRadius: 10,
             padding: "12px 14px",
-            color: "#fff",
+            color: "var(--text-primary)",
             fontFamily: "var(--ui)",
             fontSize: 16,
             fontWeight: 500,
@@ -79,8 +79,8 @@ export function RepRangeEditSheet({ open = true, exerciseName, repRange, onSave,
               padding: 14,
               borderRadius: 12,
               border: "0.5px solid var(--border)",
-              background: "rgba(255,255,255,0.06)",
-              color: "rgba(255,255,255,0.7)",
+              background: "var(--surface-3)",
+              color: "var(--text-soft)",
               fontSize: 14,
               fontWeight: 600,
             }}
@@ -97,8 +97,8 @@ export function RepRangeEditSheet({ open = true, exerciseName, repRange, onSave,
               padding: 14,
               borderRadius: 12,
               border: "none",
-              background: draft.trim() ? ACCENT_BLUE : "rgba(255,255,255,0.08)",
-              color: draft.trim() ? "#fff" : "rgba(255,255,255,0.35)",
+              background: draft.trim() ? ACCENT_BLUE : "var(--btn-disabled-bg)",
+              color: draft.trim() ? "var(--primary-fg)" : "var(--btn-disabled-fg)",
               fontSize: 14,
               fontWeight: 600,
             }}

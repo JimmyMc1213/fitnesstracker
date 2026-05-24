@@ -64,6 +64,163 @@ describe("onboardingDraft", () => {
     expect(normalizeOnboardingDraft({ ...raw, version: 99 })).toBeNull();
   });
 
+  it("migrates v3 draft step index after referral source screen insert", () => {
+    const raw = {
+      ...buildOnboardingDraft({
+        stepIndex: 5,
+        displayName: "Sam",
+        unitPreferences: DEFAULT_UNIT_PREFERENCES,
+        experienceLevel: DEFAULT_EXPERIENCE_LEVEL,
+        equipmentSetup: DEFAULT_EQUIPMENT_SETUP,
+        profile: DEFAULT_ONBOARDING_PROFILE,
+      }),
+      version: 3,
+    };
+    expect(normalizeOnboardingDraft(raw)?.stepIndex).toBe(7);
+    const early = { ...raw, stepIndex: 2 };
+    expect(normalizeOnboardingDraft(early)?.stepIndex).toBe(3);
+  });
+
+  it("migrates v8 draft step index when session duration screen is inserted", () => {
+    const base = {
+      displayName: "Sam",
+      unitPreferences: DEFAULT_UNIT_PREFERENCES,
+      experienceLevel: DEFAULT_EXPERIENCE_LEVEL,
+      equipmentSetup: DEFAULT_EQUIPMENT_SETUP,
+      profile: DEFAULT_ONBOARDING_PROFILE,
+    };
+    const v8 = (stepIndex: number) =>
+      normalizeOnboardingDraft({
+        ...buildOnboardingDraft({ ...base, stepIndex }),
+        version: 8,
+      });
+
+    expect(v8(13)?.stepIndex).toBe(14);
+    expect(v8(14)?.stepIndex).toBe(17);
+    expect(v8(20)?.stepIndex).toBe(24);
+    expect(v8(24)?.stepIndex).toBe(27);
+  });
+
+  it("migrates v9 draft step index when plan-building screen is inserted", () => {
+    const base = {
+      displayName: "Sam",
+      unitPreferences: DEFAULT_UNIT_PREFERENCES,
+      experienceLevel: DEFAULT_EXPERIENCE_LEVEL,
+      equipmentSetup: DEFAULT_EQUIPMENT_SETUP,
+      profile: DEFAULT_ONBOARDING_PROFILE,
+    };
+    const v9 = (stepIndex: number) =>
+      normalizeOnboardingDraft({
+        ...buildOnboardingDraft({ ...base, stepIndex }),
+        version: 9,
+      });
+
+    expect(v9(19)?.stepIndex).toBe(20);
+    expect(v9(20)?.stepIndex).toBe(22);
+    expect(v9(24)?.stepIndex).toBe(26);
+    expect(v9(25)?.stepIndex).toBe(27);
+  });
+
+  it("migrates v11 draft step index when edit split screen is removed", () => {
+    const base = {
+      displayName: "Sam",
+      unitPreferences: DEFAULT_UNIT_PREFERENCES,
+      experienceLevel: DEFAULT_EXPERIENCE_LEVEL,
+      equipmentSetup: DEFAULT_EQUIPMENT_SETUP,
+      profile: DEFAULT_ONBOARDING_PROFILE,
+    };
+    const v11 = (stepIndex: number) =>
+      normalizeOnboardingDraft({
+        ...buildOnboardingDraft({ ...base, stepIndex }),
+        version: 11,
+      });
+
+    expect(v11(23)?.stepIndex).toBe(24);
+    expect(v11(24)?.stepIndex).toBe(24);
+    expect(v11(25)?.stepIndex).toBe(26);
+    expect(v11(26)?.stepIndex).toBe(27);
+  });
+
+  it("migrates v12 draft step index when notification pre-prompt is inserted", () => {
+    const base = {
+      displayName: "Sam",
+      unitPreferences: DEFAULT_UNIT_PREFERENCES,
+      experienceLevel: DEFAULT_EXPERIENCE_LEVEL,
+      equipmentSetup: DEFAULT_EQUIPMENT_SETUP,
+      profile: DEFAULT_ONBOARDING_PROFILE,
+    };
+    const v12 = (stepIndex: number) =>
+      normalizeOnboardingDraft({
+        ...buildOnboardingDraft({ ...base, stepIndex }),
+        version: 12,
+      });
+
+    expect(v12(23)?.stepIndex).toBe(24);
+    expect(v12(24)?.stepIndex).toBe(26);
+    expect(v12(25)?.stepIndex).toBe(27);
+    expect(v12(26)?.stepIndex).toBe(28);
+  });
+
+  it("migrates v13 draft step index when save progress is inserted before paywall", () => {
+    const base = {
+      displayName: "Sam",
+      unitPreferences: DEFAULT_UNIT_PREFERENCES,
+      experienceLevel: DEFAULT_EXPERIENCE_LEVEL,
+      equipmentSetup: DEFAULT_EQUIPMENT_SETUP,
+      profile: DEFAULT_ONBOARDING_PROFILE,
+    };
+    const v13 = (stepIndex: number) =>
+      normalizeOnboardingDraft({
+        ...buildOnboardingDraft({ ...base, stepIndex }),
+        version: 13,
+      });
+
+    expect(v13(26)?.stepIndex).toBe(27);
+    expect(v13(27)?.stepIndex).toBe(28);
+  });
+
+  it("migrates v14 draft step index when theme picker is inserted after welcome", () => {
+    const base = {
+      displayName: "Sam",
+      unitPreferences: DEFAULT_UNIT_PREFERENCES,
+      experienceLevel: DEFAULT_EXPERIENCE_LEVEL,
+      equipmentSetup: DEFAULT_EQUIPMENT_SETUP,
+      profile: DEFAULT_ONBOARDING_PROFILE,
+    };
+    const v14 = (stepIndex: number) =>
+      normalizeOnboardingDraft({
+        ...buildOnboardingDraft({ ...base, stepIndex }),
+        version: 14,
+      });
+
+    expect(v14(0)?.stepIndex).toBe(0);
+    expect(v14(1)?.stepIndex).toBe(2);
+    expect(v14(27)?.stepIndex).toBe(28);
+    expect(v14(28)?.stepIndex).toBe(29);
+  });
+
+  it("migrates v7 draft step index when nutrition results move before training plan", () => {
+    const base = {
+      displayName: "Sam",
+      unitPreferences: DEFAULT_UNIT_PREFERENCES,
+      experienceLevel: DEFAULT_EXPERIENCE_LEVEL,
+      equipmentSetup: DEFAULT_EQUIPMENT_SETUP,
+      profile: DEFAULT_ONBOARDING_PROFILE,
+    };
+    const v7 = (stepIndex: number) =>
+      normalizeOnboardingDraft({
+        ...buildOnboardingDraft({ ...base, stepIndex }),
+        version: 7,
+      });
+
+    expect(v7(18)?.stepIndex).toBe(24);
+    expect(v7(19)?.stepIndex).toBe(27);
+    expect(v7(20)?.stepIndex).toBe(22);
+    expect(v7(21)?.stepIndex).toBe(23);
+    expect(v7(17)?.stepIndex).toBe(20);
+    expect(v7(22)?.stepIndex).toBe(26);
+  });
+
   it("migrates v2 draft step index to v3", () => {
     const raw = {
       ...buildOnboardingDraft({

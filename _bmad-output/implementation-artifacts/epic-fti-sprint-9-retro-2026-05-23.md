@@ -10,7 +10,7 @@
 
 ## Epic summary
 
-**Goal:** Nutrition OS v2 — Chunk 3. My meals meal prep, Cal AI visual polish, full unit + E2E gate to ship the Nutrition OS v2 roadmap.
+**Goal:** Nutrition OS v2 - Chunk 3. My meals meal prep, Cal AI visual polish, full unit + E2E gate to ship the Nutrition OS v2 roadmap.
 
 | Metric | Value |
 | --- | --- |
@@ -40,7 +40,7 @@
 | --- | --- | --- | --- |
 | 1 | Run sprint planning for Sprint 9 | ✅ Done | epics.md Epic 9 + nutrition-os-v2-checklist |
 | 2 | Deploy Edge Function + USDA secret | ⏳ Ops prep | Code on main; secret deploy still manual |
-| 3 | Restore one-story-per-PR OR accept epic PR waiver | ✅ Done | PRs #31, #32, FTI-65 — three separate story PRs |
+| 3 | Restore one-story-per-PR OR accept epic PR waiver | ✅ Done | PRs #31, #32, FTI-65 - three separate story PRs |
 | 4 | My meals as S9 headline | ✅ Done | FTI-63 shipped first |
 | 5 | Cal AI polish in S9 | ✅ Done | FTI-64 |
 | 6 | Full test gate in S9 | ✅ Done | FTI-65 |
@@ -50,15 +50,15 @@
 ## What went well
 
 - **Chunk 3 delivered the user-visible gap:** My meals went from placeholder to full meal-prep flow.
-- **One-story-per-PR restored** after four consecutive epic PRs — easier review and safer merges.
+- **One-story-per-PR restored** after four consecutive epic PRs - easier review and safer merges.
 - **Test pyramid held:** Unit coverage for meals, search cache, and merge; E2E covers manual add, search→log, and saved-meal log.
 - **Design system consistency:** Lime `--pos` CTAs and dark Cal AI cards carry through Log Food.
 
 ## What could improve
 
-- **Edge Function deploy** remains manual ops — not blocking dev but blocks live USDA search in production.
+- **Edge Function deploy** remains manual ops - not blocking dev but blocks live USDA search in production.
 - **Recently logged re-log E2E** still not covered (carried from Sprint 7/8).
-- **CI e2e gate** still local-only — no GitHub Actions workflow yet.
+- **CI e2e gate** still local-only - no GitHub Actions workflow yet.
 
 ## Action items (post-Sprint 9)
 

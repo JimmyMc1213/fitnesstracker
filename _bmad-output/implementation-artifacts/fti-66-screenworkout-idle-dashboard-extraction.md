@@ -38,7 +38,7 @@ so further workout UX work does not grow the monolith.
 
 ## Dev Notes
 
-- **Pattern:** Follow FTI-53 (`WorkoutSessionHeader`, `WorkoutExerciseCard`) — callback props, no behavior change
+- **Pattern:** Follow FTI-53 (`WorkoutSessionHeader`, `WorkoutExerciseCard`) - callback props, no behavior change
 - **Do not** extract add-exercise search (FTI-67) or lifting phase in this story
 - **Do not** change routine editor or history page flows
 - **partial_impl:** idle branch at `ScreenWorkout.tsx` lines ~582–749

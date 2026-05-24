@@ -6,6 +6,7 @@ import { SPLIT, cloneExercisesForNewSession } from "../data";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
 import { exerciseNoteKey, getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { progressiveOverloadInsight } from "../coach";
+import { getFirstSessionCoachNote } from "../coachEngine";
 import { finishWorkout } from "../finishWorkout";
 import { SwipeToDelete } from "../SwipeToDelete";
 import { IconPlus } from "../icons";
@@ -311,6 +312,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
               target: "",
               sets: [],
             },
+            s.onboardingProfile?.trainingStyle,
           ),
         },
       },
@@ -348,7 +350,11 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           exercises: [...s.workout.exercises, newExercise],
           sessionCoachNotesByExerciseId: {
             ...s.workout.sessionCoachNotesByExerciseId,
-            [newExercise.id]: buildSessionCoachNoteForExercise(s.workoutHistory, newExercise),
+            [newExercise.id]: buildSessionCoachNoteForExercise(
+              s.workoutHistory,
+              newExercise,
+              s.onboardingProfile?.trainingStyle,
+            ),
           },
         },
       };
@@ -378,7 +384,11 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           exercises: [...s.workout.exercises, newExercise],
           sessionCoachNotesByExerciseId: {
             ...s.workout.sessionCoachNotesByExerciseId,
-            [newExercise.id]: buildSessionCoachNoteForExercise(s.workoutHistory, newExercise),
+            [newExercise.id]: buildSessionCoachNoteForExercise(
+              s.workoutHistory,
+              newExercise,
+              s.onboardingProfile?.trainingStyle,
+            ),
           },
         },
       };
@@ -420,7 +430,11 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
           sessionPhase: "lifting",
           sessionStartedAtMs: Date.now(),
           sessionTitle: tpl.name,
-          sessionCoachNotesByExerciseId: buildSessionCoachNotesByExerciseId(s.workoutHistory, exercises),
+          sessionCoachNotesByExerciseId: buildSessionCoachNotesByExerciseId(
+            s.workoutHistory,
+            exercises,
+            s.onboardingProfile?.trainingStyle,
+          ),
         },
       };
     });
@@ -471,7 +485,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     }));
   }
 
-  const overloadTip = progressiveOverloadInsight(w);
+  const overloadTip = getFirstSessionCoachNote(state, w) ?? progressiveOverloadInsight(w);
 
   if (showHistoryPage) {
     return (
@@ -573,8 +587,8 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
       <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
         {w.exercises.length === 0 ? (
           <div className="card" style={{ padding: 24, textAlign: "center" }}>
-            <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.55)", fontWeight: 500, lineHeight: 1.5 }}>
-              No exercises yet. Tap <strong style={{ color: "#fff" }}>Add exercises</strong> or start from a template next time.
+            <p style={{ margin: 0, fontSize: 14, color: "var(--text-secondary)", fontWeight: 500, lineHeight: 1.5 }}>
+              No exercises yet. Tap <strong style={{ color: "var(--text-primary)" }}>Add exercises</strong> or start from a template next time.
             </p>
           </div>
         ) : null}

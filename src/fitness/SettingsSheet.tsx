@@ -5,6 +5,8 @@ import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
 import { buildHabitsForDateKey } from "./data";
 import { useFitnessSync } from "./FitnessSyncContext";
 import { IconBolt, IconDroplet, IconMoon, IconRun, IconX } from "./icons";
+import { useTheme } from "./ThemeContext";
+import type { AppTheme } from "./theme";
 import { UnitPreferencePicker } from "./UnitPreferencePicker";
 import { EquipmentSetupPicker } from "./EquipmentSetupPicker";
 import { buildWorkoutTemplates } from "./workoutTemplateBuilder";
@@ -51,9 +53,9 @@ function iconButton(icon: HabitTemplate["icon"], selected: boolean, onPick: () =
         borderRadius: 8,
         display: "grid",
         placeItems: "center",
-        border: selected ? "1px solid rgba(255,255,255,0.45)" : "0.5px solid var(--border)",
-        background: selected ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
-        color: selected ? "#fff" : "rgba(255,255,255,0.45)",
+        border: selected ? "1px solid var(--border-strong)" : "0.5px solid var(--border)",
+        background: selected ? "var(--surface-4)" : "var(--surface-1)",
+        color: selected ? "var(--text-primary)" : "var(--text-faint-soft)",
       }}
     >
       <Comp size={14} stroke={1.6} />
@@ -83,6 +85,7 @@ export function SettingsSheet({
   const [waterTargetIn, setWaterTargetIn] = useState(String(state.waterDailyTargetOz));
 
   const sync = useFitnessSync();
+  const { theme, setTheme } = useTheme();
   const [syncEmail, setSyncEmail] = useState("");
   const [syncPassword, setSyncPassword] = useState("");
   const [syncHint, setSyncHint] = useState<string | null>(null);
@@ -186,7 +189,7 @@ export function SettingsSheet({
             borderRadius: 999,
             display: "grid",
             placeItems: "center",
-            color: "rgba(255,255,255,0.5)",
+            color: "var(--text-secondary)",
           }}
         >
           <IconX size={20} stroke={1.8} />
@@ -194,15 +197,46 @@ export function SettingsSheet({
       </div>
 
       <div className="screen" style={{ flex: 1, overflow: "auto", paddingBottom: 28 }}>
+        <SectionLabel>Appearance</SectionLabel>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
+          Choose light or dark mode for the app interface.
+        </p>
+        <div className="card" style={{ padding: "12px 14px", marginBottom: 18, display: "flex", gap: 8 }}>
+          {(["dark", "light"] as AppTheme[]).map((option) => {
+            const active = theme === option;
+            return (
+              <button
+                key={option}
+                type="button"
+                className="tap"
+                aria-pressed={active}
+                onClick={() => setTheme(option)}
+                style={{
+                  flex: 1,
+                  padding: "12px 14px",
+                  borderRadius: 10,
+                  fontWeight: 700,
+                  fontSize: 14,
+                  border: active ? "2px solid #3B82F6" : "1px solid var(--border)",
+                  background: active ? "rgba(59, 130, 246, 0.12)" : "var(--bg-secondary)",
+                  color: "var(--text-primary)",
+                }}
+              >
+                {option === "dark" ? "Dark" : "Light"}
+              </button>
+            );
+          })}
+        </div>
+
         <SectionLabel>Account</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
           Sign in with the same account on your phone and computer. Data merges when both sides edit, and the cloud copy is updated after changes (about a second delay).
         </p>
         {!sync.configured ? (
-          <div className="card" style={{ padding: "16px 18px", marginBottom: 18, fontSize: 13, lineHeight: 1.55, color: "rgba(255,255,255,0.5)" }}>
+          <div className="card" style={{ padding: "16px 18px", marginBottom: 18, fontSize: 13, lineHeight: 1.55, color: "var(--text-secondary)" }}>
             <p style={{ margin: "0 0 10px" }}>
               Cloud sync is off, the app does not see valid Supabase env vars. Fix this, then restart{" "}
-              <code style={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>npm run dev</code>.
+              <code style={{ fontSize: 12, color: "var(--text-soft)" }}>npm run dev</code>.
             </p>
             <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8 }}>
               <li>
@@ -218,7 +252,7 @@ export function SettingsSheet({
               <li>
                 URL must start with <code style={{ fontSize: 12 }}>https://</code>. Restart the dev server after saving.
               </li>
-              <li style={{ color: "rgba(255,255,255,0.38)", fontSize: 12 }}>
+              <li style={{ color: "var(--text-ghost)", fontSize: 12 }}>
                 Dev hint: open the browser console, if env still fails, you’ll see a short{" "}
                 <code style={{ fontSize: 11 }}>[Fitcoach]</code> message about what’s missing.
               </li>
@@ -226,7 +260,7 @@ export function SettingsSheet({
           </div>
         ) : !sync.sessionEmail ? (
           <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12, marginBottom: 18 }}>
-            <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
               Email
               <input
                 className="input"
@@ -239,7 +273,7 @@ export function SettingsSheet({
                 aria-label="Email"
               />
             </label>
-            <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
               Password
               <input
                 className="input"
@@ -274,8 +308,8 @@ export function SettingsSheet({
                 fontWeight: 700,
                 fontSize: 14,
                 border: "none",
-                background: sync.busy || !syncEmail.includes("@") || !syncPassword ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.14)",
-                color: "#fff",
+                background: sync.busy || !syncEmail.includes("@") || !syncPassword ? "var(--btn-disabled-bg)" : "var(--surface-selected)",
+                color: "var(--text-primary)",
               }}
             >
               Sign in
@@ -283,15 +317,15 @@ export function SettingsSheet({
           </div>
         ) : (
           <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12, marginBottom: 18 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>Signed in</div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>{sync.sessionEmail}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Signed in</div>
+            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>{sync.sessionEmail}</div>
             {sync.lastSyncedLabel ? (
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Last uploaded · {sync.lastSyncedLabel}</div>
+              <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Last uploaded · {sync.lastSyncedLabel}</div>
             ) : (
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Waiting for first upload…</div>
+              <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Waiting for first upload…</div>
             )}
             {sync.busy ? (
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>Syncing…</div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Syncing…</div>
             ) : null}
             {sync.lastError ? (
               <p style={{ margin: 0, fontSize: 13, color: "rgba(248,113,113,0.95)", lineHeight: 1.45 }}>{sync.lastError}</p>
@@ -308,8 +342,8 @@ export function SettingsSheet({
                   fontWeight: 700,
                   fontSize: 13,
                   border: "none",
-                  background: "rgba(255,255,255,0.14)",
-                  color: "#fff",
+                  background: "var(--surface-selected)",
+                  color: "var(--text-primary)",
                 }}
               >
                 Sync now
@@ -324,8 +358,8 @@ export function SettingsSheet({
                   fontWeight: 600,
                   fontSize: 13,
                   border: "none",
-                  background: "rgba(255,255,255,0.06)",
-                  color: "rgba(255,255,255,0.55)",
+                  background: "var(--surface-3)",
+                  color: "var(--text-secondary)",
                 }}
               >
                 Sign out
@@ -338,7 +372,7 @@ export function SettingsSheet({
           <SectionLabel>You</SectionLabel>
         </div>
         <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
-          <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             First name (home greeting)
             <input
               className="input"
@@ -360,7 +394,7 @@ export function SettingsSheet({
         <div style={{ marginTop: 24 }}>
           <SectionLabel>Units</SectionLabel>
         </div>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
           Weight and height display units. Logged values are stored consistently, switching units only changes how numbers are shown.
         </p>
         <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
@@ -376,7 +410,7 @@ export function SettingsSheet({
         </div>
 
         <SectionLabel>Rest timer</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
           Default rest between sets when you mark a set complete. Override per exercise during a workout from the timer bar.
         </p>
         <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
@@ -399,8 +433,8 @@ export function SettingsSheet({
                     padding: "10px 14px",
                     borderRadius: 10,
                     border: selected ? `0.5px solid ${PRESET_SELECTED_BORDER}` : "0.5px solid var(--border)",
-                    background: selected ? PRESET_SELECTED_BG : "rgba(255,255,255,0.04)",
-                    color: selected ? PRESET_SELECTED_COLOR : "rgba(255,255,255,0.65)",
+                    background: selected ? PRESET_SELECTED_BG : "var(--surface-1)",
+                    color: selected ? PRESET_SELECTED_COLOR : "var(--text-muted-soft)",
                     fontSize: 13,
                     fontWeight: 600,
                     fontVariantNumeric: "tabular-nums",
@@ -430,7 +464,7 @@ export function SettingsSheet({
         </div>
 
         <SectionLabel>Hydration</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
           Daily water intake target on the Nutrition tab. Logged in fluid ounces with a metric equivalent.
         </p>
         <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
@@ -448,8 +482,8 @@ export function SettingsSheet({
                     padding: "10px 14px",
                     borderRadius: 10,
                     border: selected ? `0.5px solid ${PRESET_SELECTED_BORDER}` : "0.5px solid var(--border)",
-                    background: selected ? PRESET_SELECTED_BG : "rgba(255,255,255,0.04)",
-                    color: selected ? PRESET_SELECTED_COLOR : "rgba(255,255,255,0.65)",
+                    background: selected ? PRESET_SELECTED_BG : "var(--surface-1)",
+                    color: selected ? PRESET_SELECTED_COLOR : "var(--text-muted-soft)",
                     fontSize: 13,
                     fontWeight: 600,
                     fontVariantNumeric: "tabular-nums",
@@ -460,7 +494,7 @@ export function SettingsSheet({
               );
             })}
           </div>
-          <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Custom target (oz)
             <input
               type="number"
@@ -487,13 +521,13 @@ export function SettingsSheet({
               aria-label="Daily water target in ounces"
             />
           </label>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 500, marginTop: 8 }}>
+          <div style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 500, marginTop: 8 }}>
             {formatWaterLitersFromOz(state.waterDailyTargetOz)}
           </div>
         </div>
 
         <SectionLabel>Equipment</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
           Workout templates swap exercises to match what you have available.
         </p>
         <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
@@ -513,7 +547,7 @@ export function SettingsSheet({
         {state.progressGoal ? (
           <>
             <SectionLabel>Goal range</SectionLabel>
-            <div className="card" style={{ padding: "16px 18px", marginBottom: 18, fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
+            <div className="card" style={{ padding: "16px 18px", marginBottom: 18, fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
               {formatWeightFromLbs(state.progressGoal.goalWeightLowLbs, state.unitPreferences.weightUnit)}–
               {formatWeightFromLbs(state.progressGoal.goalWeightHighLbs, state.unitPreferences.weightUnit)}{" "}
               {weightUnitLabel(state.unitPreferences.weightUnit)} · height in {heightUnitLabel(state.unitPreferences.heightUnit)}
@@ -522,24 +556,24 @@ export function SettingsSheet({
         ) : null}
 
         <SectionLabel>Fuel targets</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
           Daily calorie and macro goals used on Home, Fuel, habits copy, and weekly review math.
         </p>
         <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
-          <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Calories (kcal)
             <input aria-label="Target calories" {...macroFieldProps("cal", calIn, setCalIn)} />
           </label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
               Protein (g)
               <input aria-label="Target protein grams" {...macroFieldProps("p", pIn, setPIn)} />
             </label>
-            <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
               Carbs (g)
               <input aria-label="Target carbs grams" {...macroFieldProps("c", cIn, setCIn)} />
             </label>
-            <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
               Fat (g)
               <input aria-label="Target fat grams" {...macroFieldProps("f", fIn, setFIn)} />
             </label>
@@ -547,7 +581,7 @@ export function SettingsSheet({
         </div>
 
         <SectionLabel>Habits checklist</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
           Rename, pick an icon, or add rows. The runner icon shows your steps goal and program week on the Home daily habits card.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -570,7 +604,7 @@ export function SettingsSheet({
                 aria-label={`Habit name`}
               />
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", marginRight: 4 }}>ICON</span>
+                <span style={{ fontSize: 10, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", marginRight: 4 }}>ICON</span>
                 {(["drop", "run", "bolt", "moon"] as const).map((ic) =>
                   iconButton(ic, h.icon === ic, () => {
                     setState((s) => {
@@ -638,7 +672,7 @@ export function SettingsSheet({
               padding: 14,
               fontSize: 13,
               fontWeight: 600,
-              color: "rgba(255,255,255,0.55)",
+              color: "var(--text-secondary)",
               background: "transparent",
             }}
           >
@@ -648,7 +682,7 @@ export function SettingsSheet({
 
         <SectionLabel>Program</SectionLabel>
         <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16 }}>
-          <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Block start date
             <input
               type="date"
@@ -674,7 +708,7 @@ export function SettingsSheet({
               aria-label="Program start date"
             />
           </label>
-          <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Steps goal
             <input
               type="number"

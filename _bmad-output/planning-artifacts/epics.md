@@ -22,11 +22,11 @@
 
 **Sprint 6 (done):** Workout architecture & session coaching, workout E2E smoke, `ScreenWorkout` phase-1 decomposition, rule-based per-exercise notes (FTI-13 phase 1), FTI-55 LLM skipped, retro cleanup.
 
-**Sprint 7 (done):** Nutrition OS v2 — Chunk 1 of 3. Strip Nutrition tab to rings + hydration + FAB, build Log Food overlay (manual add + recently logged), extend logged-item schema, remove Home quick-log, coach task routing to Log Food, partial E2E refresh.
+**Sprint 7 (done):** Nutrition OS v2 - Chunk 1 of 3. Strip Nutrition tab to rings + hydration + FAB, build Log Food overlay (manual add + recently logged), extend logged-item schema, remove Home quick-log, coach task routing to Log Food, partial E2E refresh.
 
-**Sprint 8 (done):** Nutrition OS v2 — Chunk 2 of 3. USDA FoodData Central + Open Food Facts via Supabase Edge Function; wire All-tab search; My foods + Favorite foods tabs; partial E2E for search path. See `nutrition-os-v2-checklist.md`.
+**Sprint 8 (done):** Nutrition OS v2 - Chunk 2 of 3. USDA FoodData Central + Open Food Facts via Supabase Edge Function; wire All-tab search; My foods + Favorite foods tabs; partial E2E for search path. See `nutrition-os-v2-checklist.md`.
 
-**Sprint 9 (done):** Nutrition OS v2 — Chunk 3. My meals meal prep, Cal AI visual polish, full unit + E2E gate. All 47 checklist steps complete.
+**Sprint 9 (done):** Nutrition OS v2 - Chunk 3. My meals meal prep, Cal AI visual polish, full unit + E2E gate. All 47 checklist steps complete.
 
 **Sprint 10 (planned):** Workout architecture phase 2 + quality pipeline. Finish `ScreenWorkout.tsx` decomposition (idle dashboard + add-exercise search); scaffold CI with build/test/e2e gates; expand Playwright coverage (coach notes, recently logged re-log).
 
@@ -877,7 +877,7 @@ so Home quick-log removal does not regress fuel tracking.
 
 **Epic key (sprint-status):** `epic-fti-sprint-8`
 
-**Goal:** Wire external food search into the Log Food overlay — USDA + Open Food Facts via a Supabase Edge Function proxy, debounced All-tab search with serving picker, and fill the My foods and Favorite foods tabs so empty placeholders become usable libraries.
+**Goal:** Wire external food search into the Log Food overlay - USDA + Open Food Facts via a Supabase Edge Function proxy, debounced All-tab search with serving picker, and fill the My foods and Favorite foods tabs so empty placeholders become usable libraries.
 
 **Master checklist:** `_bmad-output/implementation-artifacts/nutrition-os-v2-checklist.md`
 
@@ -970,7 +970,7 @@ so I can re-log custom entries and favorites without searching every time.
 
 **Epic key (sprint-status):** `epic-fti-sprint-9`
 
-**Goal:** Complete Nutrition OS v2 — My meals meal prep, Cal AI visual polish, full unit + E2E gate.
+**Goal:** Complete Nutrition OS v2 - My meals meal prep, Cal AI visual polish, full unit + E2E gate.
 
 **Sprint execution order:** FTI-63 → 64 → 65 (one story per PR)
 
@@ -1050,8 +1050,8 @@ so quality gates are durable beyond local dev.
 **Acceptance criteria:**
 
 - **CI workflow:** `.github/workflows/ci.yml` runs `npm run build`, `npm test`, `npm run test:e2e` on push/PR to `main`
-- **E2E — coach note:** Workout session smoke asserts per-exercise coach note visible after session start (FTI-54 behavior)
-- **E2E — recently logged:** Nutrition tab → Log Food → tap `+` on recently logged row → rings update
+- **E2E - coach note:** Workout session smoke asserts per-exercise coach note visible after session start (FTI-54 behavior)
+- **E2E - recently logged:** Nutrition tab → Log Food → tap `+` on recently logged row → rings update
 - **Quality gate:** `npm run build` + `npm test` (136+) + `npm run test:e2e` (7+) pass locally and in CI
 - **Sprint 10 retrospective** documented; no ScreenWorkout behavior changes in this story
 

@@ -76,15 +76,15 @@ Detailed acceptance criteria, priorities, and status live in Linear. BMad story 
 
 ## Nutrition OS v2 (Sprints 7–9)
 
-**Vision:** Cal AI–style fuel logging — Nutrition tab shows progress only (rings + hydration); all logging happens in a full-screen **Log Food** overlay with search, manual add, recently logged, My foods, My meals, and Saved foods.
+**Vision:** Cal AI–style fuel logging - Nutrition tab shows progress only (rings + hydration); all logging happens in a full-screen **Log Food** overlay with search, manual add, recently logged, My foods, My meals, and Saved foods.
 
-**Sprint 7 (Chunk 1 — done):** Strip legacy Nutrition tab UI; extend `NutritionLoggedItem` schema; build Log Food shell with manual add + recently logged; remove Home quick-log; route coach fuel tasks to Log Food; partial E2E refresh.
+**Sprint 7 (Chunk 1 - done):** Strip legacy Nutrition tab UI; extend `NutritionLoggedItem` schema; build Log Food shell with manual add + recently logged; remove Home quick-log; route coach fuel tasks to Log Food; partial E2E refresh.
 
-**Sprint 8 (Chunk 2 — planned):** USDA FoodData Central + Open Food Facts via Supabase Edge Function proxy; wire All-tab search; My foods and Favorite foods tabs; search E2E.
+**Sprint 8 (Chunk 2 - planned):** USDA FoodData Central + Open Food Facts via Supabase Edge Function proxy; wire All-tab search; My foods and Favorite foods tabs; search E2E.
 
-**Sprint 9 (Chunk 3 — done):** My meals (meal prep); visual polish; full unit + E2E gate. Nutrition OS v2 complete (47/47 checklist steps).
+**Sprint 9 (Chunk 3 - done):** My meals (meal prep); visual polish; full unit + E2E gate. Nutrition OS v2 complete (47/47 checklist steps).
 
-**Sprint 10 (planned):** Workout architecture phase 2 — idle dashboard + add-exercise search extraction; CI pipeline + E2E depth (coach notes, recently logged re-log).
+**Sprint 10 (planned):** Workout architecture phase 2 - idle dashboard + add-exercise search extraction; CI pipeline + E2E depth (coach notes, recently logged re-log).
 
 **Out of scope (future backlog):** Barcode scan, AI natural-language parse, paid APIs (Nutritionix/Edamam), voice log, native App Store wrapper.
 

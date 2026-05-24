@@ -13,7 +13,7 @@ import { WorkoutSessionPreviewSheet } from "./WorkoutSessionPreviewSheet";
 import type { AppState, CompletedWorkoutSession } from "./types";
 
 const ACCENT_BLUE = "#0A84FF";
-const WORKOUT_DAY = "#ffffff";
+const WORKOUT_DAY = "var(--chart-stroke)";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function monthLabel(year: number, monthIndex: number): string {
@@ -67,7 +67,7 @@ function DayDetailSheet({
             <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.03em" }}>
               {formatWorkoutHistoryDate(dayKey, sessions[0]?.endedAtMs ?? Date.now())}
             </div>
-            <p style={{ margin: "6px 0 0", fontSize: 13, color: "rgba(255,255,255,0.45)" }}>
+            <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--text-faint-soft)" }}>
               {sessions.length} workout{sessions.length === 1 ? "" : "s"}
             </p>
           </div>
@@ -88,14 +88,14 @@ function DayDetailSheet({
                 padding: "12px 14px",
                 borderRadius: 10,
                 border: "0.5px solid var(--border)",
-                background: "rgba(255,255,255,0.04)",
-                color: "#fff",
+                background: "var(--surface-1)",
+                color: "var(--text-primary)",
               }}
             >
               <div className="between" style={{ alignItems: "flex-start", gap: 10 }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 15, fontWeight: 600 }}>{session.title}</div>
-                  <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
+                  <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500 }}>
                     {formatWorkoutDuration(session.durationSec)}
                   </div>
                 </div>
@@ -147,8 +147,8 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
                 height: 32,
                 borderRadius: 8,
                 border: "0.5px solid var(--border)",
-                background: "rgba(255,255,255,0.05)",
-                color: "#fff",
+                background: "var(--surface-2)",
+                color: "var(--text-primary)",
                 fontSize: 16,
               }}
             >
@@ -164,8 +164,8 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
                 height: 32,
                 borderRadius: 8,
                 border: "0.5px solid var(--border)",
-                background: "rgba(255,255,255,0.05)",
-                color: "#fff",
+                background: "var(--surface-2)",
+                color: "var(--text-primary)",
                 fontSize: 16,
               }}
             >
@@ -189,7 +189,7 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
                 textAlign: "center",
                 fontSize: 10,
                 fontWeight: 600,
-                color: "rgba(255,255,255,0.3)",
+                color: "var(--text-ghost)",
                 letterSpacing: "0.04em",
               }}
             >
@@ -224,9 +224,9 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
                   aspectRatio: "1",
                   minHeight: 36,
                   borderRadius: 8,
-                  border: isToday ? `1.5px solid rgba(255,255,255,0.35)` : "1px solid transparent",
-                  background: hasWorkout ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.04)",
-                  color: isFuture ? "rgba(255,255,255,0.25)" : "#fff",
+                  border: isToday ? `1.5px solid var(--border-strong)` : "1px solid transparent",
+                  background: hasWorkout ? "var(--surface-selected)" : "var(--surface-1)",
+                  color: isFuture ? "var(--text-whisper)" : "var(--text-primary)",
                   fontSize: 13,
                   fontWeight: isToday ? 700 : 500,
                   fontVariantNumeric: "tabular-nums",
@@ -275,13 +275,13 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
               borderRadius: 12,
             }}
           >
-            <IconDumbbell size={28} stroke={1.75} style={{ color: "rgba(255,255,255,0.25)" }} />
-            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.45, maxWidth: 260 }}>
+            <IconDumbbell size={28} stroke={1.75} style={{ color: "var(--text-whisper)" }} />
+            <p style={{ margin: 0, fontSize: 12, color: "var(--text-faint-soft)", lineHeight: 1.45, maxWidth: 260 }}>
               No workouts yet, finish a session in Workout to light up your calendar
             </p>
           </div>
         ) : (
-          <p style={{ margin: "14px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
+          <p style={{ margin: "14px 0 0", fontSize: 11, color: "var(--text-ghost)" }}>
             Tap a highlighted day for your session breakdown.
           </p>
         )}

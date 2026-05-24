@@ -1,6 +1,16 @@
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { loadPersistedSlice, savePersistedSlice } from "./persistFitnessSlice";
-import { migrateV2StepIndex } from "./onboardingStepMigration";
+import {
+  migrateNutritionBeforeTrainingStepIndex,
+  migrateNotificationPrePromptStepIndex,
+  migratePlanBuildingStepIndex,
+  migrateRemoveOnboardingEditStepIndex,
+  migrateSaveProgressStepIndex,
+  migrateSessionLengthBeforeCalendarStepIndex,
+  migrateThemeStepIndex,
+  migrateTrainingDurationStepIndex,
+  migrateV2StepIndex,
+} from "./onboardingStepMigration";
 import { safeJsonParse } from "./safeJsonParse";
 import type {
   EquipmentSetup,
@@ -9,12 +19,24 @@ import type {
   NotificationPreferences,
   OnboardingDraft,
   OnboardingProfile,
+  SessionLength,
   UnitPreferences,
   WorkoutRoutineTemplate,
 } from "./types";
+import type { AppTheme } from "./theme";
 
-/** v2 = 11-step wizard; v3 = 23-screen Gymmy onboarding v2. */
-export const ONBOARDING_DRAFT_VERSION = 3;
+/** v2 = 11-step wizard; v3 = 23-screen Gymmy onboarding v2; v4 = + referral; v5 = + motivation survey; v6 = + comparison (removed in v7); v8 = nutrition before training plan; v9 = + session duration screen; v10 = + plan-building screen after potential chart; v11 = session length before workout calendar + workout plan engine; v12 = edit split screen removed from onboarding; v13 = + notification pre-prompt before reminder picker; v14 = + save progress before paywall; v15 = + theme picker after welcome. */
+export const ONBOARDING_DRAFT_VERSION = 15;
+export const ONBOARDING_DRAFT_VERSION_PRE_THEME = 14;
+export const ONBOARDING_DRAFT_VERSION_PRE_SAVE_PROGRESS = 13;
+export const ONBOARDING_DRAFT_VERSION_PRE_NOTIFICATION_PROMPT = 12;
+export const ONBOARDING_DRAFT_VERSION_PRE_EDIT_SPLIT = 11;
+export const ONBOARDING_DRAFT_VERSION_PRE_WORKOUT_ENGINE = 10;
+export const ONBOARDING_DRAFT_VERSION_PRE_TRAINING_DURATION = 8;
+export const ONBOARDING_DRAFT_VERSION_NUTRITION_BEFORE_TRAINING = 7;
+export const ONBOARDING_DRAFT_VERSION_WITH_COMPARISON = 6;
+export const ONBOARDING_DRAFT_VERSION_MOTIVATION_SURVEY = 5;
+export const ONBOARDING_DRAFT_VERSION_PRE_REFERRAL = 3;
 export const ONBOARDING_DRAFT_VERSION_LEGACY = 2;
 
 export const GYMMY_ONBOARDING_DRAFT_KEY = "gymmy_onboarding_draft";
@@ -26,10 +48,12 @@ export type OnboardingDraftInput = {
   experienceLevel: ExperienceLevel;
   equipmentSetup: EquipmentSetup;
   profile: OnboardingProfile;
+  sessionLength?: SessionLength;
   draftTemplates?: WorkoutRoutineTemplate[];
   macros?: MacroTotals;
   notificationPrefs?: NotificationPreferences;
   subscriptionTier?: "free" | "pro" | null;
+  theme?: AppTheme;
 };
 
 export function buildOnboardingDraft(input: OnboardingDraftInput): OnboardingDraft {
@@ -42,15 +66,25 @@ export function buildOnboardingDraft(input: OnboardingDraftInput): OnboardingDra
     experienceLevel: input.experienceLevel,
     equipmentSetup: input.equipmentSetup,
     profile: { ...input.profile },
+    sessionLength: input.sessionLength,
     draftTemplates: input.draftTemplates?.map((t) => ({ ...t, exercises: [...t.exercises] })),
     macros: input.macros ? { ...input.macros } : undefined,
     notificationPrefs: input.notificationPrefs ? { ...input.notificationPrefs } : undefined,
     subscriptionTier: input.subscriptionTier ?? undefined,
+    theme: input.theme,
   };
 }
 
 function draftTimestamp(draft: OnboardingDraft): string {
   return draft.updatedAtIso;
+}
+
+function migrateToCurrentStepIndex(stepIndex: number): number {
+  return migrateThemeStepIndex(
+    migrateSaveProgressStepIndex(
+      migrateNotificationPrePromptStepIndex(migrateRemoveOnboardingEditStepIndex(Math.round(stepIndex))),
+    ),
+  );
 }
 
 function migrateDraftVersion(raw: Record<string, unknown>): { stepIndex: number; version: number } | null {
@@ -60,8 +94,95 @@ function migrateDraftVersion(raw: Record<string, unknown>): { stepIndex: number;
   if (version === ONBOARDING_DRAFT_VERSION) {
     return { stepIndex: Math.round(stepIndex), version: ONBOARDING_DRAFT_VERSION };
   }
+  if (version === ONBOARDING_DRAFT_VERSION_PRE_THEME) {
+    return {
+      stepIndex: migrateThemeStepIndex(Math.round(stepIndex)),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_PRE_SAVE_PROGRESS) {
+    return {
+      stepIndex: migrateThemeStepIndex(migrateSaveProgressStepIndex(Math.round(stepIndex))),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_PRE_NOTIFICATION_PROMPT) {
+    return {
+      stepIndex: migrateToCurrentStepIndex(migrateNotificationPrePromptStepIndex(Math.round(stepIndex))),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_PRE_EDIT_SPLIT) {
+    return {
+      stepIndex: migrateToCurrentStepIndex(stepIndex),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_PRE_WORKOUT_ENGINE) {
+    return {
+      stepIndex: migrateToCurrentStepIndex(migrateSessionLengthBeforeCalendarStepIndex(Math.round(stepIndex))),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_PRE_WORKOUT_ENGINE - 1) {
+    return {
+      stepIndex: migrateToCurrentStepIndex(
+        migrateSessionLengthBeforeCalendarStepIndex(migratePlanBuildingStepIndex(Math.round(stepIndex))),
+      ),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_PRE_TRAINING_DURATION) {
+    return {
+      stepIndex: migrateToCurrentStepIndex(
+        migratePlanBuildingStepIndex(migrateTrainingDurationStepIndex(Math.round(stepIndex))),
+      ),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_NUTRITION_BEFORE_TRAINING) {
+    const afterNutrition = migrateNutritionBeforeTrainingStepIndex(Math.round(stepIndex));
+    return {
+      stepIndex: migrateToCurrentStepIndex(
+        migratePlanBuildingStepIndex(migrateTrainingDurationStepIndex(afterNutrition)),
+      ),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_WITH_COMPARISON) {
+    const idx = Math.round(stepIndex);
+    const migratedStep = idx >= 18 ? idx - 1 : idx;
+    return {
+      stepIndex: migrateToCurrentStepIndex(migratedStep),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_MOTIVATION_SURVEY) {
+    return {
+      stepIndex: migrateToCurrentStepIndex(stepIndex),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === 4) {
+    const idx = Math.round(stepIndex);
+    const migratedStep = idx >= 14 && idx <= 21 ? idx + 4 : idx;
+    return {
+      stepIndex: migrateToCurrentStepIndex(migratedStep),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_PRE_REFERRAL) {
+    const migratedStep = stepIndex >= 3 ? Math.round(stepIndex) + 1 : Math.round(stepIndex);
+    return {
+      stepIndex: migrateToCurrentStepIndex(migratedStep),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
   if (version === ONBOARDING_DRAFT_VERSION_LEGACY) {
-    return { stepIndex: migrateV2StepIndex(Math.round(stepIndex)), version: ONBOARDING_DRAFT_VERSION };
+    return {
+      stepIndex: migrateToCurrentStepIndex(migrateV2StepIndex(Math.round(stepIndex))),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
   }
   return null;
 }
@@ -94,6 +215,14 @@ export function normalizeOnboardingDraft(raw: unknown): OnboardingDraft | null {
     experienceLevel: experienceLevel as ExperienceLevel,
     equipmentSetup: equipmentSetup as EquipmentSetup,
     profile: profile as OnboardingProfile,
+    sessionLength:
+      o.sessionLength === "under_30" ||
+      o.sessionLength === "30_45" ||
+      o.sessionLength === "45_60" ||
+      o.sessionLength === "60_90" ||
+      o.sessionLength === "90_plus"
+        ? o.sessionLength
+        : undefined,
     draftTemplates: Array.isArray(o.draftTemplates) ? (o.draftTemplates as WorkoutRoutineTemplate[]) : undefined,
     macros: o.macros && typeof o.macros === "object" ? (o.macros as MacroTotals) : undefined,
     notificationPrefs:
@@ -101,6 +230,7 @@ export function normalizeOnboardingDraft(raw: unknown): OnboardingDraft | null {
         ? (o.notificationPrefs as NotificationPreferences)
         : undefined,
     subscriptionTier,
+    theme: o.theme === "light" || o.theme === "dark" ? o.theme : undefined,
   };
 }
 
@@ -139,7 +269,22 @@ export function readGymmyOnboardingDraft(): OnboardingDraft | null {
       return null;
     }
     const version = Number((parsed as Record<string, unknown>).version);
-    if (version !== ONBOARDING_DRAFT_VERSION && version !== ONBOARDING_DRAFT_VERSION_LEGACY) {
+    if (
+      version !== ONBOARDING_DRAFT_VERSION &&
+      version !== ONBOARDING_DRAFT_VERSION_PRE_THEME &&
+      version !== ONBOARDING_DRAFT_VERSION_PRE_SAVE_PROGRESS &&
+      version !== ONBOARDING_DRAFT_VERSION_PRE_NOTIFICATION_PROMPT &&
+      version !== ONBOARDING_DRAFT_VERSION_PRE_EDIT_SPLIT &&
+      version !== ONBOARDING_DRAFT_VERSION_PRE_WORKOUT_ENGINE &&
+      version !== ONBOARDING_DRAFT_VERSION_PRE_WORKOUT_ENGINE - 1 &&
+      version !== ONBOARDING_DRAFT_VERSION_PRE_TRAINING_DURATION &&
+      version !== ONBOARDING_DRAFT_VERSION_NUTRITION_BEFORE_TRAINING &&
+      version !== ONBOARDING_DRAFT_VERSION_WITH_COMPARISON &&
+      version !== ONBOARDING_DRAFT_VERSION_MOTIVATION_SURVEY &&
+      version !== 4 &&
+      version !== ONBOARDING_DRAFT_VERSION_PRE_REFERRAL &&
+      version !== ONBOARDING_DRAFT_VERSION_LEGACY
+    ) {
       console.warn(
         `[Gymmy onboarding] Draft version ${Number.isFinite(version) ? version : "?"} unsupported; starting fresh.`,
       );
@@ -216,7 +361,7 @@ export function saveOnboardingDraftToLocalStorage(draft: OnboardingDraft): void 
   } as PersistedFitnessSlice);
 }
 
-/** Initial wizard state read before React state — used by OnboardingFlow mount. */
+/** Initial wizard state read before React state, used by OnboardingFlow mount. */
 export function initialOnboardingWizardDraft(fromState?: OnboardingDraft | null): OnboardingDraft | null {
   return loadRestorableOnboardingDraft(fromState ?? null);
 }

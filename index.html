@@ -8,13 +8,22 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1"
     />
-    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#0a0a0a" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("gymmy_theme");
+          document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="/site.webmanifest" />
-    <title>Jimmy — Personal Fitness OS</title>
+    <title>Jimmy: Personal Fitness OS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>

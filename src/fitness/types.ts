@@ -1,5 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
 
+import type { AppTheme } from "./theme";
+
+export type { AppTheme };
+
 export type MacroTotals = { cal: number; p: number; c: number; f: number };
 
 /** One manually logged fuel row for a calendar day (Nutrition tab). */
@@ -96,6 +100,8 @@ export type WorkoutRoutineTemplate = {
   dayLabel: string;
   /** Subtitle / programming note */
   focus: string;
+  /** Engine-estimated session length in minutes (onboarding / plan builder). */
+  estimatedMinutes?: number;
   exercises: WorkoutExercise[];
   /** Optional session-specific warm-up steps (shown in active workout). */
   warmupItems?: { description: string }[];
@@ -191,6 +197,46 @@ export type WorkoutDaysPerWeek = 3 | 4 | 5 | 6;
 
 export type GoalPace = "slow" | "balanced" | "aggressive";
 
+export type ReferralSource =
+  | "app_store"
+  | "tiktok"
+  | "youtube"
+  | "tv"
+  | "x"
+  | "instagram"
+  | "google"
+  | "facebook"
+  | "friend"
+  | "reddit"
+  | "podcast"
+  | "other";
+
+export type OnboardingBarrier =
+  | "falling_off"
+  | "eating"
+  | "no_plan"
+  | "life_busy"
+  | "no_results";
+
+export type DietaryRestriction =
+  | "no_restrictions"
+  | "no_red_meat"
+  | "pescatarian"
+  | "vegetarian"
+  | "vegan"
+  | "dairy_free"
+  | "gluten_free";
+
+export type TrainingStyle = "directive" | "flexible" | "accountable" | "beginner_guided";
+
+/** Preferred session length bucket from onboarding. */
+export type TrainingSessionDuration =
+  | "30_or_less"
+  | "30_to_45"
+  | "45_to_60"
+  | "60_to_90"
+  | "90_plus";
+
 export type SubscriptionTier = "free" | "pro";
 
 export type NotificationPreferences = {
@@ -198,6 +244,10 @@ export type NotificationPreferences = {
   workoutReminderTime: string;
   nutritionCheckInEnabled: boolean;
   nutritionCheckInTime: string;
+  morningCheckInEnabled: boolean;
+  morningCheckInTime: string;
+  weeklyReviewEnabled: boolean;
+  weeklyReviewTime: string;
   /** Last local date keys a reminder was shown, prevents duplicate fires per day */
   lastFiredWorkoutReminderDateKey: string | null;
   lastFiredNutritionReminderDateKey: string | null;
@@ -216,11 +266,24 @@ export type OnboardingProfile = {
   workoutDaysPerWeek: WorkoutDaysPerWeek;
   /** Mon–Sun labels aligned to workout templates (backfilled on migrate). */
   trainingWeekdays?: string[];
+  /** Target session length for workout planning. */
+  sessionDuration?: TrainingSessionDuration;
   /** Target weight for cut/bulk progress bar. */
   goalWeightLbs?: number;
   /** Cut/bulk pace for calorie adjustment. */
   pace?: GoalPace;
+  /** Where the user heard about Gymmy (onboarding survey). */
+  referralSource?: ReferralSource;
+  /** Barriers selected during onboarding ("What's held you back before?"). */
+  barriers?: OnboardingBarrier[];
+  /** Foods the user avoids; drives nutrition filtering. */
+  dietaryRestrictions?: DietaryRestriction[];
+  /** How the user prefers coach guidance during workouts. */
+  trainingStyle?: TrainingStyle;
 };
+
+/** Session length bucket from the workout plan engine (`splitTemplates.ts`). */
+export type SessionLength = "under_30" | "30_45" | "45_60" | "60_90" | "90_plus";
 
 /** In-progress onboarding wizard state for resume (FTI-70). */
 export type OnboardingDraft = {
@@ -232,10 +295,14 @@ export type OnboardingDraft = {
   experienceLevel: ExperienceLevel;
   equipmentSetup: EquipmentSetup;
   profile: OnboardingProfile;
+  /** Preferred session length for plan generation. */
+  sessionLength?: SessionLength;
   draftTemplates?: WorkoutRoutineTemplate[];
   macros?: MacroTotals;
   notificationPrefs?: NotificationPreferences;
   subscriptionTier?: SubscriptionTier;
+  /** Light/dark appearance chosen during onboarding. */
+  theme?: AppTheme;
 };
 
 export type UnitPreferences = {
@@ -395,6 +462,8 @@ export type AppState = {
   onboardingComplete: boolean;
   /** Mid-flow onboarding snapshot; cleared on finish. */
   onboardingDraft: OnboardingDraft | null;
+  /** App appearance theme. */
+  theme: AppTheme;
   /** Tier chosen on paywall; null until onboarding paywall (FTI-74). */
   subscriptionTier: SubscriptionTier | null;
   /** Workout + nutrition reminder toggles, times, and last-fired dedupe keys. */
@@ -418,6 +487,8 @@ export type ScreenProps = {
   navigate: NavigateFn;
   /** Incremented by FitnessApp when coach/home routes to Log Food on Nutrition tab. */
   logFoodOpenRequest?: number;
+  /** Called after a log-food open request is consumed so revisiting Nutrition does not re-open. */
+  onLogFoodOpenRequestHandled?: () => void;
   /** Nutrition tab reports Log Food overlay open state so the main tab bar can hide. */
   onLogFoodOpenChange?: (open: boolean) => void;
 };

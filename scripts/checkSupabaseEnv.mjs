@@ -32,7 +32,7 @@ function parseDotEnv(src) {
 }
 
 if (!fs.existsSync(envPath)) {
-  console.warn("\n[Fitcoach] No .env file at project root — cloud sync env vars will be missing.\n");
+  console.warn("\n[Fitcoach] No .env file at project root - cloud sync env vars will be missing.\n");
   process.exit(0);
 }
 
@@ -65,7 +65,7 @@ else if (!/^https:\/\/.+/i.test(urlStr)) problems.push("VITE_SUPABASE_URL should
 
 if (!keyStrRaw) {
   problems.push(
-    "No client Supabase key on disk — set VITE_SUPABASE_PUBLISHABLE_KEY (recommended) or VITE_SUPABASE_ANON_KEY (legacy JWT anon)",
+    "No client Supabase key on disk - set VITE_SUPABASE_PUBLISHABLE_KEY (recommended) or VITE_SUPABASE_ANON_KEY (legacy JWT anon)",
   );
 } else if (keyStrRaw.length < 12) {
   problems.push("Supabase client key looks truncated in .env on disk");
@@ -74,7 +74,7 @@ if (!keyStrRaw) {
 if (problems.length) {
   console.warn("\n[Fitcoach] Supabase .env problem (Vite reads the saved file, not unsaved editor tabs):\n");
   for (const p of problems) console.warn(`  · ${p}`);
-  console.warn(`  · .env on disk is ${raw.length} bytes — with real URL + anon JWT it’s usually ~700 bytes or more.`);
+  console.warn(`  · .env on disk is ${raw.length} bytes - with real URL + anon JWT it’s usually ~700 bytes or more.`);
   console.warn(
     "\n  Fix: Put values on the same line after `=` → Save `.env` (⌘S) → restart `npm run dev`. Confirm you’re editing `fitnesstracker/.env`, not a copy in the parent folder.\n",
   );

@@ -1,5 +1,3 @@
-import type { CSSProperties } from "react";
-
 import {
   isValidTrainingWeekdaySelection,
   pickTrainingWeekdaysForMe,
@@ -11,19 +9,6 @@ import {
 } from "./workoutWeekCalendar";
 import type { OnboardingProfile } from "./types";
 
-const dayBtn = (selected: boolean): CSSProperties => ({
-  flex: 1,
-  minWidth: 0,
-  aspectRatio: "1",
-  maxWidth: 48,
-  borderRadius: 12,
-  fontWeight: 700,
-  fontSize: 13,
-  border: selected ? "1px solid rgba(255,255,255,0.55)" : "0.5px solid var(--border)",
-  background: selected ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.04)",
-  color: selected ? "#fff" : "rgba(255,255,255,0.55)",
-});
-
 export function WorkoutWeekCalendarPicker({
   profile,
   onChange,
@@ -32,28 +17,24 @@ export function WorkoutWeekCalendarPicker({
   onChange: (next: Pick<OnboardingProfile, "workoutDaysPerWeek" | "trainingWeekdays">) => void;
 }) {
   const selected = profile.trainingWeekdays ?? [];
+  const valid = isValidTrainingWeekdaySelection(selected);
 
   function applyWeekdays(weekdays: string[]) {
     onChange(profileWithTrainingWeekdays(profile, weekdays));
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div
-        role="group"
-        aria-label="Training days of the week"
-        style={{ display: "flex", gap: 8, justifyContent: "space-between" }}
-      >
+    <div className="workout-week-picker">
+      <div role="group" aria-label="Training days of the week" className="workout-week-picker__days">
         {TRAINING_WEEKDAY_ORDER.map((day) => {
           const on = selected.includes(day);
           return (
             <button
               key={day}
               type="button"
-              className="tap"
+              className={`tap workout-week-picker__day${on ? " workout-week-picker__day--selected" : ""}`}
               aria-pressed={on}
               aria-label={`${day}${on ? ", selected" : ""}`}
-              style={dayBtn(on)}
               onClick={() => applyWeekdays(toggleTrainingWeekday(selected, day))}
             >
               {TRAINING_WEEKDAY_SHORT[day]}
@@ -62,33 +43,11 @@ export function WorkoutWeekCalendarPicker({
         })}
       </div>
 
-      <p
-        style={{
-          margin: 0,
-          fontSize: 14,
-          fontWeight: 500,
-          color: isValidTrainingWeekdaySelection(selected) ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.4)",
-          textAlign: "center",
-        }}
-      >
+      <p className={`workout-week-picker__hint${valid ? "" : " workout-week-picker__hint--invalid"}`}>
         {trainingWeekdaySelectionHint(selected)}
       </p>
 
-      <button
-        type="button"
-        className="tap"
-        onClick={() => applyWeekdays(pickTrainingWeekdaysForMe(selected))}
-        style={{
-          alignSelf: "center",
-          padding: "10px 18px",
-          borderRadius: 999,
-          fontWeight: 600,
-          fontSize: 14,
-          border: "0.5px solid var(--border)",
-          background: "rgba(255,255,255,0.06)",
-          color: "#fff",
-        }}
-      >
+      <button type="button" className="tap workout-week-picker__ghost" onClick={() => applyWeekdays(pickTrainingWeekdaysForMe(selected))}>
         Pick for me
       </button>
     </div>

@@ -74,13 +74,13 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
             width: 180,
             height: 240,
             background: "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
-            border: "0.5px solid rgba(255,255,255,0.08)",
+            border: "0.5px solid var(--divider-subtle)",
             borderRadius: 12,
           }}
         >
-          <div style={{ position: "absolute", left: 16, right: 16, top: 50, height: 32, background: "rgba(255,255,255,0.06)", borderRadius: 4 }} />
-          <div style={{ position: "absolute", left: 24, right: 24, top: 100, height: 8, background: "rgba(255,255,255,0.04)", borderRadius: 2 }} />
-          <div style={{ position: "absolute", left: 24, right: 60, top: 116, height: 8, background: "rgba(255,255,255,0.04)", borderRadius: 2 }} />
+          <div style={{ position: "absolute", left: 16, right: 16, top: 50, height: 32, background: "var(--surface-3)", borderRadius: 4 }} />
+          <div style={{ position: "absolute", left: 24, right: 24, top: 100, height: 8, background: "var(--surface-1)", borderRadius: 2 }} />
+          <div style={{ position: "absolute", left: 24, right: 60, top: 116, height: 8, background: "var(--surface-1)", borderRadius: 2 }} />
           <div
             style={{
               position: "absolute",
@@ -130,13 +130,13 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
             border: "0.5px solid var(--border)",
             display: "grid",
             placeItems: "center",
-            color: "#fff",
+            color: "var(--text-primary)",
           }}
           aria-label="Close"
         >
           <IconX size={18} />
         </button>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", letterSpacing: "-0.01em" }}>Scan</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>Scan</div>
         <button
           type="button"
           className="tap"
@@ -150,7 +150,7 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
             border: flash ? "0.5px solid #fff" : "0.5px solid var(--border)",
             display: "grid",
             placeItems: "center",
-            color: flash ? "#000" : "#fff",
+            color: flash ? "#000" : "var(--text-primary)",
           }}
           aria-label="Flash"
         >
@@ -184,13 +184,13 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
           return (
             <div key={i} style={box}>
               {showT && (
-                <div style={{ position: "absolute", top: 0, [showL ? "left" : "right"]: 0, width: 28, height: 2, background: "#fff" }} />
+                <div style={{ position: "absolute", top: 0, [showL ? "left" : "right"]: 0, width: 28, height: 2, background: "var(--primary)" }} />
               )}
-              {showL && <div style={{ position: "absolute", [showT ? "top" : "bottom"]: 0, left: 0, width: 2, height: 28, background: "#fff" }} />}
+              {showL && <div style={{ position: "absolute", [showT ? "top" : "bottom"]: 0, left: 0, width: 2, height: 28, background: "var(--primary)" }} />}
               {showB && (
-                <div style={{ position: "absolute", bottom: 0, [showL ? "left" : "right"]: 0, width: 28, height: 2, background: "#fff" }} />
+                <div style={{ position: "absolute", bottom: 0, [showL ? "left" : "right"]: 0, width: 28, height: 2, background: "var(--primary)" }} />
               )}
-              {showR && <div style={{ position: "absolute", [showT ? "top" : "bottom"]: 0, right: 0, width: 2, height: 28, background: "#fff" }} />}
+              {showR && <div style={{ position: "absolute", [showT ? "top" : "bottom"]: 0, right: 0, width: 2, height: 28, background: "var(--primary)" }} />}
             </div>
           );
         })}
@@ -202,7 +202,7 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
               right: 8,
               top: `${scanY}%`,
               height: 1,
-              background: "#fff",
+              background: "var(--primary)",
               boxShadow: "0 0 0 0.5px rgba(255,255,255,0.5)",
               transition: "top 50ms linear",
             }}
@@ -210,7 +210,7 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
         )}
         {status === "found" && (
           <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
-            <div style={{ width: 56, height: 56, borderRadius: 999, background: "#fff", color: "#000", display: "grid", placeItems: "center" }}>
+            <div style={{ width: 56, height: 56, borderRadius: 999, background: "var(--primary)", color: "var(--primary-fg)", display: "grid", placeItems: "center" }}>
               <IconCheck size={26} stroke={2.5} />
             </div>
           </div>
@@ -220,14 +220,14 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
       <div style={{ position: "absolute", left: 0, right: 0, top: "64%", textAlign: "center", padding: "0 32px" }}>
         {status === "searching" ? (
           <>
-            <div style={{ fontSize: 11, color: "#fff", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>Searching…</div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 8, fontWeight: 400 }}>Center the barcode inside the frame</div>
+            <div style={{ fontSize: 11, color: "var(--text-primary)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>Searching…</div>
+            <div style={{ fontSize: 13, color: "var(--text-muted-soft)", marginTop: 8, fontWeight: 400 }}>Center the barcode inside the frame</div>
           </>
         ) : (
           <>
             <div style={{ fontSize: 11, color: "var(--pos)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>✓ Match found</div>
-            <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff", marginTop: 8 }}>Chobani · Greek Yogurt</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 6, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>150 kcal · 25P · 9C · 0F</div>
+            <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)", marginTop: 8 }}>Chobani · Greek Yogurt</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted-soft)", marginTop: 6, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>150 kcal · 25P · 9C · 0F</div>
           </>
         )}
       </div>
@@ -252,8 +252,8 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
             onClick={logFood}
             style={{
               width: "100%",
-              background: "#fff",
-              color: "#000",
+              background: "var(--primary)",
+              color: "var(--primary-fg)",
               borderRadius: 12,
               padding: 16,
               fontSize: 14,
@@ -275,7 +275,7 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
             border: "0.5px solid var(--border)",
             borderRadius: 12,
             padding: 14,
-            color: "#fff",
+            color: "var(--text-primary)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -287,7 +287,7 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
         >
           <IconKeyboard size={16} /> Manual entry
         </button>
-        <button type="button" className="tap" onClick={() => setStatus("searching")} style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", padding: 6, fontWeight: 500 }}>
+        <button type="button" className="tap" onClick={() => setStatus("searching")} style={{ fontSize: 12, color: "var(--text-ghost)", padding: 6, fontWeight: 500 }}>
           Scan another
         </button>
       </div>
@@ -322,8 +322,8 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
             aria-modal="true"
             aria-labelledby="manual-entry-title"
           >
-            <div style={{ width: 32, height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 999, margin: "0 auto 18px" }} />
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>Manual entry</div>
+            <div style={{ width: 32, height: 3, background: "var(--surface-4)", borderRadius: 999, margin: "0 auto 18px" }} />
+            <div style={{ fontSize: 11, color: "var(--text-whisper)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>Manual entry</div>
             <div id="manual-entry-title" style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em", marginTop: 6 }}>Enter UPC</div>
             <input
               className="input"
@@ -347,8 +347,8 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
               style={{
                 marginTop: 12,
                 width: "100%",
-                background: "#fff",
-                color: "#000",
+                background: "var(--primary)",
+                color: "var(--primary-fg)",
                 borderRadius: 12,
                 padding: 14,
                 fontWeight: 600,

@@ -12,8 +12,7 @@ import {
 } from "./dailyStreak";
 import { estimatedSessionLabel } from "./estimateSessionDuration";
 import { homePlanSubline } from "./homeGreeting";
-import { buildMacroPaceSnapshot } from "./macroPace";
-import { isTrainingDay, templateForDate } from "./trainingCalendar";
+import { isTrainingDay, resolveWorkoutDaysPerWeek, templateForDate } from "./trainingCalendar";
 import { effectiveNutritionTotalsForDateKey } from "./nutritionTotals";
 import {
   buildWeeklySummary,
@@ -25,8 +24,11 @@ import type {
   AppState,
   CompletedWorkoutSession,
   MacroTotals,
+  OnboardingBarrier,
   WeightEntry,
   WorkoutRoutineTemplate,
+  WorkoutState,
+  TrainingStyle,
 } from "./types";
 
 export type CoachTaskKind =
@@ -147,6 +149,11 @@ function sessionVolumeLbs(session: CompletedWorkoutSession): number {
 
 function countDoneSets(session: CompletedWorkoutSession): number {
   return session.exercises.reduce((acc, ex) => acc + ex.sets.filter((s) => s.done).length, 0);
+}
+
+function workoutCompletedOnDay(state: AppState, dateKey: string): boolean {
+  if (state.workoutsCompletedByDay[dateKey]) return true;
+  return (state.workoutHistory ?? []).some((session) => session.dayKey === dateKey);
 }
 
 function formatDurationMinutes(durationSec: number): string {
@@ -271,11 +278,9 @@ function buildCandidateTasks(ctx: CoachContext): CoachTask[] {
   }
 
   if (ctx.proteinGap > 0 && !ctx.nutritionGoalHit) {
-    const pace = buildMacroPaceSnapshot(ctx);
     tasks.push({
       kind: "hit_protein",
       label: `Hit ${state.nutritionTargets.p}g protein (${Math.round(ctx.proteinGap)}g left)`,
-      rationale: pace.hint,
       ctaLabel: "Log fuel",
       completed: false,
       priority: 2,
@@ -441,7 +446,7 @@ export function getNotificationBody(ctx: CoachContext, kind: CoachNotificationKi
   }
 
   if (ctx.nutritionGoalHit) {
-    return "Fuel logged and protein floor hit, nice work staying on pace today.";
+    return "Fuel logged and protein target hit for today.";
   }
 
   if (ctx.proteinGap > 0) {
@@ -451,12 +456,40 @@ export function getNotificationBody(ctx: CoachContext, kind: CoachNotificationKi
   return "Log today's fuel in Fitcoach, protein and calories keep the coach plan honest.";
 }
 
+export const BARRIER_COACH_COPY: Record<OnboardingBarrier, string> = {
+  falling_off:
+    "Consistency is the only thing that separates people who transform and people who don't. You showed up today. That's the whole game.",
+  eating: "Nutrition makes or breaks results. Hit your protein target today and everything else follows.",
+  no_plan: "You have a plan now. Follow it exactly as written for 4 weeks before you change anything.",
+  life_busy:
+    "Short sessions still count. Getting here on a busy day is worth more than a perfect session on an easy day.",
+  no_results:
+    "Progressive overload is why results happen. Every session Gymmy tracks your progress and tells you exactly how to push further than last time.",
+};
+
+export function getPrimaryBarrierCoachNote(barriers: OnboardingBarrier[] | undefined): string | null {
+  const primary = barriers?.[0];
+  if (!primary) return null;
+  return BARRIER_COACH_COPY[primary];
+}
+
+/** First-ever session coach note when the user has no logged workout history. */
+export function getFirstSessionCoachNote(state: AppState, _workout: WorkoutState): string | null {
+  const history = state.workoutHistory ?? [];
+  if (history.length > 0) return null;
+  return getPrimaryBarrierCoachNote(state.onboardingProfile?.barriers);
+}
+
 export {
   buildSessionCoachNoteForExercise,
   buildSessionCoachNotesByExerciseId,
   getExerciseSessionNote,
   type ExerciseSessionNoteContext,
 } from "./exerciseSessionNotes";
+
+export function getTrainingStyleFromProfile(state: AppState): TrainingStyle | undefined {
+  return state.onboardingProfile?.trainingStyle;
+}
 
 export function getWeeklyCoachReview(ctx: CoachContext): WeeklyCoachReview {
   const { weeklySummary, streakCount, recentWeightTrend } = ctx;
@@ -522,4 +555,77 @@ export function getWeeklyCoachReview(ctx: CoachContext): WeeklyCoachReview {
   }
 
   return { narrative, nextWeekFocus };
+}
+
+export type SundayCheckInCoachInput = {
+  workoutsCompleted: number;
+  workoutsPlanned: number;
+  proteinDaysHit: number;
+};
+
+/** One-line coach note for the home carousel week timeline slide. */
+export function getHomeWeekSlideCoachNote(ctx: CoachContext): string {
+  const { weeklySummary, state, now } = ctx;
+  const { workoutsCompleted, workoutsPlanned, weekEndKey } = weeklySummary;
+  const todayKey = localDateKey(now);
+  const sessionsLeft = Math.max(0, workoutsPlanned - workoutsCompleted);
+
+  if (workoutsCompleted === 0) {
+    return "Week just started — stack your sessions early";
+  }
+
+  if (workoutsCompleted >= workoutsPlanned) {
+    const weekKeys = weekDateKeysMondayStart(todayKey);
+    const templates = state.workoutTemplates ?? [];
+    const daysPerWeek = resolveWorkoutDaysPerWeek(templates, state.onboardingProfile?.workoutDaysPerWeek);
+    const hasUpcomingTrainingDay = weekKeys.some((key) => {
+      if (key < todayKey) return false;
+      if (!isTrainingDay(parseDateKeyNoonLocal(key), templates, daysPerWeek)) return false;
+      return !workoutCompletedOnDay(state, key);
+    });
+
+    if (todayKey === weekEndKey || now.getDay() === 0) {
+      return "Perfect week — rest up and go again Monday";
+    }
+
+    if (!hasUpcomingTrainingDay) {
+      return "Sessions done — focus on fuel and sleep";
+    }
+
+    return "Perfect week — rest up and go again Monday";
+  }
+
+  const sessionLabel = sessionsLeft === 1 ? "session" : "sessions";
+  return `Good start — ${sessionsLeft} ${sessionLabel} left this week`;
+}
+
+/** One short coach sentence for the Sunday weekly check-in card. */
+export function getSundayCheckInCoachNote(input: SundayCheckInCoachInput): string {
+  const { workoutsCompleted, workoutsPlanned, proteinDaysHit } = input;
+  const sessionsMissed = Math.max(0, workoutsPlanned - workoutsCompleted);
+  const proteinOnPace = proteinDaysHit >= 4;
+  const strongWeek = sessionsMissed <= 1 && proteinOnPace;
+
+  if (sessionsMissed >= 2) {
+    const leftLabel = sessionsMissed === 1 ? "1 session" : `${sessionsMissed} sessions`;
+    return `You left ${leftLabel} on the table this week. This week stack all ${workoutsPlanned}.`;
+  }
+
+  if (!proteinOnPace) {
+    return "Fuel was inconsistent this week. Hit protein first, everything else follows.";
+  }
+
+  if (strongWeek) {
+    return `You hit ${workoutsCompleted} of ${workoutsPlanned} sessions and protein was on point. Keep that up this week.`;
+  }
+
+  if (proteinDaysHit >= 5) {
+    return `Protein was dialed ${proteinDaysHit} out of 7 days. That consistency is what drives results.`;
+  }
+
+  if (sessionsMissed === 1) {
+    return `You left 1 session on the table this week. This week stack all ${workoutsPlanned}.`;
+  }
+
+  return `Protein was dialed ${proteinDaysHit} out of 7 days. That consistency is what drives results.`;
 }

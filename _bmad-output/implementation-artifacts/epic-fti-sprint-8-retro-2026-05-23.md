@@ -10,12 +10,12 @@
 
 ## Epic summary
 
-**Goal:** Nutrition OS v2 — Chunk 2. USDA + Open Food Facts search via Supabase Edge Function; All-tab debounced search with serving picker; My foods library; Favorite foods tab; search→log E2E.
+**Goal:** Nutrition OS v2 - Chunk 2. USDA + Open Food Facts search via Supabase Edge Function; All-tab debounced search with serving picker; My foods library; Favorite foods tab; search→log E2E.
 
 | Metric | Value |
 | --- | --- |
 | Stories completed | 3 / 3 shipped |
-| PR | [#30](https://github.com/JimmyMc1213/fitnesstracker/pull/30) `epic-fti-sprint-8/nutrition-os-chunk-2` — **merged to `main`** |
+| PR | [#30](https://github.com/JimmyMc1213/fitnesstracker/pull/30) `epic-fti-sprint-8/nutrition-os-chunk-2` - **merged to `main`** |
 | Quality gate (at merge) | `npm run build` + `npm test` (121) + `npm run test:e2e` (4) |
 | Test automation | Vitest **121 tests** (+13 from Sprint 7); Playwright **4 E2E smokes** (+1 search→log) |
 | Epic status | **done** |
@@ -67,7 +67,7 @@
 
 6. **E2E extended cleanly.** Fourth Playwright spec covers search → serving → log → rings update without bloating the suite.
 
-7. **Tab bar hides during Log Food overlay.** `FitnessApp` tracks overlay open state — no double chrome during full-screen log flow.
+7. **Tab bar hides during Log Food overlay.** `FitnessApp` tracks overlay open state - no double chrome during full-screen log flow.
 
 ---
 
@@ -75,13 +75,13 @@
 
 1. **Single epic PR (fourth consecutive).** PR #30 bundles FTI-60–62. Review and bisect remain harder than one-story PRs despite repeated retro action items.
 
-2. **Edge Function deploy is manual.** `USDA_FDC_API_KEY` must be set in Supabase secrets; PR merge does not deploy the function — ops step before production search works.
+2. **Edge Function deploy is manual.** `USDA_FDC_API_KEY` must be set in Supabase secrets; PR merge does not deploy the function - ops step before production search works.
 
 3. **Story file gap for FTI-61 and FTI-62.** Only FTI-60 has a full story artifact; FTI-61/62 traceability lives in epics.md and Linear.
 
-4. **My meals still placeholder.** Tab shows "coming in a future update" — expected per scope lock but users may tap it expecting functionality.
+4. **My meals still placeholder.** Tab shows "coming in a future update" - expected per scope lock but users may tap it expecting functionality.
 
-5. **CI E2E gate still missing.** Quality verified locally at merge; no GitHub Actions `test:e2e` — recurring debt since Sprint 5.
+5. **CI E2E gate still missing.** Quality verified locally at merge; no GitHub Actions `test:e2e` - recurring debt since Sprint 5.
 
 6. **Logged-food edit UX gap at merge.** Inline mini-edit on Today food log was clunky; full-screen edit flow implemented post-PR (needs follow-up PR).
 
@@ -136,12 +136,12 @@
 
 ## Next epic preparation
 
-**Sprint 9:** Nutrition OS v2 — Chunk 3 (see `nutrition-os-v2-checklist.md`).
+**Sprint 9:** Nutrition OS v2 - Chunk 3 (see `nutrition-os-v2-checklist.md`).
 
 Planned scope:
-- My meals (meal prep) — FTI-63
-- Cal AI visual polish — FTI-64
-- Full test/persistence finish — FTI-65
+- My meals (meal prep) - FTI-63
+- Cal AI visual polish - FTI-64
+- Full test/persistence finish - FTI-65
 
 **Out of scope for S9:** Barcode, voice log, AI natural-language parse, native wrapper.
 
@@ -160,8 +160,8 @@ Planned scope:
 
 1. **Deploy Edge Function** and smoke-test search in production/preview
 2. **FTI-63 story file** before `/bmad-swarm`
-3. **Decide PR granularity** — epic vs one-story PRs
-4. **Ship logged-food edit** — small UX win before meal prep
+3. **Decide PR granularity** - epic vs one-story PRs
+4. **Ship logged-food edit** - small UX win before meal prep
 
 ### Readiness assessment
 
@@ -179,7 +179,7 @@ Planned scope:
 
 ## Significant discoveries
 
-**Epic update required for Sprint 9:** YES — My meals is the user-visible tab still empty; prioritize FTI-63 early in S9.
+**Epic update required for Sprint 9:** YES - My meals is the user-visible tab still empty; prioritize FTI-63 early in S9.
 
 1. **Dual-API search works with graceful degradation.** OFF + USDA merge is the right pattern for branded + whole foods.
 2. **Serving picker is reusable for edit.** Same screen for log and edit reduces UX inconsistency.

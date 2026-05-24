@@ -15,7 +15,7 @@ function minimalSlice(overrides: Partial<PersistedFitnessSlice> = {}): Persisted
 }
 
 describe("mergePersistedFitnessSlices onboarding draft", () => {
-  it("keeps local in-progress draft when remote marks onboarding complete", () => {
+  it("prefers remote onboarding complete over a stale local draft", () => {
     const draft = buildOnboardingDraft({
       stepIndex: 3,
       displayName: "Jimmy",
@@ -32,7 +32,7 @@ describe("mergePersistedFitnessSlices onboarding draft", () => {
     });
 
     const merged = mergePersistedFitnessSlices(local, remote);
-    expect(merged.onboardingComplete).toBe(false);
-    expect(merged.onboardingDraft?.stepIndex).toBe(3);
+    expect(merged.onboardingComplete).toBe(true);
+    expect(merged.onboardingDraft).toBeNull();
   });
 });

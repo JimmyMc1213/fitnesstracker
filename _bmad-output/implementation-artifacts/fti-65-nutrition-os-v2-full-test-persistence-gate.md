@@ -35,7 +35,7 @@ so Chunk 3 ships with confidence and Sprint 9 can close.
 
 - **Checklist:** `nutrition-os-v2-checklist.md` phase 10 (full)
 - **depends_on:** FTI-63 (My meals), FTI-64 (Cal AI polish)
-- **blocks:** none — final Sprint 9 story
+- **blocks:** none - final Sprint 9 story
 - No new product features; test + gate + retro only
 
 ## References
@@ -68,8 +68,8 @@ Composer (BMAD Swarm)
 
 ### Change Log
 
-- 2026-05-23: FTI-65 — meal E2E, Phase 10 checklist, Sprint 9 retro, sprint close
+- 2026-05-23: FTI-65 - meal E2E, Phase 10 checklist, Sprint 9 retro, sprint close
 
 ### Senior Developer Review (AI)
 
-- No code review findings — test-only story; gates pass.
+- No code review findings - test-only story; gates pass.

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 
-import { buildSundayReviewPreview } from "./weeklyAdjustment";
 import { buildAppStateFromPersisted } from "./buildAppState";
 import { dismissStreakLossNotice, getPendingStreakLossNotice } from "./dailyStreak";
 import { seedDefaultData } from "./defaultSeed";
@@ -33,30 +32,24 @@ import { ScreenStretch } from "./screens/ScreenStretch";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
 import { ScreenTransition } from "./motion";
-import { SundayReviewSheet } from "./SundayReviewSheet";
 import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
 import {
   clearDevPreviewOnboardingUrl,
   isDevPreviewOnboardingEnabled,
 } from "./devPreviewOnboarding";
 import { OnboardingFlow } from "./OnboardingFlow";
-import { initialOnboardingWizardDraft } from "./onboardingDraft";
+import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
+import { clearOnboardingDraftStorage, initialOnboardingWizardDraft } from "./onboardingDraft";
 import { shouldSkipOnboarding } from "./onboardingSkip";
+import { saveSyncMeta } from "./syncMeta";
 import { registerNotificationServiceWorker } from "./registerNotificationServiceWorker";
 import { checkAndFireDueNotifications } from "./notificationScheduler";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
 import { StreakLostSheet } from "./StreakLostSheet";
 import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
+import { ThemeProvider } from "./ThemeContext";
+import type { AppTheme } from "./theme";
 import type { AppState, NavigateFn, ScreenProps, StreakLossNotice, TabId } from "./types";
-
-/** Dev only: `?previewSunday=1` treats "now" as noon on this week's Sunday so the review sheet is visible any day. */
-function sundayNoonForCurrentWeek(d: Date): Date {
-  const x = new Date(d);
-  x.setHours(12, 0, 0, 0);
-  const day = x.getDay();
-  x.setDate(x.getDate() - day);
-  return x;
-}
 
 function buildInitialState(): AppState {
   if (typeof localStorage !== "undefined" && !localStorage.getItem(FITNESS_LOCAL_STORAGE_KEY)) {
@@ -85,7 +78,7 @@ function HydrationSplash() {
         alignItems: "center",
         justifyContent: "center",
         background: "var(--bg)",
-        color: "rgba(255,255,255,0.55)",
+        color: "var(--text-secondary)",
         fontSize: 15,
         fontWeight: 500,
       }}
@@ -99,9 +92,17 @@ function workoutDaysPerWeekFromState(s: AppState) {
   return resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek);
 }
 
-function AuthGate({ children }: { children: ReactNode }) {
+function AuthGate({
+  children,
+  initialAuthView,
+}: {
+  children: ReactNode;
+  initialAuthView: "landing" | "signin" | "signup";
+}) {
   const sync = useFitnessSync();
-  if (sync.configured && !sync.sessionEmail) return <AuthScreen />;
+  if (sync.configured && !sync.sessionEmail) {
+    return <AuthScreen initialView={initialAuthView} />;
+  }
   return <>{children}</>;
 }
 
@@ -109,10 +110,16 @@ function OnboardingGate({
   state,
   setState,
   children,
+  onSignIn,
+  introWelcomeDone,
+  onLeavePreview,
 }: {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   children: ReactNode;
+  onSignIn?: () => void;
+  introWelcomeDone?: boolean;
+  onLeavePreview?: () => void;
 }) {
   const sync = useFitnessSync();
   const [previewOnboardingDismissed, setPreviewOnboardingDismissed] = useState(false);
@@ -128,6 +135,13 @@ function OnboardingGate({
     setPreviewOnboardingDismissed(true);
     setPreviewOnboardingRequested(false);
     clearDevPreviewOnboardingUrl();
+    clearOnboardingDraftStorage();
+    onLeavePreview?.();
+    setState((s) => {
+      const next = { ...s, onboardingComplete: true, onboardingDraft: null };
+      savePersistedSlice(sliceFromAppState(next));
+      return next;
+    });
   }
 
   function openPreviewOnboarding() {
@@ -137,15 +151,14 @@ function OnboardingGate({
 
   const restorableDraft = initialOnboardingWizardDraft(state.onboardingDraft);
 
+  const skipOnboarding = shouldSkipOnboarding({
+    persisted: sliceFromAppState(state),
+    sessionEmail: sync.sessionEmail,
+    forcePreview: false,
+  });
+
   const showOnboarding =
-    forcePreview ||
-    (!state.onboardingComplete &&
-      (!shouldSkipOnboarding({
-        persisted: loadPersistedSlice(),
-        sessionEmail: sync.sessionEmail,
-        forcePreview: false,
-      }) ||
-        restorableDraft != null));
+    forcePreview || (!previewOnboardingDismissed && !state.onboardingComplete && !skipOnboarding);
 
   return (
     <>
@@ -153,8 +166,11 @@ function OnboardingGate({
         <OnboardingFlow
           setState={setState}
           initialDraft={restorableDraft}
+          accountDisplayName={state.displayName}
           previewMode={forcePreview}
-          onComplete={forcePreview ? dismissPreviewOnboarding : undefined}
+          onComplete={import.meta.env.DEV ? dismissPreviewOnboarding : undefined}
+          onSignIn={onSignIn}
+          introWelcomeDone={introWelcomeDone}
         />
       ) : (
         children
@@ -171,11 +187,39 @@ function OnboardingGate({
 }
 
 export function FitnessApp() {
+  const [state, setState] = useState<AppState>(buildInitialState);
+
+  const handlePersistTheme = (theme: AppTheme) => {
+    setState((s) => {
+      if (s.theme === theme) return s;
+      const next = { ...s, theme };
+      savePersistedSlice(sliceFromAppState(next));
+      return next;
+    });
+  };
+
+  return (
+    <ThemeProvider persistedTheme={state.theme} onPersistTheme={handlePersistTheme}>
+      <FitnessAppMain state={state} setState={setState} />
+    </ThemeProvider>
+  );
+}
+
+function FitnessAppMain({
+  state,
+  setState,
+}: {
+  state: AppState;
+  setState: React.Dispatch<React.SetStateAction<AppState>>;
+}) {
   const [tab, setTab] = useState<TabId>("home");
   const [logFoodOpenRequest, setLogFoodOpenRequest] = useState(0);
   const [logFoodOverlayOpen, setLogFoodOverlayOpen] = useState(false);
-  const [state, setState] = useState<AppState>(buildInitialState);
   const [previewStreakLostDismissed, setPreviewStreakLostDismissed] = useState(false);
+  const [authViewOverride, setAuthViewOverride] = useState<"landing" | "signin" | "signup" | null>(null);
+  const [introWelcomeDone, setIntroWelcomeDone] = useState(false);
+  const [welcomeSignInFlow, setWelcomeSignInFlow] = useState(false);
+  const [welcomeSignInError, setWelcomeSignInError] = useState<string | null>(null);
 
   useEffect(() => {
     if (tab !== "nutrition") setLogFoodOverlayOpen(false);
@@ -189,6 +233,22 @@ export function FitnessApp() {
   const todayKey = localDateKey(new Date());
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  const completeWelcomeSignIn = () => {
+    setState((s) => {
+      const nextSlice = {
+        ...sliceFromAppState(s),
+        onboardingComplete: true,
+        onboardingDraft: null,
+      };
+      savePersistedSlice(nextSlice);
+      return buildAppStateFromPersisted(nextSlice);
+    });
+    setWelcomeSignInError(null);
+    setIntroWelcomeDone(true);
+    setWelcomeSignInFlow(false);
+    setAuthViewOverride(null);
+  };
 
   useEffect(() => {
     persistTasksForToday(
@@ -289,10 +349,6 @@ export function FitnessApp() {
   const Current = screens[tab];
   const showWorkoutSummary = state.workoutSummary != null;
 
-  const previewSundayUi =
-    import.meta.env.DEV &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("previewSunday") === "1";
   const previewStreakLostUi =
     import.meta.env.DEV &&
     typeof window !== "undefined" &&
@@ -309,22 +365,135 @@ export function FitnessApp() {
     !showWorkoutSummary &&
     !(previewStreakLostUi && previewStreakLostDismissed);
 
-  const reviewNow = previewSundayUi ? sundayNoonForCurrentWeek(new Date()) : new Date();
-  const sundayPreview = buildSundayReviewPreview(state, reviewNow);
-  const showSundayReview =
-    sundayPreview !== null &&
-    (previewSundayUi || sundayPreview.thisSundayKey !== state.sundayReviewCompletedKey);
-
   const hideTabBar = tab === "stretch" || showWorkoutSummary || showStreakLost || logFoodOverlayOpen;
+
+  const isNewUser = !state.onboardingComplete;
+  const needsAuth = fitnessSync.configured && !fitnessSync.sessionEmail;
+  const devPreviewOnboarding = import.meta.env.DEV && isDevPreviewOnboardingEnabled();
+  const introEligible = isNewUser || devPreviewOnboarding;
+  const restorableIntroDraft = initialOnboardingWizardDraft(state.onboardingDraft);
+  const resumeIntroStep = restorableIntroDraft?.stepIndex ?? 0;
+  const showIntroWelcome =
+    introEligible && !introWelcomeDone && !state.onboardingComplete && resumeIntroStep === 0;
+
+  const handleOnboardingSignIn = () => {
+    setWelcomeSignInError(null);
+    setWelcomeSignInFlow(true);
+    setAuthViewOverride("signin");
+    clearOnboardingDraftStorage();
+    saveSyncMeta({ lastSeenRemoteUpdatedAtMs: 0 });
+    setState((s) => {
+      if (!s.onboardingDraft) return s;
+      const next = { ...s, onboardingDraft: null };
+      savePersistedSlice(sliceFromAppState(next));
+      return next;
+    });
+    void fitnessSync.signOut();
+  };
+
+  const handleGetStarted = () => {
+    setWelcomeSignInError(null);
+    setWelcomeSignInFlow(false);
+    setAuthViewOverride(null);
+    setIntroWelcomeDone(true);
+  };
+
+  useEffect(() => {
+    if (!welcomeSignInFlow || authViewOverride !== "signin") return;
+    if (!fitnessSync.sessionEmail || !fitnessSync.fitnessHydrated) return;
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        await Promise.race([
+          fitnessSync.restoreFromCloud(),
+          new Promise<void>((resolve) => window.setTimeout(resolve, 8000)),
+        ]);
+      } catch {
+        /* restoreFromCloud records lastError */
+      }
+      if (!cancelled) {
+        completeWelcomeSignIn();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    welcomeSignInFlow,
+    authViewOverride,
+    fitnessSync.sessionEmail,
+    fitnessSync.fitnessHydrated,
+    fitnessSync.restoreFromCloud,
+  ]);
+
+  useEffect(() => {
+    if (!welcomeSignInFlow || !fitnessSync.sessionEmail) return;
+    const id = window.setTimeout(() => {
+      completeWelcomeSignIn();
+    }, 10_000);
+    return () => window.clearTimeout(id);
+  }, [welcomeSignInFlow, fitnessSync.sessionEmail]);
+
+  const initialAuthView: "landing" | "signin" | "signup" =
+    authViewOverride ??
+    (isNewUser && needsAuth ? "signup" : "landing");
+
+  if (authViewOverride === "signin") {
+    if (fitnessSync.sessionEmail && (!fitnessSync.fitnessHydrated || welcomeSignInFlow)) {
+      return (
+        <FitnessSyncContext.Provider value={fitnessSync}>
+          <HydrationSplash />
+        </FitnessSyncContext.Provider>
+      );
+    }
+
+    return (
+      <FitnessSyncContext.Provider value={fitnessSync}>
+        <AuthScreen
+          initialView="signin"
+          fromWelcome
+          externalError={welcomeSignInError}
+          onGetStarted={handleGetStarted}
+        />
+      </FitnessSyncContext.Provider>
+    );
+  }
+
+  if (showIntroWelcome) {
+    return (
+      <FitnessSyncContext.Provider value={fitnessSync}>
+        <OnboardingWelcomeScreen onGetStarted={handleGetStarted} onSignIn={handleOnboardingSignIn} />
+      </FitnessSyncContext.Provider>
+    );
+  }
+
+  const showAuthFromIntro = authViewOverride != null && needsAuth;
+
+  if (showAuthFromIntro) {
+    return (
+      <FitnessSyncContext.Provider value={fitnessSync}>
+        <AuthScreen initialView={authViewOverride} />
+      </FitnessSyncContext.Provider>
+    );
+  }
 
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
-      {!fitnessSync.fitnessHydrated ? (
+      {!fitnessSync.fitnessHydrated && fitnessSync.sessionEmail ? (
         <HydrationSplash />
       ) : (
       <>
-      <AuthGate>
-      <OnboardingGate state={state} setState={setState}>
+      <OnboardingGate
+        state={state}
+        setState={setState}
+        onSignIn={handleOnboardingSignIn}
+        introWelcomeDone={introWelcomeDone}
+        onLeavePreview={() => setIntroWelcomeDone(true)}
+      >
+      <AuthGate initialAuthView={initialAuthView}>
       <div
         style={{
           flex: 1,
@@ -356,6 +525,9 @@ export function FitnessApp() {
               setState={setState}
               navigate={navigate}
               logFoodOpenRequest={tab === "nutrition" ? logFoodOpenRequest : undefined}
+              onLogFoodOpenRequestHandled={
+                tab === "nutrition" ? () => setLogFoodOpenRequest(0) : undefined
+              }
               onLogFoodOpenChange={tab === "nutrition" ? setLogFoodOverlayOpen : undefined}
             />
           </ScreenTransition>
@@ -397,17 +569,6 @@ export function FitnessApp() {
           />
         ) : null}
 
-        {sundayPreview ? (
-          <SundayReviewSheet
-            open={showSundayReview}
-            preview={sundayPreview}
-            nutritionTargets={state.nutritionTargets}
-            unitPreferences={state.unitPreferences}
-            setState={setState}
-            reviewClock={previewSundayUi ? reviewNow : undefined}
-          />
-        ) : null}
-
         {state.workoutSummary ? (
           <WorkoutSummarySheet
             open={showWorkoutSummary}
@@ -420,8 +581,8 @@ export function FitnessApp() {
           />
         ) : null}
       </div>
-      </OnboardingGate>
       </AuthGate>
+      </OnboardingGate>
       </>
       )}
     </FitnessSyncContext.Provider>

@@ -56,7 +56,7 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
               fontWeight: 600,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.4)",
+              color: "var(--text-ghost)",
             }}
           >
             Workout complete
@@ -71,7 +71,7 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
           >
             {summary.title}
           </h1>
-          <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
+          <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 500 }}>
             Nice work, session saved
           </p>
         </div>
@@ -100,7 +100,7 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
         <SummarySection
           title="Personal records"
           empty="No PRs this session, keep stacking weight and reps."
-          accent="#ffffff"
+          accent="var(--chart-stroke)"
           highlight={summary.prs.length > 0}
         >
           {summary.prs.map((pr) => (
@@ -109,7 +109,7 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
               title={pr.exerciseName}
               detail={pr.detail}
               badge="PR"
-              badgeColor="#ffffff"
+              badgeColor="var(--chart-stroke)"
               highlighted
             />
           ))}
@@ -147,8 +147,8 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
           onClick={handleDone}
           style={{
             width: "100%",
-            background: "#ffffff",
-            color: "#0a0a0a",
+            background: "var(--primary)",
+            color: "var(--primary-fg)",
             borderRadius: 12,
             padding: "14px 20px",
             fontSize: 16,
@@ -173,7 +173,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
         border: "0.5px solid var(--border)",
       }}
     >
-      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-ghost)" }}>
         {label}
       </div>
       <div
@@ -187,7 +187,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
       >
         {value}
       </div>
-      {sub ? <div style={{ marginTop: 2, fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 500 }}>{sub}</div> : null}
+      {sub ? <div style={{ marginTop: 2, fontSize: 10, color: "var(--text-ghost)", fontWeight: 500 }}>{sub}</div> : null}
     </div>
   );
 }
@@ -235,7 +235,7 @@ function SummarySection({
       {hasItems ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{children}</div>
       ) : (
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.4)", fontWeight: 400 }}>{empty}</p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: "var(--text-ghost)", fontWeight: 400 }}>{empty}</p>
       )}
     </section>
   );
@@ -268,7 +268,7 @@ function SummaryRow({
     >
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
-        <div style={{ marginTop: 2, fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>{detail}</div>
+        <div style={{ marginTop: 2, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500 }}>{detail}</div>
       </div>
       <span
         style={{

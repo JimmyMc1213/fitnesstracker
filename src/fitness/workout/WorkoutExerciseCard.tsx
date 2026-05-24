@@ -94,7 +94,7 @@ export function WorkoutExerciseCard({
         <ExerciseDragHandle handle={handle} disabled={isListDragging && !handle.isDragging} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <span style={{ fontSize: METADATA_SIZE, color: "rgba(255,255,255,0.3)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+            <span style={{ fontSize: METADATA_SIZE, color: "var(--text-ghost)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
               {String(exerciseIndex + 1).padStart(2, "0")}
             </span>
             {exercise.name}
@@ -116,7 +116,7 @@ export function WorkoutExerciseCard({
               </span>
             ) : null}
           </div>
-          <div style={{ fontSize: METADATA_SIZE, color: "rgba(255,255,255,0.4)", marginTop: 4, fontWeight: 400, fontVariantNumeric: "tabular-nums" }}>
+          <div style={{ fontSize: METADATA_SIZE, color: "var(--text-ghost)", marginTop: 4, fontWeight: 400, fontVariantNumeric: "tabular-nums" }}>
             Target {exercise.target} · {done}/{exercise.sets.length} sets
           </div>
           {sessionCoachNote ? (
@@ -182,9 +182,9 @@ export function WorkoutExerciseCard({
           marginBottom: 6,
         }}
       >
-        <div style={{ ...labelStyle, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Set</div>
-        <div style={{ ...labelStyle, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>{weightUnitLabel(weightUnit)}</div>
-        <div style={{ ...labelStyle, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Reps</div>
+        <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Set</div>
+        <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>{weightUnitLabel(weightUnit)}</div>
+        <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Reps</div>
         <div />
         <div />
       </div>
@@ -197,12 +197,12 @@ export function WorkoutExerciseCard({
               gridTemplateColumns: "32px 1fr 1fr 44px 32px",
               gap: 6,
               alignItems: "center",
-              background: st.done ? "rgba(255,255,255,0.04)" : "transparent",
+              background: st.done ? "var(--surface-1)" : "transparent",
               borderRadius: 8,
               padding: "4px 4px",
             }}
           >
-            <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.5)", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted-soft)", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>
               {si + 1}
             </div>
             <input
@@ -215,7 +215,7 @@ export function WorkoutExerciseCard({
                 border: "0.5px solid var(--border)",
                 borderRadius: 8,
                 padding: "8px 10px",
-                color: "#fff",
+                color: "var(--text-primary)",
                 fontFamily: "var(--ui)",
                 fontSize: 14,
                 fontWeight: 500,
@@ -235,7 +235,7 @@ export function WorkoutExerciseCard({
                 border: "0.5px solid var(--border)",
                 borderRadius: 8,
                 padding: "8px 10px",
-                color: "#fff",
+                color: "var(--text-primary)",
                 fontFamily: "var(--ui)",
                 fontSize: 14,
                 fontWeight: 500,
@@ -254,9 +254,9 @@ export function WorkoutExerciseCard({
                 width: 36,
                 height: 36,
                 borderRadius: 999,
-                background: st.done ? "#ffffff" : "transparent",
-                border: st.done ? "0.5px solid #fff" : "0.5px solid var(--border)",
-                color: st.done ? "#000" : "rgba(255,255,255,0.4)",
+                background: st.done ? "var(--primary)" : "transparent",
+                border: st.done ? "0.5px solid var(--primary)" : "0.5px solid var(--border)",
+                color: st.done ? "var(--primary-fg)" : "var(--text-ghost)",
                 display: "grid",
                 placeItems: "center",
                 margin: "0 auto",
@@ -264,7 +264,7 @@ export function WorkoutExerciseCard({
             >
               <IconCheck size={16} stroke={2.4} />
             </button>
-            <button type="button" className="tap" onClick={() => onRemoveSet(exercise.id, si)} aria-label="Remove" style={{ width: 32, height: 36, color: "rgba(255,255,255,0.2)", display: "grid", placeItems: "center" }}>
+            <button type="button" className="tap" onClick={() => onRemoveSet(exercise.id, si)} aria-label="Remove" style={{ width: 32, height: 36, color: "var(--text-whisper)", display: "grid", placeItems: "center" }}>
               <IconMinus size={14} />
             </button>
           </div>
@@ -278,10 +278,10 @@ export function WorkoutExerciseCard({
         style={{
           marginTop: 10,
           width: "100%",
-          border: "0.5px dashed rgba(255,255,255,0.1)",
+          border: "0.5px dashed var(--divider-subtle)",
           borderRadius: 8,
           padding: "10px",
-          color: "rgba(255,255,255,0.5)",
+          color: "var(--text-muted-soft)",
           fontSize: 12,
           fontWeight: 500,
           display: "flex",
@@ -300,7 +300,7 @@ export function WorkoutExerciseCard({
           gap: 16,
           marginTop: 10,
           paddingTop: 8,
-          borderTop: "0.5px solid rgba(255,255,255,0.06)",
+          borderTop: "0.5px solid var(--divider-subtle)",
         }}
       >
         <ExerciseNoteRow

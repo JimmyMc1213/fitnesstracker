@@ -170,7 +170,7 @@ export function CenterDialog({
         position: "fixed",
         inset: 0,
         zIndex,
-        background: "rgba(0,0,0,0.78)",
+        background: "var(--sheet-backdrop)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

@@ -2,10 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildCoachContext,
+  getFirstSessionCoachNote,
   getHomeCoachPlan,
+  getHomeWeekSlideCoachNote,
   getNotificationBody,
   getPostWorkoutRecap,
+  getPrimaryBarrierCoachNote,
   getWeeklyCoachReview,
+  getSundayCheckInCoachNote,
   getWeighInReaction,
   getWeighInReactionForDisplay,
 } from "./coachEngine";
@@ -118,7 +122,7 @@ describe("getHomeCoachPlan", () => {
     const proteinTask = plan.tasks.find((t) => t.kind === "hit_protein");
     expect(proteinTask).toBeDefined();
     expect(proteinTask?.label).toMatch(/160g left|180g protein/i);
-    expect(proteinTask?.rationale).toMatch(/pace/i);
+    expect(proteinTask?.rationale).toBeUndefined();
   });
 
   it("includes insight strip when streak and protein gap both apply", () => {
@@ -285,5 +289,85 @@ describe("getWeeklyCoachReview", () => {
     const second = getWeeklyCoachReview(ctx);
 
     expect(first).toEqual(second);
+  });
+});
+
+describe("getHomeWeekSlideCoachNote", () => {
+  it("nudges early stacking when no sessions are logged", () => {
+    const state = trainingDayAppState({ dateKey: MONDAY_KEY, templateName: "Push" });
+    const ctx = buildCoachContext(state, MONDAY_KEY, MONDAY);
+    expect(getHomeWeekSlideCoachNote(ctx)).toBe("Week just started — stack your sessions early");
+  });
+
+  it("reports remaining sessions when the week is in progress", () => {
+    const state = workoutHistoryAppState([weekSession(MONDAY_KEY), weekSession("2026-05-19")]);
+    const ctx = buildCoachContext(state, "2026-05-20", new Date(2026, 4, 20, 9, 0));
+    expect(getHomeWeekSlideCoachNote(ctx)).toBe("Good start — 3 sessions left this week");
+  });
+
+  it("celebrates a finished week on Sunday", () => {
+    const weekDayKeys = ["2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22"];
+    const state = workoutHistoryAppState(weekDayKeys.map((dayKey) => weekSession(dayKey)));
+    const sunday = new Date(2026, 4, 24, 9, 0);
+    const ctx = buildCoachContext(state, "2026-05-24", sunday);
+    expect(getHomeWeekSlideCoachNote(ctx)).toBe("Perfect week — rest up and go again Monday");
+  });
+
+  it("focuses on recovery when sessions are done but rest days remain", () => {
+    const weekDayKeys = ["2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22"];
+    const state = workoutHistoryAppState(weekDayKeys.map((dayKey) => weekSession(dayKey)));
+    const friday = new Date(2026, 4, 22, 9, 0);
+    const ctx = buildCoachContext(state, "2026-05-22", friday);
+    expect(getHomeWeekSlideCoachNote(ctx)).toBe("Sessions done — focus on fuel and sleep");
+  });
+});
+
+describe("getSundayCheckInCoachNote", () => {
+  it("celebrates a strong week when training and protein are on pace", () => {
+    expect(
+      getSundayCheckInCoachNote({ workoutsCompleted: 4, workoutsPlanned: 5, proteinDaysHit: 5 }),
+    ).toMatch(/4 of 5 sessions and protein was on point/i);
+  });
+
+  it("nudges missed sessions when two or more were skipped", () => {
+    expect(
+      getSundayCheckInCoachNote({ workoutsCompleted: 2, workoutsPlanned: 5, proteinDaysHit: 6 }),
+    ).toMatch(/left 3 sessions on the table/i);
+  });
+
+  it("nudges fuel when protein days slip", () => {
+    expect(
+      getSundayCheckInCoachNote({ workoutsCompleted: 5, workoutsPlanned: 5, proteinDaysHit: 2 }),
+    ).toMatch(/Fuel was inconsistent/i);
+  });
+});
+
+describe("barrier coach notes", () => {
+  it("maps primary barrier to coach copy", () => {
+    expect(getPrimaryBarrierCoachNote(["no_results", "eating"])).toContain("Progressive overload");
+    expect(getPrimaryBarrierCoachNote(["falling_off"])).toContain("You showed up today");
+  });
+
+  it("returns first-session note only when workout history is empty", () => {
+    const state = trainingDayWithExercisesAppState({ dateKey: MONDAY_KEY });
+    const note = getFirstSessionCoachNote(
+      {
+        ...state,
+        onboardingProfile: { ...DEFAULT_ONBOARDING_PROFILE, barriers: ["life_busy"] },
+        workoutHistory: [],
+      },
+      state.workout,
+    );
+    expect(note).toContain("Short sessions still count");
+
+    const withHistory = getFirstSessionCoachNote(
+      {
+        ...state,
+        onboardingProfile: { ...DEFAULT_ONBOARDING_PROFILE, barriers: ["life_busy"] },
+        workoutHistory: [sampleSession],
+      },
+      state.workout,
+    );
+    expect(withHistory).toBeNull();
   });
 });

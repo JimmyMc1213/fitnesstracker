@@ -1,19 +1,32 @@
-import { estimatedSessionLabel } from "./estimateSessionDuration";
+import { weekdayFullName } from "./trainingCalendar";
 import type { WorkoutRoutineTemplate } from "./types";
+
+const PREVIEW_EXERCISE_COUNT = 4;
 
 export function OnboardingSplitReveal({ templates }: { templates: WorkoutRoutineTemplate[] }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div className="onboarding-split-reveal">
       {templates.map((routine) => {
-        const sessionEstimate = routine.exercises.length > 0 ? estimatedSessionLabel(routine) : null;
+        const preview = routine.exercises.slice(0, PREVIEW_EXERCISE_COUNT);
+        const remaining = routine.exercises.length - preview.length;
+
         return (
-          <div key={routine.id} className="card" style={{ padding: 16 }}>
-            <div style={{ fontWeight: 700, fontSize: 16, color: "#fff" }}>
-              {routine.dayLabel} · {routine.name}
+          <div key={routine.id} className="onboarding-gradient-card onboarding-split-reveal__card">
+            <div className="onboarding-split-reveal__title">
+              {weekdayFullName(routine.dayLabel)} · {routine.name}
             </div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{routine.focus}</div>
-            {sessionEstimate ? (
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginTop: 6 }}>{sessionEstimate}</div>
+            {routine.estimatedMinutes != null && routine.estimatedMinutes > 0 ? (
+              <div className="onboarding-split-reveal__meta">~{routine.estimatedMinutes} min</div>
+            ) : null}
+            {preview.length > 0 ? (
+              <ul className="onboarding-split-reveal__list">
+                {preview.map((ex) => (
+                  <li key={ex.id}>{ex.name}</li>
+                ))}
+              </ul>
+            ) : null}
+            {remaining > 0 ? (
+              <div className="onboarding-split-reveal__more">+{remaining} more</div>
             ) : null}
           </div>
         );

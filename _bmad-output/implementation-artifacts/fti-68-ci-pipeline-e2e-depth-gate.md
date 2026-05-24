@@ -12,9 +12,9 @@ so quality gates are durable beyond local dev.
 
 1. **CI workflow:** `.github/workflows/ci.yml` runs `npm run build`, `npm test`, `npm run test:e2e` on push/PR to `main`.
 
-2. **E2E — coach note:** Workout session smoke asserts per-exercise coach note visible after session start (FTI-54 behavior).
+2. **E2E - coach note:** Workout session smoke asserts per-exercise coach note visible after session start (FTI-54 behavior).
 
-3. **E2E — recently logged:** Nutrition tab → Log Food → tap `+` on recently logged row → rings update.
+3. **E2E - recently logged:** Nutrition tab → Log Food → tap `+` on recently logged row → rings update.
 
 4. **Quality gate:** `npm run build` + `npm test` (136+) + `npm run test:e2e` (6) pass locally and in CI.
 

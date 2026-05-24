@@ -1,4 +1,4 @@
-# Gymmy Onboarding Flow v2 — Implementation Spec
+# Gymmy Onboarding Flow v2 - Implementation Spec
 
 **Status:** Approved for implementation  
 **Last updated:** 2026-05-23  
@@ -6,18 +6,18 @@
 **Replaces:** v1 11-step wizard ([`OnboardingFlow.tsx`](../../src/fitness/OnboardingFlow.tsx)), superseded cursor plan `onboarding_hook_+_plan`
 
 **Related docs:**
-- [gymmy-tier-matrix.md](./gymmy-tier-matrix.md) — Free vs Pro (screen 23)
-- [FTI-69 dailyPlan hotfix](../implementation-artifacts/fti-69-dailyplan-hydration-hotfix.md) — **Phase 0 done**
+- [gymmy-tier-matrix.md](./gymmy-tier-matrix.md) - Free vs Pro (screen 23)
+- [FTI-69 dailyPlan hotfix](../implementation-artifacts/fti-69-dailyplan-hydration-hotfix.md) - **Phase 0 done**
 
 ---
 
 ## Goals
 
-1. **Hook before ask** — Sell Gymmy's coaching value before collecting data (Cal AI psychology).
-2. **Configure the coach** — Collect everything needed for split, macros, daily tasks, and progress goals.
-3. **Resume safely** — Mid-flow quit → pick up where they left off.
-4. **Don't break existing users** — Legacy / completed accounts skip full wizard; silent weekday backfill.
-5. **End with stakes** — Paywall UI reflects tier matrix; tier stored, gating deferred to IAP sprint.
+1. **Hook before ask** - Sell Gymmy's coaching value before collecting data (Cal AI psychology).
+2. **Configure the coach** - Collect everything needed for split, macros, daily tasks, and progress goals.
+3. **Resume safely** - Mid-flow quit → pick up where they left off.
+4. **Don't break existing users** - Legacy / completed accounts skip full wizard; silent weekday backfill.
+5. **End with stakes** - Paywall UI reflects tier matrix; tier stored, gating deferred to IAP sprint.
 
 **Cohesion test (per screen):** Does this help the user answer *"What should I do today and why?"* OR build the data model Gymmy needs to coach them?
 
@@ -29,7 +29,7 @@
 
 ```mermaid
 flowchart TB
-  subgraph hook [Hook — sell before ask]
+  subgraph hook [Hook - sell before ask]
     S1[1 Welcome]
     S2[2 Why Gymmy coaches]
   end
@@ -77,7 +77,7 @@ flowchart TB
 
 | Phase | Screens | Label (optional subtitle) |
 |-------|---------|---------------------------|
-| Hook | 1–2 | — (no step counter on screen 1 optional) |
+| Hook | 1–2 | - (no step counter on screen 1 optional) |
 | About you | 3–8 | "About you" |
 | Your goal | 9–12 | "Your goal" |
 | Training | 13–17 | "Your training" |
@@ -90,9 +90,9 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 
 ## Screen-by-screen spec
 
-### Section 1 — Hook
+### Section 1 - Hook
 
-#### Screen 1 — Welcome
+#### Screen 1 - Welcome
 | | |
 |---|---|
 | **Input** | None |
@@ -102,7 +102,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **CTA** | Continue |
 | **Back** | Hidden |
 
-#### Screen 2 — Why Gymmy coaches
+#### Screen 2 - Why Gymmy coaches
 | | |
 |---|---|
 | **Input** | None |
@@ -114,9 +114,9 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 
 ---
 
-### Section 2 — About you
+### Section 2 - About you
 
-#### Screen 3 — First name
+#### Screen 3 - First name
 | | |
 |---|---|
 | **Title** | What should we call you? |
@@ -125,7 +125,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **CTA** | Continue (or "Skip for now" if empty) |
 | **Persists** | `displayName` |
 
-#### Screen 4 — Gender
+#### Screen 4 - Gender
 | | |
 |---|---|
 | **Title** | What's your gender? |
@@ -133,7 +133,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **Input** | Male / Female / Other (segment control) |
 | **Persists** | `onboardingProfile.gender` |
 
-#### Screen 5 — Date of birth
+#### Screen 5 - Date of birth
 | | |
 |---|---|
 | **Title** | When were you born? |
@@ -142,7 +142,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **Validation** | Age 13–100 |
 | **Persists** | `onboardingProfile.dateOfBirth` (ISO `YYYY-MM-DD`); derive `age` for TDEE |
 
-#### Screen 6 — Units
+#### Screen 6 - Units
 | | |
 |---|---|
 | **Title** | Choose your units |
@@ -150,7 +150,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **Input** | lbs/kg + ft+in/cm ([`UnitPreferencePicker`](../../src/fitness/UnitPreferencePicker.tsx)) |
 | **Persists** | `unitPreferences`, `unitPreferencesChosen: true` |
 
-#### Screen 7 — Height
+#### Screen 7 - Height
 | | |
 |---|---|
 | **Title** | How tall are you? |
@@ -158,7 +158,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **Validation** | 48–96 in (122–244 cm) |
 | **Persists** | `onboardingProfile.heightIn` |
 
-#### Screen 8 — Current weight
+#### Screen 8 - Current weight
 | | |
 |---|---|
 | **Title** | What's your current weight? |
@@ -168,9 +168,9 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 
 ---
 
-### Section 3 — Your goal
+### Section 3 - Your goal
 
-#### Screen 9 — Primary goal
+#### Screen 9 - Primary goal
 | | |
 |---|---|
 | **Title** | What's your primary goal? |
@@ -178,7 +178,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **Persists** | `onboardingProfile.goal` |
 | **Branch** | maintain → skip 10–11, go to 12 |
 
-#### Screen 10 — Goal weight *(cut / bulk only)*
+#### Screen 10 - Goal weight *(cut / bulk only)*
 | | |
 |---|---|
 | **Title** | What's your goal weight? |
@@ -186,7 +186,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **Validation** | Cut: current − 5 to current − 80 lbs. Bulk: current + 3 to current + 50 lbs. Min 3 lb delta from current. |
 | **Persists** | `onboardingProfile.goalWeightLbs`, `progressGoal` band on finish |
 
-#### Screen 11 — Pace *(cut / bulk only)*
+#### Screen 11 - Pace *(cut / bulk only)*
 | | |
 |---|---|
 | **Title** | How fast do you want to get there? |
@@ -195,7 +195,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **Persists** | `onboardingProfile.pace`: `'slow' \| 'balanced' \| 'aggressive'` |
 | **Feeds** | Calorie adjustment (see [Pace → macros](#pace--macros)) |
 
-#### Screen 12 — Activity level
+#### Screen 12 - Activity level
 | | |
 |---|---|
 | **Title** | How active are you outside the gym? |
@@ -204,9 +204,9 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 
 ---
 
-### Section 4 — Training setup
+### Section 4 - Training setup
 
-#### Screen 13 — Experience
+#### Screen 13 - Experience
 | | |
 |---|---|
 | **Title** | What's your training experience? |
@@ -214,7 +214,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **Component** | [`ExperienceLevelPicker`](../../src/fitness/ExperienceLevelPicker.tsx) |
 | **Persists** | `experienceLevel`, `experienceLevelChosen: true` |
 
-#### Screen 14 — Equipment
+#### Screen 14 - Equipment
 | | |
 |---|---|
 | **Title** | What equipment do you have? |
@@ -222,7 +222,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **Component** | [`EquipmentSetupPicker`](../../src/fitness/EquipmentSetupPicker.tsx) |
 | **Persists** | `equipmentSetup`, `equipmentSetupChosen: true` |
 
-#### Screen 15 — Workout days (week calendar) **NEW**
+#### Screen 15 - Workout days (week calendar) **NEW**
 
 | | |
 |---|---|
@@ -253,7 +253,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 **Derived:** `workoutDaysPerWeek = trainingWeekdays.length`  
 **On Continue:** `draftTemplates = buildWorkoutTemplatesForDays(days, experience, equipment, trainingWeekdays)`
 
-#### Screen 16 — Split reveal
+#### Screen 16 - Split reveal
 | | |
 |---|---|
 | **Title** | Here's your training plan |
@@ -261,7 +261,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **Actions** | Continue · Edit |
 | **Component** | New read-only summary card (reuse session time from FTI-30 patterns) |
 
-#### Screen 17 — Edit split *(optional branch)*
+#### Screen 17 - Edit split *(optional branch)*
 | | |
 |---|---|
 | **Title** | Customize your program |
@@ -270,9 +270,9 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 
 ---
 
-### Section 5 — Nutrition
+### Section 5 - Nutrition
 
-#### Screen 18 — Calculated targets
+#### Screen 18 - Calculated targets
 | | |
 |---|---|
 | **Title** | Your daily fuel plan |
@@ -281,7 +281,7 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 | **Input** | Manual override fields + "Reset to calculated" |
 | **Persists** | `nutritionTargets` |
 
-#### Screen 19 — Protein priority *(interstitial)*
+#### Screen 19 - Protein priority *(interstitial)*
 | | |
 |---|---|
 | **Input** | None |
@@ -291,32 +291,32 @@ Show `Step X of 23` on data screens (3+). Hook screens may use Continue-only wit
 
 ---
 
-### Section 6 — Launch
+### Section 6 - Launch
 
-#### Screen 20 — Notifications
+#### Screen 20 - Notifications
 | | |
 |---|---|
 | **Title** | Stay on track |
-| **Subtitle** | Optional reminders. Pro feature when gated — collect preference now. |
+| **Subtitle** | Optional reminders. Pro feature when gated - collect preference now. |
 | **Component** | [`NotificationPreferencesPicker`](../../src/fitness/NotificationPreferencesPicker.tsx) |
 | **Hint** | "Add Gymmy to your home screen for the best notification experience." |
 | **Persists** | `notificationPreferences` |
 
-#### Screen 21 — Generating plan *(interstitial)*
+#### Screen 21 - Generating plan *(interstitial)*
 | | |
 |---|---|
-| **Input** | None — auto-advance ~3–4s |
+| **Input** | None - auto-advance ~3–4s |
 | **Title** | Building your coaching plan… |
 | **Steps animation** | Calculating targets → Building your split → Setting up your coach → Ready |
 
-#### Screen 22 — Plan ready
+#### Screen 22 - Plan ready
 | | |
 |---|---|
 | **Title** | {name}, your plan is ready |
 | **Summary card** | Today's workout or rest · Macro targets · Week schedule preview |
 | **CTA** | See my options → Screen 23 |
 
-#### Screen 23 — Paywall
+#### Screen 23 - Paywall
 Copy from [gymmy-tier-matrix.md](./gymmy-tier-matrix.md).
 
 | | |
@@ -325,7 +325,7 @@ Copy from [gymmy-tier-matrix.md](./gymmy-tier-matrix.md).
 | **Primary CTA** | Start 7-day free trial → Home, `subscriptionTier: 'pro'` |
 | **Secondary CTA** | Continue with free → Home, `subscriptionTier: 'free'` |
 | **Pricing** | $9.99/mo · $79.99/yr (Save 33%) |
-| **IAP** | Not wired — both CTAs land on Home |
+| **IAP** | Not wired - both CTAs land on Home |
 
 **On finish (either CTA):**
 - `onboardingComplete: true`
@@ -360,8 +360,8 @@ type OnboardingProfile = {
   dateOfBirth: string;                    // ISO YYYY-MM-DD (new; replaces age input)
   gender: UserGender;
   activityLevel: ActivityLevel;
-  workoutDaysPerWeek: WorkoutDaysPerWeek; // 3|4|5|6 — derived from trainingWeekdays.length
-  trainingWeekdays: string[];             // ["Mon","Tue",...] — source of truth
+  workoutDaysPerWeek: WorkoutDaysPerWeek; // 3|4|5|6 - derived from trainingWeekdays.length
+  trainingWeekdays: string[];             // ["Mon","Tue",...] - source of truth
   goalWeightLbs?: number;                 // cut/bulk only
   pace?: 'slow' | 'balanced' | 'aggressive';  // cut/bulk only
 };
@@ -369,7 +369,7 @@ type OnboardingProfile = {
 
 **Legacy compat:** If `dateOfBirth` missing but `age` present, keep using `age` for TDEE until user completes profile in Settings.
 
-### OnboardingDraft (new — persisted slice)
+### OnboardingDraft (new - persisted slice)
 
 ```typescript
 type OnboardingDraft = {
@@ -433,7 +433,7 @@ Phase 0 [`migrateTrainingSchedule`](../../src/fitness/migrateTrainingSchedule.ts
 | Back | Decrement step, save draft |
 | Paywall finish | `onboardingComplete: true`, clear draft |
 | Dev preview (`?previewOnboarding=1`) | Draft saves; finish does **not** set `onboardingComplete` |
-| Draft `version !== 2` | Reset to step 0, toast: "We updated onboarding — please start fresh" |
+| Draft `version !== 2` | Reset to step 0, toast: "We updated onboarding - please start fresh" |
 
 **UX:** Optional "Progress saved" fade (2s) after Continue. Settings → "Restart onboarding" clears draft (future).
 
@@ -458,7 +458,7 @@ Skip if: onboardingComplete
 
 ---
 
-## First-load hydration (Phase 0 — done)
+## First-load hydration (Phase 0 - done)
 
 Implemented in FTI-69. Do not render Home until:
 - No Supabase → immediate after local migrate
@@ -475,12 +475,12 @@ Continue disabled until valid. Inline error below field.
 
 | Screen | Field | Rule | Error copy |
 |--------|-------|------|------------|
-| 3 | displayName | Optional; 1–40 chars if present | — |
+| 3 | displayName | Optional; 1–40 chars if present | - |
 | 5 | dateOfBirth | Age 13–100 | Enter a valid date of birth (13+) |
 | 7 | heightIn | 48–96 in | Enter a height between 4'0" and 8'0" |
 | 8 | weightLbs | 70–450 lbs | Enter a weight between 70 and 450 lbs |
 | 10 | goalWeightLbs | Direction + range per goal | Goal weight should be [range] for your goal |
-| 11 | pace | Required if cut/bulk | — |
+| 11 | pace | Required if cut/bulk | - |
 | 15 | trainingWeekdays | 3–6 days | Pick 3–6 training days |
 | 18 | macros | cal 1200–6000; p 50–400; c 0–800; f 20–300 | Enter a value in range |
 | 20 | reminder times | Valid HH:MM if toggle on | Pick a reminder time |
@@ -492,13 +492,13 @@ Continue disabled until valid. Inline error below field.
 ## Component architecture
 
 ```
-OnboardingFlow.tsx          — step machine, branching, draft save
-OnboardingShell.tsx         — progress bar, back/continue (extract from current)
-OnboardingInterstitial.tsx  — zero-input screens (1, 2, 19, 21)
-WorkoutWeekCalendarPicker.tsx — NEW screen 15
-OnboardingSplitReveal.tsx   — NEW screen 16 read-only summary
-OnboardingPaywall.tsx       — NEW screen 23
-OnboardingPlanReady.tsx     — NEW screen 22
+OnboardingFlow.tsx          - step machine, branching, draft save
+OnboardingShell.tsx         - progress bar, back/continue (extract from current)
+OnboardingInterstitial.tsx  - zero-input screens (1, 2, 19, 21)
+WorkoutWeekCalendarPicker.tsx - NEW screen 15
+OnboardingSplitReveal.tsx   - NEW screen 16 read-only summary
+OnboardingPaywall.tsx       - NEW screen 23
+OnboardingPlanReady.tsx     - NEW screen 22
 
 Reuse: UnitPreferencePicker, ExperienceLevelPicker, EquipmentSetupPicker,
        OnboardingTemplateReview, NotificationPreferencesPicker, OnboardingSegment

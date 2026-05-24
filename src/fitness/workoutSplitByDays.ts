@@ -1,26 +1,92 @@
-import { SPLIT, workoutTemplateForSplitId } from "./data";
-import { adaptExerciseForEquipment } from "./exerciseEquipment";
-import { normalizeTrainingWeekdays } from "./workoutWeekCalendar";
-import { workoutTemplatesForExperience } from "./workoutTemplatesForExperience";
-import type { EquipmentSetup, ExperienceLevel, WorkoutDaysPerWeek, WorkoutRoutineTemplate } from "./types";
+import { buildWorkoutPlan, type WorkoutSession } from "./buildWorkoutPlan";
+import type { Equipment } from "./exerciseLibrary";
+import type { SessionLength } from "./splitTemplates";
+import type {
+  EquipmentSetup,
+  ExperienceLevel,
+  TrainingSessionDuration,
+  WorkoutDaysPerWeek,
+  WorkoutExercise,
+  WorkoutRoutineTemplate,
+} from "./types";
+import { defaultTrainingWeekdaysForProfile, normalizeTrainingWeekdays } from "./workoutWeekCalendar";
 
-const THREE_DAY_IDS = ["mon-upper", "tue-lower", "thu-pull"] as const;
-const FOUR_DAY_IDS = ["mon-upper", "tue-lower", "wed-push", "thu-pull"] as const;
-const SAT_TEMPLATE = {
-  id: "sat-upper",
-  day: "Sat",
-  name: "Upper pump",
-  focus: "Chest · Back · Delts · Arms",
-};
+export function equipmentSetupToEngine(setup: EquipmentSetup): Equipment {
+  if (setup === "bodyweight_only") return "bodyweight";
+  return setup;
+}
 
-function splitMetaForDays(days: WorkoutDaysPerWeek): { id: string; day: string; name: string; focus: string }[] {
-  if (days === 3) return SPLIT.filter((s) => (THREE_DAY_IDS as readonly string[]).includes(s.id));
-  if (days === 4) return SPLIT.filter((s) => (FOUR_DAY_IDS as readonly string[]).includes(s.id));
-  if (days === 5) return [...SPLIT];
-  return [
-    ...SPLIT,
-    SAT_TEMPLATE,
-  ];
+export function sessionLengthFromDuration(raw?: TrainingSessionDuration | SessionLength): SessionLength {
+  switch (raw) {
+    case "under_30":
+    case "30_or_less":
+      return "under_30";
+    case "30_45":
+    case "30_to_45":
+      return "30_45";
+    case "45_60":
+    case "45_to_60":
+      return "45_60";
+    case "60_90":
+    case "60_to_90":
+      return "60_90";
+    case "90_plus":
+      return "90_plus";
+    default:
+      return "45_60";
+  }
+}
+
+export function sessionDurationFromSessionLength(length: SessionLength): TrainingSessionDuration {
+  switch (length) {
+    case "under_30":
+      return "30_or_less";
+    case "30_45":
+      return "30_to_45";
+    case "45_60":
+      return "45_to_60";
+    case "60_90":
+      return "60_to_90";
+    case "90_plus":
+      return "90_plus";
+  }
+}
+
+function templateId(session: WorkoutSession, idx: number): string {
+  const slug = session.sessionName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `${session.dayLabel.toLowerCase()}-${slug || "session"}-${idx}`;
+}
+
+function mapExerciseToWorkoutExercise(ex: WorkoutSession["exercises"][number]): WorkoutExercise {
+  const { sets, repsLow, repsHigh } = ex.sets;
+  return {
+    id: ex.id,
+    name: ex.name,
+    label: ex.muscleGroup,
+    target: `${sets} × ${repsLow}-${repsHigh}`,
+    sets: Array.from({ length: sets }, () => ({ w: 0, r: repsHigh, done: false })),
+  };
+}
+
+export function workoutSessionToTemplate(session: WorkoutSession, idx: number): WorkoutRoutineTemplate {
+  const preview = session.exercises.slice(0, 3).map((e) => e.name);
+  const focus =
+    session.exercises.length > 0
+      ? preview.join(" · ") + (session.exercises.length > 3 ? ` · +${session.exercises.length - 3} more` : "")
+      : "Rest / recovery";
+
+  return {
+    id: templateId(session, idx),
+    name: session.sessionName,
+    dayLabel: session.dayLabel,
+    focus,
+    estimatedMinutes: session.estimatedMinutes,
+    exercises: session.exercises.map(mapExerciseToWorkoutExercise),
+    sessionTip: session.exercises.find((e) => e.coachNote)?.coachNote,
+  };
 }
 
 export function buildWorkoutTemplatesForDays(
@@ -28,43 +94,23 @@ export function buildWorkoutTemplatesForDays(
   level: ExperienceLevel,
   equipment: EquipmentSetup,
   trainingWeekdays?: string[],
+  sessionLength: SessionLength = "45_60",
 ): WorkoutRoutineTemplate[] {
   const weekdays = normalizeTrainingWeekdays(trainingWeekdays);
-  const experienced = workoutTemplatesForExperience(level);
-  const byId = new Map(experienced.map((t) => [t.id, t]));
-  const meta = splitMetaForDays(days);
+  const resolvedWeekdays = weekdays.length > 0 ? weekdays : defaultTrainingWeekdaysForProfile(days);
+  const dayCount = (weekdays.length >= 3 && weekdays.length <= 6 ? weekdays.length : days) as WorkoutDaysPerWeek;
+  const preferPPL = (level === "intermediate" || level === "advanced") && (dayCount === 3 || dayCount === 6);
 
-  if (days === 6) {
-    const satExercises = workoutTemplateForSplitId("mon-upper")
-      .slice(0, 6)
-      .map((e) => adaptExerciseForEquipment(e, equipment));
-    byId.set("sat-upper", {
-      id: "sat-upper",
-      name: SAT_TEMPLATE.name,
-      dayLabel: SAT_TEMPLATE.day,
-      focus: SAT_TEMPLATE.focus,
-      exercises: satExercises,
-    });
-  }
-
-  return meta.map((s, i) => {
-    const dayLabel = weekdays[i] ?? s.day;
-    const base = byId.get(s.id);
-    if (base) {
-      return {
-        ...base,
-        dayLabel,
-        exercises: base.exercises.map((e) => adaptExerciseForEquipment(e, equipment)),
-      };
-    }
-    return {
-      id: s.id,
-      name: s.name,
-      dayLabel,
-      focus: s.focus,
-      exercises: workoutTemplateForSplitId(s.id).map((e) => adaptExerciseForEquipment(e, equipment)),
-    };
+  const plan = buildWorkoutPlan({
+    days: dayCount,
+    weekdays: resolvedWeekdays.slice(0, dayCount),
+    equipment: equipmentSetupToEngine(equipment),
+    experience: level,
+    sessionLength,
+    preferPPL,
   });
+
+  return plan.sessions.map((session, idx) => workoutSessionToTemplate(session, idx));
 }
 
 export function workoutDaysLabel(days: WorkoutDaysPerWeek): string {

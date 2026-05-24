@@ -1,8 +1,9 @@
 import type { OnboardingProfile, WorkoutDaysPerWeek, WorkoutRoutineTemplate } from "./types";
+import { normalizeWorkoutTemplates, sanitizeWorkoutTemplates } from "./data";
+import { hasExistingFitnessData } from "./onboardingSkip";
 import { DEFAULT_ONBOARDING_PROFILE, normalizeOnboardingProfile } from "./onboardingProfile";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { defaultTrainingWeekdays, normalizeDayLabel } from "./trainingCalendar";
-import { defaultWorkoutRoutineTemplates, normalizeWorkoutTemplates } from "./data";
 
 const VALID_DAYS: WorkoutDaysPerWeek[] = [3, 4, 5, 6];
 
@@ -74,13 +75,20 @@ export function migratePersistedFitnessSlice(
   p: Partial<PersistedFitnessSlice> | null | undefined,
 ): { slice: Partial<PersistedFitnessSlice>; dirty: boolean } {
   const base = p ?? {};
+  const onboardingComplete = base.onboardingComplete === true || hasExistingFitnessData(base);
   const profile = normalizeOnboardingProfile(base.onboardingProfile) ?? { ...DEFAULT_ONBOARDING_PROFILE };
-  const templates =
+  const rawTemplates =
     base.workoutTemplates === undefined || base.workoutTemplates === null
-      ? defaultWorkoutRoutineTemplates()
+      ? []
       : normalizeWorkoutTemplates(base.workoutTemplates);
+  const sanitizedTemplates = sanitizeWorkoutTemplates(rawTemplates, { onboardingComplete });
+  let dirty = sanitizedTemplates.length !== rawTemplates.length;
 
-  const { profile: migratedProfile, templates: migratedTemplates, dirty } = migrateTrainingSchedule(profile, templates);
+  const { profile: migratedProfile, templates: migratedTemplates, dirty: scheduleDirty } = migrateTrainingSchedule(
+    profile,
+    sanitizedTemplates,
+  );
+  dirty = dirty || scheduleDirty;
 
   return {
     slice: {

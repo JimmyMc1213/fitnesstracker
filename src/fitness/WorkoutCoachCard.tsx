@@ -8,7 +8,7 @@ const coachBodyStyle = {
   fontSize: 13,
   fontWeight: 500,
   lineHeight: 1.5,
-  color: "rgba(255,255,255,0.72)",
+  color: "var(--text-soft)",
 } as const;
 
 const coachSectionLabel = {
@@ -63,14 +63,14 @@ export function WorkoutCoachCard({
           padding: "14px 16px",
           border: "none",
           background: "transparent",
-          color: "#fff",
+          color: "var(--text-primary)",
           textAlign: "left",
         }}
       >
         <span style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
           <span style={{ ...labelStyle, color: COACH_BLUE_LABEL }}>Coach</span>
           {collapsed ? (
-            <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.45)", lineHeight: 1.35 }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-faint-soft)", lineHeight: 1.35 }}>
               Tap for coach note, warm-up & mobility
             </span>
           ) : null}
@@ -101,12 +101,12 @@ export function WorkoutCoachCard({
               style={{
                 padding: 12,
                 borderRadius: 10,
-                background: "rgba(255,255,255,0.04)",
+                background: "var(--surface-1)",
                 border: "0.5px solid var(--border)",
               }}
             >
-              <div style={{ ...labelStyle, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>After this session</div>
-              <p style={{ ...coachBodyStyle, color: "rgba(255,255,255,0.82)" }}>{sessionTip}</p>
+              <div style={{ ...labelStyle, color: "var(--text-ghost)", marginBottom: 8 }}>After this session</div>
+              <p style={{ ...coachBodyStyle, color: "var(--text-soft)" }}>{sessionTip}</p>
             </section>
           ) : null}
 
@@ -126,7 +126,7 @@ export function WorkoutCoachCard({
           {activeRoutine?.warmupTip ? (
             <section>
               <div style={{ ...coachSectionLabel, color: COACH_BLUE_MUTED }}>Coach callout</div>
-              <p style={{ ...coachBodyStyle, color: "rgba(255,255,255,0.88)" }}>{activeRoutine.warmupTip}</p>
+              <p style={{ ...coachBodyStyle, color: "var(--text-soft)" }}>{activeRoutine.warmupTip}</p>
             </section>
           ) : null}
 

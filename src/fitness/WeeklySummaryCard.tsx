@@ -35,7 +35,7 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
           margin: 0,
           fontSize: 13,
           lineHeight: 1.45,
-          color: "rgba(255,255,255,0.72)",
+          color: "var(--text-soft)",
           fontWeight: 500,
         }}
       >
@@ -60,7 +60,7 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
         >
           Next week
         </div>
-        <div style={{ marginTop: 5, fontSize: 12, lineHeight: 1.4, color: "rgba(255,255,255,0.88)", fontWeight: 600 }}>
+        <div style={{ marginTop: 5, fontSize: 12, lineHeight: 1.4, color: "var(--text-soft)", fontWeight: 600 }}>
           {coachReview.nextWeekFocus}
         </div>
       </div>
@@ -100,7 +100,7 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
       >
         This week
       </div>
-      <div style={{ marginTop: 4, fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+      <div style={{ marginTop: 4, fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
         {rangeLabel} · resets Monday
       </div>
     </div>
@@ -153,7 +153,7 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
           padding: 16,
           border: "none",
           background: "transparent",
-          color: "#fff",
+          color: "var(--text-primary)",
           textAlign: "left",
         }}
       >
@@ -185,12 +185,12 @@ function StatBlock({ label, value, sub }: { label: string; value: string; sub?: 
       style={{
         padding: "10px 8px",
         borderRadius: 10,
-        background: "rgba(255,255,255,0.04)",
-        border: "0.5px solid rgba(255,255,255,0.06)",
+        background: "var(--surface-1)",
+        border: "0.5px solid var(--divider-subtle)",
         minWidth: 0,
       }}
     >
-      <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
+      <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)" }}>
         {label}
       </div>
       <div
@@ -200,7 +200,7 @@ function StatBlock({ label, value, sub }: { label: string; value: string; sub?: 
           fontWeight: 800,
           letterSpacing: "-0.02em",
           fontVariantNumeric: "tabular-nums",
-          color: "#fff",
+          color: "var(--text-primary)",
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -209,7 +209,7 @@ function StatBlock({ label, value, sub }: { label: string; value: string; sub?: 
         {value}
       </div>
       {sub ? (
-        <div style={{ marginTop: 3, fontSize: 9, color: "rgba(255,255,255,0.32)", fontWeight: 500 }}>{sub}</div>
+        <div style={{ marginTop: 3, fontSize: 9, color: "var(--text-ghost)", fontWeight: 500 }}>{sub}</div>
       ) : null}
     </div>
   );

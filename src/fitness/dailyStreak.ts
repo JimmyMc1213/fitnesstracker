@@ -96,6 +96,17 @@ function macroRatioHit(actual: number, target: number): boolean {
   return actual >= target * NUTRITION_GOAL_HIT_RATIO;
 }
 
+/** True when logged protein meets at least 90% of the daily protein target. */
+export function proteinGoalHitForDateKey(
+  nutritionManualByDay: Record<string, MacroTotals> | undefined,
+  nutritionItemsByDay: Record<string, import("./types").NutritionLoggedItem[]> | undefined,
+  nutritionTargets: MacroTotals,
+  dateKey: string,
+): boolean {
+  const totals = effectiveNutritionTotalsForDateKey(nutritionManualByDay, nutritionItemsByDay, dateKey);
+  return macroRatioHit(totals.p, nutritionTargets.p);
+}
+
 /** True when logged macros meet at least 90% of calorie and protein targets for the day. */
 export function nutritionGoalHitForDateKey(
   nutritionManualByDay: Record<string, MacroTotals> | undefined,

@@ -33,15 +33,15 @@ export function RestTimerBar({
   }, [completed]);
 
   const progress = durationSec > 0 ? Math.max(0, Math.min(1, remainingSec / durationSec)) : 0;
-  const accent = completed ? "#ffffff" : COACH_BLUE;
+  const accent = completed ? "var(--chart-stroke)" : COACH_BLUE;
 
   return (
     <div
       style={{
         marginBottom: 8,
         borderRadius: 8,
-        border: `0.5px solid ${completed ? "rgba(255,255,255,0.25)" : "rgba(10,132,255,0.25)"}`,
-        background: completed ? "rgba(255,255,255,0.08)" : "rgba(10,132,255,0.08)",
+        border: `0.5px solid ${completed ? "var(--border-strong)" : "rgba(10,132,255,0.25)"}`,
+        background: completed ? "var(--surface-3)" : "rgba(10,132,255,0.08)",
         padding: "6px 10px",
         overflow: "hidden",
         position: "relative",
@@ -68,7 +68,7 @@ export function RestTimerBar({
               fontWeight: 600,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
-              color: completed ? "rgba(255,255,255,0.85)" : "rgba(10,132,255,0.85)",
+              color: completed ? "var(--text-soft)" : "rgba(10,132,255,0.85)",
               marginBottom: 1,
               lineHeight: 1.2,
             }}
@@ -95,11 +95,11 @@ export function RestTimerBar({
           aria-label={`Rest duration ${presetLabel}, tap to change`}
           style={{
             flexShrink: 0,
-            border: "0.5px solid rgba(255,255,255,0.12)",
+            border: "0.5px solid var(--sheet-panel-border)",
             borderRadius: 6,
             padding: "4px 8px",
-            background: "rgba(255,255,255,0.06)",
-            color: "rgba(255,255,255,0.72)",
+            background: "var(--surface-3)",
+            color: "var(--text-soft)",
             fontSize: 11,
             fontWeight: 600,
             fontVariantNumeric: "tabular-nums",
@@ -116,7 +116,7 @@ export function RestTimerBar({
             flexShrink: 0,
             border: "none",
             background: "transparent",
-            color: "rgba(255,255,255,0.45)",
+            color: "var(--text-faint-soft)",
             fontSize: 11,
             fontWeight: 500,
             padding: "4px 2px",

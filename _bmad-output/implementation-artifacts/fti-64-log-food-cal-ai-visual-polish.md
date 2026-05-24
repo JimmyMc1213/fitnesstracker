@@ -13,7 +13,7 @@ so fuel logging feels polished and native on phone.
 1. **Visual pass:** Dark card rows; rounded search input; active tab underline indicator; row `+` buttons match reference styling
 2. **Safe area:** FAB on Nutrition tab and bottom Manual Add respect `env(safe-area-inset-bottom)` on notched devices
 3. **UX polish:** Keyboard-friendly search (input focus, scroll behavior on mobile); macro ring animation on return from Log Food (reuse existing ring animation patterns)
-4. **Empty states:** Per-tab helpful copy (All, My foods, My meals, Favorite foods) — no generic placeholders
+4. **Empty states:** Per-tab helpful copy (All, My foods, My meals, Favorite foods) - no generic placeholders
 5. **Performance:** Session-memory cache for recent search queries; Edge Function / client limits USDA+OFF merged results to top ~20
 6. **Quality:** No regression to existing Log Food flows; `npm run build` + `npm test` pass
 

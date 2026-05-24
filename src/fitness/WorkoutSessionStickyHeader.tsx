@@ -23,15 +23,15 @@ export function WorkoutSessionStickyHeader({ doneSets, totalSets, totalVolume, w
         gap: 18,
         alignItems: "center",
         background: "var(--bg)",
-        borderBottom: "0.5px solid rgba(255,255,255,0.08)",
+        borderBottom: "0.5px solid var(--divider-subtle)",
       }}
     >
       <div style={{ flex: 1 }}>
-        <div style={{ ...labelStyle, color: "rgba(255,255,255,0.35)" }}>Session</div>
+        <div style={{ ...labelStyle, color: "var(--text-ghost)" }}>Session</div>
         <div
           style={{
             fontSize: METADATA_SIZE,
-            color: "rgba(255,255,255,0.4)",
+            color: "var(--text-ghost)",
             marginTop: 4,
             fontWeight: 500,
             fontVariantNumeric: "tabular-nums",
@@ -47,7 +47,7 @@ export function WorkoutSessionStickyHeader({ doneSets, totalSets, totalVolume, w
             fontWeight: 700,
             letterSpacing: "-0.03em",
             fontVariantNumeric: "tabular-nums",
-            color: "#fff",
+            color: "var(--text-primary)",
           }}
         >
           {totalVolume.toLocaleString()}
@@ -56,7 +56,7 @@ export function WorkoutSessionStickyHeader({ doneSets, totalSets, totalVolume, w
           style={{
             ...labelStyle,
             fontSize: LABEL_SIZE,
-            color: "rgba(255,255,255,0.35)",
+            color: "var(--text-ghost)",
             marginTop: 2,
           }}
         >

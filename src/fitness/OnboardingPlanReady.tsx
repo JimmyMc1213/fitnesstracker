@@ -1,75 +1,205 @@
-import { weekdayShort } from "./trainingCalendar";
+import type { CSSProperties, ReactNode } from "react";
+
+import { planReadyFirstCoachNote } from "./onboardingReinforcementCopy";
+import { weekdayMonStartIndex } from "./trainingCalendar";
+import { TypewriterText } from "./TypewriterText";
 import type { MacroTotals, OnboardingProfile, WorkoutRoutineTemplate } from "./types";
+import {
+  DEFAULT_WATER_DAILY_TARGET_OZ,
+  formatWaterOz,
+} from "./waterIntake";
+
+const DEFAULT_STEPS_TARGET = 10_000;
+
+const PLAN_READY_LABEL_MS = 600;
+const PLAN_READY_SECTION_PAUSE_MS = 120;
+const PLAN_READY_WAVE_PAUSE_MS = 350;
+const PLAN_READY_WAVE_STEP_MS = 170;
+const PLAN_READY_WAVE_MS = 600;
+
+function planReadyMacroDelay(index: number): number {
+  return (PLAN_READY_LABEL_MS + PLAN_READY_SECTION_PAUSE_MS + index * PLAN_READY_WAVE_STEP_MS) / 1000;
+}
+
+function planReadyWeekLabelDelay(): number {
+  const macroWaveEndMs =
+    PLAN_READY_LABEL_MS + PLAN_READY_SECTION_PAUSE_MS + 3 * PLAN_READY_WAVE_STEP_MS + PLAN_READY_WAVE_MS;
+  return (macroWaveEndMs + PLAN_READY_SECTION_PAUSE_MS) / 1000;
+}
+
+function planReadyWeekSectionBaseMs(): number {
+  return planReadyWeekLabelDelay() * 1000 + PLAN_READY_LABEL_MS + PLAN_READY_WAVE_PAUSE_MS;
+}
+
+/** Stagger index after the “Your week” label: rows, then hydration label, oz, steps label, steps value. */
+function planReadyWeekSequenceDelay(sequenceIndex: number): number {
+  return (planReadyWeekSectionBaseMs() + sequenceIndex * PLAN_READY_WAVE_STEP_MS) / 1000;
+}
+
+function planReadyCoachDelay(weekRowCount: number): number {
+  const lastSequenceIndex = weekRowCount + 3;
+  const coachStartMs =
+    planReadyWeekSectionBaseMs() + lastSequenceIndex * PLAN_READY_WAVE_STEP_MS + PLAN_READY_WAVE_MS + PLAN_READY_SECTION_PAUSE_MS;
+  return coachStartMs / 1000;
+}
 
 type Props = {
   displayName: string;
   macros: MacroTotals;
   profile: OnboardingProfile;
   templates: WorkoutRoutineTemplate[];
+  waterDailyTargetOz?: number;
+  stepsTarget?: number;
 };
 
-export function OnboardingPlanReady({ displayName, macros, profile, templates }: Props) {
-  const todayLabel = weekdayShort(new Date());
-  const todayTemplate = templates.find((t) => t.dayLabel === todayLabel);
-  const weekdays = profile.trainingWeekdays ?? templates.map((t) => t.dayLabel);
+function MacroStat({
+  value,
+  label,
+  tone,
+  waveIndex,
+}: {
+  value: number;
+  label: string;
+  tone?: "protein" | "carbs" | "fat";
+  waveIndex: number;
+}) {
+  return (
+    <div
+      className="onboarding-plan-ready__macro onboarding-plan-ready__wave-item onboarding-plan-ready__wave-item--horizontal"
+      style={{ animationDelay: `${planReadyMacroDelay(waveIndex)}s` }}
+    >
+      <span
+        className={`onboarding-plan-ready__macro-value${tone ? ` onboarding-plan-ready__macro-value--${tone}` : ""}`}
+      >
+        {value.toLocaleString()}
+      </span>
+      <span className="onboarding-plan-ready__macro-label">{label}</span>
+    </div>
+  );
+}
+
+function HabitWave({
+  delaySec,
+  className,
+  children,
+}: {
+  delaySec: number;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      className={`onboarding-plan-ready__wave-item onboarding-plan-ready__wave-item--vertical${className ? ` ${className}` : ""}`}
+      style={{ animationDelay: `${delaySec}s` }}
+    >
+      {children}
+    </span>
+  );
+}
+
+export function OnboardingPlanReady({
+  macros,
+  profile,
+  templates,
+  waterDailyTargetOz = DEFAULT_WATER_DAILY_TARGET_OZ,
+  stepsTarget = DEFAULT_STEPS_TARGET,
+}: Props) {
+  const weekTemplates = [...templates].sort(
+    (a, b) => weekdayMonStartIndex(a.dayLabel) - weekdayMonStartIndex(b.dayLabel),
+  );
+
+  const weekLabelDelay = planReadyWeekLabelDelay();
+  const coachDelay = planReadyCoachDelay(weekTemplates.length);
+  const coachNote = planReadyFirstCoachNote(profile);
+  const hydrationLabelDelay = planReadyWeekSequenceDelay(weekTemplates.length);
+  const hydrationValueDelay = planReadyWeekSequenceDelay(weekTemplates.length + 1);
+  const stepsLabelDelay = planReadyWeekSequenceDelay(weekTemplates.length + 2);
+  const stepsValueDelay = planReadyWeekSequenceDelay(weekTemplates.length + 3);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <div className="card" style={{ padding: 16 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
-          Today
+    <div
+      className="onboarding-plan-ready"
+      style={
+        {
+          "--plan-ready-week-delay": `${weekLabelDelay}s`,
+          "--plan-ready-coach-delay": `${coachDelay}s`,
+        } as CSSProperties
+      }
+    >
+      <section className="onboarding-plan-ready__section onboarding-plan-ready__section--fuel">
+        <h3 className="onboarding-plan-ready__label">Daily fuel</h3>
+        <div className="onboarding-plan-ready__macros">
+          <MacroStat value={macros.cal} label="kcal" waveIndex={0} />
+          <MacroStat value={macros.p} label="g protein" tone="protein" waveIndex={1} />
+          <MacroStat value={macros.c} label="g carbs" tone="carbs" waveIndex={2} />
+          <MacroStat value={macros.f} label="g fat" tone="fat" waveIndex={3} />
         </div>
-        <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", marginTop: 6 }}>
-          {todayTemplate ? `${todayTemplate.name}` : "Rest day"}
-        </div>
-        {todayTemplate ? (
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{todayTemplate.focus}</div>
-        ) : (
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>Recovery — focus on fuel and sleep.</div>
-        )}
-      </div>
+      </section>
 
-      <div className="card" style={{ padding: 16 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
-          Daily fuel
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 10, fontSize: 14, color: "#fff" }}>
-          <span>{macros.cal} kcal</span>
-          <span>{macros.p}g protein</span>
-          <span>{macros.c}g carbs</span>
-          <span>{macros.f}g fat</span>
-        </div>
-      </div>
+      <div className="onboarding-plan-ready__divider" aria-hidden />
 
-      <div className="card" style={{ padding: 16 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
-          Your week
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
-          {weekdays.map((day) => {
-            const routine = templates.find((t) => t.dayLabel === day);
-            return (
-              <span
-                key={day}
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  padding: "6px 10px",
-                  borderRadius: 8,
-                  background: routine ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
-                  color: routine ? "#fff" : "rgba(255,255,255,0.4)",
-                }}
+      <section className="onboarding-plan-ready__section onboarding-plan-ready__section--week">
+        <div className="onboarding-plan-ready__week-layout">
+          <div className="onboarding-plan-ready__week-main">
+            <h3
+              className="onboarding-plan-ready__label onboarding-plan-ready__wave-item onboarding-plan-ready__wave-item--vertical"
+              style={{ animationDelay: `${weekLabelDelay}s` }}
+            >
+              Your week
+            </h3>
+            <ul className="onboarding-plan-ready__week">
+              {weekTemplates.map((routine, index) => (
+                <li
+                  key={routine.id}
+                  className="onboarding-plan-ready__week-row onboarding-plan-ready__wave-item onboarding-plan-ready__wave-item--vertical"
+                  style={{ animationDelay: `${planReadyWeekSequenceDelay(index)}s` }}
+                >
+                  <span className="onboarding-plan-ready__week-day">{routine.dayLabel}</span>
+                  <span className="onboarding-plan-ready__week-name">{routine.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="onboarding-plan-ready__habits">
+            <div className="onboarding-plan-ready__habit">
+              <HabitWave delaySec={hydrationLabelDelay} className="onboarding-plan-ready__label">
+                Hydration
+              </HabitWave>
+              <HabitWave
+                delaySec={hydrationValueDelay}
+                className="onboarding-plan-ready__habit-value onboarding-plan-ready__habit-value--hydration"
               >
-                {day}
-              </span>
-            );
-          })}
+                {formatWaterOz(waterDailyTargetOz)}
+              </HabitWave>
+            </div>
+            <div className="onboarding-plan-ready__habit">
+              <HabitWave delaySec={stepsLabelDelay} className="onboarding-plan-ready__label">
+                Steps
+              </HabitWave>
+              <HabitWave
+                delaySec={stepsValueDelay}
+                className="onboarding-plan-ready__habit-value onboarding-plan-ready__habit-value--steps"
+              >
+                {stepsTarget.toLocaleString()}
+              </HabitWave>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {displayName.trim() ? null : (
-        <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)" }}>Your personalized Gymmy plan is ready.</p>
-      )}
+      <div className="onboarding-plan-ready__divider onboarding-plan-ready__divider--coach" aria-hidden />
+
+      <section className="onboarding-plan-ready__section onboarding-plan-ready__section--coach">
+        <p className="onboarding-plan-ready__coach-heading onboarding-plan-ready__wave-item onboarding-plan-ready__wave-item--vertical">
+          Coach
+        </p>
+        <TypewriterText
+          text={coachNote}
+          speed={28}
+          startDelayMs={(coachDelay + 0.72) * 1000}
+          className="onboarding-plan-ready__coach-note"
+        />
+      </section>
     </div>
   );
 }

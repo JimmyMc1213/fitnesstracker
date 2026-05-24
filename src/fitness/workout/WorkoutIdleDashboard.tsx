@@ -19,8 +19,8 @@ function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
         height: 40,
         borderRadius: 10,
         border: "0.5px solid var(--border)",
-        background: "rgba(255,255,255,0.06)",
-        color: "#fff",
+        background: "var(--surface-3)",
+        color: "var(--text-primary)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -88,7 +88,7 @@ export function WorkoutIdleDashboard({
 
         {state.workoutTemplates.length === 0 ? (
           <div className="card" style={{ padding: 24, textAlign: "center" }}>
-            <p style={{ margin: "0 0 16px", fontSize: 14, color: "rgba(255,255,255,0.55)", fontWeight: 500, lineHeight: 1.5 }}>
+            <p style={{ margin: "0 0 16px", fontSize: 14, color: "var(--text-muted-soft)", fontWeight: 500, lineHeight: 1.5 }}>
               No routines yet. Create one or restore the built-in 5-day split.
             </p>
             <PrimaryButton block onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)} style={{ fontSize: 14, padding: 14 }}>
@@ -115,7 +115,7 @@ export function WorkoutIdleDashboard({
                     borderRadius: 14,
                     overflow: "hidden",
                     border: "0.5px solid var(--border)",
-                    background: "rgba(255,255,255,0.05)",
+                    background: "var(--surface-2)",
                   }}
                 >
                   <button
@@ -126,7 +126,7 @@ export function WorkoutIdleDashboard({
                       flex: 1,
                       textAlign: "left",
                       padding: 16,
-                      color: "#fff",
+                      color: "var(--text-primary)",
                       border: "none",
                       background: "transparent",
                       minWidth: 0,
@@ -136,7 +136,7 @@ export function WorkoutIdleDashboard({
                       style={{
                         fontSize: 11,
                         fontWeight: 600,
-                        color: "rgba(255,255,255,0.45)",
+                        color: "var(--text-faint-soft)",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
                         marginBottom: 6,
@@ -146,17 +146,17 @@ export function WorkoutIdleDashboard({
                     </div>
                     <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: "-0.02em", marginBottom: 6 }}>{tpl.name}</div>
                     {tpl.focus.trim() ? (
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 10, lineHeight: 1.4 }}>{tpl.focus}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted-soft)", marginBottom: 10, lineHeight: 1.4 }}>{tpl.focus}</div>
                     ) : null}
                     <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
                       {preview.map((name, i) => (
-                        <li key={`${tpl.id}-p${i}`} style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", fontWeight: 500 }}>
+                        <li key={`${tpl.id}-p${i}`} style={{ fontSize: 13, color: "var(--text-soft)", fontWeight: 500 }}>
                           {name}
                         </li>
                       ))}
                     </ul>
                     {more > 0 ? (
-                      <div style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>+{more} more</div>
+                      <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-ghost)", fontWeight: 500 }}>+{more} more</div>
                     ) : null}
                   </button>
                   <button
@@ -167,7 +167,7 @@ export function WorkoutIdleDashboard({
                       padding: "16px 14px",
                       border: "none",
                       borderLeft: "0.5px solid var(--border)",
-                      background: "rgba(255,255,255,0.03)",
+                      background: "var(--surface-1)",
                       color: "#6EB7FF",
                       fontSize: 13,
                       fontWeight: 600,
@@ -192,7 +192,7 @@ export function WorkoutIdleDashboard({
           style={{
             marginTop: 16,
             width: "100%",
-            color: "rgba(255,255,255,0.35)",
+            color: "var(--text-ghost)",
             fontSize: 12,
             fontWeight: 500,
             padding: 10,

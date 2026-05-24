@@ -84,7 +84,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
       zIndex={190}
       ariaLabel="Weigh in"
       backdropStyle={{
-        background: "rgba(0,0,0,0.78)",
+        background: "var(--sheet-backdrop)",
         alignItems: "stretch",
         flexDirection: "column",
         justifyContent: "flex-end",
@@ -96,7 +96,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
         padding: 18,
         borderRadius: 16,
         marginBottom: 8,
-        border: "0.5px solid rgba(255,255,255,0.14)",
+        border: "0.5px solid var(--sheet-panel-border)",
         background: "var(--card)",
         width: "100%",
         maxWidth: "100%",
@@ -108,18 +108,18 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
             fontWeight: 600,
             letterSpacing: "0.1em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.45)",
+            color: "var(--text-faint-soft)",
             marginBottom: 8,
           }}
         >
           Weigh-in
         </div>
-        <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", fontWeight: 400 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "var(--text-muted-soft)", fontWeight: 400 }}>
           Morning scale, post-bathroom, before food. Optional progress photo, same stance and lighting when you can.
         </p>
         <div className="between" style={{ alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 100 }}>
-            <label htmlFor="wi-weight-sheet" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em" }}>
+            <label htmlFor="wi-weight-sheet" style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em" }}>
               Weight ({weightUnitLabel(wUnit)})
             </label>
             <input
@@ -152,7 +152,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
                 padding: "10px 14px",
                 fontSize: 12,
                 fontWeight: 600,
-                color: "#fff",
+                color: "var(--text-primary)",
               }}
             >
               {photoPreview ? "Change photo" : "Add progress photo"}
@@ -162,7 +162,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
                 type="button"
                 className="tap"
                 onClick={() => setPhotoPreview(null)}
-                style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}
+                style={{ fontSize: 11, color: "var(--text-faint-soft)", fontWeight: 500 }}
               >
                 Remove photo
               </button>
@@ -181,8 +181,8 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
           style={{
             marginTop: 16,
             width: "100%",
-            background: "#ffffff",
-            color: "#000",
+            background: "var(--primary)",
+            color: "var(--primary-fg)",
             borderRadius: 12,
             padding: 14,
             fontSize: 14,
@@ -201,7 +201,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
             padding: 10,
             fontSize: 13,
             fontWeight: 600,
-            color: "rgba(255,255,255,0.45)",
+            color: "var(--text-faint-soft)",
           }}
         >
           Cancel

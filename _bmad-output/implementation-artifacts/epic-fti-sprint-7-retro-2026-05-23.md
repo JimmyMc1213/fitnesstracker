@@ -10,12 +10,12 @@
 
 ## Epic summary
 
-**Goal:** Nutrition OS v2 — Chunk 1. Strip Nutrition tab to rings + hydration + FAB; build full-screen Log Food overlay (manual add + recently logged); extend logged-item schema; remove Home quick-log; unify coach fuel routing; refresh E2E.
+**Goal:** Nutrition OS v2 - Chunk 1. Strip Nutrition tab to rings + hydration + FAB; build full-screen Log Food overlay (manual add + recently logged); extend logged-item schema; remove Home quick-log; unify coach fuel routing; refresh E2E.
 
 | Metric | Value |
 | --- | --- |
 | Stories completed | 3 / 3 shipped |
-| PR | [#29](https://github.com/JimmyMc1213/fitnesstracker/pull/29) `epic-fti-sprint-7/nutrition-os-v2-chunk-1` — **merged to `main`** |
+| PR | [#29](https://github.com/JimmyMc1213/fitnesstracker/pull/29) `epic-fti-sprint-7/nutrition-os-v2-chunk-1` - **merged to `main`** |
 | Quality gate (at merge) | `npm run build` + `npm test` (108) + `npm run test:e2e` (3) |
 | Test automation | Vitest **108 tests** (+8 from Sprint 6); Playwright **3 E2E smokes** (nutrition log food replaces fuel quick-log) |
 | Epic status | **done** |
@@ -77,15 +77,15 @@
 
 2. **Story file gap for FTI-58 and FTI-59.** Only FTI-57 has a full story artifact; FTI-58/59 traceability lives in epics.md and Linear only.
 
-3. **Empty tabs by design can feel broken.** My foods, My meals, and Favorite foods show placeholder copy until Sprint 8 — expected but worth clearer empty-state messaging in S8 opener.
+3. **Empty tabs by design can feel broken.** My foods, My meals, and Favorite foods show placeholder copy until Sprint 8 - expected but worth clearer empty-state messaging in S8 opener.
 
 4. **Search bar is UI-only.** Users may expect "Describe what you ate" to search; Sprint 8 must ship USDA/OFF quickly or add interim copy that sets expectations.
 
-5. **CI E2E gate still missing.** Quality verified locally at merge; no GitHub Actions `test:e2e` — recurring debt since Sprint 5.
+5. **CI E2E gate still missing.** Quality verified locally at merge; no GitHub Actions `test:e2e` - recurring debt since Sprint 5.
 
 6. **Local WIP can drift from main.** Untracked `workoutTemplates.test.ts` on disk fails against main (103/108 pass locally); keep WIP tests off main or on feature branches.
 
-7. **Design token docs vs code.** Scope locks mention lime green; Log Food FAB uses `--pos` (#4ade80) — aligned in code, comments still inconsistent.
+7. **Design token docs vs code.** Scope locks mention lime green; Log Food FAB uses `--pos` (#4ade80) - aligned in code, comments still inconsistent.
 
 ---
 
@@ -136,7 +136,7 @@
 
 ## Next epic preparation
 
-**Sprint 8:** Nutrition OS v2 — Chunk 2 (see `nutrition-os-v2-checklist.md`).
+**Sprint 8:** Nutrition OS v2 - Chunk 2 (see `nutrition-os-v2-checklist.md`).
 
 Planned scope:
 - USDA FoodData Central + Open Food Facts via Supabase Edge Function
@@ -161,8 +161,8 @@ Planned scope:
 
 1. **USDA API key + Edge Function scaffold** (checklist Phase 0.2)
 2. **FTI-60 story file** before `/bmad-swarm`
-3. **Decide PR granularity** — epic vs one-story PRs
-4. **Favorite foods tab wiring** — user-visible win early in S8
+3. **Decide PR granularity** - epic vs one-story PRs
+4. **Favorite foods tab wiring** - user-visible win early in S8
 
 ### Readiness assessment
 
@@ -180,7 +180,7 @@ Planned scope:
 
 ## Significant discoveries
 
-**Epic update required for Sprint 8:** YES — prioritize Edge Function + All-tab search before meal prep (S9).
+**Epic update required for Sprint 8:** YES - prioritize Edge Function + All-tab search before meal prep (S9).
 
 1. **Chunk 1 validated the Cal AI split.** Dashboard tab + full-screen log overlay is the right IA; Sprint 8 fills the empty tabs.
 2. **Coach + Home alignment was non-optional.** Shipping Log Food without FTI-58 would have left two logging paths.

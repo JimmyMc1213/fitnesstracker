@@ -1,4 +1,4 @@
-# Sprint 11 — Gymmy Onboarding v2 Final Flow
+# Sprint 11 - Gymmy Onboarding v2 Final Flow
 
 **Planned:** 2026-05-23  
 **Epic:** `epic-fti-sprint-11`  
@@ -11,7 +11,7 @@
 
 ## Sprint goal (one sentence)
 
-New users complete a coached, resumable 23-screen Gymmy onboarding that configures split, macros, reminders, and subscription tier — then land on Home with a working daily plan.
+New users complete a coached, resumable 23-screen Gymmy onboarding that configures split, macros, reminders, and subscription tier - then land on Home with a working daily plan.
 
 ---
 
@@ -24,7 +24,7 @@ New users complete a coached, resumable 23-screen Gymmy onboarding that configur
 | Flow v2 spec | **Done** | 23 screens, data model, resume rules |
 | FTI-70 Data model | **Done** | `onboardingDraft`, `dateOfBirth`, `goalWeightLbs`, `pace`, `subscriptionTier` |
 | FTI-71 Week calendar | **Done** | `WorkoutWeekCalendarPicker` wired in v1 Schedule step |
-| v1 wizard | **Live** | 11 steps — replaced by FTI-72 |
+| v1 wizard | **Live** | 11 steps - replaced by FTI-72 |
 | Resume on refresh | **Open bug** | Parked; FTI-75 must fix or accept known gap |
 
 ---
@@ -37,18 +37,18 @@ FTI-73 → FTI-72 (3 PR chunks) → FTI-74 → FTI-75 → retro
 
 | # | Story | Scope | Target | Status |
 |---|-------|-------|--------|--------|
-| 0 | *(done)* FTI-69 | Phase 0 foundation | — | done |
-| 1 | *(done)* FTI-70 | Data model + draft | — | done |
-| 2 | *(done)* FTI-71 | Week calendar picker | — | done |
+| 0 | *(done)* FTI-69 | Phase 0 foundation | - | done |
+| 1 | *(done)* FTI-70 | Data model + draft | - | done |
+| 2 | *(done)* FTI-71 | Week calendar picker | - | done |
 | 3 | **FTI-73** | `buildWorkoutTemplatesForDays(..., trainingWeekdays)` | 1 PR | ready-for-dev |
 | 4 | **FTI-72** | 23-screen flow rewrite | 2–3 PRs | ready-for-dev |
 | 5 | **FTI-74** | Paywall UI stub (screen 23) | 1 PR | backlog |
 | 6 | **FTI-75** | Playwright happy path + resume + build gate | 1 PR | backlog |
-| 7 | Retro | `epic-fti-sprint-11-retrospective` | — | optional |
+| 7 | Retro | `epic-fti-sprint-11-retrospective` | - | optional |
 
 ---
 
-## FTI-73 — Template weekday mapping (do first)
+## FTI-73 - Template weekday mapping (do first)
 
 **Why first:** Training screens (15–17) depend on templates getting correct `dayLabel` from user weekdays without a post-hoc align helper.
 
@@ -61,19 +61,19 @@ FTI-73 → FTI-72 (3 PR chunks) → FTI-74 → FTI-75 → retro
 
 ---
 
-## FTI-72 — 23-screen rewrite (split into 3 PR chunks)
+## FTI-72 - 23-screen rewrite (split into 3 PR chunks)
 
 Replace [`OnboardingFlow.tsx`](../../src/fitness/OnboardingFlow.tsx) v1 step machine with v2. Bump `ONBOARDING_DRAFT_VERSION` to **3** (23-screen order).
 
-### PR 1 — Shell + Hook + About you (screens 1–8)
+### PR 1 - Shell + Hook + About you (screens 1–8)
 
 | Screen | Title / purpose |
 |--------|-----------------|
-| 1 | Welcome — Gymmy, no back |
-| 2 | Why Gymmy coaches — interstitial |
-| 3 | First name — required |
+| 1 | Welcome - Gymmy, no back |
+| 2 | Why Gymmy coaches - interstitial |
+| 3 | First name - required |
 | 4 | Gender |
-| 5 | Date of birth — derive age |
+| 5 | Date of birth - derive age |
 | 6 | Units |
 | 7 | Height |
 | 8 | Weight |
@@ -82,39 +82,39 @@ Replace [`OnboardingFlow.tsx`](../../src/fitness/OnboardingFlow.tsx) v1 step mac
 **Progress:** Phase label "About you", `Step X of 23` from screen 3  
 **Draft:** Save on every Continue/Back; sync `gymmy_onboarding_draft`
 
-### PR 2 — Goal + Training (screens 9–17)
+### PR 2 - Goal + Training (screens 9–17)
 
 | Screen | Title / purpose |
 |--------|-----------------|
 | 9 | Primary goal |
-| 10 | Goal weight — skip if maintain |
-| 11 | Pace — skip if maintain |
+| 10 | Goal weight - skip if maintain |
+| 11 | Pace - skip if maintain |
 | 12 | Activity level |
 | 13 | Experience |
 | 14 | Equipment |
 | 15 | **WorkoutWeekCalendarPicker** (reuse FTI-71) |
-| 16 | Split reveal — **new** `OnboardingSplitReveal.tsx` |
-| 17 | Edit split — optional branch → `OnboardingTemplateReview` |
+| 16 | Split reveal - **new** `OnboardingSplitReveal.tsx` |
+| 17 | Edit split - optional branch → `OnboardingTemplateReview` |
 
 **Branching:** maintain skips 10–11; Edit on 16 → 17 → 18  
 **On Continue from 15:** `buildWorkoutTemplatesForDays(..., trainingWeekdays)`
 
-### PR 3 — Nutrition + Launch through Plan ready (screens 18–22)
+### PR 3 - Nutrition + Launch through Plan ready (screens 18–22)
 
 | Screen | Title / purpose |
 |--------|-----------------|
 | 18 | Macro targets + override |
-| 19 | Protein priority — interstitial |
+| 19 | Protein priority - interstitial |
 | 20 | Notifications |
-| 21 | Generating plan — auto-advance 3–4s |
-| 22 | Plan ready — **new** `OnboardingPlanReady.tsx` |
+| 21 | Generating plan - auto-advance 3–4s |
+| 22 | Plan ready - **new** `OnboardingPlanReady.tsx` |
 
 **Finish screen 22:** Navigate to screen 23 (FTI-74), not Home yet  
 **Branding:** "Gymmy" in all copy
 
 ---
 
-## FTI-74 — Paywall stub (screen 23)
+## FTI-74 - Paywall stub (screen 23)
 
 **UI:** Full designed paywall per tier matrix  
 - **$9.99/mo** · **$79.99/yr (33% off)**  
@@ -127,7 +127,7 @@ Replace [`OnboardingFlow.tsx`](../../src/fitness/OnboardingFlow.tsx) v1 step mac
 
 ---
 
-## FTI-75 — E2E + quality gate
+## FTI-75 - E2E + quality gate
 
 **Playwright:**
 - Happy path: new user → paywall → Home (maintain + cut paths)

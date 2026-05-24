@@ -2,11 +2,26 @@ import { useState, type CSSProperties } from "react";
 
 import { useFitnessSync } from "./FitnessSyncContext";
 
-type View = "landing" | "signin" | "signup";
+type View = "landing" | "signin" | "signin-form" | "signup";
 
-export function AuthScreen() {
+type AuthScreenProps = {
+  initialView?: "landing" | "signin" | "signup";
+  /** Welcome-screen sign in: hide create-account path; offer Get Started instead. */
+  fromWelcome?: boolean;
+  externalError?: string | null;
+  onGetStarted?: () => void;
+};
+
+export function AuthScreen({
+  initialView = "landing",
+  fromWelcome = false,
+  externalError = null,
+  onGetStarted,
+}: AuthScreenProps) {
   const sync = useFitnessSync();
-  const [view, setView] = useState<View>("landing");
+  const [view, setView] = useState<View>(
+    fromWelcome && initialView === "signin" ? "signin-form" : initialView,
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,33 +51,33 @@ export function AuthScreen() {
   };
 
   const s: Record<string, CSSProperties> = {
-    logo: { fontSize: 28, fontWeight: 700, color: "#fff", marginBottom: 8 },
-    sub: { fontSize: 14, color: "rgba(255,255,255,0.4)", marginBottom: 48 },
+    logo: { fontSize: 28, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 },
+    sub: { fontSize: 14, color: "var(--text-ghost)", marginBottom: 48 },
     card: {
       width: "100%",
       maxWidth: 380,
-      background: "#1a1a1a",
+      background: "var(--card-2)",
       borderRadius: 20,
       padding: "28px 24px",
       display: "flex",
       flexDirection: "column",
       gap: 12,
     },
-    title: { fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 4 },
+    title: { fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 },
     input: {
       background: "#2a2a2a",
       border: "none",
       borderRadius: 12,
       padding: "14px 16px",
       fontSize: 16,
-      color: "#fff",
+      color: "var(--text-primary)",
       outline: "none",
       width: "100%",
       boxSizing: "border-box",
     },
     btn: {
-      background: "#fff",
-      color: "#000",
+      background: "var(--primary)",
+      color: "var(--primary-fg)",
       border: "none",
       borderRadius: 12,
       padding: "15px",
@@ -73,7 +88,7 @@ export function AuthScreen() {
     },
     ghost: {
       background: "transparent",
-      color: "rgba(255,255,255,0.5)",
+      color: "var(--text-muted-soft)",
       border: "none",
       fontSize: 14,
       cursor: "pointer",
@@ -101,7 +116,7 @@ export function AuthScreen() {
         <div style={s.logo}>Fit Coach</div>
         <div style={s.sub}>Your personal training companion</div>
         <button
-          style={{ ...s.landingBtn, background: "#fff", color: "#000", border: "none" }}
+          style={{ ...s.landingBtn, background: "var(--primary)", color: "var(--primary-fg)", border: "none" }}
           type="button"
           onClick={() => setView("signup")}
         >
@@ -111,14 +126,49 @@ export function AuthScreen() {
           style={{
             ...s.landingBtn,
             background: "transparent",
-            color: "#fff",
-            border: "1px solid rgba(255,255,255,0.2)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border-strong)",
           }}
           type="button"
           onClick={() => setView("signin")}
         >
           Sign In
         </button>
+        </div>
+      </div>
+    );
+
+  if (view === "signin")
+    return (
+      <div className="auth-screen">
+        <div key="signin" className="motion-step" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={s.logo}>Gymmy</div>
+          <div style={s.sub}>Sign in to pick up where you left off</div>
+          <button
+            style={{ ...s.landingBtn, background: "var(--primary)", color: "var(--primary-fg)", border: "none" }}
+            type="button"
+            onClick={() => setView("signup")}
+          >
+            Sign in with App
+          </button>
+          <button
+            style={{
+              ...s.landingBtn,
+              background: "transparent",
+              color: "var(--text-primary)",
+              border: "1px solid var(--border-strong)",
+            }}
+            type="button"
+            onClick={() => setView("signup")}
+          >
+            Sign in with Gymmy
+          </button>
+          {externalError ? <div style={{ ...s.error, maxWidth: 380, marginTop: 4 }}>{externalError}</div> : null}
+          {fromWelcome ? (
+            <button style={{ ...s.ghost, marginTop: 8 }} type="button" onClick={onGetStarted}>
+              New to Gymmy? <strong>Get Started</strong>
+            </button>
+          ) : null}
         </div>
       </div>
     );
@@ -162,7 +212,7 @@ export function AuthScreen() {
             onClick={() => {
               setError(null);
               setInfo(null);
-              setView("signin");
+              setView("signin-form");
             }}
           >
             Already have an account? Sign in
@@ -173,7 +223,7 @@ export function AuthScreen() {
 
   return (
     <div className="auth-screen">
-      <div key="signin" className="motion-step" style={s.card}>
+      <div key="signin-form" className="motion-step" style={s.card}>
         <div style={s.title}>Sign In</div>
         <input
           style={s.input}
@@ -191,20 +241,36 @@ export function AuthScreen() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
         />
-        {error ? <div style={s.error}>{error}</div> : null}
+        {error || externalError ? <div style={s.error}>{error ?? externalError}</div> : null}
         <button style={s.btn} type="button" onClick={() => void handleSignIn()} disabled={loading}>
           {loading ? "Signing in…" : "Sign In"}
         </button>
+        {fromWelcome ? (
+          <button style={s.ghost} type="button" onClick={onGetStarted}>
+            New to Gymmy? <strong>Get Started</strong>
+          </button>
+        ) : (
+          <button
+            style={s.ghost}
+            type="button"
+            onClick={() => {
+              setError(null);
+              setInfo(null);
+              setView("signup");
+            }}
+          >
+            Don&apos;t have an account? Create one
+          </button>
+        )}
         <button
-          style={s.ghost}
+          style={{ ...s.ghost, marginTop: -4 }}
           type="button"
           onClick={() => {
             setError(null);
-            setInfo(null);
-            setView("signup");
+            setView("signin");
           }}
         >
-          Don&apos;t have an account? Create one
+          Back
         </button>
       </div>
     </div>

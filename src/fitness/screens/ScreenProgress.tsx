@@ -60,7 +60,7 @@ function YearPickerSheet({
       zIndex={190}
       ariaLabel="Choose year"
       backdropStyle={{
-        background: "rgba(0,0,0,0.78)",
+        background: "var(--sheet-backdrop)",
         alignItems: "stretch",
         flexDirection: "column",
         justifyContent: "flex-end",
@@ -74,13 +74,13 @@ function YearPickerSheet({
         marginBottom: 8,
         maxHeight: "72%",
         overflowY: "auto",
-        border: "0.5px solid rgba(255,255,255,0.14)",
+        border: "0.5px solid var(--sheet-panel-border)",
         background: "var(--card)",
         width: "100%",
         maxWidth: "100%",
       }}
     >
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 14 }}>
           Choose year
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
@@ -98,9 +98,9 @@ function YearPickerSheet({
                 style={{
                   padding: 14,
                   borderRadius: 12,
-                  border: active ? "1px solid rgba(255,255,255,0.65)" : "0.5px solid var(--border)",
-                  background: active ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.05)",
-                  color: "#fff",
+                  border: active ? "1px solid var(--border-strong)" : "0.5px solid var(--border)",
+                  background: active ? "var(--surface-4)" : "var(--surface-2)",
+                  color: "var(--text-primary)",
                   fontWeight: 600,
                   fontSize: 16,
                   fontVariantNumeric: "tabular-nums",
@@ -122,7 +122,7 @@ function YearPickerSheet({
             borderRadius: 12,
             border: "0.5px solid var(--border)",
             background: "transparent",
-            color: "rgba(255,255,255,0.85)",
+            color: "var(--text-soft)",
             fontSize: 14,
             fontWeight: 600,
           }}
@@ -169,8 +169,8 @@ function LiftingCalendarCard({ viewYear, viewMonth, onPrevMonth, onNextMonth, on
             height: 40,
             borderRadius: 10,
             border: "0.5px solid var(--border)",
-            background: "rgba(255,255,255,0.06)",
-            color: "#fff",
+            background: "var(--surface-3)",
+            color: "var(--text-primary)",
             fontSize: 22,
             fontWeight: 400,
             lineHeight: 1,
@@ -179,7 +179,7 @@ function LiftingCalendarCard({ viewYear, viewMonth, onPrevMonth, onNextMonth, on
         >
           ‹
         </button>
-        <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff", textAlign: "center", padding: "0 8px" }}>{title}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)", textAlign: "center", padding: "0 8px" }}>{title}</div>
         <button
           type="button"
           className="tap"
@@ -193,8 +193,8 @@ function LiftingCalendarCard({ viewYear, viewMonth, onPrevMonth, onNextMonth, on
             height: 40,
             borderRadius: 10,
             border: "0.5px solid var(--border)",
-            background: "rgba(255,255,255,0.06)",
-            color: "#fff",
+            background: "var(--surface-3)",
+            color: "var(--text-primary)",
             fontSize: 22,
             fontWeight: 400,
             lineHeight: 1,
@@ -213,7 +213,7 @@ function LiftingCalendarCard({ viewYear, viewMonth, onPrevMonth, onNextMonth, on
               textAlign: "center",
               fontSize: 10,
               fontWeight: 600,
-              color: "rgba(255,255,255,0.32)",
+              color: "var(--text-ghost)",
               letterSpacing: "0.06em",
             }}
           >
@@ -245,9 +245,9 @@ function LiftingCalendarCard({ viewYear, viewMonth, onPrevMonth, onNextMonth, on
                 fontSize: 13,
                 fontWeight: highlight ? 700 : 500,
                 fontVariantNumeric: "tabular-nums",
-                background: highlight ? "#fff" : "rgba(255,255,255,0.05)",
-                color: highlight ? "#0a0a0a" : faded ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.5)",
-                border: isToday ? "1px solid rgba(255,255,255,0.35)" : "0.5px solid transparent",
+                background: highlight ? "var(--primary)" : "var(--surface-2)",
+                color: highlight ? "var(--primary-fg)" : faded ? "var(--text-whisper)" : "var(--text-muted-soft)",
+                border: isToday ? "1px solid var(--border-strong)" : "0.5px solid transparent",
                 boxSizing: "border-box",
               }}
             >
@@ -262,7 +262,7 @@ function LiftingCalendarCard({ viewYear, viewMonth, onPrevMonth, onNextMonth, on
           margin: "14px 0 0",
           fontSize: 11,
           lineHeight: 1.45,
-          color: "rgba(255,255,255,0.38)",
+          color: "var(--text-ghost)",
           fontWeight: 400,
           textAlign: "center",
         }}
@@ -344,14 +344,14 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
       <div className="card" style={{ padding: 18, marginTop: 18 }}>
         <div className="between" style={{ alignItems: "flex-start", gap: 12 }}>
           <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            <div style={{ fontSize: 11, color: "var(--text-whisper)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>
               Body weight
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 10 }}>
-              <span style={{ fontSize: 36, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", fontVariantNumeric: "tabular-nums" }}>
+              <span style={{ fontSize: 36, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
                 {chartSeries.length ? todayDisplay.toFixed(1) : ", "}
               </span>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>{weightUnitLabel(wUnit)}</span>
+              <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>{weightUnitLabel(wUnit)}</span>
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -373,10 +373,10 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
                   {formatWeightDeltaLbs(deltaLbs, wUnit)}
                 </>
               ) : (
-                <span style={{ color: "rgba(255,255,255,0.35)" }}>Log weigh-in</span>
+                <span style={{ color: "var(--text-tertiary)" }}>Log weigh-in</span>
               )}
             </div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 4, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <div style={{ fontSize: 10, color: "var(--text-ghost)", marginTop: 4, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
               vs start
             </div>
           </div>
@@ -391,8 +391,8 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
               padding: "10px 14px",
               fontSize: 12,
               fontWeight: 600,
-              color: "#fff",
-              background: "rgba(255,255,255,0.08)",
+              color: "var(--text-primary)",
+              background: "var(--surface-3)",
             }}
           >
             {todayEntry ? "Update weigh-in" : "Log weigh-in"}
@@ -402,7 +402,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
           {chartSeries.length >= 2 && chartW > 0 ? (
             <LineChart data={chartSeries} width={chartW} height={140} />
           ) : chartSeries.length >= 2 ? null : (
-            <div style={{ padding: 32, textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>
+            <div style={{ padding: 32, textAlign: "center", color: "var(--text-tertiary)", fontSize: 13 }}>
               Log two weigh-ins to unlock the trend line.
             </div>
           )}
@@ -422,7 +422,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
 
       <SectionLabel
         right={
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500 }}>Finish in Workout tab</span>
+          <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500 }}>Finish in Workout tab</span>
         }
       >
         Lifting days
@@ -454,12 +454,12 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
         <div className="between" style={{ alignItems: "baseline" }}>
           <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>
             {todayDisplay.toFixed(1)}{" "}
-            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 16 }}>→</span> {goalLoDisplay.toFixed(1)}–{goalHiDisplay.toFixed(1)}
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginLeft: 6, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>{weightUnitLabel(wUnit)}</span>
+            <span style={{ color: "var(--text-ghost)", fontSize: 16 }}>→</span> {goalLoDisplay.toFixed(1)}–{goalHiDisplay.toFixed(1)}
+            <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 6, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>{weightUnitLabel(wUnit)}</span>
           </div>
-          <div style={{ fontSize: 12, color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{Math.round(goalPct * 100)}%</div>
+          <div style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{Math.round(goalPct * 100)}%</div>
         </div>
-        <p style={{ margin: "12px 0 0", fontSize: 11, lineHeight: 1.5, color: "rgba(255,255,255,0.38)", fontWeight: 400 }}>
+        <p style={{ margin: "12px 0 0", fontSize: 11, lineHeight: 1.5, color: "var(--text-ghost)", fontWeight: 400 }}>
           ~{wUnit === "kg" ? "0.5" : "1"} {weightUnitLabel(wUnit)}/wk · read trend over a few weeks
         </p>
         <div style={{ marginTop: 14 }}>
@@ -468,10 +468,10 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
           </div>
         </div>
         <div className="between" style={{ marginTop: 10 }}>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          <span style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Day {daysIn}
           </span>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          <span style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             {daysTotal - daysIn} days left
           </span>
         </div>
@@ -494,15 +494,15 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
                     borderTop: idx > 0 ? "0.5px solid var(--border)" : "none",
                   }}
                 >
-                  <span style={{ color: "rgba(255,255,255,0.45)", flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
+                  <span style={{ color: "var(--text-secondary)", flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
                     {shortWeekEnding(ev.weekEndingSunday)}
                   </span>
                   <div style={{ textAlign: "right", minWidth: 0 }}>
-                    <div style={{ color: "rgba(255,255,255,0.82)", fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
+                    <div style={{ color: "var(--text-soft)", fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
                       {ev.before.cal}→{ev.after.cal} kcal · {formatWeeklyRateLbsPerWeek(ev.weeklyLossLbs, wUnit)}
                     </div>
                     {ev.recommendedDeltaCal != null && ev.appliedDeltaCal != null && ev.recommendedDeltaCal !== ev.appliedDeltaCal ? (
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>
+                      <div style={{ fontSize: 10, color: "var(--text-tertiary)", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>
                         rec {ev.recommendedDeltaCal >= 0 ? "+" : ""}
                         {ev.recommendedDeltaCal} · applied {ev.appliedDeltaCal >= 0 ? "+" : ""}
                         {ev.appliedDeltaCal}
@@ -526,15 +526,15 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
             { label: "Fat", value: String(T.f), unit: "g" },
           ].map((x) => (
             <div key={x.label}>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>{x.label}</div>
+              <div style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>{x.label}</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 6 }}>
                 <span style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{x.value}</span>
-                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>{x.unit}</span>
+                <span style={{ fontSize: 10, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>{x.unit}</span>
               </div>
             </div>
           ))}
         </div>
-        <p style={{ margin: "14px 0 0", fontSize: 11, lineHeight: 1.5, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>
+        <p style={{ margin: "14px 0 0", fontSize: 11, lineHeight: 1.5, color: "var(--text-tertiary)", fontWeight: 400 }}>
           Steps: Settings
         </p>
       </div>

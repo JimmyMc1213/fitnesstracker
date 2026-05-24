@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (Sprint 11 planned — Gymmy onboarding v2)
+# last_updated: 2026-05-23 (Sprint 11 planned - Gymmy onboarding v2)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -43,7 +43,7 @@
 #   - Native App Store wrapper: OUT OF SCOPE
 #   - No new Home cards; Home fuel strip stays read-only
 #   - Primary CTA = lime green (--pos / #4ade80); design system carries forward
-#   - Edge Function deploy (USDA key) is ops prep — not a code blocker for S10
+#   - Edge Function deploy (USDA key) is ops prep - not a code blocker for S10
 #
 # Sprint 9 order (execute in this sequence):
 #   BMad: FTI-63 → 64 → 65
@@ -55,9 +55,9 @@
 #
 # SPRINT 9 SCOPE LOCKS (2026-05-23 sprint planning):
 #   - Nutrition OS v2 Chunk 3 only (FTI-63 → 64 → 65); one story per PR (target)
-#   - My meals meal prep: IN SCOPE (FTI-63) — replaces placeholder tab
-#   - Cal AI visual polish: IN SCOPE (FTI-64) — dark cards, tab underline, safe-area, perf
-#   - Full unit + E2E gate: IN SCOPE (FTI-65) — meal tests, sync, build gate, retro
+#   - My meals meal prep: IN SCOPE (FTI-63) - replaces placeholder tab
+#   - Cal AI visual polish: IN SCOPE (FTI-64) - dark cards, tab underline, safe-area, perf
+#   - Full unit + E2E gate: IN SCOPE (FTI-65) - meal tests, sync, build gate, retro
 #   - Barcode, voice log, AI natural-language parse: OUT OF SCOPE (future backlog)
 #   - ScreenWorkout phase 2: OUT OF SCOPE
 #   - FTI-55 LLM coach notes: OUT OF SCOPE (cancelled Sprint 6)
@@ -65,7 +65,7 @@
 #   - No new Home cards; Home fuel strip stays read-only
 #   - Primary CTA = lime green (--pos / #4ade80); design system carries forward
 #   - Reuse foodMeasurements.ts + serving picker for meal ingredients (no fork)
-#   - Edge Function deploy (USDA key) is ops prep — not a code blocker for S9
+#   - Edge Function deploy (USDA key) is ops prep - not a code blocker for S9
 #
 # SPRINT 8 SCOPE LOCKS (2026-05-23 sprint planning):
 #   - Nutrition OS v2 Chunk 2 only (FTI-60 → 61 → 62); one story per PR (target)
@@ -145,7 +145,7 @@
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next: (Sprint 10 complete — Sprint 11 Gymmy onboarding v2)
+# - bmad-swarm next: (Sprint 10 complete - Sprint 11 Gymmy onboarding v2)
 # - Linear FTI-60, FTI-61, FTI-62 → done (2026-05-23)
 # - bmad-swarm next retro: epic-fti-sprint-10-retrospective → done (2026-05-23)
 # - Sprint 10 complete (2026-05-23): FTI-66 → 67 → 68 shipped on epic branch
@@ -238,7 +238,7 @@ development_status:
 
   epic-fti-sprint-6-retrospective: done
 
-  # --- Sprint 7 (planned): Nutrition OS v2 — Chunk 1 ---
+  # --- Sprint 7 (planned): Nutrition OS v2 - Chunk 1 ---
   epic-fti-sprint-7: done
 
   fti-57-nutrition-tab-log-food-shell-data-model: done
@@ -247,7 +247,7 @@ development_status:
 
   epic-fti-sprint-7-retrospective: done
 
-  # --- Sprint 8 (planned): Nutrition OS v2 — Chunk 2 ---
+  # --- Sprint 8 (planned): Nutrition OS v2 - Chunk 2 ---
   epic-fti-sprint-8: done
 
   fti-60-usda-food-search-edge-function-all-tab: done
@@ -256,7 +256,7 @@ development_status:
 
   epic-fti-sprint-8-retrospective: done
 
-  # --- Sprint 9 (complete): Nutrition OS v2 — Chunk 3 ---
+  # --- Sprint 9 (complete): Nutrition OS v2 - Chunk 3 ---
   epic-fti-sprint-9: done
 
   fti-63-my-meals-meal-prep-data-model: done

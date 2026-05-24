@@ -144,7 +144,7 @@ function appendRestDayGymTasks(tasks: DailyTask[], dateKey: string, d: Date, ste
   tasks.push({
     id: `${dateKey}_g0`,
     category: "gym",
-    title: `${dayLabel} · Rest day. Optional easy walk or mobility — save energy for your next session.`,
+    title: `${dayLabel} · Rest day. Optional easy walk or mobility. Save energy for your next session.`,
     done: false,
   });
   tasks.push({

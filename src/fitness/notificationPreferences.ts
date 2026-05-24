@@ -5,9 +5,31 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   workoutReminderTime: "07:00",
   nutritionCheckInEnabled: true,
   nutritionCheckInTime: "20:00",
+  morningCheckInEnabled: false,
+  morningCheckInTime: "06:30",
+  weeklyReviewEnabled: false,
+  weeklyReviewTime: "08:00",
   lastFiredWorkoutReminderDateKey: null,
   lastFiredNutritionReminderDateKey: null,
 };
+
+/** Onboarding starts with reminders off. User opts in on the Stay on track step. */
+export const ONBOARDING_NOTIFICATION_DEFAULTS: NotificationPreferences = {
+  ...DEFAULT_NOTIFICATION_PREFERENCES,
+  workoutReminderEnabled: false,
+  nutritionCheckInEnabled: false,
+  morningCheckInEnabled: false,
+  weeklyReviewEnabled: false,
+};
+
+export function anyNotificationEnabled(prefs: NotificationPreferences): boolean {
+  return (
+    prefs.workoutReminderEnabled ||
+    prefs.nutritionCheckInEnabled ||
+    prefs.morningCheckInEnabled ||
+    prefs.weeklyReviewEnabled
+  );
+}
 
 const HHMM_RE = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 
@@ -37,6 +59,13 @@ export function normalizeNotificationPreferences(raw: unknown): NotificationPref
       o.nutritionCheckInTime,
       DEFAULT_NOTIFICATION_PREFERENCES.nutritionCheckInTime,
     ),
+    morningCheckInEnabled: o.morningCheckInEnabled === true,
+    morningCheckInTime: normalizeTimeHHmm(
+      o.morningCheckInTime,
+      DEFAULT_NOTIFICATION_PREFERENCES.morningCheckInTime,
+    ),
+    weeklyReviewEnabled: o.weeklyReviewEnabled === true,
+    weeklyReviewTime: normalizeTimeHHmm(o.weeklyReviewTime, DEFAULT_NOTIFICATION_PREFERENCES.weeklyReviewTime),
     lastFiredWorkoutReminderDateKey: normalizeLastFiredDateKey(o.lastFiredWorkoutReminderDateKey),
     lastFiredNutritionReminderDateKey: normalizeLastFiredDateKey(o.lastFiredNutritionReminderDateKey),
   };
@@ -60,6 +89,10 @@ export function mergeNotificationPreferences(
     workoutReminderTime: r.workoutReminderTime,
     nutritionCheckInEnabled: r.nutritionCheckInEnabled,
     nutritionCheckInTime: r.nutritionCheckInTime,
+    morningCheckInEnabled: r.morningCheckInEnabled,
+    morningCheckInTime: r.morningCheckInTime,
+    weeklyReviewEnabled: r.weeklyReviewEnabled,
+    weeklyReviewTime: r.weeklyReviewTime,
     lastFiredWorkoutReminderDateKey: mergeLastFiredDateKey(
       l.lastFiredWorkoutReminderDateKey,
       r.lastFiredWorkoutReminderDateKey,

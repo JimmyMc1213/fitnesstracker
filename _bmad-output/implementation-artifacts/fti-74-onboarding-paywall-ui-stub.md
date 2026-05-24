@@ -1,4 +1,4 @@
-# FTI-74 — Onboarding paywall UI stub
+# FTI-74 - Onboarding paywall UI stub
 
 **Status:** done  
 **Sprint:** 11  
@@ -6,11 +6,11 @@
 
 ## Summary
 
-Screen 23 (index 22): paywall stub per [gymmy-tier-matrix.md](../planning-artifacts/gymmy-tier-matrix.md). No real IAP — both CTAs finish onboarding and land on Home.
+Screen 23 (index 22): paywall stub per [gymmy-tier-matrix.md](../planning-artifacts/gymmy-tier-matrix.md). No real IAP - both CTAs finish onboarding and land on Home.
 
 ## Deliverables
 
-- `OnboardingPaywall.tsx` — headline, $9.99/mo / $79.99/yr pricing, trial + free CTAs
+- `OnboardingPaywall.tsx` - headline, $9.99/mo / $79.99/yr pricing, trial + free CTAs
 - Wired as final step after Plan Ready
 - `finish()` stores `subscriptionTier: 'free' | 'pro'`, sets `onboardingComplete`, clears draft
 

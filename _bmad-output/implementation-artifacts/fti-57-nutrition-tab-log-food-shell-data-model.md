@@ -26,7 +26,7 @@ so fuel tracking has one clear entry point without clutter on the main tab.
 
 8. **Return flow:** After any successful log, overlay closes and user remains on Nutrition tab; streak and coach pace pipelines unchanged (`appendNutritionLoggedItem`, `applyStreakEligibility`).
 
-9. **Quality gate:** `npm run build` + `npm test` pass. Existing workout-session E2E still pass (Home fuel quick-log E2E may fail until FTI-59 — expected).
+9. **Quality gate:** `npm run build` + `npm test` pass. Existing workout-session E2E still pass (Home fuel quick-log E2E may fail until FTI-59 - expected).
 
 ## Tasks / Subtasks
 
@@ -87,4 +87,4 @@ _(filled on implementation)_
 
 ### Change Log
 
-- 2026-05-23: Sprint 7 planning — story file created
+- 2026-05-23: Sprint 7 planning - story file created

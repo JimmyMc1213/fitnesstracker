@@ -6,7 +6,7 @@ Status: done
 
 As a Gymmy user on a 3/4/6-day split,
 I want Home daily tasks to reflect my actual training schedule,
-so I see the correct workout (or rest day) today — not a hardcoded Mon–Fri program.
+so I see the correct workout (or rest day) today - not a hardcoded Mon–Fri program.
 
 ## Acceptance Criteria
 

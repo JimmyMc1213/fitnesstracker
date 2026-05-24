@@ -97,7 +97,7 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
             gap: 4,
             fontSize: 14,
             fontWeight: 600,
-            color: "rgba(255,255,255,0.75)",
+            color: "var(--text-soft)",
             padding: "6px 8px 6px 0",
           }}
           aria-label="Back to Home"
@@ -110,22 +110,22 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
       <ScreenHeader eyebrow={inEveningWindow ? "Arizona · Evening" : "Your routine"} title="Nightly stretching" />
 
       {!inEveningWindow ? (
-        <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "rgba(255,255,255,0.5)", fontWeight: 400 }}>
-          Reminder cues usually show after <strong style={{ color: "#fff", fontWeight: 600 }}>8 PM Arizona</strong>; the routine is always here whenever you want to run through it.
+        <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "var(--text-muted-soft)", fontWeight: 400 }}>
+          Reminder cues usually show after <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>8 PM Arizona</strong>; the routine is always here whenever you want to run through it.
         </p>
       ) : (
-        <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
-          Aim for about <strong style={{ color: "#fff", fontWeight: 600 }}>15-20 minutes total</strong>, drift longer on what feels glued from the day.
+        <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "var(--text-faint-soft)", fontWeight: 400 }}>
+          Aim for about <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>15-20 minutes total</strong>, drift longer on what feels glued from the day.
         </p>
       )}
 
       <div className="card" style={{ padding: 16, marginBottom: 16, borderColor: "rgba(196,181,253,0.22)" }}>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{STRETCH_INTRO}</p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "var(--text-soft)", fontWeight: 500 }}>{STRETCH_INTRO}</p>
       </div>
 
       <SectionLabel
         right={
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+          <span style={{ fontSize: 11, color: "var(--text-muted-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
             {doneCount}/{totalBlocks}
           </span>
         }
@@ -145,7 +145,7 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                borderColor: "rgba(255,255,255,0.08)",
+                borderColor: "var(--divider-subtle)",
                 opacity: isDone ? 0.62 : 1,
               }}
             >
@@ -161,14 +161,14 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
                   width: 24,
                   height: 24,
                   borderRadius: 7,
-                  border: isDone ? "0.5px solid #fff" : "0.5px solid var(--border)",
-                  background: isDone ? "#fff" : "transparent",
+                  border: isDone ? "0.5px solid var(--primary)" : "0.5px solid var(--border)",
+                  background: isDone ? "var(--primary)" : "transparent",
                   flexShrink: 0,
                   display: "grid",
                   placeItems: "center",
                 }}
               >
-                {isDone ? <IconCheck size={12} stroke={2.8} style={{ color: "#000" }} /> : null}
+                {isDone ? <IconCheck size={12} stroke={2.8} style={{ color: "var(--primary-fg)" }} /> : null}
               </button>
               <button
                 type="button"
@@ -193,13 +193,13 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
                     fontSize: 14,
                     fontWeight: isDone ? 500 : 600,
                     letterSpacing: "-0.01em",
-                    color: isDone ? "rgba(255,255,255,0.55)" : "#fff",
+                    color: isDone ? "var(--text-muted-soft)" : "var(--text-primary)",
                     textDecoration: isDone ? "line-through" : "none",
                   }}
                 >
                   {block.title}
                 </span>
-                <IconChevR size={16} stroke={2} style={{ color: "rgba(255,255,255,0.28)", flexShrink: 0, marginLeft: "auto" }} />
+                <IconChevR size={16} stroke={2} style={{ color: "var(--text-whisper)", flexShrink: 0, marginLeft: "auto" }} />
               </button>
             </div>
           );
@@ -213,9 +213,9 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
         style={{
           width: "100%",
           marginTop: 8,
-          background: nightlyStretchDone ? "transparent" : "#ffffff",
-          color: nightlyStretchDone ? "rgba(255,255,255,0.9)" : "#000",
-          border: nightlyStretchDone ? "0.5px solid rgba(255,255,255,0.25)" : "none",
+          background: nightlyStretchDone ? "transparent" : "var(--primary)",
+          color: nightlyStretchDone ? "var(--text-primary)" : "var(--primary-fg)",
+          border: nightlyStretchDone ? "0.5px solid var(--border-strong)" : "none",
           borderRadius: 12,
           padding: 14,
           fontSize: 14,
@@ -238,7 +238,7 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
         )}
       </button>
 
-      <p style={{ margin: "12px 0 0", fontSize: 11, lineHeight: 1.45, color: "rgba(255,255,255,0.35)", textAlign: "center", fontWeight: 400 }}>
+      <p style={{ margin: "12px 0 0", fontSize: 11, lineHeight: 1.45, color: "var(--text-ghost)", textAlign: "center", fontWeight: 400 }}>
         Checkboxes save for tonight&apos;s Arizona date · tapping a row opens cues and timing.
       </p>
 
@@ -261,10 +261,10 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
       >
         {openBlock ? (
           <>
-            <div style={{ padding: "16px 16px 12px", position: "sticky", top: 0, background: "var(--card)", borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ padding: "16px 16px 12px", position: "sticky", top: 0, background: "var(--card)", borderBottom: "0.5px solid var(--divider-subtle)" }}>
               <div className="between" style={{ alignItems: "flex-start", gap: 12 }}>
                 <div style={{ minWidth: 0 }}>
-                  <div id="stretch-detail-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff", lineHeight: 1.25 }}>
+                  <div id="stretch-detail-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)", lineHeight: 1.25 }}>
                     {openBlock.title}
                   </div>
                   {openBlock.minutes ? (
@@ -283,7 +283,7 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
                     border: "0.5px solid var(--border)",
                     display: "grid",
                     placeItems: "center",
-                    color: "rgba(255,255,255,0.55)",
+                    color: "var(--text-muted-soft)",
                     flexShrink: 0,
                   }}
                 >
@@ -292,7 +292,7 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
               </div>
             </div>
             <div style={{ padding: "14px 16px 18px" }}>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14, lineHeight: 1.55, color: "rgba(255,255,255,0.8)", fontWeight: 400 }}>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14, lineHeight: 1.55, color: "var(--text-soft)", fontWeight: 400 }}>
                 {openBlock.cues.map((c, idx) => (
                   <li key={idx} style={{ marginBottom: 10 }}>
                     {c}

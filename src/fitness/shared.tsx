@@ -20,10 +20,10 @@ export function MacroBar({ label, value, target, unit = "g" }: { label: string; 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1, minWidth: 0 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 400 }}>{label}</span>
-        <span style={{ fontSize: 12, fontWeight: 600, color: "#fff", fontVariantNumeric: "tabular-nums" }}>
+        <span style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 400 }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
           {Math.round(value)}
-          <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 400 }}>
+          <span style={{ color: "var(--text-ghost)", fontWeight: 400 }}>
             {" "}
             / {target}
             {unit}
@@ -57,12 +57,12 @@ export function MacroRing({
   return (
     <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} aria-hidden>
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--ring-track)" strokeWidth={stroke} fill="none" />
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="#ffffff"
+          stroke="var(--chart-stroke)"
           strokeWidth={stroke}
           fill="none"
           strokeLinecap="round"
@@ -81,10 +81,10 @@ export function MacroRing({
           gap: 4,
         }}
       >
-        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", fontVariantNumeric: "tabular-nums" }}>
+        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
           {Math.round(displayCalories)}
         </div>
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 400 }}>
+        <div style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 400 }}>
           of {target} kcal
         </div>
       </div>
@@ -92,7 +92,7 @@ export function MacroRing({
   );
 }
 
-export function Sparkline({ data, width = 120, height = 36, stroke = "#ffffff" }: { data: number[]; width?: number; height?: number; stroke?: string }) {
+export function Sparkline({ data, width = 120, height = 36, stroke = "var(--chart-stroke)" }: { data: number[]; width?: number; height?: number; stroke?: string }) {
   if (!data?.length) return null;
   const min = Math.min(...data);
   const max = Math.max(...data);
@@ -147,16 +147,16 @@ export function LineChart({
         const y = padY + (i / 2) * h;
         return (
           <g key={i}>
-            <line x1={padLeft} x2={gridRight} y1={y} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-            <text x={tickTextX} y={y - 3} textAnchor="end" fill="rgba(255,255,255,0.3)" fontSize="9" fontFamily="var(--ui)">
+            <line x1={padLeft} x2={gridRight} y1={y} y2={y} stroke="var(--chart-grid)" strokeWidth="1" />
+            <text x={tickTextX} y={y - 3} textAnchor="end" fill="var(--chart-bar-inactive)" fontSize="9" fontFamily="var(--ui)">
               {t.toFixed(1)}
             </text>
           </g>
         );
       })}
-      <path d={area} fill="rgba(255,255,255,0.04)" />
-      <path d={d} fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      {pts.map((p, i) => (i === pts.length - 1 ? <circle key={i} cx={p[0]} cy={p[1]} r={3} fill="#ffffff" /> : null))}
+      <path d={area} fill="var(--chart-fill)" />
+      <path d={d} fill="none" stroke="var(--chart-stroke)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      {pts.map((p, i) => (i === pts.length - 1 ? <circle key={i} cx={p[0]} cy={p[1]} r={3} fill="var(--chart-stroke)" /> : null))}
     </svg>
   );
 }
@@ -191,13 +191,13 @@ export function BarChart({
         const isActive = i === hi;
         return (
           <g key={i}>
-            <rect x={x} y={0} width={barW} height={height - 14} fill="rgba(255,255,255,0.04)" rx="2" />
-            <rect x={x} y={y - 14} width={barW} height={fillH} fill={isActive ? "#ffffff" : "rgba(255,255,255,0.3)"} rx="2" />
+            <rect x={x} y={0} width={barW} height={height - 14} fill="var(--chart-fill)" rx="2" />
+            <rect x={x} y={y - 14} width={barW} height={fillH} fill={isActive ? "var(--chart-bar-active)" : "var(--chart-bar-inactive)"} rx="2" />
             <text
               x={x + barW / 2}
               y={height - 2}
               textAnchor="middle"
-              fill={isActive ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.3)"}
+              fill={isActive ? "var(--chart-bar-label-active)" : "var(--chart-bar-label)"}
               fontSize="9"
               fontFamily="var(--ui)"
               fontWeight={isActive ? "600" : "500"}
@@ -238,8 +238,8 @@ export function PrimaryButton({ children, onClick, disabled, block, "aria-label"
       style={{
         width: block ? "100%" : undefined,
         minHeight: 44,
-        background: disabled ? "rgba(255,255,255,0.08)" : "var(--primary)",
-        color: disabled ? "rgba(255,255,255,0.35)" : "var(--primary-fg)",
+        background: disabled ? "var(--btn-disabled-bg)" : "var(--primary)",
+        color: disabled ? "var(--btn-disabled-fg)" : "var(--primary-fg)",
         borderRadius: 12,
         padding: "12px 16px",
         fontSize: 15,
@@ -267,7 +267,7 @@ export function SecondaryButton({ children, onClick, disabled, block, "aria-labe
         minHeight: 44,
         background: "var(--card-2)",
         border: "0.5px solid var(--border)",
-        color: disabled ? "rgba(255,255,255,0.35)" : "#fff",
+        color: disabled ? "var(--btn-disabled-fg)" : "var(--text-primary)",
         borderRadius: 12,
         padding: "12px 16px",
         fontSize: 14,
@@ -303,7 +303,7 @@ export function ScreenHeader({
                 marginTop: 6,
                 fontSize: 14,
                 fontWeight: 500,
-                color: "rgba(255,255,255,0.52)",
+                color: "var(--text-muted-soft)",
                 lineHeight: 1.35,
               }}
             >

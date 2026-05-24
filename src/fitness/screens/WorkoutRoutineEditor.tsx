@@ -17,7 +17,7 @@ const DAY_PRESETS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 const fieldLabelStyle: CSSProperties = {
   ...labelStyle,
   display: "block",
-  color: "rgba(255,255,255,0.35)",
+  color: "var(--text-ghost)",
   marginBottom: 6,
 };
 
@@ -73,7 +73,7 @@ export function WorkoutRoutineEditor({
     border: "0.5px solid var(--border)",
     borderRadius: 10,
     padding: "10px 12px",
-    color: "#fff",
+    color: "var(--text-primary)",
     fontFamily: "var(--ui)",
     fontSize: 14,
     fontWeight: 500,
@@ -164,7 +164,7 @@ export function WorkoutRoutineEditor({
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Routine name" style={inputStyle} />
         <div>
-          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", color: "var(--text-ghost)", marginBottom: 6 }}>
             DAY TAG
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
@@ -180,8 +180,8 @@ export function WorkoutRoutineEditor({
                   fontSize: 12,
                   fontWeight: 600,
                   border: dayLabel === d ? `0.5px solid ${ACCENT_BLUE}` : "0.5px solid var(--border)",
-                  background: dayLabel === d ? "rgba(10,132,255,0.2)" : "rgba(255,255,255,0.05)",
-                  color: dayLabel === d ? "#6EB7FF" : "rgba(255,255,255,0.7)",
+                  background: dayLabel === d ? "rgba(10,132,255,0.2)" : "var(--surface-2)",
+                  color: dayLabel === d ? "#6EB7FF" : "var(--text-soft)",
                 }}
               >
                 {d}
@@ -218,7 +218,7 @@ export function WorkoutRoutineEditor({
 
       <div className="between" style={{ marginTop: 24, marginBottom: 10 }}>
         <span className="label">Exercises</span>
-        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>{exercises.length} move{exercises.length === 1 ? "" : "s"}</span>
+        <span style={{ fontSize: 12, color: "var(--text-ghost)" }}>{exercises.length} move{exercises.length === 1 ? "" : "s"}</span>
       </div>
 
       <SortableExerciseList
@@ -236,7 +236,7 @@ export function WorkoutRoutineEditor({
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <ExerciseDragHandle handle={handle} tapSize={44} disabled={ctx.isListDragging && !handle.isDragging} />
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600, flexShrink: 0, width: 20 }}>
+              <span style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 600, flexShrink: 0, width: 20 }}>
                 #{ri + 1}
               </span>
               <input
@@ -314,7 +314,7 @@ export function WorkoutRoutineEditor({
               fontWeight: 600,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.35)",
+              color: "var(--text-ghost)",
               marginBottom: 10,
             }}
           >
@@ -333,7 +333,7 @@ export function WorkoutRoutineEditor({
             </PrimaryButton>
           </div>
           <div style={{ position: "relative" }}>
-            <IconSearch size={16} style={{ position: "absolute", left: 12, top: 13, color: "rgba(255,255,255,0.4)" }} />
+            <IconSearch size={16} style={{ position: "absolute", left: 12, top: 13, color: "var(--text-ghost)" }} />
             <input
               className="input"
               style={{ paddingLeft: 36, background: "#1A1A1A" }}
@@ -345,7 +345,7 @@ export function WorkoutRoutineEditor({
           <div style={{ marginTop: 10, maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column" }}>
             {filteredCustom.length > 0 ? (
               <>
-                <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", padding: "6px 4px" }}>Your exercises</div>
+                <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-ghost)", padding: "6px 4px" }}>Your exercises</div>
                 {filteredCustom.map((c) => (
                   <button
                     key={c.id}
@@ -366,16 +366,16 @@ export function WorkoutRoutineEditor({
                   >
                     <span>
                       {c.name}
-                      {c.label ? <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 2 }}>{c.label}</span> : null}
+                      {c.label ? <span style={{ display: "block", fontSize: 11, color: "var(--text-ghost)", marginTop: 2 }}>{c.label}</span> : null}
                     </span>
-                    <IconPlus size={14} stroke={2} style={{ color: "#fff", flexShrink: 0 }} />
+                    <IconPlus size={14} stroke={2} style={{ color: "var(--text-primary)", flexShrink: 0 }} />
                   </button>
                 ))}
               </>
             ) : null}
             {filteredBuiltin.length > 0 ? (
               <>
-                <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", padding: "6px 4px" }}>Catalog</div>
+                <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-ghost)", padding: "6px 4px" }}>Catalog</div>
                 {filteredBuiltin.map((n) => (
                   <button
                     key={n}
@@ -394,7 +394,7 @@ export function WorkoutRoutineEditor({
                     }}
                   >
                     <span>{n}</span>
-                    <IconPlus size={14} stroke={2} style={{ color: "#fff" }} />
+                    <IconPlus size={14} stroke={2} style={{ color: "var(--text-primary)" }} />
                   </button>
                 ))}
               </>
@@ -409,7 +409,7 @@ export function WorkoutRoutineEditor({
               setDraftName("");
               setDraftLabel("");
             }}
-            style={{ marginTop: 8, width: "100%", color: "rgba(255,255,255,0.4)", fontSize: 12, padding: 6, fontWeight: 500 }}
+            style={{ marginTop: 8, width: "100%", color: "var(--text-ghost)", fontSize: 12, padding: 6, fontWeight: 500 }}
           >
             Close picker
           </button>
@@ -454,7 +454,7 @@ export function WorkoutRoutineEditor({
             padding: 10,
             background: "transparent",
             border: "none",
-            color: "rgba(255,255,255,0.35)",
+            color: "var(--text-ghost)",
             fontSize: 13,
             fontWeight: 500,
             textDecoration: "underline",

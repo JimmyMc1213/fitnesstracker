@@ -13,6 +13,16 @@ import type { AppState } from "./types";
 
 const HYDRATION_PULL_TIMEOUT_MS = 5000;
 
+function displayNameFromUser(user: Session["user"] | null | undefined): string | null {
+  if (!user) return null;
+  const meta = user.user_metadata;
+  if (!meta || typeof meta !== "object") return null;
+  const raw = meta.full_name ?? meta.name;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function persistSliceWithMigration(slice: PersistedFitnessSlice): PersistedFitnessSlice {
   const { slice: migrated, dirty } = migratePersistedFitnessSlice(slice);
   if (!dirty) return slice;
@@ -167,9 +177,17 @@ export function useFitnessCloudSync(
     void refreshSession();
     const { data: sub } = sb.auth.onAuthStateChange((_evt, sess) => {
       setSession(sess);
+      const name = displayNameFromUser(sess?.user);
+      if (!name) return;
+      setState((s) => {
+        if (s.displayName.trim()) return s;
+        const next = { ...s, displayName: name };
+        savePersistedSlice(sliceFromAppState(next));
+        return next;
+      });
     });
     return () => sub.subscription.unsubscribe();
-  }, [refreshSession]);
+  }, [refreshSession, setState]);
 
   const runPullForUser = useCallback(
     async (uid: string) => {
@@ -282,6 +300,19 @@ export function useFitnessCloudSync(
     return {};
   }, []);
 
+  const signInWithOAuth = useCallback(async (provider: "apple" | "google") => {
+    const sb = getSupabase();
+    if (!sb) return { error: "Add Supabase keys to sync." };
+    const { error } = await sb.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: window.location.href,
+      },
+    });
+    if (error) return { error: error.message };
+    return {};
+  }, []);
+
   const signUpWithEmail = useCallback(async (email: string, password: string, name: string) => {
     const sb = getSupabase();
     if (!sb) return { error: "Add Supabase keys to sync." };
@@ -301,13 +332,23 @@ export function useFitnessCloudSync(
     }
 
     if (error) return { error: error.message };
+    const signedInUser = data.session?.user ?? data.user;
+    const nameFromSignUp = displayNameFromUser(signedInUser);
+    if (nameFromSignUp) {
+      setState((s) => {
+        if (s.displayName.trim()) return s;
+        const next = { ...s, displayName: nameFromSignUp };
+        savePersistedSlice(sliceFromAppState(next));
+        return next;
+      });
+    }
     // Email confirmation disabled, session arrives immediately.
     if (data.session) return {};
     // Email confirmation still enabled, try sign-in in case already confirmed.
     const { error: signInError } = await sb.auth.signInWithPassword({ email: email.trim(), password });
     if (!signInError) return {};
     return { needsConfirmation: true };
-  }, []);
+  }, [setState]);
 
   const signOut = useCallback(async () => {
     const sb = getSupabase();
@@ -356,6 +397,28 @@ export function useFitnessCloudSync(
     }
   }, [session?.user?.id, runPullForUser, setState]);
 
+  const restoreFromCloud = useCallback(async (): Promise<boolean> => {
+    const uid = session?.user?.id;
+    if (!configured || !uid) return false;
+    setBusy(true);
+    setLastError(null);
+    try {
+      const localSlice = sliceFromAppState(stateRef.current);
+      const merged = await pullRemoteMergeAlways(uid, localSlice);
+      if (!merged) return false;
+      const persisted = persistSliceWithMigration(merged.mergedSlice);
+      saveSyncMeta(merged.meta);
+      savePersistedSlice(persisted);
+      setState(buildAppStateFromPersisted(persisted));
+      return true;
+    } catch (e) {
+      setLastError(userFacingSyncError(e, "Sync restore failed"));
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }, [configured, session?.user?.id, setState]);
+
   return {
     configured,
     sessionEmail: session?.user?.email ?? null,
@@ -364,8 +427,10 @@ export function useFitnessCloudSync(
     lastSyncedLabel: formatSyncedLabel(lastSyncedAt),
     fitnessHydrated,
     signInWithPassword,
+    signInWithOAuth,
     signUpWithEmail,
     signOut,
     syncNow,
+    restoreFromCloud,
   };
 }

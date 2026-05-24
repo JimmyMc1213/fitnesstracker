@@ -1,4 +1,4 @@
-# Gymmy — Free vs Pro Tier Matrix
+# Gymmy - Free vs Pro Tier Matrix
 
 **Status:** Approved for onboarding paywall copy and future IAP gating  
 **Last updated:** 2026-05-23  
@@ -12,7 +12,7 @@
 
 ---
 
-## Pricing (paywall UI — IAP not wired yet)
+## Pricing (paywall UI - IAP not wired yet)
 
 | Plan | Price | Notes |
 |------|-------|-------|
@@ -67,7 +67,7 @@ Enough to execute the plan Gymmy generates at onboarding and honestly track work
 |---------|--------|
 | Rule-based coach notes | **Visible but blurred** with CTA: *"Upgrade to unlock coaching"* |
 
-In-session rule-based notes (FTI-54) and home coach copy remain discoverable so Free users feel what Pro unlocks — they cannot read full coaching text without upgrading.
+In-session rule-based notes (FTI-54) and home coach copy remain discoverable so Free users feel what Pro unlocks - they cannot read full coaching text without upgrading.
 
 ---
 
@@ -94,13 +94,13 @@ Everything in Free, plus:
 | PR board | PR tracking + full analytics |
 | Weekly summary | Weekly summary card + progress analytics |
 | Advanced split customization | Deep template/split editing beyond Free swap/set/rep edits |
-| Coach notes | **Unblurred** — full rule-based + AI coaching readable |
+| Coach notes | **Unblurred** - full rule-based + AI coaching readable |
 
 ### Nutrition
 
 | Feature | Detail |
 |---------|--------|
-| Saved meal templates | My Meals — one-tap logging from saved recipes |
+| Saved meal templates | My Meals - one-tap logging from saved recipes |
 | Barcode scanner | When built |
 | Voice food logging | When built |
 
@@ -123,7 +123,7 @@ Everything in Free, plus:
 
 ## Future Pro features (slots in automatically when built)
 
-These are **Pro-only by default** — no tier doc change needed when they ship:
+These are **Pro-only by default** - no tier doc change needed when they ship:
 
 - Barcode scanner
 - Voice food logging
@@ -145,7 +145,7 @@ Use this when writing paywall bullets and planning gating work.
 | USDA/OFF food search | Yes | All | Free |
 | Macro rings + manual log | Yes | All | Free |
 | My Foods favorites | Yes | All | Free |
-| **My Meals templates** | Yes | **All (ungated)** | **Pro — gate at IAP** |
+| **My Meals templates** | Yes | **All (ungated)** | **Pro - gate at IAP** |
 | Weight log + progress chart | Yes | All | Free |
 | Home + daily tasks | Yes | All | Free |
 | Habits | Yes | All | Free |
@@ -155,13 +155,13 @@ Use this when writing paywall bullets and planning gating work.
 | Notifications (workout + nutrition) | Yes | All | Pro |
 | Weekly summary card | Yes | All | Pro |
 | PR board | Yes | All | Pro |
-| Create workout from scratch | No | — | Pro |
-| Multiple saved splits | No | — | Pro |
+| Create workout from scratch | No | - | Pro |
+| Multiple saved splits | No | - | Pro |
 | Full exercise library filters | Partial | All | Pro |
-| AI session coaching (Claude) | No | — | Pro |
-| Barcode / voice / transformation | No | — | Pro (future) |
+| AI session coaching (Claude) | No | - | Pro |
+| Barcode / voice / transformation | No | - | Pro (future) |
 | Progress photos | Partial (weigh-in photo field exists) | All | Pro |
-| IAP / subscription enforcement | No | — | Post onboarding v2 |
+| IAP / subscription enforcement | No | - | Post onboarding v2 |
 
 ---
 
@@ -170,18 +170,18 @@ Use this when writing paywall bullets and planning gating work.
 ### Headline
 **Unlock your full coaching experience**
 
-### Free column — "Continue with free"
+### Free column - "Continue with free"
 - Your generated training split
 - Log workouts + 30-day history
 - Food search + macro tracking
 - Weight log + habits + daily dashboard
 - Coach previews (upgrade to read full notes)
 
-### Pro column — "Start 7-day free trial"
+### Pro column - "Start 7-day free trial"
 - Everything in Free
 - AI coaching + unblurred session notes
 - PR board + weekly analytics
-- Saved meals — one-tap logging
+- Saved meals - one-tap logging
 - Unlimited history + custom splits
 - Workout & nutrition reminders
 
@@ -192,17 +192,17 @@ Use this when writing paywall bullets and planning gating work.
 
 ## Gating policy
 
-### Phase 1 — Onboarding paywall stub (current sprint track)
+### Phase 1 - Onboarding paywall stub (current sprint track)
 - Store `subscriptionTier` on finish
 - **No feature enforcement**
 - Paywall copy reflects matrix above
 
-### Phase 2 — IAP sprint
+### Phase 2 - IAP sprint
 - Enforce limits: 30-session history (Free), My Meals (Pro), blurred coach (Free)
 - Notifications require Pro
-- Grandfather rule TBD: existing users who used My Meals before gate — recommend 30-day grace or auto-Pro trial
+- Grandfather rule TBD: existing users who used My Meals before gate - recommend 30-day grace or auto-Pro trial
 
-### Phase 3 — AI + future Pro slots
+### Phase 3 - AI + future Pro slots
 - Barcode, voice, transformation, Watch ship as Pro without doc change
 
 ---
@@ -214,11 +214,11 @@ Use this when writing paywall bullets and planning gating work.
 | My Meals | Pro only; gate when IAP ships (user confirmed 2026-05-23) |
 | Water + steps | Free (user confirmed 2026-05-23) |
 | Free trial | 7-day trial on Pro CTA (marketing; not enforced until IAP) |
-| Coach blur UX | Design during onboarding paywall story — blur in-session + home coach cards |
+| Coach blur UX | Design during onboarding paywall story - blur in-session + home coach cards |
 
 ---
 
 ## Related docs
 
-- [Gymmy onboarding v2 plan](/Users/jimmymccarthy/.cursor/plans/gymmy_onboarding_v2_5ef9338f.plan.md) — screen 23 paywall consumes this matrix
-- [FTI-69 dailyPlan hotfix](../implementation-artifacts/fti-69-dailyplan-hydration-hotfix.md) — Phase 0 complete
+- [Gymmy onboarding v2 plan](/Users/jimmymccarthy/.cursor/plans/gymmy_onboarding_v2_5ef9338f.plan.md) - screen 23 paywall consumes this matrix
+- [FTI-69 dailyPlan hotfix](../implementation-artifacts/fti-69-dailyplan-hydration-hotfix.md) - Phase 0 complete

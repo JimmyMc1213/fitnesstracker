@@ -1,4 +1,4 @@
-import { nutritionPresetFingerprint } from "./nutritionTotals";
+import { dedupeHabitTemplates, isDefaultSeedWorkoutTemplates, sanitizeWorkoutTemplates } from "./data";
 import { mergeExerciseSessionHistoryByKey } from "./exerciseSessionHistory";
 import { mergeWorkoutHistory } from "./workoutHistory";
 import { mergeExercisePersonalBests } from "./workoutSummary";
@@ -9,6 +9,9 @@ import {
 } from "./restTimerPreferences";
 import { mergeNotificationPreferences, normalizeNotificationPreferences } from "./notificationPreferences";
 import { mergeOnboardingDrafts, normalizeOnboardingDraft } from "./onboardingDraft";
+import { nutritionPresetFingerprint } from "./nutritionTotals";
+import { hasExistingFitnessData } from "./onboardingSkip";
+import { normalizeAppTheme } from "./theme";
 import { normalizeUnitPreferences } from "./unitPreferences";
 import { mergeWaterLogByDay, normalizeWaterDailyTargetOz, normalizeWaterLogByDay } from "./waterIntake";
 import { normalizeExperienceLevel } from "./experienceLevel";
@@ -27,6 +30,7 @@ import type {
   UnitPreferences,
   WeightEntry,
   WorkoutState,
+  WorkoutRoutineTemplate,
 } from "./types";
 
 function weightEntryTimestamp(e: WeightEntry): number {
@@ -214,6 +218,34 @@ function mergeById<T extends { id: string }>(a: T[], b: T[], cap = 500): T[] {
   return [...byId.values()].slice(0, cap);
 }
 
+function mergeWorkoutTemplates(
+  local: WorkoutRoutineTemplate[],
+  remote: WorkoutRoutineTemplate[],
+  localComplete: boolean,
+  remoteComplete: boolean,
+): WorkoutRoutineTemplate[] {
+  const localSanitized = sanitizeWorkoutTemplates(local, { onboardingComplete: localComplete });
+  const remoteSanitized = sanitizeWorkoutTemplates(remote, { onboardingComplete: remoteComplete });
+
+  if (localComplete && !remoteComplete) return localSanitized;
+  if (remoteComplete && !localComplete) return remoteSanitized;
+
+  if (remoteSanitized.length === 0) return localSanitized;
+  if (localSanitized.length === 0) return remoteSanitized;
+
+  if (localComplete && remoteComplete) {
+    if (isDefaultSeedWorkoutTemplates(localSanitized) && !isDefaultSeedWorkoutTemplates(remoteSanitized)) {
+      return remoteSanitized;
+    }
+    if (isDefaultSeedWorkoutTemplates(remoteSanitized) && !isDefaultSeedWorkoutTemplates(localSanitized)) {
+      return localSanitized;
+    }
+    return remoteSanitized;
+  }
+
+  return localSanitized;
+}
+
 function mergeStretchBlocks(a: Record<string, string[]>, b: Record<string, string[]>): Record<string, string[]> {
   const days = new Set([...Object.keys(a), ...Object.keys(b)]);
   const out: Record<string, string[]> = {};
@@ -263,22 +295,20 @@ function mergeOnboardingFields(
   local: PersistedFitnessSlice,
   remote: PersistedFitnessSlice,
 ): Pick<PersistedFitnessSlice, "onboardingComplete" | "onboardingDraft"> {
-  const localDraft = normalizeOnboardingDraft(local.onboardingDraft);
-  const remoteDraft = normalizeOnboardingDraft(remote.onboardingDraft);
-  const localInProgress = localDraft != null && !local.onboardingComplete;
-
-  if (localInProgress) {
-    return { onboardingComplete: false, onboardingDraft: localDraft };
+  if (local.onboardingComplete || remote.onboardingComplete) {
+    return { onboardingComplete: true, onboardingDraft: null };
   }
 
-  const onboardingComplete = Boolean(local.onboardingComplete || remote.onboardingComplete);
-  if (onboardingComplete) {
-    return { onboardingComplete: true, onboardingDraft: null };
+  const localDraft = normalizeOnboardingDraft(local.onboardingDraft);
+  const remoteDraft = normalizeOnboardingDraft(remote.onboardingDraft);
+
+  if (localDraft != null) {
+    return { onboardingComplete: false, onboardingDraft: localDraft };
   }
 
   return {
     onboardingComplete: false,
-    onboardingDraft: mergeOnboardingDrafts(localDraft, remoteDraft),
+    onboardingDraft: mergeOnboardingDrafts(null, remoteDraft),
   };
 }
 
@@ -313,7 +343,12 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     workout: mergeWorkoutState(local.workout, remote.workout),
     customExercises: mergeById(local.customExercises, remote.customExercises),
     exerciseNotesByKey: { ...local.exerciseNotesByKey, ...remote.exerciseNotesByKey },
-    workoutTemplates: mergeById(local.workoutTemplates, remote.workoutTemplates, 80),
+    workoutTemplates: mergeWorkoutTemplates(
+      local.workoutTemplates,
+      remote.workoutTemplates,
+      local.onboardingComplete === true || hasExistingFitnessData(local),
+      remote.onboardingComplete === true || hasExistingFitnessData(remote),
+    ),
     workoutsCompletedByDay: mergeWorkoutsCompleted(local.workoutsCompletedByDay, remote.workoutsCompletedByDay),
     streakEligibleByDay: mergeStreakEligibleByDay(
       local.streakEligibleByDay ?? {},
@@ -348,7 +383,7 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
       (remote.displayName?.trim().length ?? 0) >= (local.displayName?.trim().length ?? 0)
         ? remote.displayName.trim()
         : local.displayName.trim(),
-    habitTemplates: mergeById(local.habitTemplates, remote.habitTemplates, 40),
+    habitTemplates: dedupeHabitTemplates(mergeById(local.habitTemplates, remote.habitTemplates, 40)),
     habitsDoneByDay: mergeHabitsDoneByDay(local.habitsDoneByDay, remote.habitsDoneByDay),
     planStartIso: remote.planStartIso || local.planStartIso,
     stepsTarget: Math.max(local.stepsTarget, remote.stepsTarget),
@@ -377,6 +412,7 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     ),
     onboardingProfile: remote.onboardingProfile ?? local.onboardingProfile ?? null,
     ...mergeOnboardingFields(local, remote),
+    theme: normalizeAppTheme(remote.theme ?? local.theme),
     subscriptionTier: mergeSubscriptionTier(local.subscriptionTier, remote.subscriptionTier),
     notificationPreferences: mergeNotificationPreferences(
       normalizeNotificationPreferences(local.notificationPreferences),

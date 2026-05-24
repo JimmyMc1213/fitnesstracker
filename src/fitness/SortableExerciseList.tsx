@@ -120,7 +120,7 @@ export function ReorderCompactRow({
       <span
         style={{
           fontSize: 10,
-          color: "rgba(255,255,255,0.35)",
+          color: "var(--text-ghost)",
           fontWeight: 600,
           fontVariantNumeric: "tabular-nums",
           flexShrink: 0,
@@ -225,7 +225,7 @@ export function ExerciseDragHandle({
         padding: 0,
         border: "none",
         background: "transparent",
-        color: disabled ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.35)",
+        color: disabled ? "var(--text-whisper)" : "var(--text-ghost)",
         cursor: disabled ? "default" : handle.isDragging ? "grabbing" : "grab",
         touchAction: "none",
       }}

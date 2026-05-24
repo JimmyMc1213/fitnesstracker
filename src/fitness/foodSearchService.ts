@@ -82,7 +82,7 @@ export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
   if (mocked !== null) return cacheResults(q, mocked);
 
   if (!isSupabaseConfigured()) {
-    throw new FoodSearchError("Supabase is not configured — check your .env file.");
+    throw new FoodSearchError("Supabase is not configured. Check your .env file.");
   }
 
   const sb = getSupabase();

@@ -10,7 +10,7 @@ const createInputStyle: CSSProperties = {
   border: "0.5px solid var(--border)",
   borderRadius: 10,
   padding: "10px 12px",
-  color: "#fff",
+  color: "var(--text-primary)",
   fontFamily: "var(--ui)",
   fontSize: 14,
   fontWeight: 500,
@@ -83,7 +83,7 @@ export function AddExerciseSearchSheet({
   return (
     <div className="card" style={{ padding: 12, marginTop: 16 }}>
       <div style={{ position: "relative" }}>
-        <IconSearch size={16} style={{ position: "absolute", left: 12, top: 13, color: "rgba(255,255,255,0.4)" }} />
+        <IconSearch size={16} style={{ position: "absolute", left: 12, top: 13, color: "var(--text-ghost)" }} />
         <input
           autoFocus
           className="input"
@@ -100,7 +100,7 @@ export function AddExerciseSearchSheet({
           style={{
             marginTop: 12,
             padding: 14,
-            background: "rgba(255,255,255,0.04)",
+            background: "var(--surface-1)",
             border: "0.5px solid rgba(10,132,255,0.35)",
           }}
         >
@@ -132,7 +132,7 @@ export function AddExerciseSearchSheet({
               onClick={closeCreateCard}
               style={{
                 width: "100%",
-                color: "rgba(255,255,255,0.4)",
+                color: "var(--text-ghost)",
                 fontSize: 12,
                 padding: 6,
                 fontWeight: 500,
@@ -172,7 +172,7 @@ export function AddExerciseSearchSheet({
                 fontWeight: 600,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.35)",
+                color: "var(--text-ghost)",
                 padding: "8px 8px 6px",
               }}
             >
@@ -197,12 +197,12 @@ export function AddExerciseSearchSheet({
                 }}
               >
                 <span style={{ minWidth: 0 }}>
-                  <span style={{ display: "block", color: "#fff" }}>{c.name}</span>
+                  <span style={{ display: "block", color: "var(--text-primary)" }}>{c.name}</span>
                   {c.label ? (
-                    <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 3, fontWeight: 500 }}>{c.label}</span>
+                    <span style={{ display: "block", fontSize: 11, color: "var(--text-ghost)", marginTop: 3, fontWeight: 500 }}>{c.label}</span>
                   ) : null}
                 </span>
-                <IconPlus size={14} stroke={2} style={{ color: "#fff", flexShrink: 0 }} />
+                <IconPlus size={14} stroke={2} style={{ color: "var(--text-primary)", flexShrink: 0 }} />
               </button>
             ))}
           </>
@@ -215,7 +215,7 @@ export function AddExerciseSearchSheet({
                 fontWeight: 600,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.35)",
+                color: "var(--text-ghost)",
                 padding: "8px 8px 6px",
               }}
             >
@@ -239,13 +239,13 @@ export function AddExerciseSearchSheet({
                 }}
               >
                 <span>{n}</span>
-                <IconPlus size={14} stroke={2} style={{ color: "#fff" }} />
+                <IconPlus size={14} stroke={2} style={{ color: "var(--text-primary)" }} />
               </button>
             ))}
           </>
         ) : null}
         {filteredCustom.length === 0 && filteredBuiltin.length === 0 ? (
-          <div style={{ padding: 16, textAlign: "center", fontSize: 13, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>No matches</div>
+          <div style={{ padding: 16, textAlign: "center", fontSize: 13, color: "var(--text-faint-soft)", fontWeight: 500 }}>No matches</div>
         ) : null}
       </div>
       <button
@@ -255,7 +255,7 @@ export function AddExerciseSearchSheet({
         style={{
           marginTop: 8,
           width: "100%",
-          color: "rgba(255,255,255,0.4)",
+          color: "var(--text-ghost)",
           fontSize: 12,
           padding: 6,
           fontWeight: 500,

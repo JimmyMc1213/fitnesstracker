@@ -76,7 +76,7 @@ export function DevOnboardingToolbar({
           cursor: "pointer",
         }}
       >
-        {onboardingOpen ? "Close onboarding" : "Open onboarding"}
+        {onboardingOpen ? "Leave onboarding" : "Open onboarding"}
       </button>
     </div>
   );

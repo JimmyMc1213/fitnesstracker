@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { loadTasksForToday, localDateKey } from "./dailyPlan";
+import {
+  buildHabitsForDateKey,
+  habitTemplatesFromOnboarding,
+  pruneHabitsDoneByDay,
+} from "./data";
 import { DEFAULT_EXPERIENCE_LEVEL } from "./experienceLevel";
 import { ExperienceLevelPicker } from "./ExperienceLevelPicker";
 import { DEFAULT_EQUIPMENT_SETUP } from "./equipmentSetup";
@@ -8,12 +13,11 @@ import { EquipmentSetupPicker } from "./EquipmentSetupPicker";
 import {
   activityLevelLabel,
   calculateNutritionTargets,
-  nutritionGoalLabel,
 } from "./nutritionCalculator";
 import { NotificationPreferencesPicker } from "./NotificationPreferencesPicker";
-import { DEFAULT_NOTIFICATION_PREFERENCES } from "./notificationPreferences";
+import { ONBOARDING_NOTIFICATION_DEFAULTS, anyNotificationEnabled } from "./notificationPreferences";
 import { requestNotificationPermission } from "./notificationPermission";
-import { ageFromDateOfBirth, DEFAULT_ONBOARDING_PROFILE, progressGoalFromOnboarding } from "./onboardingProfile";
+import { ageFromDateOfBirth, DEFAULT_ONBOARDING_PROFILE, normalizeOnboardingProfile, progressGoalFromOnboarding } from "./onboardingProfile";
 import {
   buildOnboardingDraft,
   clearOnboardingDraftStorage,
@@ -21,24 +25,56 @@ import {
   saveOnboardingDraftToLocalStorage,
   type OnboardingDraftInput,
 } from "./onboardingDraft";
-import { OnboardingInterstitial } from "./OnboardingInterstitial";
+import { OnboardingDailyFuelPlan } from "./OnboardingDailyFuelPlan";
+import { OnboardingGoalWeightReinforcement } from "./OnboardingGoalWeightReinforcement";
+import { OnboardingPlanBuilding } from "./OnboardingPlanBuilding";
+import { OnboardingIconOptionPicker } from "./OnboardingIconOptionPicker";
+import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
+import { OnboardingThemePicker } from "./OnboardingThemePicker";
+import { useTheme } from "./ThemeContext";
+import type { AppTheme } from "./theme";
 import { OnboardingPaywall } from "./OnboardingPaywall";
+import { OnboardingSaveProgress } from "./OnboardingSaveProgress";
 import { OnboardingPlanReady } from "./OnboardingPlanReady";
-import { OnboardingSegment } from "./OnboardingSegment";
+import { OnboardingPotentialReinforcement } from "./OnboardingPotentialReinforcement";
+import { OnboardingPillStack, OnboardingSegment } from "./OnboardingSegment";
 import { OnboardingShell, ONBOARDING_TOTAL_STEPS } from "./OnboardingShell";
+import {
+  goalWeightDirectionLabel,
+  goalWeightReinforcementParts,
+  goalWeightReinforcementSubtext,
+  trainingScheduleReinforcementParts,
+  trainingScheduleReinforcementSubtext,
+} from "./onboardingReinforcementCopy";
+import {
+  DIETARY_RESTRICTIONS,
+  ONBOARDING_BARRIERS,
+  TRAINING_STYLES,
+  barrierIcon,
+  barrierLabel,
+  dietaryRestrictionIcon,
+  dietaryRestrictionLabel,
+  toggleDietaryRestriction,
+  toggleSurveySelection,
+  trainingStyleIcon,
+  trainingStyleLabel,
+} from "./onboardingMotivationSurvey";
+import { OnboardingNotificationPrompt } from "./OnboardingNotificationPrompt";
 import { OnboardingSplitReveal } from "./OnboardingSplitReveal";
-import { OnboardingTemplateReview } from "./OnboardingTemplateReview";
 import { isTrainingScheduleValid, WorkoutWeekCalendarPicker } from "./WorkoutWeekCalendarPicker";
 import { UnitPreferencePicker } from "./UnitPreferencePicker";
 import { defaultTrainingWeekdaysForProfile } from "./workoutWeekCalendar";
 import {
   DEFAULT_UNIT_PREFERENCES,
   cmFromInches,
-  formatWeightFromLbs,
   inchesFromCm,
   parseWeightToLbs,
 } from "./unitPreferences";
-import { buildWorkoutTemplatesForDays } from "./workoutSplitByDays";
+import { DateOfBirthWheelPicker, defaultOnboardingDateOfBirth } from "./DateOfBirthWheelPicker";
+import { defaultGoalWeightLbs, goalWeightRangeLbs, WeightRulerPicker } from "./WeightRulerPicker";
+import { ReferralSourcePicker } from "./ReferralSourcePicker";
+import { OnboardingDecimalInput } from "./OnboardingDecimalInput";
+import { buildWorkoutTemplatesForDays, sessionDurationFromSessionLength, sessionLengthFromDuration } from "./workoutSplitByDays";
 import type {
   ActivityLevel,
   AppState,
@@ -50,6 +86,7 @@ import type {
   NutritionGoal,
   OnboardingDraft,
   OnboardingProfile,
+  SessionLength,
   SubscriptionTier,
   UnitPreferences,
   UserGender,
@@ -64,6 +101,13 @@ const PACES: { value: GoalPace; label: string; hint?: string }[] = [
   { value: "slow", label: "Slow and steady (~0.5 lb/wk)" },
   { value: "balanced", label: "Balanced (~1 lb/wk)" },
   { value: "aggressive", label: "Aggressive (~1.5 lb/wk)", hint: "Faster results, but harder to keep muscle if nutrition slips." },
+];
+const SESSION_LENGTH_OPTIONS: { value: SessionLength; label: string }[] = [
+  { value: "under_30", label: "Less than 30 min" },
+  { value: "30_45", label: "30–45 min" },
+  { value: "45_60", label: "45 min – 1 hour" },
+  { value: "60_90", label: "1 hour – 1.5 hours" },
+  { value: "90_plus", label: "1.5 hours+" },
 ];
 
 function defaultDateOfBirthFromAge(age: number): string {
@@ -85,6 +129,10 @@ function isGoalWeightValid(profile: OnboardingProfile): boolean {
   return false;
 }
 
+function clampGoalWeightLbs(valueLbs: number, minLbs: number, maxLbs: number): number {
+  return Math.min(maxLbs, Math.max(minLbs, valueLbs));
+}
+
 function isMacrosValid(macros: MacroTotals): boolean {
   return (
     macros.cal >= 1200 &&
@@ -98,6 +146,25 @@ function isMacrosValid(macros: MacroTotals): boolean {
   );
 }
 
+/** Clamp saved step indices from older onboarding flows. */
+function migrateOnboardingStepIndex(stepIndex: number): number {
+  return Math.min(Math.max(0, Math.round(stepIndex)), TOTAL_STEPS - 1);
+}
+
+function buildDraftTemplatesFromSelections(
+  profile: OnboardingProfile,
+  experienceLevel: ExperienceLevel,
+  equipmentSetup: EquipmentSetup,
+  sessionLength: SessionLength,
+): WorkoutRoutineTemplate[] {
+  const weekdays =
+    profile.trainingWeekdays?.length ?
+      profile.trainingWeekdays
+    : defaultTrainingWeekdaysForProfile(profile.workoutDaysPerWeek);
+  const days = weekdays.length as typeof profile.workoutDaysPerWeek;
+  return buildWorkoutTemplatesForDays(days, experienceLevel, equipmentSetup, weekdays, sessionLength);
+}
+
 function onboardingStateFromDraft(draft: OnboardingDraft) {
   const weekdays =
     draft.profile.trainingWeekdays?.length ?
@@ -108,48 +175,59 @@ function onboardingStateFromDraft(draft: OnboardingDraft) {
     trainingWeekdays: weekdays,
     dateOfBirth: draft.profile.dateOfBirth ?? defaultDateOfBirthFromAge(draft.profile.age),
   };
+  const sessionLength =
+    draft.sessionLength ?? sessionLengthFromDuration(draft.profile.sessionDuration);
   const templatesFromDraft =
     draft.draftTemplates?.length ?
       draft.draftTemplates.map((t) => ({ ...t, exercises: [...t.exercises] }))
-    : buildWorkoutTemplatesForDays(
-        profile.workoutDaysPerWeek,
-        draft.experienceLevel,
-        draft.equipmentSetup,
-        weekdays,
-      );
+    : buildDraftTemplatesFromSelections(profile, draft.experienceLevel, draft.equipmentSetup, sessionLength);
   return {
-    step: Math.min(draft.stepIndex, TOTAL_STEPS - 1),
+    step: Math.min(migrateOnboardingStepIndex(draft.stepIndex), TOTAL_STEPS - 1),
     displayName: draft.displayName,
     unitPreferences: { ...draft.unitPreferences },
     experienceLevel: draft.experienceLevel,
     equipmentSetup: draft.equipmentSetup,
+    sessionLength,
     profile,
     draftTemplates: templatesFromDraft,
     macros: draft.macros ? { ...draft.macros } : calculateNutritionTargets(profile),
-    notificationPrefs: { ...(draft.notificationPrefs ?? DEFAULT_NOTIFICATION_PREFERENCES) },
+    notificationPrefs: { ...(draft.notificationPrefs ?? ONBOARDING_NOTIFICATION_DEFAULTS) },
+    theme: draft.theme ?? "light",
   };
 }
 
 export function OnboardingFlow({
   setState,
   onComplete,
+  onSignIn,
+  introWelcomeDone = false,
+  accountDisplayName = "",
   initialDraft,
   previewMode = false,
 }: {
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   onComplete?: () => void;
+  onSignIn?: () => void;
+  introWelcomeDone?: boolean;
+  accountDisplayName?: string;
   initialDraft?: OnboardingDraft | null;
   previewMode?: boolean;
 }) {
+  const { setTheme } = useTheme();
   const restored = initialOnboardingWizardDraft(initialDraft);
   const initial = restored ? onboardingStateFromDraft(restored) : null;
-  const [step, setStep] = useState(() => initial?.step ?? 0);
-  const [displayName, setDisplayName] = useState(() => initial?.displayName ?? "");
+  const [step, setStep] = useState(() => {
+    const restoredStep = initial?.step ?? 0;
+    if (introWelcomeDone && restoredStep === 0) return 1;
+    return restoredStep;
+  });
+  const displayName = accountDisplayName.trim() || (initial?.displayName ?? "").trim();
   const [unitPreferences, setUnitPreferences] = useState<UnitPreferences>(() => initial?.unitPreferences ?? { ...DEFAULT_UNIT_PREFERENCES });
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(() => initial?.experienceLevel ?? DEFAULT_EXPERIENCE_LEVEL);
   const [equipmentSetup, setEquipmentSetup] = useState<EquipmentSetup>(() => initial?.equipmentSetup ?? DEFAULT_EQUIPMENT_SETUP);
+  const [sessionLength, setSessionLength] = useState<SessionLength>(() => initial?.sessionLength ?? "45_60");
   const [profile, setProfile] = useState<OnboardingProfile>(() => {
-    const base = initial?.profile ?? { ...DEFAULT_ONBOARDING_PROFILE };
+    const base = normalizeOnboardingProfile(initial?.profile) ?? { ...DEFAULT_ONBOARDING_PROFILE };
     return {
       ...base,
       dateOfBirth: base.dateOfBirth ?? defaultDateOfBirthFromAge(base.age),
@@ -158,12 +236,28 @@ export function OnboardingFlow({
   const [draftTemplates, setDraftTemplates] = useState<WorkoutRoutineTemplate[]>(
     () =>
       initial?.draftTemplates ??
-      buildWorkoutTemplatesForDays(5, DEFAULT_EXPERIENCE_LEVEL, DEFAULT_EQUIPMENT_SETUP),
+      buildDraftTemplatesFromSelections(
+        initial?.profile ?? DEFAULT_ONBOARDING_PROFILE,
+        initial?.experienceLevel ?? DEFAULT_EXPERIENCE_LEVEL,
+        initial?.equipmentSetup ?? DEFAULT_EQUIPMENT_SETUP,
+        initial?.sessionLength ?? "45_60",
+      ),
   );
   const [macros, setMacros] = useState<MacroTotals>(() => initial?.macros ?? calculateNutritionTargets(DEFAULT_ONBOARDING_PROFILE));
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(
-    () => initial?.notificationPrefs ?? { ...DEFAULT_NOTIFICATION_PREFERENCES },
+    () => initial?.notificationPrefs ?? { ...ONBOARDING_NOTIFICATION_DEFAULTS },
   );
+  const [goalWeightReinforcement, setGoalWeightReinforcement] = useState(false);
+  const [coachingLoopCtaReady, setCoachingLoopCtaReady] = useState(false);
+  const [coachingLoopCtaVisible, setCoachingLoopCtaVisible] = useState(false);
+  const [draftTheme, setDraftTheme] = useState<AppTheme>(() => initial?.theme ?? restored?.theme ?? "light");
+
+  useEffect(() => {
+    if (step !== 20) {
+      setCoachingLoopCtaReady(false);
+      setCoachingLoopCtaVisible(false);
+    }
+  }, [step]);
 
   const dobAge = useMemo(
     () => (profile.dateOfBirth ? ageFromDateOfBirth(profile.dateOfBirth) : null),
@@ -183,8 +277,6 @@ export function OnboardingFlow({
   const heightValid = profile.heightIn >= 48 && profile.heightIn <= 96;
   const weightValid = profile.weightLbs >= 70 && profile.weightLbs <= 450;
   const dobValid = dobAge != null && dobAge >= 13 && dobAge <= 100;
-  const displayNameValid = !displayName.trim() || (displayName.trim().length >= 1 && displayName.trim().length <= 40);
-  const templatesValid = draftTemplates.length > 0 && draftTemplates.every((t) => t.exercises.length > 0);
   const paceValid = profile.goal === "maintain" || profile.pace != null;
 
   const formRef = useRef({
@@ -193,10 +285,12 @@ export function OnboardingFlow({
     unitPreferences,
     experienceLevel,
     equipmentSetup,
+    sessionLength,
     profile,
     draftTemplates,
     macros,
     notificationPrefs,
+    draftTheme,
   });
   formRef.current = {
     step,
@@ -204,10 +298,12 @@ export function OnboardingFlow({
     unitPreferences,
     experienceLevel,
     equipmentSetup,
+    sessionLength,
     profile,
     draftTemplates,
     macros,
     notificationPrefs,
+    draftTheme,
   };
 
   useEffect(() => {
@@ -220,10 +316,12 @@ export function OnboardingFlow({
           unitPreferences: f.unitPreferences,
           experienceLevel: f.experienceLevel,
           equipmentSetup: f.equipmentSetup,
+          sessionLength: f.sessionLength,
           profile: f.profile,
           draftTemplates: f.draftTemplates,
           macros: f.macros,
           notificationPrefs: f.notificationPrefs,
+          theme: f.draftTheme,
         }),
       );
     };
@@ -232,13 +330,29 @@ export function OnboardingFlow({
   }, []);
 
   useEffect(() => {
-    if (step !== 20) return;
-    const id = window.setTimeout(() => {
-      goToStep(21);
-    }, 3500);
-    return () => window.clearTimeout(id);
+    if (step === 0 && introWelcomeDone) {
+      goToStep(1);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, introWelcomeDone]);
+
+  useEffect(() => {
+    if (step !== 3 || profile.dateOfBirth) return;
+    setProfile((p) => ({ ...p, dateOfBirth: defaultOnboardingDateOfBirth() }));
+  }, [step, profile.dateOfBirth]);
+
+  useEffect(() => {
+    if (step !== 9) {
+      setGoalWeightReinforcement(false);
+      return;
+    }
+    if (profile.goal === "maintain") return;
+    if (profile.goalWeightLbs != null) return;
+    setProfile((p) => ({
+      ...p,
+      goalWeightLbs: defaultGoalWeightLbs(p.goal as "cut" | "bulk", p.weightLbs),
+    }));
+  }, [step, profile.goal, profile.goalWeightLbs, profile.weightLbs]);
 
   function persistDraftSync(nextStepIndex: number, overrides?: Partial<OnboardingDraftInput>) {
     const draft = buildOnboardingDraft({
@@ -247,10 +361,12 @@ export function OnboardingFlow({
       unitPreferences,
       experienceLevel,
       equipmentSetup,
+      sessionLength,
       profile,
       draftTemplates,
       macros,
       notificationPrefs,
+      theme: draftTheme,
       ...overrides,
     });
     saveOnboardingDraftToLocalStorage(draft);
@@ -278,80 +394,108 @@ export function OnboardingFlow({
       return;
     }
 
-    if (step === 14) {
-      const weekdays =
-        profile.trainingWeekdays?.length ?
-          profile.trainingWeekdays
-        : defaultTrainingWeekdaysForProfile(profile.workoutDaysPerWeek);
-      overrides.draftTemplates = buildWorkoutTemplatesForDays(
-        profile.workoutDaysPerWeek,
-        experienceLevel,
-        equipmentSetup,
-        weekdays,
-      );
-      setDraftTemplates(overrides.draftTemplates);
-      goToStep(15, overrides);
+    if (step === 9 && profile.goal !== "maintain" && !goalWeightReinforcement) {
+      setGoalWeightReinforcement(true);
       return;
     }
 
     if (step === 15) {
+      const templates = buildDraftTemplatesFromSelections(profile, experienceLevel, equipmentSetup, sessionLength);
+      overrides.draftTemplates = templates;
+      overrides.sessionLength = sessionLength;
+      setDraftTemplates(templates);
+    }
+
+    if (step === 22) {
       overrides.macros = computedMacros;
       setMacros(computedMacros);
-      goToStep(17, overrides);
+      goToStep(23, overrides);
       return;
     }
 
-    if (step === 16) {
+    if (step === 23) {
       overrides.macros = macros;
-      goToStep(17, overrides);
+      goToStep(24, overrides);
       return;
     }
 
-    if (step === 17) {
-      overrides.macros = macros;
-      goToStep(18, overrides);
+    if (step === 24) {
+      goToStep(25, overrides);
       return;
     }
 
-    if (step === 19) {
-      goToStep(20, overrides);
+    if (step === 25) {
+      goToStep(26, overrides);
       return;
     }
 
-    if (step === 21) {
-      goToStep(22, overrides);
+    if (step === 26) {
+      goToStep(27, overrides);
+      return;
+    }
+
+    if (step === 27) {
+      goToStep(28, overrides);
+      return;
+    }
+
+    if (step === 28) {
+      goToStep(29, overrides);
       return;
     }
 
     const next = Math.min(step + 1, TOTAL_STEPS - 1);
-    if (step === 11 && profile.goal !== "maintain" && !profile.pace) {
+    if (step === 10 && profile.goal !== "maintain" && !profile.pace) {
       return;
     }
     goToStep(next, overrides);
   }
 
   function goBack() {
+    if (step === 9 && goalWeightReinforcement) {
+      setGoalWeightReinforcement(false);
+      return;
+    }
     if (step === 11) {
       goToStep(prevBeforeActivity());
       return;
     }
-    if (step === 17) {
-      goToStep(15);
-      return;
-    }
-    if (step === 16) {
-      goToStep(15);
-      return;
-    }
     if (step === 22) {
-      goToStep(21);
+      goToStep(20);
+      return;
+    }
+    if (step === 24) {
+      goToStep(23);
+      return;
+    }
+    if (step === 23) {
+      goToStep(22);
+      return;
+    }
+    if (step === 29) {
+      goToStep(28);
       return;
     }
     goToStep(Math.max(step - 1, 0));
   }
 
-  function goEditSplit() {
-    goToStep(16);
+  function handlePlanBuildingComplete() {
+    setMacros(computedMacros);
+    goToStep(22, { macros: computedMacros });
+  }
+
+  function goToReminderPicker() {
+    goToStep(26);
+  }
+
+  async function handleNotificationPromptChoice() {
+    await requestNotificationPermission();
+    goToReminderPicker();
+  }
+
+  function skipReminders() {
+    setNotificationPrefs({ ...ONBOARDING_NOTIFICATION_DEFAULTS });
+    goNext();
   }
 
   function finish(subscriptionTier: SubscriptionTier, notificationPreferences: NotificationPreferences) {
@@ -363,103 +507,115 @@ export function OnboardingFlow({
     clearOnboardingDraftStorage();
     const planStartIso = localDateKey(new Date());
     const age = profile.dateOfBirth ? (ageFromDateOfBirth(profile.dateOfBirth) ?? profile.age) : profile.age;
-    const finalProfile: OnboardingProfile = { ...profile, age };
+    const finalProfile: OnboardingProfile = {
+      ...profile,
+      age,
+      sessionDuration: sessionDurationFromSessionLength(sessionLength),
+    };
     const progressGoal = progressGoalFromOnboarding(finalProfile);
-    setState((s) => ({
-      ...s,
-      displayName: displayName.trim(),
-      unitPreferences,
-      unitPreferencesChosen: true,
-      experienceLevel,
-      experienceLevelChosen: true,
-      equipmentSetup,
-      equipmentSetupChosen: true,
-      onboardingProfile: finalProfile,
-      onboardingComplete: true,
-      onboardingDraft: null,
-      workoutTemplates: draftTemplates,
-      nutritionTargets: macros,
-      notificationPreferences,
-      progressGoal,
-      planStartIso,
-      subscriptionTier,
-      dailyTasks: loadTasksForToday(macros, planStartIso, s.stepsTarget, draftTemplates, finalProfile.workoutDaysPerWeek),
-    }));
+    setState((s) => {
+      const stepsTarget = s.stepsTarget;
+      const waterDailyTargetOz = s.waterDailyTargetOz;
+      const habitTemplates = habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz);
+      const templateIds = new Set(habitTemplates.map((h) => h.id));
+      const habitsDoneByDay = pruneHabitsDoneByDay(s.habitsDoneByDay, templateIds);
+      const todayKey = localDateKey(new Date());
+      return {
+        ...s,
+        displayName: displayName.trim(),
+        unitPreferences,
+        unitPreferencesChosen: true,
+        experienceLevel,
+        experienceLevelChosen: true,
+        equipmentSetup,
+        equipmentSetupChosen: true,
+        onboardingProfile: finalProfile,
+        onboardingComplete: true,
+        onboardingDraft: null,
+        workoutTemplates: draftTemplates,
+        nutritionTargets: macros,
+        notificationPreferences,
+        progressGoal,
+        planStartIso,
+        subscriptionTier,
+        theme: draftTheme,
+        habitTemplates,
+        habitsDoneByDay,
+        habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey),
+        dailyTasks: loadTasksForToday(macros, planStartIso, stepsTarget, draftTemplates, finalProfile.workoutDaysPerWeek),
+      };
+    });
     onComplete?.();
   }
 
   async function finishWithTier(tier: SubscriptionTier) {
     let prefs = notificationPrefs;
-    if (prefs.workoutReminderEnabled || prefs.nutritionCheckInEnabled) {
+    if (anyNotificationEnabled(prefs)) {
       await requestNotificationPermission();
     }
     finish(tier, prefs);
   }
 
   if (step === 0) {
-    return (
-      <OnboardingShell step={step} title="Gymmy" subtitle="The only app you need to reach your fitness goals" onContinue={goNext} hideProgress>
-        <ul style={{ margin: "8px 0 0", padding: "0 0 0 20px", color: "rgba(255,255,255,0.65)", fontSize: 15, lineHeight: 1.6 }}>
-          <li>Coach you through every workout</li>
-          <li>Track your fuel and progress</li>
-          <li>Never need another app</li>
-        </ul>
-      </OnboardingShell>
-    );
+    if (introWelcomeDone) return null;
+    return <OnboardingWelcomeScreen onGetStarted={goNext} onSignIn={onSignIn} />;
   }
 
   if (step === 1) {
     return (
-      <OnboardingInterstitial
+      <OnboardingThemePicker
         step={step}
-        title="Your transformation starts here"
-        subtitle="Unlike trackers, Gymmy coaches you session by session based on what you actually did last time."
+        value={draftTheme}
+        onChange={(nextTheme) => {
+          setDraftTheme(nextTheme);
+          setTheme(nextTheme);
+        }}
         onBack={goBack}
-        onContinue={goNext}
+        onContinue={() => {
+          setTheme(draftTheme);
+          goToStep(2, { theme: draftTheme });
+        }}
       />
     );
   }
 
   if (step === 2) {
     return (
-      <OnboardingShell
-        step={step}
-        title="What should we call you?"
-        subtitle="Used in your Home greeting and coach notes."
-        onBack={goBack}
-        onContinue={goNext}
-        continueLabel={displayName.trim() ? "Continue" : "Skip for now"}
-        continueDisabled={!displayNameValid}
-      >
-        <div className="card" style={{ padding: 16 }}>
-          <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            First name
-            <input
-              className="input"
-              style={{ marginTop: 8 }}
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Jimmy"
-              autoCapitalize="words"
-              autoComplete="given-name"
-              aria-label="First name"
-            />
-          </label>
-        </div>
-      </OnboardingShell>
-    );
-  }
-
-  if (step === 3) {
-    return (
-      <OnboardingShell step={step} title="What's your gender?" subtitle="Used for calorie calculations." onBack={goBack} onContinue={goNext}>
-        <div style={{ display: "flex", gap: 8 }}>
+      <OnboardingShell step={step} title="What's your gender?" subtitle="This will be used to calibrate your custom plan." onBack={goBack} onContinue={goNext}>
+        <OnboardingPillStack>
           {GENDERS.map((g) => (
             <OnboardingSegment key={g} selected={profile.gender === g} onClick={() => setProfile((p) => ({ ...p, gender: g }))}>
               {g === "male" ? "Male" : g === "female" ? "Female" : "Other"}
             </OnboardingSegment>
           ))}
+        </OnboardingPillStack>
+      </OnboardingShell>
+    );
+  }
+
+  if (step === 3) {
+    const dobValue = profile.dateOfBirth ?? defaultOnboardingDateOfBirth();
+
+    return (
+      <OnboardingShell
+        step={step}
+        title="When were you born?"
+        subtitle="This will be used to calibrate your custom plan."
+        onBack={goBack}
+        onContinue={goNext}
+        continueDisabled={!dobValid}
+      >
+        <div className="dob-wheel-picker-wrap">
+          <DateOfBirthWheelPicker
+            value={dobValue}
+            onChange={(dateOfBirth) => setProfile((p) => ({ ...p, dateOfBirth }))}
+          />
         </div>
+        {!dobValid && profile.dateOfBirth ? (
+          <p style={{ margin: "12px 0 0", fontSize: 13, color: "rgba(248,113,113,0.9)", textAlign: "center" }}>
+            Enter a valid date of birth (13+)
+          </p>
+        ) : null}
       </OnboardingShell>
     );
   }
@@ -468,28 +624,15 @@ export function OnboardingFlow({
     return (
       <OnboardingShell
         step={step}
-        title="When were you born?"
-        subtitle="Used for calorie targets and age-appropriate recommendations."
+        title="Where did you hear about us?"
         onBack={goBack}
         onContinue={goNext}
-        continueDisabled={!dobValid}
+        continueDisabled={!profile.referralSource}
       >
-        <div className="card" style={{ padding: 16 }}>
-          <label style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
-            Date of birth
-            <input
-              type="date"
-              aria-label="Date of birth"
-              value={profile.dateOfBirth ?? ""}
-              max={localDateKey(new Date())}
-              onChange={(e) => setProfile((p) => ({ ...p, dateOfBirth: e.target.value }))}
-              style={{ display: "block", width: "100%", marginTop: 8, padding: 10, borderRadius: 10, border: "0.5px solid var(--border)", background: "#1A1A1A", color: "#fff" }}
-            />
-          </label>
-          {!dobValid && profile.dateOfBirth ? (
-            <p style={{ margin: "10px 0 0", fontSize: 13, color: "rgba(248,113,113,0.9)" }}>Enter a valid date of birth (13+)</p>
-          ) : null}
-        </div>
+        <ReferralSourcePicker
+          value={profile.referralSource}
+          onChange={(referralSource) => setProfile((p) => ({ ...p, referralSource }))}
+        />
       </OnboardingShell>
     );
   }
@@ -497,7 +640,7 @@ export function OnboardingFlow({
   if (step === 5) {
     return (
       <OnboardingShell step={step} title="Choose your units" subtitle="Weight and height display across the app." onBack={goBack} onContinue={goNext}>
-        <div className="card" style={{ padding: 20 }}>
+        <div className="onboarding-gradient-card onboarding-gradient-card--spacious">
           <UnitPreferencePicker value={unitPreferences} onChange={setUnitPreferences} />
         </div>
       </OnboardingShell>
@@ -518,49 +661,49 @@ export function OnboardingFlow({
         onContinue={goNext}
         continueDisabled={!heightValid}
       >
-        <div className="card" style={{ padding: 16 }}>
+        <div className="onboarding-gradient-card">
           {hUnit === "cm" ? (
-            <label style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
-              Height (cm)
+            <label className="onboarding-field-group">
+              <span className="onboarding-field-label">Height (cm)</span>
               <input
                 type="number"
                 aria-label="Height in centimeters"
+                className="onboarding-input-pill"
                 value={heightCm}
                 onChange={(e) => {
                   const inches = inchesFromCm(parseFloat(e.target.value));
                   if (inches != null) setProfile((p) => ({ ...p, heightIn: inches }));
                 }}
-                style={{ display: "block", width: "100%", marginTop: 8, padding: 10, borderRadius: 10, border: "0.5px solid var(--border)", background: "#1A1A1A", color: "#fff" }}
               />
             </label>
           ) : (
-            <div style={{ display: "flex", gap: 10 }}>
-              <label style={{ flex: 1, fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
-                Ft
+            <div className="onboarding-pill-row">
+              <label className="onboarding-field-group">
+                <span className="onboarding-field-label">Ft</span>
                 <input
                   type="number"
                   aria-label="Height feet"
+                  className="onboarding-input-pill"
                   value={heightFt}
                   onChange={(e) => {
                     const ft = parseInt(e.target.value, 10);
                     if (!Number.isFinite(ft)) return;
                     setProfile((p) => ({ ...p, heightIn: ft * 12 + (p.heightIn % 12) }));
                   }}
-                  style={{ display: "block", width: "100%", marginTop: 8, padding: 10, borderRadius: 10, border: "0.5px solid var(--border)", background: "#1A1A1A", color: "#fff" }}
                 />
               </label>
-              <label style={{ flex: 1, fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
-                In
+              <label className="onboarding-field-group">
+                <span className="onboarding-field-label">In</span>
                 <input
                   type="number"
                   aria-label="Height inches"
+                  className="onboarding-input-pill"
                   value={heightInRem}
                   onChange={(e) => {
                     const inch = parseInt(e.target.value, 10);
                     if (!Number.isFinite(inch)) return;
                     setProfile((p) => ({ ...p, heightIn: Math.floor(p.heightIn / 12) * 12 + inch }));
                   }}
-                  style={{ display: "block", width: "100%", marginTop: 8, padding: 10, borderRadius: 10, border: "0.5px solid var(--border)", background: "#1A1A1A", color: "#fff" }}
                 />
               </label>
             </div>
@@ -585,19 +728,19 @@ export function OnboardingFlow({
         onContinue={goNext}
         continueDisabled={!weightValid}
       >
-        <div className="card" style={{ padding: 16 }}>
-          <label style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
-            Weight ({wUnit})
-            <input
-              type="number"
-              aria-label="Body weight"
-              value={Number.isFinite(weightDisplay) ? Math.round(weightDisplay * 10) / 10 : ""}
-              onChange={(e) => {
-                const n = parseFloat(e.target.value);
-                if (!Number.isFinite(n)) return;
-                setProfile((p) => ({ ...p, weightLbs: parseWeightToLbs(n, wUnit) }));
+        <div className="onboarding-gradient-card">
+          <label className="onboarding-field-group">
+            <span className="onboarding-field-label">Weight ({wUnit})</span>
+            <OnboardingDecimalInput
+              resetKey={wUnit}
+              ariaLabel="Body weight"
+              value={weightDisplay}
+              onChange={(n) => {
+                setProfile((p) => ({
+                  ...p,
+                  weightLbs: n == null ? 0 : parseWeightToLbs(n, wUnit),
+                }));
               }}
-              style={{ display: "block", width: "100%", marginTop: 8, padding: 10, borderRadius: 10, border: "0.5px solid var(--border)", background: "#1A1A1A", color: "#fff" }}
             />
           </label>
           {!weightValid ? (
@@ -611,88 +754,88 @@ export function OnboardingFlow({
   if (step === 8) {
     return (
       <OnboardingShell step={step} title="What's your primary goal?" subtitle="Gymmy adjusts calories and coaching for your goal." onBack={goBack} onContinue={goNext}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <OnboardingPillStack>
           {GOALS.map((g) => (
             <OnboardingSegment key={g} selected={profile.goal === g} onClick={() => setProfile((p) => ({ ...p, goal: g }))}>
               {g === "cut" ? "Lose weight" : g === "bulk" ? "Build muscle" : "Maintain and perform"}
             </OnboardingSegment>
           ))}
-        </div>
+        </OnboardingPillStack>
       </OnboardingShell>
     );
   }
 
   if (step === 9) {
     const wUnit = unitPreferences.weightUnit;
-    const display =
-      profile.goalWeightLbs != null ?
-        wUnit === "kg" ?
-          profile.goalWeightLbs / 2.2046226218
-        : profile.goalWeightLbs
-      : "";
+    const goal = profile.goal as "cut" | "bulk";
+    const { minLbs, maxLbs } = goalWeightRangeLbs(goal, profile.weightLbs);
+    const valueLbs = clampGoalWeightLbs(profile.goalWeightLbs ?? defaultGoalWeightLbs(goal, profile.weightLbs), minLbs, maxLbs);
+    const reinforcement = goalWeightReinforcementParts(profile, wUnit);
 
     return (
       <OnboardingShell
         step={step}
-        title="What's your goal weight?"
+        title={goalWeightReinforcement ? "" : "What is your desired weight?"}
+        hideHeader={goalWeightReinforcement}
+        contentClassName={goalWeightReinforcement ? "onboarding-shell__content--centered" : undefined}
         onBack={goBack}
         onContinue={goNext}
-        continueDisabled={!isGoalWeightValid(profile)}
+        continueDisabled={!goalWeightReinforcement && !isGoalWeightValid(profile)}
       >
-        <div className="card" style={{ padding: 16 }}>
-          <label style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
-            Goal weight ({wUnit})
-            <input
-              type="number"
-              aria-label="Goal weight"
-              value={display}
-              onChange={(e) => {
-                const n = parseFloat(e.target.value);
-                if (!Number.isFinite(n)) return;
-                setProfile((p) => ({ ...p, goalWeightLbs: parseWeightToLbs(n, wUnit) }));
-              }}
-              style={{ display: "block", width: "100%", marginTop: 8, padding: 10, borderRadius: 10, border: "0.5px solid var(--border)", background: "#1A1A1A", color: "#fff" }}
-            />
-          </label>
-          {!isGoalWeightValid(profile) ? (
-            <p style={{ margin: "10px 0 0", fontSize: 13, color: "rgba(248,113,113,0.9)" }}>
-              Goal weight should be {profile.goal === "cut" ? "5–80 lbs below" : "3–50 lbs above"} your current weight (min 3 lb difference).
-            </p>
-          ) : null}
-        </div>
+        {goalWeightReinforcement ? (
+          <OnboardingGoalWeightReinforcement
+            headline={
+              <>
+                {reinforcement.verb}{" "}
+                <span className="onboarding-goal-weight-accent">{reinforcement.delta}</span>
+                {reinforcement.tail}
+              </>
+            }
+            subtext={goalWeightReinforcementSubtext()}
+          />
+        ) : (
+          <WeightRulerPicker
+            valueLbs={valueLbs}
+            minLbs={minLbs}
+            maxLbs={maxLbs}
+            unit={wUnit}
+            directionLabel={goalWeightDirectionLabel(profile.goal)}
+            onChange={(goalWeightLbs) => setProfile((p) => ({ ...p, goalWeightLbs }))}
+          />
+        )}
       </OnboardingShell>
     );
   }
 
   if (step === 10) {
     return (
-      <OnboardingShell step={step} title="How fast do you want to get there?" onBack={goBack} onContinue={goNext} continueDisabled={!paceValid}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <OnboardingShell step={step} title="How fast do you want to get there?" subtitle="Honest answer. We'll set the plan in the real world." onBack={goBack} onContinue={goNext} continueDisabled={!paceValid}>
+        <OnboardingPillStack>
           {PACES.map(({ value, label, hint }) => (
             <div key={value}>
               <OnboardingSegment selected={profile.pace === value} onClick={() => setProfile((p) => ({ ...p, pace: value }))}>
                 {label}
               </OnboardingSegment>
               {hint && profile.pace === value ? (
-                <p style={{ margin: "6px 0 0", fontSize: 12, color: "rgba(255,255,255,0.45)", paddingLeft: 4 }}>{hint}</p>
+                <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--text-secondary)", paddingLeft: 16 }}>{hint}</p>
               ) : null}
             </div>
           ))}
-        </div>
+        </OnboardingPillStack>
       </OnboardingShell>
     );
   }
 
   if (step === 11) {
     return (
-      <OnboardingShell step={step} title="How active are you outside the gym?" onBack={goBack} onContinue={goNext}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <OnboardingShell step={step} title="How active are you outside the gym?" subtitle="Helps us size your daily fuel targets." onBack={goBack} onContinue={goNext}>
+        <OnboardingPillStack>
           {ACTIVITY_LEVELS.map((level) => (
             <OnboardingSegment key={level} selected={profile.activityLevel === level} onClick={() => setProfile((p) => ({ ...p, activityLevel: level }))}>
               {activityLevelLabel(level)}
             </OnboardingSegment>
           ))}
-        </div>
+        </OnboardingPillStack>
       </OnboardingShell>
     );
   }
@@ -700,9 +843,7 @@ export function OnboardingFlow({
   if (step === 12) {
     return (
       <OnboardingShell step={step} title="What's your training experience?" subtitle="Rep ranges and starting weights in your templates." onBack={goBack} onContinue={goNext}>
-        <div className="card" style={{ padding: 20 }}>
-          <ExperienceLevelPicker value={experienceLevel} onChange={setExperienceLevel} />
-        </div>
+        <ExperienceLevelPicker value={experienceLevel} onChange={setExperienceLevel} />
       </OnboardingShell>
     );
   }
@@ -710,14 +851,36 @@ export function OnboardingFlow({
   if (step === 13) {
     return (
       <OnboardingShell step={step} title="What equipment do you have?" subtitle="Exercises will match what you can perform." onBack={goBack} onContinue={goNext}>
-        <div className="card" style={{ padding: 20 }}>
-          <EquipmentSetupPicker value={equipmentSetup} onChange={setEquipmentSetup} />
-        </div>
+        <EquipmentSetupPicker value={equipmentSetup} onChange={setEquipmentSetup} />
       </OnboardingShell>
     );
   }
 
   if (step === 14) {
+    return (
+      <OnboardingShell
+        step={step}
+        title="How long do you want to train?"
+        subtitle="We'll size your workouts to fit your session."
+        onBack={goBack}
+        onContinue={goNext}
+      >
+        <OnboardingPillStack>
+          {SESSION_LENGTH_OPTIONS.map(({ value, label }) => (
+            <OnboardingSegment
+              key={value}
+              selected={sessionLength === value}
+              onClick={() => setSessionLength(value)}
+            >
+              {label}
+            </OnboardingSegment>
+          ))}
+        </OnboardingPillStack>
+      </OnboardingShell>
+    );
+  }
+
+  if (step === 15) {
     return (
       <OnboardingShell
         step={step}
@@ -727,142 +890,290 @@ export function OnboardingFlow({
         onContinue={goNext}
         continueDisabled={!isTrainingScheduleValid(profile)}
       >
-        <div className="card" style={{ padding: 20 }}>
+        <div className="onboarding-gradient-card onboarding-gradient-card--spacious">
           <WorkoutWeekCalendarPicker profile={profile} onChange={(next) => setProfile((p) => ({ ...p, ...next }))} />
         </div>
       </OnboardingShell>
     );
   }
 
-  if (step === 15) {
-    return (
-      <OnboardingShell
-        step={step}
-        title="Here's your training plan"
-        subtitle="Gymmy built this split from your schedule and experience."
-        onBack={goBack}
-        onContinue={goNext}
-        onSecondary={goEditSplit}
-        secondaryLabel="Edit"
-      >
-        <OnboardingSplitReveal templates={draftTemplates} />
-      </OnboardingShell>
-    );
-  }
-
   if (step === 16) {
+    const scheduleReinforcement = trainingScheduleReinforcementParts(profile.workoutDaysPerWeek);
+
     return (
       <OnboardingShell
         step={step}
-        title="Customize your program"
-        subtitle="Reorder exercises, adjust targets, or swap moves."
+        title=""
+        hideHeader
+        contentClassName="onboarding-shell__content--centered"
         onBack={goBack}
         onContinue={goNext}
-        continueDisabled={!templatesValid}
       >
-        <OnboardingTemplateReview templates={draftTemplates} onChange={setDraftTemplates} />
+        <OnboardingGoalWeightReinforcement
+          headline={
+            <>
+              {scheduleReinforcement.verb}{" "}
+              <span className="onboarding-goal-weight-accent">{scheduleReinforcement.accent}</span>
+              {scheduleReinforcement.tail}
+            </>
+          }
+          subtext={trainingScheduleReinforcementSubtext()}
+        />
       </OnboardingShell>
     );
   }
 
   if (step === 17) {
+    const barrierOptions = ONBOARDING_BARRIERS.map((id) => ({
+      id,
+      label: barrierLabel(id),
+      icon: barrierIcon(id),
+    }));
+
     return (
       <OnboardingShell
         step={step}
-        title="Your daily fuel plan"
-        subtitle="Based on your stats and goal. Adjust if you know better."
+        title="What's held you back before?"
+        subtitle="Be honest. Gymmy is built around your answer"
         onBack={goBack}
         onContinue={goNext}
-        continueDisabled={!isMacrosValid(macros)}
+        continueDisabled={!profile.barriers?.length}
       >
-        <div className="card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
-          <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
-            Goal: {nutritionGoalLabel(profile.goal)} · {formatWeightFromLbs(profile.weightLbs, unitPreferences.weightUnit)} {unitPreferences.weightUnit}
-            {profile.pace ? ` · ${profile.pace} pace` : ""}
-          </p>
-          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
-            Mifflin–St Jeor TDEE with goal and pace adjustment (~{computedMacros.cal} kcal calculated).
-          </p>
-          {(["cal", "p", "c", "f"] as const).map((key) => (
-            <label key={key} style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
-              {key === "cal" ? "Calories" : key === "p" ? "Protein (g)" : key === "c" ? "Carbs (g)" : "Fat (g)"}
-              <input
-                type="number"
-                aria-label={key}
-                value={macros[key]}
-                onChange={(e) => {
-                  const n = parseInt(e.target.value, 10);
-                  if (Number.isFinite(n) && n >= 0) setMacros((m) => ({ ...m, [key]: n }));
-                }}
-                style={{ display: "block", width: "100%", marginTop: 6, padding: 10, borderRadius: 10, border: "0.5px solid var(--border)", background: "#1A1A1A", color: "#fff" }}
-              />
-            </label>
-          ))}
-          <button
-            type="button"
-            className="tap"
-            style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", background: "none", border: "none", textAlign: "left", padding: 0 }}
-            onClick={() => setMacros(computedMacros)}
-          >
-            Reset to calculated values
-          </button>
-        </div>
+        <OnboardingIconOptionPicker
+          options={barrierOptions}
+          selected={profile.barriers}
+          multi
+          onToggle={(id) =>
+            setProfile((p) => ({
+              ...p,
+              barriers: toggleSurveySelection(p.barriers, id),
+            }))
+          }
+        />
       </OnboardingShell>
     );
   }
 
   if (step === 18) {
+    const restrictionOptions = DIETARY_RESTRICTIONS.map((id) => ({
+      id,
+      label: dietaryRestrictionLabel(id),
+      icon: dietaryRestrictionIcon(id),
+    }));
+
     return (
-      <OnboardingInterstitial
+      <OnboardingShell
         step={step}
-        title="Protein is your #1 priority"
-        subtitle="Hit your protein target every day and the rest handles itself."
+        title="Any foods you avoid?"
+        subtitle="We'll keep your nutrition suggestions on track"
         onBack={goBack}
         onContinue={goNext}
-      />
+        continueDisabled={!profile.dietaryRestrictions?.length}
+      >
+        <OnboardingIconOptionPicker
+          options={restrictionOptions}
+          selected={profile.dietaryRestrictions}
+          multi
+          onToggle={(id) =>
+            setProfile((p) => ({
+              ...p,
+              dietaryRestrictions: toggleDietaryRestriction(p.dietaryRestrictions, id),
+            }))
+          }
+        />
+      </OnboardingShell>
     );
   }
 
   if (step === 19) {
+    const styleOptions = TRAINING_STYLES.map((id) => ({
+      id,
+      label: trainingStyleLabel(id),
+      icon: trainingStyleIcon(id),
+    }));
+
     return (
       <OnboardingShell
         step={step}
-        title="Stay on track"
-        subtitle="Optional reminders. Pro feature when gated — collect preference now."
+        title="How do you train best?"
+        subtitle="Your coach will match your style from day one"
         onBack={goBack}
         onContinue={goNext}
+        continueDisabled={!profile.trainingStyle}
       >
-        <NotificationPreferencesPicker value={notificationPrefs} onChange={setNotificationPrefs} showPermissionHint />
-        <p style={{ margin: "12px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
-          Add Gymmy to your home screen for the best notification experience.
-        </p>
+        <OnboardingIconOptionPicker
+          options={styleOptions}
+          selected={profile.trainingStyle}
+          onToggle={(id) => setProfile((p) => ({ ...p, trainingStyle: id }))}
+        />
       </OnboardingShell>
     );
   }
 
   if (step === 20) {
     return (
-      <OnboardingShell step={step} title="Building your coaching plan…" hideProgress hideFooter onContinue={() => {}}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 8 }}>
-          {["Calculating targets", "Building your split", "Setting up your coach", "Ready"].map((label, i) => (
-            <div key={label} style={{ fontSize: 14, color: i <= 2 ? "rgba(255,255,255,0.75)" : "rgba(74,222,128,0.9)", fontWeight: i === 3 ? 700 : 500 }}>
-              {label}
-              {i < 3 ? "…" : ""}
-            </div>
-          ))}
-        </div>
+      <OnboardingShell
+        step={step}
+        title=""
+        hideHeader
+        onBack={goBack}
+        onContinue={goNext}
+        continueLabel="Got it, let's go"
+        continueDisabled={!coachingLoopCtaReady}
+        continueClassName={
+          coachingLoopCtaVisible
+            ? "onboarding-coaching-loop__cta onboarding-coaching-loop__reveal onboarding-coaching-loop__reveal--visible"
+            : "onboarding-coaching-loop__cta onboarding-coaching-loop__reveal"
+        }
+      >
+        <OnboardingPotentialReinforcement
+          goal={profile.goal}
+          onCtaReveal={() => setCoachingLoopCtaVisible(true)}
+          onCtaReady={() => setCoachingLoopCtaReady(true)}
+        />
       </OnboardingShell>
     );
   }
 
   if (step === 21) {
+    return <OnboardingPlanBuilding onComplete={handlePlanBuildingComplete} />;
+  }
+
+  if (step === 22) {
+    return (
+      <OnboardingShell
+        step={step}
+        title="Your fuel targets"
+        subtitle="Gymmy calculated these from your stats and goal. Tap any number to adjust."
+        onBack={goBack}
+        onContinue={goNext}
+        continueDisabled={!isMacrosValid(macros)}
+      >
+        <OnboardingDailyFuelPlan
+          macros={macros}
+          computedMacros={computedMacros}
+          onChangeMacros={setMacros}
+          onReset={() => setMacros(computedMacros)}
+        />
+      </OnboardingShell>
+    );
+  }
+
+  if (step === 23) {
+    return (
+      <OnboardingShell
+        step={step}
+        title=""
+        hideHeader
+        contentClassName="onboarding-shell__content--centered"
+        onBack={goBack}
+        onContinue={goNext}
+        continueLabel="Show training plan"
+      >
+        <OnboardingGoalWeightReinforcement
+          headline={
+            <>
+              <span className="onboarding-goal-weight-accent">Protein</span> is your{" "}
+              <span className="onboarding-goal-weight-accent">#1</span> priority
+            </>
+          }
+          subtext={`Hit ${macros.p}g daily. Consistent protein protects muscle.`}
+        />
+      </OnboardingShell>
+    );
+  }
+
+  if (step === 24) {
+    return (
+      <OnboardingShell
+        step={step}
+        title="Here's your training plan"
+        subtitle="Gymmy built this from your schedule and experience. Looks good?"
+        onBack={goBack}
+        onContinue={goNext}
+        continueLabel="Let's go"
+      >
+        <OnboardingSplitReveal templates={draftTemplates} />
+      </OnboardingShell>
+    );
+  }
+
+  if (step === 25) {
+    return (
+      <OnboardingShell
+        step={step}
+        title=""
+        hideHeader
+        onBack={goBack}
+        onContinue={goToReminderPicker}
+        hideFooter
+        contentClassName="onboarding-shell__content--centered"
+      >
+        <OnboardingNotificationPrompt onChoice={handleNotificationPromptChoice} />
+      </OnboardingShell>
+    );
+  }
+
+  if (step === 26) {
+    const remindersEnabled = anyNotificationEnabled(notificationPrefs);
+    return (
+      <OnboardingShell
+        step={step}
+        title="Stay on track"
+        subtitle="Gymmy works best when it knows your schedule. Totally optional, change anytime"
+        onBack={goBack}
+        onContinue={remindersEnabled ? goNext : skipReminders}
+        continueLabel={remindersEnabled ? "Set up notifications" : "Skip for now"}
+        continueTone="dark"
+        compactFooter
+        contentClassName="onboarding-shell__content--compact"
+        footerGhostAction={remindersEnabled ? { label: "Skip for now", onClick: skipReminders } : undefined}
+      >
+        <NotificationPreferencesPicker value={notificationPrefs} onChange={setNotificationPrefs} variant="onboarding" />
+      </OnboardingShell>
+    );
+  }
+
+  if (step === 27) {
     const name = displayName.trim() || "Friend";
     return (
-      <OnboardingShell step={step} title={`${name}, your plan is ready`} onBack={goBack} onContinue={goNext} continueLabel="See my options">
+      <OnboardingShell
+        step={step}
+        title={`${name}, your plan is ready`}
+        subtitle="Everything is set. Your coach is ready when you are."
+        headlineClassName="onboarding-headline--plan-ready"
+        helperClassName="onboarding-helper--plan-ready"
+        onBack={goBack}
+        onContinue={goNext}
+        continueLabel="Start my plan"
+        continueTone="gold"
+        compactFooter
+        contentClassName="onboarding-shell__content--plan-ready"
+      >
         <OnboardingPlanReady displayName={displayName} macros={macros} profile={profile} templates={draftTemplates} />
       </OnboardingShell>
     );
   }
 
-  return <OnboardingPaywall onSelectTier={(tier) => void finishWithTier(tier)} />;
+  if (step === 28) {
+    return (
+      <OnboardingShell
+        step={step}
+        title="Save your progress"
+        subtitle="Sign in to keep your plan synced across devices."
+        onBack={goBack}
+        onContinue={goNext}
+        hideFooter
+        contentClassName="onboarding-shell__content--save-progress"
+      >
+        <OnboardingSaveProgress onSkip={goNext} onSignedIn={goNext} />
+      </OnboardingShell>
+    );
+  }
+
+  if (step === 29) {
+    return <OnboardingPaywall onSelectTier={(tier) => void finishWithTier(tier)} onBack={goBack} />;
+  }
+
+  return null;
 }

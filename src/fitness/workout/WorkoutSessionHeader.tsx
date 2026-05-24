@@ -61,12 +61,12 @@ export function WorkoutSessionHeader({
           background: "transparent",
           border: "none",
           padding: "6px 0",
-          color: "#fff",
+          color: "var(--text-primary)",
           outline: "none",
           fontFamily: "var(--ui)",
         }}
       />
-      <div style={{ fontSize: METADATA_SIZE, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginBottom: 10 }}>
+      <div style={{ fontSize: METADATA_SIZE, color: "var(--text-ghost)", fontWeight: 500, marginBottom: 10 }}>
         Started {startedAt}
         {splitDay ? ` · ${splitDay}` : ""} · {exerciseCount} exercise{exerciseCount === 1 ? "" : "s"}
       </div>

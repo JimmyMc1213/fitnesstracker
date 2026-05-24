@@ -19,7 +19,7 @@ function StreakFlameGlyph({
     return (
       <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden style={{ display: "block", flexShrink: 0 }}>
         <path
-          fill="rgba(255,255,255,0.12)"
+          fill="var(--surface-4)"
           d="M12 3s5 4 5 9a5 5 0 0 1-10 0c0-2 1-3 1-3s1 2 3 2c0-3-1-5 1-8z"
         />
       </svg>
@@ -58,10 +58,10 @@ function WeekDayDot({
   const pastMissed = kind === "past" && !earned;
   const dayOpen = kind === "future" || kind === "today";
 
-  let letterColor = "#fff";
-  if (kind === "future") letterColor = "rgba(255,255,255,0.35)";
+  let letterColor = "var(--text-primary)";
+  if (kind === "future") letterColor = "var(--text-ghost)";
   else if (isToday) letterColor = "#f97316";
-  else if (pastMissed) letterColor = "rgba(255,255,255,0.45)";
+  else if (pastMissed) letterColor = "var(--text-faint-soft)";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, flex: 1 }}>
@@ -78,7 +78,7 @@ function WeekDayDot({
           }}
           aria-hidden
         >
-          <IconCheck size={14} stroke={2.5} style={{ color: "#fff" }} />
+          <IconCheck size={14} stroke={2.5} style={{ color: "var(--text-primary)" }} />
         </span>
       ) : dayOpen ? (
         <span style={{ width: 28, height: 28, display: "block" }} aria-hidden />
@@ -88,7 +88,7 @@ function WeekDayDot({
             width: 28,
             height: 28,
             borderRadius: 999,
-            border: "2px solid rgba(255,255,255,0.28)",
+            border: "2px solid var(--border-strong)",
             display: "block",
           }}
           aria-hidden
@@ -121,7 +121,7 @@ export function StreakLostSheet({ open, state, notice, todayKey, onContinue }: P
         padding: "18px 18px 20px",
         borderRadius: 20,
         border: "0.5px solid var(--border)",
-        background: "#1a1a1a",
+        background: "var(--card-2)",
       }}
     >
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 28 }}>
@@ -166,7 +166,7 @@ export function StreakLostSheet({ open, state, notice, todayKey, onContinue }: P
             textAlign: "center",
             fontSize: 14,
             fontWeight: 500,
-            color: "rgba(255,255,255,0.45)",
+            color: "var(--text-faint-soft)",
             lineHeight: 1.45,
           }}
         >
@@ -182,8 +182,8 @@ export function StreakLostSheet({ open, state, notice, todayKey, onContinue }: P
             padding: "14px 18px",
             borderRadius: 999,
             border: "none",
-            background: "#fff",
-            color: "#0a0a0a",
+            background: "var(--primary)",
+            color: "var(--primary-fg)",
             fontSize: 16,
             fontWeight: 700,
             letterSpacing: "-0.02em",

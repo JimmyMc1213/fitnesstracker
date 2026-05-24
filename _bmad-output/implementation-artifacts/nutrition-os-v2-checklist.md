@@ -1,7 +1,7 @@
-# Nutrition OS v2 — Master Checklist
+# Nutrition OS v2 - Master Checklist
 
-**Last updated:** 2026-05-23 (Sprint 9 complete — FTI-65 merged)  
-**Current chunk:** Sprint 9 (Chunk 3 of 3) — **complete**  
+**Last updated:** 2026-05-23 (Sprint 9 complete - FTI-65 merged)  
+**Current chunk:** Sprint 9 (Chunk 3 of 3) - **complete**  
 **Progress:** 47 / 47 steps complete
 
 ---
@@ -9,7 +9,7 @@
 ## How to read this
 
 - Steps follow **phase order** (the roadmap you understand).
-- **[S7] [S8] [S9]** = which sprint owns that step (for planning only — read top to bottom).
+- **[S7] [S8] [S9]** = which sprint owns that step (for planning only - read top to bottom).
 - `[ ]` = not done · `[x]` = done · `[~]` = in progress
 - **This file is updated when each story/issue is completed.**
 
@@ -37,21 +37,21 @@
 
 ---
 
-## Phase 0 — Planning & setup
+## Phase 0 - Planning & setup
 
-### 0.1 — Product docs
+### 0.1 - Product docs
 - [x] Update PRD with Nutrition OS v2 scope `[S7]`
 - [x] Add Sprint 7–9 epic to `epics.md` `[S7]`
 - [x] Add stories to `sprint-status.yaml` `[S7]`
 - [x] Create FTI-57 story file (first dev story) `[S7]`
 
-### 0.2 — API keys & backend proxy
-- [~] Sign up for USDA FoodData Central API key (data.gov) `[S8]` — code ready; deploy secret pending
+### 0.2 - API keys & backend proxy
+- [~] Sign up for USDA FoodData Central API key (data.gov) `[S8]` - code ready; deploy secret pending
 - [x] Create Supabase Edge Function: `food-search` (proxies USDA + OFF) `[S8]`
-- [~] Add server-side env: `USDA_FDC_API_KEY` (never in client) `[S8]` — deploy to Supabase secrets
+- [~] Add server-side env: `USDA_FDC_API_KEY` (never in client) `[S8]` - deploy to Supabase secrets
 - [x] Define shared types: `FoodSearchResult`, `FoodServing` `[S8]`
 
-### 0.3 — Data model extensions
+### 0.3 - Data model extensions
 - [x] Extend `NutritionLoggedItem`: `servingLabel`, `source`, `externalId`, `loggedAtMs` `[S7]`
 - [x] Add `NutritionMeal` type + `nutritionMeals` on `AppState` `[S9]`
 - [x] Migration: existing logs keep working; default `loggedAtMs` for old items `[S7]`
@@ -59,9 +59,9 @@
 
 ---
 
-## Phase 1 — Nutrition main tab (rings + hydration only)
+## Phase 1 - Nutrition main tab (rings + hydration only)
 
-### 1.1 — Strip the nutrition tab
+### 1.1 - Strip the nutrition tab
 - [x] Keep: macro ring hero, P/C/F bars, macro pace hint `[S7]`
 - [x] Keep: `WaterTrackerCard` (hydration) `[S7]`
 - [x] Remove: Today / Saved segment tabs `[S7]`
@@ -70,20 +70,20 @@
 - [x] Remove: add custom item form on main tab `[S7]`
 - [x] Remove: whole-day manual totals fallback on main tab `[S7]`
 
-### 1.2 — Add FAB (+ button)
+### 1.2 - Add FAB (+ button)
 - [x] Floating `+` button below hydration card `[S7]`
 - [x] Opens full-screen Log Food overlay (not bottom sheet) `[S7]`
 
-### 1.3 — Return flow
+### 1.3 - Return flow
 - [x] After food logged → close Log Food → back on Nutrition tab `[S7]`
 - [x] Macro ring animates with updated totals `[S7]`
 - [x] Streak / coach pace still update via existing logging pipeline `[S7]`
 
 ---
 
-## Phase 2 — Log Food screen shell (Cal AI layout)
+## Phase 2 - Log Food screen shell (Cal AI layout)
 
-### 2.1 — Build `LogFoodScreen` overlay
+### 2.1 - Build `LogFoodScreen` overlay
 - [x] Back arrow ← closes without logging `[S7]`
 - [x] Title: "Log Food" `[S7]`
 - [x] Tab bar: All · My foods · My meals · Favorite foods `[S7]`
@@ -93,131 +93,131 @@
 - [x] Bottom: Manual Add button (no Voice Log) `[S7]`
 - [x] Empty states on tabs not yet wired (S7) `[S7]`
 
-### 2.2 — Manual Add flow
+### 2.2 - Manual Add flow
 - [x] Form: name + calories + P/C/F + optional serving label `[S7]`
 - [x] Save → log to today → close Log Food → rings update `[S7]`
-- [x] Auto-save to My foods library (basic — full tab in S8) `[S7/S8]`
+- [x] Auto-save to My foods library (basic - full tab in S8) `[S7/S8]`
 
-### 2.3 — Recently logged logic
-- [x] `getRecentlyLoggedFoods()` — dedupe by name, sort by `loggedAtMs` `[S7]`
+### 2.3 - Recently logged logic
+- [x] `getRecentlyLoggedFoods()` - dedupe by name, sort by `loggedAtMs` `[S7]`
 - [x] Tap `+` on row → one-tap re-log → close → rings update `[S7]`
 - [x] Existing user data shows in recently logged (migrate keep) `[S7]`
 
 ---
 
-## Phase 3 — USDA food database search
+## Phase 3 - USDA food database search
 
-### 3.1 — Search service
+### 3.1 - Search service
 - [x] Client `foodSearchService.ts` calls Supabase Edge Function `[S8]`
 - [x] Edge function hits USDA `/foods/search` `[S8]`
 - [x] Map response → id, name, brand, cal, p, c, f, defaultServing, source `[S8]`
 
-### 3.2 — Search UX (All tab)
+### 3.2 - Search UX (All tab)
 - [x] Debounced search while typing (~300ms) `[S8]`
 - [x] Results list with calories + brand `[S8]`
 - [x] Tap result → serving picker (size affects macros) `[S8]`
 - [x] Confirm → log → close Log Food → rings update `[S8]`
 
-### 3.3 — Error & empty states
+### 3.3 - Error & empty states
 - [x] Loading spinner during search `[S8]`
 - [x] "No results" empty state `[S8]`
 - [x] Offline / API error message + retry `[S8]`
 
 ---
 
-## Phase 4 — Open Food Facts (branded / packaged foods)
+## Phase 4 - Open Food Facts (branded / packaged foods)
 
-### 4.1 — Extend edge function
+### 4.1 - Extend edge function
 - [x] Parallel search: USDA + Open Food Facts `[S8]`
 - [x] Merge + rank results; dedupe similar names `[S8]`
 
-### 4.2 — Branded results
+### 4.2 - Branded results
 - [x] Show brand in results (e.g. "Cane's Sauce · Raising Cane's") `[S8]`
 - [x] Serving from OFF per-100g or default portion `[S8]`
 
 ---
 
-## Phase 5 — My foods tab
+## Phase 5 - My foods tab
 
-### 5.1 — My foods list
+### 5.1 - My foods list
 - [x] Tab shows user-created manual entries + saved search foods `[S8]`
 - [x] Tap row → log again `[S8]`
 - [x] Edit / delete user foods `[S8]`
 
-### 5.2 — Save from search
+### 5.2 - Save from search
 - [x] Optional "Save to My foods" when logging from database (without logging today) `[S8]`
 
 ---
 
-## Phase 6 — My meals (meal prep)
+## Phase 6 - My meals (meal prep)
 
-### 6.1 — Create meal flow
+### 6.1 - Create meal flow
 - [x] "Create meal" from My meals tab `[S9]`
 - [x] Add items from: search results, My foods, or manual entry `[S9]`
 - [x] Set meal name; macros = sum of items `[S9]`
 - [x] Save to `nutritionMeals` `[S9]`
 
-### 6.2 — Log meal
+### 6.2 - Log meal
 - [x] One tap on saved meal → log as single item (meal name + total macros) `[S9]`
 - [x] Show in recently logged `[S9]`
 
-### 6.3 — Edit / delete meals
+### 6.3 - Edit / delete meals
 - [x] Edit ingredients / rename meal `[S9]`
 - [x] Delete meal from library `[S9]`
 
 ---
 
-## Phase 7 — Saved foods tab
+## Phase 7 - Saved foods tab
 
-### 7.1 — Wire existing presets
+### 7.1 - Wire existing presets
 - [x] Saved foods tab uses `nutritionPresets` `[S8]`
 - [x] Tap `+` → log → close → rings update `[S8]`
 - [x] Remove from saved (does not delete log history) `[S8]`
 
 ---
 
-## Phase 8 — Remove Home logging & unify coach flows
+## Phase 8 - Remove Home logging & unify coach flows
 
-### 8.1 — Home tab cleanup
+### 8.1 - Home tab cleanup
 - [x] Remove `HomeFuelQuickLogSheet` from `ScreenHome` `[S7]`
 - [x] Remove `+ Log` button from `HomeFuelStrip` `[S7]`
 - [x] Keep fuel strip as read-only protein / kcal progress `[S7]`
 - [x] Deprecate or remove `HomeFuelQuickLogSheet.tsx` if unused `[S7]`
 
-### 8.2 — Coach task routing
+### 8.2 - Coach task routing
 - [x] "Log fuel" / nutrition coach tasks → Nutrition tab + open Log Food `[S7]`
 - [x] Update `coachTaskActions.ts` `[S7]`
 
 ---
 
-## Phase 9 — Polish & Cal AI fidelity
+## Phase 9 - Polish & Cal AI fidelity
 
-### 9.1 — Visual pass
+### 9.1 - Visual pass
 - [x] Match Cal AI: dark cards, rounded search, tab underline `[S9]`
 - [x] Row `+` buttons styled like reference `[S9]`
 - [x] Safe-area padding for FAB and bottom Manual Add `[S9]`
 
-### 9.2 — UX polish
+### 9.2 - UX polish
 - [x] Keyboard-friendly search on mobile `[S9]`
 - [x] Ring animation on return from Log Food `[S9]`
 - [x] Empty states per tab (helpful copy) `[S9]`
 
-### 9.3 — Performance
+### 9.3 - Performance
 - [x] Cache recent searches in session memory `[S9]`
 - [x] Limit USDA/OFF to top ~20 results `[S9]`
 
 ---
 
-## Phase 10 — Tests, persistence & ship
+## Phase 10 - Tests, persistence & ship
 
-### 10.1 — Unit tests
+### 10.1 - Unit tests
 - [x] `foodSearchService` (mocked) `[S9]`
 - [x] `getRecentlyLoggedFoods` `[S7/S9]`
 - [x] Meal macro summing `[S9]`
 - [x] Persist slice includes `nutritionMeals` `[S9]`
 - [x] Cloud sync merge for `nutritionMeals` `[S9]`
 
-### 10.2 — E2E tests
+### 10.2 - E2E tests
 - [x] Nutrition tab shows rings + hydration only (no old logging UI) `[S7]`
 - [x] FAB opens Log Food `[S7]`
 - [x] Manual add → rings update `[S7]`
@@ -226,7 +226,7 @@
 - [x] Coach task opens Log Food on Nutrition tab `[S7]`
 - [x] Update/remove broken `fuel-quick-log` e2e tests `[S7]`
 
-### 10.3 — Build gate
+### 10.3 - Build gate
 - [x] `npm run build` passes `[S9]`
 - [x] `npm test` passes `[S9]`
 - [x] `npm run test:e2e` passes `[S9]`
@@ -236,19 +236,19 @@
 
 ## Future backlog (not in Sprints 7–9)
 
-### F1 — Barcode scan
+### F1 - Barcode scan
 - [ ] Wire `ScreenScan` / barcode overlay into Log Food flow
 - [ ] Open Food Facts lookup by barcode
 
-### F2 — AI natural-language parse
+### F2 - AI natural-language parse
 - [ ] "2 eggs and toast" → Claude parse → confirm → log
 - [ ] Product gate (same pattern as FTI-55)
 
-### F3 — Paid food APIs
+### F3 - Paid food APIs
 - [ ] Evaluate Nutritionix / Edamam when app has revenue
 - [ ] Restaurant coverage upgrade
 
-### F4 — Voice log
+### F4 - Voice log
 - [ ] Web Speech API → search bar or AI parse
 - [ ] Graceful fallback on unsupported browsers
 
@@ -258,10 +258,10 @@
 
 | Date | Story / issue | Steps checked off |
 |------|---------------|-------------------|
-| 2026-05-23 | FTI-65 | Phase 10 (full) — meal E2E, build gate, Sprint 9 retro |
-| 2026-05-23 | FTI-64 / PR #32 | Phase 9 — Cal AI visual polish |
-| 2026-05-23 | FTI-63 / PR #31 | Phase 0.3 (meals), 6, 10.1 (partial) — My meals meal prep + data model |
-| 2026-05-23 | FTI-60–62 / PR #30 | Phases 0.2 (code), 3, 4, 5, 7 — search, My foods, Favorite foods, E2E |
-| 2026-05-23 | FTI-57 / FTI-51 | Phases 0.3 (S7), 1, 2 — Log Food shell + data model |
-| 2026-05-23 | FTI-58 / FTI-52 | Phase 8 — Home read-only + coach routing |
-| 2026-05-23 | FTI-59 / FTI-53 | Phase 10 (partial) — E2E + unit tests for S7 |
+| 2026-05-23 | FTI-65 | Phase 10 (full) - meal E2E, build gate, Sprint 9 retro |
+| 2026-05-23 | FTI-64 / PR #32 | Phase 9 - Cal AI visual polish |
+| 2026-05-23 | FTI-63 / PR #31 | Phase 0.3 (meals), 6, 10.1 (partial) - My meals meal prep + data model |
+| 2026-05-23 | FTI-60–62 / PR #30 | Phases 0.2 (code), 3, 4, 5, 7 - search, My foods, Favorite foods, E2E |
+| 2026-05-23 | FTI-57 / FTI-51 | Phases 0.3 (S7), 1, 2 - Log Food shell + data model |
+| 2026-05-23 | FTI-58 / FTI-52 | Phase 8 - Home read-only + coach routing |
+| 2026-05-23 | FTI-59 / FTI-53 | Phase 10 (partial) - E2E + unit tests for S7 |

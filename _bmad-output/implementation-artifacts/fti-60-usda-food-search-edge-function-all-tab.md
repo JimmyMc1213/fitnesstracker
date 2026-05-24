@@ -80,4 +80,4 @@ _(filled on implementation)_
 
 ### Change Log
 
-- 2026-05-23: Sprint 8 planning — story file created
+- 2026-05-23: Sprint 8 planning - story file created

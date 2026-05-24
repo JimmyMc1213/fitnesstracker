@@ -38,6 +38,32 @@ describe("normalizeOnboardingProfile", () => {
     expect(profile?.goalWeightLbs).toBe(165);
     expect(profile?.pace).toBe("slow");
   });
+
+  it("migrates legacy goalObstacles into barriers", () => {
+    const profile = normalizeOnboardingProfile({
+      ...DEFAULT_ONBOARDING_PROFILE,
+      goalObstacles: ["lack_of_consistency", "busy_schedule"],
+    });
+    expect(profile?.barriers).toEqual(["falling_off", "life_busy"]);
+  });
+
+  it("migrates legacy dietPreference into dietaryRestrictions", () => {
+    const profile = normalizeOnboardingProfile({
+      ...DEFAULT_ONBOARDING_PROFILE,
+      dietPreference: "vegan",
+    });
+    expect(profile?.dietaryRestrictions).toEqual(["vegan"]);
+  });
+
+  it("accepts dietaryRestrictions and trainingStyle", () => {
+    const profile = normalizeOnboardingProfile({
+      ...DEFAULT_ONBOARDING_PROFILE,
+      dietaryRestrictions: ["gluten_free", "dairy_free"],
+      trainingStyle: "flexible",
+    });
+    expect(profile?.dietaryRestrictions).toEqual(["gluten_free", "dairy_free"]);
+    expect(profile?.trainingStyle).toBe("flexible");
+  });
 });
 
 describe("progressGoalFromOnboarding", () => {

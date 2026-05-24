@@ -57,9 +57,9 @@ const searchInputStyle = {
   fontSize: 15,
   borderRadius: 14,
   padding: "12px 14px",
-  background: "rgba(255,255,255,0.06)",
-  border: "0.5px solid rgba(255,255,255,0.08)",
-  color: "#fff",
+  background: "var(--surface-3)",
+  border: "0.5px solid var(--divider-subtle)",
+  color: "var(--text-primary)",
 } as const;
 
 const foodListCardStyle = {
@@ -629,7 +629,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       borderRadius: 10,
       border: "none",
       background: "transparent",
-      color: active ? "#facc15" : "rgba(255,255,255,0.35)",
+      color: active ? "#facc15" : "var(--text-ghost)",
       fontSize: 18,
       lineHeight: 1,
       display: "grid",
@@ -692,7 +692,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       fontSize: 13,
       letterSpacing: "-0.02em",
       cursor: "pointer",
-      color: active ? "#fff" : "rgba(255,255,255,0.45)",
+      color: active ? "var(--text-primary)" : "var(--text-faint-soft)",
       whiteSpace: "nowrap",
     }) as const;
 
@@ -706,8 +706,8 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       fontSize: 13,
       letterSpacing: "-0.02em",
       cursor: "pointer",
-      background: active ? "rgba(255,255,255,0.18)" : "transparent",
-      color: active ? "#fff" : "rgba(255,255,255,0.45)",
+      background: active ? "var(--surface-4)" : "transparent",
+      color: active ? "var(--text-primary)" : "var(--text-faint-soft)",
       whiteSpace: "nowrap",
     }) as const;
 
@@ -716,7 +716,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     alignItems: "center" as const,
     gap: 12,
     padding: "12px 0",
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
+    borderBottom: "1px solid var(--divider-subtle)",
     cursor: "pointer" as const,
     width: "100%",
     background: "transparent",
@@ -746,7 +746,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
           display: "flex",
           alignItems: "center",
           gap: 12,
-          borderBottom: "0.5px solid rgba(255,255,255,0.06)",
+          borderBottom: "0.5px solid var(--divider-subtle)",
         }}
       >
         <button
@@ -769,8 +769,8 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             height: 40,
             borderRadius: 999,
             border: "0.5px solid var(--border)",
-            background: "rgba(255,255,255,0.06)",
-            color: "#fff",
+            background: "var(--surface-3)",
+            color: "var(--text-primary)",
             fontSize: 20,
             lineHeight: 1,
             display: "grid",
@@ -780,7 +780,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         >
           ←
         </button>
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff" }}>
+        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
           {pickerFood
             ? pickerContext === "mealIngredient"
               ? "Add ingredient"
@@ -804,11 +804,11 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
               <div>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.25 }}>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.02em", lineHeight: 1.25 }}>
                       {pickerFood.name}
                     </div>
                     {pickerFood.brand ? (
-                      <div style={{ marginTop: 6, fontSize: 13, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
+                      <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-faint-soft)", fontWeight: 500 }}>
                         {pickerFood.brand}
                       </div>
                     ) : null}
@@ -830,7 +830,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 <div
                   style={{
                     fontSize: 11,
-                    color: "rgba(255,255,255,0.35)",
+                    color: "var(--text-ghost)",
                     fontWeight: 500,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
@@ -847,7 +847,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                     gap: 4,
                     padding: 4,
                     borderRadius: 12,
-                    background: "rgba(255,255,255,0.06)",
+                    background: "var(--surface-3)",
                     overflowX: "auto",
                     WebkitOverflowScrolling: "touch",
                   }}
@@ -874,7 +874,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
               <label
                 style={{
                   fontSize: 11,
-                  color: "rgba(255,255,255,0.35)",
+                  color: "var(--text-ghost)",
                   fontWeight: 500,
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
@@ -896,7 +896,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                         flexShrink: 0,
                         fontSize: 13,
                         fontWeight: 600,
-                        color: "rgba(255,255,255,0.45)",
+                        color: "var(--text-faint-soft)",
                         fontVariantNumeric: "tabular-nums",
                       }}
                     >
@@ -912,7 +912,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 <div
                   style={{
                     fontSize: 11,
-                    color: "rgba(255,255,255,0.35)",
+                    color: "var(--text-ghost)",
                     fontWeight: 500,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
@@ -934,7 +934,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   style={{
                     marginTop: 16,
                     paddingTop: 16,
-                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                    borderTop: "1px solid var(--divider-subtle)",
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr 1fr",
                     gap: 12,
@@ -948,19 +948,19 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                     ] as const
                   ).map((macro) => (
                     <div key={macro.label}>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 400 }}>{macro.label}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 400 }}>{macro.label}</div>
                       <div
                         style={{
                           marginTop: 4,
                           fontSize: 18,
                           fontWeight: 700,
-                          color: "#fff",
+                          color: "var(--text-primary)",
                           letterSpacing: "-0.02em",
                           fontVariantNumeric: "tabular-nums",
                         }}
                       >
                         {macro.value}
-                        <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.4)" }}>g</span>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-ghost)" }}>g</span>
                       </div>
                     </div>
                   ))}
@@ -972,7 +972,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             style={{
               flexShrink: 0,
               padding: "12px 18px calc(14px + env(safe-area-inset-bottom))",
-              borderTop: "0.5px solid rgba(255,255,255,0.08)",
+              borderTop: "0.5px solid var(--divider-subtle)",
               background: "rgba(7,8,12,0.94)",
               backdropFilter: "blur(8px)",
               display: "flex",
@@ -1002,9 +1002,9 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 width: "100%",
                 padding: "12px 16px",
                 borderRadius: 12,
-                border: "0.5px solid rgba(255,255,255,0.14)",
+                border: "0.5px solid var(--sheet-panel-border)",
                 background: "transparent",
-                color: "rgba(255,255,255,0.75)",
+                color: "var(--text-soft)",
                 fontSize: 14,
                 fontWeight: 600,
               }}
@@ -1019,7 +1019,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px 100px", WebkitOverflowScrolling: "touch" }}>
             {mealIngredientManualOpen ? (
               <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
-                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Ingredient name
                   <input
                     placeholder="e.g. Greek yogurt"
@@ -1030,7 +1030,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                     style={{ marginTop: 8 }}
                   />
                 </label>
-                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Calories (kcal)
                   <input
                     placeholder="0"
@@ -1050,7 +1050,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                       { label: "Fat (g)", key: "f", value: mealIngredientF, set: setMealIngredientF },
                     ] as const
                   ).map((field) => (
-                    <label key={field.key} style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    <label key={field.key} style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                       {field.label}
                       <input
                         placeholder="0"
@@ -1064,7 +1064,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                     </label>
                   ))}
                 </div>
-                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Serving (optional)
                   <input
                     placeholder="e.g. 1 cup"
@@ -1088,11 +1088,11 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 />
                 {searchActive ? (
                   searchLoading ? (
-                    <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.42)" }}>Searching…</p>
+                    <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)" }}>Searching…</p>
                   ) : searchError ? (
                     <p style={{ margin: 0, fontSize: 14, color: "rgba(255,180,180,0.9)" }}>{searchError}</p>
                   ) : apiResults.length === 0 ? (
-                    <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.42)" }}>No results. Try another search.</p>
+                    <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)" }}>No results. Try another search.</p>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                       {apiResults.map((food) => (
@@ -1104,23 +1104,23 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           onClick={() => openPicker(food, "mealIngredient")}
                         >
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{food.name}</div>
-                            <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontVariantNumeric: "tabular-nums" }}>
+                            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{food.name}</div>
+                            <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
                               {Math.round(Number(food.cal) || 0)} kcal · {food.defaultServing}
                             </div>
                           </div>
-                          <span style={{ flexShrink: 0, fontSize: 18, color: "rgba(255,255,255,0.35)" }}>›</span>
+                          <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
                         </button>
                       ))}
                     </div>
                   )
                 ) : (
-                  <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.42)" }}>Type at least 2 characters to search.</p>
+                  <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)" }}>Type at least 2 characters to search.</p>
                 )}
               </>
             ) : mealAddMyFoodsOpen ? (
               userFoods.length === 0 ? (
-                <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.42)" }}>No saved foods yet. Add foods in My foods first.</p>
+                <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)" }}>No saved foods yet. Add foods in My foods first.</p>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                   {userFoods.map((food) => (
@@ -1132,8 +1132,8 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                       onClick={() => addMealIngredientFromUserFood(food)}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{food.name}</div>
-                        <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontVariantNumeric: "tabular-nums" }}>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{food.name}</div>
+                        <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
                           {Math.round(Number(food.cal) || 0)} kcal · {food.servingLabel?.trim() || DEFAULT_SERVING}
                         </div>
                       </div>
@@ -1145,7 +1145,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             ) : (
               <>
                 <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14, marginBottom: 12 }}>
-                  <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                     Meal name
                     <input
                       placeholder="e.g. Meal prep lunch"
@@ -1156,27 +1156,27 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                       style={{ marginTop: 8 }}
                     />
                   </label>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontVariantNumeric: "tabular-nums" }}>
+                  <div style={{ fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
                     {Math.round(mealDraftMacros.cal)} kcal · {Math.round(mealDraftMacros.p)}g protein · {mealDraftItems.length} ingredient{mealDraftItems.length === 1 ? "" : "s"}
                   </div>
                 </div>
 
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)", marginBottom: 10 }}>
                   Ingredients
                 </div>
                 {mealDraftItems.length === 0 ? (
-                  <p style={{ margin: "0 0 16px", fontSize: 14, color: "rgba(255,255,255,0.42)" }}>Add at least one ingredient below.</p>
+                  <p style={{ margin: "0 0 16px", fontSize: 14, color: "var(--text-faint-soft)" }}>Add at least one ingredient below.</p>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 0, marginBottom: 16 }}>
                     {mealDraftItems.map((item) => (
                       <div
                         key={item.id}
                         className="between"
-                        style={{ alignItems: "center", gap: 12, padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+                        style={{ alignItems: "center", gap: 12, padding: "12px 0", borderBottom: "1px solid var(--divider-subtle)" }}
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{item.name}</div>
-                          <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontVariantNumeric: "tabular-nums" }}>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{item.name}</div>
+                          <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
                             {Math.round(Number(item.cal) || 0)} kcal · {item.servingLabel?.trim() || DEFAULT_SERVING}
                           </div>
                         </div>
@@ -1195,13 +1195,13 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 )}
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <button type="button" className="tap" onClick={() => { setMealAddSearchOpen(true); setMealAddMyFoodsOpen(false); setMealIngredientManualOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid rgba(255,255,255,0.14)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
+                  <button type="button" className="tap" onClick={() => { setMealAddSearchOpen(true); setMealAddMyFoodsOpen(false); setMealIngredientManualOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid var(--sheet-panel-border)", background: "var(--surface-3)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
                     Add from search
                   </button>
-                  <button type="button" className="tap" onClick={() => { setMealAddMyFoodsOpen(true); setMealAddSearchOpen(false); setMealIngredientManualOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid rgba(255,255,255,0.14)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
+                  <button type="button" className="tap" onClick={() => { setMealAddMyFoodsOpen(true); setMealAddSearchOpen(false); setMealIngredientManualOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid var(--sheet-panel-border)", background: "var(--surface-3)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
                     Add from My foods
                   </button>
-                  <button type="button" className="tap" onClick={() => { setMealIngredientManualOpen(true); setMealAddSearchOpen(false); setMealAddMyFoodsOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid rgba(255,255,255,0.14)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
+                  <button type="button" className="tap" onClick={() => { setMealIngredientManualOpen(true); setMealAddSearchOpen(false); setMealAddMyFoodsOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid var(--sheet-panel-border)", background: "var(--surface-3)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
                     Add manually
                   </button>
                 </div>
@@ -1212,7 +1212,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             style={{
               flexShrink: 0,
               padding: "12px 18px calc(14px + env(safe-area-inset-bottom))",
-              borderTop: "0.5px solid rgba(255,255,255,0.08)",
+              borderTop: "0.5px solid var(--divider-subtle)",
               background: "rgba(7,8,12,0.94)",
               backdropFilter: "blur(8px)",
             }}
@@ -1238,7 +1238,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px 100px", WebkitOverflowScrolling: "touch" }}>
             <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ flex: 1, fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <div style={{ flex: 1, fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Manual food
                 </div>
                 {renderFavoriteButton(
@@ -1253,7 +1253,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   draftName.trim() || "food",
                 )}
               </div>
-              <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+              <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Name
                 <input
                   placeholder="e.g. Greek yogurt"
@@ -1264,7 +1264,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
                 />
               </label>
-              <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+              <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Calories (kcal)
                 <input
                   placeholder="0"
@@ -1277,20 +1277,20 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 />
               </label>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Protein (g)
                   <input placeholder="0" aria-label="Protein grams" value={draftP} onChange={(e) => setDraftP(e.target.value)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
                 </label>
-                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Carbs (g)
                   <input placeholder="0" aria-label="Carbs grams" value={draftC} onChange={(e) => setDraftC(e.target.value)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
                 </label>
-                <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Fat (g)
                   <input placeholder="0" aria-label="Fat grams" value={draftF} onChange={(e) => setDraftF(e.target.value)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
                 </label>
               </div>
-              <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+              <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Serving (optional)
                 <input placeholder="e.g. 1 cup" aria-label="Serving label" value={draftServing} onChange={(e) => setDraftServing(e.target.value)} className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
               </label>
@@ -1300,7 +1300,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             style={{
               flexShrink: 0,
               padding: "12px 18px calc(14px + env(safe-area-inset-bottom))",
-              borderTop: "0.5px solid rgba(255,255,255,0.08)",
+              borderTop: "0.5px solid var(--divider-subtle)",
               background: "rgba(7,8,12,0.94)",
               backdropFilter: "blur(8px)",
             }}
@@ -1320,7 +1320,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 display: "flex",
                 gap: 0,
                 marginBottom: 16,
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                borderBottom: "1px solid var(--divider-subtle)",
               }}
             >
               {tabs.map((t) => (
@@ -1355,11 +1355,11 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
 
                 {searchActive ? (
                   <>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)", marginBottom: 10 }}>
                       Results
                     </div>
                     {searchLoading ? (
-                      <p style={{ margin: "8px 0 0", fontSize: 14, color: "rgba(255,255,255,0.42)", fontWeight: 400, lineHeight: 1.5 }}>
+                      <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
                         Searching…
                       </p>
                     ) : searchError ? (
@@ -1370,7 +1370,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                         </button>
                       </div>
                     ) : apiResults.length === 0 ? (
-                      <p style={{ margin: "8px 0 0", fontSize: 14, color: "rgba(255,255,255,0.42)", fontWeight: 400, lineHeight: 1.5 }}>
+                      <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
                         No results. Try a different search or use Manual Add.
                       </p>
                     ) : (
@@ -1387,8 +1387,8 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                             onClick={() => openPicker(food)}
                           >
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>{food.name}</div>
-                              <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>{food.name}</div>
+                              <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
                                 {Math.round(Number(food.cal) || 0)} kcal · {food.defaultServing}
                                 {food.brand ? ` · ${food.brand}` : ""}
                               </div>
@@ -1404,7 +1404,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                               },
                               food.name,
                             )}
-                            <span style={{ flexShrink: 0, fontSize: 18, color: "rgba(255,255,255,0.35)" }}>›</span>
+                            <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
                           </button>
                         ))}
                       </div>
@@ -1412,12 +1412,12 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   </>
                 ) : (
                   <>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)", marginBottom: 10 }}>
                       Recently logged
                     </div>
 
                     {filteredRecent.length === 0 ? (
-                      <p style={{ margin: "8px 0 0", fontSize: 14, color: "rgba(255,255,255,0.42)", fontWeight: 400, lineHeight: 1.5 }}>
+                      <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
                         Nothing logged recently. Search above or use Manual Add.
                       </p>
                     ) : (
@@ -1430,14 +1430,14 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                               alignItems: "center",
                               gap: 12,
                               padding: "12px 0",
-                              borderBottom: idx === filteredRecent.length - 1 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                              borderBottom: idx === filteredRecent.length - 1 ? "none" : "1px solid var(--divider-subtle)",
                             }}
                           >
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>
+                              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
                                 {it.name.trim() || "Food"}
                               </div>
-                              <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                              <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
                                 {Math.round(Number(it.cal) || 0)} kcal · {it.servingLabel?.trim() || DEFAULT_SERVING}
                               </div>
                             </div>
@@ -1471,7 +1471,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             ) : tab === "myFoods" ? (
               <>
                 {userFoods.length === 0 ? (
-                  <p style={{ margin: "8px 0 0", fontSize: 14, color: "rgba(255,255,255,0.42)", fontWeight: 400, lineHeight: 1.5 }}>
+                  <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
                     No saved foods yet. Manual Add or search and tap Save to My foods.
                   </p>
                 ) : (
@@ -1484,7 +1484,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           alignItems: "center",
                           gap: 12,
                           padding: "12px 0",
-                          borderBottom: idx === userFoods.length - 1 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                          borderBottom: idx === userFoods.length - 1 ? "none" : "1px solid var(--divider-subtle)",
                         }}
                       >
                         <button
@@ -1494,10 +1494,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           onClick={() => logUserFood(food)}
                         >
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>
+                            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
                               {food.name}
                             </div>
-                            <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                            <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
                               {Math.round(Number(food.cal) || 0)} kcal · {food.servingLabel?.trim() || DEFAULT_SERVING}
                             </div>
                           </div>
@@ -1518,7 +1518,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           className="tap"
                           aria-label={`Edit ${food.name}`}
                           onClick={() => openEditUserFood(food)}
-                          style={{ flexShrink: 0, fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.55)", background: "none", border: "none", padding: "8px" }}
+                          style={{ flexShrink: 0, fontSize: 13, fontWeight: 600, color: "var(--text-muted-soft)", background: "none", border: "none", padding: "8px" }}
                         >
                           Edit
                         </button>
@@ -1539,7 +1539,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             ) : tab === "saved" ? (
               <>
                 {favoritePresets.length === 0 ? (
-                  <p style={{ margin: "8px 0 0", fontSize: 14, color: "rgba(255,255,255,0.42)", fontWeight: 400, lineHeight: 1.5 }}>
+                  <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
                     Tap the star on any food to save it here for one-tap logging.
                   </p>
                 ) : (
@@ -1552,14 +1552,14 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           alignItems: "center",
                           gap: 12,
                           padding: "12px 0",
-                          borderBottom: idx === favoritePresets.length - 1 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                          borderBottom: idx === favoritePresets.length - 1 ? "none" : "1px solid var(--divider-subtle)",
                         }}
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
                             {preset.name.trim() || "Food"}
                           </div>
-                          <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                          <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
                             {Math.round(Number(preset.cal) || 0)} kcal · {preset.servingLabel?.trim() || `${Math.round(Number(preset.p) || 0)}g protein`}
                           </div>
                         </div>
@@ -1591,8 +1591,8 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             ) : tab === "myMeals" ? (
               <>
                 {savedMeals.length === 0 ? (
-                  <p style={{ margin: "8px 0 0", fontSize: 14, color: "rgba(255,255,255,0.42)", fontWeight: 400, lineHeight: 1.5 }}>
-                    Save meals you eat often — chicken and rice, overnight oats, whatever you prep. Log the whole meal in one tap instead of each ingredient.
+                  <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
+                    Save meals you eat often (chicken and rice, overnight oats, whatever you prep). Log the whole meal in one tap instead of each ingredient.
                   </p>
                 ) : (
                   <div className="card" style={foodListCardStyle}>
@@ -1607,7 +1607,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                             alignItems: "center",
                             gap: 12,
                             padding: "12px 0",
-                            borderBottom: idx === savedMeals.length - 1 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                            borderBottom: idx === savedMeals.length - 1 ? "none" : "1px solid var(--divider-subtle)",
                           }}
                         >
                           <button
@@ -1617,10 +1617,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                             onClick={() => logSavedMeal(meal)}
                           >
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>
+                              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
                                 {meal.name}
                               </div>
-                              <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.42)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                              <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
                                 {Math.round(mealMacros.cal)} kcal · {Math.round(mealMacros.p)}g protein
                                 {servingLabel ? ` · ${servingLabel}` : ""}
                               </div>
@@ -1642,7 +1642,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                             className="tap"
                             aria-label={`Edit ${meal.name}`}
                             onClick={() => openEditMeal(meal)}
-                            style={{ flexShrink: 0, fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.55)", background: "none", border: "none", padding: "8px" }}
+                            style={{ flexShrink: 0, fontSize: 13, fontWeight: 600, color: "var(--text-muted-soft)", background: "none", border: "none", padding: "8px" }}
                           >
                             Edit
                           </button>
@@ -1668,7 +1668,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             style={{
               flexShrink: 0,
               padding: "12px 18px calc(14px + env(safe-area-inset-bottom))",
-              borderTop: "0.5px solid rgba(255,255,255,0.08)",
+              borderTop: "0.5px solid var(--divider-subtle)",
               background: "rgba(7,8,12,0.94)",
               backdropFilter: "blur(8px)",
             }}

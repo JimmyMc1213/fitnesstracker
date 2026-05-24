@@ -8,9 +8,12 @@ import {
   INITIAL_WORKOUT,
   PLAN_START_ISO,
   buildHabitsForDateKey,
+  dedupeHabitTemplates,
   defaultHabitTemplates,
-  defaultWorkoutRoutineTemplates,
+  habitTemplatesFromOnboarding,
+  isDefaultSeedHabitTemplates,
   normalizeWorkoutTemplates,
+  sanitizeWorkoutTemplates,
 } from "./data";
 import { normalizeExerciseSessionHistoryByKey } from "./exerciseSessionHistory";
 import { normalizeWorkoutHistory } from "./workoutHistory";
@@ -29,6 +32,7 @@ import { normalizeOnboardingProfile, DEFAULT_ONBOARDING_PROFILE } from "./onboar
 import { normalizeOnboardingDraft } from "./onboardingDraft";
 import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
 import { normalizeRestTimerDefaultSeconds, normalizeRestTimerSecondsByExerciseKey } from "./restTimerPreferences";
+import { normalizeAppTheme, readStoredTheme } from "./theme";
 import { normalizeNotificationPreferences } from "./notificationPreferences";
 import { normalizeUnitPreferences } from "./unitPreferences";
 import { normalizeWaterDailyTargetOz, normalizeWaterLogByDay } from "./waterIntake";
@@ -248,6 +252,26 @@ function normalizeHabitTemplates(raw: unknown): HabitTemplate[] | null {
   return out.length ? out : null;
 }
 
+function resolveHabitTemplates(
+  p: Partial<PersistedFitnessSlice> | null | undefined,
+  onboardingComplete: boolean,
+  hasLegacyFitnessData: boolean,
+  stepsTarget: number,
+  waterDailyTargetOz: number,
+): HabitTemplate[] {
+  const normalized = normalizeHabitTemplates(p?.habitTemplates);
+  if (normalized != null) {
+    const deduped = dedupeHabitTemplates(normalized);
+    if (onboardingComplete && isDefaultSeedHabitTemplates(deduped)) {
+      return habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz);
+    }
+    return deduped;
+  }
+  if (hasLegacyFitnessData) return defaultHabitTemplates();
+  if (onboardingComplete) return habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz);
+  return [];
+}
+
 function normalizeExercisePersonalBests(raw: unknown): Record<string, ExercisePersonalBest> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
   const out: Record<string, ExercisePersonalBest> = {};
@@ -324,23 +348,33 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     typeof p?.stepsTarget === "number" && Number.isFinite(p.stepsTarget) && p.stepsTarget >= 1000 && p.stepsTarget <= 100_000
       ? Math.round(p.stepsTarget)
       : 10_000;
-  const habitTemplates = normalizeHabitTemplates(p?.habitTemplates) ?? defaultHabitTemplates();
+  const waterDailyTargetOz = normalizeWaterDailyTargetOz(p?.waterDailyTargetOz);
+  const onboardingProfile = normalizeOnboardingProfile(p?.onboardingProfile) ?? { ...DEFAULT_ONBOARDING_PROFILE };
+  const hasLegacyFitnessData =
+    Object.keys(p?.workoutsCompletedByDay ?? {}).length > 0 || (p?.weightLog?.length ?? 0) > 0;
+  const onboardingComplete = p?.onboardingComplete === true || hasLegacyFitnessData;
+  const habitTemplates = resolveHabitTemplates(
+    p,
+    onboardingComplete,
+    hasLegacyFitnessData,
+    stepsTarget,
+    waterDailyTargetOz,
+  );
   const habitsDoneByDay = normalizeHabitsDoneByDay(p?.habitsDoneByDay);
   const todayKey = localDateKey(new Date());
   const { nutritionManualByDay, nutritionItemsByDay } = mergePersistedNutritionDays(
     p?.nutritionManualByDay,
     p?.nutritionItemsByDay,
   );
-  const workoutTemplates =
+  const workoutTemplates = sanitizeWorkoutTemplates(
     p?.workoutTemplates === undefined || p?.workoutTemplates === null
-      ? defaultWorkoutRoutineTemplates()
-      : normalizeWorkoutTemplates(p.workoutTemplates);
-  const onboardingProfile = normalizeOnboardingProfile(p?.onboardingProfile) ?? { ...DEFAULT_ONBOARDING_PROFILE };
-  const hasLegacyFitnessData =
-    Object.keys(p?.workoutsCompletedByDay ?? {}).length > 0 || (p?.weightLog?.length ?? 0) > 0;
-  const onboardingComplete = p?.onboardingComplete === true || hasLegacyFitnessData;
+      ? []
+      : normalizeWorkoutTemplates(p.workoutTemplates),
+    { onboardingComplete },
+  );
   const onboardingDraft = onboardingComplete ? null : normalizeOnboardingDraft(p?.onboardingDraft);
   const subscriptionTier = normalizeSubscriptionTier(p?.subscriptionTier);
+  const theme = p?.theme != null ? normalizeAppTheme(p.theme) : readStoredTheme();
   const workoutDaysPerWeek = onboardingProfile.workoutDaysPerWeek;
 
   const baseState: AppState = {
@@ -402,10 +436,11 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     onboardingProfile,
     onboardingComplete,
     onboardingDraft,
+    theme,
     subscriptionTier,
     notificationPreferences: normalizeNotificationPreferences(p?.notificationPreferences),
     waterLogByDay: normalizeWaterLogByDay(p?.waterLogByDay),
-    waterDailyTargetOz: normalizeWaterDailyTargetOz(p?.waterDailyTargetOz),
+    waterDailyTargetOz,
   };
 
   return applyStreakEligibility(baseState, todayKey);

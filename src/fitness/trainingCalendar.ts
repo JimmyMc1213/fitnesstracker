@@ -20,6 +20,57 @@ export function weekdayShort(d: Date): string {
   return WEEKDAY_SHORT[d.getDay()] ?? "Sun";
 }
 
+const WEEKDAY_FULL: Record<string, string> = {
+  Sun: "Sunday",
+  Mon: "Monday",
+  Tue: "Tuesday",
+  Wed: "Wednesday",
+  Thu: "Thursday",
+  Fri: "Friday",
+  Sat: "Saturday",
+};
+
+/** Expand Mon → Monday for display copy. */
+export function weekdayFullName(label: string): string {
+  const short = normalizeDayLabel(label);
+  if (short && WEEKDAY_FULL[short]) return WEEKDAY_FULL[short];
+  return label;
+}
+
+const WEEKDAY_MON_START = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+
+/** Mon-first index for sorting training templates in week summaries. */
+export function weekdayMonStartIndex(label: string): number {
+  const short = normalizeDayLabel(label);
+  if (!short) return 99;
+  const idx = WEEKDAY_MON_START.indexOf(short as (typeof WEEKDAY_MON_START)[number]);
+  return idx >= 0 ? idx : 99;
+}
+
+/** Next calendar training day after `fromDate` (exclusive of today). */
+export function nextTrainingDayFrom(
+  templates: WorkoutRoutineTemplate[],
+  fromDate: Date = new Date(),
+): { dayLabel: string; fullName: string; template: WorkoutRoutineTemplate } | null {
+  const trainingByDay = new Map<string, WorkoutRoutineTemplate>();
+  for (const t of templates) {
+    const day = normalizeDayLabel(t.dayLabel);
+    if (day) trainingByDay.set(day, t);
+  }
+  if (trainingByDay.size === 0) return null;
+
+  for (let offset = 1; offset <= 7; offset++) {
+    const d = new Date(fromDate);
+    d.setDate(d.getDate() + offset);
+    const short = weekdayShort(d);
+    const template = trainingByDay.get(short);
+    if (template) {
+      return { dayLabel: short, fullName: weekdayFullName(short), template };
+    }
+  }
+  return null;
+}
+
 export function resolveWorkoutDaysPerWeek(
   templates: WorkoutRoutineTemplate[] | undefined,
   profileDays?: WorkoutDaysPerWeek,

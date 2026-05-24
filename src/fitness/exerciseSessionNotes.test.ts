@@ -51,9 +51,9 @@ function exercise(id: string, name: string, label?: string): WorkoutExercise {
 describe("sanitizeCoachCopy", () => {
   it("strips em dashes and multiplication signs from legacy notes", () => {
     const legacy =
-      "Last session: 135×8, 135×8. Match or beat 135 lb × 8 — add ~5 lb when every set hits the top of the range.";
+      "Last session: 135×8, 135×8. Match or beat 135 lb × 8. Add ~5 lb when every set hits the top of the range.";
     expect(sanitizeCoachCopy(legacy)).toBe(
-      "Last session: 135x8, 135x8. Match or beat 135 lb x 8, add ~5 lb when every set hits the top of the range.",
+      "Last session: 135x8, 135x8. Match or beat 135 lb x 8. Add ~5 lb when every set hits the top of the range.",
     );
   });
 });
@@ -134,5 +134,34 @@ describe("buildSessionCoachNotesByExerciseId", () => {
     expect(Object.keys(notes)).toEqual(["ex-a", "ex-b"]);
     expect(notes["ex-a"]).toContain("Last session");
     expect(notes["ex-b"]).toContain("Lead with Squat");
+  });
+});
+
+describe("trainingStyle coach notes", () => {
+  it("accountable style shortens to a performance cue", () => {
+    const state = workoutHistoryAppState([benchSession("hist", 1_000_000, [{ w: 135, r: 8 }])]);
+    const note = getExerciseSessionNote(
+      { workoutHistory: state.workoutHistory, trainingStyle: "accountable" },
+      exercise("e1", "Bench Press"),
+    );
+    expect(note).toBe("Beat 135x8 on Bench Press.");
+  });
+
+  it("flexible style adds an alternative option", () => {
+    const note = getExerciseSessionNote(
+      { workoutHistory: [], trainingStyle: "flexible" },
+      exercise("e1", "Squat"),
+    );
+    expect(note).toContain("Primary:");
+    expect(note).toContain("Alternative:");
+  });
+
+  it("beginner_guided explains muscles and focus", () => {
+    const note = getExerciseSessionNote(
+      { workoutHistory: [], trainingStyle: "beginner_guided" },
+      exercise("e1", "Barbell bench press"),
+    );
+    expect(note).toContain("builds");
+    expect(note).toContain("reps in reserve");
   });
 });

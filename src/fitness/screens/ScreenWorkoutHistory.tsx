@@ -59,7 +59,7 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
         title="Workout history"
       />
 
-      <p style={{ margin: "4px 0 16px", fontSize: 13, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
+      <p style={{ margin: "4px 0 16px", fontSize: 13, color: "var(--text-faint-soft)", fontWeight: 500 }}>
         {sessions.length > 0
           ? `${sessions.length} saved session${sessions.length === 1 ? "" : "s"}`
           : "Finish a workout with logged sets to see sessions here."}
@@ -67,7 +67,7 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
 
       {sessions.length === 0 ? (
         <div className="card" style={{ padding: 28, textAlign: "center" }}>
-          <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
+          <p style={{ margin: 0, fontSize: 14, color: "var(--text-ghost)", lineHeight: 1.5 }}>
             No workouts saved yet.
           </p>
         </div>
@@ -94,12 +94,12 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
                     padding: "12px 14px",
                     background: "transparent",
                     border: "none",
-                    color: "#fff",
+                    color: "var(--text-primary)",
                     minWidth: 0,
                   }}
                 >
                   <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>{session.title}</div>
-                  <div style={{ marginTop: 4, fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
+                  <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500 }}>
                     {formatWorkoutHistoryDate(session.dayKey, session.endedAtMs)}
                     {" · "}
                     {formatWorkoutDuration(session.durationSec)}

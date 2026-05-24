@@ -11,7 +11,7 @@ import type { AppState, WeightUnit } from "./types";
 const PR_GOLD = "#FFD60A";
 const PR_SILVER = "#C8C8CC";
 const PR_BRONZE = "#CD7F32";
-const PR_ACCENT = "#ffffff";
+const PR_ACCENT = "var(--chart-stroke)";
 const TOP_N = 3;
 
 type Props = {
@@ -31,7 +31,7 @@ export function PersonalRecordsSection({ state }: Props) {
   if (rows.length === 0) {
     return (
       <div className="card" style={{ padding: 14 }}>
-        <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: "rgba(255,255,255,0.4)" }}>
+        <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: "var(--text-ghost)" }}>
           Finish workouts with logged sets to build your PR board.
         </p>
       </div>
@@ -62,7 +62,7 @@ export function PersonalRecordsSection({ state }: Props) {
             Top {TOP_N} records
           </div>
           {hiddenCount > 0 ? (
-            <div style={{ marginTop: 2, fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 500 }}>
+            <div style={{ marginTop: 2, fontSize: 10, color: "var(--text-ghost)", fontWeight: 500 }}>
               +{hiddenCount} more tracked
             </div>
           ) : null}
@@ -89,7 +89,7 @@ export function PersonalRecordsSection({ state }: Props) {
                 padding: "10px 12px",
                 border: "none",
                 background: rank === 1 ? "rgba(255,214,10,0.04)" : "transparent",
-                color: "#fff",
+                color: "var(--text-primary)",
                 textAlign: "left",
                 display: "grid",
                 gridTemplateColumns: "auto 1fr auto",
@@ -121,13 +121,13 @@ export function PersonalRecordsSection({ state }: Props) {
                       fontWeight: 800,
                       fontVariantNumeric: "tabular-nums",
                       letterSpacing: "-0.02em",
-                      color: rank === 1 ? PR_GOLD : "rgba(255,255,255,0.92)",
+                      color: rank === 1 ? PR_GOLD : "var(--text-primary)",
                     }}
                   >
                     {statLabel}
                   </span>
                 </div>
-                <div style={{ marginTop: 2, fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 500 }}>
+                <div style={{ marginTop: 2, fontSize: 10, color: "var(--text-ghost)", fontWeight: 500 }}>
                   {formatPersonalRecordDate(row.bestDateKey, row.bestEndedAtMs)}
                 </div>
               </div>
@@ -136,7 +136,7 @@ export function PersonalRecordsSection({ state }: Props) {
                 style={{
                   flexShrink: 0,
                   fontSize: 16,
-                  color: "rgba(255,255,255,0.28)",
+                  color: "var(--text-whisper)",
                   transform: expanded ? "rotate(90deg)" : "none",
                   transition: "transform 0.15s ease",
                 }}
@@ -224,22 +224,22 @@ function HistoryRow({
         gap: 8,
         padding: "6px 8px",
         borderRadius: 8,
-        background: highlight ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)",
-        border: highlight ? "0.5px solid rgba(255,255,255,0.18)" : "0.5px solid rgba(255,255,255,0.05)",
+        background: highlight ? "var(--surface-3)" : "var(--surface-1)",
+        border: highlight ? "0.5px solid var(--border-strong)" : "0.5px solid var(--divider-subtle)",
       }}
     >
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 12, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
           {formatPersonalRecordSet(entry.bestWeight, entry.bestReps, unit)}
         </div>
-        <div style={{ marginTop: 1, fontSize: 10, color: "rgba(255,255,255,0.38)" }}>
+        <div style={{ marginTop: 1, fontSize: 10, color: "var(--text-ghost)" }}>
           {formatPersonalRecordDate(entry.dayKey, entry.endedAtMs)}
         </div>
       </div>
       {isCurrentBest ? (
         <span style={badgeStyle(PR_GOLD, "rgba(255,214,10,0.15)")}>Best</span>
       ) : entry.isPr ? (
-        <span style={badgeStyle(PR_ACCENT, "rgba(255,255,255,0.12)")}>PR</span>
+        <span style={badgeStyle(PR_ACCENT, "var(--surface-4)")}>PR</span>
       ) : null}
     </div>
   );

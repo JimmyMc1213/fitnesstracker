@@ -14,6 +14,11 @@ export function isDevPreviewOnboardingEnabled(): boolean {
   return isDevPreviewOnboardingUrl() || isDevPreviewOnboardingStored();
 }
 
+export function isDevToolbarEnabled(): boolean {
+  if (!import.meta.env.DEV || typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("devTools") === "1";
+}
+
 export function setDevPreviewOnboardingStored(enabled: boolean): void {
   if (!import.meta.env.DEV || typeof window === "undefined") return;
   if (enabled) localStorage.setItem(STORAGE_KEY, "1");

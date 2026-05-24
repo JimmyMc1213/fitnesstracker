@@ -1,4 +1,6 @@
 import type { FoodItem, Habit, HabitTemplate, MacroTotals, WorkoutExercise, WorkoutRoutineTemplate, WorkoutSet, WorkoutState } from "./types";
+import { normalizeDayLabel, weekdayMonStartIndex } from "./trainingCalendar";
+import { DEFAULT_WATER_DAILY_TARGET_OZ, formatWaterOz } from "./waterIntake";
 
 /** Phase 1 cutting, starting targets; app may auto-adjust weekly from weigh-ins. */
 export const DEFAULT_NUTRITION_TARGETS: MacroTotals = { cal: 2200, p: 180, c: 220, f: 65 };
@@ -54,6 +56,9 @@ export const SPLIT = [
   { id: "thu-pull", day: "Thu", name: "Pull", focus: "Lats · Rows · Rear delts · Bi" },
   { id: "fri-legs", day: "Fri", name: "Legs · shoulders", focus: "Squat · Split squat · Lateral raises · Carries" },
 ] as const;
+
+/** Built-in Mon–Fri demo split ids (first-launch seed only; not a personalized plan). */
+export const DEFAULT_WORKOUT_SPLIT_IDS = new Set<string>(SPLIT.map((s) => s.id));
 
 function ex(id: string, name: string, target: string, setCount: number): WorkoutExercise {
   const n = Math.min(Math.max(setCount, 1), 3);
@@ -224,6 +229,58 @@ export function normalizeWorkoutTemplates(raw: unknown): WorkoutRoutineTemplate[
   return out;
 }
 
+export function isDefaultSeedWorkoutTemplates(templates: WorkoutRoutineTemplate[]): boolean {
+  if (templates.length !== SPLIT.length) return false;
+  return templates.every((t) => DEFAULT_WORKOUT_SPLIT_IDS.has(t.id));
+}
+
+/**
+ * Drop stacked demo routines and duplicate weekday slots.
+ * Keeps onboarding/program templates over the built-in 5-day seed when both exist.
+ */
+export function sanitizeWorkoutTemplates(
+  templates: WorkoutRoutineTemplate[],
+  opts?: { onboardingComplete?: boolean },
+): WorkoutRoutineTemplate[] {
+  const normalized = normalizeWorkoutTemplates(templates);
+  if (normalized.length === 0) return [];
+
+  const nonDefault = normalized.filter((t) => !DEFAULT_WORKOUT_SPLIT_IDS.has(t.id));
+  const kept = nonDefault.length > 0 ? nonDefault : normalized;
+
+  const byDay = new Map<string, WorkoutRoutineTemplate>();
+  const withoutDay: WorkoutRoutineTemplate[] = [];
+
+  for (const t of kept) {
+    const day = normalizeDayLabel(t.dayLabel);
+    if (!day) {
+      withoutDay.push(t);
+      continue;
+    }
+    const prev = byDay.get(day);
+    if (!prev) {
+      byDay.set(day, t);
+      continue;
+    }
+    const prevIsDefault = DEFAULT_WORKOUT_SPLIT_IDS.has(prev.id);
+    const nextIsDefault = DEFAULT_WORKOUT_SPLIT_IDS.has(t.id);
+    if (prevIsDefault && !nextIsDefault) byDay.set(day, t);
+    else if (!prevIsDefault && nextIsDefault) continue;
+    else byDay.set(day, t);
+  }
+
+  const ordered = [...byDay.values()].sort(
+    (a, b) => weekdayMonStartIndex(a.dayLabel) - weekdayMonStartIndex(b.dayLabel),
+  );
+  const result = [...ordered, ...withoutDay];
+
+  if (opts?.onboardingComplete === false && isDefaultSeedWorkoutTemplates(result)) {
+    return [];
+  }
+
+  return result;
+}
+
 /** Fresh IDs and set clones for starting a live session from a saved routine. */
 export function cloneExercisesForNewSession(exercises: WorkoutExercise[]): WorkoutExercise[] {
   const t = Date.now();
@@ -328,6 +385,71 @@ export function defaultHabitTemplates(): HabitTemplate[] {
     { id: "h3", name: "Sleep 8h", icon: "moon" },
     { id: "h4", name: "Low-back routine 8 min", icon: "bolt" },
   ];
+}
+
+const STANDARD_HABIT_ICONS = new Set<HabitTemplate["icon"]>(["drop", "run", "moon"]);
+
+function stepsHabitLabel(stepsTarget: number): string {
+  if (stepsTarget % 1000 === 0) return `Steps ${stepsTarget / 1000}k`;
+  return `Steps ${stepsTarget.toLocaleString()}`;
+}
+
+/** Habits shown on the plan-ready screen and Home daily habits card after onboarding. */
+export function habitTemplatesFromOnboarding(
+  stepsTarget: number = 10_000,
+  waterDailyTargetOz: number = DEFAULT_WATER_DAILY_TARGET_OZ,
+): HabitTemplate[] {
+  return [
+    { id: "habit-hydration", name: `Water ${formatWaterOz(waterDailyTargetOz)}`, icon: "drop" },
+    { id: "habit-steps", name: stepsHabitLabel(stepsTarget), icon: "run" },
+  ];
+}
+
+export function isDefaultSeedHabitTemplates(templates: HabitTemplate[]): boolean {
+  const defaults = defaultHabitTemplates();
+  if (templates.length !== defaults.length) return false;
+  const defaultIds = new Set(defaults.map((d) => d.id));
+  return templates.every((t) => defaultIds.has(t.id));
+}
+
+/** One row per standard icon (water/steps/sleep); extras deduped by name. */
+export function dedupeHabitTemplates(templates: HabitTemplate[]): HabitTemplate[] {
+  const sorted = [...templates].sort((a, b) => {
+    const rank = (t: HabitTemplate) => (t.id.startsWith("habit-") ? 0 : 1);
+    return rank(a) - rank(b);
+  });
+  const out: HabitTemplate[] = [];
+  const seenIcons = new Set<HabitTemplate["icon"]>();
+  const seenNames = new Set<string>();
+
+  for (const t of sorted) {
+    const nameKey = t.name.trim().toLowerCase();
+    if (STANDARD_HABIT_ICONS.has(t.icon)) {
+      if (seenIcons.has(t.icon)) continue;
+      seenIcons.add(t.icon);
+      out.push(t);
+      continue;
+    }
+    if (seenNames.has(nameKey)) continue;
+    seenNames.add(nameKey);
+    out.push(t);
+  }
+  return out;
+}
+
+export function pruneHabitsDoneByDay(
+  habitsDoneByDay: Record<string, Record<string, boolean>>,
+  templateIds: ReadonlySet<string>,
+): Record<string, Record<string, boolean>> {
+  const out: Record<string, Record<string, boolean>> = {};
+  for (const [day, map] of Object.entries(habitsDoneByDay)) {
+    const inner: Record<string, boolean> = {};
+    for (const [id, done] of Object.entries(map)) {
+      if (templateIds.has(id)) inner[id] = done;
+    }
+    if (Object.keys(inner).length > 0) out[day] = inner;
+  }
+  return out;
 }
 
 export function buildHabitsForDateKey(

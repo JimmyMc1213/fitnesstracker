@@ -41,7 +41,7 @@ function SwipeableFoodLogRow({
     <div
       style={{
         marginBottom: showDivider ? 12 : 0,
-        borderBottom: showDivider ? "1px solid rgba(255,255,255,0.06)" : undefined,
+        borderBottom: showDivider ? "1px solid var(--divider-subtle)" : undefined,
         paddingBottom: showDivider ? 12 : 0,
       }}
     >
@@ -74,13 +74,13 @@ function SwipeableFoodLogRow({
           }}
         >
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
               {displayName}
             </div>
             <div
               style={{
                 fontSize: 12,
-                color: "rgba(255,255,255,0.42)",
+                color: "var(--text-faint-soft)",
                 fontWeight: 500,
                 marginTop: 4,
                 fontVariantNumeric: "tabular-nums",
@@ -89,7 +89,7 @@ function SwipeableFoodLogRow({
               {Math.round(Number(item.cal) || 0)} kcal · P {Math.round(Number(item.p) || 0)}g
               {item.servingLabel?.trim() ? ` · ${item.servingLabel.trim()}` : ""}
             </div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500, marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, marginTop: 2 }}>
               {formatLoggedTime(item.loggedAtMs)}
             </div>
           </div>
@@ -130,7 +130,7 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
           fontWeight: 600,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.45)",
+          color: "var(--text-faint-soft)",
           marginBottom: 14,
         }}
       >
@@ -138,7 +138,7 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
       </div>
 
       {sorted.length === 0 ? (
-        <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.42)", lineHeight: 1.5, fontWeight: 400 }}>
+        <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)", lineHeight: 1.5, fontWeight: 400 }}>
           Nothing logged yet. Tap + to add food.
         </p>
       ) : (

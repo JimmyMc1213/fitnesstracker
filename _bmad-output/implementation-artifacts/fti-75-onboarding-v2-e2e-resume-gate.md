@@ -1,4 +1,4 @@
-# FTI-75 — Onboarding v2 E2E + resume gate
+# FTI-75 - Onboarding v2 E2E + resume gate
 
 **Status:** done  
 **Sprint:** 11  

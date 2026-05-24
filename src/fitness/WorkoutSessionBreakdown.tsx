@@ -10,10 +10,10 @@ export function WorkoutSessionBreakdown({ session }: { session: CompletedWorkout
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {session.exercises.map((ex) => (
         <div key={ex.id}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.92)" }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
             {ex.name}
             {ex.label ? (
-              <span style={{ fontWeight: 500, color: "rgba(255,255,255,0.4)" }}> · {ex.label}</span>
+              <span style={{ fontWeight: 500, color: "var(--text-ghost)" }}> · {ex.label}</span>
             ) : null}
           </div>
           <ul style={{ margin: "6px 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 4 }}>
@@ -23,7 +23,7 @@ export function WorkoutSessionBreakdown({ session }: { session: CompletedWorkout
                 style={{
                   fontSize: 13,
                   fontWeight: 500,
-                  color: "rgba(255,255,255,0.55)",
+                  color: "var(--text-muted-soft)",
                   fontVariantNumeric: "tabular-nums",
                 }}
               >

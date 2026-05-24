@@ -1,7 +1,7 @@
 import { DEFAULT_NUTRITION_TARGETS } from "./data";
-import type { AppState, AdjustmentEvent, MacroTotals, WeightEntry } from "./types";
+import type { AppState, MacroTotals, WeightEntry } from "./types";
 
-/** Minimum distinct weigh-in days in a Mon–Sun week to compare week averages in Sunday review. */
+/** Minimum distinct weigh-in days in a Mon–Sun week for a full Sunday recap. */
 export const MIN_WEIGH_INS_FOR_WEEK_COMPARE = 2;
 
 function localDateKey(d: Date): string {
@@ -89,98 +89,10 @@ export function previewTargetsAfterCalorieDelta(base: MacroTotals, deltaCal: num
   return applyCalorieDelta(base, Math.round(deltaCal));
 }
 
-function buildReason(weeklyLoss: number): string {
-  if (weeklyLoss > 2) return `Fast loss (${weeklyLoss.toFixed(2)} lb/wk avg) → +150 kcal.`;
-  if (weeklyLoss >= 0.7 && weeklyLoss <= 1.5) return `On-target pace (~${weeklyLoss.toFixed(2)} lb/wk avg).`;
-  if (weeklyLoss > 1.5 && weeklyLoss <= 2) return `Between bands (~${weeklyLoss.toFixed(2)} lb/wk avg) → holding calories.`;
-  return `Under 0.7 lb/wk or plateau (${weeklyLoss.toFixed(2)} lb/wk avg) → −150 kcal.`;
-}
-
 function previousSundayKey(sundayKey: string): string {
   const d = new Date(`${sundayKey}T12:00:00`);
   d.setDate(d.getDate() - 7);
   return localDateKey(d);
-}
-
-export type DayWeighInRow = { dateKey: string; label: string; weightLbs: number | null };
-
-export type SundayReviewPreview = {
-  thisSundayKey: string;
-  currRange: { mon: string; sun: string };
-  prevRange: { mon: string; sun: string };
-  currDays: DayWeighInRow[];
-  prevDays: DayWeighInRow[];
-  avgCurr: number | null;
-  avgPrev: number | null;
-  distinctCurr: number;
-  distinctPrev: number;
-  weeklyLoss: number | null;
-  baseDelta: number;
-  recommendedTotalDelta: number;
-  /** Both weeks have enough logged days for a week-over-week mean comparison. */
-  ready: boolean;
-};
-
-export function buildSundayReviewPreview(state: AppState, now = new Date()): SundayReviewPreview | null {
-  if (now.getDay() !== 0) return null;
-
-  const thisSunday = new Date(now);
-  thisSunday.setHours(12, 0, 0, 0);
-  const thisSundayKey = localDateKey(thisSunday);
-
-  const prevSunday = new Date(thisSunday);
-  prevSunday.setDate(prevSunday.getDate() - 7);
-
-  const currRange = calendarWeekRangeFromSunday(thisSunday);
-  const prevRange = calendarWeekRangeFromSunday(prevSunday);
-
-  const currKeys = enumerateWeekDayKeys(currRange.mon, currRange.sun);
-  const prevKeys = enumerateWeekDayKeys(prevRange.mon, prevRange.sun);
-
-  const logByDay = new Map(state.weightLog.map((e) => [e.dateKey, e.weightLbs]));
-  const mapRow = (k: string): DayWeighInRow => ({
-    dateKey: k,
-    label: weekDayShortLabel(k),
-    weightLbs: logByDay.get(k) ?? null,
-  });
-  const currDays = currKeys.map(mapRow);
-  const prevDays = prevKeys.map(mapRow);
-
-  const distinctCurr = currDays.filter((d) => d.weightLbs != null).length;
-  const distinctPrev = prevDays.filter((d) => d.weightLbs != null).length;
-
-  const avgCurr = meanWeightInRangeOrNull(state.weightLog, currRange.mon, currRange.sun, MIN_WEIGH_INS_FOR_WEEK_COMPARE);
-  const avgPrev = meanWeightInRangeOrNull(state.weightLog, prevRange.mon, prevRange.sun, MIN_WEIGH_INS_FOR_WEEK_COMPARE);
-  const ready = avgCurr !== null && avgPrev !== null;
-
-  let weeklyLoss: number | null = null;
-  let baseDelta = 0;
-  let recommendedTotalDelta = 0;
-
-  if (ready && avgCurr !== null && avgPrev !== null) {
-    weeklyLoss = avgPrev - avgCurr;
-    if (weeklyLoss > 2) baseDelta = 150;
-    else if (weeklyLoss >= 0.7 && weeklyLoss <= 1.5) baseDelta = 0;
-    else if (weeklyLoss > 1.5 && weeklyLoss <= 2) baseDelta = 0;
-    else baseDelta = -150;
-    recommendedTotalDelta = baseDelta;
-  }
-
-  return {
-    thisSundayKey,
-    currRange,
-    prevRange,
-    currDays,
-    prevDays,
-    avgCurr,
-    avgPrev,
-    distinctCurr,
-    distinctPrev,
-    weeklyLoss,
-    baseDelta,
-    recommendedTotalDelta,
-    ready,
-  };
 }
 
 export function revertLastNutritionAdjustment(state: AppState): AppState {
@@ -193,50 +105,6 @@ export function revertLastNutritionAdjustment(state: AppState): AppState {
     lastAdjustmentSundayKey: priorSun,
     sundayReviewCompletedKey: priorSun,
     adjustmentHistory: state.adjustmentHistory.slice(1),
-  };
-}
-
-export function commitSundayReviewSkip(state: AppState, now = new Date()): AppState {
-  if (now.getDay() !== 0) return state;
-  const thisSunday = new Date(now);
-  thisSunday.setHours(12, 0, 0, 0);
-  const thisSundayKey = localDateKey(thisSunday);
-  return { ...state, sundayReviewCompletedKey: thisSundayKey };
-}
-
-export function commitSundayReviewApproval(
-  state: AppState,
-  now: Date,
-  chosenDeltaCal: number,
-  preview: SundayReviewPreview,
-): AppState {
-  if (!preview.ready || preview.weeklyLoss === null) return state;
-
-  const rounded = Math.round(chosenDeltaCal);
-  const before = { ...state.nutritionTargets };
-  const after = previewTargetsAfterCalorieDelta(before, rounded);
-
-  const rec = preview.recommendedTotalDelta;
-  const reasonBase = buildReason(preview.weeklyLoss);
-  const reason = `${reasonBase} · User approved ${rounded >= 0 ? "+" : ""}${rounded} kcal/day${rounded !== rec ? ` (recommended ${rec >= 0 ? "+" : ""}${rec})` : ""}.`;
-
-  const event: AdjustmentEvent = {
-    atIso: now.toISOString(),
-    weekEndingSunday: preview.thisSundayKey,
-    weeklyLossLbs: preview.weeklyLoss,
-    before,
-    after: { ...after },
-    reason,
-    recommendedDeltaCal: rec,
-    appliedDeltaCal: rounded,
-  };
-
-  return {
-    ...state,
-    nutritionTargets: after,
-    lastAdjustmentSundayKey: preview.thisSundayKey,
-    sundayReviewCompletedKey: preview.thisSundayKey,
-    adjustmentHistory: [event, ...state.adjustmentHistory].slice(0, 24),
   };
 }
 

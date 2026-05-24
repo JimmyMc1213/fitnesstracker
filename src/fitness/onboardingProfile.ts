@@ -4,9 +4,17 @@ import type {
   NutritionGoal,
   OnboardingProfile,
   ProgressGoalConfig,
+  TrainingSessionDuration,
   UserGender,
   WorkoutDaysPerWeek,
 } from "./types";
+import { normalizeReferralSource } from "./referralSource";
+import {
+  migrateDietaryRestrictions,
+  normalizeDietaryRestrictions,
+  normalizeTrainingStyle,
+  normalizeBarriers,
+} from "./onboardingMotivationSurvey";
 import { normalizeDayLabel } from "./trainingCalendar";
 
 const GOALS: NutritionGoal[] = ["bulk", "cut", "maintain"];
@@ -14,6 +22,20 @@ const ACTIVITY: ActivityLevel[] = ["sedentary", "light", "moderate", "active", "
 const GENDERS: UserGender[] = ["male", "female", "other"];
 const DAYS: WorkoutDaysPerWeek[] = [3, 4, 5, 6];
 const PACES: GoalPace[] = ["slow", "balanced", "aggressive"];
+const SESSION_DURATIONS: TrainingSessionDuration[] = [
+  "30_or_less",
+  "30_to_45",
+  "45_to_60",
+  "60_to_90",
+  "90_plus",
+];
+
+const LEGACY_SESSION_DURATION: Record<string, TrainingSessionDuration> = {
+  "45": "45_to_60",
+  "60": "60_to_90",
+  "90": "60_to_90",
+  "120_plus": "90_plus",
+};
 
 export const DEFAULT_ONBOARDING_PROFILE: OnboardingProfile = {
   goal: "maintain",
@@ -59,6 +81,12 @@ function normalizePace(raw: unknown): GoalPace | undefined {
   return PACES.includes(raw as GoalPace) ? (raw as GoalPace) : undefined;
 }
 
+function normalizeSessionDuration(raw: unknown): TrainingSessionDuration | undefined {
+  if (typeof raw !== "string") return undefined;
+  if (SESSION_DURATIONS.includes(raw as TrainingSessionDuration)) return raw as TrainingSessionDuration;
+  return LEGACY_SESSION_DURATION[raw];
+}
+
 export function normalizeOnboardingProfile(raw: unknown): OnboardingProfile | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
@@ -83,6 +111,15 @@ export function normalizeOnboardingProfile(raw: unknown): OnboardingProfile | nu
   const trainingWeekdays = normalizeTrainingWeekdays(o.trainingWeekdays);
   const goalWeightLbs = normalizeGoalWeightLbs(o.goalWeightLbs);
   const pace = normalizePace(o.pace);
+  const referralSource = normalizeReferralSource(o.referralSource);
+  const barriers =
+    normalizeBarriers(o.barriers) ??
+    normalizeBarriers(o.goalObstacles);
+  const dietaryRestrictions =
+    normalizeDietaryRestrictions(o.dietaryRestrictions) ??
+    migrateDietaryRestrictions(undefined, o.dietPreference);
+  const trainingStyle = normalizeTrainingStyle(o.trainingStyle);
+  const sessionDuration = normalizeSessionDuration(o.sessionDuration);
   return {
     goal,
     heightIn,
@@ -93,8 +130,13 @@ export function normalizeOnboardingProfile(raw: unknown): OnboardingProfile | nu
     activityLevel,
     workoutDaysPerWeek,
     trainingWeekdays,
+    sessionDuration,
     goalWeightLbs,
     pace,
+    referralSource,
+    barriers,
+    dietaryRestrictions,
+    trainingStyle,
   };
 }
 

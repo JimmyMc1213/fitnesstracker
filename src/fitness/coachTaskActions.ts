@@ -58,7 +58,7 @@ export function coachTaskOpensLogFood(task: CoachTask): boolean {
   return false;
 }
 
-/** @deprecated Use coachTaskOpensLogFood — kept for test migration only. */
+/** @deprecated Use coachTaskOpensLogFood, kept for test migration only. */
 export const coachTaskOpensFuelQuickLog = coachTaskOpensLogFood;
 
 /** ScreenHome wires this to `navigate`: guard skips completed tasks. */

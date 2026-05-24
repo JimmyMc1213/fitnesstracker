@@ -50,7 +50,7 @@ export function WorkoutSessionPreviewSheet({ open = true, session, onClose, onDe
                   fontWeight: 600,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.4)",
+                  color: "var(--text-ghost)",
                   marginBottom: 4,
                 }}
               >
@@ -62,7 +62,7 @@ export function WorkoutSessionPreviewSheet({ open = true, session, onClose, onDe
             </div>
           </div>
 
-          <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.38)", fontVariantNumeric: "tabular-nums", marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-ghost)", fontVariantNumeric: "tabular-nums", marginBottom: 12 }}>
             {formatWorkoutDuration(session.durationSec)}
             {" · "}
             {session.exercises.length} exercise{session.exercises.length === 1 ? "" : "s"}
@@ -80,7 +80,7 @@ export function WorkoutSessionPreviewSheet({ open = true, session, onClose, onDe
                 style={{
                   padding: "10px 12px",
                   borderRadius: 10,
-                  background: "rgba(255,255,255,0.04)",
+                  background: "var(--surface-1)",
                   border: "0.5px solid var(--border)",
                   display: "flex",
                   alignItems: "flex-start",
@@ -91,7 +91,7 @@ export function WorkoutSessionPreviewSheet({ open = true, session, onClose, onDe
                   style={{
                     fontSize: 11,
                     fontWeight: 600,
-                    color: "rgba(255,255,255,0.3)",
+                    color: "var(--text-ghost)",
                     fontVariantNumeric: "tabular-nums",
                     minWidth: 18,
                   }}
@@ -99,14 +99,14 @@ export function WorkoutSessionPreviewSheet({ open = true, session, onClose, onDe
                   {i + 1}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", letterSpacing: "-0.01em" }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
                     {ex.name}
                     {ex.label ? (
-                      <span style={{ fontWeight: 500, color: "rgba(255,255,255,0.4)" }}> · {ex.label}</span>
+                      <span style={{ fontWeight: 500, color: "var(--text-ghost)" }}> · {ex.label}</span>
                     ) : null}
                   </div>
                   {ex.target.trim() ? (
-                    <div style={{ marginTop: 2, fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500 }}>
+                    <div style={{ marginTop: 2, fontSize: 11, color: "var(--text-ghost)", fontWeight: 500 }}>
                       Target {ex.target}
                     </div>
                   ) : null}
@@ -118,15 +118,15 @@ export function WorkoutSessionPreviewSheet({ open = true, session, onClose, onDe
                         style={{
                           padding: "8px 10px",
                           borderRadius: 8,
-                          background: "rgba(255,255,255,0.08)",
-                          border: "0.5px solid rgba(255,255,255,0.2)",
+                          background: "var(--surface-3)",
+                          border: "0.5px solid var(--border-strong)",
                           fontSize: 13,
                           fontWeight: 600,
                           fontVariantNumeric: "tabular-nums",
                         }}
                       >
-                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Set {si + 1}</span>
-                        <span style={{ color: "rgba(255,255,255,0.9)" }}>{formatSet(st.w, st.r)}</span>
+                        <span style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500 }}>Set {si + 1}</span>
+                        <span style={{ color: "var(--text-primary)" }}>{formatSet(st.w, st.r)}</span>
                       </div>
                     ))}
                   </div>

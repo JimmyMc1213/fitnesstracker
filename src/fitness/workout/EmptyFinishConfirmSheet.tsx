@@ -24,10 +24,10 @@ export function EmptyFinishConfirmSheet({
         padding: 20,
       }}
     >
-        <div id="empty-finish-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "#fff" }}>
+        <div id="empty-finish-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
           Nothing logged yet
         </div>
-        <p style={{ margin: "10px 0 18px", fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: "rgba(255,255,255,0.55)" }}>
+        <p style={{ margin: "10px 0 18px", fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: "var(--text-muted-soft)" }}>
           You haven&apos;t checked off any sets. Quit without saving this workout?
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

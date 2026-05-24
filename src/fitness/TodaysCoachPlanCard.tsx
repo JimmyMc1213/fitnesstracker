@@ -16,7 +16,7 @@ export function TodaysCoachPlanCard({ plan, onTaskAction }: Props) {
       style={{
         padding: 16,
         marginTop: 18,
-        borderColor: "rgba(255,255,255,0.12)",
+        borderColor: "var(--sheet-panel-border)",
         background: "linear-gradient(180deg, rgba(74,222,128,0.04) 0%, transparent 52%)",
       }}
     >
@@ -33,7 +33,7 @@ export function TodaysCoachPlanCard({ plan, onTaskAction }: Props) {
           Today&apos;s plan
         </div>
         {plan.subline ? (
-          <div style={{ marginTop: 4, fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
+          <div style={{ marginTop: 4, fontSize: 11, color: "var(--text-ghost)", fontWeight: 500 }}>
             {plan.subline}
           </div>
         ) : null}
@@ -55,10 +55,10 @@ export function TodaysCoachPlanCard({ plan, onTaskAction }: Props) {
           style={{
             marginTop: 14,
             paddingTop: 12,
-            borderTop: "0.5px solid rgba(255,255,255,0.08)",
+            borderTop: "0.5px solid var(--divider-subtle)",
             fontSize: 11,
             lineHeight: 1.45,
-            color: "rgba(255,255,255,0.45)",
+            color: "var(--text-faint-soft)",
             fontWeight: 500,
           }}
         >
@@ -101,14 +101,14 @@ function CoachTaskRow({
           fontSize: 13,
           fontWeight: 600,
           letterSpacing: "-0.01em",
-          color: "#fff",
+          color: "var(--text-primary)",
           textDecoration: completed ? "line-through" : "none",
         }}
       >
         {task.label}
       </div>
       {task.rationale ? (
-        <div style={{ marginTop: 4, fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, lineHeight: 1.4 }}>
+        <div style={{ marginTop: 4, fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, lineHeight: 1.4 }}>
           {task.rationale}
         </div>
       ) : null}
@@ -134,7 +134,7 @@ function CoachTaskRow({
               padding: 0,
               border: "none",
               background: "none",
-              color: "rgba(255,255,255,0.55)",
+              color: "var(--text-muted-soft)",
               fontSize: 12,
               fontWeight: 600,
               textAlign: "left",

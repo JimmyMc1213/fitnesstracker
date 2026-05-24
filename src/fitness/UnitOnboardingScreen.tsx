@@ -36,7 +36,7 @@ export function UnitOnboardingScreen({
       <p style={{ margin: "0 0 24px", fontSize: 14, lineHeight: 1.5, color: "rgba(255,255,255,0.5)", fontWeight: 400 }}>
         We&apos;ll show weight and height in the units you prefer. You can change this anytime in Settings.
       </p>
-      <div className="card" style={{ padding: 20 }}>
+      <div className="onboarding-gradient-card onboarding-gradient-card--spacious">
         <UnitPreferencePicker value={prefs} onChange={setPrefs} />
       </div>
       <button

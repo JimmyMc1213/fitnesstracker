@@ -1,4 +1,4 @@
-# FTI-72 — Onboarding flow v2 (23 screens)
+# FTI-72 - Onboarding flow v2 (23 screens)
 
 **Status:** done  
 **Sprint:** 11  

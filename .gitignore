@@ -6,3 +6,4 @@ dist
 .playwright-browsers
 test-results
 playwright-report
+supabase/.temp/

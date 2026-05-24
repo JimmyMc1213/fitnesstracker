@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isTrainingDay, startOfWeekMonday, startOfWeekSunday, templateForDate, weekDateKeysSundayStart } from "./trainingCalendar";
+import { isTrainingDay, nextTrainingDayFrom, startOfWeekMonday, startOfWeekSunday, templateForDate, weekDateKeysSundayStart } from "./trainingCalendar";
 import type { WorkoutRoutineTemplate } from "./types";
 
 const mondayMorning = new Date(2026, 4, 4, 7, 0);
@@ -39,6 +39,14 @@ describe("isTrainingDay", () => {
 describe("templateForDate", () => {
   it("matches template by dayLabel", () => {
     expect(templateForDate(mondayTemplate(), mondayMorning)?.name).toBe("Upper strength");
+  });
+});
+
+describe("nextTrainingDayFrom", () => {
+  it("returns the next training day after a rest day", () => {
+    const next = nextTrainingDayFrom(mondayTemplate(), sundayMorning);
+    expect(next?.fullName).toBe("Monday");
+    expect(next?.template.name).toBe("Upper strength");
   });
 });
 

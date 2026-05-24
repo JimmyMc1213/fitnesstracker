@@ -54,7 +54,7 @@ so meal prep foods I eat repeatedly are faster to track than logging each ingred
 ## Dev Notes
 
 - **Checklist:** `nutrition-os-v2-checklist.md` phases 0.3 (finish), 6
-- **Do not** fork measurement math — reuse `foodMeasurements.ts`, `scaleMacros`, serving picker from All tab
+- **Do not** fork measurement math - reuse `foodMeasurements.ts`, `scaleMacros`, serving picker from All tab
 - **Do not** start Cal AI polish (FTI-64) or E2E meal spec (FTI-65) in this story
 - **Reuse:** `LogFoodScreen.tsx`, `buildNutritionLoggedItem`, `appendNutritionLoggedItem`, `PrimaryButton`
 - **partial_impl:** My meals tab shows placeholder at line ~1067 in `LogFoodScreen.tsx`

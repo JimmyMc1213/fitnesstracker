@@ -1,4 +1,4 @@
-/** Minimal Fitcoach notification service worker — show via postMessage, focus app on click. */
+/** Minimal Fitcoach notification service worker: show via postMessage, focus app on click. */
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
