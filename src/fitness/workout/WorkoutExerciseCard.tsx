@@ -1,7 +1,7 @@
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { exerciseNoteKey } from "../exerciseNotes";
 import { sanitizeCoachCopy } from "../exerciseSessionNotes";
-import { IconCheck, IconMinus, IconPlus, IconTrash } from "../icons";
+import { IconCheck, IconMinus, IconPlus } from "../icons";
 import { ExerciseDragHandle, type ExerciseDragHandleProps } from "../SortableExerciseList";
 import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
 import type { ExercisePersonalBest, WeightUnit, WorkoutExercise } from "../types";
@@ -36,7 +36,6 @@ export function WorkoutExerciseCard({
   handle,
   isOverlay,
   isListDragging,
-  sessionEditMode,
   weightUnit,
   exerciseNote,
   sessionCoachNote,
@@ -46,7 +45,6 @@ export function WorkoutExerciseCard({
   restTimerRemainingSec,
   restTimerDefaultSeconds,
   restTimerSecondsByExerciseKey,
-  onRemoveExercise,
   onSwapExercise,
   onClearRestTimer,
   onCycleRestPreset,
@@ -62,7 +60,6 @@ export function WorkoutExerciseCard({
   handle: ExerciseDragHandleProps;
   isOverlay?: boolean;
   isListDragging: boolean;
-  sessionEditMode: boolean;
   weightUnit: WeightUnit;
   exerciseNote: string;
   sessionCoachNote?: string;
@@ -72,7 +69,6 @@ export function WorkoutExerciseCard({
   restTimerRemainingSec: number;
   restTimerDefaultSeconds: number;
   restTimerSecondsByExerciseKey: Record<string, number>;
-  onRemoveExercise: (id: string) => void;
   onSwapExercise: (id: string) => void;
   onClearRestTimer: () => void;
   onCycleRestPreset: (exercise: WorkoutExercise) => void;
@@ -138,47 +134,25 @@ export function WorkoutExerciseCard({
             </p>
           ) : null}
         </div>
-        {sessionEditMode ? (
-          <button
-            type="button"
-            className="tap"
-            aria-label={`Remove ${exercise.name}`}
-            disabled={isListDragging}
-            onClick={() => onRemoveExercise(exercise.id)}
-            style={{
-              flexShrink: 0,
-              display: "grid",
-              placeItems: "center",
-              width: 36,
-              height: 36,
-              padding: 0,
-              border: "none",
-              background: "transparent",
-              color: "#FF6961",
-            }}
-          >
-            <IconTrash size={18} stroke={1.75} />
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="tap"
-            aria-label={`Swap ${exercise.name}`}
-            disabled={isListDragging}
-            onClick={() => onSwapExercise(exercise.id)}
-            style={{
-              flexShrink: 0,
-              fontSize: 12,
-              fontWeight: 600,
-              color: SECONDARY_ACTION_COLOR,
-              background: "none",
-              border: "none",
-              padding: "4px 0",
-            }}
-          >
-            Swap
-          </button>
-        )}
+        <button
+          type="button"
+          className="tap"
+          data-no-swipe
+          aria-label={`Swap ${exercise.name}`}
+          disabled={isListDragging}
+          onClick={() => onSwapExercise(exercise.id)}
+          style={{
+            flexShrink: 0,
+            fontSize: 12,
+            fontWeight: 600,
+            color: SECONDARY_ACTION_COLOR,
+            background: "none",
+            border: "none",
+            padding: "4px 0",
+          }}
+        >
+          Swap
+        </button>
       </div>
 
       {restTimer?.exerciseId === exercise.id ? (
@@ -198,6 +172,7 @@ export function WorkoutExerciseCard({
         />
       ) : null}
 
+      <div data-no-swipe>
       <div
         style={{
           display: "grid",
@@ -358,6 +333,7 @@ export function WorkoutExerciseCard({
           {prLabel} · {weightUnitLabel(weightUnit)}
         </p>
       ) : null}
+      </div>
     </div>
   );
 }

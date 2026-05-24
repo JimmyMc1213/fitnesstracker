@@ -14,6 +14,7 @@ test("Workout tab: start session → log set → finish → summary", async ({ p
   await page.getByRole("button", { name: "Start workout" }).click();
 
   await expect(page.getByRole("button", { name: "Finish workout" })).toBeVisible();
+  await expect(page.getByText(/Last session: 135x10/i)).toBeVisible();
   await page.getByRole("button", { name: "Done" }).first().click();
   await page.getByRole("button", { name: "Finish workout" }).click();
 

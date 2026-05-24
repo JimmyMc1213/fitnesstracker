@@ -1,17 +1,17 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { buildPreWorkoutCoachBrief, shouldDefaultExpandCoachCard } from "../preWorkoutCoachBrief";
 import { localDateKey } from "../dailyPlan";
-import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession, defaultWorkoutRoutineTemplates } from "../data";
+import { SPLIT, cloneExercisesForNewSession } from "../data";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
 import { exerciseNoteKey, getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { progressiveOverloadInsight } from "../coach";
 import { finishWorkout } from "../finishWorkout";
-import { IconClock, IconPlus, IconSearch } from "../icons";
+import { SwipeToDelete } from "../SwipeToDelete";
+import { IconPlus } from "../icons";
 import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { FullScreenOverlay } from "../motion";
 import { SortableExerciseList } from "../SortableExerciseList";
-import { ScreenHeader, PrimaryButton, SecondaryButton } from "../shared";
 import type { ScreenProps, WorkoutExercise } from "../types";
 import { autofillExerciseSets, buildSetsForExercise } from "../workoutAutofill";
 import {
@@ -20,8 +20,6 @@ import {
 } from "../exerciseSessionNotes";
 import { WorkoutCoachCard } from "../WorkoutCoachCard";
 import { WorkoutSessionStickyHeader } from "../WorkoutSessionStickyHeader";
-import { SECONDARY_ACTION_COLOR } from "../workoutUiTokens";
-import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
 import {
   nextRestTimerPreset,
   restDurationForExercise,
@@ -29,8 +27,10 @@ import {
 import { ExerciseSwapSheet } from "../ExerciseSwapSheet";
 import { isTrainingDay } from "../trainingCalendar";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
+import { AddExerciseSearchSheet } from "../workout/AddExerciseSearchSheet";
 import { EmptyFinishConfirmSheet } from "../workout/EmptyFinishConfirmSheet";
 import { WorkoutExerciseCard } from "../workout/WorkoutExerciseCard";
+import { WorkoutIdleDashboard } from "../workout/WorkoutIdleDashboard";
 import { WorkoutSessionHeader } from "../workout/WorkoutSessionHeader";
 
 function formatSessionClock(d: Date): string {
@@ -45,31 +45,6 @@ type ActiveRestTimer = {
   durationSec: number;
   completed: boolean;
 };
-
-function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      className="tap"
-      onClick={onClick}
-      aria-label="Workout history"
-      style={{
-        width: 40,
-        height: 40,
-        borderRadius: 10,
-        border: "0.5px solid var(--border)",
-        background: "rgba(255,255,255,0.06)",
-        color: "#fff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-      }}
-    >
-      <IconClock size={20} stroke={1.75} />
-    </button>
-  );
-}
 
 const MOBILITY_ITEMS = [
   "90/90 hips or World's greatest stretch, 45-60s each side",
@@ -86,10 +61,7 @@ const WARMUP_ITEMS = [
 
 export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [showExSearch, setShowExSearch] = useState(false);
-  const [exQuery, setExQuery] = useState("");
-  const [draftExName, setDraftExName] = useState("");
-  const [draftExLabel, setDraftExLabel] = useState("");
-  const [sessionEditMode, setSessionEditMode] = useState(false);
+  const [openSwipeExerciseId, setOpenSwipeExerciseId] = useState<string | null>(null);
   const [expandedProgressId, setExpandedProgressId] = useState<string | null>(null);
   const [, setTick] = useState(0);
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
@@ -290,6 +262,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   }
 
   function removeExerciseFromSession(eid: string) {
+    setOpenSwipeExerciseId((id) => (id === eid ? null : id));
     setState((s) => {
       const { [eid]: _removed, ...remainingNotes } = s.workout.sessionCoachNotesByExerciseId ?? {};
       return {
@@ -382,14 +355,13 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     });
     if (closeSheet) {
       setShowExSearch(false);
-      setExQuery("");
     }
   }
 
-  function saveDraftCustomAndAddToSession() {
-    const n = draftExName.trim();
+  function saveCustomAndAddToSession(name: string, label: string) {
+    const n = name.trim();
     if (!n) return;
-    const lb = draftExLabel.trim();
+    const lb = label.trim();
     setState((s) => {
       const newExercise: WorkoutExercise = {
         id: newWorkoutExerciseId(),
@@ -411,9 +383,6 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         },
       };
     });
-    setDraftExName("");
-    setDraftExLabel("");
-    setExQuery("");
   }
 
   function startEmptyWorkout() {
@@ -488,10 +457,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
       }));
     }
     setShowExSearch(false);
-    setExQuery("");
-    setDraftExName("");
-    setDraftExLabel("");
-    setSessionEditMode(false);
+    setOpenSwipeExerciseId(null);
     setExpandedProgressId(null);
     setPreviewRoutineId(null);
     setRestTimer(null);
@@ -505,26 +471,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     }));
   }
 
-  const qLow = exQuery.trim().toLowerCase();
-  const filteredBuiltin = EXERCISE_DB.filter((n) => !qLow || n.toLowerCase().includes(qLow));
-  const filteredCustom = state.customExercises.filter(
-    (c) => !qLow || c.name.toLowerCase().includes(qLow) || c.label.toLowerCase().includes(qLow),
-  );
   const overloadTip = progressiveOverloadInsight(w);
-
-  const createInputStyle: CSSProperties = {
-    background: "#1A1A1A",
-    border: "0.5px solid var(--border)",
-    borderRadius: 10,
-    padding: "10px 12px",
-    color: "#fff",
-    fontFamily: "var(--ui)",
-    fontSize: 14,
-    fontWeight: 500,
-    width: "100%",
-    outline: "none",
-    boxSizing: "border-box",
-  };
 
   if (showHistoryPage) {
     return (
@@ -580,172 +527,18 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
   }
 
   if (phase === "idle") {
-    const previewTpl = previewRoutineId ? state.workoutTemplates.find((t) => t.id === previewRoutineId) : null;
-    const idleCoachSubtitle = preWorkoutCoach?.brief.headline;
-    const previewCoachBrief =
-      previewTpl && preWorkoutCoach && previewTpl.id === preWorkoutCoach.todayTemplateId
-        ? preWorkoutCoach.brief
-        : undefined;
-
     return (
-      <>
-      <div key="workout-idle" className="screen page-transition">
-        <ScreenHeader
-          eyebrow="TRAINING"
-          title="Start Workout"
-          subtitle={idleCoachSubtitle}
-          right={<HistoryHeaderButton onClick={() => setShowHistoryPage(true)} />}
-        />
-
-        <PrimaryButton block onClick={startEmptyWorkout} style={{ marginTop: 20 }}>
-          Start an empty workout
-        </PrimaryButton>
-
-        <div className="between" style={{ marginTop: 28, marginBottom: 12, alignItems: "center" }}>
-          <span className="label">Routines</span>
-          <button
-            type="button"
-            className="tap"
-            onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)}
-            style={{ fontSize: 13, fontWeight: 600, color: SECONDARY_ACTION_COLOR, padding: "6px 10px" }}
-          >
-            + New routine
-          </button>
-        </div>
-
-        {state.workoutTemplates.length === 0 ? (
-          <div className="card" style={{ padding: 24, textAlign: "center" }}>
-            <p style={{ margin: "0 0 16px", fontSize: 14, color: "rgba(255,255,255,0.55)", fontWeight: 500, lineHeight: 1.5 }}>
-              No routines yet. Create one or restore the built-in 5-day split.
-            </p>
-            <PrimaryButton block onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)} style={{ fontSize: 14, padding: 14 }}>
-              New routine
-            </PrimaryButton>
-            <SecondaryButton
-              block
-              onClick={() => setState((s) => ({ ...s, workoutTemplates: defaultWorkoutRoutineTemplates() }))}
-              style={{ marginTop: 12 }}
-            >
-              Restore default program
-            </SecondaryButton>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {state.workoutTemplates.map((tpl) => {
-              const preview = tpl.exercises.slice(0, 4).map((e) => e.name);
-              const more = tpl.exercises.length - preview.length;
-              return (
-                <div
-                  key={tpl.id}
-                  style={{
-                    display: "flex",
-                    borderRadius: 14,
-                    overflow: "hidden",
-                    border: "0.5px solid var(--border)",
-                    background: "rgba(255,255,255,0.05)",
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="tap"
-                    onClick={() => setPreviewRoutineId(tpl.id)}
-                    style={{
-                      flex: 1,
-                      textAlign: "left",
-                      padding: 16,
-                      color: "#fff",
-                      border: "none",
-                      background: "transparent",
-                      minWidth: 0,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: "rgba(255,255,255,0.45)",
-                        letterSpacing: "0.06em",
-                        textTransform: "uppercase",
-                        marginBottom: 6,
-                      }}
-                    >
-                      {tpl.dayLabel.trim() || "Routine"}
-                    </div>
-                    <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: "-0.02em", marginBottom: 6 }}>{tpl.name}</div>
-                    {tpl.focus.trim() ? (
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 10, lineHeight: 1.4 }}>{tpl.focus}</div>
-                    ) : null}
-                    <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
-                      {preview.map((name, i) => (
-                        <li key={`${tpl.id}-p${i}`} style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", fontWeight: 500 }}>
-                          {name}
-                        </li>
-                      ))}
-                    </ul>
-                    {more > 0 ? (
-                      <div style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>+{more} more</div>
-                    ) : null}
-                  </button>
-                  <button
-                    type="button"
-                    className="tap"
-                    onClick={() => setEditingRoutineId(tpl.id)}
-                    style={{
-                      padding: "16px 14px",
-                      border: "none",
-                      borderLeft: "0.5px solid var(--border)",
-                      background: "rgba(255,255,255,0.03)",
-                      color: "#6EB7FF",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      flexShrink: 0,
-                    }}
-                  >
-                    Edit
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <button
-          type="button"
-          className="tap"
-          onClick={() => {
-            if (typeof window !== "undefined" && !window.confirm("Replace all routines with the default 5-day program? Your edits will be lost.")) return;
-            setState((s) => ({ ...s, workoutTemplates: defaultWorkoutRoutineTemplates() }));
-          }}
-          style={{
-            marginTop: 16,
-            width: "100%",
-            color: "rgba(255,255,255,0.35)",
-            fontSize: 12,
-            fontWeight: 500,
-            padding: 10,
-          }}
-        >
-          Restore default 5-day program
-        </button>
-
-        <div style={{ height: 12 }} />
-      </div>
-      {previewTpl ? (
-        <RoutinePreviewSheet
-          template={previewTpl}
-          coachBrief={previewCoachBrief}
-          onClose={() => setPreviewRoutineId(null)}
-          onEdit={() => {
-            setPreviewRoutineId(null);
-            setEditingRoutineId(previewTpl.id);
-          }}
-          onStart={() => {
-            startTemplateWorkout(previewTpl.id);
-            setPreviewRoutineId(null);
-          }}
-        />
-      ) : null}
-      </>
+      <WorkoutIdleDashboard
+        state={state}
+        preWorkoutCoach={preWorkoutCoach}
+        previewRoutineId={previewRoutineId}
+        setPreviewRoutineId={setPreviewRoutineId}
+        setEditingRoutineId={setEditingRoutineId}
+        startEmptyWorkout={startEmptyWorkout}
+        startTemplateWorkout={startTemplateWorkout}
+        setState={setState}
+        onShowHistory={() => setShowHistoryPage(true)}
+      />
     );
   }
 
@@ -753,8 +546,6 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     <div key="workout-lifting" className="screen page-transition">
       <WorkoutSessionHeader
         elapsedSec={elapsedSec}
-        sessionEditMode={sessionEditMode}
-        onToggleSessionEditMode={() => setSessionEditMode((v) => !v)}
         onFinishWorkout={requestFinishWorkout}
         sessionTitle={w.sessionTitle}
         onSessionTitleChange={updateSessionTitle}
@@ -797,193 +588,53 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
             }))
           }
           renderItem={(exercise, ei, handle, ctx) => (
-            <WorkoutExerciseCard
-              exercise={exercise}
-              exerciseIndex={ei}
-              handle={handle}
-              isOverlay={ctx.isOverlay}
-              isListDragging={ctx.isListDragging}
-              sessionEditMode={sessionEditMode}
-              weightUnit={wUnit}
-              exerciseNote={getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label)}
-              sessionCoachNote={w.sessionCoachNotesByExerciseId?.[exercise.id]}
-              exercisePersonalBests={state.exercisePersonalBests}
-              progressExpanded={expandedProgressId === exercise.id}
-              restTimer={restTimer}
-              restTimerRemainingSec={restTimerRemainingSec}
-              restTimerDefaultSeconds={state.restTimerDefaultSeconds}
-              restTimerSecondsByExerciseKey={state.restTimerSecondsByExerciseKey}
-              onRemoveExercise={removeExerciseFromSession}
-              onSwapExercise={setSwapExerciseId}
-              onClearRestTimer={clearRestTimer}
-              onCycleRestPreset={cycleRestPreset}
-              onUpdateSet={updateSet}
-              onToggleSetDone={toggleSetDone}
-              onRemoveSet={removeSet}
-              onAddSet={addSet}
-              onPressNote={(name, label) => setNotesEdit({ name, label })}
-              onToggleProgress={(exerciseId) =>
-                setExpandedProgressId((id) => (id === exerciseId ? null : exerciseId))
-              }
-            />
+            <SwipeToDelete
+              deleteLabel={`Delete ${exercise.name}`}
+              onDelete={() => removeExerciseFromSession(exercise.id)}
+              disabled={ctx.isListDragging}
+              isOpen={openSwipeExerciseId === exercise.id}
+              onOpen={() => setOpenSwipeExerciseId(exercise.id)}
+              onClose={() => setOpenSwipeExerciseId(null)}
+            >
+              <WorkoutExerciseCard
+                exercise={exercise}
+                exerciseIndex={ei}
+                handle={handle}
+                isOverlay={ctx.isOverlay}
+                isListDragging={ctx.isListDragging}
+                weightUnit={wUnit}
+                exerciseNote={getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label)}
+                sessionCoachNote={w.sessionCoachNotesByExerciseId?.[exercise.id]}
+                exercisePersonalBests={state.exercisePersonalBests}
+                progressExpanded={expandedProgressId === exercise.id}
+                restTimer={restTimer}
+                restTimerRemainingSec={restTimerRemainingSec}
+                restTimerDefaultSeconds={state.restTimerDefaultSeconds}
+                restTimerSecondsByExerciseKey={state.restTimerSecondsByExerciseKey}
+                onSwapExercise={setSwapExerciseId}
+                onClearRestTimer={clearRestTimer}
+                onCycleRestPreset={cycleRestPreset}
+                onUpdateSet={updateSet}
+                onToggleSetDone={toggleSetDone}
+                onRemoveSet={removeSet}
+                onAddSet={addSet}
+                onPressNote={(name, label) => setNotesEdit({ name, label })}
+                onToggleProgress={(exerciseId) =>
+                  setExpandedProgressId((id) => (id === exerciseId ? null : exerciseId))
+                }
+              />
+            </SwipeToDelete>
           )}
         />
       </div>
 
       {showExSearch ? (
-        <div className="card" style={{ padding: 12, marginTop: 16 }}>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.35)",
-              marginBottom: 10,
-            }}
-          >
-            Create new
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <input
-              value={draftExName}
-              onChange={(e) => setDraftExName(e.target.value)}
-              placeholder="Exercise name"
-              style={createInputStyle}
-            />
-            <input
-              value={draftExLabel}
-              onChange={(e) => setDraftExLabel(e.target.value)}
-              placeholder="Label (optional)"
-              style={createInputStyle}
-            />
-            <PrimaryButton
-              block
-              onClick={saveDraftCustomAndAddToSession}
-              disabled={!draftExName.trim()}
-              style={{ borderRadius: 10, padding: 12, fontSize: 14 }}
-            >
-              Save to my list & add to workout
-            </PrimaryButton>
-          </div>
-
-          <div style={{ position: "relative", marginTop: 16 }}>
-            <IconSearch size={16} style={{ position: "absolute", left: 12, top: 13, color: "rgba(255,255,255,0.4)" }} />
-            <input
-              autoFocus
-              className="input"
-              style={{ paddingLeft: 36, background: "#1A1A1A" }}
-              placeholder="Search exercises..."
-              value={exQuery}
-              onChange={(e) => setExQuery(e.target.value)}
-            />
-          </div>
-          <div style={{ marginTop: 10, maxHeight: 320, overflowY: "auto", display: "flex", flexDirection: "column" }}>
-            {filteredCustom.length > 0 ? (
-              <>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.35)",
-                    padding: "8px 8px 6px",
-                  }}
-                >
-                  Your exercises
-                </div>
-                {filteredCustom.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className="tap"
-                    onClick={() => addExerciseToSession(c.name, c.label)}
-                    style={{
-                      padding: "12px 8px",
-                      textAlign: "left",
-                      borderBottom: "0.5px solid var(--border)",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                    }}
-                  >
-                    <span style={{ minWidth: 0 }}>
-                      <span style={{ display: "block", color: "#fff" }}>{c.name}</span>
-                      {c.label ? (
-                        <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 3, fontWeight: 500 }}>{c.label}</span>
-                      ) : null}
-                    </span>
-                    <IconPlus size={14} stroke={2} style={{ color: "#fff", flexShrink: 0 }} />
-                  </button>
-                ))}
-              </>
-            ) : null}
-            {filteredBuiltin.length > 0 ? (
-              <>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.35)",
-                    padding: "8px 8px 6px",
-                  }}
-                >
-                  Catalog
-                </div>
-                {filteredBuiltin.map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className="tap"
-                    onClick={() => addExerciseToSession(n)}
-                    style={{
-                      padding: "12px 8px",
-                      textAlign: "left",
-                      borderBottom: "0.5px solid var(--border)",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <span>{n}</span>
-                    <IconPlus size={14} stroke={2} style={{ color: "#fff" }} />
-                  </button>
-                ))}
-              </>
-            ) : null}
-            {filteredCustom.length === 0 && filteredBuiltin.length === 0 ? (
-              <div style={{ padding: 16, textAlign: "center", fontSize: 13, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>No matches</div>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            className="tap"
-            onClick={() => {
-              setShowExSearch(false);
-              setExQuery("");
-              setDraftExName("");
-              setDraftExLabel("");
-            }}
-            style={{
-              marginTop: 8,
-              width: "100%",
-              color: "rgba(255,255,255,0.4)",
-              fontSize: 12,
-              padding: 6,
-              fontWeight: 500,
-            }}
-          >
-            Done
-          </button>
-        </div>
+        <AddExerciseSearchSheet
+          customExercises={state.customExercises}
+          onAddExercise={(name, label) => addExerciseToSession(name, label)}
+          onSaveCustomAndAdd={saveCustomAndAddToSession}
+          onClose={() => setShowExSearch(false)}
+        />
       ) : null}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>

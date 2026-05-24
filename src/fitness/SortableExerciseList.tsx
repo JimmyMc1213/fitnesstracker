@@ -213,6 +213,7 @@ export function ExerciseDragHandle({
     <button
       type="button"
       className="tap"
+      data-no-swipe
       aria-label="Reorder exercise"
       disabled={disabled}
       style={{

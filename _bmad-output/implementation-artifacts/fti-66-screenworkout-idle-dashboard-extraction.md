@@ -1,6 +1,6 @@
 # Story 10.1: ScreenWorkout idle dashboard extraction (FTI-66)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -22,19 +22,19 @@ so further workout UX work does not grow the monolith.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Create `WorkoutIdleDashboard.tsx`** (AC: 1, 2)
-  - [ ] 1.1 Move idle-phase JSX from `ScreenWorkout.tsx` (~lines 582–749) into new module
-  - [ ] 1.2 Accept props: `state`, `preWorkoutCoach`, `previewRoutineId`, `setPreviewRoutineId`, `setEditingRoutineId`, `startEmptyWorkout`, `startTemplateWorkout`, `setState`
-  - [ ] 1.3 Keep `RoutinePreviewSheet` render inside dashboard or as sibling per cleanest split
+- [x] **Task 1: Create `WorkoutIdleDashboard.tsx`** (AC: 1, 2)
+  - [x] 1.1 Move idle-phase JSX from `ScreenWorkout.tsx` (~lines 582–749) into new module
+  - [x] 1.2 Accept props: `state`, `preWorkoutCoach`, `previewRoutineId`, `setPreviewRoutineId`, `setEditingRoutineId`, `startEmptyWorkout`, `startTemplateWorkout`, `setState`
+  - [x] 1.3 Keep `RoutinePreviewSheet` render inside dashboard or as sibling per cleanest split
 
-- [ ] **Task 2: Wire extraction in `ScreenWorkout.tsx`** (AC: 1, 5)
-  - [ ] 2.1 Replace idle branch body with `<WorkoutIdleDashboard ... />`
-  - [ ] 2.2 Preserve `phase === "idle"` guard and editor/preview early returns above idle render
+- [x] **Task 2: Wire extraction in `ScreenWorkout.tsx`** (AC: 1, 5)
+  - [x] 2.1 Replace idle branch body with `<WorkoutIdleDashboard ... />`
+  - [x] 2.2 Preserve `phase === "idle"` guard and editor/preview early returns above idle render
 
-- [ ] **Task 3: Verification** (AC: 3, 4)
-  - [ ] 3.1 `npm test`: 136+ passed
-  - [ ] 3.2 `npm run test:e2e`: workout-session-smoke still passes
-  - [ ] 3.3 Manual smoke: idle → preview routine → start → finish still works
+- [x] **Task 3: Verification** (AC: 3, 4)
+  - [x] 3.1 `npm test`: 136+ passed
+  - [x] 3.2 `npm run test:e2e`: workout-session-smoke still passes
+  - [x] 3.3 Manual smoke: idle → preview routine → start → finish still works
 
 ## Dev Notes
 
@@ -56,12 +56,16 @@ so further workout UX work does not grow the monolith.
 
 ### Agent Model Used
 
-(pending)
+Composer
 
 ### Completion Notes List
 
-(pending)
+- Extracted idle dashboard (~168 lines) into `WorkoutIdleDashboard.tsx` with callback props pattern matching FTI-53
+- `ScreenWorkout.tsx` reduced from ~1071 to 890 lines (−181)
+- 139 Vitest tests pass; build gate passes; workout-session-smoke passes in full e2e suite
 
 ### File List
 
-(pending)
+- `src/fitness/workout/WorkoutIdleDashboard.tsx` (new)
+- `src/fitness/screens/ScreenWorkout.tsx` (modified)
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` (modified)
