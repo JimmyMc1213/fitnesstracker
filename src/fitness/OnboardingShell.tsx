@@ -155,8 +155,6 @@ export function OnboardingShell({
         {children}
       </div>
 
-      {!compactFooter ? <div className="onboarding-shell__footer-spacer" aria-hidden /> : null}
-
       {!hideFooter ? (
         <div
           className={compactFooter ? "onboarding-shell__footer onboarding-shell__footer--compact" : "onboarding-shell__footer"}

@@ -462,10 +462,38 @@ body::before {
   width: 100%;
   max-width: 100%;
   min-height: 0;
+  height: 100%;
   margin: 0;
   background: transparent;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+/* Global screen shell: full viewport height, safe-area top, flex column for tab/onboarding frames. */
+.screen-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  position: relative;
+  background: transparent;
+  color: var(--text);
+}
+
+.screen-container__content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
 }
 
 button {
@@ -567,6 +595,9 @@ textarea {
 .screen {
   flex: 1;
   min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   padding: 0 20px 28px;
   -webkit-overflow-scrolling: touch;
@@ -788,7 +819,8 @@ select {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  min-height: 0;
+  height: 100%;
   background: #ffffff;
   color: #000000;
   overflow: hidden;
@@ -1012,7 +1044,9 @@ select {
 /* Onboarding paywall (CalAI-style light layout) */
 
 .onboarding-paywall {
-  min-height: 100%;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -1100,6 +1134,8 @@ select {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
+  margin-top: auto;
   padding-top: 8px;
 }
 
@@ -1309,11 +1345,12 @@ html.onboarding-viewport-lock {
 
 .onboarding-flow {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   z-index: 8000;
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1333,7 +1370,10 @@ html.onboarding-viewport-lock {
   background: transparent;
   color: var(--text);
   overflow: hidden;
-  padding: max(0.5rem, env(safe-area-inset-top)) 23px max(1.25rem, env(safe-area-inset-bottom));
+  padding:
+    max(48px, calc(env(safe-area-inset-top, 0px) + 48px))
+    24px
+    max(24px, env(safe-area-inset-bottom, 0px));
   touch-action: manipulation;
 }
 
@@ -1349,6 +1389,10 @@ html.onboarding-viewport-lock {
   flex: 1;
   min-height: 0;
   margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -1360,8 +1404,7 @@ html.onboarding-viewport-lock {
 }
 
 .onboarding-shell__footer-spacer {
-  flex-shrink: 0;
-  min-height: 16px;
+  display: none;
 }
 
 .onboarding-shell input:not([type="checkbox"]):not([type="radio"]),
@@ -1514,9 +1557,10 @@ html.onboarding-viewport-lock {
 }
 
 .onboarding-shell__content--plan-ready {
-  flex: 0 1 auto;
+  flex: 1;
+  justify-content: flex-start;
   margin-top: 22px !important;
-  overflow-y: hidden !important;
+  overflow-y: auto !important;
 }
 
 .onboarding-plan-ready {
@@ -1796,7 +1840,7 @@ html.onboarding-viewport-lock {
   }
 
   .onboarding-shell__footer--compact {
-    margin-top: 8px;
+    margin-top: auto;
   }
 }
 
@@ -1805,11 +1849,13 @@ html.onboarding-viewport-lock {
   flex-direction: column;
   gap: 10px;
   flex-shrink: 0;
+  margin-top: auto;
+  padding-bottom: 24px;
 }
 
 .onboarding-shell__footer--compact {
   gap: 8px;
-  margin-top: 12px;
+  margin-top: auto;
 }
 
 .onboarding-footer-ghost {
@@ -1829,8 +1875,9 @@ html.onboarding-viewport-lock {
 }
 
 .onboarding-shell__content--compact {
-  flex: 0 1 auto;
+  flex: 1;
   min-height: 0;
+  justify-content: flex-start;
 }
 
 .onboarding-shell__content--save-progress {
@@ -1847,7 +1894,7 @@ html.onboarding-viewport-lock {
   justify-content: center;
   flex: 1;
   width: 100%;
-  min-height: 100%;
+  min-height: 0;
   gap: 32px;
   padding: 0 0 24px;
   box-sizing: border-box;
@@ -1970,7 +2017,7 @@ html.onboarding-viewport-lock {
   justify-content: center;
   flex: 1;
   width: 100%;
-  min-height: 100%;
+  min-height: 0;
   padding: 0 4px 40px;
   box-sizing: border-box;
   text-align: center;
@@ -2677,7 +2724,8 @@ html.onboarding-viewport-lock {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  min-height: 0;
+  height: 100%;
   padding: max(2.25rem, env(safe-area-inset-top)) 36px max(1.75rem, env(safe-area-inset-bottom));
   box-sizing: border-box;
   background: transparent;
@@ -2870,9 +2918,8 @@ html.onboarding-viewport-lock {
   align-items: center;
   text-align: center;
   flex: 1;
+  min-height: 0;
   padding: 24px 8px;
-  min-height: min(420px, 55vh);
-  min-height: min(420px, 55dvh);
 }
 
 .onboarding-goal-weight-reinforcement__headline {
@@ -3003,8 +3050,7 @@ html.onboarding-viewport-lock {
   align-items: center;
   justify-content: center;
   flex: 1;
-  min-height: min(380px, 50vh);
-  min-height: min(380px, 50dvh);
+  min-height: 0;
   padding: 12px 0 8px;
   touch-action: none;
 }

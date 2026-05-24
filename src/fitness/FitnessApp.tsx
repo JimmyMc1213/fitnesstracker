@@ -509,31 +509,8 @@ function FitnessAppMain({
         onLeavePreview={() => setIntroWelcomeDone(true)}
       >
       <AuthGate initialAuthView={initialAuthView}>
-      <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          width: "100%",
-          maxWidth: "100%",
-          background: "transparent",
-          color: "var(--text)",
-          display: "flex",
-          flexDirection: "column",
-          position: "relative",
-          boxSizing: "border-box",
-          paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
-        }}
-      >
-        <div
-          style={{
-            flex: 1,
-            position: "relative",
-            overflow: "hidden",
-            minHeight: 0,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+      <div className="screen-container">
+        <div className="screen-container__content">
           <ScreenTransition activeKey={tab}>
             <Current
               state={state}
