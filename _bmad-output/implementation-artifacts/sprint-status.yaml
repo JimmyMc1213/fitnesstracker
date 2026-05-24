@@ -127,10 +127,10 @@
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next: FTI-66 (Sprint 10 planned 2026-05-23)
-# - Linear FTI-60, FTI-61, FTI-62 → Backlog (2026-05-23)
-# - bmad-swarm next retro: epic-fti-sprint-9-retrospective → done (2026-05-23)
-# - Sprint 10 planning complete (2026-05-23): epics.md Epic 10 + FTI-66 story file
+# - bmad-swarm next: (Sprint 10 complete — plan Sprint 11)
+# - Linear FTI-60, FTI-61, FTI-62 → done (2026-05-23)
+# - bmad-swarm next retro: epic-fti-sprint-10-retrospective → done (2026-05-23)
+# - Sprint 10 complete (2026-05-23): FTI-66 → 67 → 68 shipped on epic branch
 
 generated: 2026-05-20
 last_updated: 2026-05-23  # Sprint 10 planned
@@ -247,10 +247,10 @@ development_status:
   epic-fti-sprint-9-retrospective: done
 
   # --- Sprint 10 (planned): Workout architecture phase 2 & quality pipeline ---
-  epic-fti-sprint-10: in-progress
+  epic-fti-sprint-10: done
 
   fti-66-screenworkout-idle-dashboard-extraction: done
   fti-67-add-exercise-search-sheet-extraction: done
-  fti-68-ci-pipeline-e2e-depth-gate: in-progress
+  fti-68-ci-pipeline-e2e-depth-gate: done
 
-  epic-fti-sprint-10-retrospective: optional
+  epic-fti-sprint-10-retrospective: done
