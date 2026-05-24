@@ -13,6 +13,7 @@ import { buildHabitsForDateKey } from "./data";
 import { AuthScreen } from "./AuthScreen";
 import { FitnessSyncContext, useFitnessSync } from "./FitnessSyncContext";
 import { useFitnessCloudSync } from "./fitnessCloudSync";
+import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
 import {
   FITNESS_LOCAL_STORAGE_KEY,
   loadPersistedSlice,
@@ -33,12 +34,19 @@ import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
 import { ScreenTransition } from "./motion";
 import { SundayReviewSheet } from "./SundayReviewSheet";
+import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
+import {
+  clearDevPreviewOnboardingUrl,
+  isDevPreviewOnboardingEnabled,
+} from "./devPreviewOnboarding";
 import { OnboardingFlow } from "./OnboardingFlow";
+import { initialOnboardingWizardDraft } from "./onboardingDraft";
 import { shouldSkipOnboarding } from "./onboardingSkip";
 import { registerNotificationServiceWorker } from "./registerNotificationServiceWorker";
 import { checkAndFireDueNotifications } from "./notificationScheduler";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
 import { StreakLostSheet } from "./StreakLostSheet";
+import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
 import type { AppState, NavigateFn, ScreenProps, StreakLossNotice, TabId } from "./types";
 
 /** Dev only: `?previewSunday=1` treats "now" as noon on this week's Sunday so the review sheet is visible any day. */
@@ -54,7 +62,41 @@ function buildInitialState(): AppState {
   if (typeof localStorage !== "undefined" && !localStorage.getItem(FITNESS_LOCAL_STORAGE_KEY)) {
     seedDefaultData();
   }
-  return buildAppStateFromPersisted(loadPersistedSlice());
+  const raw = loadPersistedSlice() ?? {};
+  const { slice, dirty } = migratePersistedFitnessSlice(raw);
+  const merged = { ...raw, ...slice };
+  const gymmyDraft = initialOnboardingWizardDraft(null);
+  if (gymmyDraft && !merged.onboardingComplete) {
+    merged.onboardingDraft = gymmyDraft;
+    merged.onboardingComplete = false;
+  }
+  if (dirty) {
+    savePersistedSlice(sliceFromAppState(buildAppStateFromPersisted(merged)));
+  }
+  return buildAppStateFromPersisted(merged);
+}
+
+function HydrationSplash() {
+  return (
+    <div
+      style={{
+        minHeight: "100dvh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--bg)",
+        color: "rgba(255,255,255,0.55)",
+        fontSize: 15,
+        fontWeight: 500,
+      }}
+    >
+      Loading your plan…
+    </div>
+  );
+}
+
+function workoutDaysPerWeekFromState(s: AppState) {
+  return resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek);
 }
 
 function AuthGate({ children }: { children: ReactNode }) {
@@ -73,33 +115,59 @@ function OnboardingGate({
   children: ReactNode;
 }) {
   const sync = useFitnessSync();
-  const forcePreviewParam =
-    import.meta.env.DEV &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("previewOnboarding") === "1";
   const [previewOnboardingDismissed, setPreviewOnboardingDismissed] = useState(false);
-  const forcePreview = forcePreviewParam && !previewOnboardingDismissed;
+  const [previewOnboardingRequested, setPreviewOnboardingRequested] = useState(false);
+  const devPreviewEnabled = import.meta.env.DEV && isDevPreviewOnboardingEnabled();
+  const forcePreview =
+    import.meta.env.DEV &&
+    !previewOnboardingDismissed &&
+    (devPreviewEnabled || previewOnboardingRequested);
 
   function dismissPreviewOnboarding() {
-    if (!forcePreviewParam) return;
+    if (!import.meta.env.DEV) return;
     setPreviewOnboardingDismissed(true);
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("previewOnboarding");
-      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
-    }
+    setPreviewOnboardingRequested(false);
+    clearDevPreviewOnboardingUrl();
   }
 
-  if (state.onboardingComplete && !forcePreview) return <>{children}</>;
+  function openPreviewOnboarding() {
+    setPreviewOnboardingDismissed(false);
+    setPreviewOnboardingRequested(true);
+  }
 
-  const skip = shouldSkipOnboarding({
-    persisted: loadPersistedSlice(),
-    sessionEmail: sync.sessionEmail,
-    forcePreview,
-  });
-  if (skip && !forcePreview) return <>{children}</>;
+  const restorableDraft = initialOnboardingWizardDraft(state.onboardingDraft);
 
-  return <OnboardingFlow setState={setState} onComplete={dismissPreviewOnboarding} />;
+  const showOnboarding =
+    forcePreview ||
+    (!state.onboardingComplete &&
+      (!shouldSkipOnboarding({
+        persisted: loadPersistedSlice(),
+        sessionEmail: sync.sessionEmail,
+        forcePreview: false,
+      }) ||
+        restorableDraft != null));
+
+  return (
+    <>
+      {showOnboarding ? (
+        <OnboardingFlow
+          setState={setState}
+          initialDraft={restorableDraft}
+          previewMode={forcePreview}
+          onComplete={forcePreview ? dismissPreviewOnboarding : undefined}
+        />
+      ) : (
+        children
+      )}
+      {import.meta.env.DEV ? (
+        <DevOnboardingToolbar
+          onboardingOpen={showOnboarding}
+          onOpenOnboarding={openPreviewOnboarding}
+          onCloseOnboarding={dismissPreviewOnboarding}
+        />
+      ) : null}
+    </>
+  );
 }
 
 export function FitnessApp() {
@@ -115,6 +183,7 @@ export function FitnessApp() {
 
   const syncSig = JSON.stringify(sliceFromAppState(state));
   const fitnessSync = useFitnessCloudSync(syncSig, state, setState);
+  const daysPerWeek = workoutDaysPerWeekFromState(state);
 
   const activeDayKey = useRef(localDateKey(new Date()));
   const todayKey = localDateKey(new Date());
@@ -128,8 +197,9 @@ export function FitnessApp() {
       state.planStartIso,
       state.stepsTarget,
       state.workoutTemplates,
+      daysPerWeek,
     );
-  }, [state.dailyTasks, state.nutritionTargets, state.planStartIso, state.stepsTarget, state.workoutTemplates]);
+  }, [state.dailyTasks, state.nutritionTargets, state.planStartIso, state.stepsTarget, state.workoutTemplates, daysPerWeek]);
 
   useEffect(() => {
     savePersistedSlice(sliceFromAppState(state));
@@ -176,7 +246,13 @@ export function FitnessApp() {
       if (today === activeDayKey.current) return;
       activeDayKey.current = today;
       setState((s) => {
-        const tasks = loadTasksForToday(s.nutritionTargets, s.planStartIso, s.stepsTarget, s.workoutTemplates);
+        const tasks = loadTasksForToday(
+          s.nutritionTargets,
+          s.planStartIso,
+          s.stepsTarget,
+          s.workoutTemplates,
+          resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek),
+        );
         const habits = buildHabitsForDateKey(s.habitTemplates, s.habitsDoneByDay, today);
         return { ...s, dailyTasks: tasks, habits };
       });
@@ -243,6 +319,10 @@ export function FitnessApp() {
 
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
+      {!fitnessSync.fitnessHydrated ? (
+        <HydrationSplash />
+      ) : (
+      <>
       <AuthGate>
       <OnboardingGate state={state} setState={setState}>
       <div
@@ -342,6 +422,8 @@ export function FitnessApp() {
       </div>
       </OnboardingGate>
       </AuthGate>
+      </>
+      )}
     </FitnessSyncContext.Provider>
   );
 }

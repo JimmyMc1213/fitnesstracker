@@ -3,12 +3,27 @@ import type { Session } from "@supabase/supabase-js";
 
 import { buildAppStateFromPersisted } from "./buildAppState";
 import type { FitnessSyncContextValue } from "./FitnessSyncContext";
+import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
 import { mergePersistedFitnessSlices } from "./mergePersistedFitnessSlices";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { savePersistedSlice, sliceFromAppState } from "./persistFitnessSlice";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import { loadSyncMeta, saveSyncMeta } from "./syncMeta";
 import type { AppState } from "./types";
+
+const HYDRATION_PULL_TIMEOUT_MS = 5000;
+
+function persistSliceWithMigration(slice: PersistedFitnessSlice): PersistedFitnessSlice {
+  const { slice: migrated, dirty } = migratePersistedFitnessSlice(slice);
+  if (!dirty) return slice;
+  const next: PersistedFitnessSlice = {
+    ...slice,
+    onboardingProfile: migrated.onboardingProfile ?? slice.onboardingProfile ?? null,
+    workoutTemplates: migrated.workoutTemplates ?? slice.workoutTemplates,
+  };
+  savePersistedSlice(next);
+  return next;
+}
 
 function userFacingSyncError(e: unknown, fallback: string): string {
   if (e instanceof SyntaxError) return "Saved data could not be read. Using your local defaults.";
@@ -122,9 +137,13 @@ export function useFitnessCloudSync(
   syncSig: string,
   state: AppState,
   setState: Dispatch<SetStateAction<AppState>>,
+  opts?: { setFitnessHydrated?: (hydrated: boolean) => void },
 ): FitnessSyncContextValue {
+  const setFitnessHydrated = opts?.setFitnessHydrated;
   const configured = isSupabaseConfigured();
   const [session, setSession] = useState<Session | null>(null);
+  const [sessionResolved, setSessionResolved] = useState(!configured);
+  const [fitnessHydrated, setLocalFitnessHydrated] = useState(!configured);
   const [busy, setBusy] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
@@ -133,9 +152,13 @@ export function useFitnessCloudSync(
 
   const refreshSession = useCallback(async () => {
     const sb = getSupabase();
-    if (!sb) return;
+    if (!sb) {
+      setSessionResolved(true);
+      return;
+    }
     const { data } = await sb.auth.getSession();
     setSession(data.session ?? null);
+    setSessionResolved(true);
   }, []);
 
   useEffect(() => {
@@ -159,9 +182,10 @@ export function useFitnessCloudSync(
         const meta = loadSyncMeta();
         const pull = await pullRemoteIntoLocal(uid, localSlice, meta);
         if (pull.applied) {
-          savePersistedSlice(pull.mergedSlice);
+          const merged = persistSliceWithMigration(pull.mergedSlice);
           saveSyncMeta(pull.meta);
-          setState(buildAppStateFromPersisted(pull.mergedSlice));
+          savePersistedSlice(merged);
+          setState(buildAppStateFromPersisted(merged));
         }
       } catch (e) {
         setLastError(userFacingSyncError(e, "Sync pull failed"));
@@ -173,9 +197,40 @@ export function useFitnessCloudSync(
   );
 
   useEffect(() => {
-    if (!configured || !session?.user?.id) return;
-    void runPullForUser(session.user.id);
-  }, [configured, session?.user?.id, runPullForUser]);
+    if (!configured) {
+      setLocalFitnessHydrated(true);
+      setFitnessHydrated?.(true);
+      return;
+    }
+    if (!sessionResolved) return;
+
+    if (!session?.user?.id) {
+      setLocalFitnessHydrated(true);
+      setFitnessHydrated?.(true);
+      return;
+    }
+
+    let cancelled = false;
+    const timeoutId = window.setTimeout(() => {
+      if (!cancelled) {
+        setLocalFitnessHydrated(true);
+        setFitnessHydrated?.(true);
+      }
+    }, HYDRATION_PULL_TIMEOUT_MS);
+
+    void runPullForUser(session.user.id).finally(() => {
+      if (!cancelled) {
+        window.clearTimeout(timeoutId);
+        setLocalFitnessHydrated(true);
+        setFitnessHydrated?.(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [configured, sessionResolved, session?.user?.id, runPullForUser, setFitnessHydrated]);
 
   useEffect(() => {
     if (!configured || !session?.user?.id) return;
@@ -191,10 +246,11 @@ export function useFitnessCloudSync(
         while ("conflict" in result && result.conflict && retries < 5) {
           const merged = await pullRemoteMergeAlways(uid, sliceFromAppState(stateRef.current));
           if (merged) {
-            savePersistedSlice(merged.mergedSlice);
+            const migrated = persistSliceWithMigration(merged.mergedSlice);
             saveSyncMeta(merged.meta);
-            setState(buildAppStateFromPersisted(merged.mergedSlice));
-            slice = merged.mergedSlice;
+            savePersistedSlice(migrated);
+            setState(buildAppStateFromPersisted(migrated));
+            slice = migrated;
             meta = merged.meta;
           } else {
             meta = loadSyncMeta();
@@ -275,10 +331,11 @@ export function useFitnessCloudSync(
       while ("conflict" in result && result.conflict && retries < 5) {
         const merged = await pullRemoteMergeAlways(uid, sliceFromAppState(stateRef.current));
         if (merged) {
-          savePersistedSlice(merged.mergedSlice);
+          const migrated = persistSliceWithMigration(merged.mergedSlice);
           saveSyncMeta(merged.meta);
-          setState(buildAppStateFromPersisted(merged.mergedSlice));
-          slice = merged.mergedSlice;
+          savePersistedSlice(migrated);
+          setState(buildAppStateFromPersisted(migrated));
+          slice = migrated;
           meta = merged.meta;
         } else {
           meta = loadSyncMeta();
@@ -305,6 +362,7 @@ export function useFitnessCloudSync(
     busy,
     lastError,
     lastSyncedLabel: formatSyncedLabel(lastSyncedAt),
+    fitnessHydrated,
     signInWithPassword,
     signUpWithEmail,
     signOut,

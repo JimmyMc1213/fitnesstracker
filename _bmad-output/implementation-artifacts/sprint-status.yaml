@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (Sprint 10 planned)
+# last_updated: 2026-05-23 (Sprint 11 planned — Gymmy onboarding v2)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -13,6 +13,24 @@
 # Sprint 10 order (execute in this sequence):
 #   BMad: FTI-66 → 67 → 68
 #   Linear: FTI-60 → 61 → 62
+#
+# Sprint 11 order (execute in this sequence):
+#   BMad: FTI-73 → FTI-72 (3 PR chunks) → FTI-74 → FTI-75
+#   Prerequisites done: FTI-69, FTI-70, FTI-71
+#
+# SPRINT 11 SCOPE LOCKS (2026-05-23 sprint planning):
+#   - Gymmy onboarding v2 final flow (23 screens + paywall stub)
+#   - FTI-73 split builder weekday mapping: IN SCOPE (before FTI-72 training section)
+#   - FTI-72 flow rewrite: IN SCOPE (Shell, 23 screens, Gymmy branding in onboarding only)
+#   - FTI-74 paywall UI stub ($9.99/mo, $79.99/yr): IN SCOPE; both CTAs → Home
+#   - FTI-75 Playwright happy path + resume: IN SCOPE
+#   - Real IAP / StoreKit / Stripe: OUT OF SCOPE
+#   - Pro feature gating (My Meals, etc.): OUT OF SCOPE (store tier only)
+#   - Global Fitcoach → Gymmy rename: OUT OF SCOPE (onboarding + paywall copy only)
+#   - AI transformation onboarding screens: OUT OF SCOPE (cut from v2 spec)
+#   - Resume-on-refresh bug: fix in FTI-75 if still broken
+#   - One story per PR target (FTI-72 may ship as 3 PRs)
+#   - Plan doc: sprint-11-gymmy-onboarding-v2-plan.md
 #
 # SPRINT 10 SCOPE LOCKS (2026-05-23 sprint planning):
 #   - ScreenWorkout phase 2 only (FTI-66 → 67 → 68); one story per PR (target)
@@ -127,13 +145,14 @@
 #
 # BMAD SWARM ALIGNMENT:
 # =====================
-# - bmad-swarm next: (Sprint 10 complete — plan Sprint 11)
+# - bmad-swarm next: (Sprint 10 complete — Sprint 11 Gymmy onboarding v2)
 # - Linear FTI-60, FTI-61, FTI-62 → done (2026-05-23)
 # - bmad-swarm next retro: epic-fti-sprint-10-retrospective → done (2026-05-23)
 # - Sprint 10 complete (2026-05-23): FTI-66 → 67 → 68 shipped on epic branch
+# - Sprint 11 planned (2026-05-23): FTI-73 → 72 → 74 → 75 (FTI-69/70/71 prerequisite done)
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # Sprint 10 planned
+last_updated: 2026-05-23  # Sprint 11 planned (Gymmy onboarding v2)
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear
@@ -254,3 +273,16 @@ development_status:
   fti-68-ci-pipeline-e2e-depth-gate: done
 
   epic-fti-sprint-10-retrospective: done
+
+  # --- Sprint 11 (planned): Gymmy onboarding v2 final flow ---
+  epic-fti-sprint-11: done
+
+  fti-69-dailyplan-hydration-hotfix: done
+  fti-70-onboarding-draft-data-model: done
+  fti-71-workout-week-calendar-picker: done
+  fti-73-template-weekday-mapping-split-builder: done
+  fti-72-onboarding-flow-v2-23-screens: done
+  fti-74-onboarding-paywall-ui-stub: done
+  fti-75-onboarding-v2-e2e-resume-gate: done
+
+  epic-fti-sprint-11-retrospective: optional

@@ -1,6 +1,19 @@
 import type { Page } from "@playwright/test";
 
 export const FITNESS_LOCAL_STORAGE_KEY = "fitcoach:persist:v1";
+export const GYMMY_ONBOARDING_DRAFT_KEY = "gymmy_onboarding_draft";
+
+export async function clearFitnessStorage(page: Page): Promise<void> {
+  await page.addInitScript(
+    ([fitnessKey, draftKey, flagKey]) => {
+      if (sessionStorage.getItem(flagKey)) return;
+      localStorage.removeItem(fitnessKey);
+      localStorage.removeItem(draftKey);
+      sessionStorage.setItem(flagKey, "1");
+    },
+    [FITNESS_LOCAL_STORAGE_KEY, GYMMY_ONBOARDING_DRAFT_KEY, "__e2e_fitness_cleared__"] as const,
+  );
+}
 
 export function localDateKey(d = new Date()): string {
   const y = d.getFullYear();

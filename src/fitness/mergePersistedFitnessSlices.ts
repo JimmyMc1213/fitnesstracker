@@ -8,6 +8,7 @@ import {
   normalizeRestTimerDefaultSeconds,
 } from "./restTimerPreferences";
 import { mergeNotificationPreferences, normalizeNotificationPreferences } from "./notificationPreferences";
+import { mergeOnboardingDrafts, normalizeOnboardingDraft } from "./onboardingDraft";
 import { normalizeUnitPreferences } from "./unitPreferences";
 import { mergeWaterLogByDay, normalizeWaterDailyTargetOz, normalizeWaterLogByDay } from "./waterIntake";
 import { normalizeExperienceLevel } from "./experienceLevel";
@@ -22,6 +23,7 @@ import type {
   NutritionPreset,
   NutritionUserFood,
   ProgressGoalConfig,
+  SubscriptionTier,
   UnitPreferences,
   WeightEntry,
   WorkoutState,
@@ -249,6 +251,37 @@ function mergeEquipmentSetup(local: EquipmentSetup, remote: EquipmentSetup): Equ
   return normalizeEquipmentSetup(remote ?? local);
 }
 
+function mergeSubscriptionTier(
+  local: SubscriptionTier | null | undefined,
+  remote: SubscriptionTier | null | undefined,
+): SubscriptionTier | null {
+  if (local === "pro" || remote === "pro") return "pro";
+  return local ?? remote ?? null;
+}
+
+function mergeOnboardingFields(
+  local: PersistedFitnessSlice,
+  remote: PersistedFitnessSlice,
+): Pick<PersistedFitnessSlice, "onboardingComplete" | "onboardingDraft"> {
+  const localDraft = normalizeOnboardingDraft(local.onboardingDraft);
+  const remoteDraft = normalizeOnboardingDraft(remote.onboardingDraft);
+  const localInProgress = localDraft != null && !local.onboardingComplete;
+
+  if (localInProgress) {
+    return { onboardingComplete: false, onboardingDraft: localDraft };
+  }
+
+  const onboardingComplete = Boolean(local.onboardingComplete || remote.onboardingComplete);
+  if (onboardingComplete) {
+    return { onboardingComplete: true, onboardingDraft: null };
+  }
+
+  return {
+    onboardingComplete: false,
+    onboardingDraft: mergeOnboardingDrafts(localDraft, remoteDraft),
+  };
+}
+
 /**
  * Union-merge two device snapshots so simultaneous edits on phone + desktop lose as little as possible.
  * When both sides edited the same habit day or workout-completion flag, done=true wins.
@@ -343,7 +376,8 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
       remote.restTimerSecondsByExerciseKey,
     ),
     onboardingProfile: remote.onboardingProfile ?? local.onboardingProfile ?? null,
-    onboardingComplete: Boolean(local.onboardingComplete || remote.onboardingComplete),
+    ...mergeOnboardingFields(local, remote),
+    subscriptionTier: mergeSubscriptionTier(local.subscriptionTier, remote.subscriptionTier),
     notificationPreferences: mergeNotificationPreferences(
       normalizeNotificationPreferences(local.notificationPreferences),
       normalizeNotificationPreferences(remote.notificationPreferences),

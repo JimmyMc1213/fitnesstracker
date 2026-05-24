@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type Dispatch, type SetStateAction } from "react";
 
 import { generateDailyTasksForDate, localDateKey } from "./dailyPlan";
+import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
 import { buildHabitsForDateKey } from "./data";
 import { useFitnessSync } from "./FitnessSyncContext";
 import { IconBolt, IconDroplet, IconMoon, IconRun, IconX } from "./icons";
@@ -120,6 +121,7 @@ export function SettingsSheet({
           s.planStartIso,
           s.stepsTarget,
           s.workoutTemplates,
+          resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek),
         ),
       };
     });
@@ -659,7 +661,14 @@ export function SettingsSheet({
                 setState((s) => ({
                   ...s,
                   planStartIso: v,
-                  dailyTasks: generateDailyTasksForDate(new Date(), s.nutritionTargets, v, s.stepsTarget, s.workoutTemplates),
+                  dailyTasks: generateDailyTasksForDate(
+                    new Date(),
+                    s.nutritionTargets,
+                    v,
+                    s.stepsTarget,
+                    s.workoutTemplates,
+                    resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek),
+                  ),
                 }));
               }}
               aria-label="Program start date"
@@ -689,6 +698,7 @@ export function SettingsSheet({
                     s.planStartIso,
                     stepsTarget,
                     s.workoutTemplates,
+                    resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek),
                   ),
                 }));
               }}
