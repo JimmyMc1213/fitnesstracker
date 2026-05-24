@@ -1,6 +1,6 @@
 import { useCallback, useRef, type FocusEvent, type ReactNode } from "react";
 
-import { isOnboardingTextField, scrollOnboardingFieldIntoView } from "./onboardingKeyboardScroll";
+import { isOnboardingTextField, scheduleOnboardingFieldScroll } from "./onboardingKeyboardScroll";
 
 export const ONBOARDING_TOTAL_STEPS = 30;
 
@@ -85,9 +85,7 @@ export function OnboardingShell({
     if (!isOnboardingTextField(event.target)) return;
     const body = bodyRef.current;
     if (!body) return;
-    window.requestAnimationFrame(() => {
-      scrollOnboardingFieldIntoView(body, event.target);
-    });
+    scheduleOnboardingFieldScroll(body, event.target);
   }, []);
 
   const bodyClassName = [

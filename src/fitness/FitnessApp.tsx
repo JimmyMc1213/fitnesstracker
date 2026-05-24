@@ -39,6 +39,7 @@ import {
   isOnboardingPreviewToolsActive,
 } from "./devPreviewOnboarding";
 import { OnboardingFlow } from "./OnboardingFlow";
+import { OnboardingViewportFrame } from "./OnboardingViewportFrame";
 import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
 import { clearOnboardingDraftStorage, initialOnboardingWizardDraft } from "./onboardingDraft";
 import { captureOAuthReturnForSaveProgress } from "./oauthReturnCapture";
@@ -168,7 +169,7 @@ function OnboardingGate({
   return (
     <>
       {showOnboarding ? (
-        <div className="onboarding-flow">
+        <OnboardingViewportFrame active>
           <OnboardingFlow
             setState={setState}
             initialDraft={restorableDraft}
@@ -178,7 +179,7 @@ function OnboardingGate({
             onSignIn={onSignIn}
             introWelcomeDone={introWelcomeDone}
           />
-        </div>
+        </OnboardingViewportFrame>
       ) : (
         children
       )}

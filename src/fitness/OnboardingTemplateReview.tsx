@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { EXERCISE_DB, newTemplateExerciseLine, resizeWorkoutSets } from "./data";
 import { estimatedSessionLabel } from "./estimateSessionDuration";
+import { OnboardingIntegerInput } from "./OnboardingIntegerInput";
 import { ExerciseDragHandle, SortableExerciseList } from "./SortableExerciseList";
 import type { WorkoutExercise, WorkoutRoutineTemplate } from "./types";
 
@@ -96,15 +97,12 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                         />
                         <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
                           <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>Sets</span>
-                          <input
-                            type="number"
-                            min={1}
-                            max={6}
-                            aria-label={`Set count for ${row.name}`}
+                          <OnboardingIntegerInput
+                            ariaLabel={`Set count for ${row.name}`}
+                            className=""
                             value={row.sets.length}
-                            onChange={(e) => {
-                              const n = parseInt(e.target.value, 10);
-                              if (Number.isFinite(n)) patchExercise(routine.id, row.id, { setCount: n });
+                            onChange={(n) => {
+                              if (n != null) patchExercise(routine.id, row.id, { setCount: n });
                             }}
                             style={{
                               width: 56,

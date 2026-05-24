@@ -83,6 +83,7 @@ export function SettingsSheet({
   const [fIn, setFIn] = useState(String(T.f));
 
   const [waterTargetIn, setWaterTargetIn] = useState(String(state.waterDailyTargetOz));
+  const [stepsTargetIn, setStepsTargetIn] = useState(String(state.stepsTarget));
 
   const sync = useFitnessSync();
   const { theme, setTheme } = useTheme();
@@ -102,6 +103,10 @@ export function SettingsSheet({
     setWaterTargetIn(String(state.waterDailyTargetOz));
   }, [state.waterDailyTargetOz]);
 
+  useEffect(() => {
+    setStepsTargetIn(String(state.stepsTarget));
+  }, [state.stepsTarget]);
+
   function commitWaterTarget(raw: string) {
     const n = parseInt(raw, 10);
     const val = normalizeWaterDailyTargetOz(Number.isFinite(n) ? n : undefined);
@@ -109,6 +114,24 @@ export function SettingsSheet({
     setState((s) => ({
       ...s,
       waterDailyTargetOz: val,
+    }));
+  }
+
+  function commitStepsTarget(raw: string) {
+    const n = parseInt(raw, 10);
+    const stepsTarget = Math.min(100_000, Math.max(1000, Number.isFinite(n) ? n : state.stepsTarget));
+    setStepsTargetIn(String(stepsTarget));
+    setState((s) => ({
+      ...s,
+      stepsTarget,
+      dailyTasks: generateDailyTasksForDate(
+        new Date(),
+        s.nutritionTargets,
+        s.planStartIso,
+        stepsTarget,
+        s.workoutTemplates,
+        resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek),
+      ),
     }));
   }
 
@@ -711,16 +734,17 @@ export function SettingsSheet({
           <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Steps goal
             <input
-              type="number"
+              type="text"
               inputMode="numeric"
               className="input"
               style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
-              value={state.stepsTarget}
-              min={1000}
-              max={100000}
-              step={500}
+              value={stepsTargetIn}
               onChange={(e) => {
-                const n = parseInt(e.target.value, 10);
+                const v = e.target.value;
+                if (v !== "" && !/^\d+$/.test(v)) return;
+                setStepsTargetIn(v);
+                if (v === "") return;
+                const n = parseInt(v, 10);
                 if (!Number.isFinite(n)) return;
                 const stepsTarget = Math.min(100_000, Math.max(1000, n));
                 setState((s) => ({
@@ -736,6 +760,7 @@ export function SettingsSheet({
                   ),
                 }));
               }}
+              onBlur={() => commitStepsTarget(stepsTargetIn)}
               aria-label="Daily steps goal"
             />
           </label>

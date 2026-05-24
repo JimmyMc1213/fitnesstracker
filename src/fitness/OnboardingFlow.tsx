@@ -74,6 +74,7 @@ import { DateOfBirthWheelPicker, defaultOnboardingDateOfBirth } from "./DateOfBi
 import { defaultGoalWeightLbs, goalWeightRangeLbs, WeightRulerPicker } from "./WeightRulerPicker";
 import { ReferralSourcePicker } from "./ReferralSourcePicker";
 import { OnboardingDecimalInput } from "./OnboardingDecimalInput";
+import { OnboardingIntegerInput } from "./OnboardingIntegerInput";
 import { buildWorkoutTemplatesForDays, sessionDurationFromSessionLength, sessionLengthFromDuration } from "./workoutSplitByDays";
 import type {
   ActivityLevel,
@@ -665,13 +666,16 @@ export function OnboardingFlow({
           {hUnit === "cm" ? (
             <label className="onboarding-field-group">
               <span className="onboarding-field-label">Height (cm)</span>
-              <input
-                type="number"
-                aria-label="Height in centimeters"
-                className="onboarding-input-pill"
+              <OnboardingIntegerInput
+                resetKey={hUnit}
+                ariaLabel="Height in centimeters"
                 value={heightCm}
-                onChange={(e) => {
-                  const inches = inchesFromCm(parseFloat(e.target.value));
+                onChange={(n) => {
+                  if (n == null) {
+                    setProfile((p) => ({ ...p, heightIn: 0 }));
+                    return;
+                  }
+                  const inches = inchesFromCm(n);
                   if (inches != null) setProfile((p) => ({ ...p, heightIn: inches }));
                 }}
               />
@@ -680,29 +684,29 @@ export function OnboardingFlow({
             <div className="onboarding-pill-row">
               <label className="onboarding-field-group">
                 <span className="onboarding-field-label">Ft</span>
-                <input
-                  type="number"
-                  aria-label="Height feet"
-                  className="onboarding-input-pill"
+                <OnboardingIntegerInput
+                  resetKey={hUnit}
+                  ariaLabel="Height feet"
                   value={heightFt}
-                  onChange={(e) => {
-                    const ft = parseInt(e.target.value, 10);
-                    if (!Number.isFinite(ft)) return;
-                    setProfile((p) => ({ ...p, heightIn: ft * 12 + (p.heightIn % 12) }));
+                  onChange={(ft) => {
+                    setProfile((p) => ({
+                      ...p,
+                      heightIn: (ft ?? 0) * 12 + (p.heightIn % 12),
+                    }));
                   }}
                 />
               </label>
               <label className="onboarding-field-group">
                 <span className="onboarding-field-label">In</span>
-                <input
-                  type="number"
-                  aria-label="Height inches"
-                  className="onboarding-input-pill"
+                <OnboardingIntegerInput
+                  resetKey={hUnit}
+                  ariaLabel="Height inches"
                   value={heightInRem}
-                  onChange={(e) => {
-                    const inch = parseInt(e.target.value, 10);
-                    if (!Number.isFinite(inch)) return;
-                    setProfile((p) => ({ ...p, heightIn: Math.floor(p.heightIn / 12) * 12 + inch }));
+                  onChange={(inch) => {
+                    setProfile((p) => ({
+                      ...p,
+                      heightIn: Math.floor(p.heightIn / 12) * 12 + (inch ?? 0),
+                    }));
                   }}
                 />
               </label>

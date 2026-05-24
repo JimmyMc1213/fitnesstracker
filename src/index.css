@@ -1295,17 +1295,25 @@ input[type="number"] {
 
 /* Onboarding reskin (golf-style rhythm, Gymmy dark theme) */
 
-/* Full-viewport onboarding frame: fixed height so iOS keyboard does not shrink/reflow the shell. */
+/* Full-viewport onboarding frame: fixed to visual viewport so iOS keyboard does not push the page. */
+html.onboarding-viewport-lock {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 .onboarding-flow {
-  flex: 1;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 8000;
   width: 100%;
-  min-height: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   touch-action: manipulation;
   box-sizing: border-box;
+  will-change: transform, height;
 }
 
 .onboarding-shell {
@@ -3475,11 +3483,12 @@ input[type="number"] {
   border-radius: 8px;
   border: 0.5px solid var(--ob-input-border);
   background: var(--ob-input-bg);
-  font-size: 16px;
+  font-size: max(16px, 1rem);
   font-weight: 700;
   color: var(--ob-body-fg);
   text-align: right;
   font-variant-numeric: tabular-nums;
+  -webkit-text-size-adjust: 100%;
 }
 
 .onboarding-fuel__reset {
