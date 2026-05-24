@@ -247,10 +247,10 @@ development_status:
   epic-fti-sprint-9-retrospective: done
 
   # --- Sprint 10 (planned): Workout architecture phase 2 & quality pipeline ---
-  epic-fti-sprint-10: backlog
+  epic-fti-sprint-10: in-progress
 
-  fti-66-screenworkout-idle-dashboard-extraction: ready-for-dev
-  fti-67-add-exercise-search-sheet-extraction: backlog
+  fti-66-screenworkout-idle-dashboard-extraction: done
+  fti-67-add-exercise-search-sheet-extraction: in-progress
   fti-68-ci-pipeline-e2e-depth-gate: backlog
 
   epic-fti-sprint-10-retrospective: optional
