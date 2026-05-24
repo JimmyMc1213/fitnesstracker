@@ -22,7 +22,13 @@ import {
 import { ScreenHeader, PrimaryButton } from "../shared";
 import type { ScreenProps } from "../types";
 
-export function ScreenHome({ state, setState, navigate }: ScreenProps) {
+export function ScreenHome({
+  state,
+  setState,
+  navigate,
+  homeReselectRequest,
+  onHomeReselectHandled,
+}: ScreenProps) {
   const T = state.nutritionTargets;
   const [clock, setClock] = useState(() => new Date());
   const dateKeyToday = localDateKey(clock);
@@ -36,6 +42,13 @@ export function ScreenHome({ state, setState, navigate }: ScreenProps) {
   const wUnit = state.unitPreferences.weightUnit;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [weighInOpen, setWeighInOpen] = useState(false);
+
+  useEffect(() => {
+    if (!homeReselectRequest) return;
+    setSettingsOpen(false);
+    setWeighInOpen(false);
+    onHomeReselectHandled?.();
+  }, [homeReselectRequest, onHomeReselectHandled]);
 
   const greetingName = state.displayName.trim();
   const todayForGreeting = isViewingToday ? clock : new Date(activeDateKey.replace(/-/g, "/"));

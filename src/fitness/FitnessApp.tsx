@@ -217,6 +217,7 @@ function FitnessAppMain({
 }) {
   const [tab, setTab] = useState<TabId>("home");
   const [logFoodOpenRequest, setLogFoodOpenRequest] = useState(0);
+  const [homeReselectRequest, setHomeReselectRequest] = useState(0);
   const [logFoodOverlayOpen, setLogFoodOverlayOpen] = useState(false);
   const [previewStreakLostDismissed, setPreviewStreakLostDismissed] = useState(false);
   const [authViewOverride, setAuthViewOverride] = useState<"landing" | "signin" | "signup" | null>(null);
@@ -345,6 +346,10 @@ function FitnessAppMain({
   };
 
   const navigate: NavigateFn = (nextTab, options) => {
+    if (nextTab === "home" && tab === "home") {
+      setHomeReselectRequest((n) => n + 1);
+      return;
+    }
     setTab(nextTab);
     if (options?.openLogFood) setLogFoodOpenRequest((n) => n + 1);
   };
@@ -534,6 +539,8 @@ function FitnessAppMain({
                 tab === "nutrition" ? () => setLogFoodOpenRequest(0) : undefined
               }
               onLogFoodOpenChange={tab === "nutrition" ? setLogFoodOverlayOpen : undefined}
+              homeReselectRequest={homeReselectRequest}
+              onHomeReselectHandled={() => setHomeReselectRequest(0)}
             />
           </ScreenTransition>
         </div>
