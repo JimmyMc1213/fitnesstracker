@@ -4,20 +4,16 @@ export function DeleteExerciseConfirmSheet({
   open = true,
   exerciseName,
   exerciseLabel,
-  context = "workout",
   onCancel,
   onConfirm,
 }: {
   open?: boolean;
   exerciseName: string;
   exerciseLabel?: string;
-  /** Where the exercise is being removed from — affects copy only. */
-  context?: "workout" | "routine";
   onCancel: () => void;
   onConfirm: () => void;
 }) {
   const displayName = exerciseName.trim() || "this exercise";
-  const fromPhrase = context === "routine" ? "from this routine" : "from this workout";
 
   return (
     <DeleteConfirmSheet
@@ -34,7 +30,7 @@ export function DeleteExerciseConfirmSheet({
               <span style={{ color: "var(--text-ghost)" }}>({exerciseLabel.trim()})</span>
             </>
           ) : null}{" "}
-          {fromPhrase}? This can&apos;t be undone.
+          from this workout? This can&apos;t be undone.
         </>
       }
       onCancel={onCancel}

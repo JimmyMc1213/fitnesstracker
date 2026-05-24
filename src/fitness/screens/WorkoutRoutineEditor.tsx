@@ -5,8 +5,8 @@ import { IconMinus, IconPencil, IconPlus, IconSearch, IconTrash } from "../icons
 import { FullScreenOverlay } from "../motion";
 import { RoutineExerciseSearchSheet } from "../RoutineExerciseSearchSheet";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
-import { ScreenHeader } from "../shared";
 import type { CustomExerciseTemplate, EquipmentSetup, WorkoutExercise, WorkoutRoutineTemplate } from "../types";
+import { weekdayFullName } from "../trainingCalendar";
 import {
   formatRepRangeBounds,
   formatWorkoutTarget,
@@ -25,6 +25,34 @@ const ACCENT_BLUE = "#3B82F6";
 const BUTTON_RADIUS = 14;
 const DAY_PRESETS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
+const workoutNameInputStyle: CSSProperties = {
+  display: "block",
+  minWidth: 0,
+  padding: "8px 10px",
+  border: "none",
+  background: "transparent",
+  color: "var(--text-primary)",
+  fontFamily: "var(--ui)",
+  fontSize: 26,
+  fontWeight: 700,
+  lineHeight: 1.15,
+  letterSpacing: "-0.03em",
+  outline: "none",
+  boxSizing: "border-box",
+};
+
+function defaultWorkoutName(day: string): string {
+  const tagged = day.trim();
+  if (!tagged) return "Workout";
+  return `${weekdayFullName(tagged)} Workout`;
+}
+
+function resolvedWorkoutName(rawName: string, day: string): string {
+  const trimmed = rawName.trim();
+  if (trimmed) return trimmed;
+  return defaultWorkoutName(day);
+}
+
 const fieldLabelStyle: CSSProperties = {
   ...labelStyle,
   display: "block",
@@ -42,6 +70,10 @@ type WorkoutRoutineEditorProps = {
   onSaveCustomExercise: (name: string, label: string) => void;
   onDelete: ((id: string) => void) | null;
   onClose: () => void;
+  embedded?: boolean;
+  saveLabel?: string;
+  title?: string;
+  progressLabel?: string;
 };
 
 function CollapsibleNoteRow({
@@ -320,6 +352,10 @@ export function WorkoutRoutineEditor({
   onSaveCustomExercise,
   onDelete,
   onClose,
+  embedded = false,
+  saveLabel = "Save workout",
+  title,
+  progressLabel,
 }: WorkoutRoutineEditorProps) {
   const [name, setName] = useState("");
   const [dayLabel, setDayLabel] = useState("");
@@ -333,6 +369,7 @@ export function WorkoutRoutineEditor({
   } | null>(null);
   const [pendingRoutineDelete, setPendingRoutineDelete] = useState(false);
   const exerciseListEndRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
   const pendingScrollToNewExerciseRef = useRef(false);
 
   useEffect(() => {
@@ -427,10 +464,11 @@ export function WorkoutRoutineEditor({
 
   function handleSave() {
     const id = template?.id ?? `tpl_${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const trimmedDay = dayLabel.trim();
     onSave({
       id,
-      name: name.trim() || "Untitled",
-      dayLabel: dayLabel.trim(),
+      name: resolvedWorkoutName(name, trimmedDay),
+      dayLabel: trimmedDay,
       focus: focus.trim(),
       exercises: exercises.map((e) => ({
         ...e,
@@ -454,30 +492,71 @@ export function WorkoutRoutineEditor({
     onClose();
   }
 
-  return (
-    <FullScreenOverlay open zIndex={120}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        <div className="screen" style={{ flex: 1, overflowY: "auto", paddingBottom: 12 }}>
-          <div className="between" style={{ alignItems: "center", marginBottom: 8, marginTop: 4 }}>
+  const headerTitle = title ?? (template ? "Edit workout" : "New workout");
+  const namePlaceholder = dayLabel.trim() ? defaultWorkoutName(dayLabel) : headerTitle;
+  const nameFieldChars = Math.max((name || namePlaceholder).length, 6);
+
+  const body = (
+    <>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+      <div className="screen" style={{ flex: 1, overflowY: "auto", paddingBottom: 12 }}>
+        <div className="between" style={{ alignItems: "center", marginBottom: 8, marginTop: 4 }}>
+          <button
+            type="button"
+            className="tap"
+            onClick={onClose}
+            style={{ color: SECONDARY_ACTION_COLOR, fontSize: 15, fontWeight: 600, padding: 8, marginLeft: -8 }}
+          >
+            ← Back
+          </button>
+        </div>
+
+        <div style={{ paddingTop: 4, paddingBottom: 8 }}>
+          <div className="h-greeting">{progressLabel ? `WORKOUT ${progressLabel}` : "WORKOUTS"}</div>
+          <div className="workout-name-field">
+            <div className="workout-name-input-wrap">
+              <input
+                ref={nameInputRef}
+                className="workout-name-input"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={namePlaceholder}
+                style={{
+                  ...workoutNameInputStyle,
+                  width: `${nameFieldChars}ch`,
+                  maxWidth: "100%",
+                }}
+                aria-label="Workout name"
+              />
+            </div>
             <button
               type="button"
               className="tap"
-              onClick={onClose}
-              style={{ color: SECONDARY_ACTION_COLOR, fontSize: 15, fontWeight: 600, padding: 8, marginLeft: -8 }}
+              aria-label="Edit workout name"
+              onClick={() => {
+                const input = nameInputRef.current;
+                if (!input) return;
+                input.focus();
+                input.select();
+              }}
+              style={{
+                flexShrink: 0,
+                display: "grid",
+                placeItems: "center",
+                width: 28,
+                height: 28,
+                padding: 0,
+                border: "none",
+                background: "transparent",
+                color: "var(--text-ghost)",
+              }}
             >
-              ← Back
+              <IconPencil size={16} stroke={1.75} />
             </button>
           </div>
-          <ScreenHeader eyebrow="ROUTINES" title={template ? "Edit routine" : "New routine"} />
+        </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Routine name"
-              style={inputStyle}
-              aria-label="Routine name"
-            />
             <div>
               <div style={fieldLabelStyle}>DAY TAG</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -654,7 +733,7 @@ export function WorkoutRoutineEditor({
               gap: 8,
             }}
           >
-            <IconPlus size={16} stroke={2} /> Add exercise to routine
+            <IconPlus size={16} stroke={2} /> Add exercise to workout
           </button>
 
           <button
@@ -672,7 +751,7 @@ export function WorkoutRoutineEditor({
               fontWeight: 700,
             }}
           >
-            Save routine
+            {saveLabel}
           </button>
 
           {onDelete && template?.id ? (
@@ -691,7 +770,7 @@ export function WorkoutRoutineEditor({
                 textDecoration: "underline",
               }}
             >
-              Delete routine
+              Delete workout
             </button>
           ) : null}
         </div>
@@ -711,7 +790,6 @@ export function WorkoutRoutineEditor({
 
       {pendingExerciseDelete ? (
         <DeleteExerciseConfirmSheet
-          context="routine"
           exerciseName={pendingExerciseDelete.name}
           exerciseLabel={pendingExerciseDelete.label}
           onCancel={() => setPendingExerciseDelete(null)}
@@ -721,13 +799,13 @@ export function WorkoutRoutineEditor({
 
       {pendingRoutineDelete ? (
         <DeleteConfirmSheet
-          title="Delete routine?"
-          cancelLabel="Keep routine"
-          confirmLabel="Delete routine"
+          title="Delete workout?"
+          cancelLabel="Keep workout"
+          confirmLabel="Delete workout"
           zIndex={1300}
           message={
             <>
-              Delete <strong style={{ color: "var(--text-primary)" }}>{name.trim() || template?.name.trim() || "this routine"}</strong>?
+              Delete <strong style={{ color: "var(--text-primary)" }}>{name.trim() || template?.name.trim() || "this workout"}</strong>?
               This can&apos;t be undone.
             </>
           }
@@ -735,6 +813,16 @@ export function WorkoutRoutineEditor({
           onConfirm={confirmDeleteRoutine}
         />
       ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return body;
+  }
+
+  return (
+    <FullScreenOverlay open zIndex={120}>
+      {body}
     </FullScreenOverlay>
   );
 }

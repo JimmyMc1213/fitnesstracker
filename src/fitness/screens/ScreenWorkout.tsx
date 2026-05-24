@@ -34,6 +34,8 @@ import { DeleteExerciseConfirmSheet } from "../workout/DeleteExerciseConfirmShee
 import { WorkoutExerciseCard } from "../workout/WorkoutExerciseCard";
 import { WorkoutIdleDashboard } from "../workout/WorkoutIdleDashboard";
 import { WorkoutSessionHeader } from "../workout/WorkoutSessionHeader";
+import { CreateWeeklyRoutineSheet } from "../CreateWeeklyRoutineSheet";
+import { WeeklyRoutineBuilderFlow, type WeeklyRoutineBuilderMode } from "../WeeklyRoutineBuilderFlow";
 
 function formatSessionClock(d: Date): string {
   return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
@@ -68,10 +70,16 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   const [, setTick] = useState(0);
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
 
+  const [showCreateWeeklyRoutineSheet, setShowCreateWeeklyRoutineSheet] = useState(false);
+  const [weeklyRoutineBuilderMode, setWeeklyRoutineBuilderMode] = useState<WeeklyRoutineBuilderMode | null>(null);
+
+  const workoutOverlayOpen =
+    editingRoutineId !== null || weeklyRoutineBuilderMode !== null || showCreateWeeklyRoutineSheet;
+
   useEffect(() => {
-    onRoutineEditorOpenChange?.(editingRoutineId !== null);
+    onRoutineEditorOpenChange?.(workoutOverlayOpen);
     return () => onRoutineEditorOpenChange?.(false);
-  }, [editingRoutineId, onRoutineEditorOpenChange]);
+  }, [workoutOverlayOpen, onRoutineEditorOpenChange]);
   const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
@@ -567,17 +575,42 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
 
   if (phase === "idle") {
     return (
-      <WorkoutIdleDashboard
-        state={state}
-        preWorkoutCoach={preWorkoutCoach}
-        previewRoutineId={previewRoutineId}
-        setPreviewRoutineId={setPreviewRoutineId}
-        setEditingRoutineId={setEditingRoutineId}
-        startEmptyWorkout={startEmptyWorkout}
-        startTemplateWorkout={startTemplateWorkout}
-        setState={setState}
-        onShowHistory={() => setShowHistoryPage(true)}
-      />
+      <>
+        <WorkoutIdleDashboard
+          state={state}
+          preWorkoutCoach={preWorkoutCoach}
+          previewRoutineId={previewRoutineId}
+          setPreviewRoutineId={setPreviewRoutineId}
+          setEditingRoutineId={setEditingRoutineId}
+          startEmptyWorkout={startEmptyWorkout}
+          startTemplateWorkout={startTemplateWorkout}
+          setState={setState}
+          onShowHistory={() => setShowHistoryPage(true)}
+          onCreateWeeklyRoutine={() => setShowCreateWeeklyRoutineSheet(true)}
+        />
+        {showCreateWeeklyRoutineSheet ? (
+          <CreateWeeklyRoutineSheet
+            onClose={() => setShowCreateWeeklyRoutineSheet(false)}
+            onGenerate={() => {
+              setShowCreateWeeklyRoutineSheet(false);
+              setWeeklyRoutineBuilderMode("generate");
+            }}
+            onManual={() => {
+              setShowCreateWeeklyRoutineSheet(false);
+              setWeeklyRoutineBuilderMode("manual");
+            }}
+          />
+        ) : null}
+        {weeklyRoutineBuilderMode ? (
+          <WeeklyRoutineBuilderFlow
+            mode={weeklyRoutineBuilderMode}
+            state={state}
+            onApply={(next) => setState(next)}
+            onSaveCustomExercise={saveCustomExercise}
+            onClose={() => setWeeklyRoutineBuilderMode(null)}
+          />
+        ) : null}
+      </>
     );
   }
 

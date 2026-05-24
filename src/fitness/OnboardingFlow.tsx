@@ -74,7 +74,8 @@ import { DateOfBirthWheelPicker, defaultOnboardingDateOfBirth } from "./DateOfBi
 import { defaultGoalWeightLbs, goalWeightRangeLbs, WeightRulerPicker } from "./WeightRulerPicker";
 import { ReferralSourcePicker } from "./ReferralSourcePicker";
 import { OnboardingDecimalInput } from "./OnboardingDecimalInput";
-import { buildWorkoutTemplatesForDays, sessionDurationFromSessionLength, sessionLengthFromDuration } from "./workoutSplitByDays";
+import { sessionDurationFromSessionLength, sessionLengthFromDuration } from "./workoutSplitByDays";
+import { buildWeeklyRoutineTemplates } from "./buildWeeklyRoutine";
 import { ScreenTransition } from "./motion";
 import type {
   ActivityLevel,
@@ -163,12 +164,7 @@ function buildDraftTemplatesFromSelections(
   equipmentSetup: EquipmentSetup,
   sessionLength: SessionLength,
 ): WorkoutRoutineTemplate[] {
-  const weekdays =
-    profile.trainingWeekdays?.length ?
-      profile.trainingWeekdays
-    : defaultTrainingWeekdaysForProfile(profile.workoutDaysPerWeek);
-  const days = weekdays.length as typeof profile.workoutDaysPerWeek;
-  return buildWorkoutTemplatesForDays(days, experienceLevel, equipmentSetup, weekdays, sessionLength);
+  return buildWeeklyRoutineTemplates(profile, experienceLevel, equipmentSetup, sessionLength);
 }
 
 function onboardingStateFromDraft(draft: OnboardingDraft) {

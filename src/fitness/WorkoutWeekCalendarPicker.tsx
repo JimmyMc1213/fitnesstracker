@@ -1,4 +1,5 @@
 import {
+  GENERATED_TRAINING_DAY_LIMITS,
   isValidTrainingWeekdaySelection,
   pickTrainingWeekdaysForMe,
   profileWithTrainingWeekdays,
@@ -6,18 +7,27 @@ import {
   TRAINING_WEEKDAY_SHORT,
   trainingWeekdaySelectionHint,
   toggleTrainingWeekday,
+  type TrainingWeekdaySelectionLimits,
 } from "./workoutWeekCalendar";
 import type { OnboardingProfile } from "./types";
 
 export function WorkoutWeekCalendarPicker({
   profile,
   onChange,
+  showPickForMe = true,
+  includeSplitInHint = true,
+  selectionLimits = GENERATED_TRAINING_DAY_LIMITS,
+  emptyHint,
 }: {
   profile: Pick<OnboardingProfile, "workoutDaysPerWeek" | "trainingWeekdays">;
   onChange: (next: Pick<OnboardingProfile, "workoutDaysPerWeek" | "trainingWeekdays">) => void;
+  showPickForMe?: boolean;
+  includeSplitInHint?: boolean;
+  selectionLimits?: TrainingWeekdaySelectionLimits;
+  emptyHint?: string;
 }) {
   const selected = profile.trainingWeekdays ?? [];
-  const valid = isValidTrainingWeekdaySelection(selected);
+  const valid = isValidTrainingWeekdaySelection(selected, selectionLimits);
 
   function applyWeekdays(weekdays: string[]) {
     onChange(profileWithTrainingWeekdays(profile, weekdays));
@@ -35,7 +45,7 @@ export function WorkoutWeekCalendarPicker({
               className={`tap workout-week-picker__day${on ? " workout-week-picker__day--selected" : ""}`}
               aria-pressed={on}
               aria-label={`${day}${on ? ", selected" : ""}`}
-              onClick={() => applyWeekdays(toggleTrainingWeekday(selected, day))}
+              onClick={() => applyWeekdays(toggleTrainingWeekday(selected, day, selectionLimits))}
             >
               {TRAINING_WEEKDAY_SHORT[day]}
             </button>
@@ -44,16 +54,25 @@ export function WorkoutWeekCalendarPicker({
       </div>
 
       <p className={`workout-week-picker__hint${valid ? "" : " workout-week-picker__hint--invalid"}`}>
-        {trainingWeekdaySelectionHint(selected)}
+        {trainingWeekdaySelectionHint(selected, {
+          includeSplitLabel: includeSplitInHint,
+          limits: selectionLimits,
+          emptyHint,
+        })}
       </p>
 
-      <button type="button" className="tap workout-week-picker__ghost" onClick={() => applyWeekdays(pickTrainingWeekdaysForMe(selected))}>
-        Pick for me
-      </button>
+      {showPickForMe ? (
+        <button type="button" className="tap workout-week-picker__ghost" onClick={() => applyWeekdays(pickTrainingWeekdaysForMe(selected))}>
+          Pick for me
+        </button>
+      ) : null}
     </div>
   );
 }
 
-export function isTrainingScheduleValid(profile: Pick<OnboardingProfile, "trainingWeekdays">): boolean {
-  return isValidTrainingWeekdaySelection(profile.trainingWeekdays);
+export function isTrainingScheduleValid(
+  profile: Pick<OnboardingProfile, "trainingWeekdays">,
+  limits: TrainingWeekdaySelectionLimits = GENERATED_TRAINING_DAY_LIMITS,
+): boolean {
+  return isValidTrainingWeekdaySelection(profile.trainingWeekdays, limits);
 }

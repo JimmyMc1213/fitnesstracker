@@ -62,7 +62,7 @@ export function RoutinePreviewSheet({
                   marginBottom: 4,
                 }}
               >
-                {template.dayLabel.trim() || "Routine"}
+                {template.dayLabel.trim() || "Workout"}
               </div>
               <div id="routine-preview-title" style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.2, color: "var(--text-primary)" }}>
                 {template.name}

@@ -117,6 +117,7 @@ function OnboardingGate({
   onSignIn,
   introWelcomeDone,
   onLeavePreview,
+  hideDevToolbar = false,
 }: {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
@@ -124,6 +125,7 @@ function OnboardingGate({
   onSignIn?: () => void;
   introWelcomeDone?: boolean;
   onLeavePreview?: () => void;
+  hideDevToolbar?: boolean;
 }) {
   const sync = useFitnessSync();
   const previewToolsActive = isOnboardingPreviewToolsActive();
@@ -180,7 +182,7 @@ function OnboardingGate({
       ) : (
         children
       )}
-      {previewToolsActive ? (
+      {previewToolsActive && !hideDevToolbar ? (
         <DevOnboardingToolbar
           onboardingOpen={showOnboarding}
           onOpenOnboarding={openPreviewOnboarding}
@@ -506,6 +508,7 @@ function FitnessAppMain({
         onSignIn={handleOnboardingSignIn}
         introWelcomeDone={introWelcomeDone}
         onLeavePreview={() => setIntroWelcomeDone(true)}
+        hideDevToolbar={routineEditorOpen}
       >
       <AuthGate initialAuthView={initialAuthView}>
       <div

@@ -8,7 +8,6 @@ import { ScreenHeader, PrimaryButton, SecondaryButton } from "../shared";
 import type { AppState } from "../types";
 import { defaultWorkoutRoutineTemplates } from "../data";
 import { NEW_ROUTINE_EDITOR_ID } from "../screens/WorkoutRoutineEditor";
-import { SECONDARY_ACTION_COLOR } from "../workoutUiTokens";
 
 function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
   return (
@@ -45,6 +44,7 @@ export function WorkoutIdleDashboard({
   startTemplateWorkout,
   setState,
   onShowHistory,
+  onCreateWeeklyRoutine,
 }: {
   state: AppState;
   preWorkoutCoach: { brief: PreWorkoutCoachBrief; todayTemplateId: string } | null;
@@ -55,6 +55,7 @@ export function WorkoutIdleDashboard({
   startTemplateWorkout: (templateId: string) => void;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   onShowHistory: () => void;
+  onCreateWeeklyRoutine: () => void;
 }) {
   const [pendingRestoreDefaults, setPendingRestoreDefaults] = useState(false);
   const previewTpl = previewRoutineId ? state.workoutTemplates.find((t) => t.id === previewRoutineId) : null;
@@ -78,26 +79,68 @@ export function WorkoutIdleDashboard({
           Start an empty workout
         </PrimaryButton>
 
-        <div className="between" style={{ marginTop: 28, marginBottom: 12, alignItems: "center" }}>
-          <span className="label">Routines</span>
-          <button
-            type="button"
-            className="tap"
-            onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)}
-            style={{ fontSize: 13, fontWeight: 600, color: SECONDARY_ACTION_COLOR, padding: "6px 10px" }}
-          >
-            + New routine
-          </button>
+        <div className="between" style={{ marginTop: 28, marginBottom: 12, alignItems: "flex-start" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+            <span
+              style={{
+                fontSize: 20,
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                color: "var(--text-primary)",
+              }}
+            >
+              Workouts
+            </span>
+            {state.workoutTemplates.length > 0 ? (
+              <button
+                type="button"
+                className="tap"
+                onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)}
+                style={{
+                  alignSelf: "flex-start",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "var(--text-ghost)",
+                  padding: 0,
+                }}
+              >
+                + Add day
+              </button>
+            ) : null}
+          </div>
+          {state.workoutTemplates.length > 0 ? (
+            <button
+              type="button"
+              className="tap"
+              onClick={onCreateWeeklyRoutine}
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#6EB7FF",
+                padding: "6px 0 6px 10px",
+                flexShrink: 0,
+              }}
+            >
+              + New weekly routine
+            </button>
+          ) : null}
         </div>
 
         {state.workoutTemplates.length === 0 ? (
           <div className="card" style={{ padding: 24, textAlign: "center" }}>
             <p style={{ margin: "0 0 16px", fontSize: 14, color: "var(--text-muted-soft)", fontWeight: 500, lineHeight: 1.5 }}>
-              No routines yet. Create one or restore the built-in 5-day split.
+              No workouts yet. Create a weekly routine or restore the built-in 5-day split.
             </p>
-            <PrimaryButton block onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)} style={{ fontSize: 14, padding: 14 }}>
-              New routine
+            <PrimaryButton block onClick={onCreateWeeklyRoutine} style={{ fontSize: 14, padding: 14 }}>
+              New weekly routine
             </PrimaryButton>
+            <SecondaryButton
+              block
+              onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)}
+              style={{ marginTop: 12 }}
+            >
+              Add a single workout day
+            </SecondaryButton>
             <SecondaryButton
               block
               onClick={() => setPendingRestoreDefaults(true)}
@@ -146,7 +189,7 @@ export function WorkoutIdleDashboard({
                         marginBottom: 6,
                       }}
                     >
-                      {tpl.dayLabel.trim() || "Routine"}
+                      {tpl.dayLabel.trim() || "Workout"}
                     </div>
                     <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: "-0.02em", marginBottom: 6 }}>{tpl.name}</div>
                     {tpl.focus.trim() ? (
@@ -223,10 +266,10 @@ export function WorkoutIdleDashboard({
       {pendingRestoreDefaults ? (
         <DeleteConfirmSheet
           title="Restore default program?"
-          cancelLabel="Keep my routines"
+          cancelLabel="Keep my workouts"
           confirmLabel="Restore defaults"
           placement="center"
-          message="Replace all routines with the built-in 5-day program? Your custom routines and edits will be lost."
+          message="Replace all workouts with the built-in 5-day program? Your custom workouts and edits will be lost."
           onCancel={() => setPendingRestoreDefaults(false)}
           onConfirm={() => {
             setState((s) => ({ ...s, workoutTemplates: defaultWorkoutRoutineTemplates() }));

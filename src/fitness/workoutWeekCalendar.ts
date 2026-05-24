@@ -18,6 +18,21 @@ export const TRAINING_WEEKDAY_SHORT: Record<TrainingWeekday, string> = {
 export const MIN_TRAINING_DAYS = 3;
 export const MAX_TRAINING_DAYS = 6;
 
+export type TrainingWeekdaySelectionLimits = {
+  minDays: number;
+  maxDays: number;
+};
+
+export const GENERATED_TRAINING_DAY_LIMITS: TrainingWeekdaySelectionLimits = {
+  minDays: MIN_TRAINING_DAYS,
+  maxDays: MAX_TRAINING_DAYS,
+};
+
+export const MANUAL_TRAINING_DAY_LIMITS: TrainingWeekdaySelectionLimits = {
+  minDays: 1,
+  maxDays: 7,
+};
+
 const PICK_FOR_ME_BY_COUNT: Record<WorkoutDaysPerWeek, readonly TrainingWeekday[]> = {
   3: ["Mon", "Wed", "Fri"],
   4: ["Mon", "Tue", "Thu", "Fri"],
@@ -48,9 +63,12 @@ export function normalizeTrainingWeekdays(raw: string[] | undefined | null): Tra
   return sortWeekdays(raw);
 }
 
-export function isValidTrainingWeekdaySelection(days: string[] | undefined | null): boolean {
+export function isValidTrainingWeekdaySelection(
+  days: string[] | undefined | null,
+  limits: TrainingWeekdaySelectionLimits = GENERATED_TRAINING_DAY_LIMITS,
+): boolean {
   const n = normalizeTrainingWeekdays(days).length;
-  return n >= MIN_TRAINING_DAYS && n <= MAX_TRAINING_DAYS;
+  return n >= limits.minDays && n <= limits.maxDays;
 }
 
 export function workoutDaysPerWeekFromWeekdays(days: string[] | undefined | null): WorkoutDaysPerWeek | null {
@@ -66,15 +84,29 @@ export function splitLabelForDayCount(count: number): string {
   return "Custom split";
 }
 
-export function trainingWeekdaySelectionHint(days: string[] | undefined | null): string {
+export function trainingWeekdaySelectionHint(
+  days: string[] | undefined | null,
+  options?: { includeSplitLabel?: boolean; limits?: TrainingWeekdaySelectionLimits; emptyHint?: string },
+): string {
+  const limits = options?.limits ?? GENERATED_TRAINING_DAY_LIMITS;
   const normalized = normalizeTrainingWeekdays(days);
   const n = normalized.length;
-  if (n === 0) return "Pick 3–6 training days";
-  return `${n} day${n === 1 ? "" : "s"} selected · ${splitLabelForDayCount(n)}`;
+  if (n === 0) {
+    if (options?.emptyHint) return options.emptyHint;
+    if (limits.minDays === 1 && limits.maxDays === 7) return "Pick your training days";
+    return `Pick ${limits.minDays}–${limits.maxDays} training days`;
+  }
+  const countLabel = `${n} day${n === 1 ? "" : "s"} selected`;
+  if (options?.includeSplitLabel === false) return countLabel;
+  return `${countLabel} · ${splitLabelForDayCount(n)}`;
 }
 
-/** Toggle one weekday; enforces max 6 selections. */
-export function toggleTrainingWeekday(selected: string[], day: string): TrainingWeekday[] {
+/** Toggle one weekday; enforces max selections from limits. */
+export function toggleTrainingWeekday(
+  selected: string[],
+  day: string,
+  limits: TrainingWeekdaySelectionLimits = GENERATED_TRAINING_DAY_LIMITS,
+): TrainingWeekday[] {
   const label = normalizeDayLabel(day);
   if (!label || !TRAINING_WEEKDAY_ORDER.includes(label as TrainingWeekday)) {
     return normalizeTrainingWeekdays(selected);
@@ -83,7 +115,7 @@ export function toggleTrainingWeekday(selected: string[], day: string): Training
   if (current.includes(label as TrainingWeekday)) {
     return current.filter((d) => d !== label);
   }
-  if (current.length >= MAX_TRAINING_DAYS) return current;
+  if (current.length >= limits.maxDays) return current;
   return sortWeekdays([...current, label]);
 }
 
@@ -119,9 +151,10 @@ export function profileWithTrainingWeekdays(
   weekdays: string[],
 ): { workoutDaysPerWeek: WorkoutDaysPerWeek; trainingWeekdays: TrainingWeekday[] } {
   const normalized = normalizeTrainingWeekdays(weekdays);
+  const n = normalized.length;
   const days =
     workoutDaysPerWeekFromWeekdays(normalized) ??
-    (normalized.length >= MIN_TRAINING_DAYS ? (Math.min(MAX_TRAINING_DAYS, normalized.length) as WorkoutDaysPerWeek) : profile.workoutDaysPerWeek);
+    (n >= 1 && n <= 7 ? (n as WorkoutDaysPerWeek) : profile.workoutDaysPerWeek);
   return {
     workoutDaysPerWeek: days,
     trainingWeekdays: normalized,

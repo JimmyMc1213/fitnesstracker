@@ -121,7 +121,7 @@ export function RoutineExerciseSearchSheet({
             <CustomExerciseCreateForm
               name={draftExName}
               selectedLabel={draftExLabel}
-              saveButtonLabel="Save to my list & add to routine"
+              saveButtonLabel="Save to my list & add to workout"
               onNameChange={setDraftExName}
               onLabelChange={setDraftExLabel}
               onSave={handleSaveCustomAndAdd}

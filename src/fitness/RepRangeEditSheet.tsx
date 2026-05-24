@@ -45,7 +45,7 @@ export function RepRangeEditSheet({ open = true, exerciseName, repRange, onSave,
         </div>
         <div style={{ fontSize: 13, color: "var(--text-muted-soft)", marginBottom: 14, fontWeight: 500 }}>{exerciseName}</div>
         <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--text-faint-soft)", lineHeight: 1.45 }}>
-          Shown in the target label (e.g. 4 × 6-8). Saved to your routine when this workout came from a template.
+          Shown in the target label (e.g. 4 × 6-8). Saved to your workout when this session came from a template.
         </p>
         <input
           value={draft}

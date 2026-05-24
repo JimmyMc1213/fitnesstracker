@@ -207,7 +207,7 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
           confirmLabel="Remove exercise"
           message={
             <>
-              Remove <strong style={{ color: "var(--text-primary)" }}>{pendingRemove.name}</strong> from this routine?
+              Remove <strong style={{ color: "var(--text-primary)" }}>{pendingRemove.name}</strong> from this workout?
               This can&apos;t be undone.
             </>
           }

@@ -72,7 +72,7 @@ export function ExerciseSwapSheet({
           {currentLabel ? ` · ${currentLabel}` : ""}
         </div>
         <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--text-faint-soft)", lineHeight: 1.45 }}>
-          Sets, targets, and logged reps stay on this row. Your saved routine is not changed.
+          Sets, targets, and logged reps stay on this row. Your saved workout is not changed.
         </p>
 
         <div style={{ position: "relative", marginBottom: 10 }}>
