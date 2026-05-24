@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useFitnessSync } from "./FitnessSyncContext";
+import {
+  clearSaveProgressAuthPending,
+  isOAuthReturn,
+  isSaveProgressAuthPending,
+  shouldClearStaleSaveProgressSession,
+} from "./oauthReturnCapture";
 
 function AppleIcon() {
   return (
@@ -33,15 +39,6 @@ function GoogleIcon() {
   );
 }
 
-function isOAuthReturn(): boolean {
-  if (typeof window === "undefined") return false;
-  const hash = window.location.hash;
-  if (hash.includes("access_token") || hash.includes("error=")) return true;
-  return new URLSearchParams(window.location.search).has("code");
-}
-
-const SAVE_PROGRESS_AUTH_KEY = "onboarding:save-progress-auth";
-
 type Props = {
   onSkip: () => void;
   onSignedIn: () => void;
@@ -55,23 +52,28 @@ export function OnboardingSaveProgress({ onSkip, onSignedIn }: Props) {
   const signedInEmail = sync.sessionEmail?.trim() ?? "";
 
   useEffect(() => {
-    if (isOAuthReturn()) {
-      sessionStorage.setItem(SAVE_PROGRESS_AUTH_KEY, "1");
+    if (isOAuthReturn()) return;
+    if (
+      !shouldClearStaleSaveProgressSession({
+        oauthReturn: false,
+        saveProgressAuthPending: isSaveProgressAuthPending(),
+        signedInEmail,
+        alreadyCleared: clearedStaleSessionRef.current,
+      })
+    ) {
       return;
     }
-    if (sessionStorage.getItem(SAVE_PROGRESS_AUTH_KEY) === "1") return;
-    if (clearedStaleSessionRef.current || !signedInEmail) return;
     clearedStaleSessionRef.current = true;
     void sync.signOut();
   }, [signedInEmail, sync]);
 
   function handleSwitchAccount() {
-    sessionStorage.removeItem(SAVE_PROGRESS_AUTH_KEY);
+    clearSaveProgressAuthPending();
     void sync.signOut();
   }
 
   function handleSignedInContinue() {
-    sessionStorage.removeItem(SAVE_PROGRESS_AUTH_KEY);
+    clearSaveProgressAuthPending();
     onSignedIn();
   }
 

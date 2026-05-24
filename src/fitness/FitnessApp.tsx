@@ -40,6 +40,7 @@ import {
 import { OnboardingFlow } from "./OnboardingFlow";
 import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
 import { clearOnboardingDraftStorage, initialOnboardingWizardDraft } from "./onboardingDraft";
+import { captureOAuthReturnForSaveProgress } from "./oauthReturnCapture";
 import { shouldSkipOnboarding } from "./onboardingSkip";
 import { saveSyncMeta } from "./syncMeta";
 import { registerNotificationServiceWorker } from "./registerNotificationServiceWorker";
@@ -50,6 +51,8 @@ import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
 import { ThemeProvider } from "./ThemeContext";
 import type { AppTheme } from "./theme";
 import type { AppState, NavigateFn, ScreenProps, StreakLossNotice, TabId } from "./types";
+
+captureOAuthReturnForSaveProgress();
 
 function buildInitialState(): AppState {
   if (typeof localStorage !== "undefined" && !localStorage.getItem(FITNESS_LOCAL_STORAGE_KEY)) {
@@ -442,7 +445,7 @@ function FitnessAppMain({
     (isNewUser && needsAuth ? "signup" : "landing");
 
   if (authViewOverride === "signin") {
-    if (fitnessSync.sessionEmail && (!fitnessSync.fitnessHydrated || welcomeSignInFlow)) {
+    if (fitnessSync.sessionEmail && welcomeSignInFlow) {
       return (
         <FitnessSyncContext.Provider value={fitnessSync}>
           <HydrationSplash />
@@ -480,9 +483,11 @@ function FitnessAppMain({
     );
   }
 
+  const onboardingInProgress = !state.onboardingComplete;
+
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
-      {!fitnessSync.fitnessHydrated && fitnessSync.sessionEmail ? (
+      {!fitnessSync.fitnessHydrated && fitnessSync.sessionEmail && !onboardingInProgress ? (
         <HydrationSplash />
       ) : (
       <>
