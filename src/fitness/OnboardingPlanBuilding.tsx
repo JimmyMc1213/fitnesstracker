@@ -98,7 +98,15 @@ export function OnboardingPlanBuilding({ onComplete }: { onComplete: () => void 
   );
 
   return (
-    <div className="onboarding-shell onboarding-plan-building-shell">
+    <div
+      className="onboarding-shell onboarding-plan-building-shell"
+      style={{
+        paddingTop: "max(2.5rem, env(safe-area-inset-top))",
+        paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))",
+        paddingLeft: 23,
+        paddingRight: 23,
+      }}
+    >
       <div className="onboarding-plan-building" role="status" aria-live="polite" aria-busy={progress < 100}>
         <p className="onboarding-plan-building__pct">{progress}%</p>
         <h2 className="onboarding-plan-building__headline">We&apos;re setting everything up for you</h2>

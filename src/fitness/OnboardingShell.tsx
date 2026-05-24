@@ -1,6 +1,4 @@
-import { useCallback, useRef, type FocusEvent, type ReactNode } from "react";
-
-import { isOnboardingTextField, scheduleOnboardingFieldScroll } from "./onboardingKeyboardScroll";
+import type { ReactNode } from "react";
 
 export const ONBOARDING_TOTAL_STEPS = 30;
 
@@ -79,81 +77,67 @@ export function OnboardingShell({
 }) {
   const { phaseLabel, showStepCounter } = phaseForStep(step);
   const pct = Math.round(((step + 1) / totalSteps) * 100);
-  const bodyRef = useRef<HTMLDivElement>(null);
-
-  const handleBodyFocus = useCallback((event: FocusEvent<HTMLDivElement>) => {
-    if (!isOnboardingTextField(event.target)) return;
-    const body = bodyRef.current;
-    if (!body) return;
-    scheduleOnboardingFieldScroll(body, event.target);
-  }, []);
-
-  const bodyClassName = [
-    "onboarding-shell__body",
-    "motion-step",
-    contentClassName,
-    hideHeader ? "onboarding-shell__body--no-headline-gap" : undefined,
-  ]
-    .filter(Boolean)
-    .join(" ");
 
   return (
-    <div className="onboarding-shell">
-      <div className="onboarding-shell__header">
-        {onBack ? (
-          <button type="button" className="onboarding-back-btn tap" onClick={onBack} aria-label="Back">
-            <BackArrow />
-          </button>
-        ) : null}
+    <div
+      className="onboarding-shell"
+      style={{
+        paddingTop: "max(0.5rem, env(safe-area-inset-top))",
+        paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))",
+        paddingLeft: 23,
+        paddingRight: 23,
+      }}
+    >
+      {onBack ? (
+        <button type="button" className="onboarding-back-btn tap" onClick={onBack} aria-label="Back">
+          <BackArrow />
+        </button>
+      ) : null}
 
-        {!hideProgress ? (
-          <div className="onboarding-shell__progress">
-            <div className="onboarding-step-meta">
-              {showStepCounter ? (
-                <span>
-                  Step {step + 1} of {totalSteps}
-                </span>
-              ) : (
-                <span />
-              )}
-              {phaseLabel ? <span>{phaseLabel}</span> : <span />}
-            </div>
-            <div
-              className="onboarding-progress-track"
-              role="progressbar"
-              aria-valuenow={step + 1}
-              aria-valuemin={1}
-              aria-valuemax={totalSteps}
-              aria-label={`Step ${step + 1} of ${totalSteps}`}
-            >
-              <div className="onboarding-progress-fill" style={{ width: `${pct}%` }} />
-            </div>
+      {!hideProgress ? (
+        <div style={{ marginBottom: 20 }}>
+          <div className="onboarding-step-meta">
+            {showStepCounter ? (
+              <span>
+                Step {step + 1} of {totalSteps}
+              </span>
+            ) : (
+              <span />
+            )}
+            {phaseLabel ? <span>{phaseLabel}</span> : <span />}
           </div>
-        ) : null}
+          <div
+            className="onboarding-progress-track"
+            role="progressbar"
+            aria-valuenow={step + 1}
+            aria-valuemin={1}
+            aria-valuemax={totalSteps}
+            aria-label={`Step ${step + 1} of ${totalSteps}`}
+          >
+            <div className="onboarding-progress-fill" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      ) : null}
 
-        {eyebrow ? <p className="onboarding-eyebrow">{eyebrow}</p> : null}
-        {!hideHeader ? (
-          <>
-            <h1 className={headlineClassName ? `onboarding-headline ${headlineClassName}` : "onboarding-headline"}>
-              {title}
-            </h1>
-            {subtitle ? (
-              <p className={helperClassName ? `onboarding-helper ${helperClassName}` : "onboarding-helper"}>
-                {subtitle}
-              </p>
-            ) : null}
-          </>
-        ) : null}
-      </div>
+      {eyebrow ? <p className="onboarding-eyebrow">{eyebrow}</p> : null}
+      {!hideHeader ? (
+        <>
+          <h1 className={headlineClassName ? `onboarding-headline ${headlineClassName}` : "onboarding-headline"}>{title}</h1>
+          {subtitle ? (
+            <p className={helperClassName ? `onboarding-helper ${helperClassName}` : "onboarding-helper"}>{subtitle}</p>
+          ) : null}
+        </>
+      ) : null}
 
       <div
         key={step}
-        ref={bodyRef}
-        className={bodyClassName}
-        onFocusCapture={handleBodyFocus}
+        className={contentClassName ? `motion-step ${contentClassName}` : "motion-step"}
+        style={{ flex: 1, minHeight: 0, overflowY: "auto", marginTop: hideHeader ? 0 : 24 }}
       >
         {children}
       </div>
+
+      {!compactFooter ? <div style={{ minHeight: 16, flexShrink: 0 }} aria-hidden /> : null}
 
       {!hideFooter ? (
         <div

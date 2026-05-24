@@ -53,7 +53,7 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
   const foodHandlers = useMemo(() => todayFoodLogHandlers(setState, todayKey), [setState, todayKey]);
 
   return (
-    <div className="screen" style={{ position: "relative" }}>
+    <div className="screen" style={{ height: "100%", position: "relative" }}>
       <ScreenHeader
         eyebrow={new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).replace(",", "").toUpperCase()}
         title="Nutrition"

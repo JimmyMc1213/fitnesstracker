@@ -39,7 +39,6 @@ import {
   isOnboardingPreviewToolsActive,
 } from "./devPreviewOnboarding";
 import { OnboardingFlow } from "./OnboardingFlow";
-import { OnboardingViewportFrame } from "./OnboardingViewportFrame";
 import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
 import { clearOnboardingDraftStorage, initialOnboardingWizardDraft } from "./onboardingDraft";
 import { captureOAuthReturnForSaveProgress } from "./oauthReturnCapture";
@@ -169,17 +168,15 @@ function OnboardingGate({
   return (
     <>
       {showOnboarding ? (
-        <OnboardingViewportFrame active>
-          <OnboardingFlow
-            setState={setState}
-            initialDraft={restorableDraft}
-            accountDisplayName={state.displayName}
-            previewMode={forcePreview}
-            onComplete={previewToolsActive ? dismissPreviewOnboarding : undefined}
-            onSignIn={onSignIn}
-            introWelcomeDone={introWelcomeDone}
-          />
-        </OnboardingViewportFrame>
+        <OnboardingFlow
+          setState={setState}
+          initialDraft={restorableDraft}
+          accountDisplayName={state.displayName}
+          previewMode={forcePreview}
+          onComplete={previewToolsActive ? dismissPreviewOnboarding : undefined}
+          onSignIn={onSignIn}
+          introWelcomeDone={introWelcomeDone}
+        />
       ) : (
         children
       )}
@@ -509,8 +506,31 @@ function FitnessAppMain({
         onLeavePreview={() => setIntroWelcomeDone(true)}
       >
       <AuthGate initialAuthView={initialAuthView}>
-      <div className="screen-container">
-        <div className="screen-container__content">
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          width: "100%",
+          maxWidth: "100%",
+          background: "transparent",
+          color: "var(--text)",
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+          boxSizing: "border-box",
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            position: "relative",
+            overflow: "hidden",
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <ScreenTransition activeKey={tab}>
             <Current
               state={state}

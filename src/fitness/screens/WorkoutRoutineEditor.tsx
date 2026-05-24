@@ -2,7 +2,6 @@ import { useEffect, useState, type CSSProperties } from "react";
 
 import { EXERCISE_DB, newTemplateExerciseLine, resizeWorkoutSets } from "../data";
 import { IconPlus, IconSearch, IconTrash } from "../icons";
-import { OnboardingIntegerInput } from "../OnboardingIntegerInput";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
 import { ScreenHeader, PrimaryButton } from "../shared";
 import { FullScreenOverlay } from "../motion";
@@ -281,13 +280,13 @@ export function WorkoutRoutineEditor({
               </div>
               <div>
                 <span style={fieldLabelStyle}>Sets</span>
-                <OnboardingIntegerInput
-                  ariaLabel="Number of sets"
-                  className=""
+                <input
+                  type="number"
+                  min={1}
+                  max={12}
                   value={row.sets.length}
-                  onChange={(n) => {
-                    if (n != null) patchExercise(row.id, { setCount: n });
-                  }}
+                  onChange={(e) => patchExercise(row.id, { setCount: +e.target.value || 1 })}
+                  aria-label="Number of sets"
                   style={{ ...inputStyle, textAlign: "center" }}
                   readOnly={ctx.isOverlay}
                 />

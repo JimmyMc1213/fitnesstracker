@@ -368,9 +368,15 @@ html.theme-transition *::after {
     box-shadow 0.38s ease !important;
 }
 
-/* Mobile shell: `100dvh` (not `100vh`) so standalone PWAs don't retain browser-chrome
- * height and leave dead space at the bottom. Avoid `-webkit-fill-available` here — on iOS
- * standalone it can size to the pre-chrome layout viewport and overshoot the visible area. */
+/* Mobile shell: avoid `position: fixed` + JS visualViewport pinning, it fights
+ * iOS keyboards and can jitter. Use explicit `100dvh` on `html`: on modern Safari
+ * the *dynamic* viewport tracks URL bar show/hide, so the shell matches what you
+ * see without layout-vs-visual hacks. Fallback `100vh` for older engines.
+ * In PWA standalone mode we drop the final `100dvh` (see block below): cold start
+ * can mis-size `dvh` vs the home indicator.
+ *
+ * Flex column fills that frame; scrolling stays inside `.screen`; tab bar + safe-area
+ * insets unchanged. */
 html {
   margin: 0;
   padding: 0;
@@ -381,21 +387,26 @@ html {
 
   height: 100vh;
   height: 100dvh;
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+/* iOS Add-to-Home / `display: standalone`: `100dvh` can report wrong height on
+ * cold start so the flex shell and tab bar misalign vs the home indicator.
+ * Prefer classic viewport height + fill-available here; regular Safari tabs keep
+ * `100dvh` above for URL-bar dynamics. */
+@media (display-mode: standalone) {
+  html {
+    height: 100vh;
+    min-height: -webkit-fill-available;
+  }
 }
 
 body {
   margin: 0;
   padding: 0;
-  position: fixed;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
   background: var(--bg-deep);
   overflow: hidden;
   overscroll-behavior: none;
@@ -442,14 +453,12 @@ body::before {
 #root {
   flex: 1;
   width: 100%;
-  height: 100%;
   min-height: 0;
   position: relative;
   z-index: 1;
   background: transparent;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .app-root {
@@ -457,38 +466,10 @@ body::before {
   width: 100%;
   max-width: 100%;
   min-height: 0;
-  height: 100%;
   margin: 0;
   background: transparent;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-}
-
-/* Global screen shell: full viewport height, safe-area top, flex column for tab/onboarding frames. */
-.screen-container {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  height: 100%;
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  box-sizing: border-box;
-  padding-top: env(safe-area-inset-top, 0px);
-  position: relative;
-  background: transparent;
-  color: var(--text);
-}
-
-.screen-container__content {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
 }
 
 button {
@@ -590,12 +571,9 @@ textarea {
 .screen {
   flex: 1;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
   overflow-y: auto;
   padding: 0 20px 28px;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
 }
 
 .screen::-webkit-scrollbar {
@@ -735,20 +713,13 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/* Prevent iOS auto-zoom on input focus (requires ≥16px). */
-input,
-textarea,
-select {
-  font-size: max(16px, 1rem) !important;
-  -webkit-text-size-adjust: 100%;
-}
-
-/* Auth / login: keep layout stable when the keyboard opens; scroll inside the screen. */
+/* Auth / login: prevent iOS auto-zoom on focus (needs ≥16px inputs) and keep layout
+ * stable when the keyboard opens, scroll inside the screen instead of fixed center. */
 .auth-screen {
   flex: 1;
   width: 100%;
-  min-height: 100vh;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -812,8 +783,7 @@ select {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  height: 100%;
+  min-height: 100%;
   background: #ffffff;
   color: #000000;
   overflow: hidden;
@@ -1037,9 +1007,7 @@ select {
 /* Onboarding paywall (CalAI-style light layout) */
 
 .onboarding-paywall {
-  flex: 1;
-  height: 100%;
-  min-height: 0;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -1116,7 +1084,6 @@ select {
 
 .onboarding-paywall__phone-screen {
   min-height: min(420px, 52vh);
-  min-height: min(420px, 52dvh);
   border-radius: 22px;
   background: #f5f5f5;
   overflow: hidden;
@@ -1127,8 +1094,6 @@ select {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  flex-shrink: 0;
-  margin-top: auto;
   padding-top: 8px;
 }
 
@@ -1330,82 +1295,13 @@ select {
 
 /* Onboarding reskin (golf-style rhythm, Gymmy dark theme) */
 
-/* Full-viewport onboarding frame: fixed to visual viewport so iOS keyboard does not push the page. */
-html.onboarding-viewport-lock {
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-
-.onboarding-flow {
-  position: fixed;
-  inset: 0;
-  z-index: 8000;
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  min-height: 100vh;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  touch-action: manipulation;
-  box-sizing: border-box;
-}
-
 .onboarding-shell {
-  flex: 1;
-  width: 100%;
-  min-height: 0;
-  height: 100%;
-  max-height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   background: transparent;
   color: var(--text);
-  overflow: hidden;
-  padding:
-    max(0.75rem, env(safe-area-inset-top, 0px))
-    24px
-    1rem;
-  touch-action: manipulation;
-}
-
-.onboarding-shell__header {
-  flex-shrink: 0;
-}
-
-.onboarding-shell__progress {
-  margin-bottom: 20px;
-}
-
-.onboarding-shell__body {
-  flex: 1;
-  min-height: 0;
-  margin-top: 24px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: 12px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  touch-action: manipulation;
-}
-
-.onboarding-shell__body--no-headline-gap {
-  margin-top: 0;
-}
-
-.onboarding-shell__footer-spacer {
-  display: none;
-}
-
-.onboarding-shell input:not([type="checkbox"]):not([type="radio"]),
-.onboarding-shell textarea,
-.onboarding-shell select {
-  font-size: max(16px, 1rem);
-  -webkit-text-size-adjust: 100%;
 }
 
 .onboarding-back-btn {
@@ -1551,10 +1447,9 @@ html.onboarding-viewport-lock {
 }
 
 .onboarding-shell__content--plan-ready {
-  flex: 1;
-  justify-content: flex-start;
+  flex: 0 1 auto;
   margin-top: 22px !important;
-  overflow-y: auto !important;
+  overflow-y: hidden !important;
 }
 
 .onboarding-plan-ready {
@@ -1834,7 +1729,7 @@ html.onboarding-viewport-lock {
   }
 
   .onboarding-shell__footer--compact {
-    margin-top: auto;
+    margin-top: 8px;
   }
 }
 
@@ -1847,7 +1742,7 @@ html.onboarding-viewport-lock {
 
 .onboarding-shell__footer--compact {
   gap: 8px;
-  margin-top: auto;
+  margin-top: 12px;
 }
 
 .onboarding-footer-ghost {
@@ -1867,9 +1762,9 @@ html.onboarding-viewport-lock {
 }
 
 .onboarding-shell__content--compact {
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
-  justify-content: flex-start;
+  overflow-y: visible;
 }
 
 .onboarding-shell__content--save-progress {
@@ -1877,6 +1772,7 @@ html.onboarding-viewport-lock {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  overflow-y: visible;
 }
 
 .onboarding-save-progress {
@@ -1886,7 +1782,7 @@ html.onboarding-viewport-lock {
   justify-content: center;
   flex: 1;
   width: 100%;
-  min-height: 0;
+  min-height: 100%;
   gap: 32px;
   padding: 0 0 24px;
   box-sizing: border-box;
@@ -2009,7 +1905,7 @@ html.onboarding-viewport-lock {
   justify-content: center;
   flex: 1;
   width: 100%;
-  min-height: 0;
+  min-height: 100%;
   padding: 0 4px 40px;
   box-sizing: border-box;
   text-align: center;
@@ -2344,7 +2240,7 @@ html.onboarding-viewport-lock {
   touch-action: none;
   display: flex;
   justify-content: center;
-  margin-top: 12px;
+  margin-top: 36px;
 }
 
 .dob-wheel-picker {
@@ -2716,8 +2612,7 @@ html.onboarding-viewport-lock {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  height: 100%;
+  min-height: 100%;
   padding: max(2.25rem, env(safe-area-inset-top)) 36px max(1.75rem, env(safe-area-inset-bottom));
   box-sizing: border-box;
   background: transparent;
@@ -2910,8 +2805,8 @@ html.onboarding-viewport-lock {
   align-items: center;
   text-align: center;
   flex: 1;
-  min-height: 0;
   padding: 24px 8px;
+  min-height: min(420px, 55vh);
 }
 
 .onboarding-goal-weight-reinforcement__headline {
@@ -3042,7 +2937,7 @@ html.onboarding-viewport-lock {
   align-items: center;
   justify-content: center;
   flex: 1;
-  min-height: 0;
+  min-height: min(380px, 50vh);
   padding: 12px 0 8px;
   touch-action: none;
 }
@@ -3143,11 +3038,6 @@ html.onboarding-viewport-lock {
   gap: 20px;
   padding: 24px 0;
   text-align: center;
-  min-height: 0;
-}
-
-.onboarding-shell--generating {
-  padding-top: max(2rem, env(safe-area-inset-top));
 }
 
 .onboarding-generating-spinner {
@@ -3177,7 +3067,9 @@ html.onboarding-viewport-lock {
 }
 
 .onboarding-plan-building-shell {
-  padding-top: max(2.5rem, env(safe-area-inset-top));
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 .onboarding-plan-building {
@@ -3528,12 +3420,11 @@ html.onboarding-viewport-lock {
   border-radius: 8px;
   border: 0.5px solid var(--ob-input-border);
   background: var(--ob-input-bg);
-  font-size: max(16px, 1rem);
+  font-size: 16px;
   font-weight: 700;
   color: var(--ob-body-fg);
   text-align: right;
   font-variant-numeric: tabular-nums;
-  -webkit-text-size-adjust: 100%;
 }
 
 .onboarding-fuel__reset {
