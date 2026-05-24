@@ -1367,7 +1367,7 @@ html.onboarding-viewport-lock {
   padding:
     max(0.75rem, env(safe-area-inset-top, 0px))
     24px
-    max(1rem, env(safe-area-inset-bottom, 0px));
+    1rem;
   touch-action: manipulation;
 }
 
