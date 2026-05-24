@@ -595,7 +595,6 @@ textarea {
 .screen {
   flex: 1;
   min-height: 0;
-  height: 100%;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -1371,9 +1370,9 @@ html.onboarding-viewport-lock {
   color: var(--text);
   overflow: hidden;
   padding:
-    max(48px, calc(env(safe-area-inset-top, 0px) + 48px))
+    max(0.75rem, env(safe-area-inset-top, 0px))
     24px
-    max(24px, env(safe-area-inset-bottom, 0px));
+    max(1rem, env(safe-area-inset-bottom, 0px));
   touch-action: manipulation;
 }
 
@@ -1391,7 +1390,7 @@ html.onboarding-viewport-lock {
   margin-top: 24px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -1849,8 +1848,6 @@ html.onboarding-viewport-lock {
   flex-direction: column;
   gap: 10px;
   flex-shrink: 0;
-  margin-top: auto;
-  padding-bottom: 24px;
 }
 
 .onboarding-shell__footer--compact {
@@ -2352,7 +2349,7 @@ html.onboarding-viewport-lock {
   touch-action: none;
   display: flex;
   justify-content: center;
-  margin-top: 36px;
+  margin-top: 12px;
 }
 
 .dob-wheel-picker {
