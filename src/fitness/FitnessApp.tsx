@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 
 import { buildAppStateFromPersisted } from "./buildAppState";
 import { dismissStreakLossNotice, getPendingStreakLossNotice } from "./dailyStreak";
@@ -50,7 +50,6 @@ import { checkAndFireDueNotifications } from "./notificationScheduler";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
 import { StreakLostSheet } from "./StreakLostSheet";
 import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
-import { logScreenContainerLayout } from "./layoutDebugLog";
 import { ThemeProvider } from "./ThemeContext";
 import type { AppTheme } from "./theme";
 import type { AppState, NavigateFn, ScreenProps, StreakLossNotice, TabId } from "./types";
@@ -243,9 +242,6 @@ function FitnessAppMain({
   const todayKey = localDateKey(new Date());
   const stateRef = useRef(state);
   stateRef.current = state;
-  const screenContainerRef = useRef<HTMLDivElement>(null);
-  const screenContentRef = useRef<HTMLDivElement>(null);
-  const tabbarRef = useRef<HTMLElement>(null);
 
   const completeWelcomeSignIn = () => {
     setState((s) => {
@@ -454,19 +450,6 @@ function FitnessAppMain({
     return () => window.clearTimeout(id);
   }, [welcomeSignInFlow, fitnessSync.sessionEmail]);
 
-  useLayoutEffect(() => {
-    if (!state.onboardingComplete) return;
-    const container = screenContainerRef.current;
-    if (!container) return;
-    logScreenContainerLayout("FitnessApp.tsx:layout", "D,E", {
-      container,
-      content: screenContentRef.current,
-      tabbar: tabbarRef.current,
-      screen: container.querySelector(".screen"),
-      tab,
-    });
-  }, [state.onboardingComplete, tab]);
-
   const initialAuthView: "landing" | "signin" | "signup" =
     authViewOverride ??
     (isNewUser && needsAuth ? "signup" : "landing");
@@ -526,8 +509,8 @@ function FitnessAppMain({
         onLeavePreview={() => setIntroWelcomeDone(true)}
       >
       <AuthGate initialAuthView={initialAuthView}>
-      <div className="screen-container" ref={screenContainerRef}>
-        <div className="screen-container__content" ref={screenContentRef}>
+      <div className="screen-container">
+        <div className="screen-container__content">
           <ScreenTransition activeKey={tab}>
             <Current
               state={state}
@@ -545,7 +528,7 @@ function FitnessAppMain({
         </div>
 
         {!hideTabBar ? (
-          <nav className="tabbar" ref={tabbarRef} aria-label="Main">
+          <nav className="tabbar" aria-label="Main">
             {TABS.map((t) => {
               const active = tab === t.id;
               return (

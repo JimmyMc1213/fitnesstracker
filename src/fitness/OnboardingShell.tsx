@@ -1,7 +1,6 @@
-import { useCallback, useLayoutEffect, useRef, type FocusEvent, type ReactNode } from "react";
+import { useCallback, useRef, type FocusEvent, type ReactNode } from "react";
 
 import { isOnboardingTextField, scheduleOnboardingFieldScroll } from "./onboardingKeyboardScroll";
-import { logOnboardingLayout } from "./layoutDebugLog";
 
 export const ONBOARDING_TOTAL_STEPS = 30;
 
@@ -80,22 +79,7 @@ export function OnboardingShell({
 }) {
   const { phaseLabel, showStepCounter } = phaseForStep(step);
   const pct = Math.round(((step + 1) / totalSteps) * 100);
-  const shellRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
-  const footerRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const shell = shellRef.current;
-    if (!shell) return;
-    const flow = shell.closest(".onboarding-flow");
-    logOnboardingLayout("OnboardingShell.tsx:layout", "A,B,C,D", {
-      flow,
-      shell,
-      body: bodyRef.current,
-      footer: footerRef.current,
-      step,
-    });
-  }, [step]);
 
   const handleBodyFocus = useCallback((event: FocusEvent<HTMLDivElement>) => {
     if (!isOnboardingTextField(event.target)) return;
@@ -114,7 +98,7 @@ export function OnboardingShell({
     .join(" ");
 
   return (
-    <div className="onboarding-shell" ref={shellRef}>
+    <div className="onboarding-shell">
       <div className="onboarding-shell__header">
         {onBack ? (
           <button type="button" className="onboarding-back-btn tap" onClick={onBack} aria-label="Back">
@@ -173,7 +157,6 @@ export function OnboardingShell({
 
       {!hideFooter ? (
         <div
-          ref={footerRef}
           className={compactFooter ? "onboarding-shell__footer onboarding-shell__footer--compact" : "onboarding-shell__footer"}
         >
           {onSecondary ? (
