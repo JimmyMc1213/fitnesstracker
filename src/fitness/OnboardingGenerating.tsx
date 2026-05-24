@@ -24,15 +24,7 @@ export function OnboardingGenerating({ onComplete }: { onComplete?: () => void }
   }, [onComplete]);
 
   return (
-    <div
-      className="onboarding-shell"
-      style={{
-        paddingTop: "max(2rem, env(safe-area-inset-top))",
-        paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))",
-        paddingLeft: 23,
-        paddingRight: 23,
-      }}
-    >
+    <div className="onboarding-shell onboarding-shell--generating">
       <div className="onboarding-generating">
         <div className="onboarding-generating-spinner" aria-hidden />
         <p className="onboarding-generating-line">Building your coaching plan…</p>

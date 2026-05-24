@@ -1,6 +1,7 @@
 import { exerciseNoteKey } from "./exerciseNotes";
 import { formatSetWeight, weightUnitLabel } from "./unitPreferences";
 import type { CompletedWorkoutSession, ExerciseSessionSnapshot, WeightUnit } from "./types";
+import { sessionBestForExercise } from "./workoutSummary";
 
 export type PersonalRecordHistoryEntry = {
   dayKey: string;
@@ -139,10 +140,39 @@ export function formatPersonalRecordDate(dayKey: string, endedAtMs: number): str
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export function buildPersonalRecordsBoard(
-  exerciseSessionHistoryByKey: Record<string, ExerciseSessionSnapshot[]>,
+/** Per-exercise session bests derived only from saved workout history. */
+function snapshotsFromWorkoutHistory(
   workoutHistory: CompletedWorkoutSession[],
-): PersonalRecordExerciseRow[] {
+): Record<string, ExerciseSessionSnapshot[]> {
+  const byKey: Record<string, ExerciseSessionSnapshot[]> = {};
+
+  for (const session of workoutHistory) {
+    for (const ex of session.exercises) {
+      const best = sessionBestForExercise(ex.sets);
+      if (!best || (best.w <= 0 && best.r <= 0)) continue;
+
+      const key = exerciseNoteKey(ex.name, ex.label);
+      const snap: ExerciseSessionSnapshot = {
+        dayKey: session.dayKey,
+        endedAtMs: session.endedAtMs,
+        bestWeight: best.w,
+        bestReps: best.r,
+        volume: ex.sets.reduce((acc, st) => acc + st.w * st.r, 0),
+      };
+
+      const prev = byKey[key] ?? [];
+      const withoutDup = prev.filter((s) => s.endedAtMs !== session.endedAtMs);
+      byKey[key] = [...withoutDup, snap].sort((a, b) => a.endedAtMs - b.endedAtMs);
+    }
+  }
+
+  return byKey;
+}
+
+export function buildPersonalRecordsBoard(workoutHistory: CompletedWorkoutSession[]): PersonalRecordExerciseRow[] {
+  if (!workoutHistory.length) return [];
+
+  const exerciseSessionHistoryByKey = snapshotsFromWorkoutHistory(workoutHistory);
   const rows: PersonalRecordExerciseRow[] = [];
 
   for (const [key, snapshots] of Object.entries(exerciseSessionHistoryByKey)) {

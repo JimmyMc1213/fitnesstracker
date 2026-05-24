@@ -166,15 +166,17 @@ function OnboardingGate({
   return (
     <>
       {showOnboarding ? (
-        <OnboardingFlow
-          setState={setState}
-          initialDraft={restorableDraft}
-          accountDisplayName={state.displayName}
-          previewMode={forcePreview}
-          onComplete={import.meta.env.DEV ? dismissPreviewOnboarding : undefined}
-          onSignIn={onSignIn}
-          introWelcomeDone={introWelcomeDone}
-        />
+        <div className="onboarding-flow">
+          <OnboardingFlow
+            setState={setState}
+            initialDraft={restorableDraft}
+            accountDisplayName={state.displayName}
+            previewMode={forcePreview}
+            onComplete={import.meta.env.DEV ? dismissPreviewOnboarding : undefined}
+            onSignIn={onSignIn}
+            introWelcomeDone={introWelcomeDone}
+          />
+        </div>
       ) : (
         children
       )}

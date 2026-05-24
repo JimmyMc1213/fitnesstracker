@@ -119,6 +119,7 @@ export function LineChart({
   padLeft = 12,
   padRight = 36,
   padY = 16,
+  stroke = "var(--chart-stroke)",
 }: {
   data: number[];
   width: number;
@@ -128,6 +129,8 @@ export function LineChart({
   /** Space on the right for Y-axis tick labels (e.g. “172.4”). */
   padRight?: number;
   padY?: number;
+  /** Line and end-dot color. */
+  stroke?: string;
 }) {
   const min = Math.min(...data) - 0.5;
   const max = Math.max(...data) + 0.5;
@@ -155,8 +158,8 @@ export function LineChart({
         );
       })}
       <path d={area} fill="var(--chart-fill)" />
-      <path d={d} fill="none" stroke="var(--chart-stroke)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      {pts.map((p, i) => (i === pts.length - 1 ? <circle key={i} cx={p[0]} cy={p[1]} r={3} fill="var(--chart-stroke)" /> : null))}
+      <path d={d} fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      {pts.map((p, i) => (i === pts.length - 1 ? <circle key={i} cx={p[0]} cy={p[1]} r={3} fill={stroke} /> : null))}
     </svg>
   );
 }

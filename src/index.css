@@ -1295,13 +1295,67 @@ input[type="number"] {
 
 /* Onboarding reskin (golf-style rhythm, Gymmy dark theme) */
 
+/* Full-viewport onboarding frame: fixed height so iOS keyboard does not shrink/reflow the shell. */
+.onboarding-flow {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  touch-action: manipulation;
+  box-sizing: border-box;
+}
+
 .onboarding-shell {
-  min-height: 100%;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   background: transparent;
   color: var(--text);
+  overflow: hidden;
+  padding: max(0.5rem, env(safe-area-inset-top)) 23px max(1.25rem, env(safe-area-inset-bottom));
+  touch-action: manipulation;
+}
+
+.onboarding-shell__header {
+  flex-shrink: 0;
+}
+
+.onboarding-shell__progress {
+  margin-bottom: 20px;
+}
+
+.onboarding-shell__body {
+  flex: 1;
+  min-height: 0;
+  margin-top: 24px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: manipulation;
+}
+
+.onboarding-shell__body--no-headline-gap {
+  margin-top: 0;
+}
+
+.onboarding-shell__footer-spacer {
+  flex-shrink: 0;
+  min-height: 16px;
+}
+
+.onboarding-shell input:not([type="checkbox"]):not([type="radio"]),
+.onboarding-shell textarea,
+.onboarding-shell select {
+  font-size: max(16px, 1rem);
+  -webkit-text-size-adjust: 100%;
 }
 
 .onboarding-back-btn {
@@ -1764,7 +1818,6 @@ input[type="number"] {
 .onboarding-shell__content--compact {
   flex: 0 1 auto;
   min-height: 0;
-  overflow-y: visible;
 }
 
 .onboarding-shell__content--save-progress {
@@ -1772,7 +1825,6 @@ input[type="number"] {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  overflow-y: visible;
 }
 
 .onboarding-save-progress {
@@ -3038,6 +3090,11 @@ input[type="number"] {
   gap: 20px;
   padding: 24px 0;
   text-align: center;
+  min-height: 0;
+}
+
+.onboarding-shell--generating {
+  padding-top: max(2rem, env(safe-area-inset-top));
 }
 
 .onboarding-generating-spinner {
@@ -3067,9 +3124,7 @@ input[type="number"] {
 }
 
 .onboarding-plan-building-shell {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
+  padding-top: max(2.5rem, env(safe-area-inset-top));
 }
 
 .onboarding-plan-building {

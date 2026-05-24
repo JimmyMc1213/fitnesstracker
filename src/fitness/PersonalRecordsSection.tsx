@@ -14,6 +14,8 @@ const PR_BRONZE = "#CD7F32";
 const PR_ACCENT = "var(--chart-stroke)";
 const TOP_N = 3;
 
+const EMPTY_SLOT_LABELS = ["Your #1 lift", "Your #2 lift", "Your #3 lift"] as const;
+
 type Props = {
   state: AppState;
 };
@@ -21,22 +23,13 @@ type Props = {
 export function PersonalRecordsSection({ state }: Props) {
   const wUnit = state.unitPreferences.weightUnit;
   const rows = useMemo(
-    () => buildPersonalRecordsBoard(state.exerciseSessionHistoryByKey ?? {}, state.workoutHistory ?? []),
-    [state.exerciseSessionHistoryByKey, state.workoutHistory],
+    () => buildPersonalRecordsBoard(state.workoutHistory ?? []),
+    [state.workoutHistory],
   );
   const topRows = rows.slice(0, TOP_N);
   const hiddenCount = Math.max(0, rows.length - TOP_N);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
-
-  if (rows.length === 0) {
-    return (
-      <div className="card" style={{ padding: 14 }}>
-        <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: "var(--text-ghost)" }}>
-          Finish workouts with logged sets to build your PR board.
-        </p>
-      </div>
-    );
-  }
+  const isEmpty = rows.length === 0;
 
   return (
     <div
@@ -61,7 +54,11 @@ export function PersonalRecordsSection({ state }: Props) {
           <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,214,10,0.75)" }}>
             Top {TOP_N} records
           </div>
-          {hiddenCount > 0 ? (
+          {isEmpty ? (
+            <div style={{ marginTop: 2, fontSize: 10, color: "var(--text-ghost)", fontWeight: 500 }}>
+              Finish a workout to claim your podium
+            </div>
+          ) : hiddenCount > 0 ? (
             <div style={{ marginTop: 2, fontSize: 10, color: "var(--text-ghost)", fontWeight: 500 }}>
               +{hiddenCount} more tracked
             </div>
@@ -70,7 +67,11 @@ export function PersonalRecordsSection({ state }: Props) {
         <TrophyGlyph size={20} />
       </div>
 
-      {topRows.map((row, index) => {
+      {isEmpty
+        ? EMPTY_SLOT_LABELS.map((label, index) => (
+            <PlaceholderRow key={label} rank={index + 1} label={label} isLast={index === EMPTY_SLOT_LABELS.length - 1} />
+          ))
+        : topRows.map((row, index) => {
         const expanded = expandedKey === row.key;
         const hero = formatRecordHeroParts(row.bestWeight, row.bestReps, wUnit);
         const rank = index + 1;
@@ -164,6 +165,53 @@ export function PersonalRecordsSection({ state }: Props) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function PlaceholderRow({ rank, label, isLast }: { rank: number; label: string; isLast: boolean }) {
+  return (
+    <div
+      style={{
+        borderBottom: !isLast ? "0.5px solid var(--border)" : undefined,
+        padding: "10px 12px",
+        display: "grid",
+        gridTemplateColumns: "auto 1fr",
+        gap: 10,
+        alignItems: "center",
+        background: rank === 1 ? "rgba(255,214,10,0.04)" : "transparent",
+        opacity: 0.55,
+      }}
+    >
+      <RankBadge rank={rank} />
+
+      <div style={{ minWidth: 0 }}>
+        <div className="between" style={{ gap: 8, alignItems: "baseline" }}>
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
+              color: "var(--text-ghost)",
+            }}
+          >
+            {label}
+          </span>
+          <span
+            style={{
+              flexShrink: 0,
+              fontSize: 14,
+              fontWeight: 700,
+              color: "var(--text-whisper)",
+            }}
+          >
+            —
+          </span>
+        </div>
+        <div style={{ marginTop: 2, fontSize: 10, color: "var(--text-whisper)", fontWeight: 500 }}>
+          Log sets in Workout
+        </div>
+      </div>
     </div>
   );
 }

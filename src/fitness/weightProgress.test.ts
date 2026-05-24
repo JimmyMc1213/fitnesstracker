@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { deltaColorForSentiment, weightDeltaSentiment } from "./weightProgress";
+import {
+  deltaColorForSentiment,
+  MAINTAIN_WEIGHT_BAND_LBS,
+  WEIGHT_DELTA_CAUTION_COLOR,
+  WEIGHT_DELTA_NEG_COLOR,
+  WEIGHT_DELTA_POS_COLOR,
+  weightDeltaSentiment,
+} from "./weightProgress";
 
 describe("weightDeltaSentiment", () => {
   it("cut: loss is positive, gain is negative", () => {
@@ -15,19 +22,20 @@ describe("weightDeltaSentiment", () => {
     expect(weightDeltaSentiment("bulk", -2)).toBe("negative");
   });
 
-  it("maintain: within 1 lb is neutral, beyond is caution", () => {
-    expect(weightDeltaSentiment("maintain", 0.5)).toBe("neutral");
-    expect(weightDeltaSentiment("maintain", -1)).toBe("neutral");
-    expect(weightDeltaSentiment("maintain", 1.2)).toBe("caution");
-    expect(weightDeltaSentiment("maintain", -2)).toBe("caution");
+  it(`maintain: within ±${MAINTAIN_WEIGHT_BAND_LBS} lb is positive, beyond is caution`, () => {
+    expect(weightDeltaSentiment("maintain", 0.5)).toBe("positive");
+    expect(weightDeltaSentiment("maintain", -2)).toBe("positive");
+    expect(weightDeltaSentiment("maintain", 2)).toBe("positive");
+    expect(weightDeltaSentiment("maintain", 2.1)).toBe("caution");
+    expect(weightDeltaSentiment("maintain", -2.1)).toBe("caution");
   });
 });
 
 describe("deltaColorForSentiment", () => {
-  it("maps sentiments to CSS colors", () => {
-    expect(deltaColorForSentiment("positive")).toBe("var(--pos)");
-    expect(deltaColorForSentiment("negative")).toBe("var(--neg)");
-    expect(deltaColorForSentiment("neutral")).toBe("rgba(255,255,255,0.45)");
-    expect(deltaColorForSentiment("caution")).toBe("#fbbf24");
+  it("maps sentiments to goal-aware colors", () => {
+    expect(deltaColorForSentiment("positive")).toBe(WEIGHT_DELTA_POS_COLOR);
+    expect(deltaColorForSentiment("negative")).toBe(WEIGHT_DELTA_NEG_COLOR);
+    expect(deltaColorForSentiment("neutral")).toBe("var(--text-ghost)");
+    expect(deltaColorForSentiment("caution")).toBe(WEIGHT_DELTA_CAUTION_COLOR);
   });
 });
