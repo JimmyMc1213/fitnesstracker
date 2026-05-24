@@ -250,7 +250,7 @@ development_status:
   epic-fti-sprint-10: in-progress
 
   fti-66-screenworkout-idle-dashboard-extraction: done
-  fti-67-add-exercise-search-sheet-extraction: in-progress
-  fti-68-ci-pipeline-e2e-depth-gate: backlog
+  fti-67-add-exercise-search-sheet-extraction: done
+  fti-68-ci-pipeline-e2e-depth-gate: in-progress
 
   epic-fti-sprint-10-retrospective: optional

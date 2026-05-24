@@ -1,17 +1,16 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { buildPreWorkoutCoachBrief, shouldDefaultExpandCoachCard } from "../preWorkoutCoachBrief";
 import { localDateKey } from "../dailyPlan";
-import { EXERCISE_DB, SPLIT, cloneExercisesForNewSession } from "../data";
+import { SPLIT, cloneExercisesForNewSession } from "../data";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
 import { exerciseNoteKey, getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { progressiveOverloadInsight } from "../coach";
 import { finishWorkout } from "../finishWorkout";
-import { IconPlus, IconSearch } from "../icons";
+import { IconPlus } from "../icons";
 import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { FullScreenOverlay } from "../motion";
 import { SortableExerciseList } from "../SortableExerciseList";
-import { PrimaryButton } from "../shared";
 import type { ScreenProps, WorkoutExercise } from "../types";
 import { autofillExerciseSets, buildSetsForExercise } from "../workoutAutofill";
 import {
@@ -27,6 +26,7 @@ import {
 import { ExerciseSwapSheet } from "../ExerciseSwapSheet";
 import { isTrainingDay } from "../trainingCalendar";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
+import { AddExerciseSearchSheet } from "../workout/AddExerciseSearchSheet";
 import { EmptyFinishConfirmSheet } from "../workout/EmptyFinishConfirmSheet";
 import { WorkoutExerciseCard } from "../workout/WorkoutExerciseCard";
 import { WorkoutIdleDashboard } from "../workout/WorkoutIdleDashboard";
@@ -60,9 +60,6 @@ const WARMUP_ITEMS = [
 
 export function ScreenWorkout({ state, setState }: ScreenProps) {
   const [showExSearch, setShowExSearch] = useState(false);
-  const [exQuery, setExQuery] = useState("");
-  const [draftExName, setDraftExName] = useState("");
-  const [draftExLabel, setDraftExLabel] = useState("");
   const [sessionEditMode, setSessionEditMode] = useState(false);
   const [expandedProgressId, setExpandedProgressId] = useState<string | null>(null);
   const [, setTick] = useState(0);
@@ -356,14 +353,13 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     });
     if (closeSheet) {
       setShowExSearch(false);
-      setExQuery("");
     }
   }
 
-  function saveDraftCustomAndAddToSession() {
-    const n = draftExName.trim();
+  function saveCustomAndAddToSession(name: string, label: string) {
+    const n = name.trim();
     if (!n) return;
-    const lb = draftExLabel.trim();
+    const lb = label.trim();
     setState((s) => {
       const newExercise: WorkoutExercise = {
         id: newWorkoutExerciseId(),
@@ -385,9 +381,6 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
         },
       };
     });
-    setDraftExName("");
-    setDraftExLabel("");
-    setExQuery("");
   }
 
   function startEmptyWorkout() {
@@ -462,9 +455,6 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
       }));
     }
     setShowExSearch(false);
-    setExQuery("");
-    setDraftExName("");
-    setDraftExLabel("");
     setSessionEditMode(false);
     setExpandedProgressId(null);
     setPreviewRoutineId(null);
@@ -479,26 +469,7 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
     }));
   }
 
-  const qLow = exQuery.trim().toLowerCase();
-  const filteredBuiltin = EXERCISE_DB.filter((n) => !qLow || n.toLowerCase().includes(qLow));
-  const filteredCustom = state.customExercises.filter(
-    (c) => !qLow || c.name.toLowerCase().includes(qLow) || c.label.toLowerCase().includes(qLow),
-  );
   const overloadTip = progressiveOverloadInsight(w);
-
-  const createInputStyle: CSSProperties = {
-    background: "#1A1A1A",
-    border: "0.5px solid var(--border)",
-    borderRadius: 10,
-    padding: "10px 12px",
-    color: "#fff",
-    fontFamily: "var(--ui)",
-    fontSize: 14,
-    fontWeight: 500,
-    width: "100%",
-    outline: "none",
-    boxSizing: "border-box",
-  };
 
   if (showHistoryPage) {
     return (
@@ -651,159 +622,12 @@ export function ScreenWorkout({ state, setState }: ScreenProps) {
       </div>
 
       {showExSearch ? (
-        <div className="card" style={{ padding: 12, marginTop: 16 }}>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.35)",
-              marginBottom: 10,
-            }}
-          >
-            Create new
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <input
-              value={draftExName}
-              onChange={(e) => setDraftExName(e.target.value)}
-              placeholder="Exercise name"
-              style={createInputStyle}
-            />
-            <input
-              value={draftExLabel}
-              onChange={(e) => setDraftExLabel(e.target.value)}
-              placeholder="Label (optional)"
-              style={createInputStyle}
-            />
-            <PrimaryButton
-              block
-              onClick={saveDraftCustomAndAddToSession}
-              disabled={!draftExName.trim()}
-              style={{ borderRadius: 10, padding: 12, fontSize: 14 }}
-            >
-              Save to my list & add to workout
-            </PrimaryButton>
-          </div>
-
-          <div style={{ position: "relative", marginTop: 16 }}>
-            <IconSearch size={16} style={{ position: "absolute", left: 12, top: 13, color: "rgba(255,255,255,0.4)" }} />
-            <input
-              autoFocus
-              className="input"
-              style={{ paddingLeft: 36, background: "#1A1A1A" }}
-              placeholder="Search exercises..."
-              value={exQuery}
-              onChange={(e) => setExQuery(e.target.value)}
-            />
-          </div>
-          <div style={{ marginTop: 10, maxHeight: 320, overflowY: "auto", display: "flex", flexDirection: "column" }}>
-            {filteredCustom.length > 0 ? (
-              <>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.35)",
-                    padding: "8px 8px 6px",
-                  }}
-                >
-                  Your exercises
-                </div>
-                {filteredCustom.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className="tap"
-                    onClick={() => addExerciseToSession(c.name, c.label)}
-                    style={{
-                      padding: "12px 8px",
-                      textAlign: "left",
-                      borderBottom: "0.5px solid var(--border)",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                    }}
-                  >
-                    <span style={{ minWidth: 0 }}>
-                      <span style={{ display: "block", color: "#fff" }}>{c.name}</span>
-                      {c.label ? (
-                        <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 3, fontWeight: 500 }}>{c.label}</span>
-                      ) : null}
-                    </span>
-                    <IconPlus size={14} stroke={2} style={{ color: "#fff", flexShrink: 0 }} />
-                  </button>
-                ))}
-              </>
-            ) : null}
-            {filteredBuiltin.length > 0 ? (
-              <>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.35)",
-                    padding: "8px 8px 6px",
-                  }}
-                >
-                  Catalog
-                </div>
-                {filteredBuiltin.map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className="tap"
-                    onClick={() => addExerciseToSession(n)}
-                    style={{
-                      padding: "12px 8px",
-                      textAlign: "left",
-                      borderBottom: "0.5px solid var(--border)",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <span>{n}</span>
-                    <IconPlus size={14} stroke={2} style={{ color: "#fff" }} />
-                  </button>
-                ))}
-              </>
-            ) : null}
-            {filteredCustom.length === 0 && filteredBuiltin.length === 0 ? (
-              <div style={{ padding: 16, textAlign: "center", fontSize: 13, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>No matches</div>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            className="tap"
-            onClick={() => {
-              setShowExSearch(false);
-              setExQuery("");
-              setDraftExName("");
-              setDraftExLabel("");
-            }}
-            style={{
-              marginTop: 8,
-              width: "100%",
-              color: "rgba(255,255,255,0.4)",
-              fontSize: 12,
-              padding: 6,
-              fontWeight: 500,
-            }}
-          >
-            Done
-          </button>
-        </div>
+        <AddExerciseSearchSheet
+          customExercises={state.customExercises}
+          onAddExercise={(name, label) => addExerciseToSession(name, label)}
+          onSaveCustomAndAdd={saveCustomAndAddToSession}
+          onClose={() => setShowExSearch(false)}
+        />
       ) : null}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
