@@ -259,15 +259,19 @@ export type NotificationPreferences = {
 
 /** Stats and preferences collected during full onboarding (FTI-14). */
 export type OnboardingProfile = {
-  goal: NutritionGoal;
+  /** Unset until the user picks a goal during onboarding. */
+  goal?: NutritionGoal;
   heightIn: number;
   weightLbs: number;
   age: number;
   /** ISO YYYY-MM-DD; when set, age is derived at normalize time. */
   dateOfBirth?: string;
-  gender: UserGender;
-  activityLevel: ActivityLevel;
-  workoutDaysPerWeek: WorkoutDaysPerWeek;
+  /** Unset until the user picks a gender during onboarding. */
+  gender?: UserGender;
+  /** Unset until the user picks activity level during onboarding. */
+  activityLevel?: ActivityLevel;
+  /** Unset until the user picks training days during onboarding. */
+  workoutDaysPerWeek?: WorkoutDaysPerWeek;
   /** Mon–Sun labels aligned to workout templates (backfilled on migrate). */
   trainingWeekdays?: string[];
   /** Target session length for workout planning. */
@@ -296,8 +300,10 @@ export type OnboardingDraft = {
   updatedAtIso: string;
   displayName: string;
   unitPreferences: UnitPreferences;
-  experienceLevel: ExperienceLevel;
-  equipmentSetup: EquipmentSetup;
+  /** Unset until the experience step is completed. */
+  experienceLevel?: ExperienceLevel;
+  /** Unset until the equipment step is completed. */
+  equipmentSetup?: EquipmentSetup;
   profile: OnboardingProfile;
   /** Preferred session length for plan generation. */
   sessionLength?: SessionLength;

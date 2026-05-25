@@ -18,7 +18,9 @@ export function goalSummaryLine(profile: OnboardingProfile): string {
   if (profile.goal !== "maintain" && profile.pace) {
     parts.push(PACE_LABELS[profile.pace]);
   }
-  parts.push(activityLevelLabel(profile.activityLevel).toLowerCase());
+  if (profile.activityLevel) {
+    parts.push(activityLevelLabel(profile.activityLevel).toLowerCase());
+  }
   return parts.join(" · ");
 }
 
@@ -82,50 +84,6 @@ export function goalWeightReinforcementParts(
 
 export function goalWeightReinforcementSubtext(): string {
   return "Most Gymmy users say the change feels obvious within a few weeks, and it's built to last.";
-}
-
-const COACHING_LOOP_STEPS = [
-  {
-    label: "You train",
-    subtext: "Log your sets, weights, and reps each session",
-    icon: "barbell" as const,
-  },
-  {
-    label: "Gymmy coaches",
-    subtext: "Your coach analyzes what you did and tells you exactly what to push for next time",
-    icon: "brain" as const,
-  },
-  {
-    label: "You progress",
-    subtext: "Every session builds on the last. That's progressive overload",
-    icon: "trending-up" as const,
-  },
-] as const;
-
-export function coachingLoopReinforcementCopy(goal: NutritionGoal): {
-  title: string;
-  subtitle: string;
-  steps: typeof COACHING_LOOP_STEPS;
-  bottomStatement: string;
-} {
-  const title =
-    goal === "bulk" ? "Here's how Gymmy builds your physique"
-    : goal === "cut" ? "Here's how Gymmy gets you there"
-    : "Here's how Gymmy keeps you sharp";
-
-  const bottomStatement =
-    goal === "bulk"
-      ? "Most people plateau because they guess their next session. Gymmy removes the guesswork."
-      : goal === "cut"
-        ? "Most people lose muscle while cutting because they train wrong. Gymmy keeps you lifting heavy while the fat comes off."
-        : "Staying sharp means pushing harder over time, not just showing up. Gymmy keeps the bar rising.";
-
-  return {
-    title,
-    subtitle: "The coaching loop that actually works",
-    steps: COACHING_LOOP_STEPS,
-    bottomStatement,
-  };
 }
 
 /** First coach note on the plan-ready screen: what the coach does and how it supports the user's goal. */

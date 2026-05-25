@@ -7,6 +7,7 @@ import {
   migrateRemoveOnboardingEditStepIndex,
   migrateSaveProgressStepIndex,
   migrateSessionLengthBeforeCalendarStepIndex,
+  migrateRemoveCoachingLoopStepIndex,
   migrateThemeStepIndex,
   migrateTrainingDurationStepIndex,
   migrateV2StepIndex,
@@ -25,8 +26,9 @@ import type {
 } from "./types";
 import type { AppTheme } from "./theme";
 
-/** v2 = 11-step wizard; v3 = 23-screen Gymmy onboarding v2; v4 = + referral; v5 = + motivation survey; v6 = + comparison (removed in v7); v8 = nutrition before training plan; v9 = + session duration screen; v10 = + plan-building screen after potential chart; v11 = session length before workout calendar + workout plan engine; v12 = edit split screen removed from onboarding; v13 = + notification pre-prompt before reminder picker; v14 = + save progress before paywall; v15 = + theme picker after welcome. */
-export const ONBOARDING_DRAFT_VERSION = 15;
+/** v2 = 11-step wizard; v3 = 23-screen Gymmy onboarding v2; v4 = + referral; v5 = + motivation survey; v6 = + comparison (removed in v7); v8 = nutrition before training plan; v9 = + session duration screen; v10 = + plan-building screen after potential chart; v11 = session length before workout calendar + workout plan engine; v12 = edit split screen removed from onboarding; v13 = + notification pre-prompt before reminder picker; v14 = + save progress before paywall; v15 = + theme picker after welcome; v16 = coaching loop screen removed. */
+export const ONBOARDING_DRAFT_VERSION = 16;
+export const ONBOARDING_DRAFT_VERSION_PRE_COACHING_LOOP = 15;
 export const ONBOARDING_DRAFT_VERSION_PRE_THEME = 14;
 export const ONBOARDING_DRAFT_VERSION_PRE_SAVE_PROGRESS = 13;
 export const ONBOARDING_DRAFT_VERSION_PRE_NOTIFICATION_PROMPT = 12;
@@ -45,8 +47,8 @@ export type OnboardingDraftInput = {
   stepIndex: number;
   displayName: string;
   unitPreferences: UnitPreferences;
-  experienceLevel: ExperienceLevel;
-  equipmentSetup: EquipmentSetup;
+  experienceLevel?: ExperienceLevel;
+  equipmentSetup?: EquipmentSetup;
   profile: OnboardingProfile;
   sessionLength?: SessionLength;
   draftTemplates?: WorkoutRoutineTemplate[];
@@ -80,9 +82,11 @@ function draftTimestamp(draft: OnboardingDraft): string {
 }
 
 function migrateToCurrentStepIndex(stepIndex: number): number {
-  return migrateThemeStepIndex(
-    migrateSaveProgressStepIndex(
-      migrateNotificationPrePromptStepIndex(migrateRemoveOnboardingEditStepIndex(Math.round(stepIndex))),
+  return migrateRemoveCoachingLoopStepIndex(
+    migrateThemeStepIndex(
+      migrateSaveProgressStepIndex(
+        migrateNotificationPrePromptStepIndex(migrateRemoveOnboardingEditStepIndex(Math.round(stepIndex))),
+      ),
     ),
   );
 }
@@ -94,9 +98,15 @@ function migrateDraftVersion(raw: Record<string, unknown>): { stepIndex: number;
   if (version === ONBOARDING_DRAFT_VERSION) {
     return { stepIndex: Math.round(stepIndex), version: ONBOARDING_DRAFT_VERSION };
   }
+  if (version === ONBOARDING_DRAFT_VERSION_PRE_COACHING_LOOP) {
+    return {
+      stepIndex: migrateRemoveCoachingLoopStepIndex(Math.round(stepIndex)),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
   if (version === ONBOARDING_DRAFT_VERSION_PRE_THEME) {
     return {
-      stepIndex: migrateThemeStepIndex(Math.round(stepIndex)),
+      stepIndex: migrateRemoveCoachingLoopStepIndex(migrateThemeStepIndex(Math.round(stepIndex))),
       version: ONBOARDING_DRAFT_VERSION,
     };
   }
@@ -202,7 +212,7 @@ export function normalizeOnboardingDraft(raw: unknown): OnboardingDraft | null {
   const experienceLevel = o.experienceLevel;
   const equipmentSetup = o.equipmentSetup;
   const profile = o.profile;
-  if (!unitPreferences || !experienceLevel || !equipmentSetup || !profile) return null;
+  if (!unitPreferences || !profile) return null;
 
   const subscriptionTier = o.subscriptionTier === "free" || o.subscriptionTier === "pro" ? o.subscriptionTier : undefined;
 
@@ -212,8 +222,17 @@ export function normalizeOnboardingDraft(raw: unknown): OnboardingDraft | null {
     updatedAtIso,
     displayName,
     unitPreferences: unitPreferences as UnitPreferences,
-    experienceLevel: experienceLevel as ExperienceLevel,
-    equipmentSetup: equipmentSetup as EquipmentSetup,
+    experienceLevel:
+      experienceLevel === "beginner" || experienceLevel === "intermediate" || experienceLevel === "advanced"
+        ? experienceLevel
+        : undefined,
+    equipmentSetup:
+      equipmentSetup === "full_gym" ||
+      equipmentSetup === "home_gym" ||
+      equipmentSetup === "dumbbells_only" ||
+      equipmentSetup === "bodyweight_only"
+        ? equipmentSetup
+        : undefined,
     profile: profile as OnboardingProfile,
     sessionLength:
       o.sessionLength === "under_30" ||

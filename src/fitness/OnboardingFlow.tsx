@@ -6,9 +6,7 @@ import {
   habitTemplatesFromOnboarding,
   pruneHabitsDoneByDay,
 } from "./data";
-import { DEFAULT_EXPERIENCE_LEVEL } from "./experienceLevel";
 import { ExperienceLevelPicker } from "./ExperienceLevelPicker";
-import { DEFAULT_EQUIPMENT_SETUP } from "./equipmentSetup";
 import { EquipmentSetupPicker } from "./EquipmentSetupPicker";
 import {
   activityLevelLabel,
@@ -17,7 +15,7 @@ import {
 import { NotificationPreferencesPicker } from "./NotificationPreferencesPicker";
 import { ONBOARDING_NOTIFICATION_DEFAULTS, anyNotificationEnabled } from "./notificationPreferences";
 import { requestNotificationPermission } from "./notificationPermission";
-import { ageFromDateOfBirth, DEFAULT_ONBOARDING_PROFILE, normalizeOnboardingProfile, progressGoalFromOnboarding } from "./onboardingProfile";
+import { ageFromDateOfBirth, completeOnboardingProfile, DEFAULT_ONBOARDING_PROFILE, FRESH_ONBOARDING_PROFILE, normalizeOnboardingProfile, nutritionCalcInputFromOnboardingProfile, progressGoalFromOnboarding } from "./onboardingProfile";
 import {
   buildOnboardingDraft,
   clearOnboardingDraftStorage,
@@ -36,7 +34,6 @@ import type { AppTheme } from "./theme";
 import { OnboardingPaywall } from "./OnboardingPaywall";
 import { OnboardingSaveProgress } from "./OnboardingSaveProgress";
 import { OnboardingPlanReady } from "./OnboardingPlanReady";
-import { OnboardingPotentialReinforcement } from "./OnboardingPotentialReinforcement";
 import { OnboardingPillStack, OnboardingSegment } from "./OnboardingSegment";
 import { OnboardingShell, ONBOARDING_TOTAL_STEPS } from "./OnboardingShell";
 import {
@@ -50,13 +47,13 @@ import {
   DIETARY_RESTRICTIONS,
   ONBOARDING_BARRIERS,
   TRAINING_STYLES,
-  barrierIcon,
+  barrierEmoji,
   barrierLabel,
-  dietaryRestrictionIcon,
+  dietaryRestrictionEmoji,
   dietaryRestrictionLabel,
   toggleDietaryRestriction,
   toggleSurveySelection,
-  trainingStyleIcon,
+  trainingStyleEmoji,
   trainingStyleLabel,
 } from "./onboardingMotivationSurvey";
 import { OnboardingNotificationPrompt } from "./OnboardingNotificationPrompt";
@@ -66,14 +63,12 @@ import { UnitPreferencePicker } from "./UnitPreferencePicker";
 import { defaultTrainingWeekdaysForProfile } from "./workoutWeekCalendar";
 import {
   DEFAULT_UNIT_PREFERENCES,
-  cmFromInches,
-  inchesFromCm,
-  parseWeightToLbs,
 } from "./unitPreferences";
-import { DateOfBirthWheelPicker, defaultOnboardingDateOfBirth } from "./DateOfBirthWheelPicker";
+import { DateOfBirthWheelPicker } from "./DateOfBirthWheelPicker";
 import { defaultGoalWeightLbs, goalWeightRangeLbs, WeightRulerPicker } from "./WeightRulerPicker";
 import { ReferralSourcePicker } from "./ReferralSourcePicker";
-import { OnboardingDecimalInput } from "./OnboardingDecimalInput";
+import { OnboardingHeightInput } from "./OnboardingHeightInput";
+import { OnboardingWeightInput } from "./OnboardingWeightInput";
 import { sessionDurationFromSessionLength, sessionLengthFromDuration } from "./workoutSplitByDays";
 import { restSecondsForSessionLength } from "./sessionLengthConfig";
 import { buildWeeklyRoutineTemplates } from "./buildWeeklyRoutine";
@@ -172,18 +167,22 @@ function onboardingStateFromDraft(draft: OnboardingDraft) {
   const weekdays =
     draft.profile.trainingWeekdays?.length ?
       draft.profile.trainingWeekdays
-    : defaultTrainingWeekdaysForProfile(draft.profile.workoutDaysPerWeek);
+    : draft.stepIndex > 15 && draft.profile.workoutDaysPerWeek ?
+      defaultTrainingWeekdaysForProfile(draft.profile.workoutDaysPerWeek)
+    : draft.profile.trainingWeekdays;
   const profile = {
     ...draft.profile,
     trainingWeekdays: weekdays,
-    dateOfBirth: draft.profile.dateOfBirth ?? defaultDateOfBirthFromAge(draft.profile.age),
+    dateOfBirth: draft.profile.dateOfBirth ?? (draft.profile.age ? defaultDateOfBirthFromAge(draft.profile.age) : undefined),
   };
   const sessionLength =
     draft.sessionLength ?? sessionLengthFromDuration(draft.profile.sessionDuration);
   const templatesFromDraft =
     draft.draftTemplates?.length ?
       draft.draftTemplates.map((t) => ({ ...t, exercises: [...t.exercises] }))
-    : buildDraftTemplatesFromSelections(profile, draft.experienceLevel, draft.equipmentSetup, sessionLength);
+    : draft.experienceLevel && draft.equipmentSetup && sessionLength ?
+      buildDraftTemplatesFromSelections(profile, draft.experienceLevel, draft.equipmentSetup, sessionLength)
+    : [];
   return {
     step: Math.min(migrateOnboardingStepIndex(draft.stepIndex), TOTAL_STEPS - 1),
     displayName: draft.displayName,
@@ -193,7 +192,12 @@ function onboardingStateFromDraft(draft: OnboardingDraft) {
     sessionLength,
     profile,
     draftTemplates: templatesFromDraft,
-    macros: draft.macros ? { ...draft.macros } : calculateNutritionTargets(profile),
+    macros:
+      draft.macros ?
+        { ...draft.macros }
+      : profile.gender && profile.goal && profile.activityLevel ?
+        calculateNutritionTargets(nutritionCalcInputFromOnboardingProfile(profile))
+      : { cal: 0, p: 0, c: 0, f: 0 },
     notificationPrefs: { ...(draft.notificationPrefs ?? ONBOARDING_NOTIFICATION_DEFAULTS) },
     theme: draft.theme ?? "light",
   };
@@ -226,42 +230,31 @@ export function OnboardingFlow({
   });
   const displayName = accountDisplayName.trim() || (initial?.displayName ?? "").trim();
   const [unitPreferences, setUnitPreferences] = useState<UnitPreferences>(() => initial?.unitPreferences ?? { ...DEFAULT_UNIT_PREFERENCES });
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(() => initial?.experienceLevel ?? DEFAULT_EXPERIENCE_LEVEL);
-  const [equipmentSetup, setEquipmentSetup] = useState<EquipmentSetup>(() => initial?.equipmentSetup ?? DEFAULT_EQUIPMENT_SETUP);
-  const [sessionLength, setSessionLength] = useState<SessionLength>(() => initial?.sessionLength ?? "45_60");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | undefined>(() => initial?.experienceLevel);
+  const [equipmentSetup, setEquipmentSetup] = useState<EquipmentSetup | undefined>(() => initial?.equipmentSetup);
+  const [sessionLength, setSessionLength] = useState<SessionLength | undefined>(() => initial?.sessionLength);
   const [profile, setProfile] = useState<OnboardingProfile>(() => {
-    const base = normalizeOnboardingProfile(initial?.profile) ?? { ...DEFAULT_ONBOARDING_PROFILE };
-    return {
-      ...base,
-      dateOfBirth: base.dateOfBirth ?? defaultDateOfBirthFromAge(base.age),
-    };
+    if (initial?.profile) {
+      const base = normalizeOnboardingProfile(initial.profile) ?? { ...DEFAULT_ONBOARDING_PROFILE };
+      return {
+        ...base,
+        dateOfBirth: base.dateOfBirth ?? (base.age ? defaultDateOfBirthFromAge(base.age) : undefined),
+      };
+    }
+    return { ...FRESH_ONBOARDING_PROFILE };
   });
-  const [draftTemplates, setDraftTemplates] = useState<WorkoutRoutineTemplate[]>(
-    () =>
-      initial?.draftTemplates ??
-      buildDraftTemplatesFromSelections(
-        initial?.profile ?? DEFAULT_ONBOARDING_PROFILE,
-        initial?.experienceLevel ?? DEFAULT_EXPERIENCE_LEVEL,
-        initial?.equipmentSetup ?? DEFAULT_EQUIPMENT_SETUP,
-        initial?.sessionLength ?? "45_60",
-      ),
+  const [draftTemplates, setDraftTemplates] = useState<WorkoutRoutineTemplate[]>(() => initial?.draftTemplates ?? []);
+  const [macros, setMacros] = useState<MacroTotals>(
+    () => initial?.macros ?? { cal: 0, p: 0, c: 0, f: 0 },
   );
-  const [macros, setMacros] = useState<MacroTotals>(() => initial?.macros ?? calculateNutritionTargets(DEFAULT_ONBOARDING_PROFILE));
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(
     () => initial?.notificationPrefs ?? { ...ONBOARDING_NOTIFICATION_DEFAULTS },
   );
   const [goalWeightReinforcement, setGoalWeightReinforcement] = useState(false);
   const [navDirection, setNavDirection] = useState<NavDirection>("forward");
-  const [coachingLoopCtaReady, setCoachingLoopCtaReady] = useState(false);
-  const [coachingLoopCtaVisible, setCoachingLoopCtaVisible] = useState(false);
+  const [heightFieldsComplete, setHeightFieldsComplete] = useState(false);
+  const [weightFieldComplete, setWeightFieldComplete] = useState(false);
   const [draftTheme, setDraftTheme] = useState<AppTheme>(() => initial?.theme ?? restored?.theme ?? "light");
-
-  useEffect(() => {
-    if (step !== 20) {
-      setCoachingLoopCtaReady(false);
-      setCoachingLoopCtaVisible(false);
-    }
-  }, [step]);
 
   const dobAge = useMemo(
     () => (profile.dateOfBirth ? ageFromDateOfBirth(profile.dateOfBirth) : null),
@@ -276,10 +269,15 @@ export function OnboardingFlow({
     [profile, dobAge],
   );
 
-  const computedMacros = useMemo(() => calculateNutritionTargets(profileForCalc), [profileForCalc]);
+  const computedMacros = useMemo(
+    () => calculateNutritionTargets(nutritionCalcInputFromOnboardingProfile(profileForCalc, dobAge ?? undefined)),
+    [profileForCalc, dobAge],
+  );
 
   const heightValid = profile.heightIn >= 48 && profile.heightIn <= 96;
+  const heightStepValid = heightValid && heightFieldsComplete;
   const weightValid = profile.weightLbs >= 70 && profile.weightLbs <= 450;
+  const weightStepValid = weightValid && weightFieldComplete;
   const dobValid = dobAge != null && dobAge >= 13 && dobAge <= 100;
   const paceValid = profile.goal === "maintain" || profile.pace != null;
 
@@ -339,11 +337,6 @@ export function OnboardingFlow({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, introWelcomeDone]);
-
-  useEffect(() => {
-    if (step !== 3 || profile.dateOfBirth) return;
-    setProfile((p) => ({ ...p, dateOfBirth: defaultOnboardingDateOfBirth() }));
-  }, [step, profile.dateOfBirth]);
 
   useEffect(() => {
     if (step !== 9) {
@@ -406,21 +399,27 @@ export function OnboardingFlow({
     }
 
     if (step === 15) {
+      if (!experienceLevel || !equipmentSetup || !sessionLength) return;
       const templates = buildDraftTemplatesFromSelections(profile, experienceLevel, equipmentSetup, sessionLength);
       overrides.draftTemplates = templates;
       overrides.sessionLength = sessionLength;
       setDraftTemplates(templates);
     }
 
-    if (step === 22) {
+    if (step === 21) {
       overrides.macros = computedMacros;
       setMacros(computedMacros);
+      goToStep(22, overrides);
+      return;
+    }
+
+    if (step === 22) {
+      overrides.macros = macros;
       goToStep(23, overrides);
       return;
     }
 
     if (step === 23) {
-      overrides.macros = macros;
       goToStep(24, overrides);
       return;
     }
@@ -445,11 +444,6 @@ export function OnboardingFlow({
       return;
     }
 
-    if (step === 28) {
-      goToStep(29, overrides);
-      return;
-    }
-
     const next = Math.min(step + 1, TOTAL_STEPS - 1);
     if (step === 10 && profile.goal !== "maintain" && !profile.pace) {
       return;
@@ -467,20 +461,20 @@ export function OnboardingFlow({
       goToStep(prevBeforeActivity());
       return;
     }
-    if (step === 22) {
-      goToStep(20);
-      return;
-    }
-    if (step === 24) {
-      goToStep(23);
+    if (step === 21) {
+      goToStep(19);
       return;
     }
     if (step === 23) {
       goToStep(22);
       return;
     }
-    if (step === 29) {
-      goToStep(28);
+    if (step === 22) {
+      goToStep(21);
+      return;
+    }
+    if (step === 28) {
+      goToStep(27);
       return;
     }
     goToStep(Math.max(step - 1, 0));
@@ -488,11 +482,11 @@ export function OnboardingFlow({
 
   function handlePlanBuildingComplete() {
     setMacros(computedMacros);
-    goToStep(22, { macros: computedMacros });
+    goToStep(21, { macros: computedMacros });
   }
 
   function goToReminderPicker() {
-    goToStep(26);
+    goToStep(25);
   }
 
   async function handleNotificationPromptChoice() {
@@ -514,11 +508,13 @@ export function OnboardingFlow({
     clearOnboardingDraftStorage();
     const planStartIso = localDateKey(new Date());
     const age = profile.dateOfBirth ? (ageFromDateOfBirth(profile.dateOfBirth) ?? profile.age) : profile.age;
-    const finalProfile: OnboardingProfile = {
-      ...profile,
+    const finalProfile = completeOnboardingProfile(
+      {
+        ...profile,
+        sessionDuration: sessionDurationFromSessionLength(sessionLength!),
+      },
       age,
-      sessionDuration: sessionDurationFromSessionLength(sessionLength),
-    };
+    );
     const progressGoal = progressGoalFromOnboarding(finalProfile);
     setState((s) => {
       const stepsTarget = s.stepsTarget;
@@ -532,9 +528,9 @@ export function OnboardingFlow({
         displayName: displayName.trim(),
         unitPreferences,
         unitPreferencesChosen: true,
-        experienceLevel,
+        experienceLevel: experienceLevel!,
         experienceLevelChosen: true,
-        equipmentSetup,
+        equipmentSetup: equipmentSetup!,
         equipmentSetupChosen: true,
         onboardingProfile: finalProfile,
         onboardingComplete: true,
@@ -549,8 +545,8 @@ export function OnboardingFlow({
         habitTemplates,
         habitsDoneByDay,
         habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey),
-        restTimerDefaultSeconds: restSecondsForSessionLength(sessionLength),
-        dailyTasks: loadTasksForToday(macros, planStartIso, stepsTarget, draftTemplates, finalProfile.workoutDaysPerWeek),
+        restTimerDefaultSeconds: restSecondsForSessionLength(sessionLength!),
+        dailyTasks: loadTasksForToday(macros, planStartIso, stepsTarget, draftTemplates, finalProfile.workoutDaysPerWeek!),
       };
     });
     onComplete?.();
@@ -590,7 +586,7 @@ export function OnboardingFlow({
 
   if (step === 2) {
     return (
-      <OnboardingShell step={step} title="What's your gender?" subtitle="This will be used to calibrate your custom plan." onBack={goBack} onContinue={goNext}>
+      <OnboardingShell step={step} title="What's your gender?" subtitle="This will be used to calibrate your custom plan." onBack={goBack} onContinue={goNext} continueDisabled={!profile.gender}>
         <OnboardingPillStack>
           {GENDERS.map((g) => (
             <OnboardingSegment key={g} selected={profile.gender === g} onClick={() => setProfile((p) => ({ ...p, gender: g }))}>
@@ -603,7 +599,7 @@ export function OnboardingFlow({
   }
 
   if (step === 3) {
-    const dobValue = profile.dateOfBirth ?? defaultOnboardingDateOfBirth();
+    const dobValue = profile.dateOfBirth;
 
     return (
       <OnboardingShell
@@ -656,9 +652,6 @@ export function OnboardingFlow({
 
   if (step === 6) {
     const hUnit = unitPreferences.heightUnit;
-    const heightCm = Math.round(cmFromInches(profile.heightIn));
-    const heightFt = Math.floor(profile.heightIn / 12);
-    const heightInRem = Math.round(profile.heightIn % 12);
 
     return (
       <OnboardingShell
@@ -666,56 +659,17 @@ export function OnboardingFlow({
         title="How tall are you?"
         onBack={goBack}
         onContinue={goNext}
-        continueDisabled={!heightValid}
+        continueDisabled={!heightStepValid}
       >
         <div className="onboarding-gradient-card">
-          {hUnit === "cm" ? (
-            <label className="onboarding-field-group">
-              <span className="onboarding-field-label">Height (cm)</span>
-              <input
-                type="number"
-                aria-label="Height in centimeters"
-                className="onboarding-input-pill"
-                value={heightCm}
-                onChange={(e) => {
-                  const inches = inchesFromCm(parseFloat(e.target.value));
-                  if (inches != null) setProfile((p) => ({ ...p, heightIn: inches }));
-                }}
-              />
-            </label>
-          ) : (
-            <div className="onboarding-pill-row">
-              <label className="onboarding-field-group">
-                <span className="onboarding-field-label">Ft</span>
-                <input
-                  type="number"
-                  aria-label="Height feet"
-                  className="onboarding-input-pill"
-                  value={heightFt}
-                  onChange={(e) => {
-                    const ft = parseInt(e.target.value, 10);
-                    if (!Number.isFinite(ft)) return;
-                    setProfile((p) => ({ ...p, heightIn: ft * 12 + (p.heightIn % 12) }));
-                  }}
-                />
-              </label>
-              <label className="onboarding-field-group">
-                <span className="onboarding-field-label">In</span>
-                <input
-                  type="number"
-                  aria-label="Height inches"
-                  className="onboarding-input-pill"
-                  value={heightInRem}
-                  onChange={(e) => {
-                    const inch = parseInt(e.target.value, 10);
-                    if (!Number.isFinite(inch)) return;
-                    setProfile((p) => ({ ...p, heightIn: Math.floor(p.heightIn / 12) * 12 + inch }));
-                  }}
-                />
-              </label>
-            </div>
-          )}
-          {!heightValid ? (
+          <OnboardingHeightInput
+            unit={hUnit}
+            heightIn={profile.heightIn}
+            resetKey={hUnit}
+            onHeightChange={(heightIn) => setProfile((p) => ({ ...p, heightIn }))}
+            onFieldsCompleteChange={setHeightFieldsComplete}
+          />
+          {!heightStepValid ? (
             <p style={{ margin: "10px 0 0", fontSize: 13, color: "rgba(248,113,113,0.9)" }}>Enter a height between 4&apos;0&quot; and 8&apos;0&quot;</p>
           ) : null}
         </div>
@@ -725,7 +679,6 @@ export function OnboardingFlow({
 
   if (step === 7) {
     const wUnit = unitPreferences.weightUnit;
-    const weightDisplay = wUnit === "kg" ? profile.weightLbs / 2.2046226218 : profile.weightLbs;
 
     return (
       <OnboardingShell
@@ -733,24 +686,17 @@ export function OnboardingFlow({
         title="What's your current weight?"
         onBack={goBack}
         onContinue={goNext}
-        continueDisabled={!weightValid}
+        continueDisabled={!weightStepValid}
       >
         <div className="onboarding-gradient-card">
-          <label className="onboarding-field-group">
-            <span className="onboarding-field-label">Weight ({wUnit})</span>
-            <OnboardingDecimalInput
-              resetKey={wUnit}
-              ariaLabel="Body weight"
-              value={weightDisplay}
-              onChange={(n) => {
-                setProfile((p) => ({
-                  ...p,
-                  weightLbs: n == null ? 0 : parseWeightToLbs(n, wUnit),
-                }));
-              }}
-            />
-          </label>
-          {!weightValid ? (
+          <OnboardingWeightInput
+            unit={wUnit}
+            weightLbs={profile.weightLbs}
+            resetKey={wUnit}
+            onWeightChange={(weightLbs) => setProfile((p) => ({ ...p, weightLbs }))}
+            onFieldCompleteChange={setWeightFieldComplete}
+          />
+          {!weightStepValid ? (
             <p style={{ margin: "10px 0 0", fontSize: 13, color: "rgba(248,113,113,0.9)" }}>Enter a weight between 70 and 450 lbs</p>
           ) : null}
         </div>
@@ -760,7 +706,7 @@ export function OnboardingFlow({
 
   if (step === 8) {
     return (
-      <OnboardingShell step={step} title="What's your primary goal?" subtitle="Gymmy adjusts calories and coaching for your goal." onBack={goBack} onContinue={goNext}>
+      <OnboardingShell step={step} title="What's your primary goal?" subtitle="Gymmy adjusts calories and coaching for your goal." onBack={goBack} onContinue={goNext} continueDisabled={!profile.goal}>
         <OnboardingPillStack>
           {GOALS.map((g) => (
             <OnboardingSegment key={g} selected={profile.goal === g} onClick={() => setProfile((p) => ({ ...p, goal: g }))}>
@@ -806,7 +752,7 @@ export function OnboardingFlow({
             minLbs={minLbs}
             maxLbs={maxLbs}
             unit={wUnit}
-            directionLabel={goalWeightDirectionLabel(profile.goal)}
+            directionLabel={goalWeightDirectionLabel(profile.goal!)}
             onChange={(goalWeightLbs) => setProfile((p) => ({ ...p, goalWeightLbs }))}
           />
         )}
@@ -835,7 +781,7 @@ export function OnboardingFlow({
 
   if (step === 11) {
     return (
-      <OnboardingShell step={step} title="How active are you outside the gym?" subtitle="Helps us size your daily fuel targets." onBack={goBack} onContinue={goNext}>
+      <OnboardingShell step={step} title="How active are you outside the gym?" subtitle="Helps us size your daily fuel targets." onBack={goBack} onContinue={goNext} continueDisabled={!profile.activityLevel}>
         <OnboardingPillStack>
           {ACTIVITY_LEVELS.map((level) => (
             <OnboardingSegment key={level} selected={profile.activityLevel === level} onClick={() => setProfile((p) => ({ ...p, activityLevel: level }))}>
@@ -849,7 +795,7 @@ export function OnboardingFlow({
 
   if (step === 12) {
     return (
-      <OnboardingShell step={step} title="What's your training experience?" subtitle="Rep ranges and starting weights in your templates." onBack={goBack} onContinue={goNext}>
+      <OnboardingShell step={step} title="What's your training experience?" subtitle="Rep ranges and starting weights in your templates." onBack={goBack} onContinue={goNext} continueDisabled={!experienceLevel}>
         <ExperienceLevelPicker value={experienceLevel} onChange={setExperienceLevel} />
       </OnboardingShell>
     );
@@ -857,7 +803,7 @@ export function OnboardingFlow({
 
   if (step === 13) {
     return (
-      <OnboardingShell step={step} title="What equipment do you have?" subtitle="Exercises will match what you can perform." onBack={goBack} onContinue={goNext}>
+      <OnboardingShell step={step} title="What equipment do you have?" subtitle="Exercises will match what you can perform." onBack={goBack} onContinue={goNext} continueDisabled={!equipmentSetup}>
         <EquipmentSetupPicker value={equipmentSetup} onChange={setEquipmentSetup} />
       </OnboardingShell>
     );
@@ -871,6 +817,7 @@ export function OnboardingFlow({
         subtitle="We'll size your workouts to fit your session."
         onBack={goBack}
         onContinue={goNext}
+        continueDisabled={!sessionLength}
       >
         <OnboardingPillStack>
           {SESSION_LENGTH_OPTIONS.map(({ value, label }) => (
@@ -905,7 +852,7 @@ export function OnboardingFlow({
   }
 
   if (step === 16) {
-    const scheduleReinforcement = trainingScheduleReinforcementParts(profile.workoutDaysPerWeek);
+    const scheduleReinforcement = trainingScheduleReinforcementParts(profile.workoutDaysPerWeek!);
 
     return (
       <OnboardingShell
@@ -934,7 +881,7 @@ export function OnboardingFlow({
     const barrierOptions = ONBOARDING_BARRIERS.map((id) => ({
       id,
       label: barrierLabel(id),
-      icon: barrierIcon(id),
+      emoji: barrierEmoji(id),
     }));
 
     return (
@@ -942,6 +889,7 @@ export function OnboardingFlow({
         step={step}
         title="What's held you back before?"
         subtitle="Be honest. Gymmy is built around your answer"
+        contentClassName="onboarding-shell__content--centered"
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!profile.barriers?.length}
@@ -965,7 +913,7 @@ export function OnboardingFlow({
     const restrictionOptions = DIETARY_RESTRICTIONS.map((id) => ({
       id,
       label: dietaryRestrictionLabel(id),
-      icon: dietaryRestrictionIcon(id),
+      emoji: dietaryRestrictionEmoji(id),
     }));
 
     return (
@@ -973,6 +921,7 @@ export function OnboardingFlow({
         step={step}
         title="Any foods you avoid?"
         subtitle="We'll keep your nutrition suggestions on track"
+        contentClassName="onboarding-shell__content--centered"
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!profile.dietaryRestrictions?.length}
@@ -996,7 +945,7 @@ export function OnboardingFlow({
     const styleOptions = TRAINING_STYLES.map((id) => ({
       id,
       label: trainingStyleLabel(id),
-      icon: trainingStyleIcon(id),
+      emoji: trainingStyleEmoji(id),
     }));
 
     return (
@@ -1004,6 +953,7 @@ export function OnboardingFlow({
         step={step}
         title="How do you train best?"
         subtitle="Your coach will match your style from day one"
+        contentClassName="onboarding-shell__content--centered"
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!profile.trainingStyle}
@@ -1018,35 +968,10 @@ export function OnboardingFlow({
   }
 
   if (step === 20) {
-    return (
-      <OnboardingShell
-        step={step}
-        title=""
-        hideHeader
-        onBack={goBack}
-        onContinue={goNext}
-        continueLabel="Got it, let's go"
-        continueDisabled={!coachingLoopCtaReady}
-        continueClassName={
-          coachingLoopCtaVisible
-            ? "onboarding-coaching-loop__cta onboarding-coaching-loop__reveal onboarding-coaching-loop__reveal--visible"
-            : "onboarding-coaching-loop__cta onboarding-coaching-loop__reveal"
-        }
-      >
-        <OnboardingPotentialReinforcement
-          goal={profile.goal}
-          onCtaReveal={() => setCoachingLoopCtaVisible(true)}
-          onCtaReady={() => setCoachingLoopCtaReady(true)}
-        />
-      </OnboardingShell>
-    );
-  }
-
-  if (step === 21) {
     return <OnboardingPlanBuilding onComplete={handlePlanBuildingComplete} />;
   }
 
-  if (step === 22) {
+  if (step === 21) {
     return (
       <OnboardingShell
         step={step}
@@ -1066,7 +991,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 23) {
+  if (step === 22) {
     return (
       <OnboardingShell
         step={step}
@@ -1090,7 +1015,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 24) {
+  if (step === 23) {
     return (
       <OnboardingShell
         step={step}
@@ -1105,7 +1030,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 25) {
+  if (step === 24) {
     return (
       <OnboardingShell
         step={step}
@@ -1121,7 +1046,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 26) {
+  if (step === 25) {
     const remindersEnabled = anyNotificationEnabled(notificationPrefs);
     return (
       <OnboardingShell
@@ -1141,7 +1066,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 27) {
+  if (step === 26) {
     const name = displayName.trim() || "Friend";
     return (
       <OnboardingShell
@@ -1168,7 +1093,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 28) {
+  if (step === 27) {
     return (
       <OnboardingShell
         step={step}
@@ -1184,7 +1109,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 29) {
+  if (step === 28) {
     return <OnboardingPaywall onSelectTier={(tier) => void finishWithTier(tier)} onBack={goBack} />;
   }
 

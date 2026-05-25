@@ -7,6 +7,7 @@ import type {
   ExperienceLevel,
   OnboardingProfile,
   SessionLength,
+  WorkoutDaysPerWeek,
   WorkoutRoutineTemplate,
 } from "./types";
 import {
@@ -30,11 +31,12 @@ export function buildWeeklyRoutineTemplates(
   equipmentSetup: EquipmentSetup,
   sessionLength: SessionLength,
 ): WorkoutRoutineTemplate[] {
+  const daysPerWeek = (profile.workoutDaysPerWeek ?? profile.trainingWeekdays?.length ?? 3) as WorkoutDaysPerWeek;
   const weekdays =
     profile.trainingWeekdays?.length ?
       profile.trainingWeekdays
-    : defaultTrainingWeekdaysForProfile(profile.workoutDaysPerWeek);
-  const days = weekdays.length as typeof profile.workoutDaysPerWeek;
+    : defaultTrainingWeekdaysForProfile(daysPerWeek);
+  const days = weekdays.length as WorkoutDaysPerWeek;
   return buildWorkoutTemplatesForDays(days, experienceLevel, equipmentSetup, weekdays, sessionLength);
 }
 

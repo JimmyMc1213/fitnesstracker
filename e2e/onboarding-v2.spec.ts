@@ -7,7 +7,7 @@ async function clickContinue(page: Page) {
 }
 
 async function advanceHookScreens(page: Page) {
-  await expect(page.getByRole("heading", { name: /fitness coaching made easy/i })).toBeVisible({ timeout: 5000 });
+  await expect(page.getByRole("heading", { name: /your coach\. your plan\. your transformation\./i })).toBeVisible({ timeout: 5000 });
   await page.getByRole("button", { name: "Get Started" }).click();
   await expect(page.getByRole("heading", { name: /what's your gender/i })).toBeVisible();
 }
@@ -38,12 +38,7 @@ async function completeOnboardingFromCalendar(page: Page) {
   await page.getByRole("button", { name: "Classic", exact: true }).click();
   await clickContinue(page); // diet -> accomplishments
   await page.getByRole("button", { name: "Eat and live healthier" }).click();
-  await clickContinue(page); // accomplishments -> potential
-  await expect(page.getByRole("heading", { name: /here's how gymmy keeps you sharp/i })).toBeVisible();
-  await expect(page.getByText(/the coaching loop that actually works/i)).toBeVisible();
-  const coachingLoopCta = page.getByRole("button", { name: "Got it, let's go" });
-  await expect(coachingLoopCta).toBeEnabled({ timeout: 5000 });
-  await coachingLoopCta.click(); // coaching loop -> plan building
+  await clickContinue(page); // training style -> plan building
   await expect(page.getByRole("heading", { name: "Your fuel targets" })).toBeVisible({ timeout: 20_000 });
   await clickContinue(page); // macros -> protein priority
   await page.getByRole("button", { name: "Show training plan" }).click();

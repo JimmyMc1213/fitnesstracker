@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export const ONBOARDING_TOTAL_STEPS = 30;
+export const ONBOARDING_TOTAL_STEPS = 29;
 
 export function phaseForStep(step: number): { phaseLabel?: string } {
   if (step <= 1) return {};

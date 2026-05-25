@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-
 import type {
   DietaryRestriction,
   OnboardingBarrier,
@@ -153,143 +151,49 @@ export function normalizeTrainingStyle(raw: unknown): TrainingStyle | undefined 
   return TRAINING_STYLES.includes(raw as TrainingStyle) ? (raw as TrainingStyle) : undefined;
 }
 
-function iconWrap(children: ReactNode) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden className="survey-option-icon">
-      <rect width="24" height="24" rx="5" className="survey-option-icon__bg" />
-      {children}
-    </svg>
-  );
-}
-
-export function barrierIcon(barrier: OnboardingBarrier): ReactNode {
+export function barrierEmoji(barrier: OnboardingBarrier): string {
   switch (barrier) {
     case "falling_off":
-      return iconWrap(
-        <path
-          d="M12 6.5c-1.2 2.2-2.5 4.2-2.5 6.2a2.5 2.5 0 0 0 5 0c0-1.2-.6-2.4-1.3-3.6.4 1.6 1.3 3.1 2.3 4.4-.8-1.8-1.2-3.6-1.2-5.3 0-.6.4-1 1-1s1 .4 1 1c0 .8-.2 1.6-.5 2.5.8-1.2 1.8-2.2 2.8-3z"
-          fill="currentColor"
-        />,
-      );
+      return "🔥";
     case "eating":
-      return iconWrap(
-        <>
-          <path
-            d="M8 11.5c0-2.2 1.8-4 4-4s4 1.8 4 4v4.5H8V11.5z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            fill="none"
-          />
-          <path d="M10 8.5c.5-1.2 1.2-2 2-2M14 8.5c-.5-1.2-1.2-2-2-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M9 7.5c.8-.8 1.8-1.2 3-1.2s2.2.4 3 1.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </>,
-      );
+      return "🍽️";
     case "no_plan":
-      return iconWrap(
-        <>
-          <rect x="6.5" y="7" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.5" />
-          <rect x="13" y="7" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.5" />
-          <rect x="6.5" y="13.5" width="11" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.5" />
-        </>,
-      );
+      return "📋";
     case "life_busy":
-      return iconWrap(
-        <>
-          <circle cx="12" cy="12" r="6.5" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M12 9v3.5l2.2 1.3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </>,
-      );
+      return "⏰";
     case "no_results":
-      return iconWrap(
-        <>
-          <path d="M7 15.5l3.5-3.5 2.5 2 4.5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M15 9h2.5V11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </>,
-      );
+      return "📈";
   }
 }
 
-export function dietaryRestrictionIcon(restriction: DietaryRestriction): ReactNode {
+export function dietaryRestrictionEmoji(restriction: DietaryRestriction): string {
   switch (restriction) {
     case "no_restrictions":
-      return iconWrap(
-        <path d="M7 12.5l3 3 7-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
-      );
+      return "✅";
     case "no_red_meat":
-      return iconWrap(
-        <>
-          <path d="M8 12c1.5-2 3.5-3 5-3s3.5 1 5 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M6 16l12-12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </>,
-      );
+      return "🥩";
     case "pescatarian":
-      return iconWrap(
-        <path
-          d="M7 12c2-3 5-4.5 8-4.5 1.5 3 .5 6.5-2 8.5-2.5-1.5-4-2.5-6-4z"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          fill="none"
-        />,
-      );
+      return "🐟";
     case "vegetarian":
-      return iconWrap(
-        <path d="M12 7v10M12 7c-1.5 2-2.5 4-2.5 6.5a2.5 2.5 0 0 0 5 0C14.5 11 13.5 9 12 7z" stroke="currentColor" strokeWidth="1.5" />,
-      );
+      return "🥦";
     case "vegan":
-      return iconWrap(
-        <path
-          d="M12 6.5c-2 3.5-3 6-3 8.5a3 3 0 0 0 6 0c0-2.5-1-5-3-8.5z"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          fill="none"
-        />,
-      );
+      return "🌱";
     case "dairy_free":
-      return iconWrap(
-        <>
-          <path d="M9 8.5h6v8H9z" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M6 16l12-12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </>,
-      );
+      return "🥛";
     case "gluten_free":
-      return iconWrap(
-        <>
-          <path d="M8 10c1-2 2.5-3 4-3s3 1 4 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M6 16l12-12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </>,
-      );
+      return "🌾";
   }
 }
 
-export function trainingStyleIcon(style: TrainingStyle): ReactNode {
+export function trainingStyleEmoji(style: TrainingStyle): string {
   switch (style) {
     case "directive":
-      return iconWrap(
-        <>
-          <path d="M7 8h10M7 12h10M7 16h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M17 16l1.5 1.5L21 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </>,
-      );
+      return "📋";
     case "flexible":
-      return iconWrap(
-        <>
-          <path d="M6 16V8h4v8H6zM14 16V11h4v5h-4z" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M10 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </>,
-      );
+      return "⚖️";
     case "accountable":
-      return iconWrap(
-        <>
-          <rect x="7" y="7" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M10 12l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </>,
-      );
+      return "💪";
     case "beginner_guided":
-      return iconWrap(
-        <>
-          <path d="M12 7v3M12 14v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M9 10c0-1.5 1.3-2.5 3-2.5s3 1 3 2.5-1.5 2.5-3 4.5c-1.5-2-3-3-3-4.5z" stroke="currentColor" strokeWidth="1.5" fill="none" />
-        </>,
-      );
+      return "🌱";
   }
 }

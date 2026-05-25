@@ -79,3 +79,9 @@ export function migratePlanBuildingStepIndex(stepIndex: number): number {
   if (stepIndex >= 20 && stepIndex <= 24) return stepIndex + 1;
   return Math.min(Math.max(0, stepIndex), 28);
 }
+
+/** v15 step index → v16 (coaching loop screen removed; later steps shift down). */
+export function migrateRemoveCoachingLoopStepIndex(stepIndex: number): number {
+  if (stepIndex > 20) return stepIndex - 1;
+  return Math.min(Math.max(0, stepIndex), 28);
+}

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import welcomeWorkoutScreenshot from "../assets/onboarding/welcome-workout-active-session.png";
+
 type Phase = "splash" | "welcome";
 
 type OnboardingWelcomeScreenProps = {
@@ -24,24 +26,15 @@ function LogoPlaceholder() {
 function PhoneHeroMockup() {
   return (
     <div className="onboarding-welcome__phone" aria-hidden>
+      <span className="onboarding-welcome__brand">Gymmy</span>
       <div className="onboarding-welcome__phone-bezel">
         <div className="onboarding-welcome__phone-screen">
-          <div className="onboarding-welcome__phone-header">
-            <span className="onboarding-welcome__phone-dot" />
-            <span className="onboarding-welcome__phone-title">Today&apos;s plan</span>
-          </div>
-          <div className="onboarding-welcome__phone-card">
-            <span className="onboarding-welcome__phone-card-label">Workout</span>
-            <span className="onboarding-welcome__phone-card-value">Upper strength</span>
-          </div>
-          <div className="onboarding-welcome__phone-card onboarding-welcome__phone-card--muted">
-            <span className="onboarding-welcome__phone-card-label">Fuel</span>
-            <span className="onboarding-welcome__phone-card-value">1,840 / 2,200 cal</span>
-          </div>
-          <div className="onboarding-welcome__phone-coach">
-            <span className="onboarding-welcome__phone-coach-badge">Coach</span>
-            <span>Hit protein at lunch, you&apos;re on track.</span>
-          </div>
+          <img
+            className="onboarding-welcome__phone-screenshot"
+            src={welcomeWorkoutScreenshot}
+            alt=""
+            decoding="async"
+          />
         </div>
       </div>
     </div>
@@ -74,7 +67,7 @@ export function OnboardingWelcomeScreen({ onGetStarted, onSignIn }: OnboardingWe
         </div>
 
         <div className="onboarding-welcome__copy motion-welcome-copy">
-          <h1 className="onboarding-welcome__headline">Fitness coaching made easy</h1>
+          <h1 className="onboarding-welcome__headline">Your coach. Your plan. Your transformation.</h1>
         </div>
 
         <div className="onboarding-welcome__actions motion-welcome-actions">

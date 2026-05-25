@@ -35,6 +35,7 @@ import { ScreenTransition } from "./motion";
 import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
 import {
   clearDevPreviewOnboardingUrl,
+  isDevModeFlagEnabled,
   isDevPreviewOnboardingEnabled,
   isOnboardingPreviewToolsActive,
 } from "./devPreviewOnboarding";
@@ -168,7 +169,7 @@ function OnboardingGate({
       ) : (
         children
       )}
-      {previewToolsActive && !hideDevToolbar ? (
+      {isDevModeFlagEnabled() && !hideDevToolbar ? (
         <DevOnboardingToolbar
           onboardingOpen={showOnboarding}
           onOpenOnboarding={openPreviewOnboarding}

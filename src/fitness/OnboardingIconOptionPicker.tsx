@@ -1,9 +1,7 @@
-import type { ReactNode } from "react";
-
 type Option<T extends string> = {
   id: T;
   label: string;
-  icon: ReactNode;
+  emoji: string;
 };
 
 export function OnboardingIconOptionPicker<T extends string>({
@@ -25,8 +23,8 @@ export function OnboardingIconOptionPicker<T extends string>({
   }
 
   return (
-    <div className="referral-source-list">
-      {options.map(({ id, label, icon }) => {
+    <div className="referral-source-list survey-option-list">
+      {options.map(({ id, label, emoji }) => {
         const on = isSelected(id);
         return (
           <button
@@ -36,7 +34,9 @@ export function OnboardingIconOptionPicker<T extends string>({
             onClick={() => onToggle(id)}
             aria-pressed={on}
           >
-            <span className="referral-source-option__icon">{icon}</span>
+            <span className="survey-option-emoji" aria-hidden>
+              {emoji}
+            </span>
             <span className="referral-source-option__label">{label}</span>
           </button>
         );

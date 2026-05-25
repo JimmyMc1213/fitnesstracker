@@ -147,14 +147,14 @@ export function alignTemplatesToTrainingWeekdays(
 }
 
 export function profileWithTrainingWeekdays(
-  profile: { workoutDaysPerWeek: WorkoutDaysPerWeek; trainingWeekdays?: string[] },
+  profile: { workoutDaysPerWeek?: WorkoutDaysPerWeek; trainingWeekdays?: string[] },
   weekdays: string[],
 ): { workoutDaysPerWeek: WorkoutDaysPerWeek; trainingWeekdays: TrainingWeekday[] } {
   const normalized = normalizeTrainingWeekdays(weekdays);
   const n = normalized.length;
   const days =
     workoutDaysPerWeekFromWeekdays(normalized) ??
-    (n >= 1 && n <= 7 ? (n as WorkoutDaysPerWeek) : profile.workoutDaysPerWeek);
+    (n >= 1 && n <= 7 ? (n as WorkoutDaysPerWeek) : (profile.workoutDaysPerWeek ?? 3));
   return {
     workoutDaysPerWeek: days,
     trainingWeekdays: normalized,

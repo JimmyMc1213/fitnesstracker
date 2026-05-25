@@ -36,7 +36,7 @@ export function migrateTrainingSchedule(
     profile.trainingWeekdays = weekdays;
     dirty = true;
   } else {
-    weekdays = [...defaultTrainingWeekdays(profile.workoutDaysPerWeek)];
+    weekdays = [...defaultTrainingWeekdays(profile.workoutDaysPerWeek ?? 3)];
     profile.trainingWeekdays = weekdays;
     dirty = true;
   }

@@ -9,7 +9,7 @@ export function EquipmentSetupPicker({
   value,
   onChange,
 }: {
-  value: EquipmentSetup;
+  value?: EquipmentSetup;
   onChange: (next: EquipmentSetup) => void;
 }) {
   return (

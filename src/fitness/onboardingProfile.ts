@@ -8,6 +8,7 @@ import type {
   UserGender,
   WorkoutDaysPerWeek,
 } from "./types";
+import type { NutritionCalcInput } from "./nutritionCalculator";
 import { normalizeReferralSource } from "./referralSource";
 import {
   migrateDietaryRestrictions,
@@ -47,6 +48,43 @@ export const DEFAULT_ONBOARDING_PROFILE: OnboardingProfile = {
   workoutDaysPerWeek: 5,
   trainingWeekdays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
 };
+
+/** Empty onboarding profile — no pill selections until the user chooses. */
+export const FRESH_ONBOARDING_PROFILE: OnboardingProfile = {
+  heightIn: 0,
+  weightLbs: 0,
+  age: 0,
+};
+
+export function nutritionCalcInputFromOnboardingProfile(
+  profile: OnboardingProfile,
+  ageOverride?: number,
+): NutritionCalcInput {
+  return {
+    weightLbs: profile.weightLbs,
+    heightIn: profile.heightIn,
+    age: ageOverride ?? profile.age,
+    gender: profile.gender ?? "male",
+    activityLevel: profile.activityLevel ?? "moderate",
+    goal: profile.goal ?? "maintain",
+    pace: profile.pace,
+    goalWeightLbs: profile.goalWeightLbs,
+  };
+}
+
+export function completeOnboardingProfile(profile: OnboardingProfile, age: number): OnboardingProfile {
+  if (!profile.gender || !profile.goal || !profile.activityLevel || !profile.workoutDaysPerWeek) {
+    throw new Error("Onboarding profile is incomplete");
+  }
+  return {
+    ...profile,
+    age,
+    gender: profile.gender,
+    goal: profile.goal,
+    activityLevel: profile.activityLevel,
+    workoutDaysPerWeek: profile.workoutDaysPerWeek,
+  };
+}
 
 /** Age in whole years on `asOf` (local calendar). */
 export function ageFromDateOfBirth(dateOfBirth: string, asOf: Date = new Date()): number | null {

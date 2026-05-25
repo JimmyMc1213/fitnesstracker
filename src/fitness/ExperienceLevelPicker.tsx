@@ -9,7 +9,7 @@ export function ExperienceLevelPicker({
   value,
   onChange,
 }: {
-  value: ExperienceLevel;
+  value?: ExperienceLevel;
   onChange: (next: ExperienceLevel) => void;
 }) {
   return (
