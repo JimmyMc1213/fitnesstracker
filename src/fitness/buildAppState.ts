@@ -9,12 +9,10 @@ import {
   PLAN_START_ISO,
   buildHabitsForDateKey,
   dedupeHabitTemplates,
-  defaultHabitTemplates,
-  habitTemplatesFromOnboarding,
-  isDefaultSeedHabitTemplates,
   normalizeWorkoutTemplates,
   sanitizeWorkoutTemplates,
 } from "./data";
+import { defaultDailyHabitTemplates, isLegacyDefaultHabitTemplates } from "./habits";
 import { ensureMobilityHabitTemplate, migrateMobilityHabitCompletion } from "./mobilityHabit";
 import { normalizeExerciseSessionHistoryByKey } from "./exerciseSessionHistory";
 import { normalizeWorkoutHistory } from "./workoutHistory";
@@ -238,7 +236,7 @@ function normalizeProgressGoal(raw: unknown): ProgressGoalConfig | null {
 function normalizeHabitTemplates(raw: unknown): HabitTemplate[] | null {
   if (!Array.isArray(raw)) return null;
   const out: HabitTemplate[] = [];
-  const icons = new Set(["drop", "run", "bolt", "moon"]);
+  const icons = new Set(["drop", "run", "bolt", "moon", "pill", "scale", "sun", "ban", "book"]);
   for (const x of raw) {
     if (!x || typeof x !== "object") continue;
     const o = x as Record<string, unknown>;
@@ -246,11 +244,20 @@ function normalizeHabitTemplates(raw: unknown): HabitTemplate[] | null {
     const name = o.name.trim();
     if (!name) continue;
     let icon = o.icon;
-    if (icon === "water") icon = "drop";
+    if (icon === "water" || icon === "droplet") icon = "drop";
     if (icon === "sleep") icon = "moon";
     if (!icons.has(icon)) icon = "bolt";
     const subtitle = typeof o.subtitle === "string" && o.subtitle.trim() ? o.subtitle.trim() : undefined;
-    out.push({ id: o.id, name, icon, ...(subtitle ? { subtitle } : {}) });
+    const type = o.type === "manual" || o.type === "action" ? o.type : undefined;
+    const action = o.action === "openWeighIn" ? "openWeighIn" : undefined;
+    out.push({
+      id: o.id,
+      name,
+      icon,
+      ...(subtitle ? { subtitle } : {}),
+      ...(type ? { type } : {}),
+      ...(action ? { action } : {}),
+    });
   }
   return out.length ? out : null;
 }
@@ -259,20 +266,15 @@ function resolveHabitTemplates(
   p: Partial<PersistedFitnessSlice> | null | undefined,
   onboardingComplete: boolean,
   hasLegacyFitnessData: boolean,
-  stepsTarget: number,
-  waterDailyTargetOz: number,
-  volumeUnit: VolumeUnit,
 ): HabitTemplate[] {
   const normalized = normalizeHabitTemplates(p?.habitTemplates);
   if (normalized != null) {
-    const deduped = dedupeHabitTemplates(normalized);
-    if (onboardingComplete && isDefaultSeedHabitTemplates(deduped)) {
-      return habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz, volumeUnit);
+    if (onboardingComplete && isLegacyDefaultHabitTemplates(normalized)) {
+      return defaultDailyHabitTemplates();
     }
-    return deduped;
+    return dedupeHabitTemplates(normalized);
   }
-  if (hasLegacyFitnessData) return defaultHabitTemplates();
-  if (onboardingComplete) return habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz, volumeUnit);
+  if (hasLegacyFitnessData || onboardingComplete) return defaultDailyHabitTemplates();
   return [];
 }
 
@@ -359,17 +361,11 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     Object.keys(p?.workoutsCompletedByDay ?? {}).length > 0 || (p?.weightLog?.length ?? 0) > 0;
   const onboardingComplete = p?.onboardingComplete === true || hasLegacyFitnessData;
   const habitTemplates = ensureMobilityHabitTemplate(
-    resolveHabitTemplates(
-      p,
-      onboardingComplete,
-      hasLegacyFitnessData,
-      stepsTarget,
-      waterDailyTargetOz,
-      unitPreferences.volumeUnit,
-    ),
+    resolveHabitTemplates(p, onboardingComplete, hasLegacyFitnessData),
   );
   const habitsDoneByDay = migrateMobilityHabitCompletion(normalizeHabitsDoneByDay(p?.habitsDoneByDay));
   const todayKey = localDateKey(new Date());
+  const weightLog = normalizeWeightLog(p?.weightLog);
   const { nutritionManualByDay, nutritionItemsByDay } = mergePersistedNutritionDays(
     p?.nutritionManualByDay,
     p?.nutritionItemsByDay,
@@ -414,10 +410,12 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     exerciseSessionHistoryByKey: normalizeExerciseSessionHistoryByKey(p?.exerciseSessionHistoryByKey),
     workoutHistory: normalizeWorkoutHistory(p?.workoutHistory),
     workoutSummary: null,
-    habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey),
+    habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey, {
+      weightLogged: weightLog.some((e) => e.dateKey === todayKey),
+    }),
     dailyTasks: loadTasksForToday(nutritionTargets, planStartIso, stepsTarget, workoutTemplates, workoutDaysPerWeek),
     nutritionTargets,
-    weightLog: normalizeWeightLog(p?.weightLog),
+    weightLog,
     lastAdjustmentSundayKey: lastAdj,
     sundayReviewCompletedKey: reviewDone,
     adjustmentHistory: normalizeAdjustmentHistory(p?.adjustmentHistory),

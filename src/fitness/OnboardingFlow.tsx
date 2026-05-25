@@ -6,6 +6,7 @@ import {
   habitTemplatesFromOnboarding,
   pruneHabitsDoneByDay,
 } from "./data";
+import { ensureMobilityHabitTemplate } from "./mobilityHabit";
 import { ExperienceLevelPicker } from "./ExperienceLevelPicker";
 import { EquipmentSetupPicker } from "./EquipmentSetupPicker";
 import {
@@ -519,7 +520,7 @@ export function OnboardingFlow({
     setState((s) => {
       const stepsTarget = s.stepsTarget;
       const waterDailyTargetOz = s.waterDailyTargetOz;
-      const habitTemplates = habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz, unitPreferences.volumeUnit);
+      const habitTemplates = ensureMobilityHabitTemplate(habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz, unitPreferences.volumeUnit));
       const templateIds = new Set(habitTemplates.map((h) => h.id));
       const habitsDoneByDay = pruneHabitsDoneByDay(s.habitsDoneByDay, templateIds);
       const todayKey = localDateKey(new Date());
@@ -544,7 +545,9 @@ export function OnboardingFlow({
         theme: draftTheme,
         habitTemplates,
         habitsDoneByDay,
-        habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey),
+        habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey, {
+          weightLogged: s.weightLog.some((e) => e.dateKey === todayKey),
+        }),
         restTimerDefaultSeconds: restSecondsForSessionLength(sessionLength!),
         dailyTasks: loadTasksForToday(macros, planStartIso, stepsTarget, draftTemplates, finalProfile.workoutDaysPerWeek!),
       };

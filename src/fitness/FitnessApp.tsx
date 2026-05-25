@@ -319,7 +319,8 @@ function FitnessAppMain({
           s.workoutTemplates,
           resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek),
         );
-        const habits = buildHabitsForDateKey(s.habitTemplates, s.habitsDoneByDay, today);
+        const weightLogged = s.weightLog.some((e) => e.dateKey === today);
+        const habits = buildHabitsForDateKey(s.habitTemplates, s.habitsDoneByDay, today, { weightLogged });
         return { ...s, dailyTasks: tasks, habits };
       });
     };

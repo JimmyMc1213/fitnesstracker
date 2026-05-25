@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
-import { BottomSheet, bottomSheetPanelTheme } from "./motion";
+import { CenterDialog, bottomSheetPanelTheme } from "./motion";
 import { PrimaryButton } from "./shared";
 import {
   PRESET_SELECTED_BG,
@@ -111,7 +111,7 @@ export function RestTimerSheet({
   }
 
   return (
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onClose}
       zIndex={1100}
@@ -120,6 +120,8 @@ export function RestTimerSheet({
         ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
+        maxHeight: "min(82vh, 560px)",
+        overflowY: "auto",
         padding: 20,
       }}
     >
@@ -249,7 +251,7 @@ export function RestTimerSheet({
       <PrimaryButton block onClick={handlePrimary} style={{ fontWeight: 700 }}>
         {isComplete ? "Done" : isRunning ? "Skip rest" : "Close"}
       </PrimaryButton>
-    </BottomSheet>
+    </CenterDialog>
   );
 }
 

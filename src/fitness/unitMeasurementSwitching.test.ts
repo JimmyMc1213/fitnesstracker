@@ -165,11 +165,11 @@ describe("volume unit switching", () => {
   });
 });
 
-describe("habit template hydration label", () => {
-  it("reflects the selected volume unit without changing the underlying oz target", () => {
-    expect(habitTemplatesFromOnboarding(10_000, 64, "oz")[0]?.name).toBe("Water 64 oz");
-    expect(habitTemplatesFromOnboarding(10_000, 64, "L")[0]?.name).toBe("Water 1.9 L");
-    expect(habitTemplatesFromOnboarding(10_000, 96, "L")[0]?.name).toBe("Water 2.8 L");
+describe("habit template defaults", () => {
+  it("uses fixed daily habit copy regardless of volume unit", () => {
+    expect(habitTemplatesFromOnboarding(10_000, 64, "oz")[0]?.name).toBe("Drink water target");
+    expect(habitTemplatesFromOnboarding(10_000, 64, "L")[0]?.name).toBe("Drink water target");
+    expect(habitTemplatesFromOnboarding(10_000, 96, "L")[0]?.name).toBe("Drink water target");
   });
 });
 

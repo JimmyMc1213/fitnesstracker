@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import { buildCoachContext, getWeighInReaction } from "./coachEngine";
+import { buildHabitsForDateKey } from "./data";
+import { markWeighInHabitDone } from "./habits";
 import { compressImageToJpegDataUrl } from "./imageCompress";
 import { localDateKey } from "./dailyPlan";
 import {
@@ -84,7 +86,13 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
           : {}),
       };
       const nextLog = [...withoutDay, entry].sort((a, b) => a.dateKey.localeCompare(b.dateKey));
-      return { ...s, weightLog: nextLog };
+      const habitsDoneByDay = markWeighInHabitDone(s.habitsDoneByDay, dateKey);
+      const todayKey = localDateKey(new Date());
+      const habits =
+        dateKey === todayKey
+          ? buildHabitsForDateKey(s.habitTemplates, habitsDoneByDay, dateKey, { weightLogged: true })
+          : s.habits;
+      return { ...s, weightLog: nextLog, habitsDoneByDay, habits };
     });
     onClose();
   }

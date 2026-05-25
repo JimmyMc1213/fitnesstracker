@@ -1,5 +1,6 @@
 import exerciseLibrary from "./exerciseLibrary";
 import type { FoodItem, Habit, HabitTemplate, MacroTotals, VolumeUnit, WorkoutExercise, WorkoutRoutineTemplate, WorkoutSet, WorkoutState } from "./types";
+import { buildHabitsForDateKey as buildHabitsForDateKeyFromTemplates, defaultDailyHabitTemplates, isLegacyDefaultHabitTemplates } from "./habits";
 import { normalizeWorkoutSetKind } from "./workoutSetKind";
 import { normalizeDayLabel, weekdayMonStartIndex } from "./trainingCalendar";
 import { DEFAULT_WATER_DAILY_TARGET_OZ, formatWaterVolume } from "./waterIntake";
@@ -336,39 +337,22 @@ export const INITIAL_WORKOUT: WorkoutState = {
 export const EXERCISE_DB = exerciseLibrary.map((ex) => ex.name) as readonly string[];
 
 export function defaultHabitTemplates(): HabitTemplate[] {
-  return [
-    { id: "h1", name: "Water 1 gal", icon: "drop" },
-    { id: "h2", name: "Steps 10k", icon: "run" },
-    { id: "h3", name: "Sleep 8h", icon: "moon" },
-    { id: "habit-mobility", name: "Mobility", icon: "bolt", subtitle: "Stretch routine ~15 min" },
-  ];
+  return defaultDailyHabitTemplates();
 }
 
-const STANDARD_HABIT_ICONS = new Set<HabitTemplate["icon"]>(["drop", "run", "moon"]);
-
-function stepsHabitLabel(stepsTarget: number): string {
-  if (stepsTarget % 1000 === 0) return `Steps ${stepsTarget / 1000}k`;
-  return `Steps ${stepsTarget.toLocaleString()}`;
-}
+const STANDARD_HABIT_ICONS = new Set<HabitTemplate["icon"]>(["drop", "run", "moon", "pill", "scale", "sun", "ban", "book"]);
 
 /** Habits shown on the plan-ready screen and Home daily habits card after onboarding. */
 export function habitTemplatesFromOnboarding(
-  stepsTarget: number = 10_000,
-  waterDailyTargetOz: number = DEFAULT_WATER_DAILY_TARGET_OZ,
-  volumeUnit: VolumeUnit = "oz",
+  _stepsTarget: number = 10_000,
+  _waterDailyTargetOz: number = DEFAULT_WATER_DAILY_TARGET_OZ,
+  _volumeUnit: VolumeUnit = "oz",
 ): HabitTemplate[] {
-  return [
-    { id: "habit-hydration", name: `Water ${formatWaterVolume(waterDailyTargetOz, volumeUnit)}`, icon: "drop" },
-    { id: "habit-steps", name: stepsHabitLabel(stepsTarget), icon: "run" },
-    { id: "habit-mobility", name: "Mobility", icon: "bolt", subtitle: "Stretch routine ~15 min" },
-  ];
+  return defaultDailyHabitTemplates();
 }
 
 export function isDefaultSeedHabitTemplates(templates: HabitTemplate[]): boolean {
-  const defaults = defaultHabitTemplates();
-  if (templates.length !== defaults.length) return false;
-  const defaultIds = new Set(defaults.map((d) => d.id));
-  return templates.every((t) => defaultIds.has(t.id));
+  return isLegacyDefaultHabitTemplates(templates);
 }
 
 /** One row per standard icon (water/steps/sleep); extras deduped by name. */
@@ -415,9 +399,9 @@ export function buildHabitsForDateKey(
   templates: HabitTemplate[],
   habitsDoneByDay: Record<string, Record<string, boolean>>,
   dateKey: string,
+  options?: { weightLogged?: boolean },
 ): Habit[] {
-  const map = habitsDoneByDay[dateKey] ?? {};
-  return templates.map((t) => ({ ...t, done: Boolean(map[t.id]) }));
+  return buildHabitsForDateKeyFromTemplates(templates, habitsDoneByDay, dateKey, options);
 }
 
 /** @deprecated Use `defaultHabitTemplates` + `buildHabitsForDateKey` */

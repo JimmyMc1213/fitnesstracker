@@ -350,9 +350,7 @@ export function getDayStreakSummary(state: AppState, dateKey: string, todayKey: 
   };
 }
 
-function habitTemplateMentionsWeighIn(name: string): boolean {
-  return /weigh/i.test(name);
-}
+import { isWeighInActionHabit } from "./habits";
 
 /** Habits + optional weigh-in for expanded day log, excludes streak criteria. */
 export function getDayHabitProgress(state: AppState, dateKey: string): DayHabitProgress {
@@ -361,15 +359,18 @@ export function getDayHabitProgress(state: AppState, dateKey: string): DayHabitP
   const macrosDone = t.cal > 0 || t.p > 0 || t.c > 0 || t.f > 0;
   items.push({ id: "nutrition-logged", label: "Nutrition logged", done: macrosDone });
 
-  const hasWeighHabit = state.habitTemplates.some((h) => habitTemplateMentionsWeighIn(h.name));
+  const hasWeighHabit = state.habitTemplates.some((h) => isWeighInActionHabit(h));
   if (!hasWeighHabit) {
     const weighed = state.weightLog.some((e) => e.dateKey === dateKey);
     items.push({ id: "weigh", label: "Morning weigh-in", done: weighed });
   }
 
   const habitRow = state.habitsDoneByDay[dateKey] ?? {};
+  const weighed = state.weightLog.some((e) => e.dateKey === dateKey);
   for (const h of state.habitTemplates) {
-    items.push({ id: `habit:${h.id}`, label: h.name, done: Boolean(habitRow[h.id]) });
+    let done = Boolean(habitRow[h.id]);
+    if (isWeighInActionHabit(h) && weighed) done = true;
+    items.push({ id: `habit:${h.id}`, label: h.name, done });
   }
 
   return {

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildCoachContext, getHomeCoachPlan, getWeighInReactionForDisplay } from "../coachEngine";
-import { buildHabitsForDateKey } from "../data";
-import { habitsForDateKey, HomeDailyHabitsCard } from "../HomeDailyHabitsCard";
+import { buildHabitsForDateKey, pruneHabitsDoneByDay } from "../data";
+import { dailyHabitTemplatesFromState, habitsForDateKey, HomeDailyHabitsCard } from "../HomeDailyHabitsCard";
 import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
 import { isMobilityHabit } from "../mobilityHabit";
 import { HomeDashboardCarousel } from "../HomeDashboardCarousel";
@@ -113,14 +113,31 @@ export function ScreenHome({
         ...s.habitsDoneByDay,
         [activeDateKey]: { ...doneMap, [id]: nextDone },
       };
+      const weightLogged = s.weightLog.some((e) => e.dateKey === activeDateKey);
       const habits =
         activeDateKey === dateKeyToday
-          ? buildHabitsForDateKey(s.habitTemplates, habitsDoneByDay, activeDateKey)
+          ? buildHabitsForDateKey(s.habitTemplates, habitsDoneByDay, activeDateKey, { weightLogged })
           : s.habits;
       return {
         ...s,
         habits,
         habitsDoneByDay,
+      };
+    });
+  }
+
+  function saveDailyHabitTemplates(templates: typeof state.habitTemplates) {
+    setState((s) => {
+      const mobilityTemplates = s.habitTemplates.filter((t) => isMobilityHabit(t.id));
+      const nextTemplates = [...templates, ...mobilityTemplates];
+      const templateIds = new Set(nextTemplates.map((h) => h.id));
+      const habitsDoneByDay = pruneHabitsDoneByDay(s.habitsDoneByDay, templateIds);
+      const weightLogged = s.weightLog.some((e) => e.dateKey === dateKeyToday);
+      return {
+        ...s,
+        habitTemplates: nextTemplates,
+        habitsDoneByDay,
+        habits: buildHabitsForDateKey(nextTemplates, habitsDoneByDay, dateKeyToday, { weightLogged }),
       };
     });
   }
@@ -250,12 +267,15 @@ export function ScreenHome({
 
       <HomeDailyHabitsCard
         habits={activeHabits}
+        dailyHabitTemplates={dailyHabitTemplatesFromState(state.habitTemplates)}
         stepsTarget={state.stepsTarget}
         planStartIso={state.planStartIso}
         dateKey={activeDateKey}
         readOnly={!isViewingToday}
         onToggle={toggleHabit}
         onMobilityPress={() => navigate("stretch", { startStretchSession: true })}
+        onOpenWeighIn={() => setWeighInOpen(true)}
+        onSaveHabitTemplates={saveDailyHabitTemplates}
       />
 
       {sundayCheckInData ? (

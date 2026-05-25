@@ -31,7 +31,7 @@ describe("mobilityHabit", () => {
   });
 
   it("marks mobility habit done when stretch session finishes", () => {
-    const templates = habitTemplatesFromOnboarding();
+    const templates = ensureMobilityHabitTemplate(habitTemplatesFromOnboarding());
     const base = {
       habitTemplates: templates,
       habitsDoneByDay: {},
