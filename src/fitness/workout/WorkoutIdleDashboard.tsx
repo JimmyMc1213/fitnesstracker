@@ -64,7 +64,7 @@ export function WorkoutIdleDashboard({
   const todayTemplateId = preWorkoutCoach?.todayTemplateId ?? null;
   const previewCoachBrief =
     previewTpl && todayTemplateId && previewTpl.id === todayTemplateId
-      ? preWorkoutCoach.brief
+      ? preWorkoutCoach?.brief
       : undefined;
 
   return (
