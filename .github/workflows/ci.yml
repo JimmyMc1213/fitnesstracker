@@ -32,6 +32,8 @@ jobs:
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ./.playwright-browsers
 
       - name: E2E tests
         run: npm run test:e2e

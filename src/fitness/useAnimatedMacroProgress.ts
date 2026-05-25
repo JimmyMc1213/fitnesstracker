@@ -11,25 +11,28 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** Animates macro ring fill and center calories from prior values over ~500ms ease-out. */
+export function macroRingTarget(value: number, target: number): number {
+  return target > 0 ? Math.min(1, Math.max(0, value / target)) : 0;
+}
+
+/** Animates macro ring arc from prior fill over ~500ms ease-out; center value stays in sync instantly. */
 export function useAnimatedMacroProgress(value: number, target: number, enabled = true) {
-  const ringTarget = target > 0 ? Math.min(1, Math.max(0, value / target)) : 0;
+  const ringTarget = macroRingTarget(value, target);
   const motionOk = enabled && !prefersReducedMotion();
 
-  const frameRef = useRef({ ring: motionOk ? 0 : ringTarget, calories: motionOk ? 0 : value });
-  const [ringPct, setRingPct] = useState(frameRef.current.ring);
-  const [displayCalories, setDisplayCalories] = useState(frameRef.current.calories);
+  const frameRef = useRef(ringTarget);
+  const [ringPct, setRingPct] = useState(ringTarget);
 
   useEffect(() => {
     if (!motionOk) {
       setRingPct(ringTarget);
-      setDisplayCalories(value);
-      frameRef.current = { ring: ringTarget, calories: value };
+      frameRef.current = ringTarget;
       return;
     }
 
-    const fromRing = frameRef.current.ring;
-    const fromCal = frameRef.current.calories;
+    const fromRing = frameRef.current;
+    if (fromRing === ringTarget) return;
+
     const start = performance.now();
     let raf = 0;
 
@@ -37,16 +40,15 @@ export function useAnimatedMacroProgress(value: number, target: number, enabled 
       const t = Math.min(1, (now - start) / RING_DURATION_MS);
       const e = easeOutCubic(t);
       const nextRing = fromRing + (ringTarget - fromRing) * e;
-      const nextCal = fromCal + (value - fromCal) * e;
-      frameRef.current = { ring: nextRing, calories: nextCal };
+      frameRef.current = nextRing;
       setRingPct(nextRing);
-      setDisplayCalories(nextCal);
       if (t < 1) raf = requestAnimationFrame(tick);
+      else frameRef.current = ringTarget;
     };
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [value, target, ringTarget, motionOk]);
 
-  return { ringPct, displayCalories };
+  return { ringPct };
 }

@@ -62,7 +62,7 @@ export function MacroRing({
   stroke?: number;
   animate?: boolean;
 }) {
-  const { ringPct, displayCalories } = useAnimatedMacroProgress(value, target, animate);
+  const { ringPct } = useAnimatedMacroProgress(value, target, animate);
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const dash = c * ringPct;
@@ -94,7 +94,7 @@ export function MacroRing({
         }}
       >
         <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
-          {Math.round(displayCalories)}
+          {Math.round(value)}
         </div>
         <div style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 400 }}>
           of {target} kcal

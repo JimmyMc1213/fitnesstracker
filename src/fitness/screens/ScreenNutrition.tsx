@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { localDateKey } from "../dailyPlan";
 import { LogFoodScreen } from "../LogFoodScreen";
@@ -27,15 +27,6 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
 
   const [logFoodOpen, setLogFoodOpen] = useState(false);
   const [editingFoodItem, setEditingFoodItem] = useState<NutritionLoggedItem | null>(null);
-  const [ringAnimKey, setRingAnimKey] = useState(0);
-  const prevLogFoodOpen = useRef(false);
-
-  useEffect(() => {
-    if (prevLogFoodOpen.current && !logFoodOpen) {
-      setRingAnimKey((k) => k + 1);
-    }
-    prevLogFoodOpen.current = logFoodOpen;
-  }, [logFoodOpen]);
 
   useEffect(() => {
     if (logFoodOpenRequest && logFoodOpenRequest > 0) {
@@ -61,7 +52,7 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
 
       <div className="card" style={{ padding: 18, marginTop: 18 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <MacroRing key={ringAnimKey} value={totals.cal} target={T.cal} size={132} stroke={6} animate={true} />
+          <MacroRing value={totals.cal} target={T.cal} size={132} stroke={6} animate={true} />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ marginBottom: 2 }}>
               <div

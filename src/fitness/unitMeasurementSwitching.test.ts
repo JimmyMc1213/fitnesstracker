@@ -26,22 +26,25 @@ const IMPERIAL: UnitPreferences = { weightUnit: "lbs", heightUnit: "ft_in", volu
 const METRIC: UnitPreferences = { weightUnit: "kg", heightUnit: "cm", volumeUnit: "L" };
 
 function persistedWithUnits(units: UnitPreferences) {
+  const onboardingProfile: OnboardingProfile = {
+    ...DEFAULT_ONBOARDING_PROFILE,
+    heightIn: 70,
+    weightLbs: 180,
+    age: 30,
+    gender: "male",
+    activityLevel: "moderate",
+    goal: "cut",
+    workoutDaysPerWeek: 4,
+    pace: "balanced",
+    sessionDuration: "60_to_90",
+  };
+
   return {
     onboardingComplete: true,
     unitPreferences: units,
     unitPreferencesChosen: true,
     weightLog: [{ dateKey: "2026-05-18", weightLbs: 180 }],
-    onboardingProfile: {
-      heightIn: 70,
-      weightLbs: 180,
-      age: 30,
-      gender: "male",
-      activityLevel: "moderate",
-      nutritionGoal: "cut",
-      workoutDaysPerWeek: 4,
-      goalPace: "balanced",
-      sessionDuration: 60,
-    },
+    onboardingProfile,
     waterDailyTargetOz: 64,
     waterLogByDay: {
       "2026-05-18": [
@@ -186,6 +189,10 @@ describe("onboarding goal weight display", () => {
 
 describe("workout summary weight display", () => {
   const workout: WorkoutState = {
+    splitId: "upper",
+    startedAt: new Date(1_000_000).toISOString(),
+    sessionDayKey: "2026-05-18",
+    sessionPhase: "lifting",
     sessionTitle: "Upper",
     sessionStartedAtMs: 1_000_000,
     exercises: [

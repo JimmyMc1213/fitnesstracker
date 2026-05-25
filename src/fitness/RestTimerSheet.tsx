@@ -58,7 +58,7 @@ export function RestTimerSheet({
 
   useEffect(() => {
     if (phase === "ready") {
-      setDisplaySec(selectedPresetSec);
+      setDisplaySec(durationSec);
       return;
     }
     if (phase === "complete") {
@@ -79,7 +79,7 @@ export function RestTimerSheet({
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [phase, endsAtMs, selectedPresetSec, paused, pausedRemainingMs]);
+  }, [phase, endsAtMs, durationSec, paused, pausedRemainingMs]);
 
   useEffect(() => {
     if (phase !== "complete" || vibratedRef.current) return;
