@@ -651,13 +651,13 @@ textarea {
   pointer-events: none;
 }
 
-.exercise-reorder-list[data-compact="true"] .exercise-reorder-slot__layer--full {
+.exercise-reorder-list[data-dragging="true"] .exercise-reorder-slot__layer--full {
   max-height: 0;
   opacity: 0;
   pointer-events: none;
 }
 
-.exercise-reorder-list[data-compact="true"] .exercise-reorder-slot__layer--compact {
+.exercise-reorder-list[data-dragging="true"] .exercise-reorder-slot__layer--compact {
   max-height: 72px;
   opacity: 1;
   pointer-events: auto;
@@ -674,19 +674,13 @@ textarea {
 }
 
 .exercise-reorder-overlay-lift {
-  height: 100%;
+  transform: scale(1.02);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   filter: brightness(1.06);
   border-radius: 16px;
   cursor: grabbing;
   pointer-events: none;
   z-index: 50;
-}
-
-.exercise-reorder-overlay-lift .exercise-reorder-compact-drag {
-  transform: scale(1.02);
-  transform-origin: 22px center;
-  height: 100%;
 }
 
 .exercise-reorder-compact-drag {
@@ -3862,10 +3856,9 @@ input[type="number"] {
   .date-wheel-picker__label,
   .date-wheel-picker__track,
   .exercise-reorder-slot__layer,
-  .exercise-reorder-list[data-compact="true"] .exercise-reorder-slot__layer--full,
-  .exercise-reorder-list[data-compact="true"] .exercise-reorder-slot__layer--compact,
+  .exercise-reorder-list[data-dragging="true"] .exercise-reorder-slot__layer--full,
+  .exercise-reorder-list[data-dragging="true"] .exercise-reorder-slot__layer--compact,
   .exercise-reorder-overlay-lift,
-  .exercise-reorder-overlay-lift .exercise-reorder-compact-drag,
   .onboarding-hook-line,
   .onboarding-hook-cta,
   .onboarding-generating-line,
