@@ -803,14 +803,11 @@ textarea {
  * a small floor so the bar hugs the home indicator on iOS and stays tight on
  * desktop without a hardcoded 28px slab.
  *
- * When iOS pans the visual viewport to keep a focused input visible, FitnessApp
- * applies `translateY(visualViewport.offsetTop)` so the bar stays at the layout
- * bottom instead of riding up with the scroll. */
+ * Hidden while the keyboard is open (see useKeyboardShellLayout). */
 .tabbar {
   flex-shrink: 0;
   box-sizing: border-box;
   width: 100%;
-  z-index: 40;
   padding: 8px 16px;
   /* `constant()` for older WebKit; `env()` wins when supported */
   padding-bottom: max(8px, constant(safe-area-inset-bottom));

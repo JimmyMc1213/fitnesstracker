@@ -148,14 +148,29 @@ export function useKeyboardViewport() {
 
 export const KEYBOARD_OPEN_THRESHOLD = 48;
 
-/** Counteract iOS visual-viewport pan so the tab bar stays at the layout bottom. */
-export function useTabBarPinStyle(): CSSProperties {
-  const { offsetTop } = useKeyboardViewport();
-  if (offsetTop <= 0) return {};
-  return {
-    transform: `translate3d(0, ${offsetTop}px, 0)`,
-    willChange: "transform",
-  };
+/**
+ * Resize and position the app shell to match the visual viewport when the
+ * keyboard is open, so content fills the area above the keyboard without a
+ * dead gap from layout viewport pan or the tab bar flex slot.
+ */
+export function useKeyboardShellLayout() {
+  const { keyboardBottom, visibleHeight, offsetTop } = useKeyboardViewport();
+  const keyboardOpen = keyboardBottom >= KEYBOARD_OPEN_THRESHOLD;
+
+  const shellStyle: CSSProperties = keyboardOpen
+    ? {
+        flex: "none",
+        height: visibleHeight,
+        minHeight: 0,
+        transform: `translate3d(0, ${offsetTop}px, 0)`,
+        willChange: "transform, height",
+      }
+    : {
+        flex: 1,
+        minHeight: 0,
+      };
+
+  return { keyboardOpen, shellStyle };
 }
 /** Top + bottom padding on the bottom-sheet backdrop (px). */
 const SHEET_BACKDROP_CHROME = 36;

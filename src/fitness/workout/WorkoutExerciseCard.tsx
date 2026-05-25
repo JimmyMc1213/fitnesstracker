@@ -1,6 +1,7 @@
 import { Fragment, useState } from "react";
 
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
+import { scrollInputIntoScreen } from "../scrollInputIntoScreen";
 import { exerciseNoteKey } from "../exerciseNotes";
 import { sanitizeCoachCopy } from "../exerciseSessionNotes";
 import { IconCheck, IconChart, IconMinus, IconPlus } from "../icons";
@@ -303,6 +304,7 @@ export function WorkoutExerciseCard({
                     type="number"
                     value={st.w ? formatSetWeight(st.w, weightUnit) : ""}
                     onChange={(ev) => onUpdateSet(exercise.id, si, { w: parseSetWeightInput(ev.target.value, weightUnit) })}
+                    onFocus={(ev) => scrollInputIntoScreen(ev.currentTarget)}
                     placeholder="-"
                     style={workoutSetInputStyle}
                   />
@@ -310,6 +312,7 @@ export function WorkoutExerciseCard({
                     type="number"
                     value={st.r || ""}
                     onChange={(ev) => onUpdateSet(exercise.id, si, { r: +ev.target.value || 0 })}
+                    onFocus={(ev) => scrollInputIntoScreen(ev.currentTarget)}
                     placeholder="-"
                     style={workoutSetInputStyle}
                   />

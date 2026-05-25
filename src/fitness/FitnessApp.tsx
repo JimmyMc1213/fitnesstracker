@@ -24,7 +24,7 @@ import { ScreenProgress } from "./screens/ScreenProgress";
 import { ScreenStretch } from "./screens/ScreenStretch";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
-import { ScreenTransition, useTabBarPinStyle } from "./motion";
+import { ScreenTransition, useKeyboardShellLayout } from "./motion";
 import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
 import {
   clearDevPreviewOnboardingUrl,
@@ -360,10 +360,14 @@ function FitnessAppMain({
 
   const Current = screens[tab];
   const showWorkoutSummary = state.workoutSummary != null;
-  const tabBarPinStyle = useTabBarPinStyle();
+  const { keyboardOpen, shellStyle: keyboardShellStyle } = useKeyboardShellLayout();
 
   const hideTabBar =
-    tab === "stretch" || showWorkoutSummary || logFoodOverlayOpen || routineEditorOpen;
+    tab === "stretch" ||
+    showWorkoutSummary ||
+    logFoodOverlayOpen ||
+    routineEditorOpen ||
+    keyboardOpen;
 
   const devPreviewOnboarding = isOnboardingPreviewToolsActive() && isDevPreviewOnboardingEnabled();
   const introEligible = !state.onboardingComplete || devPreviewOnboarding;
@@ -532,8 +536,7 @@ function FitnessAppMain({
       >
       <div
         style={{
-          flex: 1,
-          minHeight: 0,
+          ...keyboardShellStyle,
           width: "100%",
           maxWidth: "100%",
           background: "transparent",
@@ -575,7 +578,7 @@ function FitnessAppMain({
         </div>
 
         {!hideTabBar ? (
-          <nav className="tabbar" aria-label="Main" style={tabBarPinStyle}>
+          <nav className="tabbar" aria-label="Main">
             {TABS.map((t) => {
               const active = tab === t.id;
               return (
