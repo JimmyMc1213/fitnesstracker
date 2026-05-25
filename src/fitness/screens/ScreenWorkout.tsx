@@ -19,15 +19,16 @@ import {
   buildSessionCoachNoteForExercise,
   buildSessionCoachNotesByExerciseId,
 } from "../exerciseSessionNotes";
+import { buildWorkoutWarmup } from "../workoutWarmup";
 import { WorkoutCoachCard } from "../WorkoutCoachCard";
 import { WorkoutSessionStickyHeader } from "../WorkoutSessionStickyHeader";
 import { RestTimerSheet } from "../RestTimerSheet";
 import type { RestTimerPhase } from "../RestTimerStrip";
 import { restDurationForExercise } from "../restTimerPreferences";
 import { ExerciseSwapSheet } from "../ExerciseSwapSheet";
+import { RoutineExerciseSearchSheet } from "../RoutineExerciseSearchSheet";
 import { isTrainingDay } from "../trainingCalendar";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
-import { AddExerciseSearchSheet } from "../workout/AddExerciseSearchSheet";
 import { CancelWorkoutConfirmSheet } from "../workout/CancelWorkoutConfirmSheet";
 import { EmptyFinishConfirmSheet } from "../workout/EmptyFinishConfirmSheet";
 import { DeleteExerciseConfirmSheet } from "../workout/DeleteExerciseConfirmSheet";
@@ -55,18 +56,6 @@ type ActiveRestTimer = {
   pausedRemainingMs?: number;
 };
 
-const MOBILITY_ITEMS = [
-  "90/90 hips or World's greatest stretch, 45-60s each side",
-  "Thoracic extension over bench or foam roller, 8-10 slow reps",
-  "Shoulder circles + band dislocates (light), easy range, no forcing",
-  "Ankles/calves: knee-to-wall or calf rocks if squatting today",
-];
-
-const WARMUP_ITEMS = [
-  "5-8 min easy cardio (bike, walk incline, or row) until you break a light sweat",
-  "Band pull-aparts or face pulls, 2-3 sets × 15-20, shoulders back & down",
-  "2-4 ramp sets on your first main lift, empty bar → light → working weight",
-];
 
 function WorkoutLiftingScreen({ children }: { children: ReactNode }) {
   const { open: keypadOpen } = useWorkoutKeypad();
@@ -730,6 +719,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   }
 
   const overloadTip = getFirstSessionCoachNote(state, w) ?? progressiveOverloadInsight(w);
+  const sessionWarmup = useMemo(() => buildWorkoutWarmup(w.exercises), [w.exercises]);
 
   if (showHistoryPage) {
     return (
@@ -833,6 +823,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
       <WorkoutSessionHeader
         elapsedSec={elapsedSec}
         onFinishWorkout={requestFinishWorkout}
+        onCancel={() => setShowCancelWorkoutConfirm(true)}
         sessionTitle={w.sessionTitle}
         onSessionTitleChange={updateSessionTitle}
         startedAt={w.startedAt}
@@ -843,9 +834,8 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
       <WorkoutCoachCard
         overloadTip={overloadTip}
         sessionTip={activeRoutine?.sessionTip}
-        activeRoutine={activeRoutine}
-        mobilityItems={MOBILITY_ITEMS}
-        warmupItems={WARMUP_ITEMS}
+        warmupGroups={sessionWarmup.groups}
+        warmupTip={sessionWarmup.tip}
         defaultExpanded={shouldDefaultExpandCoachCard(isTrainingDayToday, w.splitId, todayTemplateId)}
       />
 
@@ -917,12 +907,16 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
       </div>
 
       {showExSearch ? (
-        <AddExerciseSearchSheet
+        <RoutineExerciseSearchSheet
+          open
+          title="Add exercise"
           equipmentSetup={state.equipmentSetup}
           customExercises={state.customExercises}
-          onAddExercise={(name, label) => addExerciseToSession(name, label)}
+          onSelect={(name, label) => addExerciseToSession(name, label)}
           onSaveCustomAndAdd={saveCustomAndAddToSession}
           onClose={() => setShowExSearch(false)}
+          closeOnSelect={false}
+          closeLabel="Done"
         />
       ) : null}
 
@@ -951,23 +945,6 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
           </button>
         ) : null}
 
-        <button
-          type="button"
-          className="tap"
-          onClick={() => setShowCancelWorkoutConfirm(true)}
-          style={{
-            width: "100%",
-            background: "var(--workout-danger-bg)",
-            border: "0.5px solid var(--workout-danger-border)",
-            borderRadius: 12,
-            padding: 14,
-            color: "var(--workout-danger-fg)",
-            fontSize: 14,
-            fontWeight: 600,
-          }}
-        >
-          Cancel workout
-        </button>
       </div>
 
       <div style={{ height: 8 }} />

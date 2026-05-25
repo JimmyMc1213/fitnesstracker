@@ -1,17 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { arizonaCalendarDateKey, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
 import { IconChevL } from "../icons";
 import { applyStretchSessionComplete } from "../mobilityHabit";
 import { formatNotificationTimeDisplay } from "../notificationPreferences";
-import { PrimaryButton, ScreenHeader, SecondaryButton } from "../shared";
+import { PrimaryButton, ScreenHeader } from "../shared";
 import { STRETCH_BLOCKS, STRETCH_INTRO } from "../stretchRoutine";
+import { CancelMobilityConfirmSheet } from "../stretch/CancelMobilityConfirmSheet";
 import { StretchBlockCard } from "../stretch/StretchBlockCard";
 import { LeaveStretchConfirmSheet } from "../stretch/LeaveStretchConfirmSheet";
 import { StretchSessionHeader } from "../stretch/StretchSessionHeader";
 import { StretchSessionStickyHeader } from "../stretch/StretchSessionStickyHeader";
 import type { ScreenProps } from "../types";
-import { COACH_CARD_BG, COACH_CARD_BORDER, COACH_BLUE_MUTED, labelStyle } from "../workoutUiTokens";
+import { closeAfterMotion, MOTION_DURATIONS } from "../motion";
+import { COACH_CARD_BG, COACH_CARD_BORDER, COACH_BLUE_MUTED, labelStyle, MOBILITY_ACCENT, MOBILITY_BG, MOBILITY_BORDER } from "../workoutUiTokens";
 
 type StretchPhase = "idle" | "active";
 
@@ -27,10 +29,15 @@ export function ScreenStretch({
   onStretchStartRequestHandled,
 }: ScreenProps) {
   const [clock, setClock] = useState(() => new Date());
-  const [phase, setPhase] = useState<StretchPhase>("idle");
-  const [sessionStartedAtMs, setSessionStartedAtMs] = useState<number | null>(null);
+  const shouldAutoStart = (stretchStartRequest ?? 0) > 0;
+  const [phase, setPhase] = useState<StretchPhase>(() => (shouldAutoStart ? "active" : "idle"));
+  const [sessionStartedAtMs, setSessionStartedAtMs] = useState<number | null>(() =>
+    shouldAutoStart ? Date.now() : null,
+  );
   const [elapsedSec, setElapsedSec] = useState(0);
   const [showLeaveStretchConfirm, setShowLeaveStretchConfirm] = useState(false);
+  const [showCancelMobilityConfirm, setShowCancelMobilityConfirm] = useState(false);
+  const handledStartRequestRef = useRef(0);
 
   useEffect(() => {
     const id = window.setInterval(() => setClock(new Date()), 60_000);
@@ -38,7 +45,8 @@ export function ScreenStretch({
   }, []);
 
   useEffect(() => {
-    if (!stretchStartRequest) return;
+    if (!stretchStartRequest || stretchStartRequest <= handledStartRequestRef.current) return;
+    handledStartRequestRef.current = stretchStartRequest;
     setPhase("active");
     setSessionStartedAtMs(Date.now());
     onStretchStartRequestHandled?.();
@@ -97,21 +105,22 @@ export function ScreenStretch({
     setSessionStartedAtMs(Date.now());
   }
 
-  function resetSession() {
-    setPhase("idle");
-    setSessionStartedAtMs(null);
-    setElapsedSec(0);
-    setShowLeaveStretchConfirm(false);
+  function leaveToHome(closeSheet?: () => void) {
+    closeSheet?.();
+    closeAfterMotion(() => navigate("home"), closeSheet ? MOTION_DURATIONS.sheetExit : 0);
   }
 
-  function cancelSession() {
-    resetSession();
+  function requestCancelSession() {
+    setShowCancelMobilityConfirm(true);
+  }
+
+  function confirmCancelSession() {
+    leaveToHome(() => setShowCancelMobilityConfirm(false));
   }
 
   function finishSession() {
     setState((s) => applyStretchSessionComplete(s, arizonaTodayKey, localTodayKey));
-    resetSession();
-    navigate("home");
+    leaveToHome();
   }
 
   function requestFinishSession() {
@@ -123,18 +132,16 @@ export function ScreenStretch({
       setShowLeaveStretchConfirm(true);
       return;
     }
-    resetSession();
-    navigate("home");
+    leaveToHome();
   }
 
   function leaveStretchEarly() {
-    resetSession();
-    navigate("home");
+    leaveToHome(() => setShowLeaveStretchConfirm(false));
   }
 
   if (phase === "idle") {
     return (
-      <div key="stretch-idle" className="screen page-transition" style={{ paddingBottom: 28 }}>
+      <div key="stretch-idle" className="screen" style={{ paddingBottom: 28 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
           <button
             type="button"
@@ -234,10 +241,11 @@ export function ScreenStretch({
   }
 
   return (
-    <div key="stretch-active" className="screen page-transition" style={{ paddingBottom: 28 }}>
+    <div key="stretch-active" className="screen" style={{ paddingBottom: 28 }}>
       <StretchSessionHeader
         elapsedSec={elapsedSec}
         onFinish={requestFinishSession}
+        onCancel={requestCancelSession}
         startedAt={sessionStartedAt}
         moveCount={totalBlocks}
       />
@@ -247,11 +255,11 @@ export function ScreenStretch({
         style={{
           marginTop: 12,
           padding: 14,
-          borderColor: COACH_CARD_BORDER,
-          background: COACH_CARD_BG,
+          borderColor: MOBILITY_BORDER,
+          background: MOBILITY_BG,
         }}
       >
-        <div style={{ ...labelStyle, color: COACH_BLUE_MUTED, marginBottom: 6 }}>Session tip</div>
+        <div style={{ ...labelStyle, color: MOBILITY_ACCENT, marginBottom: 6 }}>Session tip</div>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: "var(--text-soft)", fontWeight: 500 }}>
           Mark each move complete as you go. Finish saves the routine when all moves are checked.
         </p>
@@ -271,16 +279,17 @@ export function ScreenStretch({
         ))}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
-        <SecondaryButton block onClick={cancelSession}>
-          End session
-        </SecondaryButton>
-      </div>
-
       {showLeaveStretchConfirm ? (
         <LeaveStretchConfirmSheet
           onKeepGoing={() => setShowLeaveStretchConfirm(false)}
           onLeave={leaveStretchEarly}
+        />
+      ) : null}
+
+      {showCancelMobilityConfirm ? (
+        <CancelMobilityConfirmSheet
+          onResume={() => setShowCancelMobilityConfirm(false)}
+          onCancelSession={confirmCancelSession}
         />
       ) : null}
     </div>

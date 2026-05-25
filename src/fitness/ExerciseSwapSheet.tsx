@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { catalogExercisesForEquipment } from "./exerciseCatalog";
 import { ExerciseResultRow, exerciseSearchListStyle, exerciseSearchSectionHeaderStyle } from "./ExerciseSearchResultRow";
 import { IconSearch } from "./icons";
-import { BottomSheet, bottomSheetPanelTheme, useKeyboardAwareSheetSizing } from "./motion";
+import { CenterDialog, KEYBOARD_OPEN_THRESHOLD, bottomSheetPanelTheme, exerciseSearchDialogPanelStyle, useKeyboardViewport } from "./motion";
 import type { CustomExerciseTemplate, EquipmentSetup } from "./types";
 
 type ExerciseSwapSheetProps = {
@@ -26,7 +26,9 @@ export function ExerciseSwapSheet({
   onClose,
 }: ExerciseSwapSheetProps) {
   const [query, setQuery] = useState("");
-  const { keyboardOpen, panelStyle: keyboardPanelStyle } = useKeyboardAwareSheetSizing();
+  const listRef = useRef<HTMLDivElement>(null);
+  const { keyboardBottom } = useKeyboardViewport();
+  const keyboardOpen = keyboardBottom >= KEYBOARD_OPEN_THRESHOLD;
   const qLow = query.trim().toLowerCase();
 
   const catalogExercises = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
@@ -45,23 +47,28 @@ export function ExerciseSwapSheet({
     [customExercises, qLow],
   );
 
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: 0 });
+  }, [query]);
+
   function pick(name: string, label?: string) {
     onSelect(name, label?.trim() || undefined);
     onClose();
   }
 
   return (
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onClose}
       zIndex={1100}
+      keyboardAware
       ariaLabelledBy="exercise-swap-title"
       panelStyle={{
         ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
         padding: 20,
-        ...keyboardPanelStyle,
+        ...exerciseSearchDialogPanelStyle,
       }}
     >
       <div
@@ -94,7 +101,7 @@ export function ExerciseSwapSheet({
         />
       </div>
 
-      <div style={exerciseSearchListStyle}>
+      <div ref={listRef} style={exerciseSearchListStyle}>
         {filteredCustom.length > 0 ? (
           <>
             <div style={exerciseSearchSectionHeaderStyle}>Your exercises</div>
@@ -136,6 +143,6 @@ export function ExerciseSwapSheet({
       >
         Cancel
       </button>
-    </BottomSheet>
+    </CenterDialog>
   );
 }

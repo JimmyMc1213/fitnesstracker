@@ -70,12 +70,14 @@ describe("getExerciseSessionNote", () => {
     const note = getExerciseSessionNote({ workoutHistory: state.workoutHistory }, exercise("e1", "Bench Press"));
     expect(note).toContain("Last session: 135x8, 135x8, 135x7");
     expect(note).toContain("135x8 lb");
-    expect(note).toContain("add ~5 lb");
+    expect(note).toContain("8 reps (top of 8 reps)");
+    expect(note).toContain("Add ~5 lb");
   });
 
   it("returns generic tip when no history", () => {
     const note = getExerciseSessionNote({ workoutHistory: [] }, exercise("e1", "Squat"));
     expect(note).toContain("Lead with Squat");
+    expect(note).toContain("8 reps");
     expect(note).toContain("1-2 reps in reserve");
     expect(note).not.toContain("Last session");
   });
@@ -119,9 +121,22 @@ describe("getExerciseSessionNote", () => {
     expect(dumbbellNote).toContain("60x10");
   });
 
+  it("uses the exercise rep range in progressive overload coaching", () => {
+    const state = workoutHistoryAppState([
+      benchSession("hist", 2_000_000, [{ w: 100, r: 10 }]),
+    ]);
+    const rangedExercise: WorkoutExercise = {
+      ...exercise("e1", "Bench Press"),
+      target: "3 × 8-12",
+    };
+    const note = getExerciseSessionNote({ workoutHistory: state.workoutHistory }, rangedExercise);
+    expect(note).toContain("12 reps (top of 8-12 reps)");
+  });
+
   it("is re-exported from coachEngine", () => {
     const note = getExerciseSessionNoteFromEngine({ workoutHistory: [] }, exercise("e1", "Deadlift"));
     expect(note).toContain("Lead with Deadlift");
+    expect(note).toContain("8 reps");
   });
 });
 

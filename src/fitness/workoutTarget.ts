@@ -63,3 +63,21 @@ export function formatRepRangeBounds(low: number, high: number): string {
   const hi = Math.max(lo, high);
   return lo === hi ? String(lo) : `${lo}-${hi}`;
 }
+
+/** Parsed min/max reps from an exercise prescription target. */
+export function getExerciseRepBounds(exercise: { target: string }): { low: number; high: number } {
+  const { repRange } = parseWorkoutTarget(exercise.target);
+  return parseRepRangeBounds(repRange);
+}
+
+/** Human-readable rep range for coach copy (e.g. `8-12 reps`, `10 reps`). */
+export function describeRepRangeBounds(low: number, high: number): string {
+  const lo = Math.max(1, low);
+  const hi = Math.max(lo, high);
+  return lo === hi ? `${lo} reps` : `${lo}-${hi} reps`;
+}
+
+export function describeExerciseRepRange(exercise: { target: string }): string {
+  const { low, high } = getExerciseRepBounds(exercise);
+  return describeRepRangeBounds(low, high);
+}

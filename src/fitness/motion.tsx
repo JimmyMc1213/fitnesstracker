@@ -180,6 +180,15 @@ export function useLockVisualViewportScroll() {
 /** Top + bottom padding on the bottom-sheet backdrop (px). */
 const SHEET_BACKDROP_CHROME = 36;
 
+/** Fixed height for exercise search dialogs — stays constant while filtering. */
+export const exerciseSearchDialogPanelStyle: CSSProperties = {
+  height: "min(560px, 82vh)",
+  maxHeight: "min(560px, 82vh)",
+  display: "flex",
+  flexDirection: "column",
+  overflow: "hidden",
+};
+
 /** Size a bottom sheet to fill the space above the on-screen keyboard. */
 export function useKeyboardAwareSheetSizing() {
   const { keyboardBottom, visibleHeight } = useKeyboardViewport();
@@ -235,7 +244,7 @@ export function BottomSheet({
   const backdropVariants = reduceMotion ? REDUCED_VARIANTS : BACKDROP_VARIANTS;
   const backdropTransition = reduceMotion ? REDUCED_TRANSITION : BACKDROP_TRANSITION;
 
-  return (
+  const overlay = (
     <AnimatePresence>
       {open ? (
         <motion.div
@@ -280,6 +289,9 @@ export function BottomSheet({
       ) : null}
     </AnimatePresence>
   );
+
+  if (typeof document === "undefined") return overlay;
+  return createPortal(overlay, document.body);
 }
 
 type FullScreenOverlayProps = {
@@ -331,6 +343,9 @@ type CenterDialogProps = {
   ariaLabelledBy?: string;
   ariaLabel?: string;
   panelStyle?: CSSProperties;
+  backdropStyle?: CSSProperties;
+  /** Shift the dialog up when the on-screen keyboard is open. */
+  keyboardAware?: boolean;
   children: ReactNode;
 };
 
@@ -341,9 +356,12 @@ export function CenterDialog({
   ariaLabelledBy,
   ariaLabel,
   panelStyle,
+  backdropStyle,
+  keyboardAware = false,
   children,
 }: CenterDialogProps) {
   const reduceMotion = useReducedMotion();
+  const { keyboardBottom } = useKeyboardViewport();
   const variants = reduceMotion ? REDUCED_VARIANTS : DIALOG_VARIANTS;
   const transition = reduceMotion ? REDUCED_TRANSITION : DIALOG_TRANSITION;
   const backdropVariants = reduceMotion ? REDUCED_VARIANTS : BACKDROP_VARIANTS;
@@ -373,10 +391,15 @@ export function CenterDialog({
             inset: 0,
             zIndex,
             background: "var(--sheet-backdrop)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: 20,
+            padding: keyboardAware
+              ? `20px 20px calc(20px + env(safe-area-inset-bottom, 0px) + ${keyboardBottom}px)`
+              : 20,
+            ...backdropStyle,
           }}
         >
           <motion.div
@@ -456,7 +479,7 @@ export function ScreenTransition({
 
   return (
     <div className={`motion-stack ${className}`.trim()} style={{ ...baseStyle, position: "relative", overflow: "hidden" }}>
-      <AnimatePresence mode="wait" custom={direction}>
+      <AnimatePresence mode="sync" custom={direction}>
         <motion.div
           key={activeKey}
           custom={direction}

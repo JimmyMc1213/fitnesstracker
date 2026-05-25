@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { CustomExerciseCreateForm } from "./CustomExerciseCreateForm";
 import { catalogExercisesForEquipment } from "./exerciseCatalog";
 import type { ExerciseEquipmentLabel } from "./exerciseLabels";
 import { IconSearch } from "./icons";
-import { BottomSheet, bottomSheetPanelTheme, useKeyboardAwareSheetSizing } from "./motion";
+import { CenterDialog, bottomSheetPanelTheme, exerciseSearchDialogPanelStyle } from "./motion";
 import { ExerciseResultRow, exerciseSearchListStyle, exerciseSearchSectionHeaderStyle } from "./ExerciseSearchResultRow";
 import type { CustomExerciseTemplate, EquipmentSetup } from "./types";
 
@@ -16,6 +16,9 @@ type RoutineExerciseSearchSheetProps = {
   onSelect: (name: string, label?: string) => void;
   onSaveCustomAndAdd?: (name: string, label: string) => void;
   onClose: () => void;
+  /** When false, picking an exercise keeps the sheet open (e.g. add many during a workout). */
+  closeOnSelect?: boolean;
+  closeLabel?: string;
 };
 
 export function RoutineExerciseSearchSheet({
@@ -26,12 +29,14 @@ export function RoutineExerciseSearchSheet({
   onSelect,
   onSaveCustomAndAdd,
   onClose,
+  closeOnSelect = true,
+  closeLabel = "Cancel",
 }: RoutineExerciseSearchSheetProps) {
   const [query, setQuery] = useState("");
   const [showCreateCard, setShowCreateCard] = useState(false);
   const [draftExName, setDraftExName] = useState("");
   const [draftExLabel, setDraftExLabel] = useState<ExerciseEquipmentLabel | null>(null);
-  const { panelStyle: keyboardPanelStyle } = useKeyboardAwareSheetSizing();
+  const listRef = useRef<HTMLDivElement>(null);
   const qLow = query.trim().toLowerCase();
 
   const catalogExercises = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
@@ -51,6 +56,10 @@ export function RoutineExerciseSearchSheet({
     [customExercises, qLow],
   );
 
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: 0 });
+  }, [query]);
+
   function resetDraft() {
     setShowCreateCard(false);
     setDraftExName("");
@@ -61,7 +70,7 @@ export function RoutineExerciseSearchSheet({
     onSelect(name, label?.trim() || undefined);
     setQuery("");
     resetDraft();
-    onClose();
+    if (closeOnSelect) onClose();
   }
 
   function handleSaveCustomAndAdd() {
@@ -70,21 +79,22 @@ export function RoutineExerciseSearchSheet({
     onSaveCustomAndAdd(n, draftExLabel);
     setQuery("");
     resetDraft();
-    onClose();
+    if (closeOnSelect) onClose();
   }
 
   return (
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onClose}
       zIndex={1100}
+      keyboardAware
       ariaLabelledBy="routine-exercise-search-title"
       panelStyle={{
         ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
         padding: 20,
-        ...keyboardPanelStyle,
+        ...exerciseSearchDialogPanelStyle,
       }}
     >
       <div
@@ -153,7 +163,7 @@ export function RoutineExerciseSearchSheet({
         )
       ) : null}
 
-      <div style={exerciseSearchListStyle}>
+      <div ref={listRef} style={exerciseSearchListStyle}>
         {filteredCustom.length > 0 ? (
           <>
             <div style={exerciseSearchSectionHeaderStyle}>Your exercises</div>
@@ -193,8 +203,8 @@ export function RoutineExerciseSearchSheet({
           border: "none",
         }}
       >
-        Cancel
+        {closeLabel}
       </button>
-    </BottomSheet>
+    </CenterDialog>
   );
 }

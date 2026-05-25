@@ -15,6 +15,10 @@ export const COACH_BLUE_MUTED = "rgba(10,132,255,0.65)";
 export const COACH_CARD_BG = "var(--coach-card-bg)";
 export const COACH_CARD_BORDER = "var(--coach-card-border)";
 
+export const MOBILITY_ACCENT = "rgba(196,181,253,0.95)";
+export const MOBILITY_BORDER = "rgba(196,181,253,0.32)";
+export const MOBILITY_BG = "rgba(196,181,253,0.07)";
+
 export const USER_NOTE_GRAY = "var(--text-muted-soft)";
 export const USER_NOTE_GRAY_MUTED = "var(--text-faint-soft)";
 export const SECONDARY_ACTION_COLOR = "var(--text-faint-soft)";
@@ -28,6 +32,24 @@ export const labelStyle = {
   fontWeight: 600,
   letterSpacing: "0.08em",
   textTransform: "uppercase" as const,
+};
+
+/** Primary in-card section titles (Coach header, Warm-up block). */
+export const coachMajorTitleStyle: CSSProperties = {
+  fontSize: 16,
+  fontWeight: 700,
+  letterSpacing: "-0.02em",
+  lineHeight: 1.2,
+  color: "var(--text-primary)",
+};
+
+/** Secondary labels inside the coach card (Coach note, muscle groups). */
+export const coachSubsectionLabelStyle: CSSProperties = {
+  fontSize: LABEL_SIZE,
+  fontWeight: 600,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: "var(--text-ghost)",
 };
 
 export const CARD_PADDING = 16;

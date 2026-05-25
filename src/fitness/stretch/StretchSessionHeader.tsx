@@ -1,3 +1,4 @@
+import { SessionCancelButton } from "../SessionCancelButton";
 import { PrimaryButton } from "../shared";
 import { METADATA_SIZE, TITLE_SIZE } from "../workoutUiTokens";
 
@@ -10,11 +11,13 @@ function formatElapsed(totalSec: number): string {
 export function StretchSessionHeader({
   elapsedSec,
   onFinish,
+  onCancel,
   startedAt,
   moveCount,
 }: {
   elapsedSec: number;
   onFinish: () => void;
+  onCancel: () => void;
   startedAt: string;
   moveCount: number;
 }) {
@@ -36,18 +39,21 @@ export function StretchSessionHeader({
             {formatElapsed(elapsedSec)}
           </span>
         </div>
-        <PrimaryButton
-          onClick={onFinish}
-          style={{
-            borderRadius: 10,
-            padding: "10px 18px",
-            fontSize: 14,
-            fontWeight: 700,
-            minHeight: 0,
-          }}
-        >
-          Finish routine
-        </PrimaryButton>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <SessionCancelButton onClick={onCancel} />
+          <PrimaryButton
+            onClick={onFinish}
+            style={{
+              borderRadius: 10,
+              padding: "10px 18px",
+              fontSize: 14,
+              fontWeight: 700,
+              minHeight: 0,
+            }}
+          >
+            Finish routine
+          </PrimaryButton>
+        </div>
       </div>
 
       <div

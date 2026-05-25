@@ -1,3 +1,5 @@
+import mobilityRunnerSrc from "../assets/mobility-runner.png";
+
 import type { IconProps } from "./types";
 
 function Icon({ d, size = 20, stroke = 1.5, children, ...rest }: IconProps & { d?: string }) {
@@ -213,6 +215,33 @@ export function IconBolt(p: IconProps) {
     <Icon {...p}>
       <path d="m13 3-8 11h6l-1 7 8-11h-6l1-7z" />
     </Icon>
+  );
+}
+
+export function IconMobilityRunner({
+  size = 18,
+  color = "rgba(196,181,253,0.95)",
+  style,
+}: IconProps & { color?: string }) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        display: "inline-block",
+        width: size,
+        height: size,
+        backgroundColor: color,
+        WebkitMaskImage: `url(${mobilityRunnerSrc})`,
+        maskImage: `url(${mobilityRunnerSrc})`,
+        WebkitMaskSize: "contain",
+        maskSize: "contain",
+        WebkitMaskRepeat: "no-repeat",
+        maskRepeat: "no-repeat",
+        WebkitMaskPosition: "center",
+        maskPosition: "center",
+        ...style,
+      }}
+    />
   );
 }
 

@@ -5,6 +5,7 @@
 import { exerciseLibrary, type Exercise } from "./exerciseLibrary";
 import { findLastLoggedExerciseSets } from "./workoutAutofill";
 import type { CompletedWorkoutSession, TrainingStyle, WorkoutExercise } from "./types";
+import { describeExerciseRepRange, getExerciseRepBounds } from "./workoutTarget";
 
 export type ExerciseSessionNoteContext = {
   workoutHistory: CompletedWorkoutSession[] | undefined;
@@ -63,14 +64,17 @@ function progressiveOverloadNote(exercise: WorkoutExercise, lastSets: { w: numbe
   if (withWeightReps.length > 0) {
     const top = Math.max(...withWeightReps.map((s) => s.w));
     const maxR = Math.max(...withWeightReps.map((s) => s.r));
+    const { high } = getExerciseRepBounds(exercise);
+    const repRange = describeExerciseRepRange(exercise);
     const historyBit = pairs ? `Last session: ${pairs}. ` : "";
-    return `${historyBit}Match or beat ${top}x${maxR} lb, add ~5 lb when every set hits the top of the range with reps in reserve.`;
+    return `${historyBit}Match or beat ${top}x${maxR} lb. Add ~5 lb when every set hits ${high} reps (top of ${repRange}) with 1-2 reps in reserve.`;
   }
   return genericExerciseSessionNote(exercise);
 }
 
 function genericExerciseSessionNote(exercise: WorkoutExercise): string {
-  return `Lead with ${exercise.name}. Hit the listed rep range with 1-2 reps in reserve, chase clean reps before heavier loads.`;
+  const repRange = describeExerciseRepRange(exercise);
+  return `Lead with ${exercise.name}. Hit ${repRange} with 1-2 reps in reserve, chase clean reps before heavier loads.`;
 }
 
 function extractPerformanceTarget(note: string): string | null {
@@ -104,7 +108,8 @@ function applyTrainingStyleToNote(
 
   if (style === "flexible") {
     if (target) {
-      return `Primary: beat ${target} on ${exercise.name}. Alternative: same weight for an extra rep, or drop ~5 lb and finish the rep range.`;
+      const repRange = describeExerciseRepRange(exercise);
+      return `Primary: beat ${target} on ${exercise.name}. Alternative: same weight for an extra rep, or drop ~5 lb and finish ${repRange}.`;
     }
     return `${baseNote} Or swap to a close substitute if equipment is tied up.`;
   }

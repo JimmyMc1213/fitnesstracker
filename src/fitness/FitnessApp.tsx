@@ -24,7 +24,7 @@ import { ScreenProgress } from "./screens/ScreenProgress";
 import { ScreenStretch } from "./screens/ScreenStretch";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
-import { ScreenTransition, useLockVisualViewportScroll } from "./motion";
+import { MOTION_DURATIONS, ScreenTransition, useLockVisualViewportScroll, type NavDirection } from "./motion";
 import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
 import {
   clearDevPreviewOnboardingUrl,
@@ -205,6 +205,9 @@ function FitnessAppMain({
   setState: React.Dispatch<React.SetStateAction<AppState>>;
 }) {
   const [tab, setTab] = useState<TabId>("home");
+  const [screenTransitionVariant, setScreenTransitionVariant] = useState<"fade" | "stack">("fade");
+  const [screenTransitionDirection, setScreenTransitionDirection] = useState<NavDirection>("forward");
+  const [tabBarRevealDeferred, setTabBarRevealDeferred] = useState(false);
   const [logFoodOpenRequest, setLogFoodOpenRequest] = useState(0);
   const [stretchStartRequest, setStretchStartRequest] = useState(0);
   const [homeReselectRequest, setHomeReselectRequest] = useState(0);
@@ -353,10 +356,29 @@ function FitnessAppMain({
       setHomeReselectRequest((n) => n + 1);
       return;
     }
+
+    const involvesStretch = tab === "stretch" || nextTab === "stretch";
+    if (involvesStretch) {
+      setScreenTransitionVariant("stack");
+      setScreenTransitionDirection(nextTab === "stretch" ? "forward" : "back");
+      if (tab === "stretch" && nextTab === "home") {
+        setTabBarRevealDeferred(true);
+      }
+    } else {
+      setScreenTransitionVariant("fade");
+      setScreenTransitionDirection("forward");
+    }
+
     setTab(nextTab);
     if (options?.openLogFood) setLogFoodOpenRequest((n) => n + 1);
     if (options?.startStretchSession) setStretchStartRequest((n) => n + 1);
   };
+
+  useEffect(() => {
+    if (!tabBarRevealDeferred) return;
+    const id = window.setTimeout(() => setTabBarRevealDeferred(false), MOTION_DURATIONS.onboarding);
+    return () => window.clearTimeout(id);
+  }, [tabBarRevealDeferred]);
 
   useLockVisualViewportScroll();
 
@@ -364,7 +386,11 @@ function FitnessAppMain({
   const showWorkoutSummary = state.workoutSummary != null;
 
   const hideTabBar =
-    tab === "stretch" || showWorkoutSummary || logFoodOverlayOpen || routineEditorOpen;
+    tab === "stretch" ||
+    tabBarRevealDeferred ||
+    showWorkoutSummary ||
+    logFoodOverlayOpen ||
+    routineEditorOpen;
 
   const devPreviewOnboarding = isOnboardingPreviewToolsActive() && isDevPreviewOnboardingEnabled();
   const introEligible = !state.onboardingComplete || devPreviewOnboarding;
@@ -557,7 +583,7 @@ function FitnessAppMain({
             flexDirection: "column",
           }}
         >
-          <ScreenTransition activeKey={tab}>
+          <ScreenTransition activeKey={tab} variant={screenTransitionVariant} direction={screenTransitionDirection}>
             <Current
               state={state}
               setState={setState}

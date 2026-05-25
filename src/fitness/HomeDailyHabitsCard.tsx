@@ -4,14 +4,11 @@ import { AddHabitSheet } from "./AddHabitSheet";
 import { buildHabitsForDateKey, planWeekIndex } from "./data";
 import { habitIconComponent } from "./habitIcons";
 import { isActionHabit, isWeighInActionHabit } from "./habits";
-import { IconBolt, IconCheck, IconChevR, IconGrip, IconMinus } from "./icons";
+import { IconCheck, IconChevR, IconGrip, IconMinus, IconMobilityRunner } from "./icons";
 import { isMobilityHabit } from "./mobilityHabit";
 import { SortableExerciseList } from "./SortableExerciseList";
+import { MOBILITY_ACCENT, MOBILITY_BG, MOBILITY_BORDER } from "./workoutUiTokens";
 import type { Habit, HabitTemplate } from "./types";
-
-const MOBILITY_ACCENT = "rgba(196,181,253,0.95)";
-const MOBILITY_BORDER = "rgba(196,181,253,0.32)";
-const MOBILITY_BG = "rgba(196,181,253,0.07)";
 
 type Props = {
   habits: Habit[];
@@ -63,23 +60,9 @@ function MobilityRoutineCard({
           padding: "15px 16px 14px",
           borderColor: habit.done ? "rgba(196,181,253,0.42)" : MOBILITY_BORDER,
           background: MOBILITY_BG,
-          position: "relative",
-          overflow: "hidden",
         }}
       >
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: 3,
-            background: habit.done ? MOBILITY_ACCENT : "rgba(196,181,253,0.55)",
-          }}
-        />
-
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 14, paddingLeft: 4 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
           <div
             style={{
               width: 40,
@@ -93,7 +76,7 @@ function MobilityRoutineCard({
               flexShrink: 0,
             }}
           >
-            <IconBolt size={18} stroke={1.7} />
+            <IconMobilityRunner size={22} color={MOBILITY_ACCENT} />
           </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>

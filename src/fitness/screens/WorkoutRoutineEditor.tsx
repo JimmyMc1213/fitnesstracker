@@ -270,7 +270,91 @@ function SetCountStepper({
   );
 }
 
-function RepRangeInputs({
+const repStepperShellStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  background: "var(--card-2)",
+  border: "0.5px solid var(--border)",
+  borderRadius: 10,
+  padding: "4px 6px",
+  minHeight: 38,
+};
+
+function RepBoundStepper({
+  boundLabel,
+  value,
+  min,
+  max,
+  onChange,
+  disabled,
+}: {
+  boundLabel: "Min" | "Max";
+  value: number;
+  min: number;
+  max: number;
+  onChange: (next: number) => void;
+  disabled?: boolean;
+}) {
+  const n = Math.min(Math.max(value, min), max);
+
+  return (
+    <div style={repStepperShellStyle}>
+      <span
+        style={{
+          width: 28,
+          flexShrink: 0,
+          fontSize: 11,
+          fontWeight: 600,
+          color: "var(--text-ghost)",
+          textTransform: "uppercase",
+          letterSpacing: "0.04em",
+        }}
+      >
+        {boundLabel}
+      </span>
+      <button
+        type="button"
+        className="tap"
+        disabled={disabled || n <= min}
+        aria-label={`Decrease ${boundLabel.toLowerCase()} reps`}
+        onClick={() => onChange(n - 1)}
+        style={{
+          width: 28,
+          height: 28,
+          display: "grid",
+          placeItems: "center",
+          border: "none",
+          background: "transparent",
+          color: n <= min ? "var(--text-whisper)" : "var(--text-primary)",
+        }}
+      >
+        <IconMinus size={15} stroke={2} />
+      </button>
+      <span style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>{n}</span>
+      <button
+        type="button"
+        className="tap"
+        disabled={disabled || n >= max}
+        aria-label={`Increase ${boundLabel.toLowerCase()} reps`}
+        onClick={() => onChange(n + 1)}
+        style={{
+          width: 28,
+          height: 28,
+          display: "grid",
+          placeItems: "center",
+          border: "none",
+          background: "transparent",
+          color: n >= max ? "var(--text-whisper)" : "var(--text-primary)",
+        }}
+      >
+        <IconPlus size={15} stroke={2} />
+      </button>
+    </div>
+  );
+}
+
+function RepRangeStepper({
   low,
   high,
   onChange,
@@ -281,64 +365,26 @@ function RepRangeInputs({
   onChange: (low: number, high: number) => void;
   disabled?: boolean;
 }) {
+  const lo = Math.min(Math.max(low, 1), 99);
+  const hi = Math.min(Math.max(high, lo), 99);
+
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 6,
-        background: "var(--card-2)",
-        border: "0.5px solid var(--border)",
-        borderRadius: 10,
-        padding: "6px 8px",
-        minHeight: 42,
-      }}
-    >
-      <input
-        type="number"
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <RepBoundStepper
+        boundLabel="Min"
+        value={lo}
         min={1}
-        max={99}
-        value={low}
-        onChange={(e) => {
-          const next = Math.max(1, parseInt(e.target.value, 10) || 1);
-          onChange(next, Math.max(next, high));
-        }}
-        aria-label="Rep range low"
-        readOnly={disabled}
-        style={{
-          ...workoutFieldInputStyle,
-          width: 40,
-          minWidth: 40,
-          padding: "4px 2px",
-          textAlign: "center",
-          marginBottom: 0,
-          border: "none",
-          background: "transparent",
-        }}
+        max={hi}
+        disabled={disabled}
+        onChange={(nextLow) => onChange(nextLow, Math.max(hi, nextLow))}
       />
-      <span style={{ color: "var(--text-ghost)", fontWeight: 500, fontSize: 14 }}>–</span>
-      <input
-        type="number"
-        min={1}
+      <RepBoundStepper
+        boundLabel="Max"
+        value={hi}
+        min={lo}
         max={99}
-        value={high}
-        onChange={(e) => {
-          const next = Math.max(1, parseInt(e.target.value, 10) || 1);
-          onChange(Math.min(low, next), next);
-        }}
-        aria-label="Rep range high"
-        readOnly={disabled}
-        style={{
-          ...workoutFieldInputStyle,
-          width: 40,
-          minWidth: 40,
-          padding: "4px 2px",
-          textAlign: "center",
-          marginBottom: 0,
-          border: "none",
-          background: "transparent",
-        }}
+        disabled={disabled}
+        onChange={(nextHigh) => onChange(lo, nextHigh)}
       />
     </div>
   );
@@ -372,6 +418,8 @@ export function WorkoutRoutineEditor({
   const nameInputRef = useRef<HTMLInputElement>(null);
   const pendingScrollToNewExerciseRef = useRef(false);
 
+  const templateId = template?.id ?? null;
+
   useEffect(() => {
     if (template) {
       setName(template.name);
@@ -385,7 +433,7 @@ export function WorkoutRoutineEditor({
       setExercises([]);
     }
     setSearchSheet(null);
-  }, [template]);
+  }, [templateId]);
 
   useEffect(() => {
     if (!pendingScrollToNewExerciseRef.current) return;
@@ -685,7 +733,7 @@ export function WorkoutRoutineEditor({
                     </div>
                     <div>
                       <span style={fieldLabelStyle}>Reps</span>
-                      <RepRangeInputs
+                      <RepRangeStepper
                         low={low}
                         high={high}
                         disabled={ctx.isOverlay}

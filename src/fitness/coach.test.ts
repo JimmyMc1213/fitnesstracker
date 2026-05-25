@@ -29,7 +29,7 @@ describe("progressiveOverloadInsight", () => {
     const msg = progressiveOverloadInsight(workoutStateFixtures.incompleteBlankSet);
     expect(msg).toContain("Deadlift");
     expect(msg).toContain("Lead with");
-    expect(msg).toContain("rep range");
+    expect(msg).toContain("10 reps");
   });
 
   it("returns no-completed-sets message when all sets are done but none have weight×reps", () => {
@@ -54,8 +54,9 @@ describe("progressiveOverloadInsight", () => {
     const msg = progressiveOverloadInsight(workoutStateFixtures.allSetsDone);
     expect(msg).toContain("Overhead Press");
     expect(msg).toContain("95 lb");
-    expect(msg).toContain("10 reps");
+    expect(msg).toContain("10 reps logged");
     expect(msg).toContain("Solid work");
+    expect(msg).toContain("10 reps (top of 10 reps)");
     expect(msg).toContain("add ~5 lb");
   });
 });

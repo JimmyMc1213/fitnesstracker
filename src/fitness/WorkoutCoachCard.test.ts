@@ -6,8 +6,7 @@ import { WorkoutCoachCard } from "./WorkoutCoachCard";
 
 const baseProps = {
   overloadTip: "Add 5 lb when all sets feel easy.",
-  mobilityItems: ["Hip flexor stretch, 30s each side"],
-  warmupItems: ["5 min easy bike"],
+  warmupGroups: [{ label: "General", drills: [{ name: "Easy cardio", prescription: "5 min" }] }],
 };
 
 function renderCoachCard(defaultExpanded?: boolean): string {

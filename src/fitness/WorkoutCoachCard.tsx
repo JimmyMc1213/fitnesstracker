@@ -1,7 +1,14 @@
 import { useState } from "react";
 
-import type { WorkoutRoutineTemplate } from "./types";
-import { COACH_BLUE_LABEL, COACH_BLUE_MUTED, COACH_CARD_BG, COACH_CARD_BORDER, labelStyle } from "./workoutUiTokens";
+import { WorkoutWarmupGroups } from "./workout/WorkoutWarmupGroups";
+import type { WorkoutWarmupGroup } from "./workoutWarmup";
+import {
+  COACH_BLUE_MUTED,
+  COACH_CARD_BG,
+  COACH_CARD_BORDER,
+  coachMajorTitleStyle,
+  coachSubsectionLabelStyle,
+} from "./workoutUiTokens";
 
 const coachBodyStyle = {
   margin: 0,
@@ -11,18 +18,11 @@ const coachBodyStyle = {
   color: "var(--text-soft)",
 } as const;
 
-const coachSectionLabel = {
-  ...labelStyle,
-  color: COACH_BLUE_LABEL,
-  marginBottom: 8,
-} as const;
-
 type WorkoutCoachCardProps = {
   overloadTip: string;
   sessionTip?: string;
-  activeRoutine?: WorkoutRoutineTemplate;
-  mobilityItems: readonly string[];
-  warmupItems: readonly string[];
+  warmupGroups: readonly WorkoutWarmupGroup[];
+  warmupTip?: string;
   /** When true, card mounts expanded (e.g. training days). Session-local collapse via header toggle. */
   defaultExpanded?: boolean;
 };
@@ -30,9 +30,8 @@ type WorkoutCoachCardProps = {
 export function WorkoutCoachCard({
   overloadTip,
   sessionTip,
-  activeRoutine,
-  mobilityItems,
-  warmupItems,
+  warmupGroups,
+  warmupTip,
   defaultExpanded = false,
 }: WorkoutCoachCardProps) {
   const [collapsed, setCollapsed] = useState(!defaultExpanded);
@@ -68,10 +67,10 @@ export function WorkoutCoachCard({
         }}
       >
         <span style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-          <span style={{ ...labelStyle, color: COACH_BLUE_LABEL }}>Coach</span>
+          <span style={coachMajorTitleStyle}>Coach</span>
           {collapsed ? (
             <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-faint-soft)", lineHeight: 1.35 }}>
-              Tap for coach note, warm-up & mobility
+              Tap for coach note and warm-up
             </span>
           ) : null}
         </span>
@@ -90,67 +89,37 @@ export function WorkoutCoachCard({
       </button>
 
       {!collapsed ? (
-        <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
           <section>
-            <div style={coachSectionLabel}>Coach note</div>
+            <div style={{ ...coachSubsectionLabelStyle, marginBottom: 6 }}>Coach note</div>
             <p style={{ ...coachBodyStyle, whiteSpace: "pre-line" }}>{overloadTip}</p>
           </section>
 
           {sessionTip ? (
             <section
               style={{
-                padding: 12,
+                padding: "10px 12px",
                 borderRadius: 10,
                 background: "var(--surface-1)",
                 border: "0.5px solid var(--border)",
               }}
             >
-              <div style={{ ...labelStyle, color: "var(--text-ghost)", marginBottom: 8 }}>After this session</div>
+              <div style={{ ...coachSubsectionLabelStyle, marginBottom: 6 }}>After this session</div>
               <p style={{ ...coachBodyStyle, color: "var(--text-soft)" }}>{sessionTip}</p>
             </section>
           ) : null}
 
-          {activeRoutine?.warmupItems?.length ? (
-            <section>
-              <div style={coachSectionLabel}>Session warm-up</div>
-              <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-                {activeRoutine.warmupItems.map((item) => (
-                  <li key={item.description} style={coachBodyStyle}>
-                    {item.description}
-                  </li>
-                ))}
-              </ul>
+          {warmupGroups.length ? (
+            <section
+              style={{
+                paddingTop: 12,
+                borderTop: "0.5px solid var(--border)",
+              }}
+            >
+              <div style={{ ...coachMajorTitleStyle, marginBottom: 10 }}>Warm-up</div>
+              <WorkoutWarmupGroups groups={warmupGroups} footerTip={warmupTip} />
             </section>
           ) : null}
-
-          {activeRoutine?.warmupTip ? (
-            <section>
-              <div style={{ ...coachSectionLabel, color: COACH_BLUE_MUTED }}>Coach callout</div>
-              <p style={{ ...coachBodyStyle, color: "var(--text-soft)" }}>{activeRoutine.warmupTip}</p>
-            </section>
-          ) : null}
-
-          <section>
-            <div style={{ ...labelStyle, color: COACH_BLUE_MUTED, marginBottom: 8 }}>Mobility</div>
-            <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-              {mobilityItems.map((line) => (
-                <li key={line} style={coachBodyStyle}>
-                  {line}
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section>
-            <div style={{ ...labelStyle, color: COACH_BLUE_MUTED, marginBottom: 8 }}>Warm-up</div>
-            <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-              {warmupItems.map((line) => (
-                <li key={line} style={coachBodyStyle}>
-                  {line}
-                </li>
-              ))}
-            </ul>
-          </section>
         </div>
       ) : null}
     </div>

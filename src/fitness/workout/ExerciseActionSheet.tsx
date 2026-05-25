@@ -95,8 +95,8 @@ export function ExerciseActionSheet({
         icon={<IconTrash size={18} stroke={1.75} />}
         destructive
         onClick={() => {
-          onRemove();
           onClose();
+          queueMicrotask(() => onRemove());
         }}
       />
     </BottomSheet>

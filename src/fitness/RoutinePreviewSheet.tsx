@@ -1,9 +1,12 @@
 import { PrimaryButton } from "./shared";
 import type { WorkoutRoutineTemplate } from "./types";
+import { buildWorkoutWarmup } from "./workoutWarmup";
+import { WorkoutWarmupGroups } from "./workout/WorkoutWarmupGroups";
 import {
   COACH_BLUE_LABEL,
   COACH_CARD_BG,
   COACH_CARD_BORDER,
+  coachMajorTitleStyle,
   labelStyle,
   SECONDARY_ACTION_COLOR,
 } from "./workoutUiTokens";
@@ -32,6 +35,7 @@ export function RoutinePreviewSheet({
   onStart,
 }: RoutinePreviewSheetProps) {
   const totalSets = template.exercises.reduce((a, e) => a + e.sets.length, 0);
+  const warmup = buildWorkoutWarmup(template.exercises);
 
   return (
     <BottomSheet
@@ -143,27 +147,17 @@ export function RoutinePreviewSheet({
             ))}
           </div>
 
-          {template.warmupItems?.length ? (
-            <div style={{ marginTop: 12, marginBottom: 4 }}>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "var(--text-ghost)",
-                  marginBottom: 6,
-                }}
-              >
-                Warm-up
-              </div>
-              <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 4 }}>
-                {template.warmupItems.map((item) => (
-                  <li key={item.description} style={{ fontSize: 11, lineHeight: 1.4, color: "var(--text-muted-soft)", fontWeight: 500 }}>
-                    {item.description}
-                  </li>
-                ))}
-              </ul>
+          {warmup.groups.length ? (
+            <div
+              style={{
+                marginTop: 12,
+                marginBottom: 4,
+                paddingTop: 12,
+                borderTop: "0.5px solid var(--border)",
+              }}
+            >
+              <div style={{ ...coachMajorTitleStyle, fontSize: 15, marginBottom: 8 }}>Warm-up</div>
+              <WorkoutWarmupGroups groups={warmup.groups} compact footerTip={warmup.tip} />
             </div>
           ) : null}
         </div>

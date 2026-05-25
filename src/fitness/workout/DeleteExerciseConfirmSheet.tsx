@@ -18,6 +18,7 @@ export function DeleteExerciseConfirmSheet({
   return (
     <DeleteConfirmSheet
       open={open}
+      zIndex={1400}
       title="Delete exercise?"
       cancelLabel="Keep exercise"
       confirmLabel="Delete exercise"
