@@ -614,12 +614,10 @@ export function OnboardingFlow({
         onContinue={goNext}
         continueDisabled={!dobValid}
       >
-        <div className="dob-wheel-picker-wrap">
-          <DateOfBirthWheelPicker
-            value={dobValue}
-            onChange={(dateOfBirth) => setProfile((p) => ({ ...p, dateOfBirth }))}
-          />
-        </div>
+        <DateOfBirthWheelPicker
+          value={dobValue}
+          onChange={(dateOfBirth) => setProfile((p) => ({ ...p, dateOfBirth }))}
+        />
         {!dobValid && profile.dateOfBirth ? (
           <p style={{ margin: "12px 0 0", fontSize: 13, color: "rgba(248,113,113,0.9)", textAlign: "center" }}>
             Enter a valid date of birth (13+)

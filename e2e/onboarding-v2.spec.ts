@@ -79,7 +79,7 @@ test("resume: reload restores calendar step", async ({ page }) => {
   await advanceToCalendarMaintain(page);
   await page.reload();
   await expect(page.getByRole("heading", { name: "Which days can you train?" })).toBeVisible();
-  await expect(page.getByText("Step 14 of 29")).toBeVisible();
+  await expect(page.getByText("Your training")).toBeVisible();
 });
 
 test("week calendar: 3-day minimum validation", async ({ page }) => {

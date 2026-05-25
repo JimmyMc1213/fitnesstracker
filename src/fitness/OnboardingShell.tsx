@@ -2,14 +2,14 @@ import type { ReactNode } from "react";
 
 export const ONBOARDING_TOTAL_STEPS = 30;
 
-export function phaseForStep(step: number): { phaseLabel?: string; showStepCounter: boolean } {
-  if (step <= 1) return { showStepCounter: false };
-  if (step <= 7) return { phaseLabel: "About you", showStepCounter: true };
-  if (step <= 11) return { phaseLabel: "Your goal", showStepCounter: true };
-  if (step <= 21) return { phaseLabel: "Your training", showStepCounter: true };
-  if (step <= 23) return { phaseLabel: "Your fuel", showStepCounter: true };
-  if (step <= 28) return { phaseLabel: "Launch", showStepCounter: true };
-  return { showStepCounter: false };
+export function phaseForStep(step: number): { phaseLabel?: string } {
+  if (step <= 1) return {};
+  if (step <= 7) return { phaseLabel: "About you" };
+  if (step <= 11) return { phaseLabel: "Your goal" };
+  if (step <= 21) return { phaseLabel: "Your training" };
+  if (step <= 23) return { phaseLabel: "Your fuel" };
+  if (step <= 28) return { phaseLabel: "Launch" };
+  return {};
 }
 
 function BackArrow() {
@@ -75,7 +75,7 @@ export function OnboardingShell({
   /** Tighter spacing between content and footer actions. */
   compactFooter?: boolean;
 }) {
-  const { phaseLabel, showStepCounter } = phaseForStep(step);
+  const { phaseLabel } = phaseForStep(step);
   const pct = Math.round(((step + 1) / totalSteps) * 100);
 
   return (
@@ -96,23 +96,18 @@ export function OnboardingShell({
 
       {!hideProgress ? (
         <div style={{ marginBottom: 20 }}>
-          <div className="onboarding-step-meta">
-            {showStepCounter ? (
-              <span>
-                Step {step + 1} of {totalSteps}
-              </span>
-            ) : (
-              <span />
-            )}
-            {phaseLabel ? <span>{phaseLabel}</span> : <span />}
-          </div>
+          {phaseLabel ? (
+            <div className="onboarding-step-meta">
+              <span>{phaseLabel}</span>
+            </div>
+          ) : null}
           <div
             className="onboarding-progress-track"
             role="progressbar"
             aria-valuenow={step + 1}
             aria-valuemin={1}
             aria-valuemax={totalSteps}
-            aria-label={`Step ${step + 1} of ${totalSteps}`}
+            aria-label="Onboarding progress"
           >
             <div className="onboarding-progress-fill" style={{ width: `${pct}%` }} />
           </div>

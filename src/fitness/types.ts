@@ -204,14 +204,12 @@ export type ReferralSource =
   | "app_store"
   | "tiktok"
   | "youtube"
-  | "tv"
   | "x"
   | "instagram"
   | "google"
   | "facebook"
   | "friend"
   | "reddit"
-  | "podcast"
   | "other";
 
 export type OnboardingBarrier =

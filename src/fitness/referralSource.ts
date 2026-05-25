@@ -1,15 +1,14 @@
+/** Fitness-first ordering — word-of-mouth and training content channels before generic discovery. */
 export const REFERRAL_SOURCES = [
-  "app_store",
+  "friend",
+  "instagram",
   "tiktok",
   "youtube",
-  "tv",
-  "x",
-  "instagram",
-  "google",
-  "facebook",
-  "friend",
   "reddit",
-  "podcast",
+  "google",
+  "app_store",
+  "facebook",
+  "x",
   "other",
 ] as const;
 
@@ -23,8 +22,6 @@ export function referralSourceLabel(source: ReferralSource): string {
       return "TikTok";
     case "youtube":
       return "YouTube";
-    case "tv":
-      return "TV";
     case "x":
       return "X";
     case "instagram":
@@ -37,8 +34,6 @@ export function referralSourceLabel(source: ReferralSource): string {
       return "Friend or family";
     case "reddit":
       return "Reddit";
-    case "podcast":
-      return "Podcast";
     case "other":
       return "Other";
   }
