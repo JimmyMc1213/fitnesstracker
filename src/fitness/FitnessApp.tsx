@@ -24,7 +24,7 @@ import { ScreenProgress } from "./screens/ScreenProgress";
 import { ScreenStretch } from "./screens/ScreenStretch";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
-import { ScreenTransition } from "./motion";
+import { ScreenTransition, useTabBarPinStyle } from "./motion";
 import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
 import {
   clearDevPreviewOnboardingUrl,
@@ -360,6 +360,7 @@ function FitnessAppMain({
 
   const Current = screens[tab];
   const showWorkoutSummary = state.workoutSummary != null;
+  const tabBarPinStyle = useTabBarPinStyle();
 
   const hideTabBar =
     tab === "stretch" || showWorkoutSummary || logFoodOverlayOpen || routineEditorOpen;
@@ -574,7 +575,7 @@ function FitnessAppMain({
         </div>
 
         {!hideTabBar ? (
-          <nav className="tabbar" aria-label="Main">
+          <nav className="tabbar" aria-label="Main" style={tabBarPinStyle}>
             {TABS.map((t) => {
               const active = tab === t.id;
               return (

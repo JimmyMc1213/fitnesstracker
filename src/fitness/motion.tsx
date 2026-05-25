@@ -119,6 +119,7 @@ export function useKeyboardViewport() {
   const [state, setState] = useState(() => ({
     keyboardBottom: 0,
     visibleHeight: typeof window !== "undefined" ? window.innerHeight : 800,
+    offsetTop: 0,
   }));
 
   useEffect(() => {
@@ -129,6 +130,7 @@ export function useKeyboardViewport() {
       setState({
         keyboardBottom: Math.max(0, window.innerHeight - vv.height - vv.offsetTop),
         visibleHeight: vv.height,
+        offsetTop: vv.offsetTop,
       });
     };
 
@@ -144,7 +146,17 @@ export function useKeyboardViewport() {
   return state;
 }
 
-const KEYBOARD_OPEN_THRESHOLD = 48;
+export const KEYBOARD_OPEN_THRESHOLD = 48;
+
+/** Counteract iOS visual-viewport pan so the tab bar stays at the layout bottom. */
+export function useTabBarPinStyle(): CSSProperties {
+  const { offsetTop } = useKeyboardViewport();
+  if (offsetTop <= 0) return {};
+  return {
+    transform: `translate3d(0, ${offsetTop}px, 0)`,
+    willChange: "transform",
+  };
+}
 /** Top + bottom padding on the bottom-sheet backdrop (px). */
 const SHEET_BACKDROP_CHROME = 36;
 
