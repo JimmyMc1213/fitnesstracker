@@ -140,6 +140,8 @@ export function FullScreenOverlay({ open, zIndex = 200, className = "", style, c
         flexDirection: "column",
         overflow: "hidden",
         background: "var(--bg, #060608)",
+        paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
+        boxSizing: "border-box",
         ...style,
       }}
     >

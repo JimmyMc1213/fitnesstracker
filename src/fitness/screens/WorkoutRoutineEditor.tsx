@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { newTemplateExerciseLine, resizeWorkoutSets } from "../data";
-import { IconMinus, IconPencil, IconPlus, IconSearch, IconTrash } from "../icons";
+import { IconMinus, IconPencil, IconPlus, IconTrash } from "../icons";
 import { FullScreenOverlay } from "../motion";
 import { RoutineExerciseSearchSheet } from "../RoutineExerciseSearchSheet";
 import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseList";
@@ -395,8 +395,6 @@ export function WorkoutRoutineEditor({
     });
   }, [exercises.length]);
 
-  const inputStyle = workoutFieldInputStyle;
-
   function patchExercise(id: string, patch: Partial<WorkoutExercise> & { setCount?: number; repLow?: number; repHigh?: number }) {
     setExercises((rows) =>
       rows.map((row) => {
@@ -500,11 +498,12 @@ export function WorkoutRoutineEditor({
     <>
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
       <div className="screen" style={{ flex: 1, overflowY: "auto", paddingBottom: 12 }}>
-        <div className="between" style={{ alignItems: "center", marginBottom: 8, marginTop: 4 }}>
+        <div className="between" style={{ alignItems: "center", marginBottom: 8 }}>
           <button
             type="button"
             className="tap"
             onClick={onClose}
+            aria-label="Back to workouts"
             style={{ color: SECONDARY_ACTION_COLOR, fontSize: 15, fontWeight: 600, padding: 8, marginLeft: -8 }}
           >
             ← Back
@@ -611,63 +610,68 @@ export function WorkoutRoutineEditor({
                     pointerEvents: ctx.isOverlay ? "none" : undefined,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 10 }}>
                     <ExerciseDragHandle handle={handle} tapSize={44} disabled={ctx.isListDragging && !handle.isDragging} />
-                    <span style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 600, flexShrink: 0, width: 20 }}>
-                      #{ri + 1}
-                    </span>
-                    <button
-                      type="button"
-                      className="tap"
-                      disabled={ctx.isOverlay || ctx.isListDragging}
-                      onClick={() => setSearchSheet({ kind: "swap", exerciseId: row.id })}
-                      style={{
-                        ...inputStyle,
-                        flex: 1,
-                        minWidth: 0,
-                        marginBottom: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 8,
-                        textAlign: "left",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <span
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          color: row.name.trim() ? "var(--text-primary)" : "var(--text-ghost)",
-                        }}
-                      >
-                        {row.name.trim() || "Choose exercise"}
-                      </span>
-                      <IconSearch size={16} style={{ flexShrink: 0, color: "var(--text-ghost)" }} />
-                    </button>
-                    <button
-                      type="button"
-                      className="tap"
-                      aria-label={`Remove ${row.name.trim() || "exercise"}`}
-                      disabled={ctx.isListDragging}
-                      onClick={() => requestDeleteExercise(row)}
-                      style={{
-                        flexShrink: 0,
-                        display: "grid",
-                        placeItems: "center",
-                        width: 36,
-                        height: 36,
-                        padding: 0,
-                        border: "none",
-                        background: "transparent",
-                        color: "#FF6961",
-                      }}
-                    >
-                      <IconTrash size={18} stroke={1.75} />
-                    </button>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                        <span style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 600, flexShrink: 0 }}>
+                          #{ri + 1}
+                        </span>
+                        <span
+                          style={{
+                            flex: 1,
+                            minWidth: 0,
+                            fontSize: 15,
+                            fontWeight: 600,
+                            letterSpacing: "-0.01em",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            color: row.name.trim() ? "var(--text-primary)" : "var(--text-ghost)",
+                          }}
+                        >
+                          {row.name.trim() || "Choose exercise"}
+                        </span>
+                        <button
+                          type="button"
+                          className="tap"
+                          aria-label={`Swap ${row.name.trim() || "exercise"}`}
+                          disabled={ctx.isOverlay || ctx.isListDragging}
+                          onClick={() => setSearchSheet({ kind: "swap", exerciseId: row.id })}
+                          style={{
+                            flexShrink: 0,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: SECONDARY_ACTION_COLOR,
+                            background: "none",
+                            border: "none",
+                            padding: "4px 0",
+                          }}
+                        >
+                          Swap
+                        </button>
+                        <button
+                          type="button"
+                          className="tap"
+                          aria-label={`Remove ${row.name.trim() || "exercise"}`}
+                          disabled={ctx.isListDragging}
+                          onClick={() => requestDeleteExercise(row)}
+                          style={{
+                            flexShrink: 0,
+                            display: "grid",
+                            placeItems: "center",
+                            width: 36,
+                            height: 36,
+                            padding: 0,
+                            border: "none",
+                            background: "transparent",
+                            color: "#FF6961",
+                          }}
+                        >
+                          <IconTrash size={18} stroke={1.75} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -779,7 +783,7 @@ export function WorkoutRoutineEditor({
       {searchSheet ? (
         <RoutineExerciseSearchSheet
           open
-          title={searchSheet.kind === "add" ? "Add exercise" : "Choose exercise"}
+          title={searchSheet.kind === "add" ? "Add exercise" : "Swap exercise"}
           equipmentSetup={equipmentSetup}
           customExercises={customExercises}
           onSelect={handleExerciseSelect}
