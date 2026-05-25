@@ -3,6 +3,8 @@ import { createContext, useContext } from "react";
 export type FitnessSyncContextValue = {
   configured: boolean;
   sessionEmail: string | null;
+  /** False until Supabase getSession() finishes (or sync is disabled). */
+  sessionResolved: boolean;
   busy: boolean;
   lastError: string | null;
   lastSyncedLabel: string | null;
@@ -20,6 +22,7 @@ export type FitnessSyncContextValue = {
 const disabledSync: FitnessSyncContextValue = {
   configured: false,
   sessionEmail: null,
+  sessionResolved: true,
   busy: false,
   lastError: null,
   lastSyncedLabel: null,

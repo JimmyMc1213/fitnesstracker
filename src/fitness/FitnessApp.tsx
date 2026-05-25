@@ -19,12 +19,6 @@ import {
   savePersistedSlice,
   sliceFromAppState,
 } from "./persistFitnessSlice";
-import {
-  IconChart,
-  IconDumbbell,
-  IconFork,
-  IconHome,
-} from "./icons";
 import { ScreenHome } from "./screens/ScreenHome";
 import { ScreenNutrition } from "./screens/ScreenNutrition";
 import { ScreenProgress } from "./screens/ScreenProgress";
@@ -43,8 +37,14 @@ import { OnboardingFlow } from "./OnboardingFlow";
 import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
 import { clearOnboardingDraftStorage, initialOnboardingWizardDraft } from "./onboardingDraft";
 import { captureOAuthReturnForSaveProgress } from "./oauthReturnCapture";
-import { shouldSkipOnboarding } from "./onboardingSkip";
+import { finalizeSignedInAppAccess, shouldSkipOnboarding } from "./onboardingSkip";
 import { saveSyncMeta } from "./syncMeta";
+import {
+  IconChart,
+  IconDumbbell,
+  IconFork,
+  IconHome,
+} from "./icons";
 import { registerNotificationServiceWorker } from "./registerNotificationServiceWorker";
 import { checkAndFireDueNotifications } from "./notificationScheduler";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
@@ -231,15 +231,9 @@ function FitnessAppMain({
   stateRef.current = state;
 
   const completeWelcomeSignIn = () => {
-    setState((s) => {
-      const nextSlice = {
-        ...sliceFromAppState(s),
-        onboardingComplete: true,
-        onboardingDraft: null,
-      };
-      savePersistedSlice(nextSlice);
-      return buildAppStateFromPersisted(nextSlice);
-    });
+    const persisted = loadPersistedSlice() ?? sliceFromAppState(stateRef.current);
+    const nextSlice = finalizeSignedInAppAccess(persisted);
+    setState(buildAppStateFromPersisted(nextSlice));
     setWelcomeSignInError(null);
     setIntroWelcomeDone(true);
     setWelcomeSignInFlow(false);
@@ -372,8 +366,28 @@ function FitnessAppMain({
   const introEligible = !state.onboardingComplete || devPreviewOnboarding;
   const restorableIntroDraft = initialOnboardingWizardDraft(state.onboardingDraft);
   const resumeIntroStep = restorableIntroDraft?.stepIndex ?? 0;
+
+  const awaitingSessionBootstrap = fitnessSync.configured && !fitnessSync.sessionResolved;
+  const awaitingSignedInHydration =
+    fitnessSync.configured &&
+    fitnessSync.sessionEmail != null &&
+    !fitnessSync.fitnessHydrated &&
+    !state.onboardingComplete;
+
+  const skipOnboardingForSession = shouldSkipOnboarding({
+    persisted: sliceFromAppState(state),
+    sessionEmail: fitnessSync.sessionEmail,
+    forcePreview: false,
+  });
+
   const showIntroWelcome =
-    introEligible && !introWelcomeDone && !state.onboardingComplete && resumeIntroStep === 0;
+    !awaitingSessionBootstrap &&
+    !awaitingSignedInHydration &&
+    introEligible &&
+    !introWelcomeDone &&
+    !state.onboardingComplete &&
+    !skipOnboardingForSession &&
+    resumeIntroStep === 0;
 
   const handleOnboardingSignIn = () => {
     setWelcomeSignInError(null);
@@ -429,12 +443,43 @@ function FitnessAppMain({
   ]);
 
   useEffect(() => {
+    if (welcomeSignInFlow) return;
+    if (!fitnessSync.sessionEmail || !fitnessSync.fitnessHydrated) return;
+
+    const skip = shouldSkipOnboarding({
+      persisted: sliceFromAppState(stateRef.current),
+      sessionEmail: fitnessSync.sessionEmail,
+      forcePreview: false,
+    });
+    if (!skip) return;
+
+    if (!stateRef.current.onboardingComplete) {
+      const nextSlice = finalizeSignedInAppAccess(loadPersistedSlice() ?? sliceFromAppState(stateRef.current));
+      setState(buildAppStateFromPersisted(nextSlice));
+    }
+    setIntroWelcomeDone(true);
+  }, [
+    welcomeSignInFlow,
+    fitnessSync.sessionEmail,
+    fitnessSync.fitnessHydrated,
+    syncSig,
+  ]);
+
+  useEffect(() => {
     if (!welcomeSignInFlow || !fitnessSync.sessionEmail) return;
     const id = window.setTimeout(() => {
       completeWelcomeSignIn();
     }, 10_000);
     return () => window.clearTimeout(id);
   }, [welcomeSignInFlow, fitnessSync.sessionEmail]);
+
+  if (awaitingSessionBootstrap || awaitingSignedInHydration) {
+    return (
+      <FitnessSyncContext.Provider value={fitnessSync}>
+        <HydrationSplash />
+      </FitnessSyncContext.Provider>
+    );
+  }
 
   if (authViewOverride === "signin") {
     if (fitnessSync.sessionEmail && welcomeSignInFlow) {

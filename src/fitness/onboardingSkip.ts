@@ -1,4 +1,5 @@
-import type { PersistedFitnessSlice } from "./persistFitnessSlice";
+import { clearOnboardingDraftStorage } from "./onboardingDraft";
+import { savePersistedSlice, type PersistedFitnessSlice } from "./persistFitnessSlice";
 
 const DEFAULT_LEGACY_EMAILS = ["jimmymccarthy@gmail.com"];
 
@@ -41,4 +42,18 @@ export function shouldSkipOnboarding(opts: {
   if (hasOnboardingProfileSetup(opts.persisted)) return true;
   if (isLegacyUserEmail(opts.sessionEmail)) return true;
   return hasExistingFitnessData(opts.persisted);
+}
+
+/** After a valid sign-in (or restored session), persist onboarding bypass and clear draft keys. */
+export function finalizeSignedInAppAccess(
+  base: Partial<PersistedFitnessSlice> | null | undefined,
+): PersistedFitnessSlice {
+  clearOnboardingDraftStorage();
+  const nextSlice = {
+    ...(base ?? {}),
+    onboardingComplete: true,
+    onboardingDraft: null,
+  } as PersistedFitnessSlice;
+  savePersistedSlice(nextSlice);
+  return nextSlice;
 }

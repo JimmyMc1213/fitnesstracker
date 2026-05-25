@@ -5,6 +5,7 @@ import { buildAppStateFromPersisted } from "./buildAppState";
 import type { FitnessSyncContextValue } from "./FitnessSyncContext";
 import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
 import { mergePersistedFitnessSlices } from "./mergePersistedFitnessSlices";
+import { normalizeOnboardingDraft } from "./onboardingDraft";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { savePersistedSlice, sliceFromAppState } from "./persistFitnessSlice";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
@@ -198,6 +199,20 @@ export function useFitnessCloudSync(
       try {
         const localSlice = sliceFromAppState(stateRef.current);
         const meta = loadSyncMeta();
+        const needsFullRestore =
+          localSlice.onboardingComplete !== true && normalizeOnboardingDraft(localSlice.onboardingDraft) == null;
+
+        if (needsFullRestore) {
+          const merged = await pullRemoteMergeAlways(uid, localSlice);
+          if (merged) {
+            const persisted = persistSliceWithMigration(merged.mergedSlice);
+            saveSyncMeta(merged.meta);
+            savePersistedSlice(persisted);
+            setState(buildAppStateFromPersisted(persisted));
+          }
+          return;
+        }
+
         const pull = await pullRemoteIntoLocal(uid, localSlice, meta);
         if (pull.applied) {
           const merged = persistSliceWithMigration(pull.mergedSlice);
@@ -422,6 +437,7 @@ export function useFitnessCloudSync(
   return {
     configured,
     sessionEmail: session?.user?.email ?? null,
+    sessionResolved,
     busy,
     lastError,
     lastSyncedLabel: formatSyncedLabel(lastSyncedAt),
