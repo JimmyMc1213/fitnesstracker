@@ -32,6 +32,7 @@ import { normalizeOnboardingProfile, DEFAULT_ONBOARDING_PROFILE } from "./onboar
 import { normalizeOnboardingDraft } from "./onboardingDraft";
 import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
 import { normalizeRestTimerDefaultSeconds, normalizeRestTimerSecondsByExerciseKey } from "./restTimerPreferences";
+import { restSecondsFromTrainingDuration } from "./sessionLengthConfig";
 import { normalizeAppTheme, readStoredTheme } from "./theme";
 import { normalizeNotificationPreferences } from "./notificationPreferences";
 import { normalizeUnitPreferences } from "./unitPreferences";
@@ -435,7 +436,12 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     equipmentSetup: normalizeEquipmentSetup(p?.equipmentSetup),
     equipmentSetupChosen:
       p?.equipmentSetupChosen === true || hasLegacyFitnessData || p?.onboardingComplete === true,
-    restTimerDefaultSeconds: normalizeRestTimerDefaultSeconds(p?.restTimerDefaultSeconds),
+    restTimerDefaultSeconds:
+      typeof p?.restTimerDefaultSeconds === "number"
+        ? normalizeRestTimerDefaultSeconds(p.restTimerDefaultSeconds)
+        : onboardingProfile.sessionDuration != null
+          ? restSecondsFromTrainingDuration(onboardingProfile.sessionDuration)
+          : normalizeRestTimerDefaultSeconds(undefined),
     restTimerSecondsByExerciseKey: normalizeRestTimerSecondsByExerciseKey(p?.restTimerSecondsByExerciseKey),
     onboardingProfile,
     onboardingComplete,

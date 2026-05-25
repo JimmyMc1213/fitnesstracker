@@ -75,6 +75,7 @@ import { defaultGoalWeightLbs, goalWeightRangeLbs, WeightRulerPicker } from "./W
 import { ReferralSourcePicker } from "./ReferralSourcePicker";
 import { OnboardingDecimalInput } from "./OnboardingDecimalInput";
 import { sessionDurationFromSessionLength, sessionLengthFromDuration } from "./workoutSplitByDays";
+import { restSecondsForSessionLength } from "./sessionLengthConfig";
 import { buildWeeklyRoutineTemplates } from "./buildWeeklyRoutine";
 import { ScreenTransition, type NavDirection } from "./motion";
 import type {
@@ -548,6 +549,7 @@ export function OnboardingFlow({
         habitTemplates,
         habitsDoneByDay,
         habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey),
+        restTimerDefaultSeconds: restSecondsForSessionLength(sessionLength),
         dailyTasks: loadTasksForToday(macros, planStartIso, stepsTarget, draftTemplates, finalProfile.workoutDaysPerWeek),
       };
     });

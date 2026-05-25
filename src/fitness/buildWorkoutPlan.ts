@@ -1,6 +1,8 @@
 import exerciseLibrary, { Exercise, Equipment, Experience, MovementPattern } from './exerciseLibrary';
 import type { ExerciseEquipmentLabel } from './exerciseLabels';
-import { splitTemplates as splits, SessionLength, SplitType, REP_RANGES, SET_COUNT } from './splitTemplates';
+import { splitTemplates as splits, SessionLength, SplitType, REP_RANGES } from './splitTemplates';
+import { fitSessionVolume } from './fitSessionVolume';
+import { roundEstimatedSessionMinutes } from './sessionLengthConfig';
 
 export interface WorkoutSet {
   sets: number;
@@ -44,15 +46,6 @@ export interface BuildPlanInput {
   sessionLength: SessionLength;
   preferPPL?: boolean;
 }
-
-// Estimated minutes per session length
-const SESSION_MINUTES: Record<SessionLength, number> = {
-  under_30: 25,
-  '30_45':  38,
-  '45_60':  52,
-  '60_90':  72,
-  '90_plus': 100
-};
 
 // Weight guidance by experience
 const WEIGHT_NOTES: Record<Experience, string> = {
@@ -111,8 +104,6 @@ export function buildWorkoutPlan(input: BuildPlanInput): WorkoutPlan {
   if (!splitTemplate) throw new Error(`No template found for split type: ${splitType}`);
 
   const repRange = REP_RANGES[experience];
-  const setCount = SET_COUNT[sessionLength];
-  const exerciseCount = splitTemplate.sessions[0]?.volumeByLength[sessionLength] ?? 5;
 
   const sessions: WorkoutSession[] = splitTemplate.sessions
     .filter(s => s.movementPatterns.length > 0)
@@ -120,7 +111,12 @@ export function buildWorkoutPlan(input: BuildPlanInput): WorkoutPlan {
       const usedIds = new Set<string>();
       const exercises: WorkoutExercise[] = [];
 
-      // Slice movement patterns to match volume for session length
+      const { exerciseCount, setCount, estimatedSeconds } = fitSessionVolume(
+        sessionTemplate.movementPatterns.length,
+        sessionLength,
+        repRange.sets,
+      );
+
       const patterns = sessionTemplate.movementPatterns.slice(0, exerciseCount);
 
       for (const pattern of patterns) {
@@ -152,7 +148,7 @@ export function buildWorkoutPlan(input: BuildPlanInput): WorkoutPlan {
         dayLabel: weekdayLabel,
         sessionName: sessionTemplate.sessionName,
         exercises,
-        estimatedMinutes: SESSION_MINUTES[sessionLength]
+        estimatedMinutes: roundEstimatedSessionMinutes(estimatedSeconds),
       };
     });
 

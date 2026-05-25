@@ -13,6 +13,7 @@ import {
   buildWorkoutTemplatesForDays,
   sessionDurationFromSessionLength,
 } from "./workoutSplitByDays";
+import { restSecondsFromTrainingDuration } from "./sessionLengthConfig";
 import { defaultTrainingWeekdaysForProfile } from "./workoutWeekCalendar";
 
 export const SESSION_LENGTH_OPTIONS: { value: SessionLength; label: string }[] = [
@@ -73,6 +74,9 @@ export function applyWeeklyRoutineToState(
     onboardingProfile: migratedProfile,
     ...(options?.experienceLevel != null ? { experienceLevel: options.experienceLevel } : {}),
     ...(options?.equipmentSetup != null ? { equipmentSetup: options.equipmentSetup } : {}),
+    ...(profilePatch.sessionDuration != null
+      ? { restTimerDefaultSeconds: restSecondsFromTrainingDuration(profilePatch.sessionDuration) }
+      : {}),
     dailyTasks: loadTasksForToday(
       state.nutritionTargets,
       state.planStartIso,

@@ -10,6 +10,22 @@ export const EXERCISE_TRANSITION_SECONDS = 60;
 /** Fixed warmup / general session buffer before main lifts. */
 export const SESSION_WARMUP_BUFFER_SECONDS = 300;
 
+export function estimateSessionSecondsFromCounts(
+  exerciseCount: number,
+  setsPerExercise: number,
+  restSeconds: number,
+): number {
+  if (exerciseCount <= 0 || setsPerExercise <= 0) return 0;
+
+  let total = SESSION_WARMUP_BUFFER_SECONDS;
+  for (let i = 0; i < exerciseCount; i++) {
+    total += setsPerExercise * AVG_WORK_SECONDS_PER_SET;
+    total += Math.max(0, setsPerExercise - 1) * restSeconds;
+  }
+  total += Math.max(0, exerciseCount - 1) * EXERCISE_TRANSITION_SECONDS;
+  return total;
+}
+
 export function estimateRoutineSessionSeconds(
   routine: WorkoutRoutineTemplate,
   restSeconds?: number,
@@ -17,6 +33,12 @@ export function estimateRoutineSessionSeconds(
   const rest = restSeconds ?? DEFAULT_REST_TIMER_SECONDS;
   const { exercises } = routine;
   if (exercises.length === 0) return 0;
+
+  const setsPerExercise = exercises.map((ex) => ex.sets.length);
+  const uniformSets = setsPerExercise.every((count) => count === setsPerExercise[0]);
+  if (uniformSets && setsPerExercise[0] != null) {
+    return estimateSessionSecondsFromCounts(exercises.length, setsPerExercise[0], rest);
+  }
 
   let total = SESSION_WARMUP_BUFFER_SECONDS;
   for (const ex of exercises) {
