@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { buildPreWorkoutCoachBrief, shouldDefaultExpandCoachCard } from "../preWorkoutCoachBrief";
 import { localDateKey } from "../dailyPlan";
@@ -32,6 +32,8 @@ import { CancelWorkoutConfirmSheet } from "../workout/CancelWorkoutConfirmSheet"
 import { EmptyFinishConfirmSheet } from "../workout/EmptyFinishConfirmSheet";
 import { DeleteExerciseConfirmSheet } from "../workout/DeleteExerciseConfirmSheet";
 import { WorkoutExerciseCard } from "../workout/WorkoutExerciseCard";
+import { WorkoutKeypadProvider, useWorkoutKeypad } from "../workout/WorkoutKeypadContext";
+import { WorkoutNumericKeypad } from "../workout/WorkoutNumericKeypad";
 import { WorkoutIdleDashboard } from "../workout/WorkoutIdleDashboard";
 import { WorkoutSessionHeader } from "../workout/WorkoutSessionHeader";
 import { CreateWeeklyRoutineSheet } from "../CreateWeeklyRoutineSheet";
@@ -65,6 +67,18 @@ const WARMUP_ITEMS = [
   "Band pull-aparts or face pulls, 2-3 sets × 15-20, shoulders back & down",
   "2-4 ramp sets on your first main lift, empty bar → light → working weight",
 ];
+
+function WorkoutLiftingScreen({ children }: { children: ReactNode }) {
+  const { open: keypadOpen } = useWorkoutKeypad();
+  return (
+    <div
+      key="workout-lifting"
+      className={`screen page-transition${keypadOpen ? " screen--workout-keypad-open" : ""}`}
+    >
+      {children}
+    </div>
+  );
+}
 
 export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: ScreenProps) {
   const [showExSearch, setShowExSearch] = useState(false);
@@ -815,7 +829,8 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   }
 
   return (
-    <div key="workout-lifting" className="screen page-transition">
+    <WorkoutKeypadProvider exercises={w.exercises} weightUnit={wUnit} onUpdateSet={updateSet}>
+      <WorkoutLiftingScreen>
       <WorkoutSessionHeader
         elapsedSec={elapsedSec}
         onFinishWorkout={requestFinishWorkout}
@@ -886,7 +901,6 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
                 restTimerSecondsByExerciseKey={state.restTimerSecondsByExerciseKey}
                 onSwapExercise={setSwapExerciseId}
                 onOpenRestSheet={openRestSheet}
-                onUpdateSet={updateSet}
                 onUpdateSetKind={updateSetKind}
                 onToggleSetDone={toggleSetDone}
                 onRemoveSet={removeSet}
@@ -1032,6 +1046,8 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
           })()
         : null}
 
-    </div>
+      </WorkoutLiftingScreen>
+      <WorkoutNumericKeypad weightUnit={wUnit} />
+    </WorkoutKeypadProvider>
   );
 }

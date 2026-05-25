@@ -1,21 +1,21 @@
 import { Fragment, useState } from "react";
 
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
-import { scrollInputIntoScreen } from "../scrollInputIntoScreen";
 import { exerciseNoteKey } from "../exerciseNotes";
 import { sanitizeCoachCopy } from "../exerciseSessionNotes";
 import { IconCheck, IconChart, IconMinus, IconPlus } from "../icons";
 import { ExerciseDragHandle, type ExerciseDragHandleProps } from "../SortableExerciseList";
-import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
+import { formatSetWeight, weightUnitLabel } from "../unitPreferences";
 import type { CompletedWorkoutSession, ExercisePersonalBest, WeightUnit, WorkoutExercise, WorkoutSetKind } from "../types";
 import { RestTimerStrip, type RestTimerPhase } from "../RestTimerStrip";
 import { formatRestDuration, restDurationForExercise } from "../restTimerPreferences";
 import { previousSetLinesForExercise } from "../workoutPreviousSets";
 import { normalizeExerciseKey } from "../workoutSummary";
 import { setColumnLabel, setKindStyle } from "../workoutSetKind";
-import { METADATA_SIZE, USER_NOTE_GRAY_MUTED, COACH_BLUE_MUTED, labelStyle, workoutSetInputStyle } from "../workoutUiTokens";
+import { METADATA_SIZE, USER_NOTE_GRAY_MUTED, COACH_BLUE_MUTED, labelStyle } from "../workoutUiTokens";
 import { ExerciseActionSheet } from "./ExerciseActionSheet";
 import { SetKindPickerSheet } from "./SetKindPickerSheet";
+import { WorkoutSetField } from "./WorkoutSetField";
 
 const SET_GRID = "32px 68px 1fr 1fr 44px 32px";
 
@@ -60,7 +60,6 @@ export function WorkoutExerciseCard({
   restTimerSecondsByExerciseKey,
   onSwapExercise,
   onOpenRestSheet,
-  onUpdateSet,
   onUpdateSetKind,
   onToggleSetDone,
   onRemoveSet,
@@ -86,7 +85,6 @@ export function WorkoutExerciseCard({
   restTimerSecondsByExerciseKey: Record<string, number>;
   onSwapExercise: (id: string) => void;
   onOpenRestSheet: (exerciseId: string) => void;
-  onUpdateSet: (eid: string, idx: number, patch: Partial<{ w: number; r: number; done: boolean }>) => void;
   onUpdateSetKind: (eid: string, idx: number, kind: WorkoutSetKind) => void;
   onToggleSetDone: (exercise: WorkoutExercise, idx: number) => void;
   onRemoveSet: (eid: string, idx: number) => void;
@@ -300,21 +298,21 @@ export function WorkoutExerciseCard({
                   >
                     {previousLines[si]}
                   </div>
-                  <input
-                    type="number"
-                    value={st.w ? formatSetWeight(st.w, weightUnit) : ""}
-                    onChange={(ev) => onUpdateSet(exercise.id, si, { w: parseSetWeightInput(ev.target.value, weightUnit) })}
-                    onFocus={(ev) => scrollInputIntoScreen(ev.currentTarget)}
-                    placeholder="-"
-                    style={workoutSetInputStyle}
+                  <WorkoutSetField
+                    exerciseId={exercise.id}
+                    setIndex={si}
+                    field="weight"
+                    weight={st.w}
+                    reps={st.r}
+                    weightUnit={weightUnit}
                   />
-                  <input
-                    type="number"
-                    value={st.r || ""}
-                    onChange={(ev) => onUpdateSet(exercise.id, si, { r: +ev.target.value || 0 })}
-                    onFocus={(ev) => scrollInputIntoScreen(ev.currentTarget)}
-                    placeholder="-"
-                    style={workoutSetInputStyle}
+                  <WorkoutSetField
+                    exerciseId={exercise.id}
+                    setIndex={si}
+                    field="reps"
+                    weight={st.w}
+                    reps={st.r}
+                    weightUnit={weightUnit}
                   />
                   <button
                     type="button"

@@ -1,21 +1,23 @@
-/** Scroll a focused field into view inside `.screen` instead of relying on iOS viewport pan. */
+/** Scroll a focused field into the visible area inside `.screen` without moving the app shell. */
 export function scrollInputIntoScreen(input: HTMLElement) {
+  window.scrollTo(0, 0);
+
   requestAnimationFrame(() => {
-    const screen = input.closest(".screen");
-    if (!screen) {
-      input.scrollIntoView({ block: "nearest" });
-      return;
-    }
+    window.scrollTo(0, 0);
 
-    const screenEl = screen as HTMLElement;
-    const margin = 12;
-    const screenRect = screenEl.getBoundingClientRect();
+    const vv = window.visualViewport;
+    const visibleTop = vv?.offsetTop ?? 0;
+    const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+    const margin = 16;
+
+    const screen = input.closest(".screen") as HTMLElement | null;
+    if (!screen) return;
+
     const inputRect = input.getBoundingClientRect();
-
-    if (inputRect.bottom > screenRect.bottom - margin) {
-      screenEl.scrollTop += inputRect.bottom - screenRect.bottom + margin;
-    } else if (inputRect.top < screenRect.top + margin) {
-      screenEl.scrollTop -= screenRect.top + margin - inputRect.top;
+    if (inputRect.bottom > visibleBottom - margin) {
+      screen.scrollTop += inputRect.bottom - (visibleBottom - margin);
+    } else if (inputRect.top < visibleTop + margin) {
+      screen.scrollTop -= visibleTop + margin - inputRect.top;
     }
   });
 }

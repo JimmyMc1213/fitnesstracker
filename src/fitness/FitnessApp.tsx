@@ -24,7 +24,7 @@ import { ScreenProgress } from "./screens/ScreenProgress";
 import { ScreenStretch } from "./screens/ScreenStretch";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary } from "./finishWorkout";
-import { ScreenTransition, useKeyboardShellLayout } from "./motion";
+import { ScreenTransition, useLockVisualViewportScroll } from "./motion";
 import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
 import {
   clearDevPreviewOnboardingUrl,
@@ -358,16 +358,13 @@ function FitnessAppMain({
     if (options?.startStretchSession) setStretchStartRequest((n) => n + 1);
   };
 
+  useLockVisualViewportScroll();
+
   const Current = screens[tab];
   const showWorkoutSummary = state.workoutSummary != null;
-  const { keyboardOpen, shellStyle: keyboardShellStyle } = useKeyboardShellLayout();
 
   const hideTabBar =
-    tab === "stretch" ||
-    showWorkoutSummary ||
-    logFoodOverlayOpen ||
-    routineEditorOpen ||
-    keyboardOpen;
+    tab === "stretch" || showWorkoutSummary || logFoodOverlayOpen || routineEditorOpen;
 
   const devPreviewOnboarding = isOnboardingPreviewToolsActive() && isDevPreviewOnboardingEnabled();
   const introEligible = !state.onboardingComplete || devPreviewOnboarding;
@@ -535,8 +532,10 @@ function FitnessAppMain({
         hideDevToolbar={routineEditorOpen}
       >
       <div
+        className={hideTabBar ? undefined : "app-tab-shell"}
         style={{
-          ...keyboardShellStyle,
+          flex: 1,
+          minHeight: 0,
           width: "100%",
           maxWidth: "100%",
           background: "transparent",

@@ -173,6 +173,8 @@
   --chart-bar-label: rgba(255, 255, 255, 0.3);
   --tabbar-bg: rgba(6, 6, 8, 0.68);
   --tabbar-border: rgba(255, 255, 255, 0.05);
+  --tabbar-chrome: calc(60px + max(8px, env(safe-area-inset-bottom, 0px)));
+  --workout-keypad-chrome: calc(248px + max(8px, env(safe-area-inset-bottom, 0px)));
   --btn-disabled-bg: rgba(255, 255, 255, 0.08);
   --btn-disabled-fg: rgba(255, 255, 255, 0.35);
   --toggle-track-off: rgba(255, 255, 255, 0.1);
@@ -329,6 +331,8 @@
   --chart-bar-label: rgba(0, 0, 0, 0.38);
   --tabbar-bg: rgba(255, 255, 255, 0.88);
   --tabbar-border: rgba(0, 0, 0, 0.08);
+  --tabbar-chrome: calc(60px + max(8px, env(safe-area-inset-bottom, 0px)));
+  --workout-keypad-chrome: calc(248px + max(8px, env(safe-area-inset-bottom, 0px)));
   --btn-disabled-bg: rgba(0, 0, 0, 0.06);
   --btn-disabled-fg: rgba(0, 0, 0, 0.35);
   --toggle-track-off: rgba(0, 0, 0, 0.12);
@@ -592,10 +596,113 @@ textarea {
   overflow-y: auto;
   padding: 0 20px 28px;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  transition: padding-bottom var(--motion-sheet-duration, 280ms) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .screen::-webkit-scrollbar {
   display: none;
+}
+
+.screen--workout-keypad-open {
+  padding-bottom: var(--workout-keypad-chrome);
+}
+
+.workout-set-field {
+  cursor: pointer;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workout-set-field--active {
+  border: 2px solid var(--primary) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.workout-keypad {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 220;
+  background: var(--card);
+  border-top: 0.5px solid var(--border);
+  padding: 8px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.28);
+  will-change: transform;
+}
+
+.workout-keypad__row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.workout-keypad__key {
+  min-height: 52px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--ui);
+  font-size: 22px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workout-keypad__key:disabled {
+  opacity: 0.28;
+}
+
+.workout-keypad__key--action {
+  font-size: 15px;
+  color: var(--text-muted-soft);
+}
+
+.workout-keypad__key--next {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-fg);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.workout-keypad__dismiss-icons {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.workout-keypad__stepper {
+  min-height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 0.5px solid var(--border);
+  background: var(--surface-2);
+}
+
+.workout-keypad__stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  min-height: 52px;
+}
+
+.workout-keypad__stepper-btn + .workout-keypad__stepper-btn {
+  border-left: 0.5px solid var(--border);
 }
 
 .tap {
@@ -796,16 +903,19 @@ textarea {
   border-radius: 999px;
 }
 
-/* Tab bar lives in the column-flex chain (NOT position: fixed). This avoids the
- * iOS Safari class of bugs where fixed elements drift above the home indicator
- * when the URL bar shows/hides, and removes the need for `overflow: visible`
- * gymnastics on every ancestor. Bottom padding uses safe-area-inset-bottom with
- * a small floor so the bar hugs the home indicator on iOS and stays tight on
- * desktop without a hardcoded 28px slab.
- *
- * Hidden while the keyboard is open (see useKeyboardShellLayout). */
+/* Tab bar is fixed to the layout viewport bottom so the on-screen keyboard
+ * (interactive-widget=overlays-content) covers it instead of pushing it up.
+ * `.app-tab-shell` reserves space so scrollable content clears the bar. */
+.app-tab-shell {
+  padding-bottom: var(--tabbar-chrome);
+}
+
 .tabbar {
-  flex-shrink: 0;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
   box-sizing: border-box;
   width: 100%;
   padding: 8px 16px;

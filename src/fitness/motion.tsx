@@ -148,29 +148,34 @@ export function useKeyboardViewport() {
 
 export const KEYBOARD_OPEN_THRESHOLD = 48;
 
-/**
- * Resize and position the app shell to match the visual viewport when the
- * keyboard is open, so content fills the area above the keyboard without a
- * dead gap from layout viewport pan or the tab bar flex slot.
- */
-export function useKeyboardShellLayout() {
-  const { keyboardBottom, visibleHeight, offsetTop } = useKeyboardViewport();
-  const keyboardOpen = keyboardBottom >= KEYBOARD_OPEN_THRESHOLD;
+/** Block iOS visual-viewport pan so the keyboard overlays a stable layout shell. */
+export function useLockVisualViewportScroll() {
+  useEffect(() => {
+    const vv = window.visualViewport;
 
-  const shellStyle: CSSProperties = keyboardOpen
-    ? {
-        flex: "none",
-        height: visibleHeight,
-        minHeight: 0,
-        transform: `translate3d(0, ${offsetTop}px, 0)`,
-        willChange: "transform, height",
-      }
-    : {
-        flex: 1,
-        minHeight: 0,
-      };
+    const lock = () => {
+      if (window.scrollY !== 0) window.scrollTo(0, 0);
+    };
 
-  return { keyboardOpen, shellStyle };
+    const onFocusIn = (e: FocusEvent) => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (!target.matches("input, textarea, select, [contenteditable='true']")) return;
+      lock();
+      requestAnimationFrame(lock);
+    };
+
+    vv?.addEventListener("scroll", lock);
+    window.addEventListener("scroll", lock, { passive: true });
+    document.addEventListener("focusin", onFocusIn);
+    lock();
+
+    return () => {
+      vv?.removeEventListener("scroll", lock);
+      window.removeEventListener("scroll", lock);
+      document.removeEventListener("focusin", onFocusIn);
+    };
+  }, []);
 }
 /** Top + bottom padding on the bottom-sheet backdrop (px). */
 const SHEET_BACKDROP_CHROME = 36;

@@ -56,7 +56,7 @@ export const workoutSetInputStyle: CSSProperties = {
   padding: "8px 10px",
   color: "var(--text-primary)",
   fontFamily: "var(--ui)",
-  fontSize: 14,
+  fontSize: 16,
   fontWeight: 500,
   width: "100%",
   outline: "none",
