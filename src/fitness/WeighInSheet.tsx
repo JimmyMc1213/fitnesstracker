@@ -9,9 +9,18 @@ import {
   parseWeightToLbs,
   weightUnitLabel,
 } from "./unitPreferences";
-import { BottomSheet } from "./motion";
+import { CenterDialog, bottomSheetPanelTheme } from "./motion";
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import type { AppState, UnitPreferences, WeightEntry } from "./types";
+
+const panelStyle = {
+  ...bottomSheetPanelTheme,
+  width: "100%",
+  maxWidth: 440,
+  maxHeight: "min(82vh, 560px)",
+  overflowY: "auto",
+  padding: 20,
+} as const;
 
 type Props = {
   open: boolean;
@@ -82,29 +91,12 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
 
   return (
     <>
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onClose}
-      zIndex={190}
+      zIndex={1100}
       ariaLabel="Weigh in"
-      backdropStyle={{
-        background: "var(--sheet-backdrop)",
-        alignItems: "stretch",
-        flexDirection: "column",
-        justifyContent: "flex-end",
-        padding: 10,
-        backdropFilter: "none",
-        WebkitBackdropFilter: "none",
-      }}
-      panelStyle={{
-        padding: 18,
-        borderRadius: 16,
-        marginBottom: 8,
-        border: "0.5px solid var(--sheet-panel-border)",
-        background: "var(--card)",
-        width: "100%",
-        maxWidth: "100%",
-      }}
+      panelStyle={panelStyle}
     >
         <div
           style={{
@@ -210,7 +202,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
         >
           Cancel
         </button>
-    </BottomSheet>
+    </CenterDialog>
       {confirmRemovePhoto ? (
         <DeleteConfirmSheet
           title="Remove photo?"

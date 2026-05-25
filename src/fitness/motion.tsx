@@ -6,6 +6,7 @@ import {
   type Variants,
 } from "framer-motion";
 import { useEffect, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 export const MOTION_DURATIONS = {
   tab: 150,
@@ -296,6 +297,7 @@ type CenterDialogProps = {
   onClose?: () => void;
   zIndex?: number;
   ariaLabelledBy?: string;
+  ariaLabel?: string;
   panelStyle?: CSSProperties;
   children: ReactNode;
 };
@@ -305,6 +307,7 @@ export function CenterDialog({
   onClose,
   zIndex = 280,
   ariaLabelledBy,
+  ariaLabel,
   panelStyle,
   children,
 }: CenterDialogProps) {
@@ -318,7 +321,7 @@ export function CenterDialog({
     if (e.target === e.currentTarget) onClose?.();
   }
 
-  return (
+  const overlay = (
     <AnimatePresence>
       {open ? (
         <motion.div
@@ -326,6 +329,7 @@ export function CenterDialog({
           role="dialog"
           aria-modal="true"
           aria-labelledby={ariaLabelledBy}
+          aria-label={ariaLabel}
           onMouseDown={onBackdropMouseDown}
           initial="initial"
           animate="animate"
@@ -359,6 +363,9 @@ export function CenterDialog({
       ) : null}
     </AnimatePresence>
   );
+
+  if (typeof document === "undefined") return overlay;
+  return createPortal(overlay, document.body);
 }
 
 type ScreenTransitionProps = {

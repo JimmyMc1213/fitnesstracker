@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 
 import { buildAppStateFromPersisted } from "./buildAppState";
-import { dismissStreakLossNotice, getPendingStreakLossNotice } from "./dailyStreak";
 import { seedDefaultData } from "./defaultSeed";
 import {
   loadTasksForToday,
@@ -30,6 +29,7 @@ import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
 import {
   clearDevPreviewOnboardingUrl,
   isDevPreviewOnboardingEnabled,
+  isDevToolbarVisible,
   isOnboardingPreviewToolsActive,
 } from "./devPreviewOnboarding";
 import { OnboardingFlow } from "./OnboardingFlow";
@@ -47,11 +47,10 @@ import {
 import { registerNotificationServiceWorker } from "./registerNotificationServiceWorker";
 import { checkAndFireDueNotifications } from "./notificationScheduler";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
-import { StreakLostSheet } from "./StreakLostSheet";
 import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
 import { ThemeProvider } from "./ThemeContext";
 import type { AppTheme } from "./theme";
-import type { AppState, NavigateFn, ScreenProps, StreakLossNotice, TabId } from "./types";
+import type { AppState, NavigateFn, ScreenProps, TabId } from "./types";
 
 captureOAuthReturnForSaveProgress();
 
@@ -168,7 +167,7 @@ function OnboardingGate({
       ) : (
         children
       )}
-      {previewToolsActive && !hideDevToolbar ? (
+      {isDevToolbarVisible() && !hideDevToolbar ? (
         <DevOnboardingToolbar
           onboardingOpen={showOnboarding}
           onOpenOnboarding={openPreviewOnboarding}
@@ -210,7 +209,6 @@ function FitnessAppMain({
   const [homeReselectRequest, setHomeReselectRequest] = useState(0);
   const [logFoodOverlayOpen, setLogFoodOverlayOpen] = useState(false);
   const [routineEditorOpen, setRoutineEditorOpen] = useState(false);
-  const [previewStreakLostDismissed, setPreviewStreakLostDismissed] = useState(false);
   const [authViewOverride, setAuthViewOverride] = useState<"landing" | "signin" | "signup" | null>(null);
   const [introWelcomeDone, setIntroWelcomeDone] = useState(false);
   const [signInRestorePending, setSignInRestorePending] = useState(false);
@@ -225,7 +223,6 @@ function FitnessAppMain({
   const daysPerWeek = workoutDaysPerWeekFromState(state);
 
   const activeDayKey = useRef(localDateKey(new Date()));
-  const todayKey = localDateKey(new Date());
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -361,24 +358,8 @@ function FitnessAppMain({
   const Current = screens[tab];
   const showWorkoutSummary = state.workoutSummary != null;
 
-  const previewStreakLostUi =
-    import.meta.env.DEV &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("previewStreakLost") === "1";
-  const pendingStreakLoss = getPendingStreakLossNotice(state, todayKey);
-  const previewStreakLossNotice: StreakLossNotice = {
-    lostCount: Math.max(state.streakSessionBaseline?.count ?? 3, 1),
-    breakDateKey: todayKey,
-  };
-  const streakLossNotice = previewStreakLostUi ? previewStreakLossNotice : pendingStreakLoss;
-  const showStreakLost =
-    state.onboardingComplete &&
-    streakLossNotice !== null &&
-    !showWorkoutSummary &&
-    !(previewStreakLostUi && previewStreakLostDismissed);
-
   const hideTabBar =
-    tab === "stretch" || showWorkoutSummary || showStreakLost || logFoodOverlayOpen || routineEditorOpen;
+    tab === "stretch" || showWorkoutSummary || logFoodOverlayOpen || routineEditorOpen;
 
   const devPreviewOnboarding = isOnboardingPreviewToolsActive() && isDevPreviewOnboardingEnabled();
   const introEligible = !state.onboardingComplete || devPreviewOnboarding;
@@ -605,22 +586,6 @@ function FitnessAppMain({
               );
             })}
           </nav>
-        ) : null}
-
-        {streakLossNotice ? (
-          <StreakLostSheet
-            open={showStreakLost}
-            state={state}
-            notice={streakLossNotice}
-            todayKey={todayKey}
-            onContinue={() => {
-              if (previewStreakLostUi) {
-                setPreviewStreakLostDismissed(true);
-                return;
-              }
-              setState((s) => dismissStreakLossNotice(s, streakLossNotice));
-            }}
-          />
         ) : null}
 
         {state.workoutSummary ? (
