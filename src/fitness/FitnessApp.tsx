@@ -173,7 +173,6 @@ function OnboardingGate({
           onboardingOpen={showOnboarding}
           onOpenOnboarding={openPreviewOnboarding}
           onCloseOnboarding={dismissPreviewOnboarding}
-          onSignIn={onSignIn}
         />
       ) : null}
     </>
