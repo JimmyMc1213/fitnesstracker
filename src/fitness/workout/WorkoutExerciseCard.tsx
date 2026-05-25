@@ -9,7 +9,7 @@ import { formatSetWeight, weightUnitLabel } from "../unitPreferences";
 import type { CompletedWorkoutSession, ExercisePersonalBest, WeightUnit, WorkoutExercise, WorkoutSetKind } from "../types";
 import { RestTimerStrip, type RestTimerPhase } from "../RestTimerStrip";
 import { formatRestDuration, restDurationForExercise } from "../restTimerPreferences";
-import { previousSetLinesForExercise } from "../workoutPreviousSets";
+import { previousSetLinesForExercise, previousSetsForExercise } from "../workoutPreviousSets";
 import { normalizeExerciseKey } from "../workoutSummary";
 import { setColumnLabel, setKindStyle } from "../workoutSetKind";
 import { METADATA_SIZE, USER_NOTE_GRAY_MUTED, COACH_BLUE_MUTED, labelStyle } from "../workoutUiTokens";
@@ -98,6 +98,7 @@ export function WorkoutExerciseCard({
 
   const done = exercise.sets.filter((st) => st.done).length;
   const prLabel = formatExercisePr(exercise.name, exercisePersonalBests, weightUnit);
+  const previousSets = previousSetsForExercise(workoutHistory, exercise.name, exercise.label);
   const previousLines = previousSetLinesForExercise(
     workoutHistory,
     exercise.name,
@@ -247,6 +248,9 @@ export function WorkoutExerciseCard({
           {exercise.sets.map((st, si) => {
             const kind = st.kind ?? "working";
             const kindVisual = setKindStyle(kind === "working" ? undefined : kind);
+            const prevSet = previousSets?.[Math.min(si, previousSets.length - 1)];
+            const placeholderWeight = prevSet?.w ?? 0;
+            const placeholderReps = prevSet?.r ?? 0;
             return (
               <Fragment key={si}>
                 <div
@@ -304,6 +308,8 @@ export function WorkoutExerciseCard({
                     field="weight"
                     weight={st.w}
                     reps={st.r}
+                    placeholderWeight={placeholderWeight}
+                    placeholderReps={placeholderReps}
                     weightUnit={weightUnit}
                   />
                   <WorkoutSetField
@@ -312,6 +318,8 @@ export function WorkoutExerciseCard({
                     field="reps"
                     weight={st.w}
                     reps={st.r}
+                    placeholderWeight={placeholderWeight}
+                    placeholderReps={placeholderReps}
                     weightUnit={weightUnit}
                   />
                   <button

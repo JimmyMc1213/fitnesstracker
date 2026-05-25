@@ -621,6 +621,10 @@ textarea {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
+.workout-set-field--placeholder {
+  color: var(--text-ghost);
+}
+
 .workout-keypad {
   position: fixed;
   left: 0;

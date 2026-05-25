@@ -107,40 +107,13 @@ describe("findLastLoggedExerciseSets", () => {
 });
 
 describe("autofillSetsForTemplateCount", () => {
-  const lastSets = [
-    { w: 135, r: 8, done: false },
-    { w: 135, r: 8, done: false },
-    { w: 135, r: 7, done: false },
-    { w: 140, r: 6, done: false },
-  ];
-
-  it("maps first N historical sets when template has fewer sets", () => {
-    const sets = autofillSetsForTemplateCount(3, lastSets);
-    expect(sets).toEqual([
-      { w: 135, r: 8, done: false },
-      { w: 135, r: 8, done: false },
-      { w: 135, r: 7, done: false },
-    ]);
-  });
-
-  it("pads extra template sets with last historical w/r", () => {
-    const sets = autofillSetsForTemplateCount(5, lastSets);
-    expect(sets).toEqual([
-      { w: 135, r: 8, done: false },
-      { w: 135, r: 8, done: false },
-      { w: 135, r: 7, done: false },
-      { w: 140, r: 6, done: false },
-      { w: 140, r: 6, done: false },
-    ]);
-  });
-
-  it("returns blank sets when history is null or empty", () => {
-    expect(autofillSetsForTemplateCount(3, null)).toEqual([
+  it("returns blank sets for the requested count", () => {
+    expect(autofillSetsForTemplateCount(3)).toEqual([
       { w: 0, r: 0, done: false },
       { w: 0, r: 0, done: false },
       { w: 0, r: 0, done: false },
     ]);
-    expect(autofillSetsForTemplateCount(2, [])).toEqual([
+    expect(autofillSetsForTemplateCount(2)).toEqual([
       { w: 0, r: 0, done: false },
       { w: 0, r: 0, done: false },
     ]);
@@ -148,7 +121,7 @@ describe("autofillSetsForTemplateCount", () => {
 });
 
 describe("autofillExerciseSets", () => {
-  it("applies autofill to exercise set count", () => {
+  it("keeps exercise metadata and blank sets at template count", () => {
     const exercise: WorkoutExercise = {
       id: "bench-1",
       name: "Bench Press",
@@ -168,16 +141,16 @@ describe("autofillExerciseSets", () => {
     ]);
     const filled = autofillExerciseSets(exercise, state.workoutHistory);
     expect(filled.sets).toEqual([
-      { w: 135, r: 8, done: false },
-      { w: 135, r: 8, done: false },
-      { w: 135, r: 7, done: false },
+      { w: 0, r: 0, done: false },
+      { w: 0, r: 0, done: false },
+      { w: 0, r: 0, done: false },
     ]);
     expect(filled.id).toBe(exercise.id);
   });
 });
 
 describe("buildSetsForExercise", () => {
-  it("delegates to history lookup and set-count alignment", () => {
+  it("returns blank sets regardless of history", () => {
     const state = workoutHistoryAppState([
       benchSession("hist", 1_000_000, [
         { w: 135, r: 8 },
@@ -186,9 +159,9 @@ describe("buildSetsForExercise", () => {
       ]),
     ]);
     expect(buildSetsForExercise("Bench Press", undefined, 3, state.workoutHistory)).toEqual([
-      { w: 135, r: 8, done: false },
-      { w: 135, r: 8, done: false },
-      { w: 135, r: 7, done: false },
+      { w: 0, r: 0, done: false },
+      { w: 0, r: 0, done: false },
+      { w: 0, r: 0, done: false },
     ]);
     expect(buildSetsForExercise("Squat", undefined, 3, state.workoutHistory)).toEqual([
       { w: 0, r: 0, done: false },

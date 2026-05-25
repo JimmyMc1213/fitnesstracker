@@ -477,8 +477,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
         ...s.workout,
         exercises: s.workout.exercises.map((exercise) => {
           if (exercise.id !== eid) return exercise;
-          const last = exercise.sets[exercise.sets.length - 1] ?? { w: 0, r: 0 };
-          return { ...exercise, sets: [...exercise.sets, { w: last.w, r: 0, done: false }] };
+          return { ...exercise, sets: [...exercise.sets, { w: 0, r: 0, done: false }] };
         }),
       },
     }));

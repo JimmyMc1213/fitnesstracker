@@ -1,6 +1,6 @@
 /**
- * Set autofill from workoutHistory (per-set w/r snapshots).
- * Does NOT use exerciseSessionHistoryByKey, that stores best-only snapshots.
+ * Workout set initialization and previous-set lookup from workoutHistory.
+ * Previous values are display-only placeholders; sets start blank (w/r = 0).
  */
 import { exerciseNoteKey } from "./exerciseNotes";
 import { getWorkoutHistorySorted } from "./workoutHistory";
@@ -32,40 +32,28 @@ export function findLastLoggedExerciseSets(
   return null;
 }
 
-/** Map index-by-index; pad extras with last historical w/r; blank sets when lastSets is null/empty. */
-export function autofillSetsForTemplateCount(
-  templateSetCount: number,
-  lastSets: WorkoutSet[] | null,
-): WorkoutSet[] {
-  if (!lastSets?.length) {
-    return Array.from({ length: templateSetCount }, () => blankSet());
-  }
-  const out: WorkoutSet[] = [];
-  for (let i = 0; i < templateSetCount; i++) {
-    const src = lastSets[Math.min(i, lastSets.length - 1)]!;
-    out.push({ w: src.w, r: src.r, done: false });
-  }
-  return out;
+/** Blank sets for template count; previous session values are shown as UI placeholders only. */
+export function autofillSetsForTemplateCount(templateSetCount: number): WorkoutSet[] {
+  return Array.from({ length: templateSetCount }, () => blankSet());
 }
 
-/** Apply autofill to exercise.sets.length using workoutHistory. */
+/** Normalize exercise sets to blank rows at template count. */
 export function autofillExerciseSets(
   exercise: WorkoutExercise,
-  history: CompletedWorkoutSession[] | undefined,
+  _history?: CompletedWorkoutSession[] | undefined,
 ): WorkoutExercise {
-  const lastSets = findLastLoggedExerciseSets(history, exercise.name, exercise.label);
   return {
     ...exercise,
-    sets: autofillSetsForTemplateCount(exercise.sets.length, lastSets),
+    sets: autofillSetsForTemplateCount(exercise.sets.length),
   };
 }
 
-/** Build prefilled sets for a new exercise row (template start, add, swap). */
+/** Build blank sets for a new exercise row (template start, add, swap). */
 export function buildSetsForExercise(
-  name: string,
-  label: string | undefined,
+  _name: string,
+  _label: string | undefined,
   setCount: number,
-  history: CompletedWorkoutSession[] | undefined,
+  _history?: CompletedWorkoutSession[] | undefined,
 ): WorkoutSet[] {
-  return autofillSetsForTemplateCount(setCount, findLastLoggedExerciseSets(history, name, label));
+  return autofillSetsForTemplateCount(setCount);
 }
