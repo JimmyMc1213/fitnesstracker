@@ -1,5 +1,12 @@
 import { useState } from "react";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleIndicator,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
 import { WorkoutWarmupGroups } from "./workout/WorkoutWarmupGroups";
 import type { WorkoutWarmupGroup } from "./workoutWarmup";
 import {
@@ -34,10 +41,12 @@ export function WorkoutCoachCard({
   warmupTip,
   defaultExpanded = false,
 }: WorkoutCoachCardProps) {
-  const [collapsed, setCollapsed] = useState(!defaultExpanded);
+  const [open, setOpen] = useState(defaultExpanded);
 
   return (
-    <div
+    <Collapsible
+      open={open}
+      onOpenChange={(details) => setOpen(details.open)}
       className="card"
       style={{
         marginTop: 12,
@@ -47,12 +56,9 @@ export function WorkoutCoachCard({
         background: COACH_CARD_BG,
       }}
     >
-      <button
-        type="button"
+      <CollapsibleTrigger
         className="tap"
-        onClick={() => setCollapsed((v) => !v)}
-        aria-expanded={!collapsed}
-        aria-label={collapsed ? "Coach tips, tap to expand" : "Coach tips, tap to collapse"}
+        aria-label={open ? "Coach tips, tap to collapse" : "Coach tips, tap to expand"}
         style={{
           width: "100%",
           display: "flex",
@@ -68,27 +74,25 @@ export function WorkoutCoachCard({
       >
         <span style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
           <span style={coachMajorTitleStyle}>Coach</span>
-          {collapsed ? (
+          {!open ? (
             <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-faint-soft)", lineHeight: 1.35 }}>
               Tap for coach note and warm-up
             </span>
           ) : null}
         </span>
-        <span
+        <CollapsibleIndicator
           aria-hidden
+          className="collapsible-indicator--rotate-180"
           style={{
             fontSize: 12,
             color: COACH_BLUE_MUTED,
-            flexShrink: 0,
-            transform: collapsed ? "rotate(0deg)" : "rotate(180deg)",
-            transition: "transform 0.15s ease",
           }}
         >
           ▼
-        </span>
-      </button>
+        </CollapsibleIndicator>
+      </CollapsibleTrigger>
 
-      {!collapsed ? (
+      <CollapsibleContent>
         <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
           <section>
             <div style={{ ...coachSubsectionLabelStyle, marginBottom: 6 }}>Coach note</div>
@@ -121,7 +125,7 @@ export function WorkoutCoachCard({
             </section>
           ) : null}
         </div>
-      ) : null}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

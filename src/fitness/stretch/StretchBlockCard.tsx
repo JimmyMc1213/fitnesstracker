@@ -1,4 +1,10 @@
-import { useState } from "react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleContext,
+  CollapsibleIndicator,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 import { IconCheck, IconChevR } from "../icons";
 import type { StretchBlock } from "../stretchRoutine";
@@ -15,8 +21,6 @@ export function StretchBlockCard({
   isDone: boolean;
   onToggleDone: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
-
   return (
     <div
       className="card"
@@ -67,58 +71,52 @@ export function StretchBlockCard({
         </button>
       </div>
 
-      <button
-        type="button"
-        className="tap"
-        onClick={() => setExpanded((v) => !v)}
-        aria-expanded={expanded}
-        style={{
-          width: "100%",
-          marginTop: 14,
-          padding: "10px 12px",
-          borderRadius: 10,
-          border: "0.5px solid var(--border)",
-          background: "var(--surface-2)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 8,
-          color: "var(--text-soft)",
-          fontSize: 13,
-          fontWeight: 600,
-        }}
-      >
-        {expanded ? "Hide cues" : "View cues"}
-        <IconChevR
-          size={16}
-          stroke={2}
+      <Collapsible>
+        <CollapsibleTrigger
+          className="tap"
           style={{
-            color: "var(--text-whisper)",
-            flexShrink: 0,
-            transform: expanded ? "rotate(90deg)" : "none",
-            transition: "transform .2s ease",
-          }}
-        />
-      </button>
-
-      {expanded ? (
-        <ul
-          style={{
-            margin: "12px 0 0",
-            paddingLeft: 18,
-            fontSize: 14,
-            lineHeight: 1.55,
+            width: "100%",
+            marginTop: 14,
+            padding: "10px 12px",
+            borderRadius: 10,
+            border: "0.5px solid var(--border)",
+            background: "var(--surface-2)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
             color: "var(--text-soft)",
-            fontWeight: 400,
+            fontSize: 13,
+            fontWeight: 600,
           }}
         >
-          {block.cues.map((cue, idx) => (
-            <li key={idx} style={{ marginBottom: 10 }}>
-              {cue}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+          <CollapsibleContext>
+            {(ctx) => (ctx.open ? "Hide cues" : "View cues")}
+          </CollapsibleContext>
+          <CollapsibleIndicator className="collapsible-indicator--rotate-90">
+            <IconChevR size={16} stroke={2} style={{ color: "var(--text-whisper)" }} />
+          </CollapsibleIndicator>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <ul
+            style={{
+              margin: "12px 0 0",
+              paddingLeft: 18,
+              fontSize: 14,
+              lineHeight: 1.55,
+              color: "var(--text-soft)",
+              fontWeight: 400,
+            }}
+          >
+            {block.cues.map((cue, idx) => (
+              <li key={idx} style={{ marginBottom: 10 }}>
+                {cue}
+              </li>
+            ))}
+          </ul>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }

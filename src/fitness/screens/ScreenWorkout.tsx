@@ -721,6 +721,15 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   const overloadTip = getFirstSessionCoachNote(state, w) ?? progressiveOverloadInsight(w);
   const sessionWarmup = useMemo(() => buildWorkoutWarmup(w.exercises), [w.exercises]);
 
+  const editTemplate =
+    editingRoutineId === NEW_ROUTINE_EDITOR_ID
+      ? null
+      : state.workoutTemplates.find((t) => t.id === editingRoutineId) ?? null;
+  const showRoutineEditor =
+    phase === "idle" &&
+    editingRoutineId !== null &&
+    (editingRoutineId === NEW_ROUTINE_EDITOR_ID || editTemplate != null);
+
   if (showHistoryPage) {
     return (
       <FullScreenOverlay open={showHistoryPage} zIndex={120}>
@@ -734,14 +743,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
     );
   }
 
-  if (phase === "idle" && editingRoutineId !== null) {
-    if (editingRoutineId !== NEW_ROUTINE_EDITOR_ID && !state.workoutTemplates.some((t) => t.id === editingRoutineId)) {
-      return null;
-    }
-    const editTemplate =
-      editingRoutineId === NEW_ROUTINE_EDITOR_ID
-        ? null
-        : state.workoutTemplates.find((t) => t.id === editingRoutineId) ?? null;
+  if (showRoutineEditor) {
     return (
       <>
         <WorkoutRoutineEditor

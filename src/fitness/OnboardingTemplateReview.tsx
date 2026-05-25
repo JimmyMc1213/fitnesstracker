@@ -1,5 +1,12 @@
 import { useState } from "react";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleContext,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { newTemplateExerciseLine, resizeWorkoutSets } from "./data";
 import { estimatedSessionLabel } from "./estimateSessionDuration";
@@ -46,12 +53,16 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
         const sessionEstimate =
           routine.exercises.length > 0 ? estimatedSessionLabel(routine) : null;
         return (
-          <div key={routine.id} className="card" style={{ padding: 14 }}>
-            <button
-              type="button"
+          <Collapsible
+            key={routine.id}
+            open={open}
+            onOpenChange={(details) => setExpandedId(details.open ? routine.id : null)}
+            className="card"
+            style={{ padding: 14 }}
+          >
+            <CollapsibleTrigger
               className="tap between"
               style={{ width: "100%", background: "none", border: "none", color: "#fff", padding: 0 }}
-              onClick={() => setExpandedId(open ? null : routine.id)}
             >
               <div style={{ textAlign: "left" }}>
                 <div style={{ fontWeight: 700, fontSize: 15 }}>{routine.dayLabel} · {routine.name}</div>
@@ -62,9 +73,13 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                   </div>
                 ) : null}
               </div>
-              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 18 }}>{open ? "−" : "+"}</span>
-            </button>
-            {open ? (
+              <CollapsibleContext>
+                {(ctx) => (
+                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 18 }}>{ctx.open ? "−" : "+"}</span>
+                )}
+              </CollapsibleContext>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
               <div style={{ marginTop: 14 }}>
                 <SortableExerciseList
                   items={routine.exercises}
@@ -196,8 +211,8 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                   </div>
                 ) : null}
               </div>
-            ) : null}
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
         );
       })}
       {pendingRemove ? (

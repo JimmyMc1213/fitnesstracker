@@ -1,5 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleIndicator,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { buildCoachContext, getWeeklyCoachReview } from "./coachEngine";
 import { buildWeeklySummary, formatWeeklySummaryRange } from "./weeklySummary";
 import { LBS_PER_KG } from "./unitPreferences";
@@ -12,7 +18,6 @@ type Props = {
 };
 
 export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }: Props) {
-  const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const wUnit = state.unitPreferences.weightUnit;
   const summary = useMemo(() => buildWeeklySummary(state, todayKey), [state, todayKey]);
   const coachReview = useMemo(() => {
@@ -128,7 +133,8 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
   }
 
   return (
-    <div
+    <Collapsible
+      defaultOpen={!defaultCollapsed}
       className="card"
       style={{
         padding: 0,
@@ -138,12 +144,9 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
         background: "linear-gradient(180deg, rgba(96,165,250,0.06) 0%, transparent 48%)",
       }}
     >
-      <button
-        type="button"
+      <CollapsibleTrigger
         className="tap"
-        onClick={() => setCollapsed((v) => !v)}
-        aria-expanded={!collapsed}
-        aria-label={collapsed ? "This week summary, tap to expand" : "This week summary, tap to collapse"}
+        aria-label="This week summary"
         style={{
           width: "100%",
           display: "flex",
@@ -160,22 +163,26 @@ export function WeeklySummaryCard({ state, todayKey, defaultCollapsed = false }:
         {headerContent}
         <span style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           <WeekGlyph size={22} />
-          <span
+          <CollapsibleIndicator
             aria-hidden
+            className="collapsible-indicator--rotate-180"
             style={{
               fontSize: 12,
               color: "rgba(96,165,250,0.75)",
-              transform: collapsed ? "rotate(0deg)" : "rotate(180deg)",
-              transition: "transform 0.15s ease",
             }}
           >
             ▼
-          </span>
+          </CollapsibleIndicator>
         </span>
-      </button>
+      </CollapsibleTrigger>
 
-      {!collapsed ? <div style={{ padding: "0 16px 16px" }}>{statGrid}{coachCopy}</div> : null}
-    </div>
+      <CollapsibleContent>
+        <div style={{ padding: "0 16px 16px" }}>
+          {statGrid}
+          {coachCopy}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 

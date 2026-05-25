@@ -21,6 +21,7 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
 import { useRef, useState, type CSSProperties, type ReactNode } from "react";
 
@@ -41,6 +42,28 @@ const restrictToVerticalAxis: Modifier = ({ transform }) => ({
   ...transform,
   x: 0,
 });
+
+const snapCenterToCursor: Modifier = ({ activatorEvent, draggingNodeRect, transform }) => {
+  if (draggingNodeRect && activatorEvent) {
+    const isTouchEvent = typeof TouchEvent !== "undefined" && activatorEvent instanceof TouchEvent;
+    const clientX = isTouchEvent
+      ? (activatorEvent as TouchEvent).touches[0]?.clientX ?? (activatorEvent as TouchEvent).changedTouches[0].clientX
+      : (activatorEvent as MouseEvent).clientX;
+    const clientY = isTouchEvent
+      ? (activatorEvent as TouchEvent).touches[0]?.clientY ?? (activatorEvent as TouchEvent).changedTouches[0].clientY
+      : (activatorEvent as MouseEvent).clientY;
+
+    const offsetX = clientX - draggingNodeRect.left;
+    const offsetY = clientY - draggingNodeRect.top;
+
+    return {
+      ...transform,
+      x: transform.x + draggingNodeRect.width / 2 - offsetX,
+      y: transform.y + draggingNodeRect.height / 2 - offsetY,
+    };
+  }
+  return transform;
+};
 
 function lightHaptic() {
   try {
@@ -377,7 +400,10 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
           ))}
         </div>
       </SortableContext>
-      <DragOverlay dropAnimation={dropAnimation}>
+      <DragOverlay
+        dropAnimation={dropAnimation}
+        modifiers={[snapCenterToCursor, restrictToVerticalAxis, restrictToWindowEdges]}
+      >
         {activeItem && activeId ? (
           <DragOverlayCard
             item={activeItem}

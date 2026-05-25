@@ -1,5 +1,11 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleContext,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { SwipeToDelete } from "./SwipeToDelete";
 import { removeNutritionLoggedItem } from "./nutritionLog";
@@ -112,7 +118,7 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
   });
 
   const earlierCount = Math.max(0, sorted.length - 1);
-  const visible = showEarlier ? sorted : sorted.slice(0, 1);
+  const earlierItems = sorted.slice(1);
 
   useEffect(() => {
     if (sorted.length <= 1) setShowEarlier(false);
@@ -145,42 +151,60 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {visible.map((item, idx) => (
-            <SwipeableFoodLogRow
-              key={item.id}
-              item={item}
-              showDivider={idx < visible.length - 1}
-              onEdit={onEdit}
-              onRequestRemove={(item) => {
-                setOpenItemId(null);
-                setPendingRemove(item);
-              }}
-              isOpen={openItemId === item.id}
-              onOpen={setOpenItemId}
-              onClose={() => setOpenItemId(null)}
-            />
-          ))}
+          <SwipeableFoodLogRow
+            key={sorted[0].id}
+            item={sorted[0]}
+            showDivider={earlierCount > 0}
+            onEdit={onEdit}
+            onRequestRemove={(item) => {
+              setOpenItemId(null);
+              setPendingRemove(item);
+            }}
+            isOpen={openItemId === sorted[0].id}
+            onOpen={setOpenItemId}
+            onClose={() => setOpenItemId(null)}
+          />
           {earlierCount > 0 ? (
-            <button
-              type="button"
-              className="tap"
-              onClick={() => setShowEarlier((v) => !v)}
-              aria-expanded={showEarlier}
-              style={{
-                marginTop: 4,
-                padding: 0,
-                border: "none",
-                background: "none",
-                textAlign: "left",
-                fontSize: 12,
-                fontWeight: 600,
-                color: "var(--pos, #4ade80)",
-              }}
-            >
-              {showEarlier
-                ? "Hide earlier entries"
-                : `Show ${earlierCount} earlier ${earlierCount === 1 ? "entry" : "entries"}`}
-            </button>
+            <Collapsible open={showEarlier} onOpenChange={(details) => setShowEarlier(details.open)}>
+              <CollapsibleContent>
+                {earlierItems.map((item, idx) => (
+                  <SwipeableFoodLogRow
+                    key={item.id}
+                    item={item}
+                    showDivider={idx < earlierItems.length - 1}
+                    onEdit={onEdit}
+                    onRequestRemove={(item) => {
+                      setOpenItemId(null);
+                      setPendingRemove(item);
+                    }}
+                    isOpen={openItemId === item.id}
+                    onOpen={setOpenItemId}
+                    onClose={() => setOpenItemId(null)}
+                  />
+                ))}
+              </CollapsibleContent>
+              <CollapsibleTrigger
+                className="tap"
+                style={{
+                  marginTop: 4,
+                  padding: 0,
+                  border: "none",
+                  background: "none",
+                  textAlign: "left",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "var(--pos, #4ade80)",
+                }}
+              >
+                <CollapsibleContext>
+                  {(ctx) =>
+                    ctx.open
+                      ? "Hide earlier entries"
+                      : `Show ${earlierCount} earlier ${earlierCount === 1 ? "entry" : "entries"}`
+                  }
+                </CollapsibleContext>
+              </CollapsibleTrigger>
+            </Collapsible>
           ) : null}
         </div>
       )}

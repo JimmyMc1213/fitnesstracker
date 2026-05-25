@@ -1,6 +1,13 @@
 import { useMemo, useState } from "react";
 
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleIndicator,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
+import {
   buildPersonalRecordsBoard,
   formatPersonalRecordDate,
   formatPersonalRecordSet,
@@ -79,12 +86,14 @@ export function PersonalRecordsSection({ state }: Props) {
         const isLast = index === topRows.length - 1;
 
         return (
-          <div key={row.key} style={{ borderBottom: !isLast || expanded ? "0.5px solid var(--border)" : undefined }}>
-            <button
-              type="button"
+          <Collapsible
+            key={row.key}
+            open={expanded}
+            onOpenChange={(details) => setExpandedKey(details.open ? row.key : null)}
+            style={{ borderBottom: !isLast || expanded ? "0.5px solid var(--border)" : undefined }}
+          >
+            <CollapsibleTrigger
               className="tap"
-              onClick={() => setExpandedKey(expanded ? null : row.key)}
-              aria-expanded={expanded}
               style={{
                 width: "100%",
                 padding: "10px 12px",
@@ -133,21 +142,20 @@ export function PersonalRecordsSection({ state }: Props) {
                 </div>
               </div>
 
-              <span
+              <CollapsibleIndicator
+                aria-hidden
+                className="collapsible-indicator--rotate-90"
                 style={{
                   flexShrink: 0,
                   fontSize: 16,
                   color: "var(--text-whisper)",
-                  transform: expanded ? "rotate(90deg)" : "none",
-                  transition: "transform 0.15s ease",
                 }}
-                aria-hidden
               >
                 ›
-              </span>
-            </button>
+              </CollapsibleIndicator>
+            </CollapsibleTrigger>
 
-            {expanded ? (
+            <CollapsibleContent>
               <div
                 style={{
                   padding: "6px 12px 10px",
@@ -161,8 +169,8 @@ export function PersonalRecordsSection({ state }: Props) {
                   <HistoryRow key={entry.endedAtMs} entry={entry} unit={wUnit} isCurrentBest={entry.endedAtMs === row.bestEndedAtMs} />
                 ))}
               </div>
-            ) : null}
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
         );
       })}
     </div>

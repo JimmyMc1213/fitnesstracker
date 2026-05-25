@@ -1,5 +1,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleContext,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { IconDroplet } from "./icons";
 import {
@@ -43,7 +49,7 @@ export function WaterTrackerCard({
   const sectionLabel = isToday ? "Hydration · Today" : "Hydration";
   const sortedEntries = [...entries].sort((a, b) => b.loggedAtMs - a.loggedAtMs);
   const earlierCount = Math.max(0, sortedEntries.length - 1);
-  const visibleEntries = showEarlier ? sortedEntries : sortedEntries.slice(0, 1);
+  const earlierEntries = sortedEntries.slice(1);
 
   useEffect(() => {
     if (sortedEntries.length <= 1) setShowEarlier(false);
@@ -187,28 +193,36 @@ export function WaterTrackerCard({
             gap: 8,
           }}
         >
-          {visibleEntries.map((entry, idx) => renderEntryRow(entry, idx < visibleEntries.length - 1))}
+          {renderEntryRow(sortedEntries[0], earlierCount > 0)}
           {earlierCount > 0 ? (
-            <button
-              type="button"
-              className="tap"
-              onClick={() => setShowEarlier((v) => !v)}
-              aria-expanded={showEarlier}
-              style={{
-                marginTop: 2,
-                padding: 0,
-                border: "none",
-                background: "none",
-                textAlign: "left",
-                fontSize: 12,
-                fontWeight: 600,
-                color: "rgba(10,132,255,0.95)",
-              }}
-            >
-              {showEarlier
-                ? "Hide earlier entries"
-                : `Show ${earlierCount} earlier ${earlierCount === 1 ? "entry" : "entries"}`}
-            </button>
+            <Collapsible open={showEarlier} onOpenChange={(details) => setShowEarlier(details.open)}>
+              <CollapsibleContent>
+                {earlierEntries.map((entry, idx) =>
+                  renderEntryRow(entry, idx < earlierEntries.length - 1),
+                )}
+              </CollapsibleContent>
+              <CollapsibleTrigger
+                className="tap"
+                style={{
+                  marginTop: 2,
+                  padding: 0,
+                  border: "none",
+                  background: "none",
+                  textAlign: "left",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "rgba(10,132,255,0.95)",
+                }}
+              >
+                <CollapsibleContext>
+                  {(ctx) =>
+                    ctx.open
+                      ? "Hide earlier entries"
+                      : `Show ${earlierCount} earlier ${earlierCount === 1 ? "entry" : "entries"}`
+                  }
+                </CollapsibleContext>
+              </CollapsibleTrigger>
+            </Collapsible>
           ) : null}
         </div>
       ) : null}

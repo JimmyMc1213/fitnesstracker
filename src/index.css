@@ -1490,6 +1490,91 @@ input[type="number"] {
   }
 }
 
+@keyframes collapsibleExpand {
+  from {
+    height: var(--collapsed-height, 0);
+  }
+  to {
+    height: var(--height);
+  }
+}
+
+@keyframes collapsibleCollapse {
+  from {
+    height: var(--height);
+  }
+  to {
+    height: var(--collapsed-height, 0);
+  }
+}
+
+@keyframes collapsibleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes collapsibleFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+[data-scope="collapsible"][data-part="content"] {
+  overflow: hidden;
+}
+
+[data-scope="collapsible"][data-part="content"][data-state="open"] {
+  animation: collapsibleExpand 200ms ease forwards;
+}
+
+[data-scope="collapsible"][data-part="content"][data-state="closed"] {
+  animation: collapsibleCollapse 200ms ease forwards;
+}
+
+.collapsible-content-inner[data-state="open"] {
+  animation: collapsibleFadeIn 200ms ease;
+}
+
+.collapsible-content-inner[data-state="closed"] {
+  animation: collapsibleFadeOut 200ms ease;
+}
+
+[data-scope="collapsible"][data-part="indicator"] {
+  transition: transform 200ms ease;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+[data-scope="collapsible"][data-part="indicator"][data-state="open"].collapsible-indicator--rotate-180 {
+  transform: rotate(180deg);
+}
+
+[data-scope="collapsible"][data-part="indicator"][data-state="open"].collapsible-indicator--rotate-90 {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-scope="collapsible"][data-part="content"][data-state="open"],
+  [data-scope="collapsible"][data-part="content"][data-state="closed"] {
+    animation: none;
+  }
+
+  [data-scope="collapsible"][data-part="indicator"] {
+    transition: none;
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
