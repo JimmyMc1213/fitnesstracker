@@ -3,7 +3,7 @@ import type { FoodItem, Habit, HabitTemplate, MacroTotals, VolumeUnit, WorkoutEx
 import { buildHabitsForDateKey as buildHabitsForDateKeyFromTemplates, defaultDailyHabitTemplates, isLegacyDefaultHabitTemplates } from "./habits";
 import { normalizeWorkoutSetKind } from "./workoutSetKind";
 import { normalizeDayLabel, weekdayMonStartIndex } from "./trainingCalendar";
-import { DEFAULT_WATER_DAILY_TARGET_OZ, formatWaterVolume } from "./waterIntake";
+import { DEFAULT_WATER_DAILY_TARGET_OZ } from "./waterIntake";
 
 /** Phase 1 cutting, starting targets; app may auto-adjust weekly from weigh-ins. */
 export const DEFAULT_NUTRITION_TARGETS: MacroTotals = { cal: 2200, p: 180, c: 220, f: 65 };

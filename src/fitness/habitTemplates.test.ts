@@ -70,8 +70,8 @@ describe("isDefaultSeedHabitTemplates", () => {
 
 describe("isWeighInActionHabit", () => {
   it("matches id and action", () => {
-    expect(isWeighInActionHabit({ id: WEIGH_IN_HABIT_ID, name: "Morning weigh-in", icon: "scale" })).toBe(true);
-    expect(isWeighInActionHabit({ id: "custom", name: "Weigh", icon: "scale", action: "openWeighIn" })).toBe(true);
+    expect(isWeighInActionHabit({ id: WEIGH_IN_HABIT_ID })).toBe(true);
+    expect(isWeighInActionHabit({ id: "custom", action: "openWeighIn" })).toBe(true);
   });
 });
 

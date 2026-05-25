@@ -48,7 +48,6 @@ import type {
   MacroTotals,
   ProgressGoalConfig,
   SubscriptionTier,
-  VolumeUnit,
   WeightEntry,
   WorkoutState,
 } from "./types";
