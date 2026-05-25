@@ -8,6 +8,7 @@ import { ScreenHeader, PrimaryButton, SecondaryButton } from "../shared";
 import type { AppState } from "../types";
 import { defaultWorkoutRoutineTemplates } from "../data";
 import { NEW_ROUTINE_EDITOR_ID } from "../screens/WorkoutRoutineEditor";
+import { COACH_BLUE_LABEL, COACH_CARD_BG, COACH_CARD_BORDER } from "../workoutUiTokens";
 
 function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
   return (
@@ -60,8 +61,9 @@ export function WorkoutIdleDashboard({
   const [pendingRestoreDefaults, setPendingRestoreDefaults] = useState(false);
   const previewTpl = previewRoutineId ? state.workoutTemplates.find((t) => t.id === previewRoutineId) : null;
   const idleCoachSubtitle = preWorkoutCoach?.brief.headline;
+  const todayTemplateId = preWorkoutCoach?.todayTemplateId ?? null;
   const previewCoachBrief =
-    previewTpl && preWorkoutCoach && previewTpl.id === preWorkoutCoach.todayTemplateId
+    previewTpl && todayTemplateId && previewTpl.id === todayTemplateId
       ? preWorkoutCoach.brief
       : undefined;
 
@@ -154,6 +156,7 @@ export function WorkoutIdleDashboard({
             {state.workoutTemplates.map((tpl) => {
               const preview = tpl.exercises.slice(0, 4).map((e) => e.name);
               const more = tpl.exercises.length - preview.length;
+              const isTodayWorkout = tpl.id === todayTemplateId;
               return (
                 <div
                   key={tpl.id}
@@ -161,8 +164,11 @@ export function WorkoutIdleDashboard({
                     display: "flex",
                     borderRadius: 14,
                     overflow: "hidden",
-                    border: "0.5px solid var(--border)",
-                    background: "var(--surface-2)",
+                    border: isTodayWorkout ? `1px solid ${COACH_CARD_BORDER}` : "0.5px solid var(--border)",
+                    background: isTodayWorkout ? COACH_CARD_BG : "var(--surface-2)",
+                    boxShadow: isTodayWorkout
+                      ? "0 0 0 1px rgba(10,132,255,0.2), 0 0 18px rgba(10,132,255,0.35), 0 0 36px rgba(10,132,255,0.12)"
+                      : undefined,
                   }}
                 >
                   <button
@@ -181,15 +187,36 @@ export function WorkoutIdleDashboard({
                   >
                     <div
                       style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: "var(--text-faint-soft)",
-                        letterSpacing: "0.06em",
-                        textTransform: "uppercase",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
                         marginBottom: 6,
                       }}
                     >
-                      {tpl.dayLabel.trim() || "Workout"}
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: "var(--text-faint-soft)",
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {tpl.dayLabel.trim() || "Workout"}
+                      </div>
+                      {isTodayWorkout ? (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: COACH_BLUE_LABEL,
+                            letterSpacing: "0.08em",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Today
+                        </span>
+                      ) : null}
                     </div>
                     <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: "-0.02em", marginBottom: 6 }}>{tpl.name}</div>
                     {tpl.focus.trim() ? (
@@ -213,8 +240,8 @@ export function WorkoutIdleDashboard({
                     style={{
                       padding: "16px 14px",
                       border: "none",
-                      borderLeft: "0.5px solid var(--border)",
-                      background: "var(--surface-1)",
+                      borderLeft: isTodayWorkout ? `0.5px solid ${COACH_CARD_BORDER}` : "0.5px solid var(--border)",
+                      background: isTodayWorkout ? "rgba(10,132,255,0.06)" : "var(--surface-1)",
                       color: "#6EB7FF",
                       fontSize: 13,
                       fontWeight: 600,
