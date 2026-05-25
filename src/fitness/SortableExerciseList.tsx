@@ -21,9 +21,9 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { restrictToWindowEdges } from "@dnd-kit/modifiers";
-import { CSS } from "@dnd-kit/utilities";
-import { useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { restrictToWindowEdges, snapCenterToCursor } from "@dnd-kit/modifiers";
+import { CSS, getEventCoordinates, isTouchEvent } from "@dnd-kit/utilities";
+import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import { IconGrip } from "./icons";
 
@@ -38,32 +38,50 @@ const COMPACT_GAP = 4;
 const HOLD_DELAY_MS = 150;
 const HOLD_TOLERANCE_PX = 5;
 
+const COMPACT_ROW_HEIGHT = 56;
+
 const restrictToVerticalAxis: Modifier = ({ transform }) => ({
   ...transform,
   x: 0,
 });
 
-const snapCenterToCursor: Modifier = ({ activatorEvent, draggingNodeRect, transform }) => {
-  if (draggingNodeRect && activatorEvent) {
-    const isTouchEvent = typeof TouchEvent !== "undefined" && activatorEvent instanceof TouchEvent;
-    const clientX = isTouchEvent
-      ? (activatorEvent as TouchEvent).touches[0]?.clientX ?? (activatorEvent as TouchEvent).changedTouches[0].clientX
-      : (activatorEvent as MouseEvent).clientX;
-    const clientY = isTouchEvent
-      ? (activatorEvent as TouchEvent).touches[0]?.clientY ?? (activatorEvent as TouchEvent).changedTouches[0].clientY
-      : (activatorEvent as MouseEvent).clientY;
+function isTouchLikeActivator(event: Event | null): boolean {
+  if (!event) return false;
+  if (isTouchEvent(event)) return true;
+  return (
+    typeof PointerEvent !== "undefined" &&
+    event instanceof PointerEvent &&
+    event.pointerType === "touch"
+  );
+}
 
-    const offsetX = clientX - draggingNodeRect.left;
-    const offsetY = clientY - draggingNodeRect.top;
+/** Mouse keeps center snap; touch aligns the grip under the finger on the compact row. */
+function createOverlayPositionModifier(gripTapSize: number): Modifier {
+  const gripCenterX = gripTapSize / 2;
+
+  return (args) => {
+    const { activatorEvent, activeNodeRect, overlayNodeRect, transform } = args;
+    if (!isTouchLikeActivator(activatorEvent)) {
+      return snapCenterToCursor(args);
+    }
+    if (!activeNodeRect) return transform;
+
+    if (!activatorEvent) return transform;
+
+    const coords = getEventCoordinates(activatorEvent);
+    if (!coords) return transform;
+
+    const overlayHeight = overlayNodeRect?.height ?? COMPACT_ROW_HEIGHT;
+    const grabOffsetX = coords.x - activeNodeRect.left;
+    const grabOffsetY = coords.y - activeNodeRect.top;
 
     return {
       ...transform,
-      x: transform.x + draggingNodeRect.width / 2 - offsetX,
-      y: transform.y + draggingNodeRect.height / 2 - offsetY,
+      x: transform.x + grabOffsetX - gripCenterX,
+      y: transform.y + grabOffsetY - overlayHeight / 2,
     };
-  }
-  return transform;
-};
+  };
+}
 
 function lightHaptic() {
   try {
@@ -316,11 +334,16 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   const activeItem = activeIndex >= 0 ? items[activeIndex] : null;
   const listGap = isListDragging ? COMPACT_GAP : gap;
 
+  const overlayModifiers = useMemo(
+    () => [createOverlayPositionModifier(dragHandleTapSize), restrictToVerticalAxis, restrictToWindowEdges],
+    [dragHandleTapSize],
+  );
+
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(TouchSensor, {
       activationConstraint: { delay: HOLD_DELAY_MS, tolerance: HOLD_TOLERANCE_PX },
     }),
-    useSensor(TouchSensor, {
+    useSensor(PointerSensor, {
       activationConstraint: { delay: HOLD_DELAY_MS, tolerance: HOLD_TOLERANCE_PX },
     }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -402,7 +425,8 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
       </SortableContext>
       <DragOverlay
         dropAnimation={dropAnimation}
-        modifiers={[snapCenterToCursor, restrictToVerticalAxis, restrictToWindowEdges]}
+        modifiers={overlayModifiers}
+        style={{ height: COMPACT_ROW_HEIGHT }}
       >
         {activeItem && activeId ? (
           <DragOverlayCard
