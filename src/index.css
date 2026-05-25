@@ -777,13 +777,24 @@ textarea {
   pointer-events: auto;
 }
 
-.exercise-reorder-compact-drag--selected {
-  outline: 2px solid rgba(96, 165, 250, 0.9);
-  outline-offset: -2px;
+.exercise-reorder-placeholder {
+  min-height: 56px;
+  height: 56px;
+  background: var(--surface-2);
+  border: 1.5px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.exercise-reorder-overlay-lift {
+  transform: scale(1.02);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   filter: brightness(1.06);
-  transform: scale(1.02);
+  border-radius: 16px;
   cursor: grabbing;
+  pointer-events: none;
+  z-index: 50;
 }
 
 .exercise-reorder-compact-drag {
@@ -4051,7 +4062,7 @@ input[type="number"] {
   .exercise-reorder-slot__layer,
   .exercise-reorder-list[data-dragging="true"] .exercise-reorder-slot__layer--full,
   .exercise-reorder-list[data-dragging="true"] .exercise-reorder-slot__layer--compact,
-  .exercise-reorder-compact-drag--selected,
+  .exercise-reorder-overlay-lift,
   .onboarding-hook-line,
   .onboarding-hook-cta,
   .onboarding-generating-line,
