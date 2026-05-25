@@ -1,11 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_ONBOARDING_PROFILE } from "./onboardingProfile";
-import { finalizeSignedInAppAccess, hasOnboardingProfileSetup, shouldSkipOnboarding } from "./onboardingSkip";
+import {
+  finalizeSignedInAppAccess,
+  hasOnboardingProfileSetup,
+  isLegacyUserEmail,
+  shouldSkipOnboarding,
+} from "./onboardingSkip";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { FITNESS_LOCAL_STORAGE_KEY } from "./persistFitnessSlice";
 
 describe("onboardingSkip", () => {
+  it("treats personal outlook email as legacy; dev email is not legacy", () => {
+    expect(isLegacyUserEmail("jimmymccarthy1213@outlook.com")).toBe(true);
+    expect(isLegacyUserEmail("jimmy.mccarthy@nodoublesgolfco.com")).toBe(false);
+  });
+
   it("skips when onboarding profile setup flags are present without onboardingComplete", () => {
     const persisted: Partial<PersistedFitnessSlice> = {
       onboardingComplete: false,
@@ -20,6 +30,16 @@ describe("onboardingSkip", () => {
       shouldSkipOnboarding({
         persisted,
         sessionEmail: "new-user@example.com",
+        forcePreview: false,
+      }),
+    ).toBe(true);
+  });
+
+  it("skips onboarding when a cloud session is already active", () => {
+    expect(
+      shouldSkipOnboarding({
+        persisted: { onboardingComplete: false },
+        sessionEmail: "jimmy.mccarthy@nodoublesgolfco.com",
         forcePreview: false,
       }),
     ).toBe(true);

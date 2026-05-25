@@ -1,0 +1,47 @@
+import { findLastLoggedExerciseSets } from "./workoutAutofill";
+import { formatSetWeight, weightUnitLabel } from "./unitPreferences";
+import type { CompletedWorkoutSession, WeightUnit, WorkoutSet } from "./types";
+
+export function formatPreviousSetLine(set: WorkoutSet | undefined, unit: WeightUnit): string {
+  if (!set || (set.w <= 0 && set.r <= 0)) return "—";
+  if (set.w > 0) {
+    return `${formatSetWeight(set.w, unit)} ${weightUnitLabel(unit)} × ${set.r}`;
+  }
+  return `${set.r} rep${set.r === 1 ? "" : "s"}`;
+}
+
+/** Per-set lines from the most recent logged session for this exercise. */
+export function previousSetsForExercise(
+  history: CompletedWorkoutSession[] | undefined,
+  name: string,
+  label: string | undefined,
+): WorkoutSet[] | null {
+  return findLastLoggedExerciseSets(history, name, label);
+}
+
+export function previousSetAtIndex(
+  history: CompletedWorkoutSession[] | undefined,
+  name: string,
+  label: string | undefined,
+  setIndex: number,
+  unit: WeightUnit,
+): string {
+  const last = previousSetsForExercise(history, name, label);
+  if (!last?.length) return "—";
+  const src = last[Math.min(setIndex, last.length - 1)];
+  return formatPreviousSetLine(src, unit);
+}
+
+export function previousSetLinesForExercise(
+  history: CompletedWorkoutSession[] | undefined,
+  name: string,
+  label: string | undefined,
+  setCount: number,
+  unit: WeightUnit,
+): string[] {
+  const last = previousSetsForExercise(history, name, label);
+  return Array.from({ length: setCount }, (_, i) => {
+    const src = last?.[Math.min(i, (last?.length ?? 1) - 1)];
+    return formatPreviousSetLine(src, unit);
+  });
+}

@@ -315,6 +315,16 @@ export function useFitnessCloudSync(
     return {};
   }, []);
 
+  useEffect(() => {
+    if (!import.meta.env.DEV || !configured || !sessionResolved || session?.user?.email) return;
+
+    const email = String(import.meta.env.VITE_DEV_AUTO_SIGN_IN_EMAIL ?? "").trim();
+    const password = String(import.meta.env.VITE_DEV_AUTO_SIGN_IN_PASSWORD ?? "").trim();
+    if (!email || !password) return;
+
+    void signInWithPassword(email, password);
+  }, [configured, sessionResolved, session?.user?.email, signInWithPassword]);
+
   const signInWithOAuth = useCallback(async (provider: "apple" | "google") => {
     const sb = getSupabase();
     if (!sb) return { error: "Add Supabase keys to sync." };

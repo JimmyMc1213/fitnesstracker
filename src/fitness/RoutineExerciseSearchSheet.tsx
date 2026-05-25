@@ -4,7 +4,8 @@ import { CustomExerciseCreateForm } from "./CustomExerciseCreateForm";
 import { catalogExercisesForEquipment } from "./exerciseCatalog";
 import type { ExerciseEquipmentLabel } from "./exerciseLabels";
 import { IconSearch } from "./icons";
-import { BottomSheet, bottomSheetPanelTheme, useKeyboardViewport } from "./motion";
+import { BottomSheet, bottomSheetPanelTheme, useKeyboardAwareSheetSizing } from "./motion";
+import { ExerciseResultRow, exerciseSearchListStyle, exerciseSearchSectionHeaderStyle } from "./ExerciseSearchResultRow";
 import type { CustomExerciseTemplate, EquipmentSetup } from "./types";
 
 type RoutineExerciseSearchSheetProps = {
@@ -16,35 +17,6 @@ type RoutineExerciseSearchSheetProps = {
   onSaveCustomAndAdd?: (name: string, label: string) => void;
   onClose: () => void;
 };
-
-const resultButtonStyle = {
-  padding: "12px 8px",
-  textAlign: "left" as const,
-  borderBottom: "0.5px solid var(--border)",
-  fontSize: 13,
-  fontWeight: 500,
-  display: "flex" as const,
-  alignItems: "center" as const,
-  gap: 10,
-  width: "100%",
-  background: "transparent",
-  color: "var(--text-primary)",
-};
-
-function ExerciseResultRow({ name, label, onPick }: { name: string; label?: string; onPick: () => void }) {
-  return (
-    <button type="button" className="tap" onClick={onPick} style={resultButtonStyle}>
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-        {label ? (
-          <span style={{ display: "block", fontSize: 11, color: "var(--text-ghost)", marginTop: 3, fontWeight: 500 }}>
-            {label}
-          </span>
-        ) : null}
-      </span>
-    </button>
-  );
-}
 
 export function RoutineExerciseSearchSheet({
   open = true,
@@ -59,12 +31,8 @@ export function RoutineExerciseSearchSheet({
   const [showCreateCard, setShowCreateCard] = useState(false);
   const [draftExName, setDraftExName] = useState("");
   const [draftExLabel, setDraftExLabel] = useState<ExerciseEquipmentLabel | null>(null);
-  const { keyboardBottom, visibleHeight } = useKeyboardViewport();
+  const { panelStyle: keyboardPanelStyle } = useKeyboardAwareSheetSizing();
   const qLow = query.trim().toLowerCase();
-  const keyboardOpen = keyboardBottom > 0;
-  const sheetMaxHeight = keyboardOpen
-    ? Math.max(220, visibleHeight - 24)
-    : Math.min(640, visibleHeight * 0.85);
 
   const catalogExercises = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
 
@@ -115,11 +83,8 @@ export function RoutineExerciseSearchSheet({
         ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
-        maxHeight: sheetMaxHeight,
-        display: "flex",
-        flexDirection: "column",
         padding: 20,
-        overflow: "hidden",
+        ...keyboardPanelStyle,
       }}
     >
       <div
@@ -188,34 +153,10 @@ export function RoutineExerciseSearchSheet({
         )
       ) : null}
 
-      <div
-        style={{
-          flex: 1,
-          minHeight: 120,
-          overflowY: "auto",
-          WebkitOverflowScrolling: "touch",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      <div style={exerciseSearchListStyle}>
         {filteredCustom.length > 0 ? (
           <>
-            <div
-              style={{
-                position: "sticky",
-                top: 0,
-                zIndex: 1,
-                background: "var(--card)",
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "var(--text-ghost)",
-                padding: "8px 8px 6px",
-              }}
-            >
-              Your exercises
-            </div>
+            <div style={exerciseSearchSectionHeaderStyle}>Your exercises</div>
             {filteredCustom.map((c) => (
               <ExerciseResultRow key={c.id} name={c.name} label={c.label} onPick={() => pick(c.name, c.label)} />
             ))}
@@ -223,22 +164,7 @@ export function RoutineExerciseSearchSheet({
         ) : null}
         {filteredBuiltin.length > 0 ? (
           <>
-            <div
-              style={{
-                position: "sticky",
-                top: 0,
-                zIndex: 1,
-                background: "var(--card)",
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "var(--text-ghost)",
-                padding: "8px 8px 6px",
-              }}
-            >
-              Catalog
-            </div>
+            <div style={exerciseSearchSectionHeaderStyle}>Catalog</div>
             {filteredBuiltin.map((c) => (
               <ExerciseResultRow key={`${c.name}-${c.label}`} name={c.name} label={c.label} onPick={() => pick(c.name, c.label)} />
             ))}

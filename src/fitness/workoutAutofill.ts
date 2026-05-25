@@ -21,7 +21,12 @@ export function findLastLoggedExerciseSets(
     for (const ex of session.exercises) {
       if (exerciseNoteKey(ex.name, ex.label) !== key) continue;
       if (ex.sets.length === 0) continue;
-      return ex.sets.map((s) => ({ w: s.w, r: s.r, done: false }));
+      return ex.sets.map((s) => ({
+        w: s.w,
+        r: s.r,
+        done: false,
+        ...(s.kind && s.kind !== "working" ? { kind: s.kind } : {}),
+      }));
     }
   }
   return null;

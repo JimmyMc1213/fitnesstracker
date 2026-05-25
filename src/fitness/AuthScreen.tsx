@@ -10,6 +10,7 @@ type AuthScreenProps = {
   fromWelcome?: boolean;
   externalError?: string | null;
   onGetStarted?: () => void;
+  onSignInSuccess?: () => void;
 };
 
 export function AuthScreen({
@@ -17,6 +18,7 @@ export function AuthScreen({
   fromWelcome = false,
   externalError = null,
   onGetStarted,
+  onSignInSuccess,
 }: AuthScreenProps) {
   const sync = useFitnessSync();
   const [view, setView] = useState<View>(
@@ -48,6 +50,7 @@ export function AuthScreen({
     const r = await sync.signInWithPassword(email, password);
     setLoading(false);
     if (r.error) setError(r.error);
+    else onSignInSuccess?.();
   };
 
   const s: Record<string, CSSProperties> = {

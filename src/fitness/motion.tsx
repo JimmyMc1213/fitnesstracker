@@ -81,6 +81,31 @@ export function useKeyboardViewport() {
   return state;
 }
 
+const KEYBOARD_OPEN_THRESHOLD = 48;
+/** Top + bottom padding on the bottom-sheet backdrop (px). */
+const SHEET_BACKDROP_CHROME = 36;
+
+/** Size a bottom sheet to fill the space above the on-screen keyboard. */
+export function useKeyboardAwareSheetSizing() {
+  const { keyboardBottom, visibleHeight } = useKeyboardViewport();
+  const keyboardOpen = keyboardBottom >= KEYBOARD_OPEN_THRESHOLD;
+  const sheetHeight = keyboardOpen
+    ? Math.max(240, visibleHeight - SHEET_BACKDROP_CHROME)
+    : Math.min(640, Math.round(visibleHeight * 0.85));
+
+  return {
+    keyboardOpen,
+    sheetHeight,
+    panelStyle: {
+      maxHeight: sheetHeight,
+      ...(keyboardOpen ? { height: sheetHeight } : {}),
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+    } satisfies CSSProperties,
+  };
+}
+
 type BottomSheetProps = {
   open: boolean;
   onClose?: () => void;

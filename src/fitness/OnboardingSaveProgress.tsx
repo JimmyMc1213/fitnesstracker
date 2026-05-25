@@ -7,6 +7,8 @@ import {
   isSaveProgressAuthPending,
   shouldClearStaleSaveProgressSession,
 } from "./oauthReturnCapture";
+import { loadPersistedSlice } from "./persistFitnessSlice";
+import { shouldSkipOnboarding } from "./onboardingSkip";
 
 function AppleIcon() {
   return (
@@ -53,6 +55,15 @@ export function OnboardingSaveProgress({ onSkip, onSignedIn }: Props) {
 
   useEffect(() => {
     if (isOAuthReturn()) return;
+    if (
+      shouldSkipOnboarding({
+        persisted: loadPersistedSlice(),
+        sessionEmail: signedInEmail,
+        forcePreview: false,
+      })
+    ) {
+      return;
+    }
     if (
       !shouldClearStaleSaveProgressSession({
         oauthReturn: false,

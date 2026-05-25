@@ -74,7 +74,9 @@ export type LoggedFood = FoodItem & {
   loggedAtMs: number;
 };
 
-export type WorkoutSet = { w: number; r: number; done: boolean };
+export type WorkoutSetKind = "working" | "warmup" | "dropset" | "failure";
+
+export type WorkoutSet = { w: number; r: number; done: boolean; kind?: WorkoutSetKind };
 
 export type WorkoutExercise = {
   id: string;

@@ -13,7 +13,7 @@ import { IconPlus } from "../icons";
 import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { FullScreenOverlay } from "../motion";
 import { SortableExerciseList } from "../SortableExerciseList";
-import type { ScreenProps, WorkoutExercise } from "../types";
+import type { ScreenProps, WorkoutExercise, WorkoutSetKind } from "../types";
 import { autofillExerciseSets, buildSetsForExercise } from "../workoutAutofill";
 import {
   buildSessionCoachNoteForExercise,
@@ -28,6 +28,7 @@ import { ExerciseSwapSheet } from "../ExerciseSwapSheet";
 import { isTrainingDay } from "../trainingCalendar";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
 import { AddExerciseSearchSheet } from "../workout/AddExerciseSearchSheet";
+import { CancelWorkoutConfirmSheet } from "../workout/CancelWorkoutConfirmSheet";
 import { EmptyFinishConfirmSheet } from "../workout/EmptyFinishConfirmSheet";
 import { DeleteExerciseConfirmSheet } from "../workout/DeleteExerciseConfirmSheet";
 import { WorkoutExerciseCard } from "../workout/WorkoutExerciseCard";
@@ -69,7 +70,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   const [showExSearch, setShowExSearch] = useState(false);
   const [openSwipeExerciseId, setOpenSwipeExerciseId] = useState<string | null>(null);
   const [expandedProgressId, setExpandedProgressId] = useState<string | null>(null);
-  const [, setTick] = useState(0);
+  const [tick, setTick] = useState(0);
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
 
   const [showCreateWeeklyRoutineSheet, setShowCreateWeeklyRoutineSheet] = useState(false);
@@ -85,6 +86,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
+  const [showCancelWorkoutConfirm, setShowCancelWorkoutConfirm] = useState(false);
   const [showHistoryPage, setShowHistoryPage] = useState(false);
   const [restTimer, setRestTimer] = useState<ActiveRestTimer | null>(null);
   const [restSheetExerciseId, setRestSheetExerciseId] = useState<string | null>(null);
@@ -168,6 +170,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
     phase === "lifting" && w.sessionStartedAtMs != null
       ? Math.max(0, Math.floor((Date.now() - w.sessionStartedAtMs) / 1000))
       : 0;
+  void tick;
 
   const totalSets = w.exercises.reduce((a, e) => a + e.sets.length, 0);
   const doneSets = w.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0);
@@ -209,6 +212,30 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
             ? {
                 ...exercise,
                 sets: exercise.sets.map((st, i) => (i === idx ? { ...st, ...patch } : st)),
+              }
+            : exercise,
+        ),
+      },
+    }));
+  }
+
+  function updateSetKind(eid: string, idx: number, kind: WorkoutSetKind) {
+    setState((s) => ({
+      ...s,
+      workout: {
+        ...s.workout,
+        exercises: s.workout.exercises.map((exercise) =>
+          exercise.id === eid
+            ? {
+                ...exercise,
+                sets: exercise.sets.map((st, i) => {
+                  if (i !== idx) return st;
+                  if (kind === "working") {
+                    const { kind: _k, ...rest } = st;
+                    return rest;
+                  }
+                  return { ...st, kind };
+                }),
               }
             : exercise,
         ),
@@ -651,6 +678,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
 
   function endSessionToIdle(completed: boolean) {
     setShowEmptyFinishConfirm(false);
+    setShowCancelWorkoutConfirm(false);
     if (completed) {
       setState((s) => {
         const result = finishWorkout(s);
@@ -847,6 +875,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
                 isOverlay={ctx.isOverlay}
                 isListDragging={ctx.isListDragging}
                 weightUnit={wUnit}
+                workoutHistory={state.workoutHistory}
                 exerciseNote={getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label)}
                 sessionCoachNote={w.sessionCoachNotesByExerciseId?.[exercise.id]}
                 exercisePersonalBests={state.exercisePersonalBests}
@@ -858,6 +887,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
                 onSwapExercise={setSwapExerciseId}
                 onOpenRestSheet={openRestSheet}
                 onUpdateSet={updateSet}
+                onUpdateSetKind={updateSetKind}
                 onToggleSetDone={toggleSetDone}
                 onRemoveSet={removeSet}
                 onAddSet={addSet}
@@ -865,6 +895,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
                 onToggleProgress={(exerciseId) =>
                   setExpandedProgressId((id) => (id === exerciseId ? null : exerciseId))
                 }
+                onRemoveExercise={requestDeleteExercise}
               />
             </SwipeToDelete>
           )}
@@ -890,11 +921,11 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
             onClick={() => setShowExSearch(true)}
             style={{
               width: "100%",
-              background: "rgba(10,132,255,0.2)",
-              border: "0.5px solid rgba(10,132,255,0.45)",
+              background: "var(--workout-action-bg)",
+              border: "0.5px solid var(--workout-action-border)",
               borderRadius: 12,
               padding: 14,
-              color: "#6EB7FF",
+              color: "var(--workout-action-fg)",
               fontSize: 14,
               fontWeight: 600,
               display: "flex",
@@ -910,14 +941,14 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
         <button
           type="button"
           className="tap"
-          onClick={() => endSessionToIdle(false)}
+          onClick={() => setShowCancelWorkoutConfirm(true)}
           style={{
             width: "100%",
-            background: "rgba(255,69,58,0.12)",
-            border: "0.5px solid rgba(255,69,58,0.35)",
+            background: "var(--workout-danger-bg)",
+            border: "0.5px solid var(--workout-danger-border)",
             borderRadius: 12,
             padding: 14,
-            color: "#FF6961",
+            color: "var(--workout-danger-fg)",
             fontSize: 14,
             fontWeight: 600,
           }}
@@ -927,6 +958,16 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
       </div>
 
       <div style={{ height: 8 }} />
+
+      {showCancelWorkoutConfirm ? (
+        <CancelWorkoutConfirmSheet
+          onResume={() => setShowCancelWorkoutConfirm(false)}
+          onCancelWorkout={() => {
+            setShowCancelWorkoutConfirm(false);
+            endSessionToIdle(false);
+          }}
+        />
+      ) : null}
 
       {showEmptyFinishConfirm ? (
         <EmptyFinishConfirmSheet

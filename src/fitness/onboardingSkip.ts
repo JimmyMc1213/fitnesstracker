@@ -1,7 +1,7 @@
 import { clearOnboardingDraftStorage } from "./onboardingDraft";
 import { savePersistedSlice, type PersistedFitnessSlice } from "./persistFitnessSlice";
 
-const DEFAULT_LEGACY_EMAILS = ["jimmymccarthy@gmail.com"];
+const DEFAULT_LEGACY_EMAILS = ["jimmymccarthy1213@outlook.com"];
 
 export function legacyUserEmails(): string[] {
   const raw = import.meta.env.VITE_LEGACY_USER_EMAILS;
@@ -38,6 +38,7 @@ export function shouldSkipOnboarding(opts: {
   forcePreview?: boolean;
 }): boolean {
   if (opts.forcePreview) return false;
+  if (opts.sessionEmail?.trim()) return true;
   if (opts.persisted?.onboardingComplete === true) return true;
   if (hasOnboardingProfileSetup(opts.persisted)) return true;
   if (isLegacyUserEmail(opts.sessionEmail)) return true;

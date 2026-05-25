@@ -1,16 +1,22 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { exerciseNoteKey } from "../exerciseNotes";
 import { sanitizeCoachCopy } from "../exerciseSessionNotes";
-import { IconCheck, IconMinus, IconPlus } from "../icons";
+import { IconCheck, IconChart, IconMinus, IconPlus } from "../icons";
 import { ExerciseDragHandle, type ExerciseDragHandleProps } from "../SortableExerciseList";
 import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
-import type { ExercisePersonalBest, WeightUnit, WorkoutExercise } from "../types";
+import type { CompletedWorkoutSession, ExercisePersonalBest, WeightUnit, WorkoutExercise, WorkoutSetKind } from "../types";
 import { RestTimerStrip, type RestTimerPhase } from "../RestTimerStrip";
 import { formatRestDuration, restDurationForExercise } from "../restTimerPreferences";
+import { previousSetLinesForExercise } from "../workoutPreviousSets";
 import { normalizeExerciseKey } from "../workoutSummary";
-import { METADATA_SIZE, SECONDARY_ACTION_COLOR, USER_NOTE_GRAY_MUTED, COACH_BLUE_MUTED, labelStyle, workoutSetInputStyle } from "../workoutUiTokens";
+import { setColumnLabel, setKindStyle } from "../workoutSetKind";
+import { METADATA_SIZE, USER_NOTE_GRAY_MUTED, COACH_BLUE_MUTED, labelStyle, workoutSetInputStyle } from "../workoutUiTokens";
+import { ExerciseActionSheet } from "./ExerciseActionSheet";
+import { SetKindPickerSheet } from "./SetKindPickerSheet";
+
+const SET_GRID = "32px 68px 1fr 1fr 44px 32px";
 
 type ActiveRestTimer = {
   exerciseId: string;
@@ -42,6 +48,7 @@ export function WorkoutExerciseCard({
   isOverlay,
   isListDragging,
   weightUnit,
+  workoutHistory,
   exerciseNote,
   sessionCoachNote,
   exercisePersonalBests,
@@ -53,11 +60,13 @@ export function WorkoutExerciseCard({
   onSwapExercise,
   onOpenRestSheet,
   onUpdateSet,
+  onUpdateSetKind,
   onToggleSetDone,
   onRemoveSet,
   onAddSet,
   onPressNote,
   onToggleProgress,
+  onRemoveExercise,
 }: {
   exercise: WorkoutExercise;
   exerciseIndex: number;
@@ -65,6 +74,7 @@ export function WorkoutExerciseCard({
   isOverlay?: boolean;
   isListDragging: boolean;
   weightUnit: WeightUnit;
+  workoutHistory: CompletedWorkoutSession[] | undefined;
   exerciseNote: string;
   sessionCoachNote?: string;
   exercisePersonalBests: Record<string, ExercisePersonalBest>;
@@ -76,14 +86,26 @@ export function WorkoutExerciseCard({
   onSwapExercise: (id: string) => void;
   onOpenRestSheet: (exerciseId: string) => void;
   onUpdateSet: (eid: string, idx: number, patch: Partial<{ w: number; r: number; done: boolean }>) => void;
+  onUpdateSetKind: (eid: string, idx: number, kind: WorkoutSetKind) => void;
   onToggleSetDone: (exercise: WorkoutExercise, idx: number) => void;
   onRemoveSet: (eid: string, idx: number) => void;
   onAddSet: (eid: string) => void;
   onPressNote: (name: string, label?: string) => void;
   onToggleProgress: (exerciseId: string) => void;
+  onRemoveExercise: (exercise: WorkoutExercise) => void;
 }) {
+  const [showActions, setShowActions] = useState(false);
+  const [setKindPickerIndex, setSetKindPickerIndex] = useState<number | null>(null);
+
   const done = exercise.sets.filter((st) => st.done).length;
   const prLabel = formatExercisePr(exercise.name, exercisePersonalBests, weightUnit);
+  const previousLines = previousSetLinesForExercise(
+    workoutHistory,
+    exercise.name,
+    exercise.label,
+    exercise.sets.length,
+    weightUnit,
+  );
   const restPresetSec = restDurationForExercise(
     exercise.name,
     exercise.label,
@@ -123,7 +145,7 @@ export function WorkoutExerciseCard({
             <span style={{ fontSize: METADATA_SIZE, color: "var(--text-ghost)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
               {String(exerciseIndex + 1).padStart(2, "0")}
             </span>
-            {exercise.name}
+            <span style={{ color: "var(--accent)" }}>{exercise.name}</span>
             {exercise.label ? (
               <span
                 style={{
@@ -131,9 +153,9 @@ export function WorkoutExerciseCard({
                   fontWeight: 600,
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
-                  color: "rgba(10,132,255,0.95)",
-                  background: "rgba(10,132,255,0.15)",
-                  border: "0.5px solid rgba(10,132,255,0.35)",
+                  color: "var(--coach-blue-label)",
+                  background: "var(--coach-card-bg)",
+                  border: "0.5px solid var(--coach-card-border)",
                   borderRadius: 6,
                   padding: "3px 8px",
                 }}
@@ -160,173 +182,243 @@ export function WorkoutExerciseCard({
             </p>
           ) : null}
         </div>
-        <button
-          type="button"
-          className="tap"
-          data-no-swipe
-          aria-label={`Swap ${exercise.name}`}
-          disabled={isListDragging}
-          onClick={() => onSwapExercise(exercise.id)}
-          style={{
-            flexShrink: 0,
-            fontSize: 12,
-            fontWeight: 600,
-            color: SECONDARY_ACTION_COLOR,
-            background: "none",
-            border: "none",
-            padding: "4px 0",
-          }}
-        >
-          Swap
-        </button>
-      </div>
-
-      <div data-no-swipe>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "32px 1fr 1fr 44px 32px",
-          gap: 6,
-          alignItems: "center",
-          marginBottom: 6,
-        }}
-      >
-        <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Set</div>
-        <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>{weightUnitLabel(weightUnit)}</div>
-        <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Reps</div>
-        <div />
-        <div />
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {exercise.sets.map((st, si) => (
-          <Fragment key={si}>
-            <div
+        <div style={{ display: "flex", gap: 6, flexShrink: 0 }} data-no-swipe>
+          {prLabel ? (
+            <button
+              type="button"
+              className="tap"
+              aria-label={`Progress for ${exercise.name}`}
+              disabled={isListDragging}
+              onClick={() => onToggleProgress(exercise.id)}
               style={{
-                display: "grid",
-                gridTemplateColumns: "32px 1fr 1fr 44px 32px",
-                gap: 6,
-                alignItems: "center",
-                background: st.done ? "var(--surface-1)" : "transparent",
+                width: 32,
+                height: 32,
                 borderRadius: 8,
-                padding: "4px 4px",
+                background: "var(--workout-action-bg)",
+                border: "0.5px solid var(--workout-action-border)",
+                color: "var(--accent)",
+                display: "grid",
+                placeItems: "center",
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted-soft)", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>
-                {si + 1}
-              </div>
-              <input
-                type="number"
-                value={st.w ? formatSetWeight(st.w, weightUnit) : ""}
-                onChange={(ev) => onUpdateSet(exercise.id, si, { w: parseSetWeightInput(ev.target.value, weightUnit) })}
-                placeholder="-"
-                style={workoutSetInputStyle}
-              />
-              <input
-                type="number"
-                value={st.r || ""}
-                onChange={(ev) => onUpdateSet(exercise.id, si, { r: +ev.target.value || 0 })}
-                placeholder="-"
-                style={workoutSetInputStyle}
-              />
-              <button
-                type="button"
-                className="tap"
-                onClick={() => onToggleSetDone(exercise, si)}
-                aria-label="Done"
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 999,
-                  background: st.done ? "var(--primary)" : "transparent",
-                  border: st.done ? "0.5px solid var(--primary)" : "0.5px solid var(--border)",
-                  color: st.done ? "var(--primary-fg)" : "var(--text-ghost)",
-                  display: "grid",
-                  placeItems: "center",
-                  margin: "0 auto",
-                }}
-              >
-                <IconCheck size={16} stroke={2.4} />
-              </button>
-              <button type="button" className="tap" onClick={() => onRemoveSet(exercise.id, si)} aria-label="Remove" style={{ width: 32, height: 36, color: "var(--text-whisper)", display: "grid", placeItems: "center" }}>
-                <IconMinus size={14} />
-              </button>
-            </div>
-            <RestTimerStrip
-              phase={stripPhase(si)}
-              durationSec={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.durationSec : restPresetSec}
-              endsAtMs={isActiveRest && activeRestAfterSetIndex === si && !restTimer!.completed ? restTimer!.endsAtMs : undefined}
-              paused={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.paused : false}
-              pausedRemainingMs={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.pausedRemainingMs : undefined}
-              displayPresetSec={stripDisplaySec(si)}
-              onPress={() => onOpenRestSheet(exercise.id)}
-            />
-          </Fragment>
-        ))}
-      </div>
-
-      <button
-        type="button"
-        className="tap"
-        onClick={() => onAddSet(exercise.id)}
-        style={{
-          marginTop: 10,
-          width: "100%",
-          border: "0.5px dashed var(--divider-subtle)",
-          borderRadius: 8,
-          padding: "10px",
-          color: "var(--text-muted-soft)",
-          fontSize: 12,
-          fontWeight: 500,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 6,
-        }}
-      >
-        <IconPlus size={14} stroke={2} /> Add set · {formatRestDuration(restPresetSec)}
-      </button>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-          marginTop: 10,
-          paddingTop: 8,
-          borderTop: "0.5px solid var(--divider-subtle)",
-        }}
-      >
-        <ExerciseNoteRow
-          note={exerciseNote}
-          onPress={() => onPressNote(exercise.name, exercise.label)}
-          style={{ flex: 1, minWidth: 0 }}
-        />
-        {prLabel ? (
+              <IconChart size={16} stroke={1.75} />
+            </button>
+          ) : null}
           <button
             type="button"
             className="tap"
-            aria-expanded={progressExpanded}
-            onClick={() => onToggleProgress(exercise.id)}
+            aria-label={`Options for ${exercise.name}`}
+            disabled={isListDragging}
+            onClick={() => setShowActions(true)}
             style={{
-              padding: "4px 0",
-              border: "none",
-              background: "transparent",
-              fontSize: 12,
-              fontWeight: 500,
-              color: SECONDARY_ACTION_COLOR,
-              flexShrink: 0,
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: "var(--workout-action-bg)",
+              border: "0.5px solid var(--workout-action-border)",
+              color: "var(--accent)",
+              fontSize: 14,
+              fontWeight: 700,
+              lineHeight: 1,
             }}
           >
-            Progress
+            ···
           </button>
-        ) : null}
+        </div>
       </div>
-      {progressExpanded && prLabel ? (
-        <p style={{ margin: "4px 0 0", fontSize: 12, fontWeight: 600, color: USER_NOTE_GRAY_MUTED, fontVariantNumeric: "tabular-nums" }}>
-          {prLabel} · {weightUnitLabel(weightUnit)}
-        </p>
+
+      <div data-no-swipe>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: SET_GRID,
+            gap: 6,
+            alignItems: "center",
+            marginBottom: 6,
+          }}
+        >
+          <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Set</div>
+          <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Prev</div>
+          <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>{weightUnitLabel(weightUnit)}</div>
+          <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Reps</div>
+          <div />
+          <div />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {exercise.sets.map((st, si) => {
+            const kind = st.kind ?? "working";
+            const kindVisual = setKindStyle(kind === "working" ? undefined : kind);
+            return (
+              <Fragment key={si}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: SET_GRID,
+                    gap: 6,
+                    alignItems: "center",
+                    background: st.done ? "var(--workout-done-row-bg)" : "transparent",
+                    borderRadius: 8,
+                    padding: "4px 4px",
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="tap"
+                    onClick={() => setSetKindPickerIndex(si)}
+                    aria-label={`Set ${si + 1} type`}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      margin: "0 auto",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      fontWeight: 700,
+                      fontVariantNumeric: "tabular-nums",
+                      display: "grid",
+                      placeItems: "center",
+                      ...(kind === "working"
+                        ? {
+                            background: "var(--surface-2)",
+                            color: "var(--text-muted-soft)",
+                            border: "0.5px solid var(--border)",
+                          }
+                        : kindVisual),
+                    }}
+                  >
+                    {setColumnLabel(exercise.sets, si)}
+                  </button>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 500,
+                      color: "var(--text-ghost)",
+                      textAlign: "center",
+                      lineHeight: 1.25,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {previousLines[si]}
+                  </div>
+                  <input
+                    type="number"
+                    value={st.w ? formatSetWeight(st.w, weightUnit) : ""}
+                    onChange={(ev) => onUpdateSet(exercise.id, si, { w: parseSetWeightInput(ev.target.value, weightUnit) })}
+                    placeholder="-"
+                    style={workoutSetInputStyle}
+                  />
+                  <input
+                    type="number"
+                    value={st.r || ""}
+                    onChange={(ev) => onUpdateSet(exercise.id, si, { r: +ev.target.value || 0 })}
+                    placeholder="-"
+                    style={workoutSetInputStyle}
+                  />
+                  <button
+                    type="button"
+                    className="tap"
+                    onClick={() => onToggleSetDone(exercise, si)}
+                    aria-label="Done"
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 999,
+                      background: st.done ? "var(--primary)" : "transparent",
+                      border: st.done ? "0.5px solid var(--primary)" : "0.5px solid var(--border)",
+                      color: st.done ? "var(--primary-fg)" : "var(--text-ghost)",
+                      display: "grid",
+                      placeItems: "center",
+                      margin: "0 auto",
+                    }}
+                  >
+                    <IconCheck size={16} stroke={2.4} />
+                  </button>
+                  <button
+                    type="button"
+                    className="tap"
+                    onClick={() => onRemoveSet(exercise.id, si)}
+                    aria-label="Remove set"
+                    style={{ width: 32, height: 36, color: "var(--text-whisper)", display: "grid", placeItems: "center" }}
+                  >
+                    <IconMinus size={14} />
+                  </button>
+                </div>
+                <RestTimerStrip
+                  phase={stripPhase(si)}
+                  durationSec={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.durationSec : restPresetSec}
+                  endsAtMs={isActiveRest && activeRestAfterSetIndex === si && !restTimer!.completed ? restTimer!.endsAtMs : undefined}
+                  paused={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.paused : false}
+                  pausedRemainingMs={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.pausedRemainingMs : undefined}
+                  displayPresetSec={stripDisplaySec(si)}
+                  onPress={() => onOpenRestSheet(exercise.id)}
+                />
+              </Fragment>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          className="tap"
+          onClick={() => onAddSet(exercise.id)}
+          style={{
+            marginTop: 10,
+            width: "100%",
+            border: "0.5px dashed var(--divider-subtle)",
+            borderRadius: 8,
+            padding: "10px",
+            color: "var(--text-muted-soft)",
+            fontSize: 12,
+            fontWeight: 500,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+          }}
+        >
+          <IconPlus size={14} stroke={2} /> Add set · {formatRestDuration(restPresetSec)}
+        </button>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            marginTop: 10,
+            paddingTop: 8,
+            borderTop: "0.5px solid var(--divider-subtle)",
+          }}
+        >
+          <ExerciseNoteRow
+            note={exerciseNote}
+            onPress={() => onPressNote(exercise.name, exercise.label)}
+            style={{ flex: 1, minWidth: 0 }}
+          />
+          {progressExpanded && prLabel ? (
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: USER_NOTE_GRAY_MUTED, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
+              {prLabel}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      {showActions ? (
+        <ExerciseActionSheet
+          exerciseName={exercise.name}
+          onEditNote={() => onPressNote(exercise.name, exercise.label)}
+          onEditRest={() => onOpenRestSheet(exercise.id)}
+          onReplace={() => onSwapExercise(exercise.id)}
+          onRemove={() => onRemoveExercise(exercise)}
+          onClose={() => setShowActions(false)}
+        />
       ) : null}
-      </div>
+
+      {setKindPickerIndex != null ? (
+        <SetKindPickerSheet
+          selected={exercise.sets[setKindPickerIndex]?.kind ?? "working"}
+          onSelect={(kind) => onUpdateSetKind(exercise.id, setKindPickerIndex, kind)}
+          onClose={() => setSetKindPickerIndex(null)}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,19 +1,19 @@
 import { useState } from "react";
 
 import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
-import { IconTrash } from "../icons";
 import { ScreenHeader } from "../shared";
 import { WorkoutSessionPreviewSheet } from "../WorkoutSessionPreviewSheet";
+import { WorkoutHistorySessionCard } from "../workout/WorkoutHistorySessionCard";
 import {
   formatWorkoutHistoryDate,
   getWorkoutHistorySorted,
   removeWorkoutFromHistory,
   workoutsCompletedByDayFromHistory,
 } from "../workoutHistory";
-import { formatWorkoutDuration } from "../workoutSummary";
+import { groupSessionsByMonth, monthGroupLabel } from "../workoutHistorySessionStats";
 import type { CompletedWorkoutSession, ScreenProps } from "../types";
 
-const ACCENT_BLUE = "#0A84FF";
+const ACCENT_BLUE = "var(--accent)";
 
 type Props = ScreenProps & {
   onBack: () => void;
@@ -23,6 +23,8 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
   const [previewSession, setPreviewSession] = useState<CompletedWorkoutSession | null>(null);
   const [pendingDeleteSession, setPendingDeleteSession] = useState<CompletedWorkoutSession | null>(null);
   const sessions = getWorkoutHistorySorted(state.workoutHistory);
+  const grouped = groupSessionsByMonth(sessions);
+  const wUnit = state.unitPreferences.weightUnit;
 
   function requestDeleteSession(session: CompletedWorkoutSession) {
     setPendingDeleteSession(session);
@@ -57,10 +59,7 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
         </button>
       </div>
 
-      <ScreenHeader
-        eyebrow="TRAINING"
-        title="Workout history"
-      />
+      <ScreenHeader eyebrow="TRAINING" title="Workout history" />
 
       <p style={{ margin: "4px 0 16px", fontSize: 13, color: "var(--text-faint-soft)", fontWeight: 500 }}>
         {sessions.length > 0
@@ -75,87 +74,33 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {sessions.map((session) => (
-            <div
-              key={session.id}
-              className="card"
-              style={{
-                padding: 0,
-                overflow: "hidden",
-                border: "0.5px solid var(--border)",
-              }}
-            >
-              <div className="between" style={{ alignItems: "stretch", gap: 0 }}>
-                <button
-                  type="button"
-                  className="tap"
-                  onClick={() => setPreviewSession(session)}
-                  style={{
-                    flex: 1,
-                    textAlign: "left",
-                    padding: "12px 14px",
-                    background: "transparent",
-                    border: "none",
-                    color: "var(--text-primary)",
-                    minWidth: 0,
-                  }}
-                >
-                  <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>{session.title}</div>
-                  <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500 }}>
-                    {formatWorkoutHistoryDate(session.dayKey, session.endedAtMs)}
-                    {" · "}
-                    {formatWorkoutDuration(session.durationSec)}
-                  </div>
-                </button>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    borderLeft: "0.5px solid var(--border)",
-                    flexShrink: 0,
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="tap"
-                    onClick={() => setPreviewSession(session)}
-                    style={{
-                      flex: 1,
-                      padding: "0 16px",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: ACCENT_BLUE,
-                      background: "transparent",
-                      border: "none",
-                      borderBottom: "0.5px solid var(--border)",
-                      minWidth: 56,
-                    }}
-                  >
-                    View
-                  </button>
-                  <button
-                    type="button"
-                    className="tap"
-                    onClick={() => requestDeleteSession(session)}
-                    aria-label={`Delete ${session.title}`}
-                    style={{
-                      flex: 1,
-                      padding: "0 14px",
-                      background: "transparent",
-                      border: "none",
-                      color: "#FF6961",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      minWidth: 56,
-                    }}
-                  >
-                    <IconTrash size={16} stroke={1.75} />
-                  </button>
-                </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {grouped.map(({ monthKey, sessions: monthSessions }) => (
+            <section key={monthKey}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  color: "var(--text-ghost)",
+                  marginBottom: 10,
+                }}
+              >
+                {monthGroupLabel(monthKey)}
               </div>
-            </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {monthSessions.map((session) => (
+                  <WorkoutHistorySessionCard
+                    key={session.id}
+                    session={session}
+                    workoutHistory={state.workoutHistory}
+                    weightUnit={wUnit}
+                    onOpen={() => setPreviewSession(session)}
+                    onDelete={() => requestDeleteSession(session)}
+                  />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}

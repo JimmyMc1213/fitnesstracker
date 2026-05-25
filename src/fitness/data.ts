@@ -1,5 +1,6 @@
 import exerciseLibrary from "./exerciseLibrary";
 import type { FoodItem, Habit, HabitTemplate, MacroTotals, VolumeUnit, WorkoutExercise, WorkoutRoutineTemplate, WorkoutSet, WorkoutState } from "./types";
+import { normalizeWorkoutSetKind } from "./workoutSetKind";
 import { normalizeDayLabel, weekdayMonStartIndex } from "./trainingCalendar";
 import { DEFAULT_WATER_DAILY_TARGET_OZ, formatWaterVolume } from "./waterIntake";
 
@@ -161,10 +162,12 @@ function normalizeSets(raw: unknown): WorkoutSet[] {
   return raw.map((s) => {
     if (!s || typeof s !== "object") return { w: 0, r: 0, done: false };
     const o = s as Record<string, unknown>;
+    const kind = normalizeWorkoutSetKind(o.kind);
     return {
       w: Number(o.w) || 0,
       r: Number(o.r) || 0,
       done: Boolean(o.done),
+      ...(kind !== "working" ? { kind } : {}),
     };
   });
 }
