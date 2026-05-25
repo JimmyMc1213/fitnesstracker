@@ -1,11 +1,9 @@
 import {
   DndContext,
-  DragOverlay,
   KeyboardSensor,
   PointerSensor,
   TouchSensor,
   closestCenter,
-  defaultDropAnimation,
   MeasuringStrategy,
   useSensor,
   useSensors,
@@ -21,17 +19,13 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
-import { useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 
 import { IconGrip } from "./icons";
 
 const SLIDE_TRANSITION = "transform 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-const LIFT_TRANSITION = "all 150ms ease";
 const COLLAPSE_TRANSITION = "opacity 150ms ease, max-height 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-const DROP_DURATION_MS = 150;
-const DROP_EASING = "ease-out";
 const COMPACT_GAP = 4;
 
 /** Press-and-hold on grip before drag engages (values/inputs stay unchanged). */
@@ -43,28 +37,6 @@ const restrictToVerticalAxis: Modifier = ({ transform }) => ({
   x: 0,
 });
 
-const snapCenterToCursor: Modifier = ({ activatorEvent, draggingNodeRect, transform }) => {
-  if (draggingNodeRect && activatorEvent) {
-    const isTouchEvent = typeof TouchEvent !== "undefined" && activatorEvent instanceof TouchEvent;
-    const clientX = isTouchEvent
-      ? (activatorEvent as TouchEvent).touches[0]?.clientX ?? (activatorEvent as TouchEvent).changedTouches[0].clientX
-      : (activatorEvent as MouseEvent).clientX;
-    const clientY = isTouchEvent
-      ? (activatorEvent as TouchEvent).touches[0]?.clientY ?? (activatorEvent as TouchEvent).changedTouches[0].clientY
-      : (activatorEvent as MouseEvent).clientY;
-
-    const offsetX = clientX - draggingNodeRect.left;
-    const offsetY = clientY - draggingNodeRect.top;
-
-    return {
-      ...transform,
-      x: transform.x + draggingNodeRect.width / 2 - offsetX,
-      y: transform.y + draggingNodeRect.height / 2 - offsetY,
-    };
-  }
-  return transform;
-};
-
 function lightHaptic() {
   try {
     navigator.vibrate?.(10);
@@ -72,16 +44,6 @@ function lightHaptic() {
     // Haptics unavailable
   }
 }
-
-function prefersReducedMotion(): boolean {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-const dropAnimation = {
-  ...defaultDropAnimation,
-  duration: DROP_DURATION_MS,
-  easing: DROP_EASING,
-};
 
 export type SortableListContext = {
   isOverlay: boolean;
@@ -122,24 +84,26 @@ function itemLabel<T extends { id: string; name: string }>(item: T, getDragLabel
   return getDragLabel ? getDragLabel(item) : item.name;
 }
 
-/** Compact row used in the list and DragOverlay while reordering. */
+/** Compact row shown in the list while reordering. */
 function CompactDragCard({
   label,
   subtitle,
   handle,
   tapSize = 44,
   dimmed = false,
+  selected = false,
 }: {
   label: string;
   subtitle?: string;
   handle: ExerciseDragHandleProps;
   tapSize?: number;
   dimmed?: boolean;
+  selected?: boolean;
 }) {
   const display = label.trim() || "Exercise";
   return (
     <div
-      className="card exercise-reorder-compact-drag"
+      className={`card exercise-reorder-compact-drag${selected ? " exercise-reorder-compact-drag--selected" : ""}`}
       data-slot="sortable-compact-row"
       style={{ opacity: dimmed ? 0.6 : 1, transition: "opacity 150ms ease" }}
     >
@@ -179,7 +143,7 @@ function SortableRow<T extends { id: string; name: string }>({
     transition: [transition ?? SLIDE_TRANSITION, COLLAPSE_TRANSITION].join(", "),
     marginBottom: gap,
     position: "relative",
-    zIndex: isDragging ? 1 : undefined,
+    zIndex: isDragging ? 10 : undefined,
   };
 
   const handleProps: ExerciseDragHandleProps = { isDragging, listeners, attributes };
@@ -211,51 +175,15 @@ function SortableRow<T extends { id: string; name: string }>({
         className="exercise-reorder-slot__layer exercise-reorder-slot__layer--compact"
         aria-hidden={!isListDragging}
       >
-        {isDragging ? (
-          <div className="exercise-reorder-placeholder" aria-hidden />
-        ) : (
-          <CompactDragCard
-            label={label}
-            subtitle={subtitle}
-            handle={handleProps}
-            tapSize={dragHandleTapSize}
-            dimmed={isListDragging}
-          />
-        )}
+        <CompactDragCard
+          label={label}
+          subtitle={subtitle}
+          handle={handleProps}
+          tapSize={dragHandleTapSize}
+          dimmed={isListDragging && !isDragging}
+          selected={isDragging}
+        />
       </div>
-    </div>
-  );
-}
-
-function DragOverlayCard<T extends { id: string; name: string }>({
-  item,
-  width,
-  getDragLabel,
-  getDragSubtitle,
-  dragHandleTapSize = 44,
-}: {
-  item: T;
-  width?: number;
-  getDragLabel?: (item: T) => string;
-  getDragSubtitle?: (item: T) => string | undefined;
-  dragHandleTapSize?: number;
-}) {
-  const label = itemLabel(item, getDragLabel);
-  const subtitle = dragSubtitleForItem(item, getDragSubtitle);
-
-  return (
-    <div
-      data-slot="sortable-overlay"
-      data-dragging
-      className="exercise-reorder-overlay-lift"
-      style={{ width, transition: prefersReducedMotion() ? undefined : LIFT_TRANSITION }}
-    >
-      <CompactDragCard
-        label={label}
-        subtitle={subtitle}
-        handle={{ isDragging: true }}
-        tapSize={dragHandleTapSize}
-      />
     </div>
   );
 }
@@ -308,12 +236,8 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   renderItem,
 }: SortableExerciseListProps<T>) {
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [overlayWidth, setOverlayWidth] = useState<number | undefined>();
-  const overlayWidthRef = useRef<number | undefined>();
 
   const isListDragging = activeId != null;
-  const activeIndex = activeId != null ? items.findIndex((x) => x.id === activeId) : -1;
-  const activeItem = activeIndex >= 0 ? items[activeIndex] : null;
   const listGap = isListDragging ? COMPACT_GAP : gap;
 
   const sensors = useSensors(
@@ -326,27 +250,13 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  function measureOverlayWidth(id: string) {
-    const content = document.querySelector(
-      `[data-slot="sortable-item"][data-value="${id}"] [data-slot="sortable-item-content"]`,
-    );
-    if (!content) return undefined;
-    return content.getBoundingClientRect().width;
-  }
-
   function onDragStart(ev: DragStartEvent) {
-    const id = String(ev.active.id);
-    const width = measureOverlayWidth(id);
-    overlayWidthRef.current = width;
-    setOverlayWidth(width);
-    setActiveId(id);
+    setActiveId(String(ev.active.id));
     lightHaptic();
   }
 
   function onDragEnd(ev: DragEndEvent) {
     setActiveId(null);
-    setOverlayWidth(undefined);
-    overlayWidthRef.current = undefined;
     lightHaptic();
     const { active, over } = ev;
     if (!over || active.id === over.id) return;
@@ -358,8 +268,6 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
 
   function onDragCancel() {
     setActiveId(null);
-    setOverlayWidth(undefined);
-    overlayWidthRef.current = undefined;
   }
 
   return (
@@ -400,20 +308,6 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
           ))}
         </div>
       </SortableContext>
-      <DragOverlay
-        dropAnimation={dropAnimation}
-        modifiers={[snapCenterToCursor, restrictToVerticalAxis, restrictToWindowEdges]}
-      >
-        {activeItem && activeId ? (
-          <DragOverlayCard
-            item={activeItem}
-            width={overlayWidth ?? overlayWidthRef.current}
-            getDragLabel={getDragLabel}
-            getDragSubtitle={getDragSubtitle}
-            dragHandleTapSize={dragHandleTapSize}
-          />
-        ) : null}
-      </DragOverlay>
     </DndContext>
   );
 }
