@@ -589,7 +589,7 @@ export function WorkoutRoutineEditor({
           <div className="between" style={{ marginTop: 24, marginBottom: 10 }}>
             <span className="label">Exercises</span>
             <span style={{ fontSize: 12, color: "var(--text-ghost)" }}>
-              {exercises.length} move{exercises.length === 1 ? "" : "s"}
+              {exercises.length} move{exercises.length === 1 ? "" : "s"} · hold grip to reorder
             </span>
           </div>
 

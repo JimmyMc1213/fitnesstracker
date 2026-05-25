@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 
 import { catalogExercisesForEquipment } from "./exerciseCatalog";
 import { IconSearch } from "./icons";
-import { BottomSheet, bottomSheetPanelTheme } from "./motion";
+import { BottomSheet, bottomSheetPanelTheme, useKeyboardViewport } from "./motion";
 import type { CustomExerciseTemplate, EquipmentSetup } from "./types";
 
 type ExerciseSwapSheetProps = {
@@ -25,7 +25,12 @@ export function ExerciseSwapSheet({
   onClose,
 }: ExerciseSwapSheetProps) {
   const [query, setQuery] = useState("");
+  const { keyboardBottom, visibleHeight } = useKeyboardViewport();
   const qLow = query.trim().toLowerCase();
+  const keyboardOpen = keyboardBottom > 0;
+  const sheetMaxHeight = keyboardOpen
+    ? Math.max(220, visibleHeight - 24)
+    : Math.min(640, visibleHeight * 0.85);
 
   const catalogExercises = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
   const filteredBuiltin = useMemo(
@@ -58,10 +63,11 @@ export function ExerciseSwapSheet({
         ...bottomSheetPanelTheme,
         width: "100%",
         maxWidth: 440,
-        maxHeight: "min(78vh, 560px)",
+        maxHeight: sheetMaxHeight,
         display: "flex",
         flexDirection: "column",
         padding: 20,
+        overflow: "hidden",
       }}
     >
         <div id="exercise-swap-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)", marginBottom: 4 }}>
@@ -78,17 +84,18 @@ export function ExerciseSwapSheet({
         <div style={{ position: "relative", marginBottom: 10 }}>
           <IconSearch size={16} style={{ position: "absolute", left: 12, top: 13, color: "var(--text-ghost)" }} />
           <input
-            autoFocus
             className="input"
             style={{ paddingLeft: 36 }}
             placeholder="Search exercises..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Search replacement exercise"
+            inputMode="search"
+            enterKeyHint="search"
           />
         </div>
 
-        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: 1, minHeight: 120, overflowY: "auto", WebkitOverflowScrolling: "touch", display: "flex", flexDirection: "column" }}>
           {filteredCustom.length > 0 ? (
             <>
               <div

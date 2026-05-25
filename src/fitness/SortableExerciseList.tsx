@@ -27,7 +27,8 @@ import { IconGrip } from "./icons";
 
 const LAYOUT_TRANSITION = "transform 220ms cubic-bezier(0.25, 1, 0.5, 1)";
 const COMPACT_GAP = 4;
-const HOLD_DELAY_MS = 280;
+/** Press-and-hold before drag starts — avoids accidental reorder while scrolling. */
+const HOLD_DELAY_MS = 450;
 
 const dropAnimation = {
   ...defaultDropAnimation,
@@ -252,7 +253,9 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   const listGap = isCompactReorder ? COMPACT_GAP : gap;
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(PointerSensor, {
+      activationConstraint: { delay: HOLD_DELAY_MS, tolerance: 8 },
+    }),
     useSensor(TouchSensor, {
       activationConstraint: { delay: HOLD_DELAY_MS, tolerance: 10 },
     }),

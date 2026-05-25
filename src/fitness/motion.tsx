@@ -51,6 +51,36 @@ function motionClass(enter: string, exit: string, exiting: boolean) {
   return exiting ? exit : enter;
 }
 
+/** Tracks iOS/Android keyboard overlap via Visual Viewport API. */
+export function useKeyboardViewport() {
+  const [state, setState] = useState(() => ({
+    keyboardBottom: 0,
+    visibleHeight: typeof window !== "undefined" ? window.innerHeight : 800,
+  }));
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const sync = () => {
+      setState({
+        keyboardBottom: Math.max(0, window.innerHeight - vv.height - vv.offsetTop),
+        visibleHeight: vv.height,
+      });
+    };
+
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    sync();
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+    };
+  }, []);
+
+  return state;
+}
+
 type BottomSheetProps = {
   open: boolean;
   onClose?: () => void;
@@ -75,6 +105,7 @@ export function BottomSheet({
   children,
 }: BottomSheetProps) {
   const { mounted, exiting } = useAnimatedPresence(open, MOTION_DURATIONS.sheet);
+  const { keyboardBottom } = useKeyboardViewport();
 
   if (!mounted) return null;
 
@@ -97,7 +128,7 @@ export function BottomSheet({
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "center",
-        padding: "12px 12px calc(16px + env(safe-area-inset-bottom, 0px))",
+        padding: `12px 12px calc(16px + env(safe-area-inset-bottom, 0px) + ${keyboardBottom}px)`,
         ...backdropStyle,
       }}
     >
