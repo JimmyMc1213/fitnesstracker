@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { exerciseNoteKey } from "../exerciseNotes";
 import { sanitizeCoachCopy } from "../exerciseSessionNotes";
@@ -5,8 +7,8 @@ import { IconCheck, IconMinus, IconPlus } from "../icons";
 import { ExerciseDragHandle, type ExerciseDragHandleProps } from "../SortableExerciseList";
 import { formatSetWeight, parseSetWeightInput, weightUnitLabel } from "../unitPreferences";
 import type { ExercisePersonalBest, WeightUnit, WorkoutExercise } from "../types";
-import { RestTimerBar } from "../RestTimerBar";
-import { restDurationForExercise } from "../restTimerPreferences";
+import { RestTimerStrip, type RestTimerPhase } from "../RestTimerStrip";
+import { formatRestDuration, restDurationForExercise } from "../restTimerPreferences";
 import { normalizeExerciseKey } from "../workoutSummary";
 import { METADATA_SIZE, SECONDARY_ACTION_COLOR, USER_NOTE_GRAY_MUTED, COACH_BLUE_MUTED, labelStyle, workoutSetInputStyle } from "../workoutUiTokens";
 
@@ -17,6 +19,9 @@ type ActiveRestTimer = {
   endsAtMs: number;
   durationSec: number;
   completed: boolean;
+  afterSetIndex: number;
+  paused?: boolean;
+  pausedRemainingMs?: number;
 };
 
 function formatExercisePr(
@@ -41,13 +46,12 @@ export function WorkoutExerciseCard({
   sessionCoachNote,
   exercisePersonalBests,
   progressExpanded,
+  restedRestSecByAfterSetIndex,
   restTimer,
-  restTimerRemainingSec,
   restTimerDefaultSeconds,
   restTimerSecondsByExerciseKey,
   onSwapExercise,
-  onClearRestTimer,
-  onCycleRestPreset,
+  onOpenRestSheet,
   onUpdateSet,
   onToggleSetDone,
   onRemoveSet,
@@ -65,13 +69,12 @@ export function WorkoutExerciseCard({
   sessionCoachNote?: string;
   exercisePersonalBests: Record<string, ExercisePersonalBest>;
   progressExpanded: boolean;
+  restedRestSecByAfterSetIndex: Record<number, number>;
   restTimer: ActiveRestTimer | null;
-  restTimerRemainingSec: number;
   restTimerDefaultSeconds: number;
   restTimerSecondsByExerciseKey: Record<string, number>;
   onSwapExercise: (id: string) => void;
-  onClearRestTimer: () => void;
-  onCycleRestPreset: (exercise: WorkoutExercise) => void;
+  onOpenRestSheet: (exerciseId: string) => void;
   onUpdateSet: (eid: string, idx: number, patch: Partial<{ w: number; r: number; done: boolean }>) => void;
   onToggleSetDone: (exercise: WorkoutExercise, idx: number) => void;
   onRemoveSet: (eid: string, idx: number) => void;
@@ -81,6 +84,29 @@ export function WorkoutExerciseCard({
 }) {
   const done = exercise.sets.filter((st) => st.done).length;
   const prLabel = formatExercisePr(exercise.name, exercisePersonalBests, weightUnit);
+  const restPresetSec = restDurationForExercise(
+    exercise.name,
+    exercise.label,
+    restTimerDefaultSeconds,
+    restTimerSecondsByExerciseKey,
+    exerciseNoteKey,
+  );
+  const isActiveRest = restTimer?.exerciseId === exercise.id;
+  const activeRestAfterSetIndex = isActiveRest ? restTimer!.afterSetIndex : null;
+
+  function stripPhase(afterSetIndex: number): RestTimerPhase {
+    if (isActiveRest && activeRestAfterSetIndex === afterSetIndex) {
+      return restTimer!.completed ? "complete" : "running";
+    }
+    if (restedRestSecByAfterSetIndex[afterSetIndex] != null) return "rested";
+    return "ready";
+  }
+
+  function stripDisplaySec(afterSetIndex: number): number {
+    const restedSec = restedRestSecByAfterSetIndex[afterSetIndex];
+    if (restedSec != null) return restedSec;
+    return restPresetSec;
+  }
 
   return (
     <div
@@ -155,23 +181,6 @@ export function WorkoutExerciseCard({
         </button>
       </div>
 
-      {restTimer?.exerciseId === exercise.id ? (
-        <RestTimerBar
-          remainingSec={restTimerRemainingSec}
-          durationSec={restTimer.durationSec}
-          completed={restTimer.completed}
-          presetLabel={`${restDurationForExercise(
-            exercise.name,
-            exercise.label,
-            restTimerDefaultSeconds,
-            restTimerSecondsByExerciseKey,
-            exerciseNoteKey,
-          )}s`}
-          onDismiss={onClearRestTimer}
-          onCyclePreset={() => onCycleRestPreset(exercise)}
-        />
-      ) : null}
-
       <div data-no-swipe>
       <div
         style={{
@@ -190,58 +199,68 @@ export function WorkoutExerciseCard({
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {exercise.sets.map((st, si) => (
-          <div
-            key={si}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "32px 1fr 1fr 44px 32px",
-              gap: 6,
-              alignItems: "center",
-              background: st.done ? "var(--surface-1)" : "transparent",
-              borderRadius: 8,
-              padding: "4px 4px",
-            }}
-          >
-            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted-soft)", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>
-              {si + 1}
-            </div>
-            <input
-              type="number"
-              value={st.w ? formatSetWeight(st.w, weightUnit) : ""}
-              onChange={(ev) => onUpdateSet(exercise.id, si, { w: parseSetWeightInput(ev.target.value, weightUnit) })}
-              placeholder="-"
-              style={workoutSetInputStyle}
-            />
-            <input
-              type="number"
-              value={st.r || ""}
-              onChange={(ev) => onUpdateSet(exercise.id, si, { r: +ev.target.value || 0 })}
-              placeholder="-"
-              style={workoutSetInputStyle}
-            />
-            <button
-              type="button"
-              className="tap"
-              onClick={() => onToggleSetDone(exercise, si)}
-              aria-label="Done"
+          <Fragment key={si}>
+            <div
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 999,
-                background: st.done ? "var(--primary)" : "transparent",
-                border: st.done ? "0.5px solid var(--primary)" : "0.5px solid var(--border)",
-                color: st.done ? "var(--primary-fg)" : "var(--text-ghost)",
                 display: "grid",
-                placeItems: "center",
-                margin: "0 auto",
+                gridTemplateColumns: "32px 1fr 1fr 44px 32px",
+                gap: 6,
+                alignItems: "center",
+                background: st.done ? "var(--surface-1)" : "transparent",
+                borderRadius: 8,
+                padding: "4px 4px",
               }}
             >
-              <IconCheck size={16} stroke={2.4} />
-            </button>
-            <button type="button" className="tap" onClick={() => onRemoveSet(exercise.id, si)} aria-label="Remove" style={{ width: 32, height: 36, color: "var(--text-whisper)", display: "grid", placeItems: "center" }}>
-              <IconMinus size={14} />
-            </button>
-          </div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted-soft)", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>
+                {si + 1}
+              </div>
+              <input
+                type="number"
+                value={st.w ? formatSetWeight(st.w, weightUnit) : ""}
+                onChange={(ev) => onUpdateSet(exercise.id, si, { w: parseSetWeightInput(ev.target.value, weightUnit) })}
+                placeholder="-"
+                style={workoutSetInputStyle}
+              />
+              <input
+                type="number"
+                value={st.r || ""}
+                onChange={(ev) => onUpdateSet(exercise.id, si, { r: +ev.target.value || 0 })}
+                placeholder="-"
+                style={workoutSetInputStyle}
+              />
+              <button
+                type="button"
+                className="tap"
+                onClick={() => onToggleSetDone(exercise, si)}
+                aria-label="Done"
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 999,
+                  background: st.done ? "var(--primary)" : "transparent",
+                  border: st.done ? "0.5px solid var(--primary)" : "0.5px solid var(--border)",
+                  color: st.done ? "var(--primary-fg)" : "var(--text-ghost)",
+                  display: "grid",
+                  placeItems: "center",
+                  margin: "0 auto",
+                }}
+              >
+                <IconCheck size={16} stroke={2.4} />
+              </button>
+              <button type="button" className="tap" onClick={() => onRemoveSet(exercise.id, si)} aria-label="Remove" style={{ width: 32, height: 36, color: "var(--text-whisper)", display: "grid", placeItems: "center" }}>
+                <IconMinus size={14} />
+              </button>
+            </div>
+            <RestTimerStrip
+              phase={stripPhase(si)}
+              durationSec={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.durationSec : restPresetSec}
+              endsAtMs={isActiveRest && activeRestAfterSetIndex === si && !restTimer!.completed ? restTimer!.endsAtMs : undefined}
+              paused={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.paused : false}
+              pausedRemainingMs={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.pausedRemainingMs : undefined}
+              displayPresetSec={stripDisplaySec(si)}
+              onPress={() => onOpenRestSheet(exercise.id)}
+            />
+          </Fragment>
         ))}
       </div>
 
@@ -264,7 +283,7 @@ export function WorkoutExerciseCard({
           gap: 6,
         }}
       >
-        <IconPlus size={14} stroke={2} /> Add set
+        <IconPlus size={14} stroke={2} /> Add set · {formatRestDuration(restPresetSec)}
       </button>
 
       <div

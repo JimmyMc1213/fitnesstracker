@@ -3,10 +3,10 @@ import type { CSSProperties, ReactNode } from "react";
 import { planReadyFirstCoachNote } from "./onboardingReinforcementCopy";
 import { weekdayMonStartIndex } from "./trainingCalendar";
 import { TypewriterText } from "./TypewriterText";
-import type { MacroTotals, OnboardingProfile, WorkoutRoutineTemplate } from "./types";
+import type { MacroTotals, OnboardingProfile, VolumeUnit, WorkoutRoutineTemplate } from "./types";
 import {
   DEFAULT_WATER_DAILY_TARGET_OZ,
-  formatWaterOz,
+  formatWaterVolume,
 } from "./waterIntake";
 
 const DEFAULT_STEPS_TARGET = 10_000;
@@ -50,6 +50,7 @@ type Props = {
   templates: WorkoutRoutineTemplate[];
   waterDailyTargetOz?: number;
   stepsTarget?: number;
+  volumeUnit?: VolumeUnit;
 };
 
 function MacroStat({
@@ -103,6 +104,7 @@ export function OnboardingPlanReady({
   templates,
   waterDailyTargetOz = DEFAULT_WATER_DAILY_TARGET_OZ,
   stepsTarget = DEFAULT_STEPS_TARGET,
+  volumeUnit = "oz",
 }: Props) {
   const weekTemplates = [...templates].sort(
     (a, b) => weekdayMonStartIndex(a.dayLabel) - weekdayMonStartIndex(b.dayLabel),
@@ -169,7 +171,7 @@ export function OnboardingPlanReady({
                 delaySec={hydrationValueDelay}
                 className="onboarding-plan-ready__habit-value onboarding-plan-ready__habit-value--hydration"
               >
-                {formatWaterOz(waterDailyTargetOz)}
+                {formatWaterVolume(waterDailyTargetOz, volumeUnit)}
               </HabitWave>
             </div>
             <div className="onboarding-plan-ready__habit">

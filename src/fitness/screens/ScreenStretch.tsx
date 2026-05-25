@@ -5,6 +5,7 @@ import {
   isArizonaEightPmOrLater,
 } from "../dailyPlan";
 import { IconCheck, IconChevL, IconChevR, IconX } from "../icons";
+import { formatNotificationTimeDisplay } from "../notificationPreferences";
 import { BottomSheet } from "../motion";
 import { ScreenHeader, SectionLabel } from "../shared";
 import { STRETCH_BLOCKS, STRETCH_INTRO } from "../stretchRoutine";
@@ -31,6 +32,10 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
   const arizonaTodayKey = arizonaCalendarDateKey(clock);
   const inEveningWindow = isArizonaEightPmOrLater(clock);
   const nightlyStretchDone = state.nightlyStretchCompletedArizonaKey === arizonaTodayKey;
+  const stretchReminderEnabled = state.notificationPreferences.nightlyStretchReminderEnabled;
+  const stretchReminderTimeLabel = formatNotificationTimeDisplay(
+    state.notificationPreferences.nightlyStretchReminderTime,
+  );
 
   const completedIds = state.nightlyStretchBlockIdsByArizonaDay[arizonaTodayKey] ?? [];
 
@@ -107,17 +112,17 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
         </button>
       </div>
 
-      <ScreenHeader eyebrow={inEveningWindow ? "Arizona · Evening" : "Your routine"} title="Nightly stretching" />
+      <ScreenHeader eyebrow="Your routine" title="Nightly stretching" />
 
-      {!inEveningWindow ? (
-        <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "var(--text-muted-soft)", fontWeight: 400 }}>
-          Reminder cues usually show after <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>8 PM Arizona</strong>; the routine is always here whenever you want to run through it.
-        </p>
-      ) : (
+      {inEveningWindow ? (
         <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "var(--text-faint-soft)", fontWeight: 400 }}>
           Aim for about <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>15-20 minutes total</strong>, drift longer on what feels glued from the day.
         </p>
-      )}
+      ) : stretchReminderEnabled ? (
+        <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "var(--text-muted-soft)", fontWeight: 400 }}>
+          Reminder at <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{stretchReminderTimeLabel}</strong>; the routine is always here whenever you want to run through it.
+        </p>
+      ) : null}
 
       <div className="card" style={{ padding: 16, marginBottom: 16, borderColor: "rgba(196,181,253,0.22)" }}>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "var(--text-soft)", fontWeight: 500 }}>{STRETCH_INTRO}</p>

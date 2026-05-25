@@ -18,13 +18,17 @@ import { FullScreenOverlay } from "./motion";
 import { REST_TIMER_PRESETS } from "./restTimerPreferences";
 import { PRESET_SELECTED_BG, PRESET_SELECTED_BORDER, PRESET_SELECTED_COLOR } from "./workoutUiTokens";
 import {
-  formatWaterLitersFromOz,
+  formatWaterVolumeAlt,
+  formatVolumeFromOz,
   normalizeWaterDailyTargetOz,
-  WATER_TARGET_PRESETS_OZ,
+  parseVolumeToOz,
+  waterTargetPresets,
+  formatWaterPreset,
 } from "./waterIntake";
 import {
   formatWeightFromLbs,
   heightUnitLabel,
+  volumeUnitLabel,
   weightUnitLabel,
 } from "./unitPreferences";
 import type { AppState, EquipmentSetup, HabitTemplate, MacroTotals, UnitPreferences } from "./types";
@@ -83,7 +87,11 @@ export function SettingsSheet({
   const [cIn, setCIn] = useState(String(T.c));
   const [fIn, setFIn] = useState(String(T.f));
 
-  const [waterTargetIn, setWaterTargetIn] = useState(String(state.waterDailyTargetOz));
+  const volumeUnit = state.unitPreferences.volumeUnit;
+
+  const [waterTargetIn, setWaterTargetIn] = useState(() =>
+    formatVolumeFromOz(state.waterDailyTargetOz, volumeUnit),
+  );
 
   const sync = useFitnessSync();
   const { theme, setTheme } = useTheme();
@@ -101,13 +109,14 @@ export function SettingsSheet({
   }, [T.cal, T.p, T.c, T.f]);
 
   useEffect(() => {
-    setWaterTargetIn(String(state.waterDailyTargetOz));
-  }, [state.waterDailyTargetOz]);
+    setWaterTargetIn(formatVolumeFromOz(state.waterDailyTargetOz, volumeUnit));
+  }, [state.waterDailyTargetOz, volumeUnit]);
 
   function commitWaterTarget(raw: string) {
-    const n = parseInt(raw, 10);
-    const val = normalizeWaterDailyTargetOz(Number.isFinite(n) ? n : undefined);
-    setWaterTargetIn(String(val));
+    const n = volumeUnit === "L" ? parseFloat(raw) : parseInt(raw, 10);
+    const ozRaw = volumeUnit === "L" ? parseVolumeToOz(n, "L") : n;
+    const val = normalizeWaterDailyTargetOz(Number.isFinite(ozRaw) ? ozRaw : undefined);
+    setWaterTargetIn(formatVolumeFromOz(val, volumeUnit));
     setState((s) => ({
       ...s,
       waterDailyTargetOz: val,
@@ -397,7 +406,7 @@ export function SettingsSheet({
           <SectionLabel>Units</SectionLabel>
         </div>
         <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
-          Weight and height display units. Logged values are stored consistently, switching units only changes how numbers are shown.
+          Weight, height, and hydration display units. Logged values are stored consistently; switching units only changes how numbers are shown.
         </p>
         <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
           <UnitPreferencePicker
@@ -413,7 +422,7 @@ export function SettingsSheet({
 
         <SectionLabel>Rest timer</SectionLabel>
         <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
-          Default rest between sets when you mark a set complete. Override per exercise during a workout from the timer bar.
+          Default rest between sets. Tap the timer line on any exercise to change it.
         </p>
         <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -467,19 +476,23 @@ export function SettingsSheet({
 
         <SectionLabel>Hydration</SectionLabel>
         <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
-          Daily water intake target on the Nutrition tab. Logged in fluid ounces with a metric equivalent.
+          Daily water intake target on the Nutrition tab. Display follows your volume unit above.
         </p>
         <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
-            {WATER_TARGET_PRESETS_OZ.map((oz) => {
-              const selected = state.waterDailyTargetOz === oz;
+            {waterTargetPresets(volumeUnit).map((preset) => {
+              const presetOz =
+                volumeUnit === "L"
+                  ? normalizeWaterDailyTargetOz(parseVolumeToOz(preset, "L"))
+                  : preset;
+              const selected = state.waterDailyTargetOz === presetOz;
               return (
                 <button
-                  key={oz}
+                  key={preset}
                   type="button"
                   className="tap"
                   aria-pressed={selected}
-                  onClick={() => commitWaterTarget(String(oz))}
+                  onClick={() => commitWaterTarget(String(preset))}
                   style={{
                     padding: "10px 14px",
                     borderRadius: 10,
@@ -491,19 +504,19 @@ export function SettingsSheet({
                     fontVariantNumeric: "tabular-nums",
                   }}
                 >
-                  {oz} oz
+                  {formatWaterPreset(preset, volumeUnit)}
                 </button>
               );
             })}
           </div>
           <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            Custom target (oz)
+            Custom target ({volumeUnitLabel(volumeUnit)})
             <input
               type="number"
-              min={16}
-              max={256}
-              step={1}
-              inputMode="numeric"
+              min={volumeUnit === "L" ? 0.5 : 16}
+              max={volumeUnit === "L" ? 7.5 : 256}
+              step={volumeUnit === "L" ? 0.1 : 1}
+              inputMode="decimal"
               className="input"
               style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
               value={waterTargetIn}
@@ -511,20 +524,22 @@ export function SettingsSheet({
                 const v = e.target.value;
                 setWaterTargetIn(v);
                 if (v === "" || v === "-") return;
-                const n = parseInt(v, 10);
-                if (Number.isFinite(n) && n >= 16 && n <= 256) {
+                const n = volumeUnit === "L" ? parseFloat(v) : parseInt(v, 10);
+                if (!Number.isFinite(n)) return;
+                const ozRaw = volumeUnit === "L" ? parseVolumeToOz(n, "L") : n;
+                if (ozRaw >= 16 && ozRaw <= 256) {
                   setState((s) => ({
                     ...s,
-                    waterDailyTargetOz: n,
+                    waterDailyTargetOz: Math.round(ozRaw),
                   }));
                 }
               }}
               onBlur={() => commitWaterTarget(waterTargetIn)}
-              aria-label="Daily water target in ounces"
+              aria-label={`Daily water target in ${volumeUnitLabel(volumeUnit)}`}
             />
           </label>
           <div style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 500, marginTop: 8 }}>
-            {formatWaterLitersFromOz(state.waterDailyTargetOz)}
+            {formatWaterVolumeAlt(state.waterDailyTargetOz, volumeUnit)}
           </div>
         </div>
 

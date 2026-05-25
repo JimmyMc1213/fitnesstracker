@@ -183,6 +183,9 @@ export type WeightUnit = "lbs" | "kg";
 /** Height entry/display mode, canonical storage is always inches (`heightIn`). */
 export type HeightDisplayUnit = "ft_in" | "cm";
 
+/** Hydration entry/display mode, canonical storage is always fluid ounces (`amountOz`). */
+export type VolumeUnit = "oz" | "L";
+
 export type ExperienceLevel = "beginner" | "intermediate" | "advanced";
 
 export type EquipmentSetup = "full_gym" | "home_gym" | "dumbbells_only" | "bodyweight_only";
@@ -248,9 +251,12 @@ export type NotificationPreferences = {
   morningCheckInTime: string;
   weeklyReviewEnabled: boolean;
   weeklyReviewTime: string;
+  nightlyStretchReminderEnabled: boolean;
+  nightlyStretchReminderTime: string;
   /** Last local date keys a reminder was shown, prevents duplicate fires per day */
   lastFiredWorkoutReminderDateKey: string | null;
   lastFiredNutritionReminderDateKey: string | null;
+  lastFiredNightlyStretchReminderDateKey: string | null;
 };
 
 /** Stats and preferences collected during full onboarding (FTI-14). */
@@ -308,6 +314,7 @@ export type OnboardingDraft = {
 export type UnitPreferences = {
   weightUnit: WeightUnit;
   heightUnit: HeightDisplayUnit;
+  volumeUnit: VolumeUnit;
 };
 
 export type TabId = "home" | "nutrition" | "workout" | "progress" | "stretch";

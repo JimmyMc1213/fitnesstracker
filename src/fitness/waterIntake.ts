@@ -1,12 +1,17 @@
-import type { AppState, WaterLogEntry } from "./types";
+import type { AppState, VolumeUnit, WaterLogEntry } from "./types";
 
 export const DEFAULT_WATER_DAILY_TARGET_OZ = 64;
 
 export const WATER_QUICK_ADD_OZ = [8, 16] as const;
 
+export const WATER_QUICK_ADD_L = [0.25, 0.5] as const;
+
 export const WATER_TARGET_PRESETS_OZ = [48, 64, 80, 96] as const;
 
-const FL_OZ_TO_L = 0.0295735;
+export const WATER_TARGET_PRESETS_L = [1.5, 2, 2.5, 3] as const;
+
+export const FL_OZ_TO_L = 0.0295735;
+export const L_TO_FL_OZ = 1 / FL_OZ_TO_L;
 
 export function normalizeWaterDailyTargetOz(raw: unknown): number {
   const n = typeof raw === "number" ? raw : Number(raw);
@@ -89,10 +94,45 @@ export function appendWaterLogEntry(state: AppState, dateKey: string, amountOz: 
 }
 
 export function formatWaterOz(oz: number): string {
-  return `${Math.round(oz)} oz`;
+  return formatWaterVolume(oz, "oz");
 }
 
 export function formatWaterLitersFromOz(oz: number): string {
-  const liters = oz * FL_OZ_TO_L;
-  return `≈ ${liters.toFixed(1)} L`;
+  return formatWaterVolumeAlt(oz, "oz");
+}
+
+export function parseVolumeToOz(value: number, unit: VolumeUnit): number {
+  if (!Number.isFinite(value)) return NaN;
+  return unit === "L" ? value * L_TO_FL_OZ : value;
+}
+
+export function formatVolumeFromOz(oz: number, unit: VolumeUnit): string {
+  if (!Number.isFinite(oz)) return "";
+  if (unit === "L") return (oz * FL_OZ_TO_L).toFixed(1);
+  return String(Math.round(oz));
+}
+
+export function formatWaterVolume(oz: number, unit: VolumeUnit): string {
+  if (!Number.isFinite(oz)) return "—";
+  if (unit === "L") return `${(oz * FL_OZ_TO_L).toFixed(1)} L`;
+  return `${Math.round(oz)} oz`;
+}
+
+export function formatWaterVolumeAlt(oz: number, unit: VolumeUnit): string {
+  if (!Number.isFinite(oz)) return "—";
+  if (unit === "L") return `≈ ${Math.round(oz)} oz`;
+  return `≈ ${(oz * FL_OZ_TO_L).toFixed(1)} L`;
+}
+
+export function waterQuickAddPresets(unit: VolumeUnit): readonly number[] {
+  return unit === "L" ? WATER_QUICK_ADD_L : WATER_QUICK_ADD_OZ;
+}
+
+export function waterTargetPresets(unit: VolumeUnit): readonly number[] {
+  return unit === "L" ? WATER_TARGET_PRESETS_L : WATER_TARGET_PRESETS_OZ;
+}
+
+export function formatWaterPreset(value: number, unit: VolumeUnit): string {
+  if (unit === "L") return `${value} L`;
+  return `${value} oz`;
 }

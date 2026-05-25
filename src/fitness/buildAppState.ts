@@ -48,6 +48,7 @@ import type {
   MacroTotals,
   ProgressGoalConfig,
   SubscriptionTier,
+  VolumeUnit,
   WeightEntry,
   WorkoutState,
 } from "./types";
@@ -258,17 +259,18 @@ function resolveHabitTemplates(
   hasLegacyFitnessData: boolean,
   stepsTarget: number,
   waterDailyTargetOz: number,
+  volumeUnit: VolumeUnit,
 ): HabitTemplate[] {
   const normalized = normalizeHabitTemplates(p?.habitTemplates);
   if (normalized != null) {
     const deduped = dedupeHabitTemplates(normalized);
     if (onboardingComplete && isDefaultSeedHabitTemplates(deduped)) {
-      return habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz);
+      return habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz, volumeUnit);
     }
     return deduped;
   }
   if (hasLegacyFitnessData) return defaultHabitTemplates();
-  if (onboardingComplete) return habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz);
+  if (onboardingComplete) return habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz, volumeUnit);
   return [];
 }
 
@@ -349,6 +351,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
       ? Math.round(p.stepsTarget)
       : 10_000;
   const waterDailyTargetOz = normalizeWaterDailyTargetOz(p?.waterDailyTargetOz);
+  const unitPreferences = normalizeUnitPreferences(p?.unitPreferences);
   const onboardingProfile = normalizeOnboardingProfile(p?.onboardingProfile) ?? { ...DEFAULT_ONBOARDING_PROFILE };
   const hasLegacyFitnessData =
     Object.keys(p?.workoutsCompletedByDay ?? {}).length > 0 || (p?.weightLog?.length ?? 0) > 0;
@@ -359,6 +362,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     hasLegacyFitnessData,
     stepsTarget,
     waterDailyTargetOz,
+    unitPreferences.volumeUnit,
   );
   const habitsDoneByDay = normalizeHabitsDoneByDay(p?.habitsDoneByDay);
   const todayKey = localDateKey(new Date());
@@ -419,7 +423,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
         : null,
     nightlyStretchBlockIdsByArizonaDay: normalizeStretchBlockCompletionMap(p?.nightlyStretchBlockIdsByArizonaDay),
     progressGoal: normalizeProgressGoal(p?.progressGoal),
-    unitPreferences: normalizeUnitPreferences(p?.unitPreferences),
+    unitPreferences,
     unitPreferencesChosen:
       p?.unitPreferencesChosen === true ||
       Boolean(p?.unitPreferences) ||

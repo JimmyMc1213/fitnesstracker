@@ -3,12 +3,14 @@ import { useEffect, useState, type FormEvent } from "react";
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { IconDroplet } from "./icons";
 import {
-  formatWaterLitersFromOz,
-  formatWaterOz,
+  formatWaterVolume,
+  formatWaterVolumeAlt,
+  formatVolumeFromOz,
+  parseVolumeToOz,
   totalWaterOzForDateKey,
-  WATER_QUICK_ADD_OZ,
+  waterQuickAddPresets,
 } from "./waterIntake";
-import type { WaterLogEntry } from "./types";
+import type { VolumeUnit, WaterLogEntry } from "./types";
 
 type WaterTrackerCardProps = {
   dateKey: string;
@@ -16,6 +18,7 @@ type WaterTrackerCardProps = {
   entries: WaterLogEntry[];
   readOnly: boolean;
   isToday: boolean;
+  volumeUnit: VolumeUnit;
   onAddOz: (oz: number) => void;
   onRemoveEntry?: (entryId: string) => void;
 };
@@ -26,10 +29,11 @@ export function WaterTrackerCard({
   entries,
   readOnly,
   isToday,
+  volumeUnit,
   onAddOz,
   onRemoveEntry,
 }: WaterTrackerCardProps) {
-  const [customOz, setCustomOz] = useState("");
+  const [customAmount, setCustomAmount] = useState("");
   const [customError, setCustomError] = useState<string | null>(null);
   const [showEarlier, setShowEarlier] = useState(false);
   const [pendingRemoveEntryId, setPendingRemoveEntryId] = useState<string | null>(null);
@@ -49,7 +53,13 @@ export function WaterTrackerCard({
     return new Date(ms).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   }
 
+  const quickAddPresets = waterQuickAddPresets(volumeUnit);
+  const customMin = volumeUnit === "L" ? 0.1 : 1;
+  const customMax = volumeUnit === "L" ? 3.8 : 128;
+  const customStep = volumeUnit === "L" ? 0.1 : 1;
+
   function renderEntryRow(entry: WaterLogEntry, showDivider: boolean) {
+    const displayAmount = formatWaterVolume(entry.amountOz, volumeUnit);
     return (
       <div
         key={entry.id}
@@ -64,7 +74,7 @@ export function WaterTrackerCard({
       >
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
-            +{Math.round(entry.amountOz)} oz
+            +{displayAmount}
           </div>
           <div style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, marginTop: 2 }}>
             {formatLoggedTime(entry.loggedAtMs)}
@@ -74,7 +84,7 @@ export function WaterTrackerCard({
           <button
             type="button"
             className="tap"
-            aria-label={`Remove ${entry.amountOz} ounces logged at ${formatLoggedTime(entry.loggedAtMs)}`}
+            aria-label={`Remove ${displayAmount} logged at ${formatLoggedTime(entry.loggedAtMs)}`}
             onClick={() => setPendingRemoveEntryId(entry.id)}
             style={{
               flexShrink: 0,
@@ -93,19 +103,25 @@ export function WaterTrackerCard({
       </div>
     );
   }
-  const parsedCustomOz = parseInt(customOz, 10);
+  const parsedCustomAmount = volumeUnit === "L" ? parseFloat(customAmount) : parseInt(customAmount, 10);
+  const parsedCustomOz =
+    volumeUnit === "L" ? parseVolumeToOz(parsedCustomAmount, "L") : parsedCustomAmount;
   const isCustomValid =
-    customOz !== "" && Number.isFinite(parsedCustomOz) && parsedCustomOz > 0 && parsedCustomOz <= 128;
+    customAmount !== "" &&
+    Number.isFinite(parsedCustomAmount) &&
+    parsedCustomOz > 0 &&
+    parsedCustomOz <= 128;
 
   function handleCustomAdd(e?: FormEvent) {
     e?.preventDefault();
-    const n = parseInt(customOz, 10);
-    if (!Number.isFinite(n) || n <= 0 || n > 128) {
-      setCustomError("Enter 1-128 oz");
+    const amount = volumeUnit === "L" ? parseFloat(customAmount) : parseInt(customAmount, 10);
+    const oz = volumeUnit === "L" ? parseVolumeToOz(amount, "L") : amount;
+    if (!Number.isFinite(oz) || oz <= 0 || oz > 128) {
+      setCustomError(volumeUnit === "L" ? "Enter 0.1-3.8 L" : "Enter 1-128 oz");
       return;
     }
-    onAddOz(n);
-    setCustomOz("");
+    onAddOz(Math.round(oz));
+    setCustomAmount("");
     setCustomError(null);
   }
 
@@ -143,14 +159,14 @@ export function WaterTrackerCard({
           <span style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 400 }}>Water</span>
           <div style={{ textAlign: "right" }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
-              {Math.round(total)}
+              {formatVolumeFromOz(total, volumeUnit)}
               <span style={{ color: "var(--text-ghost)", fontWeight: 400 }}>
                 {" "}
-                / {targetOz} oz
+                / {formatWaterVolume(targetOz, volumeUnit)}
               </span>
             </span>
             <div style={{ fontSize: 11, color: "var(--text-faint-soft)", fontWeight: 500, marginTop: 2 }}>
-              {formatWaterLitersFromOz(total)} · target {formatWaterOz(targetOz)}
+              {formatWaterVolumeAlt(total, volumeUnit)} · target {formatWaterVolume(targetOz, volumeUnit)}
             </div>
           </div>
         </div>
@@ -200,9 +216,12 @@ export function WaterTrackerCard({
       {!readOnly ? (
         <>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
-            {WATER_QUICK_ADD_OZ.map((oz) => (
+            {quickAddPresets.map((preset) => {
+              const oz = volumeUnit === "L" ? Math.round(parseVolumeToOz(preset, "L")) : preset;
+              const label = volumeUnit === "L" ? `+${preset} L` : `+${preset} oz`;
+              return (
               <button
-                key={oz}
+                key={preset}
                 type="button"
                 className="tap"
                 onClick={() => onAddOz(oz)}
@@ -217,9 +236,10 @@ export function WaterTrackerCard({
                   fontVariantNumeric: "tabular-nums",
                 }}
               >
-                +{oz} oz
+                {label}
               </button>
-            ))}
+              );
+            })}
           </div>
 
           <form
@@ -228,18 +248,18 @@ export function WaterTrackerCard({
           >
             <input
               type="number"
-              min={1}
-              max={128}
-              step={1}
-              inputMode="numeric"
+              min={customMin}
+              max={customMax}
+              step={customStep}
+              inputMode="decimal"
               className="input"
-              placeholder="Custom oz"
-              value={customOz}
+              placeholder={volumeUnit === "L" ? "Custom L" : "Custom oz"}
+              value={customAmount}
               onChange={(e) => {
-                setCustomOz(e.target.value);
+                setCustomAmount(e.target.value);
                 if (customError) setCustomError(null);
               }}
-              aria-label="Custom water amount in ounces"
+              aria-label={volumeUnit === "L" ? "Custom water amount in liters" : "Custom water amount in ounces"}
               aria-invalid={customError ? true : undefined}
               style={{ flex: 1, fontVariantNumeric: "tabular-nums" }}
             />
@@ -277,7 +297,10 @@ export function WaterTrackerCard({
             <>
               Remove{" "}
               <strong style={{ color: "var(--text-primary)" }}>
-                {Math.round(entries.find((e) => e.id === pendingRemoveEntryId)?.amountOz ?? 0)} oz
+                {formatWaterVolume(
+                  entries.find((e) => e.id === pendingRemoveEntryId)?.amountOz ?? 0,
+                  volumeUnit,
+                )}
               </strong>{" "}
               from today&apos;s log?
             </>

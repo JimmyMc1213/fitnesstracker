@@ -1267,6 +1267,20 @@ input[type="number"] {
   animation: onboardingContentReveal 420ms cubic-bezier(0.22, 1, 0.36, 1) 110ms both;
 }
 
+@keyframes restTimerCompletePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
+.rest-timer-strip__track--complete {
+  animation: restTimerCompletePulse 1.6s ease-in-out infinite;
+}
+
 @keyframes fadeSlideIn {
   from {
     opacity: 0;

@@ -522,7 +522,7 @@ export function OnboardingFlow({
     setState((s) => {
       const stepsTarget = s.stepsTarget;
       const waterDailyTargetOz = s.waterDailyTargetOz;
-      const habitTemplates = habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz);
+      const habitTemplates = habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz, unitPreferences.volumeUnit);
       const templateIds = new Set(habitTemplates.map((h) => h.id));
       const habitsDoneByDay = pruneHabitsDoneByDay(s.habitsDoneByDay, templateIds);
       const todayKey = localDateKey(new Date());
@@ -646,7 +646,7 @@ export function OnboardingFlow({
 
   if (step === 5) {
     return (
-      <OnboardingShell step={step} title="Choose your units" subtitle="Weight and height display across the app." onBack={goBack} onContinue={goNext}>
+      <OnboardingShell step={step} title="Choose your units" subtitle="Weight, height, and volume display across the app." onBack={goBack} onContinue={goNext}>
         <div className="onboarding-gradient-card onboarding-gradient-card--spacious">
           <UnitPreferencePicker value={unitPreferences} onChange={setUnitPreferences} />
         </div>
@@ -1157,7 +1157,13 @@ export function OnboardingFlow({
         compactFooter
         contentClassName="onboarding-shell__content--plan-ready"
       >
-        <OnboardingPlanReady displayName={displayName} macros={macros} profile={profile} templates={draftTemplates} />
+        <OnboardingPlanReady
+          displayName={displayName}
+          macros={macros}
+          profile={profile}
+          templates={draftTemplates}
+          volumeUnit={unitPreferences.volumeUnit}
+        />
       </OnboardingShell>
     );
   }

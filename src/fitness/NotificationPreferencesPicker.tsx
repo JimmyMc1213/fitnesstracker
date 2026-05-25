@@ -26,11 +26,19 @@ type OnboardingRowConfig = {
   subtitle: string;
   enabledKey: keyof Pick<
     NotificationPreferences,
-    "workoutReminderEnabled" | "nutritionCheckInEnabled" | "morningCheckInEnabled" | "weeklyReviewEnabled"
+    | "workoutReminderEnabled"
+    | "nutritionCheckInEnabled"
+    | "morningCheckInEnabled"
+    | "weeklyReviewEnabled"
+    | "nightlyStretchReminderEnabled"
   >;
   timeKey: keyof Pick<
     NotificationPreferences,
-    "workoutReminderTime" | "nutritionCheckInTime" | "morningCheckInTime" | "weeklyReviewTime"
+    | "workoutReminderTime"
+    | "nutritionCheckInTime"
+    | "morningCheckInTime"
+    | "weeklyReviewTime"
+    | "nightlyStretchReminderTime"
   >;
   timeAriaLabel: string;
 };
@@ -63,6 +71,13 @@ const ONBOARDING_ROWS: OnboardingRowConfig[] = [
     enabledKey: "weeklyReviewEnabled",
     timeKey: "weeklyReviewTime",
     timeAriaLabel: "Weekly review time",
+  },
+  {
+    label: "Nightly stretch",
+    subtitle: "Wind down with your mobility routine",
+    enabledKey: "nightlyStretchReminderEnabled",
+    timeKey: "nightlyStretchReminderTime",
+    timeAriaLabel: "Nightly stretch reminder time",
   },
 ];
 

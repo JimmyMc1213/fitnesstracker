@@ -1,4 +1,4 @@
-import type { HeightDisplayUnit, UnitPreferences, WeightUnit } from "./types";
+import type { HeightDisplayUnit, UnitPreferences, VolumeUnit, WeightUnit } from "./types";
 
 export const LBS_PER_KG = 2.2046226218;
 const IN_PER_CM = 0.3937007874;
@@ -6,6 +6,7 @@ const IN_PER_CM = 0.3937007874;
 export const DEFAULT_UNIT_PREFERENCES: UnitPreferences = {
   weightUnit: "lbs",
   heightUnit: "ft_in",
+  volumeUnit: "oz",
 };
 
 export function normalizeUnitPreferences(raw: unknown): UnitPreferences {
@@ -13,7 +14,8 @@ export function normalizeUnitPreferences(raw: unknown): UnitPreferences {
   const o = raw as Record<string, unknown>;
   const weightUnit = o.weightUnit === "kg" ? "kg" : "lbs";
   const heightUnit = o.heightUnit === "cm" ? "cm" : "ft_in";
-  return { weightUnit, heightUnit };
+  const volumeUnit = o.volumeUnit === "L" ? "L" : "oz";
+  return { weightUnit, heightUnit, volumeUnit };
 }
 
 export function weightUnitLabel(unit: WeightUnit): string {
@@ -22,6 +24,10 @@ export function weightUnitLabel(unit: WeightUnit): string {
 
 export function heightUnitLabel(unit: HeightDisplayUnit): string {
   return unit === "cm" ? "cm" : "ft + in";
+}
+
+export function volumeUnitLabel(unit: VolumeUnit): string {
+  return unit === "L" ? "L" : "oz";
 }
 
 /** Format canonical lbs for display in the user's weight unit. */

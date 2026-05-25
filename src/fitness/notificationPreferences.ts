@@ -9,8 +9,11 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   morningCheckInTime: "06:30",
   weeklyReviewEnabled: false,
   weeklyReviewTime: "08:00",
+  nightlyStretchReminderEnabled: false,
+  nightlyStretchReminderTime: "20:00",
   lastFiredWorkoutReminderDateKey: null,
   lastFiredNutritionReminderDateKey: null,
+  lastFiredNightlyStretchReminderDateKey: null,
 };
 
 /** Onboarding starts with reminders off. User opts in on the Stay on track step. */
@@ -27,7 +30,8 @@ export function anyNotificationEnabled(prefs: NotificationPreferences): boolean 
     prefs.workoutReminderEnabled ||
     prefs.nutritionCheckInEnabled ||
     prefs.morningCheckInEnabled ||
-    prefs.weeklyReviewEnabled
+    prefs.weeklyReviewEnabled ||
+    prefs.nightlyStretchReminderEnabled
   );
 }
 
@@ -66,8 +70,14 @@ export function normalizeNotificationPreferences(raw: unknown): NotificationPref
     ),
     weeklyReviewEnabled: o.weeklyReviewEnabled === true,
     weeklyReviewTime: normalizeTimeHHmm(o.weeklyReviewTime, DEFAULT_NOTIFICATION_PREFERENCES.weeklyReviewTime),
+    nightlyStretchReminderEnabled: o.nightlyStretchReminderEnabled === true,
+    nightlyStretchReminderTime: normalizeTimeHHmm(
+      o.nightlyStretchReminderTime,
+      DEFAULT_NOTIFICATION_PREFERENCES.nightlyStretchReminderTime,
+    ),
     lastFiredWorkoutReminderDateKey: normalizeLastFiredDateKey(o.lastFiredWorkoutReminderDateKey),
     lastFiredNutritionReminderDateKey: normalizeLastFiredDateKey(o.lastFiredNutritionReminderDateKey),
+    lastFiredNightlyStretchReminderDateKey: normalizeLastFiredDateKey(o.lastFiredNightlyStretchReminderDateKey),
   };
 }
 
@@ -93,6 +103,8 @@ export function mergeNotificationPreferences(
     morningCheckInTime: r.morningCheckInTime,
     weeklyReviewEnabled: r.weeklyReviewEnabled,
     weeklyReviewTime: r.weeklyReviewTime,
+    nightlyStretchReminderEnabled: r.nightlyStretchReminderEnabled,
+    nightlyStretchReminderTime: r.nightlyStretchReminderTime,
     lastFiredWorkoutReminderDateKey: mergeLastFiredDateKey(
       l.lastFiredWorkoutReminderDateKey,
       r.lastFiredWorkoutReminderDateKey,
@@ -100,6 +112,10 @@ export function mergeNotificationPreferences(
     lastFiredNutritionReminderDateKey: mergeLastFiredDateKey(
       l.lastFiredNutritionReminderDateKey,
       r.lastFiredNutritionReminderDateKey,
+    ),
+    lastFiredNightlyStretchReminderDateKey: mergeLastFiredDateKey(
+      l.lastFiredNightlyStretchReminderDateKey,
+      r.lastFiredNightlyStretchReminderDateKey,
     ),
   };
 }

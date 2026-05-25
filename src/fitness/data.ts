@@ -1,7 +1,7 @@
 import exerciseLibrary from "./exerciseLibrary";
-import type { FoodItem, Habit, HabitTemplate, MacroTotals, WorkoutExercise, WorkoutRoutineTemplate, WorkoutSet, WorkoutState } from "./types";
+import type { FoodItem, Habit, HabitTemplate, MacroTotals, VolumeUnit, WorkoutExercise, WorkoutRoutineTemplate, WorkoutSet, WorkoutState } from "./types";
 import { normalizeDayLabel, weekdayMonStartIndex } from "./trainingCalendar";
-import { DEFAULT_WATER_DAILY_TARGET_OZ, formatWaterOz } from "./waterIntake";
+import { DEFAULT_WATER_DAILY_TARGET_OZ, formatWaterVolume } from "./waterIntake";
 
 /** Phase 1 cutting, starting targets; app may auto-adjust weekly from weigh-ins. */
 export const DEFAULT_NUTRITION_TARGETS: MacroTotals = { cal: 2200, p: 180, c: 220, f: 65 };
@@ -352,9 +352,10 @@ function stepsHabitLabel(stepsTarget: number): string {
 export function habitTemplatesFromOnboarding(
   stepsTarget: number = 10_000,
   waterDailyTargetOz: number = DEFAULT_WATER_DAILY_TARGET_OZ,
+  volumeUnit: VolumeUnit = "oz",
 ): HabitTemplate[] {
   return [
-    { id: "habit-hydration", name: `Water ${formatWaterOz(waterDailyTargetOz)}`, icon: "drop" },
+    { id: "habit-hydration", name: `Water ${formatWaterVolume(waterDailyTargetOz, volumeUnit)}`, icon: "drop" },
     { id: "habit-steps", name: stepsHabitLabel(stepsTarget), icon: "run" },
   ];
 }

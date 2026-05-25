@@ -3,11 +3,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { buildCoachContext, getHomeCoachPlan, getWeighInReactionForDisplay } from "../coachEngine";
 import { buildHabitsForDateKey } from "../data";
 import { habitsForDateKey, HomeDailyHabitsCard } from "../HomeDailyHabitsCard";
-import { HomeWeighInInline } from "../HomeWeighInInline";
 import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
 import { HomeDashboardCarousel } from "../HomeDashboardCarousel";
 import { homeGreetingTitle } from "../homeGreeting";
 import { IconCheck, IconChevR, IconSettings } from "../icons";
+import { formatNotificationTimeDisplay } from "../notificationPreferences";
 import { SettingsSheet } from "../SettingsSheet";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { WeighInCoachReaction } from "../WeighInCoachReaction";
@@ -39,7 +39,6 @@ export function ScreenHome({
   const totals = effectiveNutritionTotalsForDateKey(state.nutritionManualByDay, state.nutritionItemsByDay, activeDateKey);
   const dayEntry = state.weightLog.find((e) => e.dateKey === activeDateKey);
 
-  const wUnit = state.unitPreferences.weightUnit;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [weighInOpen, setWeighInOpen] = useState(false);
 
@@ -91,10 +90,16 @@ export function ScreenHome({
   const arizonaTodayKey = arizonaCalendarDateKey(clock);
   const showNightlyStretchWindow = isViewingToday && isArizonaEightPmOrLater(clock);
   const nightlyStretchDone = state.nightlyStretchCompletedArizonaKey === arizonaTodayKey;
+  const stretchReminderEnabled = state.notificationPreferences.nightlyStretchReminderEnabled;
+  const stretchReminderTimeLabel = formatNotificationTimeDisplay(
+    state.notificationPreferences.nightlyStretchReminderTime,
+  );
+  const nightlyStretchLabel = stretchReminderEnabled
+    ? `Nightly stretching · ${stretchReminderTimeLabel}`
+    : "Nightly stretching";
   const fuelLabel = isViewingToday ? "Fuel · Today" : "Fuel";
 
-  const showWeighInFullCard = isViewingToday && coachCtx?.scheduledWeighInDay === true && !dayEntry;
-  const showWeighInInline = !!dayEntry && !showWeighInFullCard;
+  const showWeighInFullCard = isViewingToday && !dayEntry;
 
   const activeHabits = habitsForDateKey(state, activeDateKey, dateKeyToday);
 
@@ -185,10 +190,6 @@ export function ScreenHome({
         >
           Back to today
         </button>
-      ) : null}
-
-      {showWeighInInline && dayEntry ? (
-        <HomeWeighInInline entry={dayEntry} weightUnit={wUnit} onPress={() => navigate("progress")} />
       ) : null}
 
       {showWeighInFullCard ? (
@@ -325,7 +326,7 @@ export function ScreenHome({
                 marginBottom: 8,
               }}
             >
-              Nightly stretching · Arizona 8pm+
+              {nightlyStretchLabel}
             </div>
             <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
               Open your routine for the full checklist, hips, hamstrings, spine, activation. Mark complete when you finish.

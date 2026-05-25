@@ -6,12 +6,10 @@ import {
   estimateRoutineSessionSeconds,
   formatEstimatedSessionMinutes,
 } from "./estimateSessionDuration";
-import { IconFlame } from "./icons";
 import { nextTrainingDayFrom } from "./trainingCalendar";
 import { resolveCoachTaskNavigation } from "./coachTaskActions";
-import { PrimaryButton, SecondaryButton } from "./shared";
+import { MacroBar, MacroRing, PrimaryButton, SecondaryButton } from "./shared";
 import { STRETCH_BLOCKS } from "./stretchRoutine";
-import { useAnimatedMacroProgress } from "./useAnimatedMacroProgress";
 import type { AppState, MacroTotals, NavigateFn } from "./types";
 
 type Props = {
@@ -44,98 +42,6 @@ function CarouselCard({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-    </div>
-  );
-}
-
-function MiniRing({
-  value,
-  target,
-  size = 72,
-  stroke = 4,
-  color = "var(--chart-stroke)",
-  children,
-}: {
-  value: number;
-  target: number;
-  size?: number;
-  stroke?: number;
-  color?: string;
-  children?: ReactNode;
-}) {
-  const pct = target > 0 ? Math.min(1, Math.max(0, value / target)) : 0;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const dash = c * pct;
-
-  return (
-    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} aria-hidden>
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--ring-track)" strokeWidth={stroke} fill="none" />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke={color}
-          strokeWidth={stroke}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${c}`}
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-      </svg>
-      {children ? (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "grid",
-            placeItems: "center",
-            textAlign: "center",
-          }}
-        >
-          {children}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function CalorieHeroRing({ value, target }: { value: number; target: number }) {
-  const { ringPct } = useAnimatedMacroProgress(value, target, true);
-  const size = 72;
-  const stroke = 4;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const dash = c * ringPct;
-
-  return (
-    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} aria-hidden>
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--ring-track)" strokeWidth={stroke} fill="none" />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke="var(--chart-stroke)"
-          strokeWidth={stroke}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${c}`}
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-      </svg>
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "grid",
-          placeItems: "center",
-          color: "var(--text-secondary)",
-        }}
-      >
-        <IconFlame size={20} stroke={1.8} />
-      </div>
     </div>
   );
 }
@@ -203,36 +109,6 @@ function SplitSubline({ text }: { text: string | null }) {
   );
 }
 
-function MacroMiniBlock({
-  value,
-  target,
-  label,
-  color,
-  size = 72,
-  stroke = 4,
-}: {
-  value: number;
-  target: number;
-  label: string;
-  color: string;
-  size?: number;
-  stroke?: number;
-}) {
-  const valueSize = size >= 72 ? 11 : 10;
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-      <MiniRing value={value} target={target} color={color} size={size} stroke={stroke}>
-        <div style={{ fontSize: valueSize, fontWeight: 700, fontVariantNumeric: "tabular-nums", lineHeight: 1.2 }}>
-          <span style={{ color }}>{Math.round(value)}</span>
-          <span style={{ color: "var(--text-ghost)", fontWeight: 500 }}> / {target}g</span>
-        </div>
-      </MiniRing>
-      <div style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 500 }}>{label}</div>
-    </div>
-  );
-}
-
 function FuelSlide({
   totals,
   targets,
@@ -250,10 +126,10 @@ function FuelSlide({
 }) {
   return (
     <CarouselCard>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
-          <CalorieHeroRing value={totals.cal} target={targets.cal} />
-          <div style={{ minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, flex: 1 }}>
+        <MacroRing value={totals.cal} target={targets.cal} size={96} stroke={5} animate={true} />
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 7 }}>
+          <div>
             <div
               style={{
                 fontSize: 10,
@@ -261,64 +137,25 @@ function FuelSlide({
                 fontWeight: 600,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                marginBottom: 6,
               }}
             >
               {label}
             </div>
             <div
               style={{
-                fontSize: 36,
-                fontWeight: 700,
-                letterSpacing: "-0.04em",
-                color: "var(--text-primary)",
+                fontSize: 12,
+                color: "var(--text-secondary)",
+                fontWeight: 500,
+                marginTop: 4,
                 fontVariantNumeric: "tabular-nums",
-                lineHeight: 1,
               }}
             >
-              {kcalLeft.toLocaleString()}
-            </div>
-            <div style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 500, marginTop: 6 }}>
-              kcal left
+              {kcalLeft.toLocaleString()} kcal left
             </div>
           </div>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            columnGap: 8,
-            rowGap: 4,
-            flexShrink: 0,
-            marginLeft: 4,
-          }}
-        >
-          <div style={{ gridColumn: "1 / -1", justifySelf: "center" }}>
-            <MacroMiniBlock
-              value={totals.p}
-              target={targets.p}
-              label="protein"
-              color="var(--macro-protein)"
-              size={72}
-            />
-          </div>
-          <MacroMiniBlock
-            value={totals.c}
-            target={targets.c}
-            label="carbs"
-            color="var(--macro-carbs)"
-            size={56}
-            stroke={3}
-          />
-          <MacroMiniBlock
-            value={totals.f}
-            target={targets.f}
-            label="fats"
-            color="var(--macro-fat)"
-            size={56}
-            stroke={3}
-          />
+          <MacroBar label="Protein" value={totals.p} target={targets.p} color="var(--macro-protein)" />
+          <MacroBar label="Carbs" value={totals.c} target={targets.c} color="var(--macro-carbs)" />
+          <MacroBar label="Fat" value={totals.f} target={targets.f} color="var(--macro-fat)" />
         </div>
       </div>
 

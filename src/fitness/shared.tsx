@@ -15,12 +15,24 @@ export function sumItems(items: FoodItem[]): MacroTotals {
   );
 }
 
-export function MacroBar({ label, value, target, unit = "g" }: { label: string; value: number; target: number; unit?: string }) {
+export function MacroBar({
+  label,
+  value,
+  target,
+  unit = "g",
+  color,
+}: {
+  label: string;
+  value: number;
+  target: number;
+  unit?: string;
+  color?: string;
+}) {
   const pct = Math.max(0, Math.min(1, value / target));
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1, minWidth: 0 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <span style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 400 }}>{label}</span>
+        <span style={{ fontSize: 11, color: color ?? "var(--text-ghost)", fontWeight: 400 }}>{label}</span>
         <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
           {Math.round(value)}
           <span style={{ color: "var(--text-ghost)", fontWeight: 400 }}>
@@ -31,7 +43,7 @@ export function MacroBar({ label, value, target, unit = "g" }: { label: string; 
         </span>
       </div>
       <div className="barTrack">
-        <div className="barFill" style={{ width: `${pct * 100}%` }} />
+        <div className="barFill" style={{ width: `${pct * 100}%`, ...(color ? { background: color } : {}) }} />
       </div>
     </div>
   );

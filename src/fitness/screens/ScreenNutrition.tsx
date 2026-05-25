@@ -119,6 +119,7 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
         entries={waterEntries}
         readOnly={false}
         isToday
+        volumeUnit={state.unitPreferences.volumeUnit}
         onAddOz={(oz) => setState((s) => appendWaterLogEntry(s, todayKey, oz))}
         onRemoveEntry={(entryId) => setState((s) => removeWaterLogEntry(s, todayKey, entryId))}
       />

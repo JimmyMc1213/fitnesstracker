@@ -1,6 +1,6 @@
-import { heightUnitLabel, weightUnitLabel } from "./unitPreferences";
+import { heightUnitLabel, volumeUnitLabel, weightUnitLabel } from "./unitPreferences";
 import { OnboardingPillRow, OnboardingSegment } from "./OnboardingSegment";
-import type { HeightDisplayUnit, UnitPreferences, WeightUnit } from "./types";
+import type { HeightDisplayUnit, UnitPreferences, VolumeUnit, WeightUnit } from "./types";
 
 export function UnitPreferencePicker({
   value,
@@ -11,6 +11,7 @@ export function UnitPreferencePicker({
 }) {
   const setWeight = (weightUnit: WeightUnit) => onChange({ ...value, weightUnit });
   const setHeight = (heightUnit: HeightDisplayUnit) => onChange({ ...value, heightUnit });
+  const setVolume = (volumeUnit: VolumeUnit) => onChange({ ...value, volumeUnit });
 
   return (
     <div className="onboarding-field-stack">
@@ -30,6 +31,16 @@ export function UnitPreferencePicker({
           {(["ft_in", "cm"] as const).map((u) => (
             <OnboardingSegment key={u} layout="inline" selected={value.heightUnit === u} onClick={() => setHeight(u)}>
               {heightUnitLabel(u)}
+            </OnboardingSegment>
+          ))}
+        </OnboardingPillRow>
+      </div>
+      <div className="onboarding-field-group">
+        <span className="onboarding-field-label">Volume</span>
+        <OnboardingPillRow>
+          {(["oz", "L"] as const).map((u) => (
+            <OnboardingSegment key={u} layout="inline" selected={value.volumeUnit === u} onClick={() => setVolume(u)}>
+              {volumeUnitLabel(u)}
             </OnboardingSegment>
           ))}
         </OnboardingPillRow>

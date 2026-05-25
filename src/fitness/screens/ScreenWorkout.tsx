@@ -21,10 +21,9 @@ import {
 } from "../exerciseSessionNotes";
 import { WorkoutCoachCard } from "../WorkoutCoachCard";
 import { WorkoutSessionStickyHeader } from "../WorkoutSessionStickyHeader";
-import {
-  nextRestTimerPreset,
-  restDurationForExercise,
-} from "../restTimerPreferences";
+import { RestTimerSheet } from "../RestTimerSheet";
+import type { RestTimerPhase } from "../RestTimerStrip";
+import { restDurationForExercise } from "../restTimerPreferences";
 import { ExerciseSwapSheet } from "../ExerciseSwapSheet";
 import { isTrainingDay } from "../trainingCalendar";
 import { NEW_ROUTINE_EDITOR_ID, WorkoutRoutineEditor } from "./WorkoutRoutineEditor";
@@ -48,6 +47,9 @@ type ActiveRestTimer = {
   endsAtMs: number;
   durationSec: number;
   completed: boolean;
+  afterSetIndex: number;
+  paused?: boolean;
+  pausedRemainingMs?: number;
 };
 
 const MOBILITY_ITEMS = [
@@ -85,6 +87,8 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
   const [showHistoryPage, setShowHistoryPage] = useState(false);
   const [restTimer, setRestTimer] = useState<ActiveRestTimer | null>(null);
+  const [restSheetExerciseId, setRestSheetExerciseId] = useState<string | null>(null);
+  const [restedRestSecByExerciseId, setRestedRestSecByExerciseId] = useState<Record<string, Record<number, number>>>({});
   const [swapExerciseId, setSwapExerciseId] = useState<string | null>(null);
   const [pendingExerciseDelete, setPendingExerciseDelete] = useState<{
     id: string;
@@ -93,6 +97,8 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   } | null>(null);
   const exerciseListEndRef = useRef<HTMLDivElement>(null);
   const pendingScrollToNewExerciseRef = useRef(false);
+  const restTimerRef = useRef<ActiveRestTimer | null>(null);
+  restTimerRef.current = restTimer;
   const w = state.workout;
   const wUnit = state.unitPreferences.weightUnit;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
@@ -146,18 +152,17 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   }, [w.exercises.length]);
 
   useEffect(() => {
-    if (!restTimer || restTimer.completed) return;
-    if (Date.now() >= restTimer.endsAtMs) {
+    if (!restTimer || restTimer.completed || restTimer.paused) return;
+    const remainingMs = restTimer.endsAtMs - Date.now();
+    if (remainingMs <= 0) {
       setRestTimer((current) => (current && !current.completed ? { ...current, completed: true } : current));
+      return;
     }
-  }, [restTimer, restTimer?.endsAtMs, restTimer?.completed]);
-
-  const restTimerRemainingSec =
-    restTimer == null
-      ? 0
-      : restTimer.completed
-        ? 0
-        : Math.max(0, Math.ceil((restTimer.endsAtMs - Date.now()) / 1000));
+    const id = window.setTimeout(() => {
+      setRestTimer((current) => (current && !current.completed ? { ...current, completed: true } : current));
+    }, remainingMs);
+    return () => window.clearTimeout(id);
+  }, [restTimer?.exerciseId, restTimer?.endsAtMs, restTimer?.completed, restTimer?.paused]);
 
   const elapsedSec =
     phase === "lifting" && w.sessionStartedAtMs != null
@@ -173,6 +178,26 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
 
   const daysPerWeek = state.onboardingProfile?.workoutDaysPerWeek ?? 5;
   const isTrainingDayToday = isTrainingDay(new Date(), state.workoutTemplates, daysPerWeek);
+
+  const restSheetExercise = restSheetExerciseId
+    ? w.exercises.find((e) => e.id === restSheetExerciseId) ?? null
+    : null;
+  const restSheetIsActive = restSheetExercise != null && restTimer?.exerciseId === restSheetExercise.id;
+  const restSheetPhase: RestTimerPhase = restSheetIsActive
+    ? restTimer!.completed
+      ? "complete"
+      : "running"
+    : "ready";
+  const restSheetPresetSec =
+    restSheetExercise == null
+      ? state.restTimerDefaultSeconds
+      : restDurationForExercise(
+          restSheetExercise.name,
+          restSheetExercise.label,
+          state.restTimerDefaultSeconds,
+          state.restTimerSecondsByExerciseKey,
+          exerciseNoteKey,
+        );
 
   function updateSet(eid: string, idx: number, patch: Partial<{ w: number; r: number; done: boolean }>) {
     setState((s) => ({
@@ -195,7 +220,87 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
     setRestTimer(null);
   }
 
-  function startRestTimer(exercise: WorkoutExercise) {
+  function markRestedAfterSet(exerciseId: string, afterSetIndex: number, durationSec: number) {
+    setRestedRestSecByExerciseId((prev) => {
+      const existing = prev[exerciseId] ?? {};
+      if (existing[afterSetIndex] != null) return prev;
+      return {
+        ...prev,
+        [exerciseId]: { ...existing, [afterSetIndex]: durationSec },
+      };
+    });
+  }
+
+  function unmarkRestedFromSet(exerciseId: string, fromSetIndex: number) {
+    setRestedRestSecByExerciseId((prev) => {
+      const existing = prev[exerciseId];
+      if (!existing) return prev;
+      const next: Record<number, number> = {};
+      let changed = false;
+      for (const [key, sec] of Object.entries(existing)) {
+        const idx = Number(key);
+        if (idx < fromSetIndex) next[idx] = sec;
+        else changed = true;
+      }
+      if (!changed) return prev;
+      if (Object.keys(next).length === 0) {
+        const { [exerciseId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [exerciseId]: next };
+    });
+  }
+
+  function dismissCompletedRest() {
+    if (restTimer?.completed) {
+      markRestedAfterSet(restTimer.exerciseId, restTimer.afterSetIndex, restTimer.durationSec);
+    }
+    setRestTimer(null);
+  }
+
+  function completeRestTimer() {
+    setRestTimer((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        completed: true,
+        paused: false,
+        pausedRemainingMs: undefined,
+        endsAtMs: Date.now(),
+      };
+    });
+  }
+
+  function openRestSheet(exerciseId: string) {
+    if (restTimer?.exerciseId === exerciseId && restTimer.completed) {
+      dismissCompletedRest();
+      return;
+    }
+    setRestSheetExerciseId(exerciseId);
+  }
+
+  function startRestTimer(exercise: WorkoutExercise, afterSetIndex: number) {
+    const previous = restTimerRef.current;
+
+    function durationForCompletedGap(gapIndex: number): number {
+      if (previous?.exerciseId === exercise.id && previous.afterSetIndex === gapIndex) {
+        return previous.durationSec;
+      }
+      return restDurationForExercise(
+        exercise.name,
+        exercise.label,
+        state.restTimerDefaultSeconds,
+        state.restTimerSecondsByExerciseKey,
+        exerciseNoteKey,
+      );
+    }
+
+    if (afterSetIndex > 0) {
+      markRestedAfterSet(exercise.id, afterSetIndex - 1, durationForCompletedGap(afterSetIndex - 1));
+    }
+    if (previous?.exerciseId === exercise.id && previous.afterSetIndex !== afterSetIndex) {
+      markRestedAfterSet(exercise.id, previous.afterSetIndex, previous.durationSec);
+    }
     const durationSec = restDurationForExercise(
       exercise.name,
       exercise.label,
@@ -210,6 +315,8 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
       endsAtMs: Date.now() + durationSec * 1000,
       durationSec,
       completed: false,
+      afterSetIndex,
+      paused: false,
     });
   }
 
@@ -219,36 +326,93 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
     const willDone = !st.done;
     updateSet(exercise.id, idx, { done: willDone });
     if (willDone) {
-      startRestTimer(exercise);
-    } else if (restTimer?.exerciseId === exercise.id) {
-      clearRestTimer();
+      startRestTimer(exercise, idx);
+    } else {
+      if (restTimer?.exerciseId === exercise.id) {
+        clearRestTimer();
+      }
+      unmarkRestedFromSet(exercise.id, idx);
     }
   }
 
-  function cycleRestPreset(exercise: WorkoutExercise) {
+  function setRestPreset(exercise: WorkoutExercise, seconds: number) {
     const key = exerciseNoteKey(exercise.name, exercise.label);
-    const current = restDurationForExercise(
-      exercise.name,
-      exercise.label,
-      state.restTimerDefaultSeconds,
-      state.restTimerSecondsByExerciseKey,
-      exerciseNoteKey,
-    );
-    const next = nextRestTimerPreset(current);
     setState((s) => ({
       ...s,
-      restTimerSecondsByExerciseKey: { ...s.restTimerSecondsByExerciseKey, [key]: next },
+      restTimerSecondsByExerciseKey: { ...s.restTimerSecondsByExerciseKey, [key]: seconds },
     }));
-    if (restTimer?.exerciseId === exercise.id) {
-      setRestTimer({
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
-        exerciseLabel: exercise.label,
-        endsAtMs: Date.now() + next * 1000,
-        durationSec: next,
+    setRestTimer((current) => {
+      if (!current || current.exerciseId !== exercise.id || current.completed) return current;
+      if (current.paused) {
+        return {
+          ...current,
+          durationSec: seconds,
+          pausedRemainingMs: seconds * 1000,
+        };
+      }
+      return {
+        ...current,
+        durationSec: seconds,
+        endsAtMs: Date.now() + seconds * 1000,
+      };
+    });
+  }
+
+  function adjustRestTimer(deltaSec: number) {
+    setRestTimer((current) => {
+      if (!current || current.completed) return current;
+      const deltaMs = deltaSec * 1000;
+      if (current.paused) {
+        const nextRemainingMs = Math.max(0, (current.pausedRemainingMs ?? 0) + deltaMs);
+        if (nextRemainingMs <= 0) {
+          return { ...current, completed: true, paused: false, pausedRemainingMs: undefined };
+        }
+        return {
+          ...current,
+          pausedRemainingMs: nextRemainingMs,
+          durationSec: current.durationSec + Math.max(0, deltaSec),
+        };
+      }
+      const remaining = Math.max(0, Math.ceil((current.endsAtMs - Date.now()) / 1000));
+      const nextRemaining = remaining + deltaSec;
+      if (nextRemaining <= 0) {
+        return { ...current, completed: true, endsAtMs: Date.now() };
+      }
+      return {
+        ...current,
+        endsAtMs: Date.now() + nextRemaining * 1000,
+        durationSec: current.durationSec + Math.max(0, deltaSec),
+      };
+    });
+  }
+
+  function toggleRestPause() {
+    setRestTimer((current) => {
+      if (!current || current.completed) return current;
+      if (current.paused) {
+        return {
+          ...current,
+          paused: false,
+          endsAtMs: Date.now() + (current.pausedRemainingMs ?? 0),
+          pausedRemainingMs: undefined,
+        };
+      }
+      const remainingMs = Math.max(0, current.endsAtMs - Date.now());
+      return { ...current, paused: true, pausedRemainingMs: remainingMs };
+    });
+  }
+
+  function restartRestTimer() {
+    setRestTimer((current) => {
+      if (!current || current.completed) return current;
+      return {
+        ...current,
+        paused: false,
+        pausedRemainingMs: undefined,
+        endsAtMs: Date.now() + current.durationSec * 1000,
         completed: false,
-      });
-    }
+      };
+    });
   }
 
   function saveExerciseNote(name: string, label: string | undefined, note: string) {
@@ -293,6 +457,12 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
 
   function removeExerciseFromSession(eid: string) {
     setOpenSwipeExerciseId((id) => (id === eid ? null : id));
+    if (restTimer?.exerciseId === eid) clearRestTimer();
+    setRestedRestSecByExerciseId((prev) => {
+      if (!(eid in prev)) return prev;
+      const { [eid]: _, ...rest } = prev;
+      return rest;
+    });
     setState((s) => {
       const { [eid]: _removed, ...remainingNotes } = s.workout.sessionCoachNotesByExerciseId ?? {};
       return {
@@ -506,6 +676,8 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
     setExpandedProgressId(null);
     setPreviewRoutineId(null);
     setRestTimer(null);
+    setRestSheetExerciseId(null);
+    setRestedRestSecByExerciseId({});
     setSwapExerciseId(null);
   }
 
@@ -679,13 +851,12 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
                 sessionCoachNote={w.sessionCoachNotesByExerciseId?.[exercise.id]}
                 exercisePersonalBests={state.exercisePersonalBests}
                 progressExpanded={expandedProgressId === exercise.id}
+                restedRestSecByAfterSetIndex={restedRestSecByExerciseId[exercise.id] ?? {}}
                 restTimer={restTimer}
-                restTimerRemainingSec={restTimerRemainingSec}
                 restTimerDefaultSeconds={state.restTimerDefaultSeconds}
                 restTimerSecondsByExerciseKey={state.restTimerSecondsByExerciseKey}
                 onSwapExercise={setSwapExerciseId}
-                onClearRestTimer={clearRestTimer}
-                onCycleRestPreset={cycleRestPreset}
+                onOpenRestSheet={openRestSheet}
                 onUpdateSet={updateSet}
                 onToggleSetDone={toggleSetDone}
                 onRemoveSet={removeSet}
@@ -770,6 +941,26 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
           exerciseLabel={pendingExerciseDelete.label}
           onCancel={() => setPendingExerciseDelete(null)}
           onConfirm={confirmDeleteExercise}
+        />
+      ) : null}
+
+      {restSheetExercise ? (
+        <RestTimerSheet
+          exerciseName={restSheetExercise.name}
+          exerciseLabel={restSheetExercise.label}
+          phase={restSheetPhase}
+          durationSec={restSheetIsActive ? restTimer!.durationSec : restSheetPresetSec}
+          endsAtMs={restSheetIsActive && !restTimer!.completed ? restTimer!.endsAtMs : undefined}
+          paused={restSheetIsActive ? restTimer!.paused : false}
+          pausedRemainingMs={restSheetIsActive ? restTimer!.pausedRemainingMs : undefined}
+          selectedPresetSec={restSheetPresetSec}
+          onClose={() => setRestSheetExerciseId(null)}
+          onSelectPreset={(seconds) => setRestPreset(restSheetExercise, seconds)}
+          onAdjustSeconds={adjustRestTimer}
+          onTogglePause={toggleRestPause}
+          onRestart={restartRestTimer}
+          onSkip={completeRestTimer}
+          onDismiss={dismissCompletedRest}
         />
       ) : null}
 
