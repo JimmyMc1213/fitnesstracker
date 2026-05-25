@@ -25,18 +25,19 @@ export function sanitizeCoachCopy(text: string): string {
     .trim();
 }
 
-function formatSetPair(w: number, r: number): string {
-  if (w > 0 && r > 0) return `${w}x${r}`;
-  if (w > 0) return `${w} lb`;
-  return "";
-}
+type TopSet = { w: number; r: number };
 
-function muscleGroupPhrase(muscleGroup: string, secondary?: string[]): string {
-  const primary = muscleGroup.replace(/_/g, " ");
-  if (!secondary?.length) return primary;
-  const extras = secondary.slice(0, 2).map((m) => m.replace(/_/g, " "));
-  return `${primary}, ${extras.join(", ")}`;
-}
+type SessionGoal = {
+  weight: number | null;
+  reps: number;
+  repRangeLabel: string;
+};
+
+type CoachNoteParts = {
+  focus: string | null;
+  goal: string;
+  struggle: string;
+};
 
 function findLibraryExercise(name: string, label?: string): Exercise | undefined {
   const normalized = name.toLowerCase().trim();
@@ -57,73 +58,126 @@ function findLibraryExercise(name: string, label?: string): Exercise | undefined
   });
 }
 
-function progressiveOverloadNote(exercise: WorkoutExercise, lastSets: { w: number; r: number }[]): string {
-  const logged = lastSets.filter((s) => s.w > 0 || s.r > 0);
-  const pairs = logged.map((s) => formatSetPair(s.w, s.r)).filter(Boolean).join(", ");
-  const withWeightReps = logged.filter((s) => s.w > 0 && s.r > 0);
-  if (withWeightReps.length > 0) {
-    const top = Math.max(...withWeightReps.map((s) => s.w));
-    const maxR = Math.max(...withWeightReps.map((s) => s.r));
-    const { high } = getExerciseRepBounds(exercise);
-    const repRange = describeExerciseRepRange(exercise);
-    const historyBit = pairs ? `Last session: ${pairs}. ` : "";
-    return `${historyBit}Match or beat ${top}x${maxR} lb. Add ~5 lb when every set hits ${high} reps (top of ${repRange}) with 1-2 reps in reserve.`;
+function getExerciseFocus(exercise: WorkoutExercise): string | null {
+  const meta = findLibraryExercise(exercise.name, exercise.label);
+  return meta?.coachNote?.trim() ?? null;
+}
+
+function getTopSet(lastSets: { w: number; r: number }[]): TopSet | null {
+  const logged = lastSets.filter((s) => s.w > 0 && s.r > 0);
+  if (logged.length === 0) return null;
+  const topWeight = Math.max(...logged.map((s) => s.w));
+  const maxReps = Math.max(...logged.filter((s) => s.w === topWeight).map((s) => s.r));
+  return { w: topWeight, r: maxReps };
+}
+
+function formatSet(weight: number, reps: number): string {
+  return `${weight}x${reps}`;
+}
+
+function struggleDropWeight(goalWeight: number): number {
+  return Math.max(goalWeight - 5, 5);
+}
+
+function computeSessionGoal(exercise: WorkoutExercise, top: TopSet | null): SessionGoal {
+  const { low, high } = getExerciseRepBounds(exercise);
+  const repRangeLabel = describeExerciseRepRange(exercise);
+
+  if (!top) {
+    return { weight: null, reps: low, repRangeLabel };
   }
-  return genericExerciseSessionNote(exercise);
+
+  if (top.r >= high) {
+    return { weight: top.w + 5, reps: low, repRangeLabel };
+  }
+
+  return { weight: top.w, reps: Math.min(top.r + 1, high), repRangeLabel };
 }
 
-function genericExerciseSessionNote(exercise: WorkoutExercise): string {
-  const repRange = describeExerciseRepRange(exercise);
-  return `Lead with ${exercise.name}. Hit ${repRange} with 1-2 reps in reserve, chase clean reps before heavier loads.`;
+function buildCoachNoteParts(exercise: WorkoutExercise, lastSets: { w: number; r: number }[]): CoachNoteParts {
+  const focus = getExerciseFocus(exercise);
+  const top = getTopSet(lastSets);
+  const sessionGoal = computeSessionGoal(exercise, top);
+
+  if (sessionGoal.weight != null) {
+    const target = formatSet(sessionGoal.weight, sessionGoal.reps);
+    const fallback = formatSet(struggleDropWeight(sessionGoal.weight), sessionGoal.reps);
+    return {
+      focus,
+      goal: `Your goal: ${target} on every set.`,
+      struggle: `If you miss reps, drop to ${fallback} and finish the sets.`,
+    };
+  }
+
+  return {
+    focus,
+    goal: `Your goal: ${sessionGoal.reps} reps on every set. Lock in your working weight on set 1.`,
+    struggle: "If you miss reps, drop 10 lb and finish the sets.",
+  };
 }
 
-function extractPerformanceTarget(note: string): string | null {
-  const match = note.match(/Match or beat (\d+x\d+(?:\s*lb)?)/i);
-  if (match) return match[1].replace(/\s*lb/i, "");
-  const rirMatch = note.match(/(\d-\d reps in reserve)/i);
-  if (rirMatch) return rirMatch[1];
-  return null;
+function ensurePeriod(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) return trimmed;
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
+function joinNoteParts(parts: CoachNoteParts, include: { focus: boolean; struggle: boolean }): string {
+  const sentences = [parts.goal];
+  if (include.focus && parts.focus) sentences.push(ensurePeriod(parts.focus));
+  if (include.struggle) sentences.push(parts.struggle);
+  return sentences.join(" ");
+}
+
+function goalOnly(parts: CoachNoteParts): string {
+  const match = parts.goal.match(/Your goal: (.+)\.$/);
+  return match ? `${match[1]}.` : parts.goal;
+}
+
+function buildDirectiveNote(exercise: WorkoutExercise, lastSets: { w: number; r: number }[]): string {
+  return joinNoteParts(buildCoachNoteParts(exercise, lastSets), { focus: true, struggle: true });
+}
+
+function buildAccountableNote(exercise: WorkoutExercise, lastSets: { w: number; r: number }[]): string {
+  return goalOnly(buildCoachNoteParts(exercise, lastSets));
+}
+
+function buildFlexibleNote(exercise: WorkoutExercise, lastSets: { w: number; r: number }[]): string {
+  const parts = buildCoachNoteParts(exercise, lastSets);
+  const struggle =
+    parts.focus && !getTopSet(lastSets)
+      ? `${parts.struggle} Same rep target on a close substitute if equipment is tied up.`
+      : parts.struggle;
+  const sentences = [parts.goal];
+  if (parts.focus) sentences.push(ensurePeriod(parts.focus));
+  sentences.push(struggle);
+  return sentences.join(" ");
+}
+
+function buildBeginnerGuidedNote(exercise: WorkoutExercise, lastSets: { w: number; r: number }[]): string {
+  const parts = buildCoachNoteParts(exercise, lastSets);
+  const goal = parts.goal.replace(/\.$/, ", leaving 1-2 reps in the tank.");
+  const sentences = [goal];
+  if (parts.focus) sentences.push(ensurePeriod(parts.focus));
+  sentences.push(parts.struggle);
+  return sentences.join(" ");
 }
 
 function applyTrainingStyleToNote(
-  baseNote: string,
   exercise: WorkoutExercise,
+  lastSets: { w: number; r: number }[],
   style: TrainingStyle | undefined,
 ): string {
-  if (!style || style === "directive") {
-    const meta = findLibraryExercise(exercise.name, exercise.label);
-    if (meta?.coachNote && !baseNote.includes(meta.coachNote)) {
-      return `${baseNote} Focus: ${meta.coachNote}.`;
-    }
-    return baseNote;
+  switch (style) {
+    case "accountable":
+      return buildAccountableNote(exercise, lastSets);
+    case "flexible":
+      return buildFlexibleNote(exercise, lastSets);
+    case "beginner_guided":
+      return buildBeginnerGuidedNote(exercise, lastSets);
+    default:
+      return buildDirectiveNote(exercise, lastSets);
   }
-
-  const target = extractPerformanceTarget(baseNote);
-  const meta = findLibraryExercise(exercise.name, exercise.label);
-
-  if (style === "accountable") {
-    if (target) return `Beat ${target} on ${exercise.name}.`;
-    return meta?.coachNote ?? `RIR 1-2 on ${exercise.name}.`;
-  }
-
-  if (style === "flexible") {
-    if (target) {
-      const repRange = describeExerciseRepRange(exercise);
-      return `Primary: beat ${target} on ${exercise.name}. Alternative: same weight for an extra rep, or drop ~5 lb and finish ${repRange}.`;
-    }
-    return `${baseNote} Or swap to a close substitute if equipment is tied up.`;
-  }
-
-  // beginner_guided
-  const muscles = meta
-    ? muscleGroupPhrase(meta.muscleGroup, meta.secondaryMuscles)
-    : "the target muscles for this movement";
-  const whyBit = `${exercise.name} builds ${muscles}.`;
-  const focusBit = meta?.coachNote ? ` Focus on ${meta.coachNote.toLowerCase()}.` : "";
-  if (target) {
-    return `${whyBit} Aim for ${target} with 1-2 reps in reserve.${focusBit}`;
-  }
-  return `${whyBit} ${baseNote}${focusBit}`;
 }
 
 /** Deterministic coach note for one exercise at session start. */
@@ -131,12 +185,8 @@ export function getExerciseSessionNote(
   ctx: ExerciseSessionNoteContext,
   exercise: WorkoutExercise,
 ): string {
-  const lastSets = findLastLoggedExerciseSets(ctx.workoutHistory, exercise.name, exercise.label);
-  const base =
-    lastSets?.some((s) => s.w > 0 || s.r > 0)
-      ? progressiveOverloadNote(exercise, lastSets)
-      : genericExerciseSessionNote(exercise);
-  return applyTrainingStyleToNote(base, exercise, ctx.trainingStyle);
+  const lastSets = findLastLoggedExerciseSets(ctx.workoutHistory, exercise.name, exercise.label) ?? [];
+  return applyTrainingStyleToNote(exercise, lastSets, ctx.trainingStyle);
 }
 
 export function buildSessionCoachNoteForExercise(
