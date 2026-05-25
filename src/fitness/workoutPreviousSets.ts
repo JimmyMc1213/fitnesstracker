@@ -45,3 +45,23 @@ export function previousSetLinesForExercise(
     return formatPreviousSetLine(src, unit);
   });
 }
+
+/** Placeholder w/r for an in-session set row (history for set 1; prior set when added or logged). */
+export function setFieldPlaceholder(
+  sets: WorkoutSet[],
+  setIndex: number,
+  historySets: WorkoutSet[] | null | undefined,
+): { w: number; r: number } {
+  if (setIndex > 0) {
+    const prev = sets[setIndex - 1];
+    if (prev && (prev.w > 0 || prev.r > 0)) {
+      return { w: prev.w, r: prev.r };
+    }
+    if (historySets && setIndex >= historySets.length) {
+      return setFieldPlaceholder(sets, setIndex - 1, historySets);
+    }
+  }
+  if (!historySets?.length) return { w: 0, r: 0 };
+  const src = historySets[Math.min(setIndex, historySets.length - 1)];
+  return { w: src?.w ?? 0, r: src?.r ?? 0 };
+}

@@ -9,7 +9,7 @@ import { formatSetWeight, weightUnitLabel } from "../unitPreferences";
 import type { CompletedWorkoutSession, ExercisePersonalBest, WeightUnit, WorkoutExercise, WorkoutSetKind } from "../types";
 import { RestTimerStrip, type RestTimerPhase } from "../RestTimerStrip";
 import { formatRestDuration, restDurationForExercise } from "../restTimerPreferences";
-import { previousSetLinesForExercise, previousSetsForExercise } from "../workoutPreviousSets";
+import { previousSetLinesForExercise, previousSetsForExercise, setFieldPlaceholder } from "../workoutPreviousSets";
 import { normalizeExerciseKey } from "../workoutSummary";
 import { setColumnLabel, setKindStyle } from "../workoutSetKind";
 import { METADATA_SIZE, USER_NOTE_GRAY_MUTED, COACH_BLUE_MUTED, labelStyle } from "../workoutUiTokens";
@@ -248,9 +248,11 @@ export function WorkoutExerciseCard({
           {exercise.sets.map((st, si) => {
             const kind = st.kind ?? "working";
             const kindVisual = setKindStyle(kind === "working" ? undefined : kind);
-            const prevSet = previousSets?.[Math.min(si, previousSets.length - 1)];
-            const placeholderWeight = prevSet?.w ?? 0;
-            const placeholderReps = prevSet?.r ?? 0;
+            const { w: placeholderWeight, r: placeholderReps } = setFieldPlaceholder(
+              exercise.sets,
+              si,
+              previousSets,
+            );
             return (
               <Fragment key={si}>
                 <div

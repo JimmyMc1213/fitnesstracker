@@ -58,7 +58,15 @@ export function WorkoutSetField({
       aria-label={field === "weight" ? `Weight for set ${setIndex + 1}` : `Reps for set ${setIndex + 1}`}
       aria-pressed={selected}
       onClick={() => openField(target)}
-      style={workoutSetInputStyle}
+      style={{
+        ...workoutSetInputStyle,
+        ...(showAsPlaceholder
+          ? {
+              color: "var(--workout-set-placeholder)",
+              fontWeight: 400,
+            }
+          : null),
+      }}
     >
       {display}
     </button>
