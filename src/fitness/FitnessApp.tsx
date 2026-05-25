@@ -206,6 +206,7 @@ function FitnessAppMain({
 }) {
   const [tab, setTab] = useState<TabId>("home");
   const [logFoodOpenRequest, setLogFoodOpenRequest] = useState(0);
+  const [stretchStartRequest, setStretchStartRequest] = useState(0);
   const [homeReselectRequest, setHomeReselectRequest] = useState(0);
   const [logFoodOverlayOpen, setLogFoodOverlayOpen] = useState(false);
   const [routineEditorOpen, setRoutineEditorOpen] = useState(false);
@@ -353,6 +354,7 @@ function FitnessAppMain({
     }
     setTab(nextTab);
     if (options?.openLogFood) setLogFoodOpenRequest((n) => n + 1);
+    if (options?.startStretchSession) setStretchStartRequest((n) => n + 1);
   };
 
   const Current = screens[tab];
@@ -564,6 +566,8 @@ function FitnessAppMain({
               onRoutineEditorOpenChange={tab === "workout" ? setRoutineEditorOpen : undefined}
               homeReselectRequest={homeReselectRequest}
               onHomeReselectHandled={() => setHomeReselectRequest(0)}
+              stretchStartRequest={tab === "stretch" ? stretchStartRequest : undefined}
+              onStretchStartRequestHandled={tab === "stretch" ? () => setStretchStartRequest(0) : undefined}
             />
           </ScreenTransition>
         </div>

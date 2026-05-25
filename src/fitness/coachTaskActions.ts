@@ -68,5 +68,9 @@ export function handleCoachTaskAction(task: CoachTask, navigate: NavigateFn): vo
     return;
   }
   const target = resolveCoachTaskNavigation(task);
+  if (target === "stretch") {
+    navigate(target, { startStretchSession: true });
+    return;
+  }
   if (target) navigate(target);
 }

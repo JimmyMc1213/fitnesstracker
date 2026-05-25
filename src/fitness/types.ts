@@ -490,6 +490,8 @@ export type AppState = {
 export type NavigateOptions = {
   /** When navigating to Nutrition, open the Log Food overlay after tab switch. */
   openLogFood?: boolean;
+  /** When navigating to Stretch, start the active session immediately. */
+  startStretchSession?: boolean;
 };
 
 export type NavigateFn = (tab: TabId, options?: NavigateOptions) => void;
@@ -509,6 +511,9 @@ export type ScreenProps = {
   /** Incremented when Home tab is tapped while already active — dismiss home overlays. */
   homeReselectRequest?: number;
   onHomeReselectHandled?: () => void;
+  /** Incremented when navigating to Stretch with startStretchSession. */
+  stretchStartRequest?: number;
+  onStretchStartRequestHandled?: () => void;
 };
 
 export type IconProps = {

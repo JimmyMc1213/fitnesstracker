@@ -4,6 +4,7 @@ import { buildCoachContext, getHomeCoachPlan, getWeighInReactionForDisplay } fro
 import { buildHabitsForDateKey } from "../data";
 import { habitsForDateKey, HomeDailyHabitsCard } from "../HomeDailyHabitsCard";
 import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
+import { isMobilityHabit } from "../mobilityHabit";
 import { HomeDashboardCarousel } from "../HomeDashboardCarousel";
 import { homeGreetingTitle } from "../homeGreeting";
 import { IconCheck, IconChevR, IconSettings } from "../icons";
@@ -104,6 +105,7 @@ export function ScreenHome({
   const activeHabits = habitsForDateKey(state, activeDateKey, dateKeyToday);
 
   function toggleHabit(id: string) {
+    if (isMobilityHabit(id)) return;
     setState((s) => {
       const doneMap = s.habitsDoneByDay[activeDateKey] ?? {};
       const nextDone = !doneMap[id];
@@ -253,6 +255,7 @@ export function ScreenHome({
         dateKey={activeDateKey}
         readOnly={!isViewingToday}
         onToggle={toggleHabit}
+        onMobilityPress={() => navigate("stretch", { startStretchSession: true })}
       />
 
       {sundayCheckInData ? (

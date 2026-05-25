@@ -340,7 +340,7 @@ export function defaultHabitTemplates(): HabitTemplate[] {
     { id: "h1", name: "Water 1 gal", icon: "drop" },
     { id: "h2", name: "Steps 10k", icon: "run" },
     { id: "h3", name: "Sleep 8h", icon: "moon" },
-    { id: "h4", name: "Low-back routine 8 min", icon: "bolt" },
+    { id: "habit-mobility", name: "Mobility", icon: "bolt", subtitle: "Stretch routine ~15 min" },
   ];
 }
 
@@ -360,6 +360,7 @@ export function habitTemplatesFromOnboarding(
   return [
     { id: "habit-hydration", name: `Water ${formatWaterVolume(waterDailyTargetOz, volumeUnit)}`, icon: "drop" },
     { id: "habit-steps", name: stepsHabitLabel(stepsTarget), icon: "run" },
+    { id: "habit-mobility", name: "Mobility", icon: "bolt", subtitle: "Stretch routine ~15 min" },
   ];
 }
 

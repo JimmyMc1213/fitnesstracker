@@ -1,19 +1,36 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  arizonaCalendarDateKey,
-  isArizonaEightPmOrLater,
-} from "../dailyPlan";
-import { IconCheck, IconChevL, IconChevR, IconX } from "../icons";
+import { arizonaCalendarDateKey, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
+import { IconChevL } from "../icons";
+import { applyStretchSessionComplete } from "../mobilityHabit";
 import { formatNotificationTimeDisplay } from "../notificationPreferences";
-import { BottomSheet } from "../motion";
-import { ScreenHeader, SectionLabel } from "../shared";
+import { PrimaryButton, ScreenHeader, SecondaryButton } from "../shared";
 import { STRETCH_BLOCKS, STRETCH_INTRO } from "../stretchRoutine";
+import { StretchBlockCard } from "../stretch/StretchBlockCard";
+import { LeaveStretchConfirmSheet } from "../stretch/LeaveStretchConfirmSheet";
+import { StretchSessionHeader } from "../stretch/StretchSessionHeader";
+import { StretchSessionStickyHeader } from "../stretch/StretchSessionStickyHeader";
 import type { ScreenProps } from "../types";
+import { COACH_CARD_BG, COACH_CARD_BORDER, COACH_BLUE_MUTED, labelStyle } from "../workoutUiTokens";
 
-export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
+type StretchPhase = "idle" | "active";
+
+function formatStartedAt(d: Date): string {
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+export function ScreenStretch({
+  state,
+  setState,
+  navigate,
+  stretchStartRequest,
+  onStretchStartRequestHandled,
+}: ScreenProps) {
   const [clock, setClock] = useState(() => new Date());
-  const [openBlockId, setOpenBlockId] = useState<string | null>(null);
+  const [phase, setPhase] = useState<StretchPhase>("idle");
+  const [sessionStartedAtMs, setSessionStartedAtMs] = useState<number | null>(null);
+  const [elapsedSec, setElapsedSec] = useState(0);
+  const [showLeaveStretchConfirm, setShowLeaveStretchConfirm] = useState(false);
 
   useEffect(() => {
     const id = window.setInterval(() => setClock(new Date()), 60_000);
@@ -21,38 +38,46 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
   }, []);
 
   useEffect(() => {
-    if (!openBlockId) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpenBlockId(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [openBlockId]);
+    if (!stretchStartRequest) return;
+    setPhase("active");
+    setSessionStartedAtMs(Date.now());
+    onStretchStartRequestHandled?.();
+  }, [stretchStartRequest, onStretchStartRequestHandled]);
+
+  useEffect(() => {
+    if (phase !== "active" || sessionStartedAtMs == null) return;
+    const tick = () => setElapsedSec(Math.max(0, Math.floor((Date.now() - sessionStartedAtMs) / 1000)));
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [phase, sessionStartedAtMs]);
 
   const arizonaTodayKey = arizonaCalendarDateKey(clock);
+  const localTodayKey = localDateKey(clock);
   const inEveningWindow = isArizonaEightPmOrLater(clock);
-  const nightlyStretchDone = state.nightlyStretchCompletedArizonaKey === arizonaTodayKey;
   const stretchReminderEnabled = state.notificationPreferences.nightlyStretchReminderEnabled;
   const stretchReminderTimeLabel = formatNotificationTimeDisplay(
     state.notificationPreferences.nightlyStretchReminderTime,
   );
 
   const completedIds = state.nightlyStretchBlockIdsByArizonaDay[arizonaTodayKey] ?? [];
-
   const doneCount = completedIds.filter((id) => STRETCH_BLOCKS.some((b) => b.id === id)).length;
   const totalBlocks = STRETCH_BLOCKS.length;
+  const allDone = STRETCH_BLOCKS.every((b) => completedIds.includes(b.id));
 
-  const openBlock = openBlockId ? STRETCH_BLOCKS.find((b) => b.id === openBlockId) ?? null : null;
+  const sessionStartedAt = useMemo(() => {
+    if (sessionStartedAtMs == null) return formatStartedAt(clock);
+    return formatStartedAt(new Date(sessionStartedAtMs));
+  }, [sessionStartedAtMs, clock]);
 
   function toggleStretchBlock(blockId: string) {
     setState((s) => {
       const prev = s.nightlyStretchBlockIdsByArizonaDay[arizonaTodayKey] ?? [];
       const has = prev.includes(blockId);
       const nextIds = has ? prev.filter((x) => x !== blockId) : [...prev, blockId];
-      const allDone = STRETCH_BLOCKS.every((b) => nextIds.includes(b.id));
 
       let nightlyKey = s.nightlyStretchCompletedArizonaKey;
-      if (allDone) nightlyKey = arizonaTodayKey;
+      if (STRETCH_BLOCKS.every((b) => nextIds.includes(b.id))) nightlyKey = arizonaTodayKey;
       else if (nightlyKey === arizonaTodayKey) nightlyKey = null;
 
       const nextDayMap = { ...s.nightlyStretchBlockIdsByArizonaDay };
@@ -67,247 +92,197 @@ export function ScreenStretch({ state, setState, navigate }: ScreenProps) {
     });
   }
 
-  function toggleNightlyStretchDone() {
-    setState((s) => {
-      if (s.nightlyStretchCompletedArizonaKey === arizonaTodayKey) {
-        const nextDayMap = { ...s.nightlyStretchBlockIdsByArizonaDay };
-        delete nextDayMap[arizonaTodayKey];
-        return {
-          ...s,
-          nightlyStretchCompletedArizonaKey: null,
-          nightlyStretchBlockIdsByArizonaDay: nextDayMap,
-        };
-      }
-      return {
-        ...s,
-        nightlyStretchCompletedArizonaKey: arizonaTodayKey,
-        nightlyStretchBlockIdsByArizonaDay: {
-          ...s.nightlyStretchBlockIdsByArizonaDay,
-          [arizonaTodayKey]: STRETCH_BLOCKS.map((b) => b.id),
-        },
-      };
-    });
+  function startSession() {
+    setPhase("active");
+    setSessionStartedAtMs(Date.now());
   }
 
-  return (
-    <div className="screen" style={{ paddingBottom: 28 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
-        <button
-          type="button"
-          className="tap"
-          onClick={() => navigate("home")}
+  function resetSession() {
+    setPhase("idle");
+    setSessionStartedAtMs(null);
+    setElapsedSec(0);
+    setShowLeaveStretchConfirm(false);
+  }
+
+  function cancelSession() {
+    resetSession();
+  }
+
+  function finishSession() {
+    setState((s) => applyStretchSessionComplete(s, arizonaTodayKey, localTodayKey));
+    resetSession();
+    navigate("home");
+  }
+
+  function requestFinishSession() {
+    if (allDone) {
+      finishSession();
+      return;
+    }
+    if (doneCount === 0) {
+      setShowLeaveStretchConfirm(true);
+      return;
+    }
+    resetSession();
+    navigate("home");
+  }
+
+  function leaveStretchEarly() {
+    resetSession();
+    navigate("home");
+  }
+
+  if (phase === "idle") {
+    return (
+      <div key="stretch-idle" className="screen page-transition" style={{ paddingBottom: 28 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
+          <button
+            type="button"
+            className="tap"
+            onClick={() => navigate("home")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 14,
+              fontWeight: 600,
+              color: "var(--text-soft)",
+              padding: "6px 8px 6px 0",
+            }}
+            aria-label="Back to Home"
+          >
+            <IconChevL size={18} stroke={2} />
+            Home
+          </button>
+        </div>
+
+        <ScreenHeader eyebrow="Recovery" title="Mobility routine" subtitle="~15–20 min · low-back care & gentle mobility" />
+
+        {inEveningWindow ? (
+          <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "var(--text-faint-soft)", fontWeight: 400 }}>
+            Aim for about <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>15-20 minutes total</strong>, drift longer on what feels glued from the day.
+          </p>
+        ) : stretchReminderEnabled ? (
+          <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "var(--text-muted-soft)", fontWeight: 400 }}>
+            Reminder at <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{stretchReminderTimeLabel}</strong>; start whenever you are ready.
+          </p>
+        ) : null}
+
+        <PrimaryButton block onClick={startSession} style={{ marginTop: 20 }}>
+          Start mobility routine
+        </PrimaryButton>
+
+        <div
+          className="card"
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            fontSize: 14,
-            fontWeight: 600,
-            color: "var(--text-soft)",
-            padding: "6px 8px 6px 0",
+            marginTop: 16,
+            padding: 16,
+            borderColor: COACH_CARD_BORDER,
+            background: COACH_CARD_BG,
           }}
-          aria-label="Back to Home"
         >
-          <IconChevL size={18} stroke={2} />
-          Home
-        </button>
-      </div>
+          <div style={{ ...labelStyle, color: COACH_BLUE_MUTED, marginBottom: 8 }}>Coach note</div>
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "var(--text-soft)", fontWeight: 500 }}>{STRETCH_INTRO}</p>
+        </div>
 
-      <ScreenHeader eyebrow="Your routine" title="Nightly stretching" />
-
-      {inEveningWindow ? (
-        <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "var(--text-faint-soft)", fontWeight: 400 }}>
-          Aim for about <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>15-20 minutes total</strong>, drift longer on what feels glued from the day.
-        </p>
-      ) : stretchReminderEnabled ? (
-        <p style={{ margin: "0 0 16px", fontSize: 12, lineHeight: 1.55, color: "var(--text-muted-soft)", fontWeight: 400 }}>
-          Reminder at <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{stretchReminderTimeLabel}</strong>; the routine is always here whenever you want to run through it.
-        </p>
-      ) : null}
-
-      <div className="card" style={{ padding: 16, marginBottom: 16, borderColor: "rgba(196,181,253,0.22)" }}>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "var(--text-soft)", fontWeight: 500 }}>{STRETCH_INTRO}</p>
-      </div>
-
-      <SectionLabel
-        right={
-          <span style={{ fontSize: 11, color: "var(--text-muted-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-            {doneCount}/{totalBlocks}
-          </span>
-        }
-      >
-        Tonight&apos;s moves
-      </SectionLabel>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
-        {STRETCH_BLOCKS.map((block) => {
-          const isDone = completedIds.includes(block.id);
-          return (
+        <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 8 }}>
+          {STRETCH_BLOCKS.map((block, index) => (
             <div
               key={block.id}
               className="card"
               style={{
                 padding: "12px 14px",
+                borderColor: "var(--divider-subtle)",
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                borderColor: "var(--divider-subtle)",
-                opacity: isDone ? 0.62 : 1,
               }}
             >
-              <button
-                type="button"
-                className="tap"
-                aria-label={isDone ? `Mark ${block.title} not done` : `Mark ${block.title} done`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleStretchBlock(block.id);
-                }}
+              <div
                 style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 7,
-                  border: isDone ? "0.5px solid var(--primary)" : "0.5px solid var(--border)",
-                  background: isDone ? "var(--primary)" : "transparent",
-                  flexShrink: 0,
+                  width: 28,
+                  height: 28,
+                  borderRadius: 8,
+                  background: "var(--surface-2)",
                   display: "grid",
                   placeItems: "center",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: "var(--text-ghost)",
+                  flexShrink: 0,
                 }}
               >
-                {isDone ? <IconCheck size={12} stroke={2.8} style={{ color: "var(--primary-fg)" }} /> : null}
-              </button>
-              <button
-                type="button"
-                className="tap"
-                onClick={() => setOpenBlockId(block.id)}
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  textAlign: "left",
-                  padding: "4px 0",
-                  background: "none",
-                  border: "none",
-                  color: "inherit",
-                  font: "inherit",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 14,
-                    fontWeight: isDone ? 500 : 600,
-                    letterSpacing: "-0.01em",
-                    color: isDone ? "var(--text-muted-soft)" : "var(--text-primary)",
-                    textDecoration: isDone ? "line-through" : "none",
-                  }}
-                >
-                  {block.title}
-                </span>
-                <IconChevR size={16} stroke={2} style={{ color: "var(--text-whisper)", flexShrink: 0, marginLeft: "auto" }} />
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-      <button
-        type="button"
-        className="tap"
-        onClick={toggleNightlyStretchDone}
-        style={{
-          width: "100%",
-          marginTop: 8,
-          background: nightlyStretchDone ? "transparent" : "var(--primary)",
-          color: nightlyStretchDone ? "var(--text-primary)" : "var(--primary-fg)",
-          border: nightlyStretchDone ? "0.5px solid var(--border-strong)" : "none",
-          borderRadius: 12,
-          padding: 14,
-          fontSize: 14,
-          fontWeight: 600,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-        }}
-      >
-        {nightlyStretchDone ? (
-          <>
-            Mark not done tonight
-          </>
-        ) : (
-          <>
-            <IconCheck size={16} stroke={2.5} />
-            Mark tonight complete (all moves)
-          </>
-        )}
-      </button>
-
-      <p style={{ margin: "12px 0 0", fontSize: 11, lineHeight: 1.45, color: "var(--text-ghost)", textAlign: "center", fontWeight: 400 }}>
-        Checkboxes save for tonight&apos;s Arizona date · tapping a row opens cues and timing.
-      </p>
-
-      <BottomSheet
-        open={openBlock != null}
-        onClose={() => setOpenBlockId(null)}
-        zIndex={200}
-        ariaLabelledBy="stretch-detail-title"
-        backdropStyle={{ padding: 16 }}
-        panelStyle={{
-          width: "100%",
-          maxWidth: 375,
-          maxHeight: "78vh",
-          overflow: "auto",
-          padding: 0,
-          marginBottom: 8,
-          borderColor: "rgba(196,181,253,0.35)",
-          background: "var(--card)",
-        }}
-      >
-        {openBlock ? (
-          <>
-            <div style={{ padding: "16px 16px 12px", position: "sticky", top: 0, background: "var(--card)", borderBottom: "0.5px solid var(--divider-subtle)" }}>
-              <div className="between" style={{ alignItems: "flex-start", gap: 12 }}>
-                <div style={{ minWidth: 0 }}>
-                  <div id="stretch-detail-title" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)", lineHeight: 1.25 }}>
-                    {openBlock.title}
-                  </div>
-                  {openBlock.minutes ? (
-                    <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(196,181,253,0.9)", marginTop: 8 }}>{openBlock.minutes}</div>
-                  ) : null}
-                </div>
-                <button
-                  type="button"
-                  className="tap"
-                  onClick={() => setOpenBlockId(null)}
-                  aria-label="Close"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 999,
-                    border: "0.5px solid var(--border)",
-                    display: "grid",
-                    placeItems: "center",
-                    color: "var(--text-muted-soft)",
-                    flexShrink: 0,
-                  }}
-                >
-                  <IconX size={16} stroke={2} />
-                </button>
+                {index + 1}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{block.title}</div>
+                {block.minutes ? (
+                  <div style={{ fontSize: 11, color: "var(--text-ghost)", marginTop: 3 }}>{block.minutes}</div>
+                ) : null}
               </div>
             </div>
-            <div style={{ padding: "14px 16px 18px" }}>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14, lineHeight: 1.55, color: "var(--text-soft)", fontWeight: 400 }}>
-                {openBlock.cues.map((c, idx) => (
-                  <li key={idx} style={{ marginBottom: 10 }}>
-                    {c}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </>
+          ))}
+        </div>
+
+        {doneCount > 0 ? (
+          <p style={{ margin: "16px 0 0", fontSize: 12, color: "var(--text-secondary)", textAlign: "center", fontWeight: 500 }}>
+            {doneCount}/{totalBlocks} moves logged today · start again to finish the routine
+          </p>
         ) : null}
-      </BottomSheet>
+      </div>
+    );
+  }
+
+  return (
+    <div key="stretch-active" className="screen page-transition" style={{ paddingBottom: 28 }}>
+      <StretchSessionHeader
+        elapsedSec={elapsedSec}
+        onFinish={requestFinishSession}
+        startedAt={sessionStartedAt}
+        moveCount={totalBlocks}
+      />
+
+      <div
+        className="card"
+        style={{
+          marginTop: 12,
+          padding: 14,
+          borderColor: COACH_CARD_BORDER,
+          background: COACH_CARD_BG,
+        }}
+      >
+        <div style={{ ...labelStyle, color: COACH_BLUE_MUTED, marginBottom: 6 }}>Session tip</div>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: "var(--text-soft)", fontWeight: 500 }}>
+          Mark each move complete as you go. Finish saves the routine when all moves are checked.
+        </p>
+      </div>
+
+      <StretchSessionStickyHeader doneMoves={doneCount} totalMoves={totalBlocks} />
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
+        {STRETCH_BLOCKS.map((block, index) => (
+          <StretchBlockCard
+            key={block.id}
+            block={block}
+            blockIndex={index}
+            isDone={completedIds.includes(block.id)}
+            onToggleDone={() => toggleStretchBlock(block.id)}
+          />
+        ))}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
+        <SecondaryButton block onClick={cancelSession}>
+          End session
+        </SecondaryButton>
+      </div>
+
+      {showLeaveStretchConfirm ? (
+        <LeaveStretchConfirmSheet
+          onKeepGoing={() => setShowLeaveStretchConfirm(false)}
+          onLeave={leaveStretchEarly}
+        />
+      ) : null}
     </div>
   );
 }

@@ -8,11 +8,12 @@ import {
 } from "./data";
 
 describe("habitTemplatesFromOnboarding", () => {
-  it("creates hydration and steps rows from plan targets", () => {
+  it("creates hydration, steps, and mobility rows from plan targets", () => {
     const templates = habitTemplatesFromOnboarding(10_000, 64);
-    expect(templates).toHaveLength(2);
+    expect(templates).toHaveLength(3);
     expect(templates[0]).toMatchObject({ id: "habit-hydration", icon: "drop", name: "Water 64 oz" });
     expect(templates[1]).toMatchObject({ id: "habit-steps", icon: "run", name: "Steps 10k" });
+    expect(templates[2]).toMatchObject({ id: "habit-mobility", icon: "bolt", name: "Mobility" });
   });
 });
 

@@ -15,6 +15,7 @@ import {
   normalizeWorkoutTemplates,
   sanitizeWorkoutTemplates,
 } from "./data";
+import { ensureMobilityHabitTemplate, migrateMobilityHabitCompletion } from "./mobilityHabit";
 import { normalizeExerciseSessionHistoryByKey } from "./exerciseSessionHistory";
 import { normalizeWorkoutHistory } from "./workoutHistory";
 import { normalizeExerciseNotesByKey } from "./exerciseNotes";
@@ -357,15 +358,17 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
   const hasLegacyFitnessData =
     Object.keys(p?.workoutsCompletedByDay ?? {}).length > 0 || (p?.weightLog?.length ?? 0) > 0;
   const onboardingComplete = p?.onboardingComplete === true || hasLegacyFitnessData;
-  const habitTemplates = resolveHabitTemplates(
-    p,
-    onboardingComplete,
-    hasLegacyFitnessData,
-    stepsTarget,
-    waterDailyTargetOz,
-    unitPreferences.volumeUnit,
+  const habitTemplates = ensureMobilityHabitTemplate(
+    resolveHabitTemplates(
+      p,
+      onboardingComplete,
+      hasLegacyFitnessData,
+      stepsTarget,
+      waterDailyTargetOz,
+      unitPreferences.volumeUnit,
+    ),
   );
-  const habitsDoneByDay = normalizeHabitsDoneByDay(p?.habitsDoneByDay);
+  const habitsDoneByDay = migrateMobilityHabitCompletion(normalizeHabitsDoneByDay(p?.habitsDoneByDay));
   const todayKey = localDateKey(new Date());
   const { nutritionManualByDay, nutritionItemsByDay } = mergePersistedNutritionDays(
     p?.nutritionManualByDay,

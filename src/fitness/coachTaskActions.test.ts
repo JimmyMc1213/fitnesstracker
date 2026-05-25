@@ -57,4 +57,23 @@ describe("handleCoachTaskAction", () => {
 
     expect(calls).toEqual([{ tab: "nutrition", options: { openLogFood: true } }]);
   });
+
+  it("routes rest-day stretch tasks with startStretchSession", () => {
+    const calls: Array<{ tab: string; options?: { startStretchSession?: boolean } }> = [];
+    const navigate = (tab: string, options?: { startStretchSession?: boolean }) => {
+      calls.push({ tab, options });
+    };
+
+    handleCoachTaskAction(
+      {
+        kind: "rest_day",
+        label: "Rest day, mobility and steps",
+        completed: false,
+        priority: 3,
+      },
+      navigate,
+    );
+
+    expect(calls).toEqual([{ tab: "stretch", options: { startStretchSession: true } }]);
+  });
 });
