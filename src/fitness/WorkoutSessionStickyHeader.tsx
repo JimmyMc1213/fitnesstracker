@@ -12,6 +12,7 @@ type WorkoutSessionStickyHeaderProps = {
 export function WorkoutSessionStickyHeader({ doneSets, totalSets, totalVolume, weightUnit }: WorkoutSessionStickyHeaderProps) {
   return (
     <div
+      className="card"
       style={{
         position: "sticky",
         top: 0,
@@ -22,8 +23,6 @@ export function WorkoutSessionStickyHeader({ doneSets, totalSets, totalVolume, w
         display: "flex",
         gap: 18,
         alignItems: "center",
-        background: "var(--bg)",
-        borderBottom: "0.5px solid var(--divider-subtle)",
       }}
     >
       <div style={{ flex: 1 }}>
