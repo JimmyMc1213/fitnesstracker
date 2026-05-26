@@ -41,6 +41,7 @@ const LIFT_TRANSITION = "all 150ms ease";
 const COLLAPSE_TRANSITION = "opacity 150ms ease, max-height 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
 const DROP_DURATION_MS = 150;
 const DROP_EASING = "ease-out";
+const COMPACT_GAP = 4;
 
 /** Press-and-hold on grip before drag engages (values/inputs stay unchanged). */
 const HOLD_DELAY_MS = 150;
@@ -102,42 +103,64 @@ function findScrollableParent(node: Element | null): HTMLElement | null {
   return null;
 }
 
-type ScrollLock = {
-  el: HTMLElement;
-  savedScrollTop: number;
-};
-
-type SlotHeightLock = {
-  el: HTMLElement;
-  minHeight: string;
-};
-
-function captureSlotHeightLocks(): SlotHeightLock[] {
-  return [...document.querySelectorAll('[data-slot="sortable-item"]')].flatMap((node) => {
-    const el = node as HTMLElement;
-    const height = el.offsetHeight;
-    if (height <= 0) return [];
-    const minHeight = `${height}px`;
-    el.style.minHeight = minHeight;
-    return [{ el, minHeight }];
-  });
-}
-
-function clearSlotHeightLocks(locks: SlotHeightLock[] | null) {
-  locks?.forEach(({ el }) => {
-    el.style.minHeight = "";
-  });
-}
-
 function sortableItemSelector(id: string): string {
   return `[data-slot="sortable-item"][data-value="${CSS.escape(id)}"]`;
 }
 
-function restoreScrollPosition(el: HTMLElement, scrollTop: number) {
-  const prevBehavior = el.style.scrollBehavior;
-  el.style.scrollBehavior = "auto";
-  el.scrollTop = scrollTop;
-  el.style.scrollBehavior = prevBehavior;
+type ScrollLock = {
+  el: HTMLElement;
+};
+
+type ViewportAnchor = {
+  id: string;
+  parent: HTMLElement;
+  top: number;
+};
+
+function captureViewportAnchor(id: string, into: { current: ViewportAnchor | null }) {
+  const item = document.querySelector(sortableItemSelector(id));
+  const parent = findScrollableParent(item);
+  if (!item || !parent) {
+    into.current = null;
+    return;
+  }
+  into.current = {
+    id,
+    parent,
+    top: item.getBoundingClientRect().top,
+  };
+}
+
+function applyViewportAnchor(anchor: ViewportAnchor | null) {
+  if (!anchor) return;
+  const item = document.querySelector(sortableItemSelector(anchor.id));
+  if (!item) return;
+  const delta = item.getBoundingClientRect().top - anchor.top;
+  if (Math.abs(delta) <= 0.5) return;
+  const prevBehavior = anchor.parent.style.scrollBehavior;
+  anchor.parent.style.scrollBehavior = "auto";
+  anchor.parent.scrollTop += delta;
+  anchor.parent.style.scrollBehavior = prevBehavior;
+}
+
+/** When the compact list fits on screen, scroll it into view so the full order is visible. */
+function revealCompactListIfFits() {
+  const list = document.querySelector('[data-slot="sortable"]');
+  const scrollParent = findScrollableParent(list);
+  if (!list || !scrollParent) return false;
+
+  const listRect = list.getBoundingClientRect();
+  const parentRect = scrollParent.getBoundingClientRect();
+  const available = scrollParent.clientHeight - 24;
+
+  if (listRect.height > available) return false;
+
+  const listTopInScroll = listRect.top - parentRect.top + scrollParent.scrollTop;
+  const prevBehavior = scrollParent.style.scrollBehavior;
+  scrollParent.style.scrollBehavior = "auto";
+  scrollParent.scrollTop = Math.max(0, listTopInScroll - 12);
+  scrollParent.style.scrollBehavior = prevBehavior;
+  return true;
 }
 
 function isCoarsePointerDevice(): boolean {
@@ -258,7 +281,9 @@ function SortableRow<T extends { id: string; name: string }>({
 
   const style: CSSProperties = {
     transform: dndCss.Translate.toString(transform),
-    transition: [transition ?? SLIDE_TRANSITION, COLLAPSE_TRANSITION].join(", "),
+    transition: [transition ?? SLIDE_TRANSITION, isListDragging ? undefined : COLLAPSE_TRANSITION]
+      .filter(Boolean)
+      .join(", "),
     marginBottom: gap,
     position: "relative",
     zIndex: isDragging ? 1 : undefined,
@@ -394,13 +419,13 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   const [dndKey, setDndKey] = useState(0);
   const overlayWidthRef = useRef<number | undefined>();
   const scrollLockRef = useRef<ScrollLock | null>(null);
-  const slotHeightLocksRef = useRef<SlotHeightLock[] | null>(null);
-  const pendingScrollRestoreRef = useRef<{ el: HTMLElement; scrollTop: number } | null>(null);
+  const viewportAnchorRef = useRef<ViewportAnchor | null>(null);
   const activeIdRef = useRef<string | null>(null);
 
   const isListDragging = activeId != null;
   const activeIndex = activeId != null ? items.findIndex((x) => x.id === activeId) : -1;
   const activeItem = activeIndex >= 0 ? items[activeIndex] : null;
+  const listGap = isListDragging ? COMPACT_GAP : gap;
 
   const overlayModifiers = useMemo(
     () => [createOverlayPositionModifier(dragHandleTapSize), restrictToVerticalAxis, restrictToWindowEdges],
@@ -429,13 +454,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
 
   const resetDragUi = useCallback(
     (options?: { remountDnd?: boolean }) => {
-      const locked = scrollLockRef.current;
-      if (locked) {
-        pendingScrollRestoreRef.current = { el: locked.el, scrollTop: locked.savedScrollTop };
-      }
       unlockScrollParent();
-      clearSlotHeightLocks(slotHeightLocksRef.current);
-      slotHeightLocksRef.current = null;
       activeIdRef.current = null;
       setActiveId(null);
       setOverlayWidth(undefined);
@@ -449,6 +468,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
 
   const forceRecoverDrag = useCallback(() => {
     if (!activeIdRef.current) return;
+    viewportAnchorRef.current = null;
     resetDragUi({ remountDnd: true });
   }, [resetDragUi]);
 
@@ -458,9 +478,8 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
       const item = document.querySelector(sortableItemSelector(id));
       const scrollParent = findScrollableParent(item);
       if (!scrollParent) return;
-
       scrollParent.setAttribute("data-exercise-reorder-scroll-lock", "true");
-      scrollLockRef.current = { el: scrollParent, savedScrollTop: scrollParent.scrollTop };
+      scrollLockRef.current = { el: scrollParent };
     },
     [unlockScrollParent],
   );
@@ -475,7 +494,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
 
   function onDragStart(ev: DragStartEvent) {
     const id = String(ev.active.id);
-    slotHeightLocksRef.current = captureSlotHeightLocks();
+    captureViewportAnchor(id, viewportAnchorRef);
     const width = measureOverlayWidth(id);
     overlayWidthRef.current = width;
     setOverlayWidth(width);
@@ -487,6 +506,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
 
   function onDragEnd(ev: DragEndEvent) {
     const { active, over } = ev;
+    captureViewportAnchor(String(active.id), viewportAnchorRef);
     resetDragUi();
     lightHaptic();
     if (!over || active.id === over.id) return;
@@ -497,14 +517,16 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   }
 
   function onDragCancel() {
+    viewportAnchorRef.current = null;
     resetDragUi();
   }
 
   function onDragPending(_ev: DragPendingEvent) {
-    // Scroll lock is applied in onDragStart after slot heights are pinned.
+    // Scroll lock starts in onDragStart once compact reorder engages.
   }
 
   function onDragAbort() {
+    viewportAnchorRef.current = null;
     resetDragUi();
   }
 
@@ -514,15 +536,16 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
 
   useLayoutEffect(() => {
     if (activeId != null) {
-      const locked = scrollLockRef.current;
-      if (locked) restoreScrollPosition(locked.el, locked.savedScrollTop);
+      if (!revealCompactListIfFits()) {
+        applyViewportAnchor(viewportAnchorRef.current);
+      } else {
+        viewportAnchorRef.current = null;
+      }
       return;
     }
 
-    const pending = pendingScrollRestoreRef.current;
-    if (!pending) return;
-    pendingScrollRestoreRef.current = null;
-    restoreScrollPosition(pending.el, pending.scrollTop);
+    applyViewportAnchor(viewportAnchorRef.current);
+    viewportAnchorRef.current = null;
   }, [activeId, items]);
 
   useEffect(() => () => unlockScrollParent(), [unlockScrollParent]);
@@ -603,7 +626,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
               key={item.id}
               item={item}
               index={index}
-              gap={index < items.length - 1 ? gap : 0}
+              gap={index < items.length - 1 ? listGap : 0}
               renderItem={renderItem}
               isListDragging={isListDragging}
               getDragLabel={getDragLabel}
