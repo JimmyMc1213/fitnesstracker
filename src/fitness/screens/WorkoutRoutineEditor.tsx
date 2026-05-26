@@ -341,7 +341,7 @@ function RepBoundStepper({
   onChange,
   disabled,
 }: {
-  boundLabel: "Min" | "Max";
+  boundLabel: "Min" | "Max" | "Hold";
   value: number;
   min: number;
   max: number;

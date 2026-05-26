@@ -47,7 +47,7 @@ export function resolveExerciseId(name: string, label?: string): string | undefi
 }
 
 export function getExerciseProgressionKind(
-  exercise: WorkoutExercise,
+  exercise: Pick<WorkoutExercise, "name" | "label">,
   lastSets: { w: number; r: number }[],
 ): ExerciseProgressionKind {
   const id = resolveExerciseId(exercise.name, exercise.label);

@@ -2,7 +2,7 @@ import type { ExerciseEquipmentLabel } from './exerciseLabels';
 
 export type Equipment = 'full_gym' | 'home_gym' | 'dumbbells_only' | 'bodyweight';
 export type Experience = 'beginner' | 'intermediate' | 'advanced';
-export type MuscleGroup = 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'quads' | 'hamstrings' | 'glutes' | 'calves' | 'core' | 'traps' | 'rear_delt';
+export type MuscleGroup = 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'quads' | 'hamstrings' | 'glutes' | 'calves' | 'core' | 'traps' | 'rear_delt' | 'forearms';
 export type MovementPattern =
   | 'horizontal_push'
   | 'vertical_push'
