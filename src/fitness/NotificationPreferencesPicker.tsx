@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { formatNotificationTimeDisplay } from "./notificationPreferences";
+import { DEFAULT_NOTIFICATION_PREFERENCES, formatNotificationTimeDisplay } from "./notificationPreferences";
 import { TimeWheelPicker } from "./TimeWheelPicker";
 import {
   getNotificationPermission,
@@ -21,16 +21,18 @@ const TIME_INPUT_STYLE = {
   color: "var(--text-primary)",
 };
 
-type OnboardingRowConfig = {
+type ReminderRowConfig = {
   label: string;
+  /** Onboarding uses friendlier copy where it differs from Settings. */
+  onboardingLabel?: string;
   subtitle: string;
+  settingsHintPrefix: string;
   enabledKey: keyof Pick<
     NotificationPreferences,
     | "workoutReminderEnabled"
     | "nutritionCheckInEnabled"
     | "morningCheckInEnabled"
     | "weeklyReviewEnabled"
-    | "nightlyStretchReminderEnabled"
   >;
   timeKey: keyof Pick<
     NotificationPreferences,
@@ -38,29 +40,32 @@ type OnboardingRowConfig = {
     | "nutritionCheckInTime"
     | "morningCheckInTime"
     | "weeklyReviewTime"
-    | "nightlyStretchReminderTime"
   >;
   timeAriaLabel: string;
 };
 
-const ONBOARDING_ROWS: OnboardingRowConfig[] = [
+const REMINDER_ROWS: ReminderRowConfig[] = [
   {
     label: "Workout reminder",
     subtitle: "On your training days",
+    settingsHintPrefix: "On training days",
     enabledKey: "workoutReminderEnabled",
     timeKey: "workoutReminderTime",
     timeAriaLabel: "Workout reminder time",
   },
   {
-    label: "Daily fuel check-in",
+    label: "Nutrition check-in",
+    onboardingLabel: "Daily fuel check-in",
     subtitle: "Log your meals before the day ends",
+    settingsHintPrefix: "Daily",
     enabledKey: "nutritionCheckInEnabled",
     timeKey: "nutritionCheckInTime",
-    timeAriaLabel: "Daily fuel check-in time",
+    timeAriaLabel: "Nutrition check-in time",
   },
   {
     label: "Morning check-in",
     subtitle: "Start your day with your plan",
+    settingsHintPrefix: "Every morning",
     enabledKey: "morningCheckInEnabled",
     timeKey: "morningCheckInTime",
     timeAriaLabel: "Morning check-in time",
@@ -68,16 +73,10 @@ const ONBOARDING_ROWS: OnboardingRowConfig[] = [
   {
     label: "Weekly review",
     subtitle: "Every Monday morning recap",
+    settingsHintPrefix: "Every Monday",
     enabledKey: "weeklyReviewEnabled",
     timeKey: "weeklyReviewTime",
     timeAriaLabel: "Weekly review time",
-  },
-  {
-    label: "Nightly stretch",
-    subtitle: "Wind down with your mobility routine",
-    enabledKey: "nightlyStretchReminderEnabled",
-    timeKey: "nightlyStretchReminderTime",
-    timeAriaLabel: "Nightly stretch reminder time",
   },
 ];
 
@@ -103,6 +102,50 @@ function ReminderToggle({
   );
 }
 
+function SettingsNotificationRow({
+  row,
+  enabled,
+  time,
+  onToggle,
+  onTimeChange,
+}: {
+  row: ReminderRowConfig;
+  enabled: boolean;
+  time: string;
+  onToggle: () => void;
+  onTimeChange: (next: string) => void;
+}) {
+  const defaultTime = DEFAULT_NOTIFICATION_PREFERENCES[row.timeKey];
+
+  return (
+    <div className="card" style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{row.label}</div>
+          <div style={{ fontSize: 12, color: "var(--text-faint-soft)", marginTop: 2 }}>
+            {row.settingsHintPrefix} · default {formatNotificationTimeDisplay(defaultTime)}
+          </div>
+        </div>
+        <ReminderToggle enabled={enabled} onToggle={onToggle} label={row.label} />
+      </div>
+      <label style={{ fontSize: 12, color: "var(--text-faint-soft)" }}>
+        Reminder time
+        <input
+          type="time"
+          aria-label={row.timeAriaLabel}
+          value={time}
+          disabled={!enabled}
+          onChange={(e) => onTimeChange(e.target.value)}
+          style={{
+            ...TIME_INPUT_STYLE,
+            opacity: enabled ? 1 : 0.45,
+          }}
+        />
+      </label>
+    </div>
+  );
+}
+
 function OnboardingNotificationRow({
   row,
   enabled,
@@ -110,7 +153,7 @@ function OnboardingNotificationRow({
   onToggle,
   onTimeChange,
 }: {
-  row: OnboardingRowConfig;
+  row: ReminderRowConfig;
   enabled: boolean;
   time: string;
   onToggle: () => void;
@@ -120,10 +163,14 @@ function OnboardingNotificationRow({
     <div className="notification-picker__row notification-picker__row--stacked">
       <div className="notification-picker__row-head">
         <div className="notification-picker__info">
-          <span className="notification-picker__label">{row.label}</span>
+          <span className="notification-picker__label">{row.onboardingLabel ?? row.label}</span>
           <span className="notification-picker__hint">{row.subtitle}</span>
         </div>
-        <ReminderToggle enabled={enabled} onToggle={onToggle} label={row.label} />
+        <ReminderToggle
+          enabled={enabled}
+          onToggle={onToggle}
+          label={row.onboardingLabel ?? row.label}
+        />
       </div>
       <div
         className={`notification-picker__time-wrap${enabled ? " notification-picker__time-wrap--open" : ""}`}
@@ -194,7 +241,7 @@ export function NotificationPreferencesPicker({
     return (
       <div className="notification-picker notification-picker--onboarding">
         <div className="notification-picker__list notification-picker__list--onboarding">
-          {ONBOARDING_ROWS.map((row, index) => (
+          {REMINDER_ROWS.map((row, index) => (
             <div key={row.enabledKey}>
               {index > 0 ? <div className="notification-picker__divider" aria-hidden /> : null}
               <OnboardingNotificationRow
@@ -213,65 +260,16 @@ export function NotificationPreferencesPicker({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <div className="card" style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Workout reminder</div>
-            <div style={{ fontSize: 12, color: "var(--text-faint-soft)", marginTop: 2 }}>
-              On training days · default {formatNotificationTimeDisplay("07:00")}
-            </div>
-          </div>
-          <ReminderToggle
-            enabled={value.workoutReminderEnabled}
-            onToggle={() => patch({ workoutReminderEnabled: !value.workoutReminderEnabled })}
-            label="Workout reminder"
-          />
-        </div>
-        <label style={{ fontSize: 12, color: "var(--text-faint-soft)" }}>
-          Reminder time
-          <input
-            type="time"
-            aria-label="Workout reminder time"
-            value={value.workoutReminderTime}
-            disabled={!value.workoutReminderEnabled}
-            onChange={(e) => patch({ workoutReminderTime: e.target.value })}
-            style={{
-              ...TIME_INPUT_STYLE,
-              opacity: value.workoutReminderEnabled ? 1 : 0.45,
-            }}
-          />
-        </label>
-      </div>
-
-      <div className="card" style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Nutrition check-in</div>
-            <div style={{ fontSize: 12, color: "var(--text-faint-soft)", marginTop: 2 }}>
-              Daily · default {formatNotificationTimeDisplay("20:00")}
-            </div>
-          </div>
-          <ReminderToggle
-            enabled={value.nutritionCheckInEnabled}
-            onToggle={() => patch({ nutritionCheckInEnabled: !value.nutritionCheckInEnabled })}
-            label="Nutrition check-in"
-          />
-        </div>
-        <label style={{ fontSize: 12, color: "var(--text-faint-soft)" }}>
-          Reminder time
-          <input
-            type="time"
-            aria-label="Nutrition check-in time"
-            value={value.nutritionCheckInTime}
-            disabled={!value.nutritionCheckInEnabled}
-            onChange={(e) => patch({ nutritionCheckInTime: e.target.value })}
-            style={{
-              ...TIME_INPUT_STYLE,
-              opacity: value.nutritionCheckInEnabled ? 1 : 0.45,
-            }}
-          />
-        </label>
-      </div>
+      {REMINDER_ROWS.map((row) => (
+        <SettingsNotificationRow
+          key={row.enabledKey}
+          row={row}
+          enabled={value[row.enabledKey]}
+          time={value[row.timeKey]}
+          onToggle={() => patch({ [row.enabledKey]: !value[row.enabledKey] })}
+          onTimeChange={(next) => patch({ [row.timeKey]: next })}
+        />
+      ))}
 
       {!permissionGranted ? (
         <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: "var(--text-faint-soft)" }}>

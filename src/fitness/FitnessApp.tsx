@@ -21,10 +21,10 @@ import {
 import { ScreenHome } from "./screens/ScreenHome";
 import { ScreenNutrition } from "./screens/ScreenNutrition";
 import { ScreenProgress } from "./screens/ScreenProgress";
-import { ScreenStretch } from "./screens/ScreenStretch";
+import { ScreenSettings } from "./screens/ScreenSettings";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary, applyTemplateOrderUpdate, dismissTemplateOrderUpdatePrompt } from "./finishWorkout";
-import { MOTION_DURATIONS, ScreenTransition, useLockVisualViewportScroll, type NavDirection } from "./motion";
+import { MOTION_DURATIONS, ScreenTransition, useLockVisualViewportScroll } from "./motion";
 import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
 import {
   clearDevPreviewOnboardingUrl,
@@ -207,10 +207,10 @@ function FitnessAppMain({
 }) {
   const [tab, setTab] = useState<TabId>("home");
   const [screenTransitionVariant, setScreenTransitionVariant] = useState<"fade" | "stack">("fade");
-  const [screenTransitionDirection, setScreenTransitionDirection] = useState<NavDirection>("forward");
   const [tabBarRevealDeferred, setTabBarRevealDeferred] = useState(false);
   const [logFoodOpenRequest, setLogFoodOpenRequest] = useState(0);
-  const [stretchStartRequest, setStretchStartRequest] = useState(0);
+  const [mobilityPreviewRequest, setMobilityPreviewRequest] = useState(0);
+  const [mobilitySessionOpen, setMobilitySessionOpen] = useState(false);
   const [homeReselectRequest, setHomeReselectRequest] = useState(0);
   const [logFoodOverlayOpen, setLogFoodOverlayOpen] = useState(false);
   const [routineEditorOpen, setRoutineEditorOpen] = useState(false);
@@ -344,54 +344,55 @@ function FitnessAppMain({
     { id: "progress", label: "Progress", Icon: IconChart },
   ];
 
-  const screens: Record<TabId, ComponentType<ScreenProps>> = {
+  const screens: Record<Exclude<TabId, "stretch">, ComponentType<ScreenProps>> = {
     home: ScreenHome,
     nutrition: ScreenNutrition,
     workout: ScreenWorkout,
     progress: ScreenProgress,
-    stretch: ScreenStretch,
+    settings: ScreenSettings,
   };
 
   const navigate: NavigateFn = (nextTab, options) => {
+    if (nextTab === "stretch") {
+      if (tab !== "home") setTab("home");
+      setMobilityPreviewRequest((n) => n + 1);
+      return;
+    }
+
     if (nextTab === "home" && tab === "home") {
       setHomeReselectRequest((n) => n + 1);
       return;
     }
 
-    const involvesStretch = tab === "stretch" || nextTab === "stretch";
-    if (involvesStretch) {
-      setScreenTransitionVariant("stack");
-      setScreenTransitionDirection(nextTab === "stretch" ? "forward" : "back");
-      if (tab === "stretch" && nextTab === "home") {
-        setTabBarRevealDeferred(true);
-      }
-    } else {
-      setScreenTransitionVariant("fade");
-      setScreenTransitionDirection("forward");
+    if (tab === "settings" && nextTab === "home") {
+      setTabBarRevealDeferred(true);
     }
 
+    setScreenTransitionVariant("fade");
     setTab(nextTab);
     if (options?.openLogFood) setLogFoodOpenRequest((n) => n + 1);
-    if (options?.startStretchSession) setStretchStartRequest((n) => n + 1);
+    if (options?.openMobilityPreview) setMobilityPreviewRequest((n) => n + 1);
   };
 
   useEffect(() => {
     if (!tabBarRevealDeferred) return;
-    const id = window.setTimeout(() => setTabBarRevealDeferred(false), MOTION_DURATIONS.onboarding);
+    const id = window.setTimeout(() => setTabBarRevealDeferred(false), MOTION_DURATIONS.tab * 2);
     return () => window.clearTimeout(id);
   }, [tabBarRevealDeferred]);
 
   useLockVisualViewportScroll();
 
-  const Current = screens[tab];
+  const activeTab: Exclude<TabId, "stretch"> = tab === "stretch" ? "home" : tab;
+  const Current = screens[activeTab];
   const showWorkoutSummary = state.workoutSummary != null;
 
   const hideTabBar =
-    tab === "stretch" ||
+    tab === "settings" ||
     tabBarRevealDeferred ||
     showWorkoutSummary ||
     logFoodOverlayOpen ||
-    routineEditorOpen;
+    routineEditorOpen ||
+    mobilitySessionOpen;
 
   const devPreviewOnboarding = isOnboardingPreviewToolsActive() && isDevPreviewOnboardingEnabled();
   const introEligible = !state.onboardingComplete || devPreviewOnboarding;
@@ -584,21 +585,22 @@ function FitnessAppMain({
             flexDirection: "column",
           }}
         >
-          <ScreenTransition activeKey={tab} variant={screenTransitionVariant} direction={screenTransitionDirection}>
+          <ScreenTransition activeKey={activeTab} variant={screenTransitionVariant} layerBackground="transparent">
             <Current
               state={state}
               setState={setState}
               navigate={navigate}
-              logFoodOpenRequest={tab === "nutrition" ? logFoodOpenRequest : undefined}
+              logFoodOpenRequest={activeTab === "nutrition" ? logFoodOpenRequest : undefined}
               onLogFoodOpenRequestHandled={
-                tab === "nutrition" ? () => setLogFoodOpenRequest(0) : undefined
+                activeTab === "nutrition" ? () => setLogFoodOpenRequest(0) : undefined
               }
-              onLogFoodOpenChange={tab === "nutrition" ? setLogFoodOverlayOpen : undefined}
-              onRoutineEditorOpenChange={tab === "workout" ? setRoutineEditorOpen : undefined}
+              onLogFoodOpenChange={activeTab === "nutrition" ? setLogFoodOverlayOpen : undefined}
+              onRoutineEditorOpenChange={activeTab === "workout" ? setRoutineEditorOpen : undefined}
               homeReselectRequest={homeReselectRequest}
               onHomeReselectHandled={() => setHomeReselectRequest(0)}
-              stretchStartRequest={tab === "stretch" ? stretchStartRequest : undefined}
-              onStretchStartRequestHandled={tab === "stretch" ? () => setStretchStartRequest(0) : undefined}
+              mobilityPreviewRequest={activeTab === "home" ? mobilityPreviewRequest : undefined}
+              onMobilityPreviewRequestHandled={activeTab === "home" ? () => setMobilityPreviewRequest(0) : undefined}
+              onMobilitySessionOpenChange={activeTab === "home" ? setMobilitySessionOpen : undefined}
             />
           </ScreenTransition>
         </div>

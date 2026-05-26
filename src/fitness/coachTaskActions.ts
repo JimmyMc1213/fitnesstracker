@@ -69,7 +69,7 @@ export function handleCoachTaskAction(task: CoachTask, navigate: NavigateFn): vo
   }
   const target = resolveCoachTaskNavigation(task);
   if (target === "stretch") {
-    navigate(target, { startStretchSession: true });
+    navigate("home", { openMobilityPreview: true });
     return;
   }
   if (target) navigate(target);

@@ -1,4 +1,4 @@
-/** Static copy for the nightly stretching flow, mirrors app coaching (low-back care, gentle mobility). */
+/** Static copy for the mobility routine flow, mirrors app coaching (low-back care, gentle mobility). */
 export type StretchBlock = {
   id: string;
   title: string;

@@ -7,7 +7,6 @@ import {
   formatDailyPlanSubtitle,
   formatDateKeyEyebrow,
   generateDailyTasksForDate,
-  isArizonaEightPmOrLater,
   localDateKey,
 } from "./dailyPlan";
 
@@ -31,18 +30,6 @@ describe("arizonaCalendarDateKey", () => {
     expect(arizonaCalendarDateKey(new Date("2026-05-23T06:59:00Z"))).toBe("2026-05-22");
     // 2026-05-23T07:00:00Z = 2026-05-23 00:00 Phoenix
     expect(arizonaCalendarDateKey(new Date("2026-05-23T07:00:00Z"))).toBe("2026-05-23");
-  });
-});
-
-describe("isArizonaEightPmOrLater", () => {
-  it("returns false before 20:00 Phoenix", () => {
-    // 2026-05-23T02:59:00Z = 2026-05-22 19:59 Phoenix
-    expect(isArizonaEightPmOrLater(new Date("2026-05-23T02:59:00Z"))).toBe(false);
-  });
-
-  it("returns true at or after 20:00 Phoenix", () => {
-    // 2026-05-23T03:00:00Z = 2026-05-22 20:00 Phoenix
-    expect(isArizonaEightPmOrLater(new Date("2026-05-23T03:00:00Z"))).toBe(true);
   });
 });
 

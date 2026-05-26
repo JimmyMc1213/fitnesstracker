@@ -58,9 +58,9 @@ describe("handleCoachTaskAction", () => {
     expect(calls).toEqual([{ tab: "nutrition", options: { openLogFood: true } }]);
   });
 
-  it("routes rest-day stretch tasks with startStretchSession", () => {
-    const calls: Array<{ tab: string; options?: { startStretchSession?: boolean } }> = [];
-    const navigate = (tab: string, options?: { startStretchSession?: boolean }) => {
+  it("routes rest-day stretch tasks with openMobilityPreview on home", () => {
+    const calls: Array<{ tab: string; options?: { openMobilityPreview?: boolean } }> = [];
+    const navigate = (tab: string, options?: { openMobilityPreview?: boolean }) => {
       calls.push({ tab, options });
     };
 
@@ -74,6 +74,6 @@ describe("handleCoachTaskAction", () => {
       navigate,
     );
 
-    expect(calls).toEqual([{ tab: "stretch", options: { startStretchSession: true } }]);
+    expect(calls).toEqual([{ tab: "home", options: { openMobilityPreview: true } }]);
   });
 });

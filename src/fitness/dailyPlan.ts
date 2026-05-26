@@ -50,18 +50,6 @@ export function arizonaCalendarDateKey(d: Date): string {
   }).format(d);
 }
 
-/** True from 8:00 PM onward, Arizona local time. */
-export function isArizonaEightPmOrLater(d: Date): boolean {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    hour: "numeric",
-    hour12: false,
-  }).formatToParts(d);
-  const h = parts.find((p) => p.type === "hour")?.value;
-  const hour = h != null ? parseInt(h, 10) : 0;
-  return hour >= 20;
-}
-
 /** Short label for UI, e.g. "Wed · May 6" */
 export function formatDailyPlanSubtitle(d: Date): string {
   return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });

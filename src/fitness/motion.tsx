@@ -5,7 +5,7 @@ import {
   type Transition,
   type Variants,
 } from "framer-motion";
-import { useEffect, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 export const MOTION_DURATIONS = {
@@ -15,6 +15,7 @@ export const MOTION_DURATIONS = {
   sheetExit: 200,
   sheetEnter: 300,
   backdrop: 220,
+  dismiss: 320,
   /** @deprecated Use `tab`, `onboarding`, or `push` — kept for callers using legacy keys */
   fast: 180,
   panel: 250,
@@ -32,17 +33,26 @@ const TAB_PAGE_VARIANTS: Variants = {
 
 const TAB_PAGE_TRANSITION: Transition = { duration: 0.15, ease: "easeInOut" };
 
+/** Matches `.page-transition` / `fadeSlideIn` for in-screen phase swaps (workout, mobility). */
+export const PAGE_LAYER_VARIANTS: Variants = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 4 },
+};
+
+export const PAGE_LAYER_TRANSITION: Transition = { duration: 0.24, ease: [0.22, 1, 0.36, 1] };
+
 const ONBOARDING_TRANSITION: Transition = { duration: 0.25, ease: "easeInOut" };
 
 const onboardingStackVariants: Variants = {
   initial: (direction: NavDirection) => ({
     x: direction === "forward" ? 60 : -60,
-    opacity: 0,
+    opacity: direction === "forward" ? 0 : 0.88,
   }),
   animate: { x: 0, opacity: 1 },
   exit: (direction: NavDirection) => ({
     x: direction === "forward" ? -60 : 60,
-    opacity: 0,
+    opacity: direction === "forward" ? 0.55 : 0.98,
   }),
 };
 
@@ -57,6 +67,18 @@ const pushVariants = (reduceMotion: boolean): Variants =>
 
 const PUSH_ENTER_TRANSITION: Transition = { duration: 0.25, ease: [0, 0, 0.2, 1] };
 const PUSH_EXIT_TRANSITION: Transition = { duration: 0.25, ease: [0.4, 0, 1, 1] };
+
+const DISMISS_ENTER_TRANSITION: Transition = { duration: 0.32, ease: [0.22, 1, 0.36, 1] };
+const DISMISS_EXIT_TRANSITION: Transition = { duration: 0.32, ease: [0.4, 0, 0.2, 1] };
+
+const dismissVariants = (reduceMotion: boolean): Variants =>
+  reduceMotion
+    ? REDUCED_VARIANTS
+    : {
+        initial: { x: "100%", opacity: 1 },
+        animate: { x: 0, opacity: 1, transition: DISMISS_ENTER_TRANSITION },
+        exit: { x: "100%", opacity: 0.98, transition: DISMISS_EXIT_TRANSITION },
+      };
 
 const sheetPanelVariants = (reduceMotion: boolean): Variants =>
   reduceMotion
@@ -97,10 +119,44 @@ const REDUCED_VARIANTS: Variants = {
   exit: { opacity: 0 },
 };
 
-const REDUCED_TRANSITION: Transition = { duration: 0.01 };
+export const REDUCED_TRANSITION: Transition = { duration: 0.01 };
 
 function stackEnterClass(direction: NavDirection): string {
   return direction === "forward" ? "motion-stack-enter-forward" : "motion-stack-enter-back";
+}
+
+/** Keeps panel content tied to the layer instance that mounted it (including exit). */
+function FrozenPanel({
+  layerKey,
+  children,
+}: {
+  layerKey: string;
+  children: ReactNode | ((layerKey: string) => ReactNode);
+}) {
+  const layerKeyRef = useRef(layerKey);
+  return <>{typeof children === "function" ? children(layerKeyRef.current) : children}</>;
+}
+
+function StackLayerPresence({
+  layerKey,
+  children,
+}: {
+  layerKey: string;
+  children: ReactNode | ((layerKey: string) => ReactNode);
+}) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
+      <FrozenPanel layerKey={layerKey}>{children}</FrozenPanel>
+    </div>
+  );
 }
 
 /** Theme-aware panel chrome for bottom sheets (replaces hardcoded dark-only #121212). */
@@ -299,14 +355,23 @@ type FullScreenOverlayProps = {
   zIndex?: number;
   className?: string;
   style?: CSSProperties;
+  /** `push` slides partially left on exit (stack). `dismiss` slides back out to the right. */
+  motionVariant?: "push" | "dismiss";
   children: ReactNode;
 };
 
-export function FullScreenOverlay({ open, zIndex = 200, className = "", style, children }: FullScreenOverlayProps) {
+export function FullScreenOverlay({
+  open,
+  zIndex = 200,
+  className = "",
+  style,
+  motionVariant = "push",
+  children,
+}: FullScreenOverlayProps) {
   const reduceMotion = useReducedMotion();
-  const variants = pushVariants(!!reduceMotion);
+  const variants = motionVariant === "dismiss" ? dismissVariants(!!reduceMotion) : pushVariants(!!reduceMotion);
 
-  return (
+  const overlay = (
     <AnimatePresence>
       {open ? (
         <motion.div
@@ -323,9 +388,11 @@ export function FullScreenOverlay({ open, zIndex = 200, className = "", style, c
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
-            background: "var(--bg, #060608)",
-            paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
+            background: "var(--bg-deep)",
+            paddingTop: "max(12px, env(safe-area-inset-top, 0px))",
+            paddingBottom: "env(safe-area-inset-bottom, 0px)",
             boxSizing: "border-box",
+            willChange: "transform, opacity",
             ...style,
           }}
         >
@@ -334,6 +401,9 @@ export function FullScreenOverlay({ open, zIndex = 200, className = "", style, c
       ) : null}
     </AnimatePresence>
   );
+
+  if (typeof document === "undefined") return overlay;
+  return createPortal(overlay, document.body);
 }
 
 type CenterDialogProps = {
@@ -428,9 +498,11 @@ type ScreenTransitionProps = {
   /** `fade` for tabs; `stack` for onboarding step push/pop. */
   variant?: "fade" | "stack";
   direction?: NavDirection;
+  /** Stack layers default to `--bg-deep`; use `transparent` when sitting on the app shell gradient. */
+  layerBackground?: string;
   className?: string;
   style?: CSSProperties;
-  children: ReactNode;
+  children: ReactNode | ((layerKey: string) => ReactNode);
 };
 
 /** Animate tab / route content when `activeKey` changes. */
@@ -438,6 +510,7 @@ export function ScreenTransition({
   activeKey,
   variant = "fade",
   direction = "forward",
+  layerBackground = "var(--bg-deep)",
   className = "",
   style,
   children,
@@ -457,7 +530,7 @@ export function ScreenTransition({
     const transition = reduceMotion ? REDUCED_TRANSITION : TAB_PAGE_TRANSITION;
 
     return (
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={activeKey}
           className={className || undefined}
@@ -468,7 +541,7 @@ export function ScreenTransition({
           variants={variants}
           transition={transition}
         >
-          {children}
+          <FrozenPanel layerKey={activeKey}>{children}</FrozenPanel>
         </motion.div>
       </AnimatePresence>
     );
@@ -479,7 +552,7 @@ export function ScreenTransition({
 
   return (
     <div className={`motion-stack ${className}`.trim()} style={{ ...baseStyle, position: "relative", overflow: "hidden" }}>
-      <AnimatePresence mode="sync" custom={direction}>
+      <AnimatePresence mode="sync" custom={direction} initial={false}>
         <motion.div
           key={activeKey}
           custom={direction}
@@ -490,7 +563,7 @@ export function ScreenTransition({
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
-            background: "var(--bg, #060608)",
+            background: layerBackground,
           }}
           initial="initial"
           animate="animate"
@@ -498,7 +571,7 @@ export function ScreenTransition({
           variants={variants}
           transition={transition}
         >
-          {children}
+          <StackLayerPresence layerKey={activeKey}>{children}</StackLayerPresence>
         </motion.div>
       </AnimatePresence>
     </div>

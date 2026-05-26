@@ -1,22 +1,49 @@
-import { useEffect, useState, type ChangeEvent, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 
-import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
-import { generateDailyTasksForDate, localDateKey } from "./dailyPlan";
-import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
-import { buildHabitsForDateKey } from "./data";
-import { useFitnessSync } from "./FitnessSyncContext";
-import { IconBolt, IconDroplet, IconMoon, IconRun, IconX } from "./icons";
-import { useTheme } from "./ThemeContext";
-import type { AppTheme } from "./theme";
-import { UnitPreferencePicker } from "./UnitPreferencePicker";
-import { EquipmentSetupPicker } from "./EquipmentSetupPicker";
-import { buildWorkoutTemplates } from "./workoutTemplateBuilder";
-import { NotificationPreferencesPicker } from "./NotificationPreferencesPicker";
-import { getNotificationPermission } from "./notificationPermission";
-import { SectionLabel } from "./shared";
-import { FullScreenOverlay } from "./motion";
-import { REST_TIMER_PRESETS } from "./restTimerPreferences";
-import { PRESET_SELECTED_BG, PRESET_SELECTED_BORDER, PRESET_SELECTED_COLOR } from "./workoutUiTokens";
+import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
+import { MOTION_DURATIONS, ScreenTransition } from "../motion";
+import { generateDailyTasksForDate, localDateKey } from "../dailyPlan";
+import { resolveWorkoutDaysPerWeek } from "../trainingCalendar";
+import { buildHabitsForDateKey } from "../data";
+import { useFitnessSync } from "../FitnessSyncContext";
+import {
+  IconBell,
+  IconBolt,
+  IconChevL,
+  IconDocument,
+  IconDroplet,
+  IconDumbbell,
+  IconFlag,
+  IconFork,
+  IconHabits,
+  IconLogout,
+  IconMail,
+  IconMegaphone,
+  IconMoon,
+  IconRun,
+  IconScale,
+  IconSettings,
+  IconShield,
+  IconSun,
+  IconSync,
+  IconUser,
+} from "../icons";
+import {
+  SettingsComingSoonRow,
+  SettingsHubSection,
+  SettingsProfileCard,
+  SettingsRow,
+} from "../SettingsLayout";
+import { useTheme } from "../ThemeContext";
+import type { AppTheme } from "../theme";
+import { UnitPreferencePicker } from "../UnitPreferencePicker";
+import { EquipmentSetupPicker } from "../EquipmentSetupPicker";
+import { buildWorkoutTemplates } from "../workoutTemplateBuilder";
+import { EQUIPMENT_SETUP_LABELS } from "../equipmentSetup";
+import { NotificationPreferencesPicker } from "../NotificationPreferencesPicker";
+import { getNotificationPermission } from "../notificationPermission";
+import { REST_TIMER_PRESETS } from "../restTimerPreferences";
+import { PRESET_SELECTED_BG, PRESET_SELECTED_BORDER, PRESET_SELECTED_COLOR } from "../workoutUiTokens";
 import {
   formatWaterVolumeAlt,
   formatVolumeFromOz,
@@ -24,15 +51,47 @@ import {
   parseVolumeToOz,
   waterTargetPresets,
   formatWaterPreset,
-} from "./waterIntake";
+} from "../waterIntake";
 import {
   formatWeightFromLbs,
   heightUnitLabel,
   volumeUnitLabel,
   weightUnitLabel,
-} from "./unitPreferences";
-import type { AppState, EquipmentSetup, HabitTemplate, MacroTotals, UnitPreferences } from "./types";
-import { sanitizeUserText } from "./userText";
+} from "../unitPreferences";
+import type { EquipmentSetup, HabitTemplate, MacroTotals, ScreenProps, UnitPreferences } from "../types";
+import { sanitizeUserText } from "../userText";
+
+type SettingsPanel =
+  | null
+  | "you"
+  | "account"
+  | "appearance"
+  | "units"
+  | "fuel-targets"
+  | "hydration"
+  | "reminders"
+  | "rest-timer"
+  | "equipment"
+  | "habits"
+  | "program";
+
+const PANEL_TITLES: Record<Exclude<SettingsPanel, null>, string> = {
+  you: "You",
+  account: "Account",
+  appearance: "Appearance",
+  units: "Units",
+  "fuel-targets": "Fuel targets",
+  hydration: "Hydration",
+  reminders: "Reminders",
+  "rest-timer": "Rest timer",
+  equipment: "Equipment",
+  habits: "Habits checklist",
+  program: "Program",
+};
+
+function rowIcon(node: ReactNode) {
+  return node;
+}
 
 function newHabitId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
@@ -68,20 +127,16 @@ function iconButton(icon: HabitTemplate["icon"], selected: boolean, onPick: () =
   );
 }
 
-export function SettingsSheet({
-  open,
-  state,
-  setState,
-  onClose,
-}: {
-  open: boolean;
-  state: AppState;
-  setState: Dispatch<SetStateAction<AppState>>;
-  onClose: () => void;
-}) {
+function SettingsHelper({ children }: { children: ReactNode }) {
+  return <p className="settings-detail-helper">{children}</p>;
+}
+
+export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
   const todayKey = localDateKey(new Date());
   const T = state.nutritionTargets;
 
+  const [panel, setPanel] = useState<SettingsPanel>(null);
+  const [titleKey, setTitleKey] = useState<Exclude<SettingsPanel, null> | "hub">("hub");
   const [calIn, setCalIn] = useState(String(T.cal));
   const [pIn, setPIn] = useState(String(T.p));
   const [cIn, setCIn] = useState(String(T.c));
@@ -100,6 +155,50 @@ export function SettingsSheet({
   const [syncHint, setSyncHint] = useState<string | null>(null);
   const [notificationPermission, setNotificationPermission] = useState(getNotificationPermission);
   const [pendingHabitRemove, setPendingHabitRemove] = useState<{ id: string; name: string } | null>(null);
+  const activeScrollElRef = useRef<HTMLDivElement | null>(null);
+  const hubScrollTopRef = useRef(0);
+
+  function bindSettingsScrollRef(layerKey: SettingsPanel | "hub") {
+    return (el: HTMLDivElement | null) => {
+      if (layerKey !== (panel ?? "hub")) return;
+      activeScrollElRef.current = el;
+      if (!el) return;
+      el.style.overflow = "";
+      el.scrollTop = layerKey === "hub" ? hubScrollTopRef.current : 0;
+    };
+  }
+
+  useEffect(() => {
+    if (panel === null) {
+      setTitleKey("hub");
+      return;
+    }
+    const id = window.setTimeout(() => setTitleKey(panel), MOTION_DURATIONS.tab);
+    return () => window.clearTimeout(id);
+  }, [panel]);
+
+  function openPanel(next: Exclude<SettingsPanel, null>) {
+    if (panel === null && activeScrollElRef.current) {
+      hubScrollTopRef.current = activeScrollElRef.current.scrollTop;
+    }
+    setPanel(next);
+  }
+
+  function closePanel() {
+    setPanel(null);
+  }
+
+  function handleHeaderBack() {
+    if (panel) {
+      closePanel();
+      return;
+    }
+    const scrollEl = activeScrollElRef.current;
+    if (scrollEl) {
+      scrollEl.style.overflow = "hidden";
+    }
+    navigate("home");
+  }
 
   useEffect(() => {
     setCalIn(String(T.cal));
@@ -163,88 +262,165 @@ export function SettingsSheet({
     };
   }
 
-  return (
-    <FullScreenOverlay open={open} zIndex={250}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="settings-title"
-        style={{
-          flex: 1,
-          minHeight: 0,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-      <div
-        style={{
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "10px 4px 10px 16px",
-          borderBottom: "0.5px solid var(--border)",
-        }}
-      >
-        <div id="settings-title" style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}>
-          Settings
-        </div>
-        <button
-          type="button"
-          className="tap"
-          onClick={onClose}
-          aria-label="Close settings"
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 999,
-            display: "grid",
-            placeItems: "center",
-            color: "var(--text-secondary)",
-          }}
-        >
-          <IconX size={20} stroke={1.8} />
-        </button>
-      </div>
+  const headerTitle = titleKey === "hub" ? "Settings" : PANEL_TITLES[titleKey];
 
-      <div className="screen" style={{ flex: 1, overflow: "auto", paddingBottom: 28 }}>
-        <SectionLabel>Appearance</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
-          Choose light or dark mode for the app interface.
-        </p>
-        <div className="card" style={{ padding: "12px 14px", marginBottom: 18, display: "flex", gap: 8 }}>
-          {(["dark", "light"] as AppTheme[]).map((option) => {
-            const active = theme === option;
-            return (
-              <button
-                key={option}
-                type="button"
-                className="tap"
-                aria-pressed={active}
-                onClick={() => setTheme(option)}
-                style={{
-                  flex: 1,
-                  padding: "12px 14px",
-                  borderRadius: 10,
-                  fontWeight: 700,
-                  fontSize: 14,
-                  border: active ? "2px solid #3B82F6" : "1px solid var(--border)",
-                  background: active ? "rgba(59, 130, 246, 0.12)" : "var(--bg-secondary)",
-                  color: "var(--text-primary)",
-                }}
-              >
-                {option === "dark" ? "Dark" : "Light"}
-              </button>
-            );
-          })}
-        </div>
+  function renderHub() {
+    const accountTrailing = !sync.configured
+      ? "Not configured"
+      : sync.sessionEmail
+        ? sync.lastSyncedLabel ?? "Signed in"
+        : "Sign in";
 
-        <SectionLabel>Account</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
+    return (
+      <>
+        <SettingsProfileCard name={state.displayName} onClick={() => openPanel("you")} />
+
+        <SettingsHubSection title="Account">
+          <SettingsRow
+            icon={rowIcon(<IconSync size={16} stroke={1.6} />)}
+            label="Sync & backup"
+            trailing={accountTrailing}
+            onClick={() => openPanel("account")}
+          />
+        </SettingsHubSection>
+
+        <SettingsHubSection title="Preferences">
+          <SettingsRow
+            icon={rowIcon(theme === "dark" ? <IconMoon size={16} stroke={1.6} /> : <IconSun size={16} stroke={1.6} />)}
+            label="Appearance"
+            trailing={theme === "dark" ? "Dark" : "Light"}
+            onClick={() => openPanel("appearance")}
+          />
+          <SettingsRow
+            icon={rowIcon(<IconScale size={16} stroke={1.6} />)}
+            label="Units"
+            trailing={`${weightUnitLabel(state.unitPreferences.weightUnit)}, ${volumeUnitLabel(state.unitPreferences.volumeUnit)}`}
+            onClick={() => openPanel("units")}
+          />
+        </SettingsHubSection>
+
+        <SettingsHubSection title="Goals & tracking">
+          <SettingsRow
+            icon={rowIcon(<IconFork size={16} stroke={1.6} />)}
+            label="Fuel targets"
+            trailing={`${T.cal} kcal`}
+            onClick={() => openPanel("fuel-targets")}
+          />
+          <SettingsRow
+            icon={rowIcon(<IconDroplet size={16} stroke={1.6} />)}
+            label="Hydration"
+            trailing={formatVolumeFromOz(state.waterDailyTargetOz, volumeUnit)}
+            onClick={() => openPanel("hydration")}
+          />
+          {state.progressGoal ? (
+            <SettingsRow
+              icon={rowIcon(<IconFlag size={16} stroke={1.6} />)}
+              label="Goal range"
+              trailing={`${formatWeightFromLbs(state.progressGoal.goalWeightLowLbs, state.unitPreferences.weightUnit)}–${formatWeightFromLbs(state.progressGoal.goalWeightHighLbs, state.unitPreferences.weightUnit)} ${weightUnitLabel(state.unitPreferences.weightUnit)}`}
+              disabled
+            />
+          ) : null}
+          <SettingsRow
+            icon={rowIcon(<IconBell size={16} stroke={1.6} />)}
+            label="Tracking reminders"
+            onClick={() => openPanel("reminders")}
+          />
+          <SettingsRow
+            icon={rowIcon(<IconRun size={16} stroke={1.6} />)}
+            label="Program"
+            trailing={`${state.stepsTarget.toLocaleString()} steps`}
+            onClick={() => openPanel("program")}
+          />
+        </SettingsHubSection>
+
+        <SettingsHubSection title="Training">
+          <SettingsRow
+            icon={rowIcon(<IconSettings size={16} stroke={1.6} />)}
+            label="Rest timer"
+            trailing={`${state.restTimerDefaultSeconds}s`}
+            onClick={() => openPanel("rest-timer")}
+          />
+          <SettingsRow
+            icon={rowIcon(<IconDumbbell size={16} stroke={1.6} />)}
+            label="Equipment"
+            trailing={EQUIPMENT_SETUP_LABELS[state.equipmentSetup]}
+            onClick={() => openPanel("equipment")}
+          />
+        </SettingsHubSection>
+
+        <SettingsHubSection title="Habits">
+          <SettingsRow
+            icon={rowIcon(<IconHabits size={16} stroke={1.6} />)}
+            label="Daily habits checklist"
+            trailing={`${state.habitTemplates.length} habits`}
+            onClick={() => openPanel("habits")}
+          />
+        </SettingsHubSection>
+
+        <SettingsHubSection title="Legal">
+          <SettingsComingSoonRow icon={rowIcon(<IconDocument size={16} stroke={1.6} />)} label="Terms of service" />
+          <SettingsComingSoonRow icon={rowIcon(<IconShield size={16} stroke={1.6} />)} label="Privacy policy" />
+          <SettingsComingSoonRow icon={rowIcon(<IconMail size={16} stroke={1.6} />)} label="Support email" />
+          <SettingsComingSoonRow icon={rowIcon(<IconMegaphone size={16} stroke={1.6} />)} label="Request a feature" />
+        </SettingsHubSection>
+
+        <SettingsHubSection title="Socials">
+          <SettingsComingSoonRow icon={rowIcon(<IconUser size={16} stroke={1.6} />)} label="Instagram" />
+          <SettingsComingSoonRow icon={rowIcon(<IconUser size={16} stroke={1.6} />)} label="TikTok" />
+          <SettingsComingSoonRow icon={rowIcon(<IconUser size={16} stroke={1.6} />)} label="X" />
+        </SettingsHubSection>
+
+        {sync.sessionEmail ? (
+          <SettingsHubSection title="Account actions">
+            <div className="settings-sign-out-row">
+              <SettingsRow
+                icon={rowIcon(<IconLogout size={16} stroke={1.6} />)}
+                label="Sign out"
+                trailing={null}
+                onClick={() => void sync.signOut()}
+              />
+            </div>
+          </SettingsHubSection>
+        ) : null}
+      </>
+    );
+  }
+
+  function renderYouPanel() {
+    return (
+      <>
+        <SettingsHelper>Your first name appears in the home greeting.</SettingsHelper>
+        <div className="card settings-detail-card">
+          <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            First name
+            <input
+              className="input"
+              style={{ marginTop: 8 }}
+              value={state.displayName}
+              onChange={(e) =>
+                setState((s) => ({
+                  ...s,
+                  displayName: sanitizeUserText(e.target.value),
+                }))
+              }
+              placeholder="Your name"
+              autoCapitalize="words"
+              aria-label="Display name"
+            />
+          </label>
+        </div>
+      </>
+    );
+  }
+
+  function renderAccountPanel() {
+    return (
+      <>
+        <SettingsHelper>
           Sign in with the same account on your phone and computer. Data merges when both sides edit, and the cloud copy is updated after changes (about a second delay).
-        </p>
+        </SettingsHelper>
         {!sync.configured ? (
-          <div className="card" style={{ padding: "16px 18px", marginBottom: 18, fontSize: 13, lineHeight: 1.55, color: "var(--text-secondary)" }}>
+          <div className="card settings-detail-card" style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-secondary)" }}>
             <p style={{ margin: "0 0 10px" }}>
               Cloud sync is off, the app does not see valid Supabase env vars. Fix this, then restart{" "}
               <code style={{ fontSize: 12, color: "var(--text-soft)" }}>npm run dev</code>.
@@ -270,7 +446,7 @@ export function SettingsSheet({
             </ul>
           </div>
         ) : !sync.sessionEmail ? (
-          <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12, marginBottom: 18 }}>
+          <div className="card settings-detail-card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
               Email
               <input
@@ -327,7 +503,7 @@ export function SettingsSheet({
             </button>
           </div>
         ) : (
-          <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12, marginBottom: 18 }}>
+          <div className="card settings-detail-card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Signed in</div>
             <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>{sync.sessionEmail}</div>
             {sync.lastSyncedLabel ? (
@@ -378,37 +554,51 @@ export function SettingsSheet({
             </div>
           </div>
         )}
+      </>
+    );
+  }
 
-        <div style={{ marginTop: 24 }}>
-          <SectionLabel>You</SectionLabel>
+  function renderAppearancePanel() {
+    return (
+      <>
+        <SettingsHelper>Choose light or dark mode for the app interface.</SettingsHelper>
+        <div className="card settings-detail-card" style={{ display: "flex", gap: 8 }}>
+          {(["dark", "light"] as AppTheme[]).map((option) => {
+            const active = theme === option;
+            return (
+              <button
+                key={option}
+                type="button"
+                className="tap"
+                aria-pressed={active}
+                onClick={() => setTheme(option)}
+                style={{
+                  flex: 1,
+                  padding: "12px 14px",
+                  borderRadius: 10,
+                  fontWeight: 700,
+                  fontSize: 14,
+                  border: active ? "2px solid #3B82F6" : "1px solid var(--border)",
+                  background: active ? "rgba(59, 130, 246, 0.12)" : "var(--bg-secondary)",
+                  color: "var(--text-primary)",
+                }}
+              >
+                {option === "dark" ? "Dark" : "Light"}
+              </button>
+            );
+          })}
         </div>
-        <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
-          <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            First name (home greeting)
-            <input
-              className="input"
-              style={{ marginTop: 8 }}
-              value={state.displayName}
-              onChange={(e) =>
-                setState((s) => ({
-                  ...s,
-                  displayName: sanitizeUserText(e.target.value),
-                }))
-              }
-              placeholder="Your name"
-              autoCapitalize="words"
-              aria-label="Display name"
-            />
-          </label>
-        </div>
+      </>
+    );
+  }
 
-        <div style={{ marginTop: 24 }}>
-          <SectionLabel>Units</SectionLabel>
-        </div>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
+  function renderUnitsPanel() {
+    return (
+      <>
+        <SettingsHelper>
           Weight, height, and hydration display units. Logged values are stored consistently; switching units only changes how numbers are shown.
-        </p>
-        <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
+        </SettingsHelper>
+        <div className="card settings-detail-card">
           <UnitPreferencePicker
             value={state.unitPreferences}
             onChange={(next: UnitPreferences) =>
@@ -419,12 +609,15 @@ export function SettingsSheet({
             }
           />
         </div>
+      </>
+    );
+  }
 
-        <SectionLabel>Rest timer</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
-          Default rest between sets. Tap the timer line on any exercise to change it.
-        </p>
-        <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
+  function renderRestTimerPanel() {
+    return (
+      <>
+        <SettingsHelper>Default rest between sets. Tap the timer line on any exercise to change it for that exercise.</SettingsHelper>
+        <div className="card settings-detail-card">
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {REST_TIMER_PRESETS.map((sec) => {
               const selected = state.restTimerDefaultSeconds === sec;
@@ -457,28 +650,32 @@ export function SettingsSheet({
             })}
           </div>
         </div>
+      </>
+    );
+  }
 
-        <SectionLabel>Reminders</SectionLabel>
-        <div style={{ marginBottom: 18 }}>
-          <NotificationPreferencesPicker
-            value={state.notificationPreferences}
-            onChange={(notificationPreferences) =>
-              setState((s) => ({
-                ...s,
-                notificationPreferences,
-              }))
-            }
-            permission={notificationPermission}
-            onPermissionChange={setNotificationPermission}
-            showPermissionHint
-          />
-        </div>
+  function renderRemindersPanel() {
+    return (
+      <NotificationPreferencesPicker
+        value={state.notificationPreferences}
+        onChange={(notificationPreferences) =>
+          setState((s) => ({
+            ...s,
+            notificationPreferences,
+          }))
+        }
+        permission={notificationPermission}
+        onPermissionChange={setNotificationPermission}
+        showPermissionHint
+      />
+    );
+  }
 
-        <SectionLabel>Hydration</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
-          Daily water intake target on the Nutrition tab. Display follows your volume unit above.
-        </p>
-        <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
+  function renderHydrationPanel() {
+    return (
+      <>
+        <SettingsHelper>Daily water intake target on the Nutrition tab. Display follows your volume unit in Preferences.</SettingsHelper>
+        <div className="card settings-detail-card">
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
             {waterTargetPresets(volumeUnit).map((preset) => {
               const presetOz =
@@ -542,12 +739,15 @@ export function SettingsSheet({
             {formatWaterVolumeAlt(state.waterDailyTargetOz, volumeUnit)}
           </div>
         </div>
+      </>
+    );
+  }
 
-        <SectionLabel>Equipment</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
-          Workout templates swap exercises to match what you have available.
-        </p>
-        <div className="card" style={{ padding: "16px 18px", marginBottom: 18 }}>
+  function renderEquipmentPanel() {
+    return (
+      <>
+        <SettingsHelper>Workout templates swap exercises to match what you have available.</SettingsHelper>
+        <div className="card settings-detail-card">
           <EquipmentSetupPicker
             value={state.equipmentSetup}
             onChange={(next: EquipmentSetup) =>
@@ -560,23 +760,15 @@ export function SettingsSheet({
             }
           />
         </div>
+      </>
+    );
+  }
 
-        {state.progressGoal ? (
-          <>
-            <SectionLabel>Goal range</SectionLabel>
-            <div className="card" style={{ padding: "16px 18px", marginBottom: 18, fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-              {formatWeightFromLbs(state.progressGoal.goalWeightLowLbs, state.unitPreferences.weightUnit)}–
-              {formatWeightFromLbs(state.progressGoal.goalWeightHighLbs, state.unitPreferences.weightUnit)}{" "}
-              {weightUnitLabel(state.unitPreferences.weightUnit)} · height in {heightUnitLabel(state.unitPreferences.heightUnit)}
-            </div>
-          </>
-        ) : null}
-
-        <SectionLabel>Fuel targets</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
-          Daily calorie and macro goals used on Home, Fuel, habits copy, and weekly review math.
-        </p>
-        <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
+  function renderFuelTargetsPanel() {
+    return (
+      <>
+        <SettingsHelper>Daily calorie and macro goals used on Home, Fuel, habits copy, and weekly review math.</SettingsHelper>
+        <div className="card settings-detail-card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Calories (kcal)
             <input aria-label="Target calories" {...macroFieldProps("cal", calIn, setCalIn)} />
@@ -596,11 +788,16 @@ export function SettingsSheet({
             </label>
           </div>
         </div>
+      </>
+    );
+  }
 
-        <SectionLabel>Habits checklist</SectionLabel>
-        <p style={{ margin: "0 0 14px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
+  function renderHabitsPanel() {
+    return (
+      <>
+        <SettingsHelper>
           Rename, pick an icon, or add rows. The runner icon shows your steps goal and program week on the Home daily habits card.
-        </p>
+        </SettingsHelper>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {state.habitTemplates.map((h) => (
             <div key={h.id} className="card" style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -618,7 +815,7 @@ export function SettingsSheet({
                     };
                   });
                 }}
-                aria-label={`Habit name`}
+                aria-label="Habit name"
               />
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 10, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", marginRight: 4 }}>ICON</span>
@@ -677,9 +874,24 @@ export function SettingsSheet({
             + Add habit
           </button>
         </div>
+      </>
+    );
+  }
 
-        <SectionLabel>Program</SectionLabel>
-        <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16 }}>
+  function renderProgramPanel() {
+    return (
+      <>
+        {state.progressGoal ? (
+          <>
+            <h2 className="settings-inline-label">Goal range</h2>
+            <div className="card settings-detail-card" style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+              {formatWeightFromLbs(state.progressGoal.goalWeightLowLbs, state.unitPreferences.weightUnit)}–
+              {formatWeightFromLbs(state.progressGoal.goalWeightHighLbs, state.unitPreferences.weightUnit)}{" "}
+              {weightUnitLabel(state.unitPreferences.weightUnit)} · height in {heightUnitLabel(state.unitPreferences.heightUnit)}
+            </div>
+          </>
+        ) : null}
+        <div className="card settings-detail-card" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Block start date
             <input
@@ -738,8 +950,67 @@ export function SettingsSheet({
             />
           </label>
         </div>
-      </div>
-      </div>
+      </>
+    );
+  }
+
+  function renderPanelByKey(panelKey: SettingsPanel | "hub") {
+    switch (panelKey) {
+      case "you":
+        return renderYouPanel();
+      case "account":
+        return renderAccountPanel();
+      case "appearance":
+        return renderAppearancePanel();
+      case "units":
+        return renderUnitsPanel();
+      case "fuel-targets":
+        return renderFuelTargetsPanel();
+      case "hydration":
+        return renderHydrationPanel();
+      case "reminders":
+        return renderRemindersPanel();
+      case "rest-timer":
+        return renderRestTimerPanel();
+      case "equipment":
+        return renderEquipmentPanel();
+      case "habits":
+        return renderHabitsPanel();
+      case "program":
+        return renderProgramPanel();
+      default:
+        return renderHub();
+    }
+  }
+
+  return (
+    <div className="settings-screen">
+      <header className="settings-sheet-header">
+        <div className="settings-sheet-header__side">
+          <button
+            type="button"
+            className="tap settings-sheet-header__icon-btn"
+            onClick={handleHeaderBack}
+            aria-label={panel ? "Back to settings" : "Back to home"}
+          >
+            <IconChevL size={20} stroke={1.8} />
+          </button>
+        </div>
+        <h1 id="settings-title" className="settings-sheet-header__title">
+          {headerTitle}
+        </h1>
+        <div className="settings-sheet-header__side">
+          <span className="settings-sheet-header__spacer" aria-hidden />
+        </div>
+      </header>
+
+      <ScreenTransition activeKey={panel ?? "hub"} variant="fade">
+        {(layerKey) => (
+          <div ref={bindSettingsScrollRef(layerKey as SettingsPanel | "hub")} className="settings-sheet-body">
+            {renderPanelByKey(layerKey as SettingsPanel | "hub")}
+          </div>
+        )}
+      </ScreenTransition>
       {pendingHabitRemove ? (
         <DeleteConfirmSheet
           title="Remove habit?"
@@ -777,6 +1048,6 @@ export function SettingsSheet({
           }}
         />
       ) : null}
-    </FullScreenOverlay>
+    </div>
   );
 }

@@ -3,13 +3,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { buildCoachContext, getHomeCoachPlan, getWeighInReactionForDisplay } from "../coachEngine";
 import { buildHabitsForDateKey, pruneHabitsDoneByDay } from "../data";
 import { dailyHabitTemplatesFromState, habitsForDateKey, HomeDailyHabitsCard } from "../HomeDailyHabitsCard";
-import { arizonaCalendarDateKey, formatDateKeyEyebrow, isArizonaEightPmOrLater, localDateKey } from "../dailyPlan";
+import { formatDateKeyEyebrow, localDateKey } from "../dailyPlan";
+import { MobilityRoutineFlow } from "../stretch/MobilityRoutineFlow";
 import { isMobilityHabit } from "../mobilityHabit";
 import { HomeDashboardCarousel } from "../HomeDashboardCarousel";
 import { homeGreetingTitle } from "../homeGreeting";
-import { IconCheck, IconChevR, IconSettings } from "../icons";
-import { formatNotificationTimeDisplay } from "../notificationPreferences";
-import { SettingsSheet } from "../SettingsSheet";
+import { IconChevR, IconSettings } from "../icons";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { WeighInCoachReaction } from "../WeighInCoachReaction";
 import { WeighInSheet } from "../WeighInSheet";
@@ -20,7 +19,7 @@ import {
   shouldShowSundayCheckIn,
   sundayNoonForCurrentWeek,
 } from "../sundayCheckIn";
-import { ScreenHeader, PrimaryButton } from "../shared";
+import { ScreenHeader } from "../shared";
 import type { ScreenProps } from "../types";
 
 export function ScreenHome({
@@ -29,6 +28,9 @@ export function ScreenHome({
   navigate,
   homeReselectRequest,
   onHomeReselectHandled,
+  mobilityPreviewRequest,
+  onMobilityPreviewRequestHandled,
+  onMobilitySessionOpenChange,
 }: ScreenProps) {
   const T = state.nutritionTargets;
   const [clock, setClock] = useState(() => new Date());
@@ -40,15 +42,23 @@ export function ScreenHome({
   const totals = effectiveNutritionTotalsForDateKey(state.nutritionManualByDay, state.nutritionItemsByDay, activeDateKey);
   const dayEntry = state.weightLog.find((e) => e.dateKey === activeDateKey);
 
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [weighInOpen, setWeighInOpen] = useState(false);
+  const [mobilityPreviewOpen, setMobilityPreviewOpen] = useState(false);
+  const handledMobilityPreviewRequestRef = useRef(0);
 
   useEffect(() => {
     if (!homeReselectRequest) return;
-    setSettingsOpen(false);
     setWeighInOpen(false);
+    setMobilityPreviewOpen(false);
     onHomeReselectHandled?.();
   }, [homeReselectRequest, onHomeReselectHandled]);
+
+  useEffect(() => {
+    if (!mobilityPreviewRequest || mobilityPreviewRequest <= handledMobilityPreviewRequestRef.current) return;
+    handledMobilityPreviewRequestRef.current = mobilityPreviewRequest;
+    setMobilityPreviewOpen(true);
+    onMobilityPreviewRequestHandled?.();
+  }, [mobilityPreviewRequest, onMobilityPreviewRequestHandled]);
 
   const greetingName = state.displayName.trim();
   const todayForGreeting = isViewingToday ? clock : new Date(activeDateKey.replace(/-/g, "/"));
@@ -88,16 +98,6 @@ export function ScreenHome({
         day: "numeric",
       });
 
-  const arizonaTodayKey = arizonaCalendarDateKey(clock);
-  const showNightlyStretchWindow = isViewingToday && isArizonaEightPmOrLater(clock);
-  const nightlyStretchDone = state.nightlyStretchCompletedArizonaKey === arizonaTodayKey;
-  const stretchReminderEnabled = state.notificationPreferences.nightlyStretchReminderEnabled;
-  const stretchReminderTimeLabel = formatNotificationTimeDisplay(
-    state.notificationPreferences.nightlyStretchReminderTime,
-  );
-  const nightlyStretchLabel = stretchReminderEnabled
-    ? `Nightly stretching · ${stretchReminderTimeLabel}`
-    : "Nightly stretching";
   const fuelLabel = isViewingToday ? "Fuel · Today" : "Fuel";
 
   const showWeighInFullCard = isViewingToday && !dayEntry;
@@ -166,6 +166,14 @@ export function ScreenHome({
   }
 
   return (
+    <MobilityRoutineFlow
+      state={state}
+      setState={setState}
+      previewOpen={mobilityPreviewOpen}
+      onPreviewOpenChange={setMobilityPreviewOpen}
+      onSessionOpenChange={onMobilitySessionOpenChange}
+      dismissRequest={homeReselectRequest}
+    >
     <div className="screen" style={{ position: "relative" }}>
       <ScreenHeader
         eyebrow={headerEyebrow}
@@ -174,7 +182,7 @@ export function ScreenHome({
           <button
             type="button"
             className="tap"
-            onClick={() => setSettingsOpen(true)}
+            onClick={() => navigate("settings")}
             style={{
               width: 36,
               height: 36,
@@ -263,6 +271,7 @@ export function ScreenHome({
         coachPlan={coachPlan}
         state={state}
         onNavigate={navigate}
+        onOpenMobilityPreview={() => setMobilityPreviewOpen(true)}
       />
 
       <HomeDailyHabitsCard
@@ -273,7 +282,7 @@ export function ScreenHome({
         dateKey={activeDateKey}
         readOnly={!isViewingToday}
         onToggle={toggleHabit}
-        onMobilityPress={() => navigate("stretch", { startStretchSession: true })}
+        onMobilityPress={() => setMobilityPreviewOpen(true)}
         onOpenWeighIn={() => setWeighInOpen(true)}
         onSaveHabitTemplates={saveDailyHabitTemplates}
       />
@@ -286,95 +295,7 @@ export function ScreenHome({
         />
       ) : null}
 
-      {showNightlyStretchWindow ? (
-        nightlyStretchDone ? (
-          <button
-            type="button"
-            className="tap card"
-            onClick={() => navigate("stretch")}
-            aria-label="Open nightly stretching routine"
-            style={{
-              padding: 16,
-              marginTop: 18,
-              borderColor: "rgba(196,181,253,0.3)",
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              width: "100%",
-              textAlign: "left",
-            }}
-          >
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 999,
-                background: "rgba(196,181,253,0.12)",
-                display: "grid",
-                placeItems: "center",
-                flexShrink: 0,
-              }}
-            >
-              <IconCheck size={22} stroke={2.4} style={{ color: "rgb(196,181,253)" }} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "var(--text-primary)" }}>Nightly stretching</div>
-              <div style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, marginTop: 4 }}>
-                Finished · tap to open your full routine
-              </div>
-            </div>
-            <IconChevR size={18} stroke={2} style={{ color: "var(--text-tertiary)", flexShrink: 0 }} />
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="tap card"
-            onClick={() => navigate("stretch")}
-            aria-label="Open nightly stretching routine"
-            style={{
-              padding: 18,
-              marginTop: 18,
-              borderColor: "rgba(196,181,253,0.28)",
-              width: "100%",
-              textAlign: "left",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: "rgba(196,181,253,0.75)",
-                marginBottom: 8,
-              }}
-            >
-              {nightlyStretchLabel}
-            </div>
-            <p style={{ margin: "0 0 14px", fontSize: 12, lineHeight: 1.5, color: "var(--text-secondary)", fontWeight: 400 }}>
-              Open your routine for the full checklist, hips, hamstrings, spine, activation. Mark complete when you finish.
-            </p>
-            <PrimaryButton
-              block
-              disabled
-              aria-hidden
-              style={{ marginTop: 0, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-            >
-              Open full routine
-              <IconChevR size={16} stroke={2.5} />
-            </PrimaryButton>
-          </button>
-        )
-      ) : null}
-
       <div style={{ height: 8 }} />
-
-      <SettingsSheet
-        open={settingsOpen}
-        state={state}
-        setState={setState}
-        onClose={() => setSettingsOpen(false)}
-      />
 
       <WeighInSheet
         open={weighInOpen}
@@ -385,5 +306,6 @@ export function ScreenHome({
         setState={setState}
       />
     </div>
+    </MobilityRoutineFlow>
   );
 }

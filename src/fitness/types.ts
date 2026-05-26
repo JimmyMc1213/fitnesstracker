@@ -265,12 +265,9 @@ export type NotificationPreferences = {
   morningCheckInTime: string;
   weeklyReviewEnabled: boolean;
   weeklyReviewTime: string;
-  nightlyStretchReminderEnabled: boolean;
-  nightlyStretchReminderTime: string;
   /** Last local date keys a reminder was shown, prevents duplicate fires per day */
   lastFiredWorkoutReminderDateKey: string | null;
   lastFiredNutritionReminderDateKey: string | null;
-  lastFiredNightlyStretchReminderDateKey: string | null;
 };
 
 /** Stats and preferences collected during full onboarding (FTI-14). */
@@ -337,7 +334,7 @@ export type UnitPreferences = {
   volumeUnit: VolumeUnit;
 };
 
-export type TabId = "home" | "nutrition" | "workout" | "progress" | "stretch";
+export type TabId = "home" | "nutrition" | "workout" | "progress" | "stretch" | "settings";
 
 /** One actionable item for the day, training, fuel, recovery. */
 export type DailyTask = {
@@ -464,7 +461,7 @@ export type AppState = {
   /** Last Sunday you finished the review flow (approve or skip), blocks the sheet until next week. */
   sundayReviewCompletedKey: string | null;
   adjustmentHistory: AdjustmentEvent[];
-  /** Phoenix calendar date (YYYY-MM-DD) when nightly stretch was marked done. */
+  /** Phoenix calendar date (YYYY-MM-DD) when mobility routine was marked done. */
   nightlyStretchCompletedArizonaKey: string | null;
   /** Per Arizona calendar day, stretch block ids marked complete (`stretchRoutine` ids). */
   nightlyStretchBlockIdsByArizonaDay: Record<string, string[]>;
@@ -506,8 +503,8 @@ export type AppState = {
 export type NavigateOptions = {
   /** When navigating to Nutrition, open the Log Food overlay after tab switch. */
   openLogFood?: boolean;
-  /** When navigating to Stretch, start the active session immediately. */
-  startStretchSession?: boolean;
+  /** When navigating to Home, open the mobility preview sheet. */
+  openMobilityPreview?: boolean;
 };
 
 export type NavigateFn = (tab: TabId, options?: NavigateOptions) => void;
@@ -527,9 +524,11 @@ export type ScreenProps = {
   /** Incremented when Home tab is tapped while already active — dismiss home overlays. */
   homeReselectRequest?: number;
   onHomeReselectHandled?: () => void;
-  /** Incremented when navigating to Stretch with startStretchSession. */
-  stretchStartRequest?: number;
-  onStretchStartRequestHandled?: () => void;
+  /** Incremented when Home should open the mobility preview sheet. */
+  mobilityPreviewRequest?: number;
+  onMobilityPreviewRequestHandled?: () => void;
+  /** Home reports mobility session overlay open state so the main tab bar can hide. */
+  onMobilitySessionOpenChange?: (open: boolean) => void;
 };
 
 export type IconProps = {

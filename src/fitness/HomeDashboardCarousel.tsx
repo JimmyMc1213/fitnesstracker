@@ -22,6 +22,7 @@ type Props = {
   coachPlan: HomeCoachPlan | null;
   state: AppState;
   onNavigate: NavigateFn;
+  onOpenMobilityPreview?: () => void;
 };
 
 const CAROUSEL_CARD_HEIGHT = 196;
@@ -191,6 +192,7 @@ function TrainingSlide({
   isToday,
   proteinLeft,
   onNavigate,
+  onOpenMobilityPreview,
 }: {
   coachCtx: CoachContext | null;
   coachPlan: HomeCoachPlan | null;
@@ -198,6 +200,7 @@ function TrainingSlide({
   isToday: boolean;
   proteinLeft: number;
   onNavigate: NavigateFn;
+  onOpenMobilityPreview?: () => void;
 }) {
   const splitSubline = coachCtx ? homePlanSubline(state, coachCtx.now) : null;
   const template = coachCtx?.todayTemplate ?? null;
@@ -305,7 +308,7 @@ function TrainingSlide({
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {showStretchCta ? (
-            <SecondaryButton block onClick={() => onNavigate("stretch", { startStretchSession: true })}>
+            <SecondaryButton block onClick={() => onOpenMobilityPreview?.()}>
               Start stretch routine →
             </SecondaryButton>
           ) : isToday ? (
@@ -329,6 +332,7 @@ export function HomeDashboardCarousel({
   coachPlan,
   state,
   onNavigate,
+  onOpenMobilityPreview,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -400,6 +404,7 @@ export function HomeDashboardCarousel({
             isToday={isToday}
             proteinLeft={proteinLeft}
             onNavigate={onNavigate}
+            onOpenMobilityPreview={onOpenMobilityPreview}
           />
         </div>
       </div>
