@@ -22,7 +22,7 @@ export function localDateKey(d = new Date()): string {
   return `${y}-${m}-${day}`;
 }
 
-const DEFAULT_TARGETS = { cal: 2200, p: 180, c: 220, f: 65 };
+const DEFAULT_TARGETS = { cal: 2000, p: 150, c: 200, f: 65 };
 
 const BASE_WORKOUT_TEMPLATES = [
   {
@@ -71,7 +71,7 @@ function basePersistSlice(dateKey: string) {
       lastFiredNutritionReminderDateKey: null,
     },
     workout: {
-      splitId: "mon-upper",
+      splitId: "",
       exercises: [],
       sessionPhase: "idle",
       startedAt: "-",

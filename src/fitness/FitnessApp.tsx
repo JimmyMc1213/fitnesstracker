@@ -2,11 +2,7 @@ import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 
 
 import { buildAppStateFromPersisted } from "./buildAppState";
 import { seedDefaultData } from "./defaultSeed";
-import {
-  loadTasksForToday,
-  localDateKey,
-  persistTasksForToday,
-} from "./dailyPlan";
+import { localDateKey } from "./dailyPlan";
 import { buildHabitsForDateKey } from "./data";
 import { AuthScreen } from "./AuthScreen";
 import { FitnessSyncContext, useFitnessSync } from "./FitnessSyncContext";
@@ -46,9 +42,10 @@ import {
 } from "./icons";
 import { registerNotificationServiceWorker } from "./registerNotificationServiceWorker";
 import { checkAndFireDueNotifications } from "./notificationScheduler";
+import { SundayWeeklyCheckInFlow } from "./SundayWeeklyCheckInFlow";
+import { useSundayWeeklyCheckIn } from "./useSundayWeeklyCheckIn";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
 import { UpdateTemplateOrderConfirmSheet } from "./workout/UpdateTemplateOrderConfirmSheet";
-import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
 import { ThemeProvider } from "./ThemeContext";
 import type { AppTheme } from "./theme";
 import type { AppState, NavigateFn, ScreenProps, TabId } from "./types";
@@ -90,10 +87,6 @@ function HydrationSplash() {
       Loading your plan…
     </div>
   );
-}
-
-function workoutDaysPerWeekFromState(s: AppState) {
-  return resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek);
 }
 
 function OnboardingGate({
@@ -206,6 +199,8 @@ function FitnessAppMain({
   setState: React.Dispatch<React.SetStateAction<AppState>>;
 }) {
   const [tab, setTab] = useState<TabId>("home");
+  const [sundayCheckInPresent, setSundayCheckInPresent] = useState(false);
+  const sundayWeeklyCheckIn = useSundayWeeklyCheckIn(state, setState);
   const [screenTransitionVariant, setScreenTransitionVariant] = useState<"fade" | "stack">("fade");
   const [tabBarEnterDelayed, setTabBarEnterDelayed] = useState(false);
   const [logFoodOpenRequest, setLogFoodOpenRequest] = useState(0);
@@ -223,9 +218,12 @@ function FitnessAppMain({
     if (tab !== "nutrition") setLogFoodOverlayOpen(false);
   }, [tab]);
 
+  useEffect(() => {
+    if (homeReselectRequest > 0) sundayWeeklyCheckIn.closeFlow();
+  }, [homeReselectRequest, sundayWeeklyCheckIn.closeFlow]);
+
   const syncSig = JSON.stringify(sliceFromAppState(state));
   const fitnessSync = useFitnessCloudSync(syncSig, state, setState);
-  const daysPerWeek = workoutDaysPerWeekFromState(state);
 
   const activeDayKey = useRef(localDateKey(new Date()));
   const stateRef = useRef(state);
@@ -259,17 +257,6 @@ function FitnessAppMain({
     setAuthViewOverride("signin");
     await fitnessSync.signOut();
   };
-
-  useEffect(() => {
-    persistTasksForToday(
-      state.dailyTasks,
-      state.nutritionTargets,
-      state.planStartIso,
-      state.stepsTarget,
-      state.workoutTemplates,
-      daysPerWeek,
-    );
-  }, [state.dailyTasks, state.nutritionTargets, state.planStartIso, state.stepsTarget, state.workoutTemplates, daysPerWeek]);
 
   useEffect(() => {
     savePersistedSlice(sliceFromAppState(state));
@@ -316,16 +303,9 @@ function FitnessAppMain({
       if (today === activeDayKey.current) return;
       activeDayKey.current = today;
       setState((s) => {
-        const tasks = loadTasksForToday(
-          s.nutritionTargets,
-          s.planStartIso,
-          s.stepsTarget,
-          s.workoutTemplates,
-          resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek),
-        );
         const weightLogged = s.weightLog.some((e) => e.dateKey === today);
         const habits = buildHabitsForDateKey(s.habitTemplates, s.habitsDoneByDay, today, { weightLogged });
-        return { ...s, dailyTasks: tasks, habits };
+        return { ...s, habits };
       });
     };
 
@@ -392,7 +372,8 @@ function FitnessAppMain({
     showWorkoutSummary ||
     logFoodOverlayOpen ||
     routineEditorOpen ||
-    mobilitySessionOpen;
+    mobilitySessionOpen ||
+    sundayCheckInPresent;
 
   const devPreviewOnboarding = isOnboardingPreviewToolsActive() && isDevPreviewOnboardingEnabled();
   const introEligible = !state.onboardingComplete || devPreviewOnboarding;
@@ -601,6 +582,16 @@ function FitnessAppMain({
               mobilityPreviewRequest={activeTab === "home" ? mobilityPreviewRequest : undefined}
               onMobilityPreviewRequestHandled={activeTab === "home" ? () => setMobilityPreviewRequest(0) : undefined}
               onMobilitySessionOpenChange={activeTab === "home" ? setMobilitySessionOpen : undefined}
+              sundayCheckIn={
+                activeTab === "home"
+                  ? {
+                      available: sundayWeeklyCheckIn.available,
+                      completed: sundayWeeklyCheckIn.completed,
+                      data: sundayWeeklyCheckIn.data,
+                      onOpenFlow: sundayWeeklyCheckIn.openFlow,
+                    }
+                  : undefined
+              }
             />
           </ScreenTransition>
         </div>
@@ -649,6 +640,15 @@ function FitnessAppMain({
         ) : null}
       </div>
       </OnboardingGate>
+
+      <SundayWeeklyCheckInFlow
+        open={sundayWeeklyCheckIn.flowOpen}
+        data={sundayWeeklyCheckIn.data}
+        unitPreferences={state.unitPreferences}
+        onClose={sundayWeeklyCheckIn.closeFlow}
+        onComplete={sundayWeeklyCheckIn.complete}
+        onPresentChange={setSundayCheckInPresent}
+      />
       </>
       )}
     </FitnessSyncContext.Provider>

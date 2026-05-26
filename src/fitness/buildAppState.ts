@@ -1,12 +1,9 @@
-import {
-  loadTasksForToday,
-  localDateKey,
-} from "./dailyPlan";
+import { normalizeSundayCheckInHistory } from "./sundayCheckInHistory";
+import { localDateKey } from "./dailyPlan";
 import { sanitizeCoachCopy } from "./exerciseSessionNotes";
 import {
   DEFAULT_NUTRITION_TARGETS,
   INITIAL_WORKOUT,
-  PLAN_START_ISO,
   buildHabitsForDateKey,
   dedupeHabitTemplates,
   normalizeWorkoutTemplates,
@@ -53,6 +50,7 @@ import type {
   MacroTotals,
   ProgressGoalConfig,
   SubscriptionTier,
+  WeekFocusCommitment,
   WeightEntry,
   WorkoutState,
 } from "./types";
@@ -224,6 +222,21 @@ function isValidPlanStartIso(s: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(`${s}T12:00:00`));
 }
 
+function normalizeWeekFocusCommitments(raw: unknown): WeekFocusCommitment[] {
+  if (!Array.isArray(raw)) return [];
+  const out: WeekFocusCommitment[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const id = typeof o.id === "string" ? o.id : "";
+    const title = typeof o.title === "string" ? o.title.trim() : "";
+    const subtitle = typeof o.subtitle === "string" ? o.subtitle.trim() : "";
+    if (!id || !title) continue;
+    out.push({ id, title, subtitle });
+  }
+  return out;
+}
+
 function normalizeProgressGoal(raw: unknown): ProgressGoalConfig | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
@@ -356,7 +369,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
       : lastAdj;
   const displayName = typeof p?.displayName === "string" && p.displayName.trim() ? p.displayName.trim() : "";
   const planStartIso =
-    typeof p?.planStartIso === "string" && isValidPlanStartIso(p.planStartIso) ? p.planStartIso : PLAN_START_ISO;
+    typeof p?.planStartIso === "string" && isValidPlanStartIso(p.planStartIso) ? p.planStartIso : localDateKey(new Date());
   const stepsTarget =
     typeof p?.stepsTarget === "number" && Number.isFinite(p.stepsTarget) && p.stepsTarget >= 1000 && p.stepsTarget <= 100_000
       ? Math.round(p.stepsTarget)
@@ -390,7 +403,6 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
   const onboardingDraft = onboardingComplete ? null : normalizeOnboardingDraft(p?.onboardingDraft);
   const subscriptionTier = normalizeSubscriptionTier(p?.subscriptionTier);
   const theme = p?.theme != null ? normalizeAppTheme(p.theme) : readStoredTheme();
-  const workoutDaysPerWeek = onboardingProfile.workoutDaysPerWeek;
 
   const baseState: AppState = {
     displayName,
@@ -425,11 +437,16 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey, {
       weightLogged: weightLog.some((e) => e.dateKey === todayKey),
     }),
-    dailyTasks: loadTasksForToday(nutritionTargets, planStartIso, stepsTarget, workoutTemplates, workoutDaysPerWeek),
     nutritionTargets,
     weightLog,
     lastAdjustmentSundayKey: lastAdj,
     sundayReviewCompletedKey: reviewDone,
+    weekFocusCommitments: normalizeWeekFocusCommitments(p?.weekFocusCommitments),
+    weekFocusWeekStartKey:
+      typeof p?.weekFocusWeekStartKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.weekFocusWeekStartKey)
+        ? p.weekFocusWeekStartKey
+        : null,
+    sundayCheckInHistory: normalizeSundayCheckInHistory(p?.sundayCheckInHistory),
     adjustmentHistory: normalizeAdjustmentHistory(p?.adjustmentHistory),
     nightlyStretchCompletedArizonaKey:
       typeof p?.nightlyStretchCompletedArizonaKey === "string"

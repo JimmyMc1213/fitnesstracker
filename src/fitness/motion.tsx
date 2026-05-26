@@ -46,13 +46,19 @@ const ONBOARDING_TRANSITION: Transition = { duration: 0.25, ease: "easeInOut" };
 
 const onboardingStackVariants: Variants = {
   initial: (direction: NavDirection) => ({
-    x: direction === "forward" ? 60 : -60,
-    opacity: direction === "forward" ? 0 : 0.88,
+    x: direction === "forward" ? "100%" : "-28%",
+    zIndex: direction === "forward" ? 2 : 1,
+    opacity: 1,
   }),
-  animate: { x: 0, opacity: 1 },
+  animate: (direction: NavDirection) => ({
+    x: 0,
+    zIndex: direction === "forward" ? 2 : 1,
+    opacity: 1,
+  }),
   exit: (direction: NavDirection) => ({
-    x: direction === "forward" ? -60 : 60,
-    opacity: direction === "forward" ? 0.55 : 0.98,
+    x: direction === "forward" ? "-28%" : "100%",
+    zIndex: direction === "forward" ? 1 : 2,
+    opacity: 1,
   }),
 };
 
@@ -576,7 +582,10 @@ export function ScreenTransition({
   const transition = reduceMotion ? REDUCED_TRANSITION : ONBOARDING_TRANSITION;
 
   return (
-    <div className={`motion-stack ${className}`.trim()} style={{ ...baseStyle, position: "relative", overflow: "hidden" }}>
+    <div
+      className={`motion-stack ${className}`.trim()}
+      style={{ ...baseStyle, position: "relative", overflow: "hidden", background: layerBackground }}
+    >
       <AnimatePresence mode="sync" custom={direction} initial={false}>
         <motion.div
           key={activeKey}

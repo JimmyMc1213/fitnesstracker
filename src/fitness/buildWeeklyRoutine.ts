@@ -1,6 +1,4 @@
-import { loadTasksForToday } from "./dailyPlan";
 import { migrateTrainingSchedule } from "./migrateTrainingSchedule";
-import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
 import type {
   AppState,
   EquipmentSetup,
@@ -68,7 +66,6 @@ export function applyWeeklyRoutineToState(
   } as OnboardingProfile;
 
   const { profile: migratedProfile, templates: migratedTemplates } = migrateTrainingSchedule(profile, templates);
-  const daysPerWeek = resolveWorkoutDaysPerWeek(migratedTemplates, migratedProfile.workoutDaysPerWeek);
 
   return {
     ...state,
@@ -79,13 +76,6 @@ export function applyWeeklyRoutineToState(
     ...(profilePatch.sessionDuration != null
       ? { restTimerDefaultSeconds: restSecondsFromTrainingDuration(profilePatch.sessionDuration) }
       : {}),
-    dailyTasks: loadTasksForToday(
-      state.nutritionTargets,
-      state.planStartIso,
-      state.stepsTarget,
-      migratedTemplates,
-      daysPerWeek,
-    ),
   };
 }
 

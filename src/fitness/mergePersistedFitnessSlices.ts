@@ -1,4 +1,4 @@
-import { dedupeHabitTemplates, isDefaultSeedWorkoutTemplates, sanitizeWorkoutTemplates } from "./data";
+import { dedupeHabitTemplates, isLegacyDemoWorkoutTemplates, sanitizeWorkoutTemplates } from "./data";
 import { stripNutritionProgrammingHabits } from "./habits";
 import { mergeExerciseSessionHistoryByKey } from "./exerciseSessionHistory";
 import { mergeWorkoutHistory } from "./workoutHistory";
@@ -15,6 +15,7 @@ import { hasExistingFitnessData } from "./onboardingSkip";
 import { normalizeAppTheme } from "./theme";
 import { normalizeUnitPreferences } from "./unitPreferences";
 import { mergeWaterLogByDay, normalizeWaterDailyTargetOz, normalizeWaterLogByDay } from "./waterIntake";
+import { mergeSundayCheckInHistory } from "./sundayCheckInHistory";
 import { normalizeExperienceLevel } from "./experienceLevel";
 import { normalizeEquipmentSetup } from "./equipmentSetup";
 import type {
@@ -235,10 +236,10 @@ function mergeWorkoutTemplates(
   if (localSanitized.length === 0) return remoteSanitized;
 
   if (localComplete && remoteComplete) {
-    if (isDefaultSeedWorkoutTemplates(localSanitized) && !isDefaultSeedWorkoutTemplates(remoteSanitized)) {
+    if (isLegacyDemoWorkoutTemplates(localSanitized) && !isLegacyDemoWorkoutTemplates(remoteSanitized)) {
       return remoteSanitized;
     }
-    if (isDefaultSeedWorkoutTemplates(remoteSanitized) && !isDefaultSeedWorkoutTemplates(localSanitized)) {
+    if (isLegacyDemoWorkoutTemplates(remoteSanitized) && !isLegacyDemoWorkoutTemplates(localSanitized)) {
       return localSanitized;
     }
     return remoteSanitized;
@@ -340,6 +341,19 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
         .filter(Boolean)
         .sort()
         .pop() ?? local.sundayReviewCompletedKey,
+    weekFocusCommitments:
+      (local.weekFocusWeekStartKey ?? "") >= (remote.weekFocusWeekStartKey ?? "")
+        ? local.weekFocusCommitments ?? []
+        : remote.weekFocusCommitments ?? [],
+    weekFocusWeekStartKey:
+      [local.weekFocusWeekStartKey, remote.weekFocusWeekStartKey]
+        .filter(Boolean)
+        .sort()
+        .pop() ?? local.weekFocusWeekStartKey ?? null,
+    sundayCheckInHistory: mergeSundayCheckInHistory(
+      local.sundayCheckInHistory ?? [],
+      remote.sundayCheckInHistory ?? [],
+    ),
     adjustmentHistory: mergeAdjustmentHistory(local.adjustmentHistory, remote.adjustmentHistory),
     workout: mergeWorkoutState(local.workout, remote.workout),
     customExercises: mergeById(local.customExercises, remote.customExercises),

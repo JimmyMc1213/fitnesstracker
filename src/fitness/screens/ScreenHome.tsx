@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildCoachContext, getHomeCoachPlan, getWeighInReactionForDisplay } from "../coachEngine";
-import { buildHabitsForDateKey, pruneHabitsDoneByDay } from "../data";
+import { buildHabitsForDateKey, planWeekIndex, pruneHabitsDoneByDay } from "../data";
 import { dailyHabitTemplatesFromState, habitsForDateKey, HomeDailyHabitsCard } from "../HomeDailyHabitsCard";
+import { activeWeekFocusCommitments, HomeWeekFocusCard } from "../HomeWeekFocusCard";
+import { HomeSundayCheckInCard } from "../HomeSundayCheckInCard";
 import { formatDateKeyEyebrow, localDateKey } from "../dailyPlan";
 import { MobilityRoutineFlow } from "../stretch/MobilityRoutineFlow";
 import { isMobilityHabit } from "../mobilityHabit";
@@ -12,13 +14,6 @@ import { IconChevR, IconSettings } from "../icons";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { WeighInCoachReaction } from "../WeighInCoachReaction";
 import { WeighInSheet } from "../WeighInSheet";
-import { SundayWeeklyCheckInCard } from "../SundayWeeklyCheckInCard";
-import {
-  buildSundayCheckInData,
-  dismissSundayCheckIn,
-  shouldShowSundayCheckIn,
-  sundayNoonForCurrentWeek,
-} from "../sundayCheckIn";
 import { ScreenHeader } from "../shared";
 import type { ScreenProps } from "../types";
 
@@ -31,6 +26,7 @@ export function ScreenHome({
   mobilityPreviewRequest,
   onMobilityPreviewRequestHandled,
   onMobilitySessionOpenChange,
+  sundayCheckIn,
 }: ScreenProps) {
   const T = state.nutritionTargets;
   const [clock, setClock] = useState(() => new Date());
@@ -52,6 +48,17 @@ export function ScreenHome({
     setMobilityPreviewOpen(false);
     onHomeReselectHandled?.();
   }, [homeReselectRequest, onHomeReselectHandled]);
+
+  const weekFocus = useMemo(
+    () =>
+      activeWeekFocusCommitments(
+        state.weekFocusCommitments ?? [],
+        state.weekFocusWeekStartKey ?? null,
+        dateKeyToday,
+      ),
+    [state.weekFocusCommitments, state.weekFocusWeekStartKey, dateKeyToday],
+  );
+  const weekFocusNumber = planWeekIndex(new Date(`${dateKeyToday}T12:00:00`), state.planStartIso);
 
   useEffect(() => {
     if (!mobilityPreviewRequest || mobilityPreviewRequest <= handledMobilityPreviewRequestRef.current) return;
@@ -147,24 +154,6 @@ export function ScreenHome({
     return getWeighInReactionForDisplay(coachCtx, dayEntry);
   }, [isViewingToday, dayEntry, coachCtx]);
 
-  const previewSundayUi =
-    import.meta.env.DEV &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("previewSunday") === "1";
-  const reviewClock = previewSundayUi ? sundayNoonForCurrentWeek(clock) : clock;
-  const showSundayCheckIn =
-    isViewingToday &&
-    state.onboardingComplete &&
-    shouldShowSundayCheckIn(state, clock, previewSundayUi);
-  const sundayCheckInData = useMemo(() => {
-    if (!showSundayCheckIn) return null;
-    return buildSundayCheckInData(state, reviewClock);
-  }, [state, reviewClock, showSundayCheckIn]);
-
-  function dismissWeeklyCheckIn() {
-    setState((s) => dismissSundayCheckIn(s, reviewClock));
-  }
-
   return (
     <MobilityRoutineFlow
       state={state}
@@ -219,6 +208,15 @@ export function ScreenHome({
         </button>
       ) : null}
 
+      {isViewingToday && sundayCheckIn?.available && sundayCheckIn.data ? (
+        <HomeSundayCheckInCard
+          data={sundayCheckIn.data}
+          completed={sundayCheckIn.completed}
+          unitPreferences={state.unitPreferences}
+          onReview={sundayCheckIn.onOpenFlow}
+        />
+      ) : null}
+
       {showWeighInFullCard ? (
         <button
           type="button"
@@ -261,6 +259,15 @@ export function ScreenHome({
 
       {weighInReaction ? <WeighInCoachReaction adjustment={weighInReaction} /> : null}
 
+      {isViewingToday && weekFocus.length > 0 && state.weekFocusWeekStartKey ? (
+        <HomeWeekFocusCard
+          commitments={weekFocus}
+          weekStartKey={state.weekFocusWeekStartKey}
+          dateKey={dateKeyToday}
+          weekNumber={weekFocusNumber}
+        />
+      ) : null}
+
       <HomeDashboardCarousel
         totals={totals}
         targets={T}
@@ -286,14 +293,6 @@ export function ScreenHome({
         onOpenWeighIn={() => setWeighInOpen(true)}
         onSaveHabitTemplates={saveDailyHabitTemplates}
       />
-
-      {sundayCheckInData ? (
-        <SundayWeeklyCheckInCard
-          data={sundayCheckInData}
-          unitPreferences={state.unitPreferences}
-          onDismiss={dismissWeeklyCheckIn}
-        />
-      ) : null}
 
       <div style={{ height: 8 }} />
 

@@ -17,6 +17,9 @@ export type PersistedFitnessSlice = Pick<
   | "weightLog"
   | "lastAdjustmentSundayKey"
   | "sundayReviewCompletedKey"
+  | "weekFocusCommitments"
+  | "weekFocusWeekStartKey"
+  | "sundayCheckInHistory"
   | "adjustmentHistory"
   | "workout"
   | "customExercises"
@@ -68,6 +71,9 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     weightLog: state.weightLog,
     lastAdjustmentSundayKey: state.lastAdjustmentSundayKey,
     sundayReviewCompletedKey: state.sundayReviewCompletedKey,
+    weekFocusCommitments: state.weekFocusCommitments,
+    weekFocusWeekStartKey: state.weekFocusWeekStartKey,
+    sundayCheckInHistory: state.sundayCheckInHistory,
     adjustmentHistory: state.adjustmentHistory,
     workout: state.workout,
     customExercises: state.customExercises,

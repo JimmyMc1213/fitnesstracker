@@ -2,8 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from "r
 
 import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { MOTION_DURATIONS, ScreenTransition } from "../motion";
-import { generateDailyTasksForDate, localDateKey } from "../dailyPlan";
-import { resolveWorkoutDaysPerWeek } from "../trainingCalendar";
+import { localDateKey } from "../dailyPlan";
 import { buildHabitsForDateKey } from "../data";
 import { useFitnessSync } from "../FitnessSyncContext";
 import {
@@ -38,7 +37,7 @@ import { useTheme } from "../ThemeContext";
 import type { AppTheme } from "../theme";
 import { UnitPreferencePicker } from "../UnitPreferencePicker";
 import { EquipmentSetupPicker } from "../EquipmentSetupPicker";
-import { buildWorkoutTemplates } from "../workoutTemplateBuilder";
+import { rebuildWorkoutTemplatesForEquipment } from "../workoutTemplateBuilder";
 import { EQUIPMENT_SETUP_LABELS } from "../equipmentSetup";
 import { NotificationPreferencesPicker } from "../NotificationPreferencesPicker";
 import { getNotificationPermission } from "../notificationPermission";
@@ -96,10 +95,6 @@ function rowIcon(node: ReactNode) {
 function newHabitId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `h_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-}
-
-function isValidPlanStartIso(s: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(`${s}T12:00:00`));
 }
 
 function iconButton(icon: HabitTemplate["icon"], selected: boolean, onPick: () => void) {
@@ -223,21 +218,10 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
   }
 
   function commit(patch: Partial<MacroTotals>) {
-    setState((s) => {
-      const nutritionTargets = { ...s.nutritionTargets, ...patch };
-      return {
-        ...s,
-        nutritionTargets,
-        dailyTasks: generateDailyTasksForDate(
-          new Date(),
-          nutritionTargets,
-          s.planStartIso,
-          s.stepsTarget,
-          s.workoutTemplates,
-          resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek),
-        ),
-      };
-    });
+    setState((s) => ({
+      ...s,
+      nutritionTargets: { ...s.nutritionTargets, ...patch },
+    }));
   }
 
   function macroFieldProps(key: keyof MacroTotals, raw: string, setRaw: (v: string) => void) {
@@ -755,7 +739,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
                 ...s,
                 equipmentSetup: next,
                 equipmentSetupChosen: true,
-                workoutTemplates: buildWorkoutTemplates(s.experienceLevel, next),
+                workoutTemplates: rebuildWorkoutTemplatesForEquipment(s, s.experienceLevel, next),
               }))
             }
           />
@@ -796,7 +780,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
     return (
       <>
         <SettingsHelper>
-          Rename, pick an icon, or add rows. The runner icon shows your steps goal and program week on the Home daily habits card.
+          Rename, pick an icon, or add rows. The runner icon shows your steps goal on the Home daily habits card.
         </SettingsHelper>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {state.habitTemplates.map((h) => (
@@ -893,32 +877,6 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
         ) : null}
         <div className="card settings-detail-card" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            Block start date
-            <input
-              type="date"
-              className="input"
-              style={{ marginTop: 8 }}
-              value={state.planStartIso}
-              onChange={(e) => {
-                const v = e.target.value;
-                if (!isValidPlanStartIso(v)) return;
-                setState((s) => ({
-                  ...s,
-                  planStartIso: v,
-                  dailyTasks: generateDailyTasksForDate(
-                    new Date(),
-                    s.nutritionTargets,
-                    v,
-                    s.stepsTarget,
-                    s.workoutTemplates,
-                    resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek),
-                  ),
-                }));
-              }}
-              aria-label="Program start date"
-            />
-          </label>
-          <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Steps goal
             <input
               type="number"
@@ -936,14 +894,6 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
                 setState((s) => ({
                   ...s,
                   stepsTarget,
-                  dailyTasks: generateDailyTasksForDate(
-                    new Date(),
-                    s.nutritionTargets,
-                    s.planStartIso,
-                    stepsTarget,
-                    s.workoutTemplates,
-                    resolveWorkoutDaysPerWeek(s.workoutTemplates, s.onboardingProfile?.workoutDaysPerWeek),
-                  ),
                 }));
               }}
               aria-label="Daily steps goal"

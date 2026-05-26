@@ -1,12 +1,8 @@
-import { useState } from "react";
-
 import { IconClock } from "../icons";
-import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
 import type { PreWorkoutCoachBrief } from "../preWorkoutCoachBrief";
 import { ScreenHeader, PrimaryButton, SecondaryButton } from "../shared";
 import type { AppState } from "../types";
-import { defaultWorkoutRoutineTemplates } from "../data";
 import { NEW_ROUTINE_EDITOR_ID } from "../screens/WorkoutRoutineEditor";
 import { COACH_BLUE_LABEL, COACH_CARD_BG, COACH_CARD_BORDER } from "../workoutUiTokens";
 
@@ -43,7 +39,6 @@ export function WorkoutIdleDashboard({
   setEditingRoutineId,
   startEmptyWorkout,
   startTemplateWorkout,
-  setState,
   onShowHistory,
   onCreateWeeklyRoutine,
 }: {
@@ -54,11 +49,9 @@ export function WorkoutIdleDashboard({
   setEditingRoutineId: (id: string | null) => void;
   startEmptyWorkout: () => void;
   startTemplateWorkout: (templateId: string) => void;
-  setState: React.Dispatch<React.SetStateAction<AppState>>;
   onShowHistory: () => void;
   onCreateWeeklyRoutine: () => void;
 }) {
-  const [pendingRestoreDefaults, setPendingRestoreDefaults] = useState(false);
   const previewTpl = previewRoutineId ? state.workoutTemplates.find((t) => t.id === previewRoutineId) : null;
   const idleCoachSubtitle = preWorkoutCoach?.brief.headline;
   const todayTemplateId = preWorkoutCoach?.todayTemplateId ?? null;
@@ -131,7 +124,7 @@ export function WorkoutIdleDashboard({
         {state.workoutTemplates.length === 0 ? (
           <div className="card" style={{ padding: 24, textAlign: "center" }}>
             <p style={{ margin: "0 0 16px", fontSize: 14, color: "var(--text-muted-soft)", fontWeight: 500, lineHeight: 1.5 }}>
-              No workouts yet. Create a weekly routine or restore the built-in 5-day split.
+              No workouts yet. Create a weekly routine to get started.
             </p>
             <PrimaryButton block onClick={onCreateWeeklyRoutine} style={{ fontSize: 14, padding: 14 }}>
               New weekly routine
@@ -142,13 +135,6 @@ export function WorkoutIdleDashboard({
               style={{ marginTop: 12 }}
             >
               Add a single workout day
-            </SecondaryButton>
-            <SecondaryButton
-              block
-              onClick={() => setPendingRestoreDefaults(true)}
-              style={{ marginTop: 12 }}
-            >
-              Restore default program
             </SecondaryButton>
           </div>
         ) : (
@@ -256,22 +242,6 @@ export function WorkoutIdleDashboard({
           </div>
         )}
 
-        <button
-          type="button"
-          className="tap"
-          onClick={() => setPendingRestoreDefaults(true)}
-          style={{
-            marginTop: 16,
-            width: "100%",
-            color: "var(--text-ghost)",
-            fontSize: 12,
-            fontWeight: 500,
-            padding: 10,
-          }}
-        >
-          Restore default 5-day program
-        </button>
-
         <div style={{ height: 12 }} />
       </div>
       {previewTpl ? (
@@ -286,21 +256,6 @@ export function WorkoutIdleDashboard({
           onStart={() => {
             startTemplateWorkout(previewTpl.id);
             setPreviewRoutineId(null);
-          }}
-        />
-      ) : null}
-
-      {pendingRestoreDefaults ? (
-        <DeleteConfirmSheet
-          title="Restore default program?"
-          cancelLabel="Keep my workouts"
-          confirmLabel="Restore defaults"
-          placement="center"
-          message="Replace all workouts with the built-in 5-day program? Your custom workouts and edits will be lost."
-          onCancel={() => setPendingRestoreDefaults(false)}
-          onConfirm={() => {
-            setState((s) => ({ ...s, workoutTemplates: defaultWorkoutRoutineTemplates() }));
-            setPendingRestoreDefaults(false);
           }}
         />
       ) : null}

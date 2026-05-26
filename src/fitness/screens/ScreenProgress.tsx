@@ -1,11 +1,11 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { planDayIndex, planWeekIndex } from "../data";
 import { localDateKey } from "../dailyPlan";
 import { IconArrowDown, IconArrowUp, IconPlus } from "../icons";
 import { WorkoutCalendarCard } from "../WorkoutCalendarCard";
 import { PersonalRecordsSection } from "../PersonalRecordsSection";
 import { WeeklySummaryCard } from "../WeeklySummaryCard";
+import { SundayCheckInHistorySection } from "../SundayCheckInHistorySection";
 import { LineChart, ScreenHeader, SectionLabel } from "../shared";
 import { BottomSheet } from "../motion";
 import { WeighInSheet, weighInDateKeyToday } from "../WeighInSheet";
@@ -29,10 +29,6 @@ function shortChartDate(dateKey: string): string {
 const BODY_WEIGHT_CHART_STROKE = "var(--accent)";
 const CHART_PAD_LEFT = 12;
 const CHART_PAD_RIGHT = 36;
-
-const DEFAULT_GOAL_LO = 158;
-const DEFAULT_GOAL_HI = 165;
-const DEFAULT_CUT_START = 172;
 
 const WEEK_LABELS = ["S", "M", "T", "W", "T", "F", "S"] as const;
 
@@ -289,9 +285,10 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
   const dateKeyToday = weighInDateKeyToday();
   const todayEntry = state.weightLog.find((e) => e.dateKey === dateKeyToday);
 
-  const goalLo = state.progressGoal?.goalWeightLowLbs ?? DEFAULT_GOAL_LO;
-  const goalHi = state.progressGoal?.goalWeightHighLbs ?? DEFAULT_GOAL_HI;
-  const cutBarStart = state.progressGoal?.progressStartWeightLbs ?? DEFAULT_CUT_START;
+  const progressGoal = state.progressGoal;
+  const goalLo = progressGoal?.goalWeightLowLbs;
+  const goalHi = progressGoal?.goalWeightHighLbs;
+  const cutBarStart = progressGoal?.progressStartWeightLbs;
 
   useLayoutEffect(() => {
     const el = chartWrapRef.current;
@@ -312,7 +309,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
   );
   const chartSeriesLbs = sorted.map((e) => e.weightLbs);
   const chartSeries = wUnit === "kg" ? chartSeriesLbs.map((lbs) => lbs / LBS_PER_KG) : chartSeriesLbs;
-  const todayWeightLbs = chartSeriesLbs.length ? chartSeriesLbs[chartSeriesLbs.length - 1]! : cutBarStart;
+  const todayWeightLbs = chartSeriesLbs.length ? chartSeriesLbs[chartSeriesLbs.length - 1]! : (todayEntry?.weightLbs ?? cutBarStart ?? 0);
   const startWeightLbs = chartSeriesLbs.length ? chartSeriesLbs[0]! : todayWeightLbs;
   const deltaLbs = todayWeightLbs - startWeightLbs;
   const goal = state.onboardingProfile?.goal ?? "maintain";
@@ -327,16 +324,12 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
     const last = sorted[sorted.length - 1]!.dateKey;
     return [first, mid, last].map(shortChartDate);
   }, [sorted]);
-  const goalLoDisplay = wUnit === "kg" ? goalLo / LBS_PER_KG : goalLo;
-  const goalHiDisplay = wUnit === "kg" ? goalHi / LBS_PER_KG : goalHi;
+  const goalLoDisplay = goalLo != null ? (wUnit === "kg" ? goalLo / LBS_PER_KG : goalLo) : null;
+  const goalHiDisplay = goalHi != null ? (wUnit === "kg" ? goalHi / LBS_PER_KG : goalHi) : null;
 
-  const goalMid = (goalLo + goalHi) / 2;
-  const denom = cutBarStart - goalMid;
-  const goalPct = denom !== 0 ? Math.max(0, Math.min(1, (cutBarStart - todayWeightLbs) / denom)) : 0;
-
-  const daysIn = planDayIndex(new Date(), state.planStartIso);
-  const daysTotal = 84;
-  const weekIn = planWeekIndex(new Date(), state.planStartIso);
+  const goalMid = goalLo != null && goalHi != null ? (goalLo + goalHi) / 2 : null;
+  const denom = goalMid != null && cutBarStart != null ? cutBarStart - goalMid : 0;
+  const goalPct = denom !== 0 && cutBarStart != null ? Math.max(0, Math.min(1, (cutBarStart - todayWeightLbs) / denom)) : 0;
 
   const [calView, setCalView] = useState(() => {
     const n = new Date();
@@ -355,7 +348,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
 
   return (
     <div className="screen">
-      <ScreenHeader eyebrow={`Week ${weekIn}/12 · Day ${daysIn}/${daysTotal}`} title="Progress" />
+      <ScreenHeader title="Progress" />
 
       <div className="card" style={{ padding: 18, marginTop: 18 }}>
         <div className="between" style={{ alignItems: "center" }}>
@@ -455,6 +448,11 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
 
       <WeeklySummaryCard state={state} todayKey={dateKeyToday} />
 
+      <SundayCheckInHistorySection
+        history={state.sundayCheckInHistory ?? []}
+        unitPreferences={state.unitPreferences}
+      />
+
       <WeighInSheet
         open={weighInOpen}
         onClose={() => setWeighInOpen(false)}
@@ -494,6 +492,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
       <PersonalRecordsSection state={state} />
 
       <SectionLabel>Goal range</SectionLabel>
+      {progressGoal && goalLoDisplay != null && goalHiDisplay != null ? (
       <div className="card" style={{ padding: 18 }}>
         <div className="between" style={{ alignItems: "baseline" }}>
           <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>
@@ -511,15 +510,12 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
             <div className="barFill" style={{ width: `${goalPct * 100}%` }} />
           </div>
         </div>
-        <div className="between" style={{ marginTop: 10 }}>
-          <span style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            Day {daysIn}
-          </span>
-          <span style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            {daysTotal - daysIn} days left
-          </span>
-        </div>
       </div>
+      ) : (
+        <div className="card" style={{ padding: 18, fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+          Complete onboarding to set your goal weight range.
+        </div>
+      )}
 
       {state.adjustmentHistory.length > 0 ? (
         <>

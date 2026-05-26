@@ -336,15 +336,6 @@ export type UnitPreferences = {
 
 export type TabId = "home" | "nutrition" | "workout" | "progress" | "stretch" | "settings";
 
-/** One actionable item for the day, training, fuel, recovery. */
-export type DailyTask = {
-  id: string;
-  title: string;
-  category: "gym" | "nutrition" | "life";
-  done: boolean;
-  navigateTo?: TabId;
-};
-
 export type WeightEntry = {
   dateKey: string;
   weightLbs: number;
@@ -355,6 +346,39 @@ export type WeightEntry = {
   macroNudge?: { deltaCal: number; reason: string };
   /** Coach reaction message captured at save time. */
   coachMessage?: string;
+};
+
+/** Pinned from Sunday check-in — shown on Home for the active week. */
+export type WeekFocusCommitment = {
+  id: string;
+  title: string;
+  subtitle: string;
+};
+
+/** Compact snapshot saved when a Sunday check-in is completed — lifetime recap archive. */
+export type SundayCheckInWeekRecord = {
+  sundayKey: string;
+  weekStartKey: string;
+  weekNumber: number;
+  workoutsCompleted: number;
+  workoutsPlanned: number;
+  proteinDaysHit: number;
+  weighInsThisWeek: number;
+  weightDeltaLbs: number | null;
+  weightEndLbs: number | null;
+  onTrack: boolean;
+  /** Short recap copy for Progress archive. */
+  headline: string;
+  summary: string;
+  weightInsight: string;
+  /** Up to 4 win lines. */
+  wins: string[];
+  /** Up to 3 watch lines. */
+  watch: string[];
+  /** Pinned commitment titles (compact). */
+  commitments: string[];
+  /** 7-char day grid: b=both, w=workout, p=protein, .=neither. */
+  dayFlags: string;
 };
 
 export type AdjustmentEvent = {
@@ -430,7 +454,7 @@ export type AppState = {
   customExercises: CustomExerciseTemplate[];
   /** Freeform notes keyed by exercise identity (name + optional label); persist across all workouts. */
   exerciseNotesByKey: Record<string, string>;
-  /** Your routines (start workout from these; edit anytime). Seeded from the built-in 5-day split on first launch. */
+  /** Your routines (start workout from these; edit anytime). */
   workoutTemplates: WorkoutRoutineTemplate[];
   /** Local YYYY-MM-DD days where the user tapped Finish on a workout session (not Cancel). */
   workoutsCompletedByDay: Record<string, boolean>;
@@ -453,13 +477,18 @@ export type AppState = {
   /** Ask to save reordered exercises to the source template; cleared on dismiss or apply. */
   pendingTemplateOrderUpdatePrompt: PendingTemplateOrderUpdatePrompt | null;
   habits: Habit[];
-  dailyTasks: DailyTask[];
   nutritionTargets: MacroTotals;
   weightLog: WeightEntry[];
   /** Last Sunday you applied an approved fuel change. */
   lastAdjustmentSundayKey: string | null;
   /** Last Sunday you finished the review flow (approve or skip), blocks the sheet until next week. */
   sundayReviewCompletedKey: string | null;
+  /** Pinned focus items from the most recent Sunday check-in. */
+  weekFocusCommitments: WeekFocusCommitment[];
+  /** Mon–Sun week start key the focus items belong to. */
+  weekFocusWeekStartKey: string | null;
+  /** Completed Sunday check-in snapshots, oldest → newest. */
+  sundayCheckInHistory: SundayCheckInWeekRecord[];
   adjustmentHistory: AdjustmentEvent[];
   /** Phoenix calendar date (YYYY-MM-DD) when mobility routine was marked done. */
   nightlyStretchCompletedArizonaKey: string | null;
@@ -529,6 +558,13 @@ export type ScreenProps = {
   onMobilityPreviewRequestHandled?: () => void;
   /** Home reports mobility session overlay open state so the main tab bar can hide. */
   onMobilitySessionOpenChange?: (open: boolean) => void;
+  /** Sunday weekly check-in card + flow (Home only). */
+  sundayCheckIn?: {
+    available: boolean;
+    completed: boolean;
+    data: import("./sundayCheckIn").SundayCheckInData | null;
+    onOpenFlow: () => void;
+  };
 };
 
 export type IconProps = {

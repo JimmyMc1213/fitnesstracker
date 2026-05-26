@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { buildPreWorkoutCoachBrief, shouldDefaultExpandCoachCard } from "../preWorkoutCoachBrief";
 import { localDateKey } from "../dailyPlan";
-import { SPLIT, cloneExercisesForNewSession } from "../data";
+import { cloneExercisesForNewSession } from "../data";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
 import { exerciseNoteKey, getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { progressiveOverloadInsight } from "../coach";
@@ -110,7 +110,9 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   const w = state.workout;
   const wUnit = state.unitPreferences.weightUnit;
   const activeRoutine = state.workoutTemplates.find((t) => t.id === w.splitId);
-  const split = activeRoutine ? { day: activeRoutine.dayLabel, name: activeRoutine.name } : SPLIT.find((s) => s.id === w.splitId);
+  const split = activeRoutine
+    ? { day: activeRoutine.dayLabel, name: activeRoutine.name }
+    : { day: "", name: w.sessionTitle || "Workout" };
   const phase = w.sessionPhase;
   const todayTemplateId = useMemo(
     () => buildPreWorkoutCoachBrief(state)?.todayTemplateId ?? null,
@@ -826,7 +828,6 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
           setEditingRoutineId={setEditingRoutineId}
           startEmptyWorkout={startEmptyWorkout}
           startTemplateWorkout={startTemplateWorkout}
-          setState={setState}
           onShowHistory={() => setShowHistoryPage(true)}
           onCreateWeeklyRoutine={() => setShowCreateWeeklyRoutineSheet(true)}
         />

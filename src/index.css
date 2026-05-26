@@ -1514,15 +1514,16 @@ input[type="number"] {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: transparent;
   will-change: transform, opacity;
 }
 
-/* Stack slide is driven by Framer Motion; classes below only tag enter direction for
- * staggered onboarding content reveals (no transform keyframes — those fought FM). */
-.motion-stack-enter-forward,
-.motion-stack-enter-back {
+/* Forward: incoming on top. Back: outgoing stays on top while it slides off. */
+.motion-stack-enter-forward {
   z-index: 2;
+}
+
+.motion-stack-enter-back {
+  z-index: 1;
 }
 
 .motion-stack-enter-forward .onboarding-headline,

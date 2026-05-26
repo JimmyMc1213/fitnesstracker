@@ -1,17 +1,95 @@
+import { useEffect, useState } from "react";
+
 import { getSundayCheckInCoachNote } from "./coachEngine";
 import { IconX } from "./icons";
+import {
+  bottomSheetPanelTheme,
+  CenterDialog,
+  closeAfterMotion,
+  MOTION_DURATIONS,
+} from "./motion";
 import { PrimaryButton } from "./shared";
 import { formatWeightFromLbs, weightUnitLabel } from "./unitPreferences";
 import type { SundayCheckInData } from "./sundayCheckIn";
 import type { UnitPreferences } from "./types";
 
+const panelStyle = {
+  ...bottomSheetPanelTheme,
+  width: "100%",
+  maxWidth: 400,
+  maxHeight: "min(85vh, 540px)",
+  overflowY: "auto",
+  padding: 20,
+} as const;
+
 type Props = {
+  open: boolean;
+  data: SundayCheckInData | null;
+  unitPreferences: UnitPreferences;
+  onDismiss: () => void;
+  onPresentChange?: (present: boolean) => void;
+};
+
+export function SundayWeeklyCheckInSheet({
+  open,
+  data,
+  unitPreferences,
+  onDismiss,
+  onPresentChange,
+}: Props) {
+  const [closing, setClosing] = useState(false);
+  const visible = open && data != null && !closing;
+
+  useEffect(() => {
+    if (!open) setClosing(false);
+  }, [open]);
+
+  useEffect(() => {
+    onPresentChange?.(visible);
+  }, [visible, onPresentChange]);
+
+  function finishDismiss() {
+    setClosing(true);
+    closeAfterMotion(() => {
+      onDismiss();
+      setClosing(false);
+    }, MOTION_DURATIONS.backdrop);
+  }
+
+  const panelData = data;
+  if (!panelData && !closing) return null;
+
+  return (
+    <CenterDialog
+      open={visible && panelData != null}
+      zIndex={300}
+      ariaLabel="Weekly check-in"
+      panelStyle={panelStyle}
+      backdropStyle={{
+        backdropFilter: "blur(14px) saturate(120%)",
+        WebkitBackdropFilter: "blur(14px) saturate(120%)",
+      }}
+    >
+      {panelData ? (
+        <SundayWeeklyCheckInContent
+          data={panelData}
+          unitPreferences={unitPreferences}
+          onDismiss={finishDismiss}
+        />
+      ) : null}
+    </CenterDialog>
+  );
+}
+
+export function SundayWeeklyCheckInContent({
+  data,
+  unitPreferences,
+  onDismiss,
+}: {
   data: SundayCheckInData;
   unitPreferences: UnitPreferences;
   onDismiss: () => void;
-};
-
-export function SundayWeeklyCheckInCard({ data, unitPreferences, onDismiss }: Props) {
+}) {
   const wUnit = unitPreferences.weightUnit;
   const title = data.displayName
     ? `Week ${data.weekNumber} recap, ${data.displayName}`
@@ -29,15 +107,7 @@ export function SundayWeeklyCheckInCard({ data, unitPreferences, onDismiss }: Pr
   });
 
   return (
-    <div
-      className="card"
-      style={{
-        padding: 16,
-        marginTop: 18,
-        borderColor: "var(--sheet-panel-border)",
-        background: "var(--card)",
-      }}
-    >
+    <>
       <div className="between" style={{ alignItems: "flex-start", gap: 10, marginBottom: 14 }}>
         <div style={{ minWidth: 0 }}>
           <div
@@ -124,9 +194,9 @@ export function SundayWeeklyCheckInCard({ data, unitPreferences, onDismiss }: Pr
       )}
 
       <PrimaryButton block onClick={onDismiss} style={{ marginTop: 16 }}>
-        Start week {data.nextWeekNumber}
+        Continue
       </PrimaryButton>
-    </div>
+    </>
   );
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { loadTasksForToday, localDateKey } from "./dailyPlan";
+import { localDateKey } from "./dailyPlan";
 import {
   buildHabitsForDateKey,
   habitTemplatesFromOnboarding,
@@ -549,7 +549,6 @@ export function OnboardingFlow({
           weightLogged: s.weightLog.some((e) => e.dateKey === todayKey),
         }),
         restTimerDefaultSeconds: restSecondsForSessionLength(sessionLength!),
-        dailyTasks: loadTasksForToday(macros, planStartIso, stepsTarget, draftTemplates, finalProfile.workoutDaysPerWeek!),
       };
     });
     onComplete?.();

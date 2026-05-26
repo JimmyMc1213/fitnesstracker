@@ -176,56 +176,6 @@ export function LineChart({
   );
 }
 
-export function BarChart({
-  data,
-  width,
-  height = 100,
-  max = 6,
-  activeIndex,
-}: {
-  data: number[];
-  width: number;
-  height?: number;
-  max?: number;
-  /** Program week bar to emphasize (0-based). Defaults to last bar. */
-  activeIndex?: number;
-}) {
-  const padX = 4;
-  const w = width - padX * 2;
-  const barW = w / data.length - 4;
-  const hi =
-    activeIndex !== undefined
-      ? Math.max(0, Math.min(data.length - 1, activeIndex))
-      : data.length - 1;
-  return (
-    <svg width={width} height={height} style={{ display: "block" }}>
-      {data.map((v, i) => {
-        const x = padX + i * (w / data.length) + 2;
-        const fillH = (v / max) * (height - 16);
-        const y = height - fillH;
-        const isActive = i === hi;
-        return (
-          <g key={i}>
-            <rect x={x} y={0} width={barW} height={height - 14} fill="var(--chart-fill)" rx="2" />
-            <rect x={x} y={y - 14} width={barW} height={fillH} fill={isActive ? "var(--chart-bar-active)" : "var(--chart-bar-inactive)"} rx="2" />
-            <text
-              x={x + barW / 2}
-              y={height - 2}
-              textAnchor="middle"
-              fill={isActive ? "var(--chart-bar-label-active)" : "var(--chart-bar-label)"}
-              fontSize="9"
-              fontFamily="var(--ui)"
-              fontWeight={isActive ? "600" : "500"}
-            >
-              {i + 1}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
 export function SectionLabel({ children, right }: { children: ReactNode; right?: ReactNode }) {
   return (
     <div className="between" style={{ marginTop: 28, marginBottom: 12 }}>
