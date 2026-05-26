@@ -213,6 +213,18 @@ export const exerciseLibrary: Exercise[] = [
     coachNote: 'Neutral or pronated grip, full range of motion'
   },
   {
+    id: 'seated_dumbbell_press',
+    name: 'Seated dumbbell shoulder press',
+    label: 'Dumbbell',
+    muscleGroup: 'shoulders',
+    secondaryMuscles: ['triceps'],
+    movementPattern: 'vertical_push',
+    equipment: ['full_gym', 'home_gym', 'dumbbells_only'],
+    experience: ['beginner', 'intermediate', 'advanced'],
+    substitutes: ['dumbbell_shoulder_press', 'machine_shoulder_press'],
+    coachNote: 'Back supported, strict form, full range of motion'
+  },
+  {
     id: 'machine_shoulder_press',
     name: 'Machine shoulder press',
     label: 'Machine',
@@ -410,6 +422,18 @@ export const exerciseLibrary: Exercise[] = [
     substitutes: ['dumbbell_row', 'cable_row'],
     coachNote: 'Straight body, pull chest to bar'
   },
+  {
+    id: 'chest_supported_row',
+    name: 'Chest supported row',
+    label: 'Dumbbell',
+    muscleGroup: 'back',
+    secondaryMuscles: ['biceps', 'rear_delt'],
+    movementPattern: 'horizontal_pull',
+    equipment: ['full_gym', 'home_gym', 'dumbbells_only'],
+    experience: ['beginner', 'intermediate', 'advanced'],
+    substitutes: ['dumbbell_row', 'machine_row'],
+    coachNote: 'Chest on incline bench — removes lower back from equation'
+  },
 
   // ─── VERTICAL PULL ─────────────────────────────────────────────────
   {
@@ -447,6 +471,18 @@ export const exerciseLibrary: Exercise[] = [
     experience: ['beginner', 'intermediate', 'advanced'],
     substitutes: ['pullup', 'cable_pulldown'],
     coachNote: 'Slight lean back, pull to upper chest, full stretch'
+  },
+  {
+    id: 'close_grip_lat_pulldown',
+    name: 'Close grip lat pulldown',
+    label: 'Cable',
+    muscleGroup: 'back',
+    secondaryMuscles: ['biceps'],
+    movementPattern: 'vertical_pull',
+    equipment: ['full_gym'],
+    experience: ['beginner', 'intermediate', 'advanced'],
+    substitutes: ['lat_pulldown', 'chinup'],
+    coachNote: 'Neutral grip, elbows drive to hips — more bicep involvement'
   },
   {
     id: 'cable_pulldown',
@@ -594,6 +630,18 @@ export const exerciseLibrary: Exercise[] = [
     substitutes: ['bulgarian_split_squat', 'lunge'],
     coachNote: 'Single leg, requires significant strength and balance'
   },
+  {
+    id: 'leg_extension',
+    name: 'Leg extension',
+    label: 'Machine',
+    muscleGroup: 'quads',
+    secondaryMuscles: [],
+    movementPattern: 'squat_pattern',
+    equipment: ['full_gym'],
+    experience: ['beginner', 'intermediate', 'advanced'],
+    substitutes: ['hack_squat', 'leg_press'],
+    coachNote: 'Full extension, pause and squeeze at top — quad isolation'
+  },
 
   // ─── HINGE PATTERN ─────────────────────────────────────────────────
   {
@@ -704,6 +752,30 @@ export const exerciseLibrary: Exercise[] = [
     substitutes: ['dumbbell_hip_thrust', 'hip_thrust'],
     coachNote: 'Feet flat, drive hips up, squeeze at top'
   },
+  {
+    id: 'cable_kickback',
+    name: 'Cable glute kickback',
+    label: 'Cable',
+    muscleGroup: 'glutes',
+    secondaryMuscles: ['hamstrings'],
+    movementPattern: 'hinge_pattern',
+    equipment: ['full_gym'],
+    experience: ['beginner', 'intermediate', 'advanced'],
+    substitutes: ['hip_thrust', 'glute_bridge'],
+    coachNote: 'Ankle attachment, kick straight back — squeeze at top'
+  },
+  {
+    id: 'abduction_machine',
+    name: 'Hip abduction machine',
+    label: 'Machine',
+    muscleGroup: 'glutes',
+    secondaryMuscles: [],
+    movementPattern: 'hinge_pattern',
+    equipment: ['full_gym'],
+    experience: ['beginner', 'intermediate', 'advanced'],
+    substitutes: ['cable_kickback', 'glute_bridge'],
+    coachNote: 'Push knees out against pads — outer glute and hip'
+  },
 
   // ─── LEG PRESS ─────────────────────────────────────────────────────
   {
@@ -717,6 +789,18 @@ export const exerciseLibrary: Exercise[] = [
     experience: ['beginner', 'intermediate', 'advanced'],
     substitutes: ['hack_squat', 'goblet_squat'],
     coachNote: 'Feet shoulder width, do not lock knees at top'
+  },
+  {
+    id: 'single_leg_press',
+    name: 'Single-leg press',
+    label: 'Machine',
+    muscleGroup: 'quads',
+    secondaryMuscles: ['glutes'],
+    movementPattern: 'leg_press_pattern',
+    equipment: ['full_gym'],
+    experience: ['intermediate', 'advanced'],
+    substitutes: ['leg_press', 'bulgarian_split_squat'],
+    coachNote: 'One leg at a time — identifies and fixes imbalances'
   },
 
   // ─── LEG CURL ──────────────────────────────────────────────────────
@@ -893,6 +977,30 @@ export const exerciseLibrary: Exercise[] = [
     coachNote: 'Long head stretch, elbows behind body at start'
   },
   {
+    id: 'preacher_curl_barbell',
+    name: 'Preacher curl',
+    label: 'Barbell',
+    muscleGroup: 'biceps',
+    secondaryMuscles: [],
+    movementPattern: 'bicep_curl',
+    equipment: ['full_gym'],
+    experience: ['beginner', 'intermediate', 'advanced'],
+    substitutes: ['barbell_curl', 'ez_bar_curl'],
+    coachNote: 'Pad supports upper arm — eliminates cheating'
+  },
+  {
+    id: 'concentration_curl',
+    name: 'Concentration curl',
+    label: 'Dumbbell',
+    muscleGroup: 'biceps',
+    secondaryMuscles: [],
+    movementPattern: 'bicep_curl',
+    equipment: ['full_gym', 'home_gym', 'dumbbells_only'],
+    experience: ['beginner', 'intermediate', 'advanced'],
+    substitutes: ['dumbbell_curl', 'cable_curl'],
+    coachNote: 'Elbow on inner thigh — peak contraction focus'
+  },
+  {
     id: 'chin_up_bicep',
     name: 'Chin-up (bicep focus)',
     label: 'Bodyweight',
@@ -943,6 +1051,18 @@ export const exerciseLibrary: Exercise[] = [
     coachNote: 'Long head stretch, elbows close to head'
   },
   {
+    id: 'cable_overhead_tricep',
+    name: 'Cable overhead tricep extension',
+    label: 'Cable',
+    muscleGroup: 'triceps',
+    secondaryMuscles: [],
+    movementPattern: 'tricep_extension',
+    equipment: ['full_gym'],
+    experience: ['beginner', 'intermediate', 'advanced'],
+    substitutes: ['overhead_tricep_extension', 'skull_crusher'],
+    coachNote: 'Rope attachment overhead — long head stretch'
+  },
+  {
     id: 'tricep_dips',
     name: 'Tricep dips',
     label: 'Bodyweight',
@@ -989,6 +1109,18 @@ export const exerciseLibrary: Exercise[] = [
     experience: ['beginner', 'intermediate'],
     substitutes: ['overhead_tricep_extension', 'tricep_pushdown_cable'],
     coachNote: 'Upper arm parallel to floor, full extension'
+  },
+  {
+    id: 'bench_dip',
+    name: 'Bench dip',
+    label: 'Bodyweight',
+    muscleGroup: 'triceps',
+    secondaryMuscles: ['chest', 'shoulders'],
+    movementPattern: 'tricep_extension',
+    equipment: ['bodyweight', 'home_gym', 'full_gym', 'dumbbells_only'],
+    experience: ['beginner', 'intermediate'],
+    substitutes: ['tricep_dips', 'diamond_pushup'],
+    coachNote: 'Hands on bench behind you — beginner friendly dip'
   },
 
   // ─── CORE ──────────────────────────────────────────────────────────
@@ -1075,6 +1207,30 @@ export const exerciseLibrary: Exercise[] = [
     experience: ['beginner', 'intermediate'],
     substitutes: ['pallof_press', 'cable_woodchop'],
     coachNote: 'Feet up, rotate fully, control the movement'
+  },
+  {
+    id: 'bicycle_crunch',
+    name: 'Bicycle crunch',
+    label: 'Bodyweight',
+    muscleGroup: 'core',
+    secondaryMuscles: [],
+    movementPattern: 'core_rotation',
+    equipment: ['bodyweight', 'home_gym', 'full_gym', 'dumbbells_only'],
+    experience: ['beginner', 'intermediate'],
+    substitutes: ['russian_twist', 'cable_crunch'],
+    coachNote: 'Slow and controlled — opposite elbow to knee'
+  },
+  {
+    id: 'side_plank',
+    name: 'Side plank',
+    label: 'Bodyweight',
+    muscleGroup: 'core',
+    secondaryMuscles: [],
+    movementPattern: 'core_rotation',
+    equipment: ['bodyweight', 'home_gym', 'full_gym', 'dumbbells_only'],
+    experience: ['beginner', 'intermediate', 'advanced'],
+    substitutes: ['plank', 'pallof_press'],
+    coachNote: 'Hips up, straight line — targets obliques'
   },
   {
     id: 'pallof_press',

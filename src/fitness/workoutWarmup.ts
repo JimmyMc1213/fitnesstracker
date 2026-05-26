@@ -1,4 +1,5 @@
-import { exerciseLibrary, type MovementPattern } from "./exerciseLibrary";
+import { findBrowsableExercise } from "./exerciseLookup";
+import type { MovementPattern } from "./exerciseLibrary";
 import type { WorkoutExercise } from "./types";
 
 export type WorkoutWarmupDrill = {
@@ -125,25 +126,6 @@ function cloneDrills(drills: WorkoutWarmupDrill[]): WorkoutWarmupDrill[] {
   return drills.map((drill) => ({ ...drill }));
 }
 
-function findLibraryExercise(name: string, label?: string) {
-  const normalized = name.toLowerCase().trim();
-  const labelNorm = label?.toLowerCase().trim();
-  const exact = exerciseLibrary.find((ex) => {
-    if (ex.name.toLowerCase() !== normalized) return false;
-    if (labelNorm) return ex.label.toLowerCase() === labelNorm;
-    return true;
-  });
-  if (exact) return exact;
-  return exerciseLibrary.find((ex) => {
-    const exName = ex.name.toLowerCase();
-    if (exName === normalized) return true;
-    if (labelNorm && exName.includes(labelNorm) && exName.includes(normalized.split(" ")[0] ?? "")) {
-      return true;
-    }
-    return exName.includes(normalized) || normalized.includes(exName);
-  });
-}
-
 function inferPatternFromName(name: string): MovementPattern | undefined {
   const n = name.toLowerCase();
   if (/\b(squat|lunge|split squat|step[- ]?up|leg press)\b/.test(n)) return "squat_pattern";
@@ -164,7 +146,7 @@ function inferPatternFromName(name: string): MovementPattern | undefined {
 }
 
 function resolveMovementPattern(exercise: WorkoutExercise): MovementPattern | undefined {
-  return findLibraryExercise(exercise.name, exercise.label)?.movementPattern ?? inferPatternFromName(exercise.name);
+  return findBrowsableExercise(exercise.name, exercise.label)?.movementPattern ?? inferPatternFromName(exercise.name);
 }
 
 function rampSetDrill(exerciseName: string): WorkoutWarmupDrill {

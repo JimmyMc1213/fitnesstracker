@@ -13,6 +13,7 @@ export function WorkoutSetField({
   placeholderWeight = 0,
   placeholderReps = 0,
   weightUnit,
+  secondFieldLabel = "Reps",
 }: {
   exerciseId: string;
   setIndex: number;
@@ -22,6 +23,7 @@ export function WorkoutSetField({
   placeholderWeight?: number;
   placeholderReps?: number;
   weightUnit: WeightUnit;
+  secondFieldLabel?: "Reps" | "Sec";
 }) {
   const { openField, isActive, draft, active } = useWorkoutKeypad();
   const target = { exerciseId, setIndex, field };
@@ -55,7 +57,7 @@ export function WorkoutSetField({
       id={fieldElementId(target)}
       type="button"
       className={`tap workout-set-field${selected ? " workout-set-field--active" : ""}${showAsPlaceholder ? " workout-set-field--placeholder" : ""}`}
-      aria-label={field === "weight" ? `Weight for set ${setIndex + 1}` : `Reps for set ${setIndex + 1}`}
+      aria-label={field === "weight" ? `Weight for set ${setIndex + 1}` : `${secondFieldLabel} for set ${setIndex + 1}`}
       aria-pressed={selected}
       onClick={() => openField(target)}
       style={{

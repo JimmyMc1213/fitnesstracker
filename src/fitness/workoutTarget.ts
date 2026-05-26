@@ -40,9 +40,14 @@ export function withSyncedTargetSetCount<T extends { target: string; sets: unkno
   };
 }
 
-/** Parse `8-12` or `10` style rep ranges into numeric bounds. */
+/** Parse `8-12`, `10`, or timed `30 sec` / `30 sec (or 40m)` into numeric bounds. */
 export function parseRepRangeBounds(repRange: string): { low: number; high: number } {
   const trimmed = repRange.trim();
+  const timedMatch = trimmed.match(/^(\d+)\s*sec\b/i);
+  if (timedMatch) {
+    const n = Math.max(1, parseInt(timedMatch[1]!, 10));
+    return { low: n, high: n };
+  }
   const parts = trimmed.split(/[–-]/).map((p) => parseInt(p.trim(), 10));
   if (parts.length >= 2 && Number.isFinite(parts[0]) && Number.isFinite(parts[1])) {
     const low = Math.max(1, parts[0]!);

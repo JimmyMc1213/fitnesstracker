@@ -1,4 +1,6 @@
 import { buildWorkoutPlan, type WorkoutSession } from "./buildWorkoutPlan";
+import { defaultExerciseTarget } from "./exercisePrescriptionDefaults";
+import { getExerciseRepBounds } from "./workoutTarget";
 import type { Equipment } from "./exerciseLibrary";
 import type { SessionLength } from "./splitTemplates";
 import type {
@@ -61,13 +63,17 @@ function templateId(session: WorkoutSession, idx: number): string {
 }
 
 function mapExerciseToWorkoutExercise(ex: WorkoutSession["exercises"][number]): WorkoutExercise {
-  const { sets, repsLow, repsHigh } = ex.sets;
+  const setCount = ex.sets.sets;
+  const repRange =
+    ex.sets.repsLow === ex.sets.repsHigh ? String(ex.sets.repsLow) : `${ex.sets.repsLow}-${ex.sets.repsHigh}`;
+  const target = defaultExerciseTarget(ex.name, ex.label, setCount, repRange);
+  const { high } = getExerciseRepBounds({ target });
   return {
     id: ex.id,
     name: ex.name,
     label: ex.label,
-    target: `${sets} × ${repsLow}-${repsHigh}`,
-    sets: Array.from({ length: sets }, () => ({ w: 0, r: repsHigh, done: false })),
+    target,
+    sets: Array.from({ length: setCount }, () => ({ w: 0, r: high, done: false })),
   };
 }
 

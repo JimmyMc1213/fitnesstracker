@@ -13,6 +13,7 @@ import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { FullScreenOverlay } from "../motion";
 import { SortableExerciseList } from "../SortableExerciseList";
 import type { ScreenProps, WorkoutExercise, WorkoutSetKind } from "../types";
+import { defaultExerciseTarget } from "../exercisePrescriptionDefaults";
 import { autofillExerciseSets, buildSetsForExercise, findLastLoggedExerciseSets } from "../workoutAutofill";
 import { buildSetCompletionPatch, canCompleteSet } from "../workoutPreviousSets";
 import {
@@ -20,6 +21,7 @@ import {
   buildSessionCoachNotesByExerciseId,
 } from "../exerciseSessionNotes";
 import { buildWorkoutWarmup } from "../workoutWarmup";
+import { parseWorkoutTarget } from "../workoutTarget";
 import { WorkoutCoachCard } from "../WorkoutCoachCard";
 import { WorkoutSessionStickyHeader } from "../WorkoutSessionStickyHeader";
 import { RestTimerSheet } from "../RestTimerSheet";
@@ -557,14 +559,16 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
         ...s.workout,
         exercises: s.workout.exercises.map((exercise) => {
           if (exercise.id !== eid) return exercise;
+          const setCount = exercise.sets.length;
+          const fallback = parseWorkoutTarget(exercise.target).repRange;
           const next: WorkoutExercise = {
             id: exercise.id,
             name: trimmedName,
-            target: exercise.target,
+            target: defaultExerciseTarget(trimmedName, trimmedLabel, setCount, fallback),
             sets: buildSetsForExercise(
               trimmedName,
               trimmedLabel,
-              exercise.sets.length,
+              setCount,
               s.workoutHistory,
             ),
           };
@@ -610,7 +614,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
         id: newWorkoutExerciseId(),
         name,
         ...(trimmedLabel ? { label: trimmedLabel } : {}),
-        target: "3 × 10",
+        target: defaultExerciseTarget(name, trimmedLabel, 3),
         sets: buildSetsForExercise(name, trimmedLabel, 3, s.workoutHistory),
       };
       return {

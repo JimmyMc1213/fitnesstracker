@@ -1,3 +1,4 @@
+import { defaultExerciseTarget } from "./exercisePrescriptionDefaults";
 import exerciseLibrary from "./exerciseLibrary";
 import type { FoodItem, Habit, HabitTemplate, MacroTotals, VolumeUnit, WorkoutExercise, WorkoutRoutineTemplate, WorkoutSet, WorkoutState } from "./types";
 import { buildHabitsForDateKey as buildHabitsForDateKeyFromTemplates, defaultDailyHabitTemplates, isLegacyDefaultHabitTemplates } from "./habits";
@@ -302,8 +303,9 @@ export function newTemplateExerciseLine(
   opts?: { label?: string; target?: string; setCount?: number },
 ): WorkoutExercise {
   const setCount = Math.min(Math.max(opts?.setCount ?? 3, 1), 12);
-  const target = (opts?.target ?? "3 × 10").trim() || "3 × 10";
   const label = opts?.label?.trim();
+  const target =
+    (opts?.target ?? defaultExerciseTarget(name.trim(), label, setCount)).trim() || defaultExerciseTarget(name.trim(), label, setCount);
   return {
     id: `te${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: name.trim(),

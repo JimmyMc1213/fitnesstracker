@@ -2,6 +2,7 @@ import { useCallback, useRef, useState, type TransitionEvent } from "react";
 
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { exerciseNoteKey } from "../exerciseNotes";
+import { setFieldSecondColumnLabel } from "../exercisePrescriptionDefaults";
 import { sanitizeCoachCopy } from "../exerciseSessionNotes";
 import { SwipeToDelete } from "../SwipeToDelete";
 import { IconCheck, IconChart, IconPlus } from "../icons";
@@ -154,6 +155,7 @@ export function WorkoutExerciseCard({
     restTimerSecondsByExerciseKey,
     exerciseNoteKey,
   );
+  const secondFieldLabel = setFieldSecondColumnLabel(exercise);
   const isActiveRest = restTimer?.exerciseId === exercise.id;
   const activeRestAfterSetIndex = isActiveRest ? restTimer!.afterSetIndex : null;
 
@@ -281,7 +283,7 @@ export function WorkoutExerciseCard({
           <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Set</div>
           <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Prev</div>
           <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>{weightUnitLabel(weightUnit)}</div>
-          <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Reps</div>
+          <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>{secondFieldLabel}</div>
           <div />
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -383,6 +385,7 @@ export function WorkoutExerciseCard({
                       placeholderWeight={placeholderWeight}
                       placeholderReps={placeholderReps}
                       weightUnit={weightUnit}
+                      secondFieldLabel={secondFieldLabel}
                     />
                     <button
                       type="button"

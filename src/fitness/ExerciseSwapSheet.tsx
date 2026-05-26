@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { catalogExercisesForEquipment } from "./exerciseCatalog";
+import { catalogExerciseGroupsForEquipment } from "./exerciseCatalog";
 import { ExerciseResultRow, exerciseSearchListStyle, exerciseSearchSectionHeaderStyle } from "./ExerciseSearchResultRow";
 import { IconSearch } from "./icons";
 import { CenterDialog, KEYBOARD_OPEN_THRESHOLD, bottomSheetPanelTheme, useExerciseSearchDialogPanelStyle, useKeyboardViewport } from "./motion";
@@ -32,13 +32,21 @@ export function ExerciseSwapSheet({
   const searchPanelStyle = useExerciseSearchDialogPanelStyle();
   const qLow = query.trim().toLowerCase();
 
-  const catalogExercises = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
-  const filteredBuiltin = useMemo(
+  const catalogGroups = useMemo(() => catalogExerciseGroupsForEquipment(equipmentSetup), [equipmentSetup]);
+
+  const filteredProgram = useMemo(
     () =>
-      catalogExercises.filter(
+      catalogGroups.program.filter(
         (c) => !qLow || c.name.toLowerCase().includes(qLow) || c.label.toLowerCase().includes(qLow),
       ),
-    [catalogExercises, qLow],
+    [catalogGroups.program, qLow],
+  );
+  const filteredExpansion = useMemo(
+    () =>
+      catalogGroups.expansion.filter(
+        (c) => !qLow || c.name.toLowerCase().includes(qLow) || c.label.toLowerCase().includes(qLow),
+      ),
+    [catalogGroups.expansion, qLow],
   );
   const filteredCustom = useMemo(
     () =>
@@ -111,15 +119,23 @@ export function ExerciseSwapSheet({
             ))}
           </>
         ) : null}
-        {filteredBuiltin.length > 0 ? (
+        {filteredProgram.length > 0 ? (
           <>
             <div style={exerciseSearchSectionHeaderStyle}>Catalog</div>
-            {filteredBuiltin.map((c) => (
+            {filteredProgram.map((c) => (
               <ExerciseResultRow key={`${c.name}-${c.label}`} name={c.name} label={c.label} onPick={() => pick(c.name, c.label)} />
             ))}
           </>
         ) : null}
-        {filteredCustom.length === 0 && filteredBuiltin.length === 0 ? (
+        {filteredExpansion.length > 0 ? (
+          <>
+            <div style={exerciseSearchSectionHeaderStyle}>More exercises</div>
+            {filteredExpansion.map((c) => (
+              <ExerciseResultRow key={`exp-${c.name}-${c.label}`} name={c.name} label={c.label} onPick={() => pick(c.name, c.label)} />
+            ))}
+          </>
+        ) : null}
+        {filteredCustom.length === 0 && filteredProgram.length === 0 && filteredExpansion.length === 0 ? (
           <div style={{ padding: 16, textAlign: "center", fontSize: 13, color: "var(--text-faint-soft)", fontWeight: 500 }}>
             No matches
           </div>

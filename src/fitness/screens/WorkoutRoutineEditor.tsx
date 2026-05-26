@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
+import { defaultExerciseTarget, formatPrescriptionRepRange, usesSecFieldForExercise } from "../exercisePrescriptionDefaults";
 import { newTemplateExerciseLine, resizeWorkoutSets } from "../data";
 import { IconMinus, IconPencil, IconPlus, IconTrash } from "../icons";
 import { FullScreenOverlay } from "../motion";
@@ -8,13 +9,13 @@ import { ExerciseDragHandle, SortableExerciseList } from "../SortableExerciseLis
 import type { CustomExerciseTemplate, EquipmentSetup, WorkoutExercise, WorkoutRoutineTemplate } from "../types";
 import { weekdayFullName } from "../trainingCalendar";
 import {
-  formatRepRangeBounds,
   formatWorkoutTarget,
   parseRepRangeBounds,
   parseWorkoutTarget,
   syncTargetRepRange,
 } from "../workoutTarget";
 import { DeleteExerciseConfirmSheet } from "../workout/DeleteExerciseConfirmSheet";
+import { SaveWorkoutConfirmSheet } from "../workout/SaveWorkoutConfirmSheet";
 import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { CARD_PADDING, EDITOR_LIST_GAP, labelStyle, SECONDARY_ACTION_COLOR, workoutFieldInputStyle } from "../workoutUiTokens";
 
@@ -51,6 +52,57 @@ function resolvedWorkoutName(rawName: string, day: string): string {
   const trimmed = rawName.trim();
   if (trimmed) return trimmed;
   return defaultWorkoutName(day);
+}
+
+function buildDraftTemplate(
+  template: WorkoutRoutineTemplate | null,
+  name: string,
+  dayLabel: string,
+  focus: string,
+  exercises: WorkoutExercise[],
+): WorkoutRoutineTemplate {
+  const id = template?.id ?? `tpl_${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  const trimmedDay = dayLabel.trim();
+  return {
+    id,
+    name: resolvedWorkoutName(name, trimmedDay),
+    dayLabel: trimmedDay,
+    focus: focus.trim(),
+    exercises: exercises.map((e) => ({
+      ...e,
+      sets: e.sets.map((s) => ({ ...s })),
+    })),
+    ...(template?.warmupItems?.length ? { warmupItems: template.warmupItems.map((w) => ({ ...w })) } : {}),
+    ...(template?.warmupTip ? { warmupTip: template.warmupTip } : {}),
+    ...(template?.sessionTip ? { sessionTip: template.sessionTip } : {}),
+  };
+}
+
+function routineEditorSnapshot(t: WorkoutRoutineTemplate): string {
+  return JSON.stringify({
+    name: t.name,
+    dayLabel: t.dayLabel,
+    focus: t.focus,
+    exercises: t.exercises.map((e) => ({
+      id: e.id,
+      name: e.name,
+      label: e.label ?? "",
+      target: e.target,
+      setCount: e.sets.length,
+    })),
+  });
+}
+
+function isRoutineEditorDirty(
+  template: WorkoutRoutineTemplate | null,
+  name: string,
+  dayLabel: string,
+  focus: string,
+  exercises: WorkoutExercise[],
+): boolean {
+  if (!template) return false;
+  const draft = buildDraftTemplate(template, name, dayLabel, focus, exercises);
+  return routineEditorSnapshot(draft) !== routineEditorSnapshot(template);
 }
 
 const fieldLabelStyle: CSSProperties = {
@@ -414,6 +466,7 @@ export function WorkoutRoutineEditor({
     label?: string;
   } | null>(null);
   const [pendingRoutineDelete, setPendingRoutineDelete] = useState(false);
+  const [pendingSaveConfirm, setPendingSaveConfirm] = useState(false);
   const exerciseListEndRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const pendingScrollToNewExerciseRef = useRef(false);
@@ -443,7 +496,7 @@ export function WorkoutRoutineEditor({
     });
   }, [exercises.length]);
 
-  function patchExercise(id: string, patch: Partial<WorkoutExercise> & { setCount?: number; repLow?: number; repHigh?: number }) {
+  function patchExercise(id: string, patch: Partial<WorkoutExercise> & { setCount?: number; repLow?: number; repHigh?: number; target?: string }) {
     setExercises((rows) =>
       rows.map((row) => {
         if (row.id !== id) return row;
@@ -459,8 +512,12 @@ export function WorkoutRoutineEditor({
           const { low, high } = parseRepRangeBounds(parseWorkoutTarget(row.target).repRange);
           const nextLow = typeof patch.repLow === "number" ? patch.repLow : low;
           const nextHigh = typeof patch.repHigh === "number" ? patch.repHigh : high;
-          const repRange = formatRepRangeBounds(nextLow, nextHigh);
+          const repRange = formatPrescriptionRepRange(row, nextLow, nextHigh);
           target = syncTargetRepRange(row.target, repRange, sets.length);
+        }
+
+        if (typeof patch.target === "string") {
+          target = patch.target;
         }
 
         const next: WorkoutExercise = { ...row, sets, target };
@@ -495,9 +552,16 @@ export function WorkoutRoutineEditor({
 
   function handleExerciseSelect(exName: string, exLabel?: string) {
     if (searchSheet?.kind === "swap") {
-      patchExercise(searchSheet.exerciseId, { name: exName, ...(exLabel ? { label: exLabel } : { label: "" }) });
+      const row = exercises.find((e) => e.id === searchSheet.exerciseId);
+      const setCount = row?.sets.length ?? 3;
+      const fallback = row ? parseWorkoutTarget(row.target).repRange : "8-12";
+      patchExercise(searchSheet.exerciseId, {
+        name: exName,
+        ...(exLabel ? { label: exLabel } : { label: "" }),
+        target: defaultExerciseTarget(exName, exLabel, setCount, fallback),
+      });
     } else {
-      setExercises((rows) => [...rows, newTemplateExerciseLine(exName, { label: exLabel, setCount: 3, target: "3 × 8-12" })]);
+      setExercises((rows) => [...rows, newTemplateExerciseLine(exName, { label: exLabel, setCount: 3 })]);
       pendingScrollToNewExerciseRef.current = true;
     }
     setSearchSheet(null);
@@ -509,21 +573,20 @@ export function WorkoutRoutineEditor({
   }
 
   function handleSave() {
-    const id = template?.id ?? `tpl_${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    const trimmedDay = dayLabel.trim();
-    onSave({
-      id,
-      name: resolvedWorkoutName(name, trimmedDay),
-      dayLabel: trimmedDay,
-      focus: focus.trim(),
-      exercises: exercises.map((e) => ({
-        ...e,
-        sets: e.sets.map((s) => ({ ...s })),
-      })),
-      ...(template?.warmupItems?.length ? { warmupItems: template.warmupItems.map((w) => ({ ...w })) } : {}),
-      ...(template?.warmupTip ? { warmupTip: template.warmupTip } : {}),
-      ...(template?.sessionTip ? { sessionTip: template.sessionTip } : {}),
-    });
+    onSave(buildDraftTemplate(template, name, dayLabel, focus, exercises));
+  }
+
+  function handleSaveClick() {
+    if (isRoutineEditorDirty(template, name, dayLabel, focus, exercises)) {
+      setPendingSaveConfirm(true);
+      return;
+    }
+    handleSave();
+  }
+
+  function confirmSave() {
+    setPendingSaveConfirm(false);
+    handleSave();
   }
 
   function handleDelete() {
@@ -649,6 +712,7 @@ export function WorkoutRoutineEditor({
             renderItem={(row, ri, handle, ctx) => {
               const { repRange } = parseWorkoutTarget(row.target);
               const { low, high } = parseRepRangeBounds(repRange);
+              const usesSec = usesSecFieldForExercise(row);
 
               return (
                 <div
@@ -732,13 +796,24 @@ export function WorkoutRoutineEditor({
                       />
                     </div>
                     <div>
-                      <span style={fieldLabelStyle}>Reps</span>
-                      <RepRangeStepper
-                        low={low}
-                        high={high}
-                        disabled={ctx.isOverlay}
-                        onChange={(repLow, repHigh) => patchExercise(row.id, { repLow, repHigh })}
-                      />
+                      <span style={fieldLabelStyle}>{usesSec ? "Sec" : "Reps"}</span>
+                      {usesSec ? (
+                        <RepBoundStepper
+                          boundLabel="Hold"
+                          value={low}
+                          min={5}
+                          max={300}
+                          disabled={ctx.isOverlay}
+                          onChange={(sec) => patchExercise(row.id, { repLow: sec, repHigh: sec })}
+                        />
+                      ) : (
+                        <RepRangeStepper
+                          low={low}
+                          high={high}
+                          disabled={ctx.isOverlay}
+                          onChange={(repLow, repHigh) => patchExercise(row.id, { repLow, repHigh })}
+                        />
+                      )}
                     </div>
                   </div>
 
@@ -791,7 +866,7 @@ export function WorkoutRoutineEditor({
           <button
             type="button"
             className="tap"
-            onClick={handleSave}
+            onClick={handleSaveClick}
             style={{
               width: "100%",
               background: ACCENT_BLUE,
@@ -846,6 +921,14 @@ export function WorkoutRoutineEditor({
           exerciseLabel={pendingExerciseDelete.label}
           onCancel={() => setPendingExerciseDelete(null)}
           onConfirm={confirmDeleteExercise}
+        />
+      ) : null}
+
+      {pendingSaveConfirm ? (
+        <SaveWorkoutConfirmSheet
+          workoutName={resolvedWorkoutName(name, dayLabel.trim())}
+          onCancel={() => setPendingSaveConfirm(false)}
+          onSave={confirmSave}
         />
       ) : null}
 

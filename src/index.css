@@ -983,6 +983,11 @@ textarea {
  * `.app-tab-shell` reserves space so scrollable content clears the bar. */
 .app-tab-shell {
   padding-bottom: var(--tabbar-chrome);
+  transition: padding-bottom 150ms ease-in-out;
+}
+
+.app-tab-shell--no-chrome {
+  padding-bottom: 0;
 }
 
 .tabbar {
@@ -1004,6 +1009,24 @@ textarea {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 4px;
+  transition:
+    opacity 150ms ease-in-out,
+    transform 150ms ease-in-out,
+    visibility 150ms ease-in-out;
+}
+
+.tabbar--hidden {
+  opacity: 0;
+  transform: translateY(100%);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-tab-shell,
+  .tabbar {
+    transition: none;
+  }
 }
 
 .tab {

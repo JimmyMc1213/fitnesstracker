@@ -207,7 +207,7 @@ function FitnessAppMain({
 }) {
   const [tab, setTab] = useState<TabId>("home");
   const [screenTransitionVariant, setScreenTransitionVariant] = useState<"fade" | "stack">("fade");
-  const [tabBarRevealDeferred, setTabBarRevealDeferred] = useState(false);
+  const [tabBarEnterDelayed, setTabBarEnterDelayed] = useState(false);
   const [logFoodOpenRequest, setLogFoodOpenRequest] = useState(0);
   const [mobilityPreviewRequest, setMobilityPreviewRequest] = useState(0);
   const [mobilitySessionOpen, setMobilitySessionOpen] = useState(false);
@@ -365,7 +365,7 @@ function FitnessAppMain({
     }
 
     if (tab === "settings" && nextTab === "home") {
-      setTabBarRevealDeferred(true);
+      setTabBarEnterDelayed(true);
     }
 
     setScreenTransitionVariant("fade");
@@ -375,10 +375,10 @@ function FitnessAppMain({
   };
 
   useEffect(() => {
-    if (!tabBarRevealDeferred) return;
-    const id = window.setTimeout(() => setTabBarRevealDeferred(false), MOTION_DURATIONS.tab * 2);
+    if (!tabBarEnterDelayed) return;
+    const id = window.setTimeout(() => setTabBarEnterDelayed(false), MOTION_DURATIONS.tab);
     return () => window.clearTimeout(id);
-  }, [tabBarRevealDeferred]);
+  }, [tabBarEnterDelayed]);
 
   useLockVisualViewportScroll();
 
@@ -388,7 +388,7 @@ function FitnessAppMain({
 
   const hideTabBar =
     tab === "settings" ||
-    tabBarRevealDeferred ||
+    tabBarEnterDelayed ||
     showWorkoutSummary ||
     logFoodOverlayOpen ||
     routineEditorOpen ||
@@ -560,7 +560,7 @@ function FitnessAppMain({
         hideDevToolbar={routineEditorOpen}
       >
       <div
-        className={hideTabBar ? undefined : "app-tab-shell"}
+        className={`app-tab-shell${hideTabBar ? " app-tab-shell--no-chrome" : ""}`}
         style={{
           flex: 1,
           minHeight: 0,
@@ -605,25 +605,28 @@ function FitnessAppMain({
           </ScreenTransition>
         </div>
 
-        {!hideTabBar ? (
-          <nav className="tabbar" aria-label="Main">
-            {TABS.map((t) => {
-              const active = tab === t.id;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  className="tab tap"
-                  aria-current={active}
-                  onClick={() => navigate(t.id)}
-                >
-                  <t.Icon size={22} stroke={1.6} />
-                  <span className="tlabel">{t.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        ) : null}
+        <nav
+          className={`tabbar${hideTabBar ? " tabbar--hidden" : ""}`}
+          aria-label="Main"
+          aria-hidden={hideTabBar}
+        >
+          {TABS.map((t) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                className="tab tap"
+                aria-current={active}
+                tabIndex={hideTabBar ? -1 : undefined}
+                onClick={() => navigate(t.id)}
+              >
+                <t.Icon size={22} stroke={1.6} />
+                <span className="tlabel">{t.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
         {state.workoutSummary ? (
           <WorkoutSummarySheet

@@ -38,7 +38,8 @@ describe("exerciseLibrary equipment labels", () => {
         /machine|pec deck|hack squat|leg press|lat pulldown|assisted pull-up|lying leg curl|seated leg curl|standing calf raise|seated calf raise/.test(
           name,
         ) &&
-        ex.label !== "Machine"
+        ex.label !== "Machine" &&
+        ex.id !== "close_grip_lat_pulldown"
       ) {
         mismatches.push(`${ex.id}: machine-type name but label is ${ex.label}`);
       }

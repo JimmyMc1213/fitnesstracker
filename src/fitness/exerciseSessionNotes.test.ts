@@ -203,3 +203,94 @@ describe("trainingStyle coach notes", () => {
     expect(note).toContain("If you miss reps");
   });
 });
+
+describe("progression profile coach notes", () => {
+  function timedExercise(name: string, target: string): WorkoutExercise {
+    return { ...exercise("e1", name), target };
+  }
+
+  function historyWithSets(name: string, sets: { w: number; r: number }[], label?: string) {
+    return workoutHistoryAppState([
+      {
+        id: "h1",
+        dayKey: "2026-05-20",
+        endedAtMs: 2_000_000,
+        startedAtMs: 1_999_000,
+        title: "Session",
+        durationSec: 1000,
+        exercises: [
+          {
+            id: "ex1",
+            name,
+            label,
+            target: "3 × 30",
+            sets: sets.map((s) => ({ ...s, done: true })),
+          },
+        ],
+      },
+    ]);
+  }
+
+  it("uses seconds progression for wall sit", () => {
+    const state = historyWithSets("Wall sit", [
+      { w: 0, r: 30 },
+      { w: 0, r: 30 },
+    ]);
+    const note = getExerciseSessionNote(
+      { workoutHistory: state.workoutHistory },
+      timedExercise("Wall sit", "3 × 30"),
+    );
+    expect(note).toContain("Your goal: 35 seconds on every set.");
+    expect(note).toContain("aim for 30 seconds");
+    expect(note).not.toContain("lb");
+  });
+
+  it("uses seconds progression for side plank", () => {
+    const note = getExerciseSessionNote({ workoutHistory: [] }, timedExercise("Side plank", "3 × 20"));
+    expect(note).toContain("Your goal: 20 seconds on every set.");
+  });
+
+  it("uses reps-only progression for burpee", () => {
+    const state = historyWithSets("Burpee", [{ w: 0, r: 10 }]);
+    const note = getExerciseSessionNote({ workoutHistory: state.workoutHistory }, timedExercise("Burpee", "3 × 8-12"));
+    expect(note).toContain("Your goal: 11 reps on every set.");
+    expect(note).toContain("stop 1-2 reps short");
+    expect(note).not.toContain("drop 10 lb");
+  });
+
+  it("suggests adding weight on reps-only after 20+ reps", () => {
+    const state = historyWithSets("Burpee", [{ w: 0, r: 20 }]);
+    const note = getExerciseSessionNote({ workoutHistory: state.workoutHistory }, timedExercise("Burpee", "3 × 8-12"));
+    expect(note).toContain("Add weight when you can do 20+ clean");
+  });
+
+  it("uses carry progression with weight and seconds", () => {
+    const state = historyWithSets("Farmers carry", [{ w: 50, r: 40 }]);
+    const note = getExerciseSessionNote(
+      { workoutHistory: state.workoutHistory },
+      timedExercise("Farmers carry", "3 × 30-45"),
+    );
+    expect(note).toContain("Your goal: 50 lb × 45 sec on every set.");
+  });
+
+  it("skips load goals for activation-only exercises", () => {
+    const note = getExerciseSessionNote({ workoutHistory: [] }, exercise("e1", "Frog pump"));
+    expect(note).not.toContain("Your goal:");
+    expect(note).toContain("glute burnout");
+  });
+
+  it("uses reps-only for bench dip until load is logged", () => {
+    const note = getExerciseSessionNote({ workoutHistory: [] }, exercise("e1", "Bench dip"));
+    expect(note).toContain("reps on every set");
+    expect(note).toContain("Add weight when you can do 20+ clean");
+  });
+
+  it("switches bench dip to weight progression after load is logged", () => {
+    const state = historyWithSets("Bench dip", [{ w: 25, r: 11 }]);
+    const note = getExerciseSessionNote(
+      { workoutHistory: state.workoutHistory },
+      { ...exercise("e1", "Bench dip"), target: "3 × 8-12" },
+    );
+    expect(note).toContain("Your goal: 25x12 on every set.");
+  });
+});
