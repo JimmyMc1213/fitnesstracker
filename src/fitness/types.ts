@@ -141,6 +141,13 @@ export type CompletedWorkoutSession = {
   exercises: WorkoutExercise[];
 };
 
+/** Ephemeral prompt after finish when session exercise order differed from the template. */
+export type PendingTemplateOrderUpdatePrompt = {
+  templateId: string;
+  templateName: string;
+  exerciseOrderKeys: string[];
+};
+
 /** Snapshot shown after tapping Finish, not persisted (cleared on dismiss). */
 export type WorkoutSessionSummary = {
   title: string;
@@ -165,6 +172,8 @@ export type WorkoutState = {
   exercises: WorkoutExercise[];
   /** Rule-based coach notes generated at session start; cleared when session ends. */
   sessionCoachNotesByExerciseId?: Record<string, string>;
+  /** Template exercise order at session start; used to detect reorder on finish. */
+  sessionBaselineExerciseOrder?: string[];
 };
 
 export type HabitType = "manual" | "action";
@@ -444,6 +453,8 @@ export type AppState = {
   workoutHistory: CompletedWorkoutSession[];
   /** Post-finish recap overlay; cleared when user returns home. */
   workoutSummary: WorkoutSessionSummary | null;
+  /** Ask to save reordered exercises to the source template; cleared on dismiss or apply. */
+  pendingTemplateOrderUpdatePrompt: PendingTemplateOrderUpdatePrompt | null;
   habits: Habit[];
   dailyTasks: DailyTask[];
   nutritionTargets: MacroTotals;

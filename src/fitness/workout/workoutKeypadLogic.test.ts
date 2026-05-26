@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  advanceWorkoutKeypad,
   appendKeypadDigit,
   applyKeypadIncrement,
   backspaceKeypadDraft,
@@ -46,6 +47,21 @@ describe("workoutKeypadLogic", () => {
       exerciseId: "e2",
       setIndex: 0,
       field: "weight",
+    });
+  });
+
+  it("marks set complete when advancing from reps", () => {
+    expect(advanceWorkoutKeypad(exercises, { exerciseId: "e1", setIndex: 0, field: "weight" })).toEqual({
+      completeSet: null,
+      nextTarget: { exerciseId: "e1", setIndex: 0, field: "reps" },
+    });
+    expect(advanceWorkoutKeypad(exercises, { exerciseId: "e1", setIndex: 0, field: "reps" })).toEqual({
+      completeSet: { exerciseId: "e1", setIndex: 0 },
+      nextTarget: { exerciseId: "e1", setIndex: 1, field: "weight" },
+    });
+    expect(advanceWorkoutKeypad(exercises, { exerciseId: "e1", setIndex: 1, field: "reps" })).toEqual({
+      completeSet: { exerciseId: "e1", setIndex: 1 },
+      nextTarget: { exerciseId: "e2", setIndex: 0, field: "weight" },
     });
   });
 

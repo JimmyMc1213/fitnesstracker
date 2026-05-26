@@ -14,7 +14,8 @@ import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { FullScreenOverlay } from "../motion";
 import { SortableExerciseList } from "../SortableExerciseList";
 import type { ScreenProps, WorkoutExercise, WorkoutSetKind } from "../types";
-import { autofillExerciseSets, buildSetsForExercise } from "../workoutAutofill";
+import { autofillExerciseSets, buildSetsForExercise, findLastLoggedExerciseSets } from "../workoutAutofill";
+import { buildSetCompletionPatch, canCompleteSet } from "../workoutPreviousSets";
 import {
   buildSessionCoachNoteForExercise,
   buildSessionCoachNotesByExerciseId,
@@ -100,6 +101,8 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
     name: string;
     label?: string;
   } | null>(null);
+  const [rejectShakeSet, setRejectShakeSet] = useState<{ exerciseId: string; setIndex: number } | null>(null);
+  const rejectShakeTimerRef = useRef<number | null>(null);
   const exerciseListEndRef = useRef<HTMLDivElement>(null);
   const pendingScrollToNewExerciseRef = useRef(false);
   const restTimerRef = useRef<ActiveRestTimer | null>(null);
@@ -350,19 +353,51 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
     });
   }
 
-  function toggleSetDone(exercise: WorkoutExercise, idx: number) {
-    const st = exercise.sets[idx];
-    if (!st) return;
-    const willDone = !st.done;
-    updateSet(exercise.id, idx, { done: willDone });
-    if (willDone) {
-      startRestTimer(exercise, idx);
-    } else {
-      if (restTimer?.exerciseId === exercise.id) {
-        clearRestTimer();
-      }
-      unmarkRestedFromSet(exercise.id, idx);
+  function rejectSetCompletion(exerciseId: string, setIndex: number) {
+    if (rejectShakeTimerRef.current != null) {
+      window.clearTimeout(rejectShakeTimerRef.current);
     }
+    setRejectShakeSet({ exerciseId, setIndex });
+    navigator.vibrate?.([12, 40, 12]);
+    rejectShakeTimerRef.current = window.setTimeout(() => {
+      setRejectShakeSet(null);
+      rejectShakeTimerRef.current = null;
+    }, 450);
+  }
+
+  function toggleSetDone(
+    exercise: WorkoutExercise,
+    idx: number,
+    pendingPatch?: Partial<{ w: number; r: number }>,
+  ): boolean {
+    const st = exercise.sets[idx];
+    if (!st) return false;
+    const willDone = !st.done;
+    if (willDone) {
+      const effective = pendingPatch ? { ...st, ...pendingPatch } : st;
+      const historySets = findLastLoggedExerciseSets(
+        state.workoutHistory,
+        exercise.name,
+        exercise.label,
+      );
+      if (!canCompleteSet(effective, exercise.sets, idx, historySets)) {
+        rejectSetCompletion(exercise.id, idx);
+        return false;
+      }
+      updateSet(
+        exercise.id,
+        idx,
+        buildSetCompletionPatch(effective, exercise.sets, idx, historySets),
+      );
+      startRestTimer(exercise, idx);
+      return true;
+    }
+    updateSet(exercise.id, idx, { done: false });
+    if (restTimer?.exerciseId === exercise.id) {
+      clearRestTimer();
+    }
+    unmarkRestedFromSet(exercise.id, idx);
+    return true;
   }
 
   function setRestPreset(exercise: WorkoutExercise, seconds: number) {
@@ -638,6 +673,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
         sessionTitle: "Workout",
         exercises: [],
         sessionCoachNotesByExerciseId: {},
+        sessionBaselineExerciseOrder: undefined,
       },
     }));
   }
@@ -665,6 +701,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
             exercises,
             s.onboardingProfile?.trainingStyle,
           ),
+          sessionBaselineExerciseOrder: tpl.exercises.map((e) => exerciseNoteKey(e.name, e.label)),
         },
       };
     });
@@ -698,6 +735,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
           sessionTitle: "Workout",
           exercises: [],
           sessionCoachNotesByExerciseId: undefined,
+          sessionBaselineExerciseOrder: undefined,
         },
       }));
     }
@@ -820,7 +858,18 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   }
 
   return (
-    <WorkoutKeypadProvider exercises={w.exercises} weightUnit={wUnit} onUpdateSet={updateSet}>
+    <WorkoutKeypadProvider
+      exercises={w.exercises}
+      weightUnit={wUnit}
+      onUpdateSet={updateSet}
+      onCompleteSet={(exerciseId, setIndex, pendingPatch) => {
+        const exercise = w.exercises.find((e) => e.id === exerciseId);
+        if (!exercise) return false;
+        const st = exercise.sets[setIndex];
+        if (!st || st.done) return false;
+        return toggleSetDone(exercise, setIndex, pendingPatch);
+      }}
+    >
       <WorkoutLiftingScreen>
       <WorkoutSessionHeader
         elapsedSec={elapsedSec}
@@ -894,6 +943,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
                 onOpenRestSheet={openRestSheet}
                 onUpdateSetKind={updateSetKind}
                 onToggleSetDone={toggleSetDone}
+                rejectShakeSet={rejectShakeSet}
                 onRemoveSet={removeSet}
                 onAddSet={addSet}
                 onPressNote={(name, label) => setNotesEdit({ name, label })}

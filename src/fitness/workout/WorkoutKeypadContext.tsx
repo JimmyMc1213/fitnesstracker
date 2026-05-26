@@ -12,10 +12,10 @@ import {
 import { formatSetWeight, parseSetWeightInput } from "../unitPreferences";
 import type { WeightUnit, WorkoutExercise } from "../types";
 import {
+  advanceWorkoutKeypad,
   appendKeypadDigit,
   applyKeypadIncrement,
   backspaceKeypadDraft,
-  nextWorkoutKeypadTarget,
   workoutKeypadTargetKey,
   type WorkoutKeypadTarget,
 } from "./workoutKeypadLogic";
@@ -46,24 +46,44 @@ export function WorkoutKeypadProvider({
   exercises,
   weightUnit,
   onUpdateSet,
+  onCompleteSet,
   children,
 }: {
   exercises: WorkoutExercise[];
   weightUnit: WeightUnit;
   onUpdateSet: (exerciseId: string, setIndex: number, patch: Partial<{ w: number; r: number }>) => void;
+  onCompleteSet?: (
+    exerciseId: string,
+    setIndex: number,
+    pendingPatch?: Partial<{ w: number; r: number }>,
+  ) => boolean;
   children: ReactNode;
 }) {
   const [active, setActive] = useState<WorkoutKeypadTarget | null>(null);
   const [draft, setDraft] = useState("");
   const keypadWasOpenRef = useRef(false);
+  const liveSetValuesRef = useRef(new Map<string, { w: number; r: number }>());
+
+  useEffect(() => {
+    const next = new Map<string, { w: number; r: number }>();
+    for (const exercise of exercises) {
+      exercise.sets.forEach((set, setIndex) => {
+        next.set(`${exercise.id}:${setIndex}`, { w: set.w, r: set.r });
+      });
+    }
+    liveSetValuesRef.current = next;
+  }, [exercises]);
 
   const commit = useCallback(
     (target: WorkoutKeypadTarget, value: string) => {
-      if (target.field === "weight") {
-        onUpdateSet(target.exerciseId, target.setIndex, { w: parseSetWeightInput(value, weightUnit) });
-        return;
-      }
-      onUpdateSet(target.exerciseId, target.setIndex, { r: parseInt(value, 10) || 0 });
+      const key = `${target.exerciseId}:${target.setIndex}`;
+      const prev = liveSetValuesRef.current.get(key) ?? { w: 0, r: 0 };
+      const patch =
+        target.field === "weight"
+          ? { w: parseSetWeightInput(value, weightUnit) }
+          : { r: parseInt(value, 10) || 0 };
+      liveSetValuesRef.current.set(key, { ...prev, ...patch });
+      onUpdateSet(target.exerciseId, target.setIndex, patch);
     },
     [onUpdateSet, weightUnit],
   );
@@ -160,13 +180,20 @@ export function WorkoutKeypadProvider({
 
   const next = useCallback(() => {
     if (!active) return;
-    const nextTarget = nextWorkoutKeypadTarget(exercises, active);
+    commit(active, draft);
+    const { completeSet, nextTarget } = advanceWorkoutKeypad(exercises, active);
+    if (completeSet) {
+      const live = liveSetValuesRef.current.get(`${completeSet.exerciseId}:${completeSet.setIndex}`);
+      const completed =
+        onCompleteSet?.(completeSet.exerciseId, completeSet.setIndex, live) ?? true;
+      if (!completed) return;
+    }
     if (!nextTarget) {
       close();
       return;
     }
     openField(nextTarget);
-  }, [active, close, exercises, openField]);
+  }, [active, close, commit, draft, exercises, onCompleteSet, openField]);
 
   const isActive = useCallback(
     (target: WorkoutKeypadTarget) =>

@@ -65,3 +65,29 @@ export function setFieldPlaceholder(
   const src = historySets[Math.min(setIndex, historySets.length - 1)];
   return { w: src?.w ?? 0, r: src?.r ?? 0 };
 }
+
+/** Whether a set can be marked done (logged values and/or placeholder to apply). */
+export function canCompleteSet(
+  set: WorkoutSet,
+  sets: WorkoutSet[],
+  setIndex: number,
+  historySets: WorkoutSet[] | null | undefined,
+): boolean {
+  if (set.w > 0 || set.r > 0) return true;
+  const placeholder = setFieldPlaceholder(sets, setIndex, historySets);
+  return placeholder.w > 0 || placeholder.r > 0;
+}
+
+/** Apply placeholder w/r when marking a set done; leaves user-entered values unchanged. */
+export function buildSetCompletionPatch(
+  set: WorkoutSet,
+  sets: WorkoutSet[],
+  setIndex: number,
+  historySets: WorkoutSet[] | null | undefined,
+): Partial<WorkoutSet> {
+  const placeholder = setFieldPlaceholder(sets, setIndex, historySets);
+  const patch: Partial<WorkoutSet> = { done: true };
+  if (set.w <= 0 && placeholder.w > 0) patch.w = placeholder.w;
+  if (set.r <= 0 && placeholder.r > 0) patch.r = placeholder.r;
+  return patch;
+}

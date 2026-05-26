@@ -48,6 +48,23 @@ export function applyKeypadIncrement(
   return String(Math.round(next));
 }
 
+export type WorkoutKeypadAdvance = {
+  /** Set to mark complete when leaving the reps field via Next. */
+  completeSet: { exerciseId: string; setIndex: number } | null;
+  nextTarget: WorkoutKeypadTarget | null;
+};
+
+export function advanceWorkoutKeypad(
+  exercises: WorkoutExercise[],
+  current: WorkoutKeypadTarget,
+): WorkoutKeypadAdvance {
+  return {
+    completeSet:
+      current.field === "reps" ? { exerciseId: current.exerciseId, setIndex: current.setIndex } : null,
+    nextTarget: nextWorkoutKeypadTarget(exercises, current),
+  };
+}
+
 export function nextWorkoutKeypadTarget(
   exercises: WorkoutExercise[],
   current: WorkoutKeypadTarget,

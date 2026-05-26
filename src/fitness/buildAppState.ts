@@ -135,6 +135,7 @@ function normalizePersistedWorkout(raw: WorkoutState | undefined): WorkoutState 
       exercises: [],
       sessionTitle: "Workout",
       sessionCoachNotesByExerciseId: undefined,
+      sessionBaselineExerciseOrder: undefined,
     };
   }
 
@@ -148,6 +149,7 @@ function normalizePersistedWorkout(raw: WorkoutState | undefined): WorkoutState 
       exercises: [],
       sessionTitle: "Workout",
       sessionCoachNotesByExerciseId: undefined,
+      sessionBaselineExerciseOrder: undefined,
     };
   }
 
@@ -409,6 +411,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     exerciseSessionHistoryByKey: normalizeExerciseSessionHistoryByKey(p?.exerciseSessionHistoryByKey),
     workoutHistory: normalizeWorkoutHistory(p?.workoutHistory),
     workoutSummary: null,
+    pendingTemplateOrderUpdatePrompt: null,
     habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey, {
       weightLogged: weightLog.some((e) => e.dateKey === todayKey),
     }),

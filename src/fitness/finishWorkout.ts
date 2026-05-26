@@ -1,8 +1,13 @@
 import { appendExerciseSessionHistory } from "./exerciseSessionHistory";
 import { applyStreakEligibility } from "./dailyStreak";
-import type { AppState, WorkoutSessionSummary } from "./types";
+import type { AppState, PendingTemplateOrderUpdatePrompt, WorkoutSessionSummary } from "./types";
 import { appendWorkoutHistory, buildCompletedWorkoutSession } from "./workoutHistory";
 import { buildWorkoutSessionSummary, personalBestsAfterSession } from "./workoutSummary";
+import {
+  applyOrderToTemplate,
+  detectExerciseOrderChange,
+  exerciseOrderKeys,
+} from "./workoutTemplateOrder";
 
 export type FinishWorkoutResult = {
   state: AppState;
@@ -34,6 +39,19 @@ export function finishWorkout(state: AppState, endedAtMs = Date.now()): FinishWo
   const workoutsCompletedByDay =
     dayKey != null ? { ...state.workoutsCompletedByDay, [dayKey]: true } : state.workoutsCompletedByDay;
 
+  const currentOrderKeys = exerciseOrderKeys(w.exercises);
+  const orderChanged =
+    w.splitId !== "" && detectExerciseOrderChange(w.sessionBaselineExerciseOrder, currentOrderKeys);
+  let pendingTemplateOrderUpdatePrompt: PendingTemplateOrderUpdatePrompt | null = null;
+  if (orderChanged) {
+    const tpl = state.workoutTemplates.find((t) => t.id === w.splitId);
+    pendingTemplateOrderUpdatePrompt = {
+      templateId: w.splitId,
+      templateName: tpl?.name ?? w.sessionTitle,
+      exerciseOrderKeys: currentOrderKeys,
+    };
+  }
+
   const nextState: AppState = applyStreakEligibility({
     ...state,
     exercisePersonalBests,
@@ -41,6 +59,7 @@ export function finishWorkout(state: AppState, endedAtMs = Date.now()): FinishWo
     workoutHistory,
     workoutsCompletedByDay,
     workoutSummary: summary,
+    pendingTemplateOrderUpdatePrompt,
     workout: {
       ...w,
       sessionPhase: "idle",
@@ -50,12 +69,41 @@ export function finishWorkout(state: AppState, endedAtMs = Date.now()): FinishWo
       sessionTitle: "Workout",
       exercises: [],
       sessionCoachNotesByExerciseId: undefined,
+      sessionBaselineExerciseOrder: undefined,
     },
   });
 
   return { state: nextState, summary };
 }
 
+export function applyTemplateOrderUpdate(state: AppState): AppState {
+  const prompt = state.pendingTemplateOrderUpdatePrompt;
+  if (!prompt) return state;
+
+  const index = state.workoutTemplates.findIndex((t) => t.id === prompt.templateId);
+  if (index < 0) {
+    return { ...state, pendingTemplateOrderUpdatePrompt: null };
+  }
+
+  const template = state.workoutTemplates[index]!;
+  const nextTemplates = [...state.workoutTemplates];
+  nextTemplates[index] = applyOrderToTemplate(template, prompt.exerciseOrderKeys);
+
+  return {
+    ...state,
+    workoutTemplates: nextTemplates,
+    pendingTemplateOrderUpdatePrompt: null,
+  };
+}
+
+export function dismissTemplateOrderUpdatePrompt(state: AppState): AppState {
+  return { ...state, pendingTemplateOrderUpdatePrompt: null };
+}
+
 export function dismissWorkoutSummary(state: AppState): AppState {
-  return { ...state, workoutSummary: null };
+  return {
+    ...state,
+    workoutSummary: null,
+    pendingTemplateOrderUpdatePrompt: null,
+  };
 }

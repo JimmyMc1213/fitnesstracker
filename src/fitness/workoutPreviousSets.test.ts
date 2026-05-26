@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import type { CompletedWorkoutSession } from "./types";
-import { previousSetLinesForExercise, setFieldPlaceholder } from "./workoutPreviousSets";
+import {
+  buildSetCompletionPatch,
+  canCompleteSet,
+  previousSetLinesForExercise,
+  setFieldPlaceholder,
+} from "./workoutPreviousSets";
 
 describe("workoutPreviousSets", () => {
   it("formats per-set previous lines from last session", () => {
@@ -68,5 +73,40 @@ describe("workoutPreviousSets", () => {
       { w: 0, r: 0, done: false },
     ];
     expect(setFieldPlaceholder(sets, 3, history)).toEqual({ w: 135, r: 7 });
+  });
+
+  it("applies placeholder values when marking a set complete", () => {
+    const history = [{ w: 135, r: 8, done: false }];
+    const sets = [{ w: 0, r: 0, done: false }];
+    expect(buildSetCompletionPatch(sets[0]!, sets, 0, history)).toEqual({
+      done: true,
+      w: 135,
+      r: 8,
+    });
+  });
+
+  it("keeps user-entered values when marking complete", () => {
+    const history = [{ w: 135, r: 8, done: false }];
+    const sets = [{ w: 140, r: 5, done: false }];
+    expect(buildSetCompletionPatch(sets[0]!, sets, 0, history)).toEqual({ done: true });
+  });
+
+  it("fills only missing fields from placeholder", () => {
+    const history = [{ w: 135, r: 8, done: false }];
+    const sets = [{ w: 140, r: 0, done: false }];
+    expect(buildSetCompletionPatch(sets[0]!, sets, 0, history)).toEqual({ done: true, r: 8 });
+  });
+
+  it("marks empty completed sets when no placeholder exists", () => {
+    const sets = [{ w: 0, r: 0, done: false }];
+    expect(canCompleteSet(sets[0]!, sets, 0, null)).toBe(false);
+    expect(buildSetCompletionPatch(sets[0]!, sets, 0, null)).toEqual({ done: true });
+  });
+
+  it("allows completion when placeholder or logged values exist", () => {
+    const history = [{ w: 135, r: 8, done: false }];
+    const blank = [{ w: 0, r: 0, done: false }];
+    expect(canCompleteSet(blank[0]!, blank, 0, history)).toBe(true);
+    expect(canCompleteSet({ w: 140, r: 0, done: false }, blank, 0, null)).toBe(true);
   });
 });

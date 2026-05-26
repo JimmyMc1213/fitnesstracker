@@ -62,6 +62,7 @@ export function WorkoutExerciseCard({
   onOpenRestSheet,
   onUpdateSetKind,
   onToggleSetDone,
+  rejectShakeSet,
   onRemoveSet,
   onAddSet,
   onPressNote,
@@ -86,7 +87,12 @@ export function WorkoutExerciseCard({
   onSwapExercise: (id: string) => void;
   onOpenRestSheet: (exerciseId: string) => void;
   onUpdateSetKind: (eid: string, idx: number, kind: WorkoutSetKind) => void;
-  onToggleSetDone: (exercise: WorkoutExercise, idx: number) => void;
+  onToggleSetDone: (
+    exercise: WorkoutExercise,
+    idx: number,
+    pendingPatch?: Partial<{ w: number; r: number }>,
+  ) => boolean;
+  rejectShakeSet: { exerciseId: string; setIndex: number } | null;
   onRemoveSet: (eid: string, idx: number) => void;
   onAddSet: (eid: string) => void;
   onPressNote: (name: string, label?: string) => void;
@@ -253,9 +259,12 @@ export function WorkoutExerciseCard({
               si,
               previousSets,
             );
+            const isRejectShake =
+              rejectShakeSet?.exerciseId === exercise.id && rejectShakeSet.setIndex === si;
             return (
               <Fragment key={si}>
                 <div
+                  className={isRejectShake ? "workout-set-row--reject" : undefined}
                   style={{
                     display: "grid",
                     gridTemplateColumns: SET_GRID,
@@ -326,7 +335,7 @@ export function WorkoutExerciseCard({
                   />
                   <button
                     type="button"
-                    className="tap"
+                    className={`tap workout-set-done-btn${isRejectShake ? " workout-set-done-btn--reject" : ""}`}
                     onClick={() => onToggleSetDone(exercise, si)}
                     aria-label="Done"
                     style={{

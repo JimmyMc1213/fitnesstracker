@@ -23,7 +23,7 @@ import { ScreenNutrition } from "./screens/ScreenNutrition";
 import { ScreenProgress } from "./screens/ScreenProgress";
 import { ScreenStretch } from "./screens/ScreenStretch";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
-import { dismissWorkoutSummary } from "./finishWorkout";
+import { dismissWorkoutSummary, applyTemplateOrderUpdate, dismissTemplateOrderUpdatePrompt } from "./finishWorkout";
 import { MOTION_DURATIONS, ScreenTransition, useLockVisualViewportScroll, type NavDirection } from "./motion";
 import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
 import {
@@ -47,6 +47,7 @@ import {
 import { registerNotificationServiceWorker } from "./registerNotificationServiceWorker";
 import { checkAndFireDueNotifications } from "./notificationScheduler";
 import { WorkoutSummarySheet } from "./WorkoutSummarySheet";
+import { UpdateTemplateOrderConfirmSheet } from "./workout/UpdateTemplateOrderConfirmSheet";
 import { resolveWorkoutDaysPerWeek } from "./trainingCalendar";
 import { ThemeProvider } from "./ThemeContext";
 import type { AppTheme } from "./theme";
@@ -631,6 +632,14 @@ function FitnessAppMain({
               setState((s) => dismissWorkoutSummary(s));
               navigate("home");
             }}
+          />
+        ) : null}
+
+        {state.pendingTemplateOrderUpdatePrompt ? (
+          <UpdateTemplateOrderConfirmSheet
+            templateName={state.pendingTemplateOrderUpdatePrompt.templateName}
+            onUpdate={() => setState((s) => applyTemplateOrderUpdate(s))}
+            onDismiss={() => setState((s) => dismissTemplateOrderUpdatePrompt(s))}
           />
         ) : null}
       </div>
