@@ -22,7 +22,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { restrictToWindowEdges, snapCenterToCursor } from "@dnd-kit/modifiers";
-import { CSS, getEventCoordinates, isTouchEvent } from "@dnd-kit/utilities";
+import { CSS as dndCss, getEventCoordinates, isTouchEvent } from "@dnd-kit/utilities";
 import {
   useCallback,
   useEffect,
@@ -236,7 +236,7 @@ function SortableRow<T extends { id: string; name: string }>({
   });
 
   const style: CSSProperties = {
-    transform: CSS.Translate.toString(transform),
+    transform: dndCss.Translate.toString(transform),
     transition: [transition ?? SLIDE_TRANSITION, COLLAPSE_TRANSITION].join(", "),
     marginBottom: gap,
     position: "relative",
