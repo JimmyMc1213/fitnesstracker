@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { catalogExercisesForEquipment } from "./exerciseCatalog";
 import { ExerciseResultRow, exerciseSearchListStyle, exerciseSearchSectionHeaderStyle } from "./ExerciseSearchResultRow";
 import { IconSearch } from "./icons";
-import { CenterDialog, KEYBOARD_OPEN_THRESHOLD, bottomSheetPanelTheme, exerciseSearchDialogPanelStyle, useKeyboardViewport } from "./motion";
+import { CenterDialog, KEYBOARD_OPEN_THRESHOLD, bottomSheetPanelTheme, useExerciseSearchDialogPanelStyle, useKeyboardViewport } from "./motion";
 import type { CustomExerciseTemplate, EquipmentSetup } from "./types";
 
 type ExerciseSwapSheetProps = {
@@ -29,6 +29,7 @@ export function ExerciseSwapSheet({
   const listRef = useRef<HTMLDivElement>(null);
   const { keyboardBottom } = useKeyboardViewport();
   const keyboardOpen = keyboardBottom >= KEYBOARD_OPEN_THRESHOLD;
+  const searchPanelStyle = useExerciseSearchDialogPanelStyle();
   const qLow = query.trim().toLowerCase();
 
   const catalogExercises = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
@@ -68,7 +69,7 @@ export function ExerciseSwapSheet({
         width: "100%",
         maxWidth: 440,
         padding: 20,
-        ...exerciseSearchDialogPanelStyle,
+        ...searchPanelStyle,
       }}
     >
       <div

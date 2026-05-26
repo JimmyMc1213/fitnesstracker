@@ -4,7 +4,7 @@ import { CustomExerciseCreateForm } from "./CustomExerciseCreateForm";
 import { catalogExercisesForEquipment } from "./exerciseCatalog";
 import type { ExerciseEquipmentLabel } from "./exerciseLabels";
 import { IconSearch } from "./icons";
-import { CenterDialog, bottomSheetPanelTheme, exerciseSearchDialogPanelStyle } from "./motion";
+import { CenterDialog, bottomSheetPanelTheme, useExerciseSearchDialogPanelStyle } from "./motion";
 import { ExerciseResultRow, exerciseSearchListStyle, exerciseSearchSectionHeaderStyle } from "./ExerciseSearchResultRow";
 import type { CustomExerciseTemplate, EquipmentSetup } from "./types";
 
@@ -37,6 +37,7 @@ export function RoutineExerciseSearchSheet({
   const [draftExName, setDraftExName] = useState("");
   const [draftExLabel, setDraftExLabel] = useState<ExerciseEquipmentLabel | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const searchPanelStyle = useExerciseSearchDialogPanelStyle();
   const qLow = query.trim().toLowerCase();
 
   const catalogExercises = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
@@ -94,7 +95,7 @@ export function RoutineExerciseSearchSheet({
         width: "100%",
         maxWidth: 440,
         padding: 20,
-        ...exerciseSearchDialogPanelStyle,
+        ...searchPanelStyle,
       }}
     >
       <div

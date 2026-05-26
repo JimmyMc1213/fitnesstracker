@@ -245,6 +245,28 @@ export const exerciseSearchDialogPanelStyle: CSSProperties = {
   overflow: "hidden",
 };
 
+/** Backdrop top + bottom padding when a keyboard-aware center dialog is shrunk. */
+const EXERCISE_SEARCH_DIALOG_BACKDROP_CHROME = 40;
+
+/** Stable height while filtering; shrinks to the visual viewport when the keyboard is open. */
+export function useExerciseSearchDialogPanelStyle(): CSSProperties {
+  const { keyboardBottom, visibleHeight } = useKeyboardViewport();
+  const keyboardOpen = keyboardBottom >= KEYBOARD_OPEN_THRESHOLD;
+
+  if (!keyboardOpen) {
+    return exerciseSearchDialogPanelStyle;
+  }
+
+  const height = Math.max(240, visibleHeight - EXERCISE_SEARCH_DIALOG_BACKDROP_CHROME);
+  return {
+    height,
+    maxHeight: height,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+  };
+}
+
 /** Size a bottom sheet to fill the space above the on-screen keyboard. */
 export function useKeyboardAwareSheetSizing() {
   const { keyboardBottom, visibleHeight } = useKeyboardViewport();
@@ -431,7 +453,8 @@ export function CenterDialog({
   children,
 }: CenterDialogProps) {
   const reduceMotion = useReducedMotion();
-  const { keyboardBottom } = useKeyboardViewport();
+  const { keyboardBottom, offsetTop } = useKeyboardViewport();
+  const keyboardOpen = keyboardAware && keyboardBottom >= KEYBOARD_OPEN_THRESHOLD;
   const variants = reduceMotion ? REDUCED_VARIANTS : DIALOG_VARIANTS;
   const transition = reduceMotion ? REDUCED_TRANSITION : DIALOG_TRANSITION;
   const backdropVariants = reduceMotion ? REDUCED_VARIANTS : BACKDROP_VARIANTS;
@@ -464,10 +487,12 @@ export function CenterDialog({
             backdropFilter: "blur(6px)",
             WebkitBackdropFilter: "blur(6px)",
             display: "flex",
-            alignItems: "center",
+            alignItems: keyboardOpen ? "flex-start" : "center",
             justifyContent: "center",
             padding: keyboardAware
-              ? `20px 20px calc(20px + env(safe-area-inset-bottom, 0px) + ${keyboardBottom}px)`
+              ? keyboardOpen
+                ? `max(12px, calc(env(safe-area-inset-top, 0px) + ${offsetTop}px)) 20px max(12px, env(safe-area-inset-bottom, 0px))`
+                : "20px 20px calc(20px + env(safe-area-inset-bottom, 0px))"
               : 20,
             ...backdropStyle,
           }}
