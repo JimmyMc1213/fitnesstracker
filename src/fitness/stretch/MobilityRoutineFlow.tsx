@@ -21,6 +21,13 @@ const layerStyle: CSSProperties = {
   flexDirection: "column",
 };
 
+const sessionLayerStyle: CSSProperties = {
+  ...layerStyle,
+  position: "absolute",
+  inset: 0,
+  zIndex: 1,
+};
+
 type MobilityRoutineFlowProps = {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
@@ -45,6 +52,7 @@ export function MobilityRoutineFlow({
   const transition: Transition = reduceMotion ? REDUCED_TRANSITION : PAGE_LAYER_TRANSITION;
 
   const [sessionOpen, setSessionOpen] = useState(false);
+  const [animateHomeEnter, setAnimateHomeEnter] = useState(false);
   const arizonaTodayKey = arizonaCalendarDateKey(new Date());
   const completedIds = state.nightlyStretchBlockIdsByArizonaDay[arizonaTodayKey] ?? [];
   const doneCount = useMemo(
@@ -63,25 +71,40 @@ export function MobilityRoutineFlow({
   }, [dismissRequest, onPreviewOpenChange]);
 
   function startSession() {
-    onPreviewOpenChange(false);
     setSessionOpen(true);
+    onPreviewOpenChange(false);
   }
 
   function closeSession() {
     setSessionOpen(false);
+    setAnimateHomeEnter(true);
   }
 
-  function onLayerExitComplete() {
+  function onSessionExitComplete() {
     if (!sessionOpen) onSessionOpenChange?.(false);
   }
 
   return (
     <div style={{ ...layerStyle, position: "relative" }}>
-      <AnimatePresence mode="wait" initial={false} onExitComplete={onLayerExitComplete}>
+      {!sessionOpen ? (
+        <motion.div
+          key="mobility-home"
+          style={layerStyle}
+          initial={animateHomeEnter ? "initial" : false}
+          animate="animate"
+          variants={variants}
+          transition={transition}
+          onAnimationComplete={() => setAnimateHomeEnter(false)}
+        >
+          {children}
+        </motion.div>
+      ) : null}
+
+      <AnimatePresence initial={false} onExitComplete={onSessionExitComplete}>
         {sessionOpen ? (
           <motion.div
             key="mobility-session"
-            style={layerStyle}
+            style={sessionLayerStyle}
             initial="initial"
             animate="animate"
             exit="exit"
@@ -90,22 +113,10 @@ export function MobilityRoutineFlow({
           >
             <MobilityActiveSession state={state} setState={setState} onClose={closeSession} />
           </motion.div>
-        ) : (
-          <motion.div
-            key="mobility-home"
-            style={layerStyle}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={variants}
-            transition={transition}
-          >
-            {children}
-          </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
 
-      {!sessionOpen && previewOpen ? (
+      {previewOpen ? (
         <MobilityPreviewSheet
           doneCount={doneCount}
           onClose={() => onPreviewOpenChange(false)}
