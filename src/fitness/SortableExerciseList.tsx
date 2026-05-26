@@ -8,8 +8,8 @@ import {
   defaultDropAnimation,
   MeasuringStrategy,
   useSensor,
-  useSensors,
   type DragEndEvent,
+  type DragPendingEvent,
   type DragStartEvent,
   type Modifier,
 } from "@dnd-kit/core";
@@ -23,7 +23,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToWindowEdges, snapCenterToCursor } from "@dnd-kit/modifiers";
 import { CSS, getEventCoordinates, isTouchEvent } from "@dnd-kit/utilities";
-import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import { IconGrip } from "./icons";
 
@@ -36,7 +36,8 @@ const COMPACT_GAP = 4;
 
 /** Press-and-hold on grip before drag engages (values/inputs stay unchanged). */
 const HOLD_DELAY_MS = 150;
-const HOLD_TOLERANCE_PX = 5;
+/** Allow finger settle after scroll; strict tolerance cancels activation too easily on touch. */
+const HOLD_TOLERANCE_PX = 12;
 
 const COMPACT_ROW_HEIGHT = 56;
 
@@ -81,6 +82,23 @@ function createOverlayPositionModifier(gripTapSize: number): Modifier {
       y: transform.y + grabOffsetY - overlayHeight / 2,
     };
   };
+}
+
+function findScrollableParent(node: Element | null): HTMLElement | null {
+  let el = node?.parentElement ?? null;
+  while (el) {
+    const { overflowY } = getComputedStyle(el);
+    if (overflowY === "auto" || overflowY === "scroll") return el;
+    el = el.parentElement;
+  }
+  return null;
+}
+
+function isCoarsePointerDevice(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(pointer: coarse)").matches
+  );
 }
 
 function lightHaptic() {
@@ -328,6 +346,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overlayWidth, setOverlayWidth] = useState<number | undefined>();
   const overlayWidthRef = useRef<number | undefined>();
+  const scrollLockRef = useRef<HTMLElement | null>(null);
 
   const isListDragging = activeId != null;
   const activeIndex = activeId != null ? items.findIndex((x) => x.id === activeId) : -1;
@@ -339,15 +358,41 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
     [dragHandleTapSize],
   );
 
-  const sensors = useSensors(
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: HOLD_DELAY_MS, tolerance: HOLD_TOLERANCE_PX },
-    }),
-    useSensor(PointerSensor, {
-      activationConstraint: { delay: HOLD_DELAY_MS, tolerance: HOLD_TOLERANCE_PX },
-    }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: { delay: HOLD_DELAY_MS, tolerance: HOLD_TOLERANCE_PX },
+  });
+  const pointerSensor = useSensor(PointerSensor, {
+    activationConstraint: { delay: HOLD_DELAY_MS, tolerance: HOLD_TOLERANCE_PX },
+  });
+  const keyboardSensor = useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates });
+
+  const sensors = useMemo(
+    () => (isCoarsePointerDevice() ? [touchSensor, keyboardSensor] : [pointerSensor, keyboardSensor]),
+    [touchSensor, pointerSensor, keyboardSensor],
   );
+
+  function unlockScrollParent() {
+    const locked = scrollLockRef.current;
+    if (!locked) return;
+    locked.removeAttribute("data-exercise-reorder-scroll-lock");
+    scrollLockRef.current = null;
+  }
+
+  function lockScrollParent(id: string) {
+    unlockScrollParent();
+    const item = document.querySelector(`[data-slot="sortable-item"][data-value="${id}"]`);
+    const scrollParent = findScrollableParent(item);
+    if (!scrollParent) return;
+    scrollParent.setAttribute("data-exercise-reorder-scroll-lock", "true");
+    scrollLockRef.current = scrollParent;
+  }
+
+  function resetDragUi() {
+    setActiveId(null);
+    setOverlayWidth(undefined);
+    overlayWidthRef.current = undefined;
+    unlockScrollParent();
+  }
 
   function measureOverlayWidth(id: string) {
     const content = document.querySelector(
@@ -363,13 +408,12 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
     overlayWidthRef.current = width;
     setOverlayWidth(width);
     setActiveId(id);
+    lockScrollParent(id);
     lightHaptic();
   }
 
   function onDragEnd(ev: DragEndEvent) {
-    setActiveId(null);
-    setOverlayWidth(undefined);
-    overlayWidthRef.current = undefined;
+    resetDragUi();
     lightHaptic();
     const { active, over } = ev;
     if (!over || active.id === over.id) return;
@@ -380,10 +424,18 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   }
 
   function onDragCancel() {
-    setActiveId(null);
-    setOverlayWidth(undefined);
-    overlayWidthRef.current = undefined;
+    resetDragUi();
   }
+
+  function onDragPending(ev: DragPendingEvent) {
+    lockScrollParent(String(ev.id));
+  }
+
+  function onDragAbort() {
+    resetDragUi();
+  }
+
+  useEffect(() => () => unlockScrollParent(), []);
 
   return (
     <DndContext
@@ -399,8 +451,10 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
         interval: 8,
       }}
       onDragStart={onDragStart}
+      onDragPending={onDragPending}
       onDragEnd={onDragEnd}
       onDragCancel={onDragCancel}
+      onDragAbort={onDragAbort}
     >
       <SortableContext items={items.map((x) => x.id)} strategy={verticalListSortingStrategy}>
         <div
