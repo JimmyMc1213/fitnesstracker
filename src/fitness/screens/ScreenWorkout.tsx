@@ -8,7 +8,6 @@ import { exerciseNoteKey, getExerciseNote, withExerciseNote } from "../exerciseN
 import { progressiveOverloadInsight } from "../coach";
 import { getFirstSessionCoachNote } from "../coachEngine";
 import { finishWorkout } from "../finishWorkout";
-import { SwipeToDelete } from "../SwipeToDelete";
 import { IconPlus } from "../icons";
 import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { FullScreenOverlay } from "../motion";
@@ -72,7 +71,6 @@ function WorkoutLiftingScreen({ children }: { children: ReactNode }) {
 
 export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: ScreenProps) {
   const [showExSearch, setShowExSearch] = useState(false);
-  const [openSwipeExerciseId, setOpenSwipeExerciseId] = useState<string | null>(null);
   const [expandedProgressId, setExpandedProgressId] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
@@ -520,7 +518,6 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   }
 
   function removeExerciseFromSession(eid: string) {
-    setOpenSwipeExerciseId((id) => (id === eid ? null : id));
     if (restTimer?.exerciseId === eid) clearRestTimer();
     setRestedRestSecByExerciseId((prev) => {
       if (!(eid in prev)) return prev;
@@ -541,7 +538,6 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   }
 
   function requestDeleteExercise(exercise: { id: string; name: string; label?: string }) {
-    setOpenSwipeExerciseId(null);
     setPendingExerciseDelete(exercise);
   }
 
@@ -740,7 +736,6 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
       }));
     }
     setShowExSearch(false);
-    setOpenSwipeExerciseId(null);
     setExpandedProgressId(null);
     setPreviewRoutineId(null);
     setRestTimer(null);
@@ -915,44 +910,35 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
             }))
           }
           renderItem={(exercise, ei, handle, ctx) => (
-            <SwipeToDelete
-              deleteLabel={`Delete ${exercise.name}`}
-              onDelete={() => requestDeleteExercise(exercise)}
-              disabled={ctx.isListDragging}
-              isOpen={openSwipeExerciseId === exercise.id}
-              onOpen={() => setOpenSwipeExerciseId(exercise.id)}
-              onClose={() => setOpenSwipeExerciseId(null)}
-            >
-              <WorkoutExerciseCard
-                exercise={exercise}
-                exerciseIndex={ei}
-                handle={handle}
-                isOverlay={ctx.isOverlay}
-                isListDragging={ctx.isListDragging}
-                weightUnit={wUnit}
-                workoutHistory={state.workoutHistory}
-                exerciseNote={getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label)}
-                sessionCoachNote={w.sessionCoachNotesByExerciseId?.[exercise.id]}
-                exercisePersonalBests={state.exercisePersonalBests}
-                progressExpanded={expandedProgressId === exercise.id}
-                restedRestSecByAfterSetIndex={restedRestSecByExerciseId[exercise.id] ?? {}}
-                restTimer={restTimer}
-                restTimerDefaultSeconds={state.restTimerDefaultSeconds}
-                restTimerSecondsByExerciseKey={state.restTimerSecondsByExerciseKey}
-                onSwapExercise={setSwapExerciseId}
-                onOpenRestSheet={openRestSheet}
-                onUpdateSetKind={updateSetKind}
-                onToggleSetDone={toggleSetDone}
-                rejectShakeSet={rejectShakeSet}
-                onRemoveSet={removeSet}
-                onAddSet={addSet}
-                onPressNote={(name, label) => setNotesEdit({ name, label })}
-                onToggleProgress={(exerciseId) =>
-                  setExpandedProgressId((id) => (id === exerciseId ? null : exerciseId))
-                }
-                onRemoveExercise={requestDeleteExercise}
-              />
-            </SwipeToDelete>
+            <WorkoutExerciseCard
+              exercise={exercise}
+              exerciseIndex={ei}
+              handle={handle}
+              isOverlay={ctx.isOverlay}
+              isListDragging={ctx.isListDragging}
+              weightUnit={wUnit}
+              workoutHistory={state.workoutHistory}
+              exerciseNote={getExerciseNote(state.exerciseNotesByKey, exercise.name, exercise.label)}
+              sessionCoachNote={w.sessionCoachNotesByExerciseId?.[exercise.id]}
+              exercisePersonalBests={state.exercisePersonalBests}
+              progressExpanded={expandedProgressId === exercise.id}
+              restedRestSecByAfterSetIndex={restedRestSecByExerciseId[exercise.id] ?? {}}
+              restTimer={restTimer}
+              restTimerDefaultSeconds={state.restTimerDefaultSeconds}
+              restTimerSecondsByExerciseKey={state.restTimerSecondsByExerciseKey}
+              onSwapExercise={setSwapExerciseId}
+              onOpenRestSheet={openRestSheet}
+              onUpdateSetKind={updateSetKind}
+              onToggleSetDone={toggleSetDone}
+              rejectShakeSet={rejectShakeSet}
+              onRemoveSet={removeSet}
+              onAddSet={addSet}
+              onPressNote={(name, label) => setNotesEdit({ name, label })}
+              onToggleProgress={(exerciseId) =>
+                setExpandedProgressId((id) => (id === exerciseId ? null : exerciseId))
+              }
+              onRemoveExercise={requestDeleteExercise}
+            />
           )}
         />
         <div ref={exerciseListEndRef} aria-hidden="true" style={{ height: 0 }} />

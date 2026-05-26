@@ -3,7 +3,8 @@ import { Fragment, useState } from "react";
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { exerciseNoteKey } from "../exerciseNotes";
 import { sanitizeCoachCopy } from "../exerciseSessionNotes";
-import { IconCheck, IconChart, IconMinus, IconPlus } from "../icons";
+import { SwipeToDelete } from "../SwipeToDelete";
+import { IconCheck, IconChart, IconPlus } from "../icons";
 import { ExerciseDragHandle, type ExerciseDragHandleProps } from "../SortableExerciseList";
 import { formatSetWeight, weightUnitLabel } from "../unitPreferences";
 import type { CompletedWorkoutSession, ExercisePersonalBest, WeightUnit, WorkoutExercise, WorkoutSetKind } from "../types";
@@ -17,7 +18,7 @@ import { ExerciseActionSheet } from "./ExerciseActionSheet";
 import { SetKindPickerSheet } from "./SetKindPickerSheet";
 import { WorkoutSetField } from "./WorkoutSetField";
 
-const SET_GRID = "32px 68px 1fr 1fr 44px 32px";
+const SET_GRID = "32px 68px 1fr 1fr 44px";
 
 type ActiveRestTimer = {
   exerciseId: string;
@@ -101,6 +102,7 @@ export function WorkoutExerciseCard({
 }) {
   const [showActions, setShowActions] = useState(false);
   const [setKindPickerIndex, setSetKindPickerIndex] = useState<number | null>(null);
+  const [openSwipeSetIndex, setOpenSwipeSetIndex] = useState<number | null>(null);
 
   const done = exercise.sets.filter((st) => st.done).length;
   const prLabel = formatExercisePr(exercise.name, exercisePersonalBests, weightUnit);
@@ -233,7 +235,7 @@ export function WorkoutExerciseCard({
         </div>
       </div>
 
-      <div data-no-swipe>
+      <div>
         <div
           style={{
             display: "grid",
@@ -247,7 +249,6 @@ export function WorkoutExerciseCard({
           <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Prev</div>
           <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>{weightUnitLabel(weightUnit)}</div>
           <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Reps</div>
-          <div />
           <div />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -263,105 +264,108 @@ export function WorkoutExerciseCard({
               rejectShakeSet?.exerciseId === exercise.id && rejectShakeSet.setIndex === si;
             return (
               <Fragment key={si}>
-                <div
-                  className={isRejectShake ? "workout-set-row--reject" : undefined}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: SET_GRID,
-                    gap: 6,
-                    alignItems: "center",
-                    background: st.done ? "var(--workout-done-row-bg)" : "transparent",
-                    borderRadius: 8,
-                    padding: "4px 4px",
+                <SwipeToDelete
+                  deleteLabel={`Delete set ${si + 1}`}
+                  onDelete={() => {
+                    setOpenSwipeSetIndex(null);
+                    onRemoveSet(exercise.id, si);
                   }}
+                  disabled={isListDragging}
+                  isOpen={openSwipeSetIndex === si}
+                  onOpen={() => setOpenSwipeSetIndex(si)}
+                  onClose={() => setOpenSwipeSetIndex((idx) => (idx === si ? null : idx))}
                 >
-                  <button
-                    type="button"
-                    className="tap"
-                    onClick={() => setSetKindPickerIndex(si)}
-                    aria-label={`Set ${si + 1} type`}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      margin: "0 auto",
-                      borderRadius: 8,
-                      fontSize: 13,
-                      fontWeight: 700,
-                      fontVariantNumeric: "tabular-nums",
-                      display: "grid",
-                      placeItems: "center",
-                      ...(kind === "working"
-                        ? {
-                            background: "var(--surface-2)",
-                            color: "var(--text-muted-soft)",
-                            border: "0.5px solid var(--border)",
-                          }
-                        : kindVisual),
-                    }}
-                  >
-                    {setColumnLabel(exercise.sets, si)}
-                  </button>
                   <div
+                    className={isRejectShake ? "workout-set-row--reject" : undefined}
                     style={{
-                      fontSize: 11,
-                      fontWeight: 500,
-                      color: "var(--text-ghost)",
-                      textAlign: "center",
-                      lineHeight: 1.25,
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
-                    {previousLines[si]}
-                  </div>
-                  <WorkoutSetField
-                    exerciseId={exercise.id}
-                    setIndex={si}
-                    field="weight"
-                    weight={st.w}
-                    reps={st.r}
-                    placeholderWeight={placeholderWeight}
-                    placeholderReps={placeholderReps}
-                    weightUnit={weightUnit}
-                  />
-                  <WorkoutSetField
-                    exerciseId={exercise.id}
-                    setIndex={si}
-                    field="reps"
-                    weight={st.w}
-                    reps={st.r}
-                    placeholderWeight={placeholderWeight}
-                    placeholderReps={placeholderReps}
-                    weightUnit={weightUnit}
-                  />
-                  <button
-                    type="button"
-                    className={`tap workout-set-done-btn${isRejectShake ? " workout-set-done-btn--reject" : ""}`}
-                    onClick={() => onToggleSetDone(exercise, si)}
-                    aria-label="Done"
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 999,
-                      background: st.done ? "var(--primary)" : "transparent",
-                      border: st.done ? "0.5px solid var(--primary)" : "0.5px solid var(--border)",
-                      color: st.done ? "var(--primary-fg)" : "var(--text-ghost)",
                       display: "grid",
-                      placeItems: "center",
-                      margin: "0 auto",
+                      gridTemplateColumns: SET_GRID,
+                      gap: 6,
+                      alignItems: "center",
+                      background: st.done ? "var(--workout-done-row-bg)" : "var(--card)",
+                      borderRadius: 8,
+                      padding: "4px 4px",
                     }}
                   >
-                    <IconCheck size={16} stroke={2.4} />
-                  </button>
-                  <button
-                    type="button"
-                    className="tap"
-                    onClick={() => onRemoveSet(exercise.id, si)}
-                    aria-label="Remove set"
-                    style={{ width: 32, height: 36, color: "var(--text-whisper)", display: "grid", placeItems: "center" }}
-                  >
-                    <IconMinus size={14} />
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      className="tap"
+                      onClick={() => setSetKindPickerIndex(si)}
+                      aria-label={`Set ${si + 1} type`}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        margin: "0 auto",
+                        borderRadius: 8,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        fontVariantNumeric: "tabular-nums",
+                        display: "grid",
+                        placeItems: "center",
+                        ...(kind === "working"
+                          ? {
+                              background: "var(--surface-2)",
+                              color: "var(--text-muted-soft)",
+                              border: "0.5px solid var(--border)",
+                            }
+                          : kindVisual),
+                      }}
+                    >
+                      {setColumnLabel(exercise.sets, si)}
+                    </button>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 500,
+                        color: "var(--text-ghost)",
+                        textAlign: "center",
+                        lineHeight: 1.25,
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
+                      {previousLines[si]}
+                    </div>
+                    <WorkoutSetField
+                      exerciseId={exercise.id}
+                      setIndex={si}
+                      field="weight"
+                      weight={st.w}
+                      reps={st.r}
+                      placeholderWeight={placeholderWeight}
+                      placeholderReps={placeholderReps}
+                      weightUnit={weightUnit}
+                    />
+                    <WorkoutSetField
+                      exerciseId={exercise.id}
+                      setIndex={si}
+                      field="reps"
+                      weight={st.w}
+                      reps={st.r}
+                      placeholderWeight={placeholderWeight}
+                      placeholderReps={placeholderReps}
+                      weightUnit={weightUnit}
+                    />
+                    <button
+                      type="button"
+                      className={`tap workout-set-done-btn${isRejectShake ? " workout-set-done-btn--reject" : ""}`}
+                      onClick={() => onToggleSetDone(exercise, si)}
+                      aria-label="Done"
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 999,
+                        background: st.done ? "var(--primary)" : "transparent",
+                        border: st.done ? "0.5px solid var(--primary)" : "0.5px solid var(--border)",
+                        color: st.done ? "var(--primary-fg)" : "var(--text-ghost)",
+                        display: "grid",
+                        placeItems: "center",
+                        margin: "0 auto",
+                      }}
+                    >
+                      <IconCheck size={16} stroke={2.4} />
+                    </button>
+                  </div>
+                </SwipeToDelete>
                 <RestTimerStrip
                   phase={stripPhase(si)}
                   durationSec={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.durationSec : restPresetSec}
@@ -379,6 +383,7 @@ export function WorkoutExerciseCard({
         <button
           type="button"
           className="tap"
+          data-no-swipe
           onClick={() => onAddSet(exercise.id)}
           style={{
             marginTop: 10,
@@ -399,6 +404,7 @@ export function WorkoutExerciseCard({
         </button>
 
         <div
+          data-no-swipe
           style={{
             display: "flex",
             alignItems: "center",
