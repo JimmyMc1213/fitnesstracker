@@ -657,6 +657,29 @@ textarea {
   border-color: color-mix(in srgb, var(--danger) 55%, transparent) !important;
 }
 
+.workout-set-block {
+  overflow: hidden;
+  margin-bottom: 6px;
+  max-height: 2000px;
+  transition:
+    max-height 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.24s ease,
+    margin-bottom 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.workout-set-block--deleting {
+  max-height: 0 !important;
+  opacity: 0;
+  margin-bottom: 0 !important;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workout-set-block {
+    transition-duration: 0.01ms;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .workout-set-row--reject {
     animation: none;

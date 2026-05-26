@@ -17,6 +17,13 @@ type SwipeToDeleteProps = {
   onClose?: () => void;
   /** When set, a short tap (no swipe) triggers this instead of doing nothing. */
   onTap?: () => void;
+  /** Allow horizontal swipe to start on buttons/fields inside the row. */
+  allowInteractiveStart?: boolean;
+  /** Slide the row off-screen before calling onDelete (e.g. workout set rows). */
+  animateCommitDelete?: boolean;
+  borderRadius?: number;
+  /** When this value changes, swipe offset resets (e.g. after list re-index). */
+  resetKey?: string | number;
 };
 
 export function SwipeToDelete({
@@ -28,6 +35,10 @@ export function SwipeToDelete({
   onOpen,
   onClose,
   onTap,
+  allowInteractiveStart = false,
+  animateCommitDelete = false,
+  borderRadius = 14,
+  resetKey,
 }: SwipeToDeleteProps) {
   const [revealed, setRevealed] = useState(false);
   const [pressing, setPressing] = useState(false);
@@ -57,9 +68,28 @@ export function SwipeToDelete({
     applyOffset(isOpen ? -REVEAL_WIDTH : 0, true);
   }, [isOpen]);
 
+  useEffect(() => {
+    if (resetKey == null) return;
+    offsetRef.current = 0;
+    applyOffset(0, false);
+    setRevealed(false);
+  }, [resetKey]);
+
+  function commitDelete() {
+    if (animateCommitDelete) {
+      const width = contentRef.current?.offsetWidth ?? REVEAL_WIDTH * 2;
+      applyOffset(-width, true);
+      onClose?.();
+      onDelete();
+      return;
+    }
+    onClose?.();
+    onDelete();
+  }
+
   function settleOffset(current: number) {
     if (current <= -DELETE_THRESHOLD) {
-      onDelete();
+      commitDelete();
       return;
     }
     if (current <= -SNAP_OPEN_THRESHOLD) {
@@ -73,7 +103,9 @@ export function SwipeToDelete({
 
   function shouldIgnoreSwipeStart(target: EventTarget | null): boolean {
     if (!(target instanceof HTMLElement)) return false;
-    return Boolean(target.closest("input, textarea, select, button, a, [data-no-swipe]"));
+    if (target.closest("[data-no-swipe]")) return true;
+    if (allowInteractiveStart) return false;
+    return Boolean(target.closest("input, textarea, select, button, a"));
   }
 
   function handlePointerDown(e: PointerEvent<HTMLDivElement>) {
@@ -100,6 +132,7 @@ export function SwipeToDelete({
       if (Math.abs(dx) < SWIPE_START_PX) return;
       if (Math.abs(dx) <= Math.abs(dy) * 1.15) return;
       swipingRef.current = true;
+      e.preventDefault();
       e.currentTarget.setPointerCapture(e.pointerId);
     }
 
@@ -131,7 +164,7 @@ export function SwipeToDelete({
 
   function handleDeleteClick(e: MouseEvent<HTMLButtonElement>) {
     e.stopPropagation();
-    onDelete();
+    commitDelete();
   }
 
   return (
@@ -139,7 +172,7 @@ export function SwipeToDelete({
       style={{
         position: "relative",
         overflow: "hidden",
-        borderRadius: 14,
+        borderRadius,
         touchAction: "pan-y",
       }}
     >
@@ -156,7 +189,7 @@ export function SwipeToDelete({
           display: "grid",
           placeItems: "center",
           border: "none",
-          borderRadius: 14,
+          borderRadius,
           background: "rgba(255, 85, 85, 0.18)",
           color: "#FF6961",
           cursor: disabled ? "default" : "pointer",

@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { useCallback, useRef, useState, type TransitionEvent } from "react";
 
 import { ExerciseNoteRow } from "../ExerciseNoteRow";
 import { exerciseNoteKey } from "../exerciseNotes";
@@ -103,6 +103,39 @@ export function WorkoutExerciseCard({
   const [showActions, setShowActions] = useState(false);
   const [setKindPickerIndex, setSetKindPickerIndex] = useState<number | null>(null);
   const [openSwipeSetIndex, setOpenSwipeSetIndex] = useState<number | null>(null);
+  const [deletingSetIndex, setDeletingSetIndex] = useState<number | null>(null);
+  const setBlockRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+  const registerSetBlock = useCallback((index: number, node: HTMLDivElement | null) => {
+    if (node) setBlockRefs.current.set(index, node);
+    else setBlockRefs.current.delete(index);
+  }, []);
+
+  function requestRemoveSet(si: number) {
+    if (deletingSetIndex != null) return;
+    setOpenSwipeSetIndex(null);
+    const block = setBlockRefs.current.get(si);
+    if (!block) {
+      onRemoveSet(exercise.id, si);
+      return;
+    }
+    const height = block.scrollHeight;
+    block.style.maxHeight = `${height}px`;
+    setDeletingSetIndex(si);
+    requestAnimationFrame(() => {
+      block.classList.add("workout-set-block--deleting");
+      block.style.maxHeight = "0px";
+    });
+  }
+
+  function handleSetBlockTransitionEnd(si: number, e: TransitionEvent<HTMLDivElement>) {
+    if (deletingSetIndex !== si) return;
+    if (e.target !== e.currentTarget || e.propertyName !== "max-height") return;
+    onRemoveSet(exercise.id, si);
+    setDeletingSetIndex(null);
+    setOpenSwipeSetIndex(null);
+    setBlockRefs.current.clear();
+  }
 
   const done = exercise.sets.filter((st) => st.done).length;
   const prLabel = formatExercisePr(exercise.name, exercisePersonalBests, weightUnit);
@@ -251,7 +284,7 @@ export function WorkoutExerciseCard({
           <div style={{ ...labelStyle, color: "var(--text-ghost)", textAlign: "center" }}>Reps</div>
           <div />
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           {exercise.sets.map((st, si) => {
             const kind = st.kind ?? "working";
             const kindVisual = setKindStyle(kind === "working" ? undefined : kind);
@@ -263,17 +296,23 @@ export function WorkoutExerciseCard({
             const isRejectShake =
               rejectShakeSet?.exerciseId === exercise.id && rejectShakeSet.setIndex === si;
             return (
-              <Fragment key={si}>
+              <div
+                key={`${exercise.id}-set-${si}-${exercise.sets.length}`}
+                ref={(node) => registerSetBlock(si, node)}
+                className="workout-set-block"
+                onTransitionEnd={(e) => handleSetBlockTransitionEnd(si, e)}
+              >
                 <SwipeToDelete
                   deleteLabel={`Delete set ${si + 1}`}
-                  onDelete={() => {
-                    setOpenSwipeSetIndex(null);
-                    onRemoveSet(exercise.id, si);
-                  }}
-                  disabled={isListDragging}
+                  onDelete={() => requestRemoveSet(si)}
+                  disabled={isListDragging || deletingSetIndex != null}
                   isOpen={openSwipeSetIndex === si}
                   onOpen={() => setOpenSwipeSetIndex(si)}
                   onClose={() => setOpenSwipeSetIndex((idx) => (idx === si ? null : idx))}
+                  allowInteractiveStart
+                  animateCommitDelete
+                  borderRadius={8}
+                  resetKey={`${exercise.id}-${si}-${exercise.sets.length}`}
                 >
                   <div
                     className={isRejectShake ? "workout-set-row--reject" : undefined}
@@ -375,7 +414,7 @@ export function WorkoutExerciseCard({
                   displayPresetSec={stripDisplaySec(si)}
                   onPress={() => onOpenRestSheet(exercise.id)}
                 />
-              </Fragment>
+              </div>
             );
           })}
         </div>
