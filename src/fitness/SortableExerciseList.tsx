@@ -23,7 +23,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToWindowEdges, snapCenterToCursor } from "@dnd-kit/modifiers";
 import { CSS, getEventCoordinates, isTouchEvent } from "@dnd-kit/utilities";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import { IconGrip } from "./icons";
 
@@ -345,8 +345,10 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
 }: SortableExerciseListProps<T>) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overlayWidth, setOverlayWidth] = useState<number | undefined>();
+  const [dndKey, setDndKey] = useState(0);
   const overlayWidthRef = useRef<number | undefined>();
   const scrollLockRef = useRef<HTMLElement | null>(null);
+  const activeIdRef = useRef<string | null>(null);
 
   const isListDragging = activeId != null;
   const activeIndex = activeId != null ? items.findIndex((x) => x.id === activeId) : -1;
@@ -371,28 +373,43 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
     [touchSensor, pointerSensor, keyboardSensor],
   );
 
-  function unlockScrollParent() {
+  const unlockScrollParent = useCallback(() => {
     const locked = scrollLockRef.current;
     if (!locked) return;
     locked.removeAttribute("data-exercise-reorder-scroll-lock");
     scrollLockRef.current = null;
-  }
+  }, []);
 
-  function lockScrollParent(id: string) {
-    unlockScrollParent();
-    const item = document.querySelector(`[data-slot="sortable-item"][data-value="${id}"]`);
-    const scrollParent = findScrollableParent(item);
-    if (!scrollParent) return;
-    scrollParent.setAttribute("data-exercise-reorder-scroll-lock", "true");
-    scrollLockRef.current = scrollParent;
-  }
+  const resetDragUi = useCallback(
+    (options?: { remountDnd?: boolean }) => {
+      activeIdRef.current = null;
+      setActiveId(null);
+      setOverlayWidth(undefined);
+      overlayWidthRef.current = undefined;
+      unlockScrollParent();
+      if (options?.remountDnd) {
+        setDndKey((k) => k + 1);
+      }
+    },
+    [unlockScrollParent],
+  );
 
-  function resetDragUi() {
-    setActiveId(null);
-    setOverlayWidth(undefined);
-    overlayWidthRef.current = undefined;
-    unlockScrollParent();
-  }
+  const forceRecoverDrag = useCallback(() => {
+    if (!activeIdRef.current) return;
+    resetDragUi({ remountDnd: true });
+  }, [resetDragUi]);
+
+  const lockScrollParent = useCallback(
+    (id: string) => {
+      unlockScrollParent();
+      const item = document.querySelector(`[data-slot="sortable-item"][data-value="${id}"]`);
+      const scrollParent = findScrollableParent(item);
+      if (!scrollParent) return;
+      scrollParent.setAttribute("data-exercise-reorder-scroll-lock", "true");
+      scrollLockRef.current = scrollParent;
+    },
+    [unlockScrollParent],
+  );
 
   function measureOverlayWidth(id: string) {
     const content = document.querySelector(
@@ -407,6 +424,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
     const width = measureOverlayWidth(id);
     overlayWidthRef.current = width;
     setOverlayWidth(width);
+    activeIdRef.current = id;
     setActiveId(id);
     lockScrollParent(id);
     lightHaptic();
@@ -435,21 +453,71 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
     resetDragUi();
   }
 
-  useEffect(() => () => unlockScrollParent(), []);
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
+
+  useEffect(() => () => unlockScrollParent(), [unlockScrollParent]);
+
+  useEffect(() => {
+    if (!activeId) return;
+
+    function scheduleRecoveryCheck() {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (activeIdRef.current) forceRecoverDrag();
+        });
+      });
+    }
+
+    function onImmediateInterrupt() {
+      forceRecoverDrag();
+    }
+
+    function onHidden() {
+      if (document.hidden) onImmediateInterrupt();
+    }
+
+    const opts = { capture: true, passive: true } as const;
+    document.addEventListener("pointercancel", onImmediateInterrupt, opts);
+    document.addEventListener("touchcancel", onImmediateInterrupt, opts);
+    document.addEventListener("touchend", scheduleRecoveryCheck, opts);
+    document.addEventListener("pointerup", scheduleRecoveryCheck, opts);
+    window.addEventListener("blur", onImmediateInterrupt, opts);
+    document.addEventListener("visibilitychange", onHidden, opts);
+
+    return () => {
+      document.removeEventListener("pointercancel", onImmediateInterrupt, opts);
+      document.removeEventListener("touchcancel", onImmediateInterrupt, opts);
+      document.removeEventListener("touchend", scheduleRecoveryCheck, opts);
+      document.removeEventListener("pointerup", scheduleRecoveryCheck, opts);
+      window.removeEventListener("blur", onImmediateInterrupt, opts);
+      document.removeEventListener("visibilitychange", onHidden, opts);
+    };
+  }, [activeId, forceRecoverDrag]);
+
+  const autoScroll = useMemo(
+    () =>
+      isCoarsePointerDevice()
+        ? false
+        : {
+            threshold: { x: 0, y: 0.12 },
+            acceleration: 12,
+            interval: 8,
+          },
+    [],
+  );
 
   return (
     <DndContext
+      key={dndKey}
       sensors={sensors}
       collisionDetection={closestCenter}
       modifiers={[restrictToVerticalAxis]}
       measuring={{
         droppable: { strategy: MeasuringStrategy.Always },
       }}
-      autoScroll={{
-        threshold: { x: 0, y: 0.12 },
-        acceleration: 12,
-        interval: 8,
-      }}
+      autoScroll={autoScroll}
       onDragStart={onDragStart}
       onDragPending={onDragPending}
       onDragEnd={onDragEnd}
