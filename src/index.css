@@ -840,6 +840,10 @@ textarea {
 }
 
 .exercise-reorder-list[data-dragging="true"] .exercise-reorder-slot__layer--compact {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   max-height: 72px;
   opacity: 1;
   pointer-events: auto;
