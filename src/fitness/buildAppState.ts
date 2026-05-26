@@ -10,9 +10,14 @@ import {
   buildHabitsForDateKey,
   dedupeHabitTemplates,
   normalizeWorkoutTemplates,
+  pruneHabitsDoneByDay,
   sanitizeWorkoutTemplates,
 } from "./data";
-import { defaultDailyHabitTemplates, isLegacyDefaultHabitTemplates } from "./habits";
+import {
+  defaultDailyHabitTemplates,
+  isLegacyDefaultHabitTemplates,
+  stripNutritionProgrammingHabits,
+} from "./habits";
 import { ensureMobilityHabitTemplate, migrateMobilityHabitCompletion } from "./mobilityHabit";
 import { normalizeExerciseSessionHistoryByKey } from "./exerciseSessionHistory";
 import { normalizeWorkoutHistory } from "./workoutHistory";
@@ -270,10 +275,11 @@ function resolveHabitTemplates(
 ): HabitTemplate[] {
   const normalized = normalizeHabitTemplates(p?.habitTemplates);
   if (normalized != null) {
-    if (onboardingComplete && isLegacyDefaultHabitTemplates(normalized)) {
+    const withoutNutritionProgramming = stripNutritionProgrammingHabits(normalized);
+    if (onboardingComplete && isLegacyDefaultHabitTemplates(withoutNutritionProgramming)) {
       return defaultDailyHabitTemplates();
     }
-    return dedupeHabitTemplates(normalized);
+    return dedupeHabitTemplates(withoutNutritionProgramming);
   }
   if (hasLegacyFitnessData || onboardingComplete) return defaultDailyHabitTemplates();
   return [];
@@ -364,7 +370,11 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
   const habitTemplates = ensureMobilityHabitTemplate(
     resolveHabitTemplates(p, onboardingComplete, hasLegacyFitnessData),
   );
-  const habitsDoneByDay = migrateMobilityHabitCompletion(normalizeHabitsDoneByDay(p?.habitsDoneByDay));
+  const templateIds = new Set(habitTemplates.map((h) => h.id));
+  const habitsDoneByDay = pruneHabitsDoneByDay(
+    migrateMobilityHabitCompletion(normalizeHabitsDoneByDay(p?.habitsDoneByDay)),
+    templateIds,
+  );
   const todayKey = localDateKey(new Date());
   const weightLog = normalizeWeightLog(p?.weightLog);
   const { nutritionManualByDay, nutritionItemsByDay } = mergePersistedNutritionDays(

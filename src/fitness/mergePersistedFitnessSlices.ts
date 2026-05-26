@@ -1,4 +1,5 @@
 import { dedupeHabitTemplates, isDefaultSeedWorkoutTemplates, sanitizeWorkoutTemplates } from "./data";
+import { stripNutritionProgrammingHabits } from "./habits";
 import { mergeExerciseSessionHistoryByKey } from "./exerciseSessionHistory";
 import { mergeWorkoutHistory } from "./workoutHistory";
 import { mergeExercisePersonalBests } from "./workoutSummary";
@@ -383,7 +384,9 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
       (remote.displayName?.trim().length ?? 0) >= (local.displayName?.trim().length ?? 0)
         ? remote.displayName.trim()
         : local.displayName.trim(),
-    habitTemplates: dedupeHabitTemplates(mergeById(local.habitTemplates, remote.habitTemplates, 40)),
+    habitTemplates: dedupeHabitTemplates(
+      stripNutritionProgrammingHabits(mergeById(local.habitTemplates, remote.habitTemplates, 40)),
+    ),
     habitsDoneByDay: mergeHabitsDoneByDay(local.habitsDoneByDay, remote.habitsDoneByDay),
     planStartIso: remote.planStartIso || local.planStartIso,
     stepsTarget: Math.max(local.stepsTarget, remote.stepsTarget),

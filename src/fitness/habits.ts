@@ -2,6 +2,9 @@ import type { Habit, HabitTemplate } from "./types";
 
 export const WEIGH_IN_HABIT_ID = "weigh_in";
 
+/** Legacy Jimmy-plan / auto-programmed nutrition habits — never show or assign to users. */
+export const NUTRITION_PROGRAMMING_HABIT_IDS = new Set(["habit-track", "habit-protein"]);
+
 export type HabitAction = "openWeighIn";
 export type HabitType = "manual" | "action";
 
@@ -140,6 +143,19 @@ export function definitionToTemplate(def: HabitDefinition): HabitTemplate {
 
 export function defaultDailyHabitTemplates(): HabitTemplate[] {
   return DEFAULT_HABITS.map(definitionToTemplate);
+}
+
+/** True for legacy auto-assigned nutrition habits (e.g. "Track every meal", "Hit 175g protein"). */
+export function isNutritionProgrammingHabit(template: Pick<HabitTemplate, "id" | "name">): boolean {
+  if (NUTRITION_PROGRAMMING_HABIT_IDS.has(template.id)) return true;
+  const name = template.name.trim().toLowerCase();
+  if (name === "track every meal" || name === "track meal goal") return true;
+  if (name === "protein goal" || /^hit \d+g protein\b/.test(name)) return true;
+  return false;
+}
+
+export function stripNutritionProgrammingHabits(templates: HabitTemplate[]): HabitTemplate[] {
+  return templates.filter((t) => !isNutritionProgrammingHabit(t));
 }
 
 export function isLegacyDefaultHabitTemplates(templates: HabitTemplate[]): boolean {

@@ -1,4 +1,5 @@
-import type { OnboardingProfile, WorkoutDaysPerWeek, WorkoutRoutineTemplate } from "./types";
+import { isNutritionProgrammingHabit } from "./habits";
+import type { HabitTemplate, OnboardingProfile, WorkoutDaysPerWeek, WorkoutRoutineTemplate } from "./types";
 import { normalizeWorkoutTemplates, sanitizeWorkoutTemplates } from "./data";
 import { hasExistingFitnessData } from "./onboardingSkip";
 import { DEFAULT_ONBOARDING_PROFILE, normalizeOnboardingProfile } from "./onboardingProfile";
@@ -70,6 +71,24 @@ export function migrateTrainingSchedule(
   return { profile, templates, dirty };
 }
 
+function migrateHabitTemplates(raw: unknown): { templates: HabitTemplate[]; dirty: boolean } {
+  if (!Array.isArray(raw)) return { templates: [], dirty: false };
+  const kept: HabitTemplate[] = [];
+  let dirty = false;
+  for (const x of raw) {
+    if (!x || typeof x !== "object") continue;
+    const o = x as Record<string, unknown>;
+    if (typeof o.id !== "string" || typeof o.name !== "string") continue;
+    if (isNutritionProgrammingHabit({ id: o.id, name: o.name })) {
+      dirty = true;
+      continue;
+    }
+    kept.push(x as HabitTemplate);
+  }
+  if (kept.length !== raw.length) dirty = true;
+  return { templates: kept, dirty };
+}
+
 /** Sync migration on persisted slice before building AppState or saving. */
 export function migratePersistedFitnessSlice(
   p: Partial<PersistedFitnessSlice> | null | undefined,
@@ -90,11 +109,15 @@ export function migratePersistedFitnessSlice(
   );
   dirty = dirty || scheduleDirty;
 
+  const { templates: habitTemplates, dirty: habitDirty } = migrateHabitTemplates(base.habitTemplates);
+  dirty = dirty || habitDirty;
+
   return {
     slice: {
       ...base,
       onboardingProfile: migratedProfile,
       workoutTemplates: migratedTemplates,
+      ...(base.habitTemplates !== undefined ? { habitTemplates } : {}),
     },
     dirty,
   };

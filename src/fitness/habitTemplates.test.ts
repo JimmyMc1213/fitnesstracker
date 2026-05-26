@@ -1,9 +1,60 @@
 import { describe, expect, it } from "vitest";
 
+import { buildAppStateFromPersisted } from "./buildAppState";
 import { buildHabitsForDateKey, dedupeHabitTemplates, defaultHabitTemplates, habitTemplatesFromOnboarding, isDefaultSeedHabitTemplates } from "./data";
-import { DEFAULT_HABITS, WEIGH_IN_HABIT_ID, isWeighInActionHabit, markWeighInHabitDone } from "./habits";
+import { DEFAULT_HABITS, WEIGH_IN_HABIT_ID, isNutritionProgrammingHabit, isWeighInActionHabit, markWeighInHabitDone, stripNutritionProgrammingHabits } from "./habits";
 import { dailyHabitTemplatesFromState } from "./HomeDailyHabitsCard";
 import { isMobilityHabit } from "./mobilityHabit";
+import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
+
+describe("stripNutritionProgrammingHabits", () => {
+  it("removes legacy Jimmy-plan nutrition habits by id and name", () => {
+    const templates = [
+      ...defaultHabitTemplates(),
+      { id: "habit-track", name: "Track every meal", icon: "bolt" },
+      { id: "habit-protein", name: "Hit 175g protein", icon: "bolt" },
+      { id: "custom-protein", name: "Protein goal", icon: "bolt" },
+    ];
+    const stripped = stripNutritionProgrammingHabits(templates);
+    expect(stripped).toHaveLength(7);
+    expect(stripped.some((h) => h.id === "habit-track" || h.id === "habit-protein")).toBe(false);
+    expect(stripped.some((h) => /protein goal|track every meal/i.test(h.name))).toBe(false);
+  });
+});
+
+describe("migratePersistedFitnessSlice nutrition habits", () => {
+  it("strips auto-programmed meal and protein habits from persisted templates", () => {
+    const { slice, dirty } = migratePersistedFitnessSlice({
+      onboardingComplete: true,
+      habitTemplates: [
+        { id: "water", name: "Drink water target", icon: "drop" },
+        { id: "habit-track", name: "Track every meal", icon: "bolt" },
+        { id: "habit-protein", name: "Hit 180g protein", icon: "bolt" },
+      ],
+    });
+    expect(dirty).toBe(true);
+    expect(slice.habitTemplates?.map((h) => h.id)).toEqual(["water"]);
+  });
+});
+
+describe("buildAppStateFromPersisted nutrition habits", () => {
+  it("never loads protein goal or track meal habits onto Home", () => {
+    const state = buildAppStateFromPersisted({
+      onboardingComplete: true,
+      habitTemplates: [
+        { id: "habit-track", name: "Track meal goal", icon: "bolt" },
+        { id: "habit-protein", name: "Protein goal", icon: "bolt" },
+        { id: "water", name: "Drink water target", icon: "drop" },
+      ],
+      habitsDoneByDay: {
+        "2026-05-25": { "habit-track": true, "habit-protein": true, water: true },
+      },
+    });
+    expect(state.habitTemplates.some((h) => isNutritionProgrammingHabit(h))).toBe(false);
+    expect(state.habitsDoneByDay["2026-05-25"]?.["habit-track"]).toBeUndefined();
+    expect(state.habitsDoneByDay["2026-05-25"]?.water).toBe(true);
+  });
+});
 
 describe("DEFAULT_HABITS", () => {
   it("defines seven daily habits without mobility", () => {
