@@ -797,6 +797,10 @@ textarea {
   overscroll-behavior: contain;
 }
 
+.exercise-reorder-list[data-dragging="true"] .exercise-reorder-slot__layer {
+  transition: none !important;
+}
+
 .exercise-reorder-list[data-dragging="true"] * {
   user-select: none !important;
   -webkit-user-select: none !important;

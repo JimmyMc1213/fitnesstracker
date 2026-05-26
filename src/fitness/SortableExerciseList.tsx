@@ -23,7 +23,16 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToWindowEdges, snapCenterToCursor } from "@dnd-kit/modifiers";
 import { CSS, getEventCoordinates, isTouchEvent } from "@dnd-kit/utilities";
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 
 import { IconGrip } from "./icons";
 
@@ -93,6 +102,22 @@ function findScrollableParent(node: Element | null): HTMLElement | null {
   }
   return null;
 }
+
+function sortableItemSelector(id: string): string {
+  return `[data-slot="sortable-item"][data-value="${CSS.escape(id)}"]`;
+}
+
+type ScrollLock = {
+  el: HTMLElement;
+  savedScrollTop: number;
+  onScroll: () => void;
+};
+
+type ScrollAnchor = {
+  id: string;
+  parent: HTMLElement;
+  top: number;
+};
 
 function isCoarsePointerDevice(): boolean {
   return (
@@ -347,7 +372,8 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   const [overlayWidth, setOverlayWidth] = useState<number | undefined>();
   const [dndKey, setDndKey] = useState(0);
   const overlayWidthRef = useRef<number | undefined>();
-  const scrollLockRef = useRef<HTMLElement | null>(null);
+  const scrollLockRef = useRef<ScrollLock | null>(null);
+  const scrollAnchorRef = useRef<ScrollAnchor | null>(null);
   const activeIdRef = useRef<string | null>(null);
 
   const isListDragging = activeId != null;
@@ -376,13 +402,17 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   const unlockScrollParent = useCallback(() => {
     const locked = scrollLockRef.current;
     if (!locked) return;
-    locked.removeAttribute("data-exercise-reorder-scroll-lock");
+    locked.el.removeEventListener("scroll", locked.onScroll);
+    locked.el.removeAttribute("data-exercise-reorder-scroll-lock");
+    const { el, savedScrollTop } = locked;
     scrollLockRef.current = null;
+    el.scrollTop = savedScrollTop;
   }, []);
 
   const resetDragUi = useCallback(
     (options?: { remountDnd?: boolean }) => {
       activeIdRef.current = null;
+      scrollAnchorRef.current = null;
       setActiveId(null);
       setOverlayWidth(undefined);
       overlayWidthRef.current = undefined;
@@ -402,25 +432,55 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   const lockScrollParent = useCallback(
     (id: string) => {
       unlockScrollParent();
-      const item = document.querySelector(`[data-slot="sortable-item"][data-value="${id}"]`);
+      const item = document.querySelector(sortableItemSelector(id));
       const scrollParent = findScrollableParent(item);
       if (!scrollParent) return;
+
+      const savedScrollTop = scrollParent.scrollTop;
       scrollParent.setAttribute("data-exercise-reorder-scroll-lock", "true");
-      scrollLockRef.current = scrollParent;
+
+      const restoreScrollTop = () => {
+        scrollParent.scrollTop = savedScrollTop;
+      };
+      restoreScrollTop();
+      requestAnimationFrame(restoreScrollTop);
+
+      const onScroll = () => {
+        if (scrollParent.scrollTop !== savedScrollTop) {
+          scrollParent.scrollTop = savedScrollTop;
+        }
+      };
+      scrollParent.addEventListener("scroll", onScroll, { passive: true });
+      scrollLockRef.current = { el: scrollParent, savedScrollTop, onScroll };
     },
     [unlockScrollParent],
   );
 
   function measureOverlayWidth(id: string) {
     const content = document.querySelector(
-      `[data-slot="sortable-item"][data-value="${id}"] [data-slot="sortable-item-content"]`,
+      `${sortableItemSelector(id)} [data-slot="sortable-item-content"]`,
     );
     if (!content) return undefined;
     return content.getBoundingClientRect().width;
   }
 
+  function captureScrollAnchor(id: string) {
+    const item = document.querySelector(sortableItemSelector(id));
+    const scrollParent = findScrollableParent(item);
+    if (!item || !scrollParent) {
+      scrollAnchorRef.current = null;
+      return;
+    }
+    scrollAnchorRef.current = {
+      id,
+      parent: scrollParent,
+      top: item.getBoundingClientRect().top,
+    };
+  }
+
   function onDragStart(ev: DragStartEvent) {
     const id = String(ev.active.id);
+    captureScrollAnchor(id);
     const width = measureOverlayWidth(id);
     overlayWidthRef.current = width;
     setOverlayWidth(width);
@@ -455,6 +515,23 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
 
   useEffect(() => {
     activeIdRef.current = activeId;
+  }, [activeId]);
+
+  useLayoutEffect(() => {
+    const anchor = scrollAnchorRef.current;
+    if (!activeId || !anchor || anchor.id !== activeId) return;
+
+    const item = document.querySelector(sortableItemSelector(activeId));
+    if (!item) {
+      scrollAnchorRef.current = null;
+      return;
+    }
+
+    const delta = item.getBoundingClientRect().top - anchor.top;
+    if (Math.abs(delta) > 0.5) {
+      anchor.parent.scrollTop += delta;
+    }
+    scrollAnchorRef.current = null;
   }, [activeId]);
 
   useEffect(() => () => unlockScrollParent(), [unlockScrollParent]);
