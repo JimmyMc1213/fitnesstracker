@@ -13,6 +13,7 @@ type FoodSearchResult = {
   id: string;
   name: string;
   brand?: string;
+  dataType?: string;
   cal: number;
   p: number;
   c: number;
@@ -58,6 +59,8 @@ function mapUsdaFood(raw: Record<string, unknown>): FoodSearchResult | null {
         ? raw.brandOwner.trim()
         : undefined;
 
+  const dataType = typeof raw.dataType === "string" && raw.dataType.trim() ? raw.dataType.trim() : undefined;
+
   const nutrients = raw.foodNutrients as { nutrientId?: number; nutrientNumber?: string; value?: number }[] | undefined;
   const cal = Math.round(nutrientAmount(nutrients, NUTRIENT_KCAL));
   const p = Math.round(nutrientAmount(nutrients, NUTRIENT_PROTEIN) * 10) / 10;
@@ -94,6 +97,7 @@ function mapUsdaFood(raw: Record<string, unknown>): FoodSearchResult | null {
     id: `usda-${externalId}`,
     name,
     ...(brand ? { brand } : {}),
+    ...(dataType ? { dataType } : {}),
     cal,
     p,
     c,

@@ -4,7 +4,9 @@ import {
   appendNutritionLoggedItem,
   appendNutritionUserFoodToState,
   buildNutritionLoggedItem,
+  canAppendNutritionItem,
   getRecentlyLoggedFoods,
+  MAX_NUTRITION_ITEMS_PER_DAY,
   nutritionUserFoodFromLoggedItem,
   removeNutritionLoggedItem,
   removeNutritionPresetFromState,
@@ -16,6 +18,20 @@ import {
 import { minimalAppState } from "./testFixtures/appStateFixtures";
 
 describe("nutritionLog", () => {
+  it("stops appending after the daily item cap", () => {
+    const state = minimalAppState();
+    const row = buildNutritionLoggedItem({ cal: 10, p: 1, c: 0, f: 0 }, "Snack");
+    let next = state;
+    for (let i = 0; i < MAX_NUTRITION_ITEMS_PER_DAY; i += 1) {
+      next = appendNutritionLoggedItem(next, "2026-05-18", { ...row, id: `item-${i}` });
+    }
+    expect(next.nutritionItemsByDay["2026-05-18"]).toHaveLength(MAX_NUTRITION_ITEMS_PER_DAY);
+    expect(canAppendNutritionItem(next, "2026-05-18")).toBe(false);
+    const blocked = appendNutritionLoggedItem(next, "2026-05-18", { ...row, id: "overflow" });
+    expect(blocked).toBe(next);
+    expect(blocked.nutritionItemsByDay["2026-05-18"]).toHaveLength(MAX_NUTRITION_ITEMS_PER_DAY);
+  });
+
   it("appends a row without auto-adding favorites", () => {
     const state = minimalAppState();
     const row = buildNutritionLoggedItem({ cal: 120, p: 30, c: 0, f: 0 }, "Quick shake");

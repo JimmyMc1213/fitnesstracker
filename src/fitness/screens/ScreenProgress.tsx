@@ -1,13 +1,12 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { localDateKey } from "../dailyPlan";
 import { IconArrowDown, IconArrowUp, IconPlus } from "../icons";
 import { WorkoutCalendarCard } from "../WorkoutCalendarCard";
 import { PersonalRecordsSection } from "../PersonalRecordsSection";
-import { WeeklySummaryCard } from "../WeeklySummaryCard";
+import { AverageCalTrackerCard } from "../AverageCalTrackerCard";
 import { SundayCheckInHistorySection } from "../SundayCheckInHistorySection";
 import { LineChart, ScreenHeader, SectionLabel } from "../shared";
-import { BottomSheet, FullScreenOverlay } from "../motion";
+import { FullScreenOverlay } from "../motion";
 import { ScreenSundayCheckInHistory } from "./ScreenSundayCheckInHistory";
 import { WeighInSheet, weighInDateKeyToday } from "../WeighInSheet";
 import {
@@ -30,253 +29,6 @@ function shortChartDate(dateKey: string): string {
 const BODY_WEIGHT_CHART_STROKE = "var(--accent)";
 const CHART_PAD_LEFT = 12;
 const CHART_PAD_RIGHT = 36;
-
-const WEEK_LABELS = ["S", "M", "T", "W", "T", "F", "S"] as const;
-
-function pad2(n: number): string {
-  return String(n).padStart(2, "0");
-}
-
-function dateKeyFromParts(y: number, monthIndex: number, day: number): string {
-  return `${y}-${pad2(monthIndex + 1)}-${pad2(day)}`;
-}
-
-function daysInMonthCount(y: number, monthIndex: number): number {
-  return new Date(y, monthIndex + 1, 0).getDate();
-}
-
-function YearPickerSheet({
-  open,
-  selectedYear,
-  onPick,
-  onClose,
-}: {
-  open: boolean;
-  selectedYear: number;
-  onPick: (y: number) => void;
-  onClose: () => void;
-}) {
-  const anchorYear = new Date().getFullYear();
-  const years = useMemo(() => Array.from({ length: 9 }, (_, i) => anchorYear - 4 + i), [anchorYear]);
-  return (
-    <BottomSheet
-      open={open}
-      onClose={onClose}
-      zIndex={190}
-      ariaLabel="Choose year"
-      backdropStyle={{
-        background: "var(--sheet-backdrop)",
-        alignItems: "stretch",
-        flexDirection: "column",
-        justifyContent: "flex-end",
-        padding: 10,
-        backdropFilter: "none",
-        WebkitBackdropFilter: "none",
-      }}
-      panelStyle={{
-        padding: 18,
-        borderRadius: 16,
-        marginBottom: 8,
-        maxHeight: "72%",
-        overflowY: "auto",
-        border: "0.5px solid var(--sheet-panel-border)",
-        background: "var(--card)",
-        width: "100%",
-        maxWidth: "100%",
-      }}
-    >
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 14 }}>
-          Choose year
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-          {years.map((y) => {
-            const active = y === selectedYear;
-            return (
-              <button
-                key={y}
-                type="button"
-                className="tap"
-                onClick={() => {
-                  onPick(y);
-                  onClose();
-                }}
-                style={{
-                  padding: 14,
-                  borderRadius: 12,
-                  border: active ? "1px solid var(--border-strong)" : "0.5px solid var(--border)",
-                  background: active ? "var(--surface-4)" : "var(--surface-2)",
-                  color: "var(--text-primary)",
-                  fontWeight: 600,
-                  fontSize: 16,
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {y}
-              </button>
-            );
-          })}
-        </div>
-        <button
-          type="button"
-          className="tap"
-          onClick={onClose}
-          style={{
-            marginTop: 16,
-            width: "100%",
-            padding: 14,
-            borderRadius: 12,
-            border: "0.5px solid var(--border)",
-            background: "transparent",
-            color: "var(--text-soft)",
-            fontSize: 14,
-            fontWeight: 600,
-          }}
-        >
-          Close
-        </button>
-    </BottomSheet>
-  );
-}
-
-type LiftingCalendarProps = {
-  viewYear: number;
-  viewMonth: number;
-  onPrevMonth: () => void;
-  onNextMonth: () => void;
-  onOpenYear: () => void;
-  completedByDay: Record<string, boolean>;
-};
-
-function LiftingCalendarCard({ viewYear, viewMonth, onPrevMonth, onNextMonth, onOpenYear, completedByDay }: LiftingCalendarProps) {
-  const todayKey = localDateKey(new Date());
-  const dim = daysInMonthCount(viewYear, viewMonth);
-  const startDow = new Date(viewYear, viewMonth, 1).getDay();
-  const title = new Date(viewYear, viewMonth, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
-
-  const cells: ({ day: number; key: string } | "blank")[] = [];
-  for (let i = 0; i < startDow; i++) cells.push("blank");
-  for (let d = 1; d <= dim; d++) cells.push({ day: d, key: dateKeyFromParts(viewYear, viewMonth, d) });
-  while (cells.length % 7 !== 0) cells.push("blank");
-
-  return (
-    <div className="card" style={{ padding: 16 }} onClick={onOpenYear} role="presentation">
-      <div className="between" style={{ alignItems: "center", marginBottom: 12 }}>
-        <button
-          type="button"
-          className="tap"
-          aria-label="Previous month"
-          onClick={(e) => {
-            e.stopPropagation();
-            onPrevMonth();
-          }}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            border: "0.5px solid var(--border)",
-            background: "var(--surface-3)",
-            color: "var(--text-primary)",
-            fontSize: 22,
-            fontWeight: 400,
-            lineHeight: 1,
-            flexShrink: 0,
-          }}
-        >
-          ‹
-        </button>
-        <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)", textAlign: "center", padding: "0 8px" }}>{title}</div>
-        <button
-          type="button"
-          className="tap"
-          aria-label="Next month"
-          onClick={(e) => {
-            e.stopPropagation();
-            onNextMonth();
-          }}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            border: "0.5px solid var(--border)",
-            background: "var(--surface-3)",
-            color: "var(--text-primary)",
-            fontSize: 22,
-            fontWeight: 400,
-            lineHeight: 1,
-            flexShrink: 0,
-          }}
-        >
-          ›
-        </button>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 6 }}>
-        {WEEK_LABELS.map((l, i) => (
-          <div
-            key={`${l}-${i}`}
-            style={{
-              textAlign: "center",
-              fontSize: 10,
-              fontWeight: 600,
-              color: "var(--text-ghost)",
-              letterSpacing: "0.06em",
-            }}
-          >
-            {l}
-          </div>
-        ))}
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
-        {cells.map((cell, idx) => {
-          if (cell === "blank") {
-            return <div key={`b-${idx}`} style={{ aspectRatio: "1", minHeight: 36 }} />;
-          }
-          const { key, day } = cell;
-          const done = completedByDay[key] === true;
-          const isToday = key === todayKey;
-          const isFuture = key > todayKey;
-          const highlight = done && !isFuture;
-          const faded = isFuture;
-          return (
-            <div
-              key={key}
-              style={{
-                aspectRatio: "1",
-                minHeight: 36,
-                borderRadius: 10,
-                display: "grid",
-                placeItems: "center",
-                fontSize: 13,
-                fontWeight: highlight ? 700 : 500,
-                fontVariantNumeric: "tabular-nums",
-                background: highlight ? "var(--primary)" : "var(--surface-2)",
-                color: highlight ? "var(--primary-fg)" : faded ? "var(--text-whisper)" : "var(--text-muted-soft)",
-                border: isToday ? "1px solid var(--border-strong)" : "0.5px solid transparent",
-                boxSizing: "border-box",
-              }}
-            >
-              {day}
-            </div>
-          );
-        })}
-      </div>
-
-      <p
-        style={{
-          margin: "14px 0 0",
-          fontSize: 11,
-          lineHeight: 1.45,
-          color: "var(--text-ghost)",
-          fontWeight: 400,
-          textAlign: "center",
-        }}
-      >
-        Tap the card to pick a year · White = finished a workout from the Workout tab that day
-      </p>
-    </div>
-  );
-}
 
 export function ScreenProgress({ state, setState }: ScreenProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null);
@@ -332,19 +84,6 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
   const goalMid = goalLo != null && goalHi != null ? (goalLo + goalHi) / 2 : null;
   const denom = goalMid != null && cutBarStart != null ? cutBarStart - goalMid : 0;
   const goalPct = denom !== 0 && cutBarStart != null ? Math.max(0, Math.min(1, (cutBarStart - todayWeightLbs) / denom)) : 0;
-
-  const [calView, setCalView] = useState(() => {
-    const n = new Date();
-    return { y: n.getFullYear(), m: n.getMonth() };
-  });
-  const [yearSheetOpen, setYearSheetOpen] = useState(false);
-
-  const shiftCalMonth = (delta: number) => {
-    setCalView((prev) => {
-      const d = new Date(prev.y, prev.m + delta, 1);
-      return { y: d.getFullYear(), m: d.getMonth() };
-    });
-  };
 
   const T = state.nutritionTargets;
 
@@ -461,7 +200,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
         </div>
       </div>
 
-      <WeeklySummaryCard state={state} todayKey={dateKeyToday} />
+      <AverageCalTrackerCard state={state} todayKey={dateKeyToday} />
 
       <SundayCheckInHistorySection
         history={state.sundayCheckInHistory ?? []}
@@ -476,29 +215,6 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
         existing={todayEntry}
         unitPreferences={state.unitPreferences}
         setState={setState}
-      />
-
-      <SectionLabel
-        right={
-          <span style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500 }}>Finish in Workout tab</span>
-        }
-      >
-        Lifting days
-      </SectionLabel>
-      <LiftingCalendarCard
-        viewYear={calView.y}
-        viewMonth={calView.m}
-        onPrevMonth={() => shiftCalMonth(-1)}
-        onNextMonth={() => shiftCalMonth(1)}
-        onOpenYear={() => setYearSheetOpen(true)}
-        completedByDay={state.workoutsCompletedByDay}
-      />
-
-      <YearPickerSheet
-        open={yearSheetOpen}
-        selectedYear={calView.y}
-        onPick={(y) => setCalView((v) => ({ ...v, y }))}
-        onClose={() => setYearSheetOpen(false)}
       />
 
       <SectionLabel>Workouts</SectionLabel>

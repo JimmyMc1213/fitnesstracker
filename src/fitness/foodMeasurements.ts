@@ -2,7 +2,9 @@ import { scaleMacros } from "./foodSearchMacros";
 import type { FoodMeasurement, FoodSearchResult } from "./foodSearchTypes";
 import type { NutritionLoggedItem } from "./types";
 
-const OZ_TO_G = 28.3495;
+export const OZ_TO_G = 28.3495;
+
+const OZ_IN_LABEL = /(\d+(?:\.\d+)?)\s*oz\b/i;
 
 export type ParsedServing = {
   quantity: number;
@@ -108,6 +110,67 @@ export function buildMeasurements(food: FoodSearchResult): FoodMeasurement[] {
   }
 
   return list;
+}
+
+/** Pick g, oz, or count-style units from a human serving label and total gram weight. */
+export function inferMeasurementFromServing(
+  id: string,
+  displayLabel: string,
+  totalGrams: number,
+  parseLabel?: string,
+): FoodMeasurement {
+  const trimmed = (parseLabel ?? displayLabel).trim();
+
+  const parsed = parseServingLabel(trimmed);
+  if (parsed) {
+    if (parsed.unit === "g" || parsed.unit === "gram" || parsed.unit === "grams") {
+      return {
+        id,
+        label: displayLabel,
+        unitSuffix: "g",
+        gramsPerUnit: 1,
+        defaultQuantity: parsed.grams ?? totalGrams,
+      };
+    }
+    if (parsed.unit === "oz" || parsed.unit === "ounce" || parsed.unit === "ounces") {
+      return {
+        id,
+        label: displayLabel,
+        unitSuffix: "oz",
+        gramsPerUnit: OZ_TO_G,
+        defaultQuantity: parsed.quantity,
+      };
+    }
+    return {
+      id,
+      label: displayLabel,
+      unitSuffix: "",
+      gramsPerUnit: totalGrams / parsed.quantity,
+      defaultQuantity: parsed.quantity,
+    };
+  }
+
+  const ozMatch = trimmed.match(OZ_IN_LABEL);
+  if (ozMatch) {
+    const ozQty = parseFloat(ozMatch[1]);
+    if (Number.isFinite(ozQty) && ozQty > 0) {
+      return {
+        id,
+        label: displayLabel,
+        unitSuffix: "oz",
+        gramsPerUnit: OZ_TO_G,
+        defaultQuantity: ozQty,
+      };
+    }
+  }
+
+  return {
+    id,
+    label: displayLabel,
+    unitSuffix: "g",
+    gramsPerUnit: 1,
+    defaultQuantity: totalGrams,
+  };
 }
 
 export function getBaseGrams(food: FoodSearchResult): number {

@@ -2,6 +2,17 @@ import { applyStreakEligibility } from "./dailyStreak";
 import { addNutritionFavorite, isNutritionFavorite, nutritionPresetFingerprint, touchNutritionPresetById } from "./nutritionTotals";
 import type { AppState, MacroTotals, NutritionLoggedItem, NutritionPreset, NutritionUserFood } from "./types";
 
+/** Max logged foods per calendar day (prevents runaway local state). */
+export const MAX_NUTRITION_ITEMS_PER_DAY = 50;
+
+export function nutritionItemsCountForDay(state: AppState, dateKey: string): number {
+  return (state.nutritionItemsByDay[dateKey] ?? []).length;
+}
+
+export function canAppendNutritionItem(state: AppState, dateKey: string): boolean {
+  return nutritionItemsCountForDay(state, dateKey) < MAX_NUTRITION_ITEMS_PER_DAY;
+}
+
 export function newNutritionItemId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
@@ -109,6 +120,7 @@ export function appendNutritionLoggedItem(
   row: NutritionLoggedItem,
 ): AppState {
   const prev = state.nutritionItemsByDay[dateKey] ?? [];
+  if (prev.length >= MAX_NUTRITION_ITEMS_PER_DAY) return state;
   return applyStreakEligibility(
     {
       ...state,
@@ -172,12 +184,12 @@ export function appendNutritionPresetToDay(
     loggedAtMs: Date.now(),
     ...(preset.servingLabel?.trim() ? { servingLabel: preset.servingLabel.trim() } : {}),
   });
-  const prev = state.nutritionItemsByDay[dateKey] ?? [];
+  const withRow = appendNutritionLoggedItem(state, dateKey, row);
+  if (withRow === state) return state;
   return applyStreakEligibility(
     {
-      ...state,
-      nutritionItemsByDay: { ...state.nutritionItemsByDay, [dateKey]: [...prev, row] },
-      nutritionPresets: touchNutritionPresetById(state.nutritionPresets, preset.id),
+      ...withRow,
+      nutritionPresets: touchNutritionPresetById(withRow.nutritionPresets, preset.id),
     },
     dateKey,
   );

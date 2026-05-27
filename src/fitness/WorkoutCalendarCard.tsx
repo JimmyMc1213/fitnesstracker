@@ -10,10 +10,10 @@ import {
 import { IconDumbbell } from "./icons";
 import { BottomSheet, bottomSheetPanelTheme } from "./motion";
 import { WorkoutSessionPreviewSheet } from "./WorkoutSessionPreviewSheet";
+import { WorkoutYearView } from "./WorkoutYearView";
 import type { AppState, CompletedWorkoutSession } from "./types";
 
-const ACCENT_BLUE = "#0A84FF";
-const WORKOUT_DAY = "var(--chart-stroke)";
+const ACCENT_BLUE = "var(--accent)";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function monthLabel(year: number, monthIndex: number): string {
@@ -114,6 +114,7 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [previewSession, setPreviewSession] = useState<CompletedWorkoutSession | null>(null);
+  const [yearViewOpen, setYearViewOpen] = useState(false);
 
   const workoutDays = useMemo(
     () => workoutDaysInMonth(state.workoutHistory, viewYear, viewMonth),
@@ -134,7 +135,25 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
     <>
       <div className="card" style={{ padding: 18, position: "relative" }}>
         <div className="between" style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.02em" }}>{monthLabel(viewYear, viewMonth)}</div>
+          <button
+            type="button"
+            className="tap"
+            onClick={() => setYearViewOpen(true)}
+            aria-label={`View ${viewYear} workout calendar`}
+            style={{
+              border: "none",
+              padding: 0,
+              background: "transparent",
+              fontSize: 15,
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              color: "var(--text-primary)",
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+          >
+            {monthLabel(viewYear, viewMonth)}
+          </button>
           <div style={{ display: "flex", gap: 4 }}>
             <button
               type="button"
@@ -173,6 +192,7 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
           </div>
         </div>
 
+        <div onClick={() => setYearViewOpen(true)} style={{ cursor: "pointer" }}>
         <div
           style={{
             display: "grid",
@@ -213,7 +233,8 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
                 type="button"
                 className={canTap ? "tap" : undefined}
                 disabled={!canTap}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (!canTap) return;
                   const daySessions = getWorkoutsForDay(state.workoutHistory, dayKey);
                   if (daySessions.length === 1) setPreviewSession(daySessions[0]!);
@@ -223,65 +244,37 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
                   aspectRatio: "1",
                   minHeight: 36,
                   borderRadius: 8,
-                  border: isToday ? `1.5px solid var(--border-strong)` : "1px solid transparent",
-                  background: hasWorkout ? "var(--surface-selected)" : "var(--surface-1)",
-                  color: isFuture ? "var(--text-whisper)" : "var(--text-primary)",
+                  border: isToday
+                    ? `1.5px solid ${hasWorkout ? "rgba(255,255,255,0.55)" : "var(--border-strong)"}`
+                    : "1px solid transparent",
+                  background: hasWorkout ? ACCENT_BLUE : "var(--surface-1)",
+                  color: hasWorkout ? "#fff" : isFuture ? "var(--text-whisper)" : "var(--text-primary)",
                   fontSize: 13,
                   fontWeight: isToday ? 700 : 500,
                   fontVariantNumeric: "tabular-nums",
                   display: "flex",
-                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 2,
                   padding: 0,
                   cursor: canTap ? "pointer" : "default",
-                  opacity: isFuture ? 0.6 : 1,
+                  opacity: isFuture && !hasWorkout ? 0.6 : 1,
                 }}
               >
                 {Number(dayKey.slice(8))}
-                {hasWorkout ? (
-                  <span
-                    aria-hidden
-                    style={{
-                      width: 5,
-                      height: 5,
-                      borderRadius: "50%",
-                      background: WORKOUT_DAY,
-                    }}
-                  />
-                ) : (
-                  <span style={{ width: 5, height: 5 }} aria-hidden />
-                )}
               </button>
             );
           })}
         </div>
+        </div>
 
         {workoutDays.size === 0 ? (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-              padding: 24,
-              textAlign: "center",
-              background: "rgba(10,10,10,0.72)",
-              borderRadius: 12,
-            }}
-          >
-            <IconDumbbell size={28} stroke={1.75} style={{ color: "var(--text-whisper)" }} />
-            <p style={{ margin: 0, fontSize: 12, color: "var(--text-faint-soft)", lineHeight: 1.45, maxWidth: 260 }}>
-              No workouts yet, finish a session in Workout to light up your calendar
-            </p>
-          </div>
+          <p style={{ margin: "14px 0 0", fontSize: 11, color: "var(--text-ghost)", textAlign: "center" }}>
+            <IconDumbbell size={14} stroke={1.75} style={{ verticalAlign: -2, marginRight: 4, color: "var(--text-whisper)" }} />
+            No workouts yet — finish a session in Workout to light up your calendar
+          </p>
         ) : (
           <p style={{ margin: "14px 0 0", fontSize: 11, color: "var(--text-ghost)" }}>
-            Tap a highlighted day for your session breakdown.
+            Tap the calendar for year view · tap a blue day for your session breakdown
           </p>
         )}
       </div>
@@ -300,6 +293,17 @@ export function WorkoutCalendarCard({ state }: { state: AppState }) {
       {previewSession ? (
         <WorkoutSessionPreviewSheet session={previewSession} onClose={() => setPreviewSession(null)} />
       ) : null}
+
+      <WorkoutYearView
+        open={yearViewOpen}
+        state={state}
+        initialYear={viewYear}
+        onClose={() => setYearViewOpen(false)}
+        onSelectMonth={(year, monthIndex) => {
+          setViewYear(year);
+          setViewMonth(monthIndex);
+        }}
+      />
     </>
   );
 }

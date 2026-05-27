@@ -1,15 +1,9 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleContext,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
+import { MAX_NUTRITION_ITEMS_PER_DAY, removeNutritionLoggedItem } from "./nutritionLog";
 import { SwipeToDelete } from "./SwipeToDelete";
-import { removeNutritionLoggedItem } from "./nutritionLog";
 import type { AppState, NutritionLoggedItem } from "./types";
+import { formatServing, toTitleCase } from "./utils/foodDisplay";
 
 type Props = {
   dateKey: string;
@@ -23,11 +17,27 @@ function formatLoggedTime(ms: number | undefined): string {
   return new Date(t).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
+function isCatalogFoodSource(source?: string): boolean {
+  const s = source?.trim().toLowerCase();
+  return s === "usda" || s === "off" || s === "curated";
+}
+
+function displayFoodName(item: NutritionLoggedItem): string {
+  const name = item.name.trim() || "Food";
+  return isCatalogFoodSource(item.source) ? toTitleCase(name) : name;
+}
+
+function displayServingLabel(label: string): string {
+  return label.replace(/([\d.]+)\s*g\b/gi, (_, numStr) => {
+    const grams = parseFloat(numStr);
+    return Number.isFinite(grams) ? formatServing(grams) : `${numStr}g`;
+  });
+}
+
 type SwipeableFoodLogRowProps = {
   item: NutritionLoggedItem;
-  showDivider: boolean;
   onEdit: (item: NutritionLoggedItem) => void;
-  onRequestRemove: (item: NutritionLoggedItem) => void;
+  onRemove: () => void;
   isOpen: boolean;
   onOpen: (itemId: string) => void;
   onClose: () => void;
@@ -35,30 +45,24 @@ type SwipeableFoodLogRowProps = {
 
 function SwipeableFoodLogRow({
   item,
-  showDivider,
   onEdit,
-  onRequestRemove,
+  onRemove,
   isOpen,
   onOpen,
   onClose,
 }: SwipeableFoodLogRowProps) {
-  const displayName = item.name.trim() || "Food";
+  const displayName = displayFoodName(item);
 
   return (
-    <div
-      style={{
-        marginBottom: showDivider ? 12 : 0,
-        borderBottom: showDivider ? "1px solid var(--divider-subtle)" : undefined,
-        paddingBottom: showDivider ? 12 : 0,
-      }}
-    >
+    <div className="card" style={{ overflow: "hidden", padding: 0 }}>
       <SwipeToDelete
         deleteLabel={`Delete ${displayName}`}
-        onDelete={() => onRequestRemove(item)}
+        onDelete={onRemove}
         isOpen={isOpen}
         onOpen={() => onOpen(item.id)}
         onClose={onClose}
         onTap={() => onEdit(item)}
+        borderRadius={16}
       >
         <div
           role="button"
@@ -75,8 +79,8 @@ function SwipeableFoodLogRow({
             alignItems: "flex-start",
             justifyContent: "space-between",
             gap: 10,
-            padding: "2px 0",
-            background: "var(--card)",
+            padding: "14px 16px",
+            background: "var(--card-gradient-bg)",
             cursor: "pointer",
           }}
         >
@@ -94,7 +98,7 @@ function SwipeableFoodLogRow({
               }}
             >
               {Math.round(Number(item.cal) || 0)} kcal · P {Math.round(Number(item.p) || 0)}g
-              {item.servingLabel?.trim() ? ` · ${item.servingLabel.trim()}` : ""}
+              {item.servingLabel?.trim() ? ` · ${displayServingLabel(item.servingLabel.trim())}` : ""}
             </div>
             <div style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, marginTop: 2 }}>
               {formatLoggedTime(item.loggedAtMs)}
@@ -107,9 +111,7 @@ function SwipeableFoodLogRow({
 }
 
 export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
-  const [showEarlier, setShowEarlier] = useState(false);
   const [openItemId, setOpenItemId] = useState<string | null>(null);
-  const [pendingRemove, setPendingRemove] = useState<NutritionLoggedItem | null>(null);
 
   const sorted = [...items].sort((a, b) => {
     const ta = typeof a.loggedAtMs === "number" ? a.loggedAtMs : 0;
@@ -117,12 +119,7 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
     return tb - ta;
   });
 
-  const earlierCount = Math.max(0, sorted.length - 1);
-  const earlierItems = sorted.slice(1);
-
-  useEffect(() => {
-    if (sorted.length <= 1) setShowEarlier(false);
-  }, [sorted.length]);
+  const atDailyCap = sorted.length >= MAX_NUTRITION_ITEMS_PER_DAY;
 
   useEffect(() => {
     if (openItemId && !sorted.some((item) => item.id === openItemId)) {
@@ -131,7 +128,7 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
   }, [openItemId, sorted]);
 
   return (
-    <div className="card" style={{ padding: 18, marginTop: 18 }}>
+    <div style={{ marginTop: 18 }}>
       <div
         style={{
           fontSize: 11,
@@ -139,93 +136,49 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           color: "var(--text-faint-soft)",
-          marginBottom: 14,
+          marginBottom: 10,
         }}
       >
-        Food · Today
+        Recently logged
       </div>
 
       {sorted.length === 0 ? (
-        <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)", lineHeight: 1.5, fontWeight: 400 }}>
-          Nothing logged yet. Tap + to add food.
-        </p>
+        <div className="card" style={{ padding: "18px 16px" }}>
+          <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)", lineHeight: 1.5, fontWeight: 400 }}>
+            Tap the + to add food.
+          </p>
+        </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <SwipeableFoodLogRow
-            key={sorted[0].id}
-            item={sorted[0]}
-            showDivider={earlierCount > 0}
-            onEdit={onEdit}
-            onRequestRemove={(item) => {
-              setOpenItemId(null);
-              setPendingRemove(item);
-            }}
-            isOpen={openItemId === sorted[0].id}
-            onOpen={setOpenItemId}
-            onClose={() => setOpenItemId(null)}
-          />
-          {earlierCount > 0 ? (
-            <Collapsible open={showEarlier} onOpenChange={(details) => setShowEarlier(details.open)}>
-              <CollapsibleContent>
-                {earlierItems.map((item, idx) => (
-                  <SwipeableFoodLogRow
-                    key={item.id}
-                    item={item}
-                    showDivider={idx < earlierItems.length - 1}
-                    onEdit={onEdit}
-                    onRequestRemove={(item) => {
-                      setOpenItemId(null);
-                      setPendingRemove(item);
-                    }}
-                    isOpen={openItemId === item.id}
-                    onOpen={setOpenItemId}
-                    onClose={() => setOpenItemId(null)}
-                  />
-                ))}
-              </CollapsibleContent>
-              <CollapsibleTrigger
-                className="tap"
-                style={{
-                  marginTop: 4,
-                  padding: 0,
-                  border: "none",
-                  background: "none",
-                  textAlign: "left",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "var(--pos, #4ade80)",
-                }}
-              >
-                <CollapsibleContext>
-                  {(ctx) =>
-                    ctx.open
-                      ? "Hide earlier entries"
-                      : `Show ${earlierCount} earlier ${earlierCount === 1 ? "entry" : "entries"}`
-                  }
-                </CollapsibleContext>
-              </CollapsibleTrigger>
-            </Collapsible>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {sorted.map((item) => (
+            <SwipeableFoodLogRow
+              key={item.id}
+              item={item}
+              onEdit={onEdit}
+              onRemove={() => {
+                setOpenItemId(null);
+                onRemove(item.id);
+              }}
+              isOpen={openItemId === item.id}
+              onOpen={setOpenItemId}
+              onClose={() => setOpenItemId(null)}
+            />
+          ))}
+          {atDailyCap ? (
+            <p
+              style={{
+                margin: "4px 0 0",
+                fontSize: 12,
+                lineHeight: 1.45,
+                color: "var(--text-faint-soft)",
+                fontWeight: 500,
+              }}
+            >
+              Daily log limit reached ({MAX_NUTRITION_ITEMS_PER_DAY} items). Remove an entry to add more.
+            </p>
           ) : null}
         </div>
       )}
-      {pendingRemove ? (
-        <DeleteConfirmSheet
-          title="Delete food entry?"
-          cancelLabel="Keep entry"
-          confirmLabel="Delete entry"
-          message={
-            <>
-              Remove <strong style={{ color: "var(--text-primary)" }}>{pendingRemove.name.trim() || "this food"}</strong>{" "}
-              from today&apos;s log? This can&apos;t be undone.
-            </>
-          }
-          onCancel={() => setPendingRemove(null)}
-          onConfirm={() => {
-            onRemove(pendingRemove.id);
-            setPendingRemove(null);
-          }}
-        />
-      ) : null}
     </div>
   );
 }

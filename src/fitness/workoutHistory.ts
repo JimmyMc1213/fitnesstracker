@@ -117,6 +117,27 @@ export function workoutDaysInMonth(
   return days;
 }
 
+export function workoutDaysInYear(
+  history: CompletedWorkoutSession[] | undefined,
+  year: number,
+): Set<string> {
+  const prefix = `${year}-`;
+  const days = new Set<string>();
+  for (const s of history ?? []) {
+    if (s.dayKey.startsWith(prefix)) days.add(s.dayKey);
+  }
+  return days;
+}
+
+export function workoutYearsFromHistory(history: CompletedWorkoutSession[] | undefined): number[] {
+  const years = new Set<number>();
+  for (const s of history ?? []) {
+    const y = Number(s.dayKey.slice(0, 4));
+    if (Number.isFinite(y)) years.add(y);
+  }
+  return [...years].sort((a, b) => b - a);
+}
+
 function normalizeWorkoutSet(raw: unknown): WorkoutSet | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;

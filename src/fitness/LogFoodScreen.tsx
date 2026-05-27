@@ -1,13 +1,29 @@
-import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from "react";
 
+import { AnimatedNumberFlip } from "./AnimatedNumberFlip";
+import { CURATED_FOODS, type CuratedFood } from "./curatedFoods";
 import { scaleMacros } from "./foodSearchMacros";
 import {
   buildMeasurements,
   computeServingMultiplier,
   formatServingLabel,
   getBaseGrams,
+  inferMeasurementFromServing,
   loggedItemToPickerEdit,
+  OZ_TO_G,
   parseQuantityInput,
+  parseServingLabel,
 } from "./foodMeasurements";
 import { FoodSearchError, searchFoods } from "./foodSearchService";
 import type { FoodMeasurement, FoodSearchResult } from "./foodSearchTypes";
@@ -16,6 +32,7 @@ import {
   appendNutritionPresetToDay,
   appendNutritionUserFoodToState,
   buildNutritionLoggedItem,
+  canAppendNutritionItem,
   getRecentlyLoggedFoods,
   newNutritionItemId,
   nutritionUserFoodFromLoggedItem,
@@ -34,6 +51,8 @@ import {
   sumMealMacros,
   updateNutritionMeal,
 } from "./nutritionMeals";
+import { getServingDefault } from "./servingDefaults";
+import { formatMacroGrams, formatServing, toTitleCase } from "./utils/foodDisplay";
 import { PrimaryButton } from "./shared";
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { FullScreenOverlay } from "./motion";
@@ -74,6 +93,91 @@ const foodListCardStyle = {
   overflow: "hidden" as const,
 };
 
+const PICKER_MACRO_COLORS = {
+  Protein: "var(--macro-protein)",
+  Carbs: "var(--macro-carbs)",
+  Fat: "var(--macro-fat)",
+} as const;
+
+const MAX_SERVING_DIGITS = 5;
+
+function clampServingQuantityInput(raw: string): string {
+  let cleaned = "";
+  let hasDot = false;
+  let digitCount = 0;
+  for (const ch of raw) {
+    if (ch >= "0" && ch <= "9") {
+      if (digitCount >= MAX_SERVING_DIGITS) continue;
+      cleaned += ch;
+      digitCount += 1;
+    } else if (ch === "." && !hasDot) {
+      hasDot = true;
+      cleaned += ch;
+    }
+  }
+  return cleaned;
+}
+
+function moveInputCursorToEnd(el: HTMLInputElement) {
+  requestAnimationFrame(() => {
+    const len = el.value.length;
+    el.setSelectionRange(len, len);
+  });
+}
+
+function FitText({
+  children,
+  maxFontSize,
+  minFontSize = 10,
+  className,
+  style,
+}: {
+  children: ReactNode;
+  maxFontSize: number;
+  minFontSize?: number;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+
+  const fit = useCallback(() => {
+    const wrap = wrapRef.current;
+    const el = textRef.current;
+    if (!wrap || !el) return;
+    let size = maxFontSize;
+    el.style.fontSize = `${size}px`;
+    while (size > minFontSize && el.scrollWidth > wrap.clientWidth) {
+      size -= 0.5;
+      el.style.fontSize = `${size}px`;
+    }
+  }, [children, maxFontSize, minFontSize]);
+
+  useLayoutEffect(() => {
+    fit();
+  }, [fit]);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => fit());
+    observer.observe(wrap);
+    return () => observer.disconnect();
+  }, [fit]);
+
+  return (
+    <div ref={wrapRef} style={{ minWidth: 0, maxWidth: "100%", overflow: "hidden" }}>
+      <span
+        ref={textRef}
+        className={className}
+        style={{ ...style, display: "inline-block", whiteSpace: "nowrap", lineHeight: 1.1 }}
+      >
+        {children}
+      </span>
+    </div>
+  );
+}
+
 const addButtonStyle = {
   flexShrink: 0,
   width: 36,
@@ -88,6 +192,146 @@ const addButtonStyle = {
   display: "grid",
   placeItems: "center",
 } as const;
+
+function shortenPickerLabel(label: string, max = 22): string {
+  const trimmed = label.trim();
+  if (trimmed.length <= max) return trimmed;
+  return `${trimmed.slice(0, max - 1)}…`;
+}
+
+function isCatalogFoodSource(source?: string): boolean {
+  const s = source?.trim().toLowerCase();
+  return s === "usda" || s === "off" || s === "curated";
+}
+
+function displayFoodName(name: string, source?: string): string {
+  const trimmed = name.trim() || "Food";
+  return isCatalogFoodSource(source) ? toTitleCase(trimmed) : trimmed;
+}
+
+function formatGramsInLabel(label: string): string {
+  return label.replace(/([\d.]+)\s*g\b/gi, (_, numStr) => {
+    const grams = parseFloat(numStr);
+    return Number.isFinite(grams) ? formatServing(grams) : `${numStr}g`;
+  });
+}
+
+function filterCuratedFoods(query: string): CuratedFood[] {
+  const q = query.trim().toLowerCase();
+  if (q.length < MIN_SEARCH_LEN) return [];
+  return CURATED_FOODS.filter((food) => food.keywords.some((kw) => kw.toLowerCase().includes(q)));
+}
+
+function curatedToSearchResult(food: CuratedFood): FoodSearchResult {
+  return {
+    id: food.id,
+    name: food.name,
+    defaultServing: food.defaultServing.label,
+    baseGrams: 100,
+    cal: food.per100g.cal,
+    p: food.per100g.p,
+    c: food.per100g.c,
+    f: food.per100g.f,
+    source: "curated",
+    externalId: food.id,
+    servings: [],
+  };
+}
+
+function curatedDefaultServingMacros(food: CuratedFood) {
+  const factor = food.defaultServing.grams / 100;
+  return {
+    cal: Math.round(food.per100g.cal * factor),
+    p: Math.round(food.per100g.p * factor * 10) / 10,
+    c: Math.round(food.per100g.c * factor * 10) / 10,
+    f: Math.round(food.per100g.f * factor * 10) / 10,
+  };
+}
+
+function buildPickerMeasurements(
+  food: FoodSearchResult,
+  curated?: CuratedFood,
+): {
+  measurements: FoodMeasurement[];
+  fixedLabels: Record<string, string>;
+} {
+  const fixedLabels: Record<string, string> = {};
+  const list: FoodMeasurement[] = [];
+  const seen = new Set<string>();
+  const baseGrams = getBaseGrams(food);
+
+  const add = (m: FoodMeasurement) => {
+    if (seen.has(m.id)) return;
+    seen.add(m.id);
+    list.push(m);
+  };
+
+  const smart = curated
+    ? { label: curated.defaultServing.label, grams: curated.defaultServing.grams }
+    : getServingDefault(food.name);
+
+  if (smart) {
+    fixedLabels["smart-default"] = smart.label;
+    add(
+      inferMeasurementFromServing(
+        "smart-default",
+        shortenPickerLabel(smart.label),
+        smart.grams,
+        smart.label,
+      ),
+    );
+  } else {
+    const parsed = parseServingLabel(food.defaultServing);
+    const grams = parsed?.grams && parsed.grams > 0 ? parsed.grams : baseGrams;
+    const displayLabel = food.defaultServing.trim()
+      ? formatGramsInLabel(food.defaultServing.trim())
+      : formatServing(grams);
+    fixedLabels["primary-serving"] = displayLabel;
+    add(
+      inferMeasurementFromServing(
+        "primary-serving",
+        shortenPickerLabel(displayLabel),
+        grams,
+        displayLabel,
+      ),
+    );
+  }
+
+  add({
+    id: "100g",
+    label: "100g",
+    unitSuffix: "g",
+    gramsPerUnit: 1,
+    defaultQuantity: 100,
+  });
+
+  add({
+    id: "custom",
+    label: "Custom",
+    unitSuffix: "oz",
+    gramsPerUnit: OZ_TO_G,
+    defaultQuantity: 4,
+  });
+
+  if (!curated) {
+    for (const m of buildMeasurements(food)) {
+      if (m.id === "g") continue;
+      add(m);
+    }
+  }
+
+  return { measurements: list, fixedLabels };
+}
+
+function pickerServingLabel(
+  measurement: FoodMeasurement,
+  quantity: number,
+  fixedLabels: Record<string, string>,
+): string {
+  const fixed = fixedLabels[measurement.id];
+  if (fixed) return fixed;
+  return formatServingLabel(measurement, quantity);
+}
 
 type Props = {
   open: boolean;
@@ -119,6 +363,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   const [search, setSearch] = useState("");
   const [manualOpen, setManualOpen] = useState(false);
   const [pickerFood, setPickerFood] = useState<FoodSearchResult | null>(null);
+  const [pickerCurated, setPickerCurated] = useState<CuratedFood | null>(null);
   const [pickerMeasurementId, setPickerMeasurementId] = useState<string>("g");
   const [pickerQuantity, setPickerQuantity] = useState("");
 
@@ -154,6 +399,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   const [pendingDelete, setPendingDelete] = useState<PendingFoodDelete | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const pickerQuantityInputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const userFoods = state.nutritionUserFoods ?? [];
@@ -168,12 +414,22 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
 
   const recentlyLogged = useMemo(() => getRecentlyLoggedFoods(state.nutritionItemsByDay), [state.nutritionItemsByDay]);
 
+  const dayLogAtCapacity = useMemo(
+    () => !canAppendNutritionItem(state, dateKey),
+    [state, dateKey],
+  );
+
   const mealDraftMacros = useMemo(() => sumMealMacros(mealDraftItems), [mealDraftItems]);
 
-  const pickerMeasurements = useMemo(
-    () => (pickerFood ? buildMeasurements(pickerFood) : []),
-    [pickerFood],
+  const pickerMeasurementBundle = useMemo(
+    () =>
+      pickerFood
+        ? buildPickerMeasurements(pickerFood, pickerCurated ?? undefined)
+        : { measurements: [], fixedLabels: {} },
+    [pickerFood, pickerCurated],
   );
+  const pickerMeasurements = pickerMeasurementBundle.measurements;
+  const pickerFixedLabels = pickerMeasurementBundle.fixedLabels;
 
   const pickerMeasurement = useMemo(
     () => pickerMeasurements.find((m) => m.id === pickerMeasurementId) ?? pickerMeasurements[0] ?? null,
@@ -189,6 +445,14 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     : 1;
 
   const pickerMacros = pickerFood ? scaleMacros(pickerFood, pickerMultiplier) : null;
+
+  useEffect(() => {
+    const el = pickerQuantityInputRef.current;
+    if (!el || document.activeElement !== el) return;
+    moveInputCursorToEnd(el);
+  }, [pickerMeasurementId]);
+
+  const filteredCurated = useMemo(() => filterCuratedFoods(search), [search]);
 
   const filteredRecent = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -240,6 +504,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       setSearch("");
       setManualOpen(false);
       setPickerFood(null);
+      setPickerCurated(null);
       setPickerMeasurementId("g");
       setPickerQuantity("");
       setApiResults([]);
@@ -297,6 +562,12 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     const pickerEdit = loggedItemToPickerEdit(item);
     if (pickerEdit) {
       setPickerFood(pickerEdit.food);
+      if (pickerEdit.food.source === "curated") {
+        const curated = CURATED_FOODS.find((f) => f.id === pickerEdit.food.externalId) ?? null;
+        setPickerCurated(curated);
+      } else {
+        setPickerCurated(null);
+      }
       setPickerMeasurementId(pickerEdit.measurementId);
       setPickerQuantity(pickerEdit.quantity);
       setManualOpen(false);
@@ -305,6 +576,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     }
 
     setPickerFood(null);
+    setPickerCurated(null);
     setPickerMeasurementId("g");
     setPickerQuantity("");
     setDraftName(item.name.trim() || "Food");
@@ -324,6 +596,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     if (mealEditorOpen) {
       if (pickerFood && pickerContext === "mealIngredient") {
         setPickerFood(null);
+        setPickerCurated(null);
         setPickerMeasurementId("g");
         setPickerQuantity("");
         return;
@@ -351,6 +624,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     }
     if (pickerFood) {
       setPickerFood(null);
+      setPickerCurated(null);
       setPickerMeasurementId("g");
       setPickerQuantity("");
       return;
@@ -537,11 +811,23 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   }
 
   function openPicker(food: FoodSearchResult, context: PickerContext = "log") {
-    const measurements = buildMeasurements(food);
-    const defaultMeasurement = measurements.find((m) => m.id === "g") ?? measurements[0] ?? null;
+    const { measurements } = buildPickerMeasurements(food);
+    const defaultMeasurement = measurements[0] ?? null;
     setPickerContext(context);
+    setPickerCurated(null);
     setPickerFood(food);
-    setPickerMeasurementId(defaultMeasurement?.id ?? "g");
+    setPickerMeasurementId(defaultMeasurement?.id ?? "100g");
+    setPickerQuantity(defaultMeasurement ? String(defaultMeasurement.defaultQuantity) : "100");
+  }
+
+  function openCuratedPicker(curated: CuratedFood, context: PickerContext = "log") {
+    const food = curatedToSearchResult(curated);
+    const { measurements } = buildPickerMeasurements(food, curated);
+    const defaultMeasurement = measurements[0] ?? null;
+    setPickerContext(context);
+    setPickerCurated(curated);
+    setPickerFood(food);
+    setPickerMeasurementId(defaultMeasurement?.id ?? "100g");
     setPickerQuantity(defaultMeasurement ? String(defaultMeasurement.defaultQuantity) : "100");
   }
 
@@ -553,7 +839,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   function logPickerAndClose() {
     if (!pickerFood || !pickerMeasurement) return;
     const macros = scaleMacros(pickerFood, pickerMultiplier);
-    const servingLabel = formatServingLabel(pickerMeasurement, pickerQuantityNum);
+    const servingLabel = pickerServingLabel(pickerMeasurement, pickerQuantityNum, pickerFixedLabels);
 
     if (pickerContext === "mealIngredient") {
       setMealDraftItems((prev) => [
@@ -568,6 +854,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         },
       ]);
       setPickerFood(null);
+      setPickerCurated(null);
       setPickerMeasurementId("g");
       setPickerQuantity("");
       setPickerContext("log");
@@ -589,6 +876,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       setState((s) => updateNutritionLoggedItem(s, dateKey, editingLoggedItemId, row));
       setEditingLoggedItemId(null);
       setPickerFood(null);
+      setPickerCurated(null);
       setPickerMeasurementId("g");
       setPickerQuantity("");
       onClose();
@@ -603,6 +891,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     });
     setState((s) => appendNutritionLoggedItem(s, dateKey, row));
     setPickerFood(null);
+    setPickerCurated(null);
     setPickerMeasurementId("g");
     setPickerQuantity("");
     onClose();
@@ -616,12 +905,13 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         id: newNutritionItemId(),
         name: pickerFood.name,
         ...macros,
-        servingLabel: formatServingLabel(pickerMeasurement, pickerQuantityNum),
+        servingLabel: pickerServingLabel(pickerMeasurement, pickerQuantityNum, pickerFixedLabels),
         source: pickerFood.source,
         externalId: pickerFood.externalId,
       }),
     );
     setPickerFood(null);
+    setPickerCurated(null);
     setPickerMeasurementId("g");
     setPickerQuantity("");
     setTab("myFoods");
@@ -819,7 +1109,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.02em", lineHeight: 1.25 }}>
-                      {pickerFood.name}
+                      {displayFoodName(pickerFood.name, pickerFood.source)}
                     </div>
                     {pickerFood.brand ? (
                       <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-faint-soft)", fontWeight: 500 }}>
@@ -832,7 +1122,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                         {
                           name: pickerFood.name,
                           ...pickerMacros,
-                          servingLabel: formatServingLabel(pickerMeasurement!, pickerQuantityNum),
+                          servingLabel: pickerServingLabel(pickerMeasurement!, pickerQuantityNum, pickerFixedLabels),
                         },
                         pickerFood.name,
                       )
@@ -884,25 +1174,32 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   })}
                 </div>
               </div>
+            </div>
 
-              <label
+            <div style={{ marginBottom: 12 }}>
+              <div
                 style={{
                   fontSize: 11,
                   color: "var(--text-ghost)",
                   fontWeight: 500,
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
+                  marginBottom: 8,
                 }}
               >
-                Amount
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
+                Number of servings
+              </div>
+              <div className="card" style={{ padding: "14px 16px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <input
-                    aria-label="Serving amount"
+                    ref={pickerQuantityInputRef}
+                    aria-label="Number of servings"
                     value={pickerQuantity}
-                    onChange={(e) => setPickerQuantity(e.target.value)}
+                    onChange={(e) => setPickerQuantity(clampServingQuantityInput(e.target.value))}
+                    onFocus={(e) => moveInputCursorToEnd(e.currentTarget)}
                     inputMode="decimal"
                     className="input"
-                    style={{ marginTop: 0, fontVariantNumeric: "tabular-nums" }}
+                    style={{ marginTop: 0, flex: 1, fontVariantNumeric: "tabular-nums" }}
                   />
                   {pickerMeasurement?.unitSuffix ? (
                     <span
@@ -918,11 +1215,11 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                     </span>
                   ) : null}
                 </div>
-              </label>
+              </div>
             </div>
 
             {pickerMacros ? (
-              <div className="card" style={{ padding: "16px 18px" }}>
+              <div>
                 <div
                   style={{
                     fontSize: 11,
@@ -930,28 +1227,31 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                     fontWeight: 500,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
-                    marginBottom: 12,
+                    marginBottom: 8,
                   }}
                 >
                   This serving
                 </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                  <span
-                    className="stat-big"
-                    style={{ fontSize: 28, fontVariantNumeric: "tabular-nums" }}
-                  >
-                    {pickerMacros.cal}
-                  </span>
-                  <span className="unit">kcal</span>
+                <div className="card" style={{ padding: "18px 20px", marginBottom: 10, overflow: "hidden" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, minWidth: 0 }}>
+                    <FitText
+                      className="stat-big"
+                      maxFontSize={32}
+                      minFontSize={14}
+                      style={{ fontVariantNumeric: "tabular-nums" }}
+                    >
+                      <AnimatedNumberFlip value={String(pickerMacros.cal)} />
+                    </FitText>
+                    <span className="unit" style={{ flexShrink: 0 }}>
+                      kcal
+                    </span>
+                  </div>
                 </div>
                 <div
                   style={{
-                    marginTop: 16,
-                    paddingTop: 16,
-                    borderTop: "1px solid var(--divider-subtle)",
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr 1fr",
-                    gap: 12,
+                    gap: 8,
                   }}
                 >
                   {(
@@ -961,20 +1261,45 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                       { label: "Fat", value: pickerMacros.f },
                     ] as const
                   ).map((macro) => (
-                    <div key={macro.label}>
-                      <div style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 400 }}>{macro.label}</div>
+                    <div
+                      key={macro.label}
+                      className="card"
+                      style={{ padding: "12px 10px", minWidth: 0, overflow: "hidden" }}
+                    >
                       <div
                         style={{
-                          marginTop: 4,
-                          fontSize: 18,
-                          fontWeight: 700,
-                          color: "var(--text-primary)",
-                          letterSpacing: "-0.02em",
-                          fontVariantNumeric: "tabular-nums",
+                          fontSize: 10,
+                          color: PICKER_MACRO_COLORS[macro.label],
+                          fontWeight: 500,
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
                         }}
                       >
-                        {macro.value}
-                        <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-ghost)" }}>g</span>
+                        {macro.label}
+                      </div>
+                      <div style={{ marginTop: 6 }}>
+                        <FitText
+                          maxFontSize={17}
+                          minFontSize={10}
+                          style={{
+                            fontWeight: 700,
+                            color: PICKER_MACRO_COLORS[macro.label],
+                            letterSpacing: "-0.02em",
+                            fontVariantNumeric: "tabular-nums",
+                          }}
+                        >
+                          <AnimatedNumberFlip value={formatMacroGrams(macro.value)} />
+                          <span
+                            style={{
+                              marginLeft: 5,
+                              fontSize: "0.65em",
+                              fontWeight: 500,
+                              color: "var(--text-ghost)",
+                            }}
+                          >
+                            g
+                          </span>
+                        </FitText>
                       </div>
                     </div>
                   ))}
@@ -997,7 +1322,11 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             <PrimaryButton
               block
               onClick={logPickerAndClose}
-              disabled={!pickerMeasurement || !parseQuantityInput(pickerQuantity)}
+              disabled={
+                !pickerMeasurement ||
+                !parseQuantityInput(pickerQuantity) ||
+                (dayLogAtCapacity && pickerContext === "log" && !editingLoggedItemId)
+              }
               style={{ fontWeight: 700 }}
             >
               {pickerContext === "mealIngredient"
@@ -1105,27 +1434,61 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                     <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)" }}>Searching…</p>
                   ) : searchError ? (
                     <p style={{ margin: 0, fontSize: 14, color: "rgba(255,180,180,0.9)" }}>{searchError}</p>
-                  ) : apiResults.length === 0 ? (
+                  ) : filteredCurated.length === 0 && apiResults.length === 0 ? (
                     <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)" }}>No results. Try another search.</p>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                      {apiResults.map((food) => (
-                        <button
-                          key={food.id}
-                          type="button"
-                          className="tap between"
-                          style={foodRowStyle}
-                          onClick={() => openPicker(food, "mealIngredient")}
-                        >
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{food.name}</div>
-                            <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
-                              {Math.round(Number(food.cal) || 0)} kcal · {food.defaultServing}
-                            </div>
+                      {filteredCurated.length > 0 ? (
+                        <>
+                          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)", marginBottom: 10 }}>
+                            Common Foods
                           </div>
-                          <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
-                        </button>
-                      ))}
+                          {filteredCurated.map((curated) => {
+                            const macros = curatedDefaultServingMacros(curated);
+                            return (
+                              <button
+                                key={curated.id}
+                                type="button"
+                                className="tap between"
+                                style={foodRowStyle}
+                                onClick={() => openCuratedPicker(curated, "mealIngredient")}
+                              >
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{curated.name}</div>
+                                  <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
+                                    {macros.cal} kcal · {formatGramsInLabel(curated.defaultServing.label)}
+                                  </div>
+                                </div>
+                                <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
+                              </button>
+                            );
+                          })}
+                        </>
+                      ) : null}
+                      {apiResults.length > 0 ? (
+                        <>
+                          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)", marginTop: filteredCurated.length > 0 ? 16 : 0, marginBottom: 10 }}>
+                            More Results
+                          </div>
+                          {apiResults.map((food) => (
+                            <button
+                              key={food.id}
+                              type="button"
+                              className="tap between"
+                              style={foodRowStyle}
+                              onClick={() => openPicker(food, "mealIngredient")}
+                            >
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{displayFoodName(food.name, food.source)}</div>
+                                <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
+                                  {Math.round(Number(food.cal) || 0)} kcal · {formatGramsInLabel(food.defaultServing)}
+                                </div>
+                              </div>
+                              <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
+                            </button>
+                          ))}
+                        </>
+                      ) : null}
                     </div>
                   )
                 ) : (
@@ -1369,9 +1732,6 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
 
                 {searchActive ? (
                   <>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)", marginBottom: 10 }}>
-                      Results
-                    </div>
                     {searchLoading ? (
                       <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
                         Searching…
@@ -1383,45 +1743,94 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           Retry search
                         </button>
                       </div>
-                    ) : apiResults.length === 0 ? (
+                    ) : filteredCurated.length === 0 && apiResults.length === 0 ? (
                       <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
                         No results. Try a different search or use Manual Add.
                       </p>
                     ) : (
-                      <div className="card" style={foodListCardStyle}>
-                        {apiResults.map((food, idx) => (
-                          <button
-                            key={food.id}
-                            type="button"
-                            className="tap between"
-                            style={{
-                              ...foodRowStyle,
-                              borderBottom: idx === apiResults.length - 1 ? "none" : foodRowStyle.borderBottom,
-                            }}
-                            onClick={() => openPicker(food)}
-                          >
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>{food.name}</div>
-                              <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                                {Math.round(Number(food.cal) || 0)} kcal · {food.defaultServing}
-                                {food.brand ? ` · ${food.brand}` : ""}
-                              </div>
+                      <>
+                        {filteredCurated.length > 0 ? (
+                          <>
+                            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)", marginBottom: 10 }}>
+                              Common Foods
                             </div>
-                            {renderFavoriteButton(
-                              {
-                                name: food.name,
-                                cal: Number(food.cal) || 0,
-                                p: Number(food.p) || 0,
-                                c: Number(food.c) || 0,
-                                f: Number(food.f) || 0,
-                                servingLabel: food.defaultServing,
-                              },
-                              food.name,
-                            )}
-                            <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
-                          </button>
-                        ))}
-                      </div>
+                            <div className="card" style={{ ...foodListCardStyle, marginBottom: apiResults.length > 0 ? 16 : foodListCardStyle.marginBottom }}>
+                              {filteredCurated.map((curated, idx) => {
+                                const macros = curatedDefaultServingMacros(curated);
+                                return (
+                                  <button
+                                    key={curated.id}
+                                    type="button"
+                                    className="tap between"
+                                    style={{
+                                      ...foodRowStyle,
+                                      borderBottom: idx === filteredCurated.length - 1 ? "none" : foodRowStyle.borderBottom,
+                                    }}
+                                    onClick={() => openCuratedPicker(curated)}
+                                  >
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>{curated.name}</div>
+                                      <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                                        {macros.cal} kcal · {formatGramsInLabel(curated.defaultServing.label)}
+                                      </div>
+                                    </div>
+                                    {renderFavoriteButton(
+                                      {
+                                        name: curated.name,
+                                        ...macros,
+                                        servingLabel: curated.defaultServing.label,
+                                      },
+                                      curated.name,
+                                    )}
+                                    <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        ) : null}
+                        {apiResults.length > 0 ? (
+                          <>
+                            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)", marginBottom: 10 }}>
+                              More Results
+                            </div>
+                            <div className="card" style={foodListCardStyle}>
+                              {apiResults.map((food, idx) => (
+                                <button
+                                  key={food.id}
+                                  type="button"
+                                  className="tap between"
+                                  style={{
+                                    ...foodRowStyle,
+                                    borderBottom: idx === apiResults.length - 1 ? "none" : foodRowStyle.borderBottom,
+                                  }}
+                                  onClick={() => openPicker(food)}
+                                >
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>{displayFoodName(food.name, food.source)}</div>
+                                    <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                                      {Math.round(Number(food.cal) || 0)} kcal · {formatGramsInLabel(food.defaultServing)}
+                                      {food.brand ? ` · ${food.brand}` : ""}
+                                    </div>
+                                  </div>
+                                  {renderFavoriteButton(
+                                    {
+                                      name: displayFoodName(food.name, food.source),
+                                      cal: Number(food.cal) || 0,
+                                      p: Number(food.p) || 0,
+                                      c: Number(food.c) || 0,
+                                      f: Number(food.f) || 0,
+                                      servingLabel: food.defaultServing,
+                                    },
+                                    food.name,
+                                  )}
+                                  <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        ) : null}
+                      </>
                     )}
                   </>
                 ) : (
@@ -1449,10 +1858,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                           >
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
-                                {it.name.trim() || "Food"}
+                                {displayFoodName(it.name.trim() || "Food", it.source)}
                               </div>
                               <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                                {Math.round(Number(it.cal) || 0)} kcal · {it.servingLabel?.trim() || DEFAULT_SERVING}
+                                {Math.round(Number(it.cal) || 0)} kcal · {formatGramsInLabel(it.servingLabel?.trim() || DEFAULT_SERVING)}
                               </div>
                             </div>
                             {renderFavoriteButton(

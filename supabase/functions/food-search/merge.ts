@@ -4,6 +4,7 @@ type FoodSearchResult = {
   id: string;
   name: string;
   brand?: string;
+  dataType?: string;
   cal: number;
   p: number;
   c: number;
@@ -60,6 +61,92 @@ function areSimilarFoods(a: FoodSearchResult, b: FoodSearchResult): boolean {
   return true;
 }
 
+function resolveDataType(item: FoodSearchResult): string | undefined {
+  if (item.dataType?.trim()) return item.dataType.trim();
+  if ((item.brand ?? "").trim()) return "Branded";
+  if (item.source === "usda") return "SR Legacy";
+  return undefined;
+}
+
+function scoreResult(item: FoodSearchResult, query: string): number {
+  const desc = [item.name, item.brand].filter(Boolean).join(" ").toLowerCase();
+  const q = query.toLowerCase().trim();
+  const qWords = q.split(" ").filter((word) => word.length > 0);
+  let score = 0;
+
+  if (desc.startsWith(q)) score += 200;
+  else if (qWords.every((word) => desc.includes(word))) score += 80;
+  else if (qWords.some((word) => desc.includes(word))) score += 20;
+
+  const practicalWords = [
+    "breast",
+    "thigh",
+    "wing",
+    "drumstick",
+    "ground",
+    "fillet",
+    "whole",
+    "raw",
+    "cooked",
+    "grilled",
+    "baked",
+    "roasted",
+    "boiled",
+  ];
+  if (practicalWords.some((w) => desc.includes(w))) score += 40;
+
+  if (desc.length < 25) score += 30;
+  else if (desc.length < 40) score += 10;
+  else if (desc.length > 60) score -= 30;
+  else if (desc.length > 80) score -= 60;
+
+  const dataType = resolveDataType(item);
+  if (dataType === "Foundation") score += 50;
+  else if (dataType === "SR Legacy") score += 35;
+  else if (dataType === "Survey (FNDDS)") score -= 20;
+  else if (dataType === "Branded") score -= 10;
+
+  const penaltyWords = [
+    "spread",
+    "feet",
+    "canned",
+    "bologna",
+    "pork",
+    "meatless",
+    "fat free",
+    "flavored",
+    "seasoned",
+    "style",
+    "frozen",
+    "microwaved",
+    "nuggets",
+    "strips",
+    "tenders",
+    "patty",
+    "substitute",
+    "imitation",
+    "fast food",
+    "restaurant",
+    "baby food",
+    "strained",
+    "junior",
+    "ns as to",
+  ];
+  const penaltyCount = penaltyWords.filter((w) => desc.includes(w)).length;
+  score -= penaltyCount * 35;
+
+  return score;
+}
+
+function dataTypeTiebreak(item: FoodSearchResult): number {
+  const dataType = resolveDataType(item);
+  if (dataType === "Foundation") return 3;
+  if (dataType === "SR Legacy") return 2;
+  if (dataType === "Survey (FNDDS)") return 1;
+  if (dataType === "Branded") return 0;
+  return 1;
+}
+
 /** Strong boost when the user is clearly searching for a brand name. */
 function brandQueryBoost(result: FoodSearchResult, query: string): number {
   const brand = (result.brand ?? "").trim();
@@ -69,42 +156,6 @@ function brandQueryBoost(result: FoodSearchResult, query: string): number {
   if (!q || !b) return 0;
   if (b.includes(q) || q.includes(b)) return 15;
   return 0;
-}
-
-function isBrandSearch(query: string, results: FoodSearchResult[]): boolean {
-  return results.some((r) => brandQueryBoost(r, query) > 0);
-}
-
-/** For basic ingredient searches, prefer unbranded reference foods over packaged brands. */
-function genericPreferenceBoost(
-  result: FoodSearchResult,
-  query: string,
-  results: FoodSearchResult[],
-): number {
-  if (isBrandSearch(query, results)) return 0;
-  const brand = (result.brand ?? "").trim();
-  if (brand) return -3;
-  return result.source === "usda" ? 5 : 2;
-}
-
-function queryRelevance(result: FoodSearchResult, query: string): number {
-  const q = normalizeFoodName(query);
-  const name = normalizeFoodName(result.name);
-  if (!q || !name) return 0;
-  if (name === q) return 10;
-  if (name.startsWith(q)) return 8;
-  if (name.includes(q)) return 6;
-  const brand = normalizeFoodName(result.brand ?? "");
-  if (brand && (brand.includes(q) || q.includes(brand))) return 5;
-  return 0;
-}
-
-function foodSearchScore(result: FoodSearchResult, query: string, results: FoodSearchResult[]): number {
-  return (
-    queryRelevance(result, query) +
-    brandQueryBoost(result, query) +
-    genericPreferenceBoost(result, query, results)
-  );
 }
 
 function pickPreferredDuplicate(
@@ -118,21 +169,16 @@ function pickPreferredDuplicate(
     return candidateBrandBoost > existingBrandBoost ? candidate : existing;
   }
 
-  const candidateBranded = Boolean((candidate.brand ?? "").trim());
-  const existingBranded = Boolean((existing.brand ?? "").trim());
-  if (candidateBranded !== existingBranded) {
-    return candidateBranded ? existing : candidate;
+  const candidateScore = scoreResult(candidate, query);
+  const existingScore = scoreResult(existing, query);
+  if (candidateScore !== existingScore) {
+    return candidateScore > existingScore ? candidate : existing;
   }
 
-  if (candidateBranded && existingBranded) {
-    if (candidate.source === "off" && existing.source !== "off") return candidate;
-    if (existing.source === "off" && candidate.source !== "off") return existing;
-  }
-
-  const candidateRelevance = queryRelevance(candidate, query);
-  const existingRelevance = queryRelevance(existing, query);
-  if (candidateRelevance !== existingRelevance) {
-    return candidateRelevance > existingRelevance ? candidate : existing;
+  const candidateType = dataTypeTiebreak(candidate);
+  const existingType = dataTypeTiebreak(existing);
+  if (candidateType !== existingType) {
+    return candidateType > existingType ? candidate : existing;
   }
 
   return existing;
@@ -140,9 +186,14 @@ function pickPreferredDuplicate(
 
 function rankFoodSearchResults(results: FoodSearchResult[], query: string): FoodSearchResult[] {
   return [...results].sort((a, b) => {
-    const scoreA = foodSearchScore(a, query, results);
-    const scoreB = foodSearchScore(b, query, results);
+    const scoreA = scoreResult(a, query) + brandQueryBoost(a, query);
+    const scoreB = scoreResult(b, query) + brandQueryBoost(b, query);
     if (scoreB !== scoreA) return scoreB - scoreA;
+
+    const tieA = dataTypeTiebreak(a);
+    const tieB = dataTypeTiebreak(b);
+    if (tieB !== tieA) return tieB - tieA;
+
     return a.name.localeCompare(b.name);
   });
 }
