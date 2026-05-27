@@ -7,7 +7,8 @@ import { PersonalRecordsSection } from "../PersonalRecordsSection";
 import { WeeklySummaryCard } from "../WeeklySummaryCard";
 import { SundayCheckInHistorySection } from "../SundayCheckInHistorySection";
 import { LineChart, ScreenHeader, SectionLabel } from "../shared";
-import { BottomSheet } from "../motion";
+import { BottomSheet, FullScreenOverlay } from "../motion";
+import { ScreenSundayCheckInHistory } from "./ScreenSundayCheckInHistory";
 import { WeighInSheet, weighInDateKeyToday } from "../WeighInSheet";
 import {
   formatWeightFromLbs,
@@ -281,6 +282,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null);
   const [chartW, setChartW] = useState(0);
   const [weighInOpen, setWeighInOpen] = useState(false);
+  const [showCheckInHistoryPage, setShowCheckInHistoryPage] = useState(false);
   const wUnit = state.unitPreferences.weightUnit;
   const dateKeyToday = weighInDateKeyToday();
   const todayEntry = state.weightLog.find((e) => e.dateKey === dateKeyToday);
@@ -345,6 +347,19 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
   };
 
   const T = state.nutritionTargets;
+
+  if (showCheckInHistoryPage) {
+    return (
+      <FullScreenOverlay open zIndex={120}>
+        <ScreenSundayCheckInHistory
+          state={state}
+          setState={setState}
+          navigate={() => {}}
+          onBack={() => setShowCheckInHistoryPage(false)}
+        />
+      </FullScreenOverlay>
+    );
+  }
 
   return (
     <div className="screen">
@@ -451,6 +466,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
       <SundayCheckInHistorySection
         history={state.sundayCheckInHistory ?? []}
         unitPreferences={state.unitPreferences}
+        onShowPrevious={() => setShowCheckInHistoryPage(true)}
       />
 
       <WeighInSheet

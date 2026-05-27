@@ -10,33 +10,34 @@ import type { SundayCheckInWeekRecord, UnitPreferences } from "./types";
 const SUCCESS_GREEN = "#22c55e";
 const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"] as const;
 
-type Props = {
+function sortCheckInHistory(history: SundayCheckInWeekRecord[]): SundayCheckInWeekRecord[] {
+  return history
+    .map(coalesceSundayCheckInRecord)
+    .sort((a, b) => b.weekStartKey.localeCompare(a.weekStartKey));
+}
+
+type ListProps = {
   history: SundayCheckInWeekRecord[];
   unitPreferences: UnitPreferences;
+  maxRows?: number;
 };
 
-export function SundayCheckInHistorySection({ history, unitPreferences }: Props) {
+export function SundayCheckInHistoryList({ history, unitPreferences, maxRows }: ListProps) {
   const [selected, setSelected] = useState<SundayCheckInWeekRecord | null>(null);
-  const sorted = useMemo(
-    () =>
-      history
-        .map(coalesceSundayCheckInRecord)
-        .sort((a, b) => b.weekStartKey.localeCompare(a.weekStartKey)),
-    [history],
-  );
+  const sorted = useMemo(() => sortCheckInHistory(history), [history]);
+  const visible = maxRows != null ? sorted.slice(0, maxRows) : sorted;
 
-  if (sorted.length === 0) return null;
+  if (visible.length === 0) return null;
 
   return (
     <>
-      <SectionLabel>Weekly check-ins</SectionLabel>
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-        {sorted.map((record, i) => (
+        {visible.map((record, i) => (
           <RecapListRow
             key={record.weekStartKey}
             record={record}
             unitPreferences={unitPreferences}
-            showDivider={i < sorted.length - 1}
+            showDivider={i < visible.length - 1}
             onOpen={() => setSelected(record)}
           />
         ))}
@@ -47,6 +48,45 @@ export function SundayCheckInHistorySection({ history, unitPreferences }: Props)
         unitPreferences={unitPreferences}
         onClose={() => setSelected(null)}
       />
+    </>
+  );
+}
+
+type SectionProps = {
+  history: SundayCheckInWeekRecord[];
+  unitPreferences: UnitPreferences;
+  onShowPrevious?: () => void;
+};
+
+export function SundayCheckInHistorySection({ history, unitPreferences, onShowPrevious }: SectionProps) {
+  const sorted = useMemo(() => sortCheckInHistory(history), [history]);
+
+  if (sorted.length === 0) return null;
+
+  const hasPrevious = sorted.length > 1;
+
+  return (
+    <>
+      <SectionLabel>Weekly check-ins</SectionLabel>
+      <SundayCheckInHistoryList history={history} unitPreferences={unitPreferences} maxRows={1} />
+      {hasPrevious && onShowPrevious ? (
+        <button
+          type="button"
+          className="tap"
+          onClick={onShowPrevious}
+          style={{
+            marginTop: 10,
+            border: "none",
+            padding: 0,
+            background: "transparent",
+            fontSize: 13,
+            fontWeight: 600,
+            color: "var(--accent)",
+          }}
+        >
+          Show previous weeks
+        </button>
+      ) : null}
     </>
   );
 }
