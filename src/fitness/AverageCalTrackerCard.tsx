@@ -33,7 +33,6 @@ export function AverageCalTrackerCard({ state, todayKey }: Props) {
   }, [stats.chartMaxCal]);
 
   const trendUp = stats.trendPct != null && stats.trendPct > 0;
-  const trendDown = stats.trendPct != null && stats.trendPct < 0;
   const trendNeutral = stats.trendPct === 0;
 
   return (
