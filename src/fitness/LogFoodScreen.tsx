@@ -55,6 +55,7 @@ import { getServingDefault } from "./servingDefaults";
 import { formatMacroGrams, formatServing, toTitleCase } from "./utils/foodDisplay";
 import { PrimaryButton } from "./shared";
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
+import { FoodSearchSkeletonList } from "./FoodSearchSkeletonList";
 import { FullScreenOverlay } from "./motion";
 import type { AppState, NutritionLoggedItem, NutritionMeal, NutritionMealItem, NutritionPreset, NutritionUserFood } from "./types";
 
@@ -1431,7 +1432,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 />
                 {searchActive ? (
                   searchLoading ? (
-                    <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)" }}>Searching…</p>
+                    <FoodSearchSkeletonList variant="plain" />
                   ) : searchError ? (
                     <p style={{ margin: 0, fontSize: 14, color: "rgba(255,180,180,0.9)" }}>{searchError}</p>
                   ) : filteredCurated.length === 0 && apiResults.length === 0 ? (
@@ -1733,9 +1734,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 {searchActive ? (
                   <>
                     {searchLoading ? (
-                      <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
-                        Searching…
-                      </p>
+                      <FoodSearchSkeletonList variant="card" />
                     ) : searchError ? (
                       <div style={{ marginTop: 4 }}>
                         <p style={{ margin: "0 0 12px", fontSize: 14, color: "rgba(255,180,180,0.9)", lineHeight: 1.5 }}>{searchError}</p>
