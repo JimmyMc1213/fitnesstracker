@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
+import { motion } from "framer-motion";
 
 import { buildAppStateFromPersisted } from "./buildAppState";
 import { seedDefaultData } from "./defaultSeed";
@@ -28,6 +29,9 @@ import {
   isDevToolbarVisible,
   isOnboardingPreviewToolsActive,
 } from "./devPreviewOnboarding";
+import { AppSplashScreen } from "./AppSplashScreen";
+import { dismissBootSplash } from "./bootSplash";
+import { bootSplashHoldRemainingMs } from "./splashTiming";
 import { OnboardingFlow } from "./OnboardingFlow";
 import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
 import { clearOnboardingDraftStorage, initialOnboardingWizardDraft } from "./onboardingDraft";
@@ -35,11 +39,11 @@ import { captureOAuthReturnForSaveProgress } from "./oauthReturnCapture";
 import { finalizeSignedInAppAccess, shouldSkipOnboarding } from "./onboardingSkip";
 import { saveSyncMeta } from "./syncMeta";
 import {
-  IconChart,
-  IconDumbbell,
-  IconFork,
-  IconHome,
-} from "./icons";
+  IconBarbell,
+  IconToolsKitchen2,
+  IconTrendingUp,
+} from "@tabler/icons-react";
+import { IconHome } from "./icons";
 import { registerNotificationServiceWorker } from "./registerNotificationServiceWorker";
 import { checkAndFireDueNotifications } from "./notificationScheduler";
 import { SundayWeeklyCheckInFlow } from "./SundayWeeklyCheckInFlow";
@@ -68,25 +72,6 @@ function buildInitialState(): AppState {
     savePersistedSlice(sliceFromAppState(buildAppStateFromPersisted(merged)));
   }
   return buildAppStateFromPersisted(merged);
-}
-
-function HydrationSplash() {
-  return (
-    <div
-      style={{
-        minHeight: "100lvh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "var(--bg)",
-        color: "var(--text-secondary)",
-        fontSize: 15,
-        fontWeight: 500,
-      }}
-    >
-      Loading your plan…
-    </div>
-  );
 }
 
 function OnboardingGate({
@@ -211,8 +196,24 @@ function FitnessAppMain({
   const [routineEditorOpen, setRoutineEditorOpen] = useState(false);
   const [authViewOverride, setAuthViewOverride] = useState<"landing" | "signin" | "signup" | null>(null);
   const [introWelcomeDone, setIntroWelcomeDone] = useState(false);
+  const [bootSplashMounted, setBootSplashMounted] = useState(true);
+  const [minHoldElapsed, setMinHoldElapsed] = useState(false);
   const [signInRestorePending, setSignInRestorePending] = useState(false);
   const [welcomeSignInError, setWelcomeSignInError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => dismissBootSplash());
+      });
+    }, bootSplashHoldRemainingMs());
+    return () => window.clearTimeout(id);
+  }, []);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setMinHoldElapsed(true), 800);
+    return () => window.clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     if (tab !== "nutrition") setLogFoodOverlayOpen(false);
@@ -224,6 +225,15 @@ function FitnessAppMain({
 
   const syncSig = JSON.stringify(sliceFromAppState(state));
   const fitnessSync = useFitnessCloudSync(syncSig, state, setState);
+
+  useEffect(() => {
+    if (fitnessSync.welcomeResetNonce === 0) return;
+    setIntroWelcomeDone(false);
+    setAuthViewOverride(null);
+    setSignInRestorePending(false);
+    setWelcomeSignInError(null);
+    setTab("home");
+  }, [fitnessSync.welcomeResetNonce]);
 
   const activeDayKey = useRef(localDateKey(new Date()));
   const stateRef = useRef(state);
@@ -319,9 +329,9 @@ function FitnessAppMain({
 
   const TABS: { id: TabId; label: string; Icon: typeof IconHome }[] = [
     { id: "home", label: "Home", Icon: IconHome },
-    { id: "nutrition", label: "Nutrition", Icon: IconFork },
-    { id: "workout", label: "Workout", Icon: IconDumbbell },
-    { id: "progress", label: "Progress", Icon: IconChart },
+    { id: "nutrition", label: "Nutrition", Icon: IconToolsKitchen2 as typeof IconHome },
+    { id: "workout", label: "Workout", Icon: IconBarbell as typeof IconHome },
+    { id: "progress", label: "Progress", Icon: IconTrendingUp as typeof IconHome },
   ];
 
   const screens: Record<Exclude<TabId, "stretch">, ComponentType<ScreenProps>> = {
@@ -401,6 +411,21 @@ function FitnessAppMain({
     !state.onboardingComplete &&
     !skipOnboardingForSession &&
     resumeIntroStep === 0;
+
+  const onboardingInProgress = !state.onboardingComplete;
+
+  const needsBootSplash =
+    awaitingSessionBootstrap ||
+    awaitingSignedInHydration ||
+    (authViewOverride === "signin" &&
+      signInRestorePending &&
+      fitnessSync.sessionEmail != null &&
+      !fitnessSync.fitnessHydrated) ||
+    (fitnessSync.sessionEmail != null && !fitnessSync.fitnessHydrated && !onboardingInProgress);
+
+  const bootSplashOverlay = bootSplashMounted ? (
+    <AppSplashScreen dismiss={!needsBootSplash && minHoldElapsed} onExitComplete={() => setBootSplashMounted(false)} />
+  ) : null;
 
   const handleOnboardingSignIn = () => {
     void openSignIn();
@@ -486,25 +511,13 @@ function FitnessAppMain({
     return () => window.clearTimeout(id);
   }, [signInRestorePending, fitnessSync.sessionEmail]);
 
+  let mainContent: ReactNode = null;
+
   if (awaitingSessionBootstrap || awaitingSignedInHydration) {
-    return (
-      <FitnessSyncContext.Provider value={fitnessSync}>
-        <HydrationSplash />
-      </FitnessSyncContext.Provider>
-    );
-  }
-
-  if (authViewOverride === "signin") {
-    if (signInRestorePending && fitnessSync.sessionEmail && !fitnessSync.fitnessHydrated) {
-      return (
-        <FitnessSyncContext.Provider value={fitnessSync}>
-          <HydrationSplash />
-        </FitnessSyncContext.Provider>
-      );
-    }
-
-    return (
-      <FitnessSyncContext.Provider value={fitnessSync}>
+    mainContent = null;
+  } else if (authViewOverride === "signin") {
+    if (!(signInRestorePending && fitnessSync.sessionEmail && !fitnessSync.fitnessHydrated)) {
+      mainContent = (
         <AuthScreen
           initialView="signin"
           fromWelcome
@@ -512,145 +525,153 @@ function FitnessAppMain({
           onGetStarted={handleGetStarted}
           onSignInSuccess={() => setSignInRestorePending(true)}
         />
-      </FitnessSyncContext.Provider>
+      );
+    }
+  } else if (showIntroWelcome) {
+    mainContent = (
+      <OnboardingWelcomeScreen onGetStarted={handleGetStarted} onSignIn={handleOnboardingSignIn} />
+    );
+  } else {
+    mainContent = (
+      <>
+        <OnboardingGate
+          state={state}
+          setState={setState}
+          onSignIn={handleOnboardingSignIn}
+          introWelcomeDone={introWelcomeDone}
+          onLeavePreview={() => setIntroWelcomeDone(true)}
+          hideDevToolbar={routineEditorOpen}
+        >
+          <div
+            className={`app-tab-shell${hideTabBar ? " app-tab-shell--no-chrome" : ""}`}
+            style={{
+              flex: 1,
+              minHeight: 0,
+              width: "100%",
+              maxWidth: "100%",
+              background: "transparent",
+              color: "var(--text)",
+              display: "flex",
+              flexDirection: "column",
+              position: "relative",
+              boxSizing: "border-box",
+              paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                position: "relative",
+                overflow: "hidden",
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <ScreenTransition activeKey={activeTab} variant={screenTransitionVariant} layerBackground="transparent">
+                <Current
+                  state={state}
+                  setState={setState}
+                  navigate={navigate}
+                  logFoodOpenRequest={activeTab === "nutrition" ? logFoodOpenRequest : undefined}
+                  onLogFoodOpenRequestHandled={
+                    activeTab === "nutrition" ? () => setLogFoodOpenRequest(0) : undefined
+                  }
+                  onLogFoodOpenChange={activeTab === "nutrition" ? setLogFoodOverlayOpen : undefined}
+                  onRoutineEditorOpenChange={activeTab === "workout" ? setRoutineEditorOpen : undefined}
+                  homeReselectRequest={homeReselectRequest}
+                  onHomeReselectHandled={() => setHomeReselectRequest(0)}
+                  mobilityPreviewRequest={activeTab === "home" ? mobilityPreviewRequest : undefined}
+                  onMobilityPreviewRequestHandled={
+                    activeTab === "home" ? () => setMobilityPreviewRequest(0) : undefined
+                  }
+                  onMobilitySessionOpenChange={activeTab === "home" ? setMobilitySessionOpen : undefined}
+                  sundayCheckIn={
+                    activeTab === "home"
+                      ? {
+                          available: sundayWeeklyCheckIn.available,
+                          completed: sundayWeeklyCheckIn.completed,
+                          data: sundayWeeklyCheckIn.data,
+                          onOpenFlow: sundayWeeklyCheckIn.openFlow,
+                        }
+                      : undefined
+                  }
+                />
+              </ScreenTransition>
+            </div>
+
+            <nav
+              className={`tabbar${hideTabBar ? " tabbar--hidden" : ""}`}
+              aria-label="Main"
+              aria-hidden={hideTabBar}
+            >
+              {TABS.map((t) => {
+                const active = tab === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className="tab tap"
+                    aria-current={active}
+                    tabIndex={hideTabBar ? -1 : undefined}
+                    onClick={() => navigate(t.id)}
+                  >
+                    <motion.div
+                      animate={{ scale: active ? 1.15 : 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                    >
+                      <t.Icon size={20} stroke={active ? 2.2 : 2} />
+                    </motion.div>
+                    <motion.span
+                      className="tlabel"
+                      animate={{ color: active ? "var(--text)" : "var(--tertiary)" }}
+                      transition={{ duration: 0.22, ease: "easeOut" }}
+                    >
+                      {t.label}
+                    </motion.span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {state.workoutSummary ? (
+              <WorkoutSummarySheet
+                open={showWorkoutSummary}
+                summary={state.workoutSummary}
+                unitPreferences={state.unitPreferences}
+                onDone={() => {
+                  setState((s) => dismissWorkoutSummary(s));
+                  navigate("home");
+                }}
+              />
+            ) : null}
+
+            {state.pendingTemplateOrderUpdatePrompt ? (
+              <UpdateTemplateOrderConfirmSheet
+                templateName={state.pendingTemplateOrderUpdatePrompt.templateName}
+                onUpdate={() => setState((s) => applyTemplateOrderUpdate(s))}
+                onDismiss={() => setState((s) => dismissTemplateOrderUpdatePrompt(s))}
+              />
+            ) : null}
+          </div>
+        </OnboardingGate>
+
+        <SundayWeeklyCheckInFlow
+          open={sundayWeeklyCheckIn.flowOpen}
+          data={sundayWeeklyCheckIn.data}
+          unitPreferences={state.unitPreferences}
+          onClose={sundayWeeklyCheckIn.closeFlow}
+          onComplete={sundayWeeklyCheckIn.complete}
+          onPresentChange={setSundayCheckInPresent}
+        />
+      </>
     );
   }
-
-  if (showIntroWelcome) {
-    return (
-      <FitnessSyncContext.Provider value={fitnessSync}>
-        <OnboardingWelcomeScreen onGetStarted={handleGetStarted} onSignIn={handleOnboardingSignIn} />
-      </FitnessSyncContext.Provider>
-    );
-  }
-
-  const onboardingInProgress = !state.onboardingComplete;
 
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
-      {!fitnessSync.fitnessHydrated && fitnessSync.sessionEmail && !onboardingInProgress ? (
-        <HydrationSplash />
-      ) : (
-      <>
-      <OnboardingGate
-        state={state}
-        setState={setState}
-        onSignIn={handleOnboardingSignIn}
-        introWelcomeDone={introWelcomeDone}
-        onLeavePreview={() => setIntroWelcomeDone(true)}
-        hideDevToolbar={routineEditorOpen}
-      >
-      <div
-        className={`app-tab-shell${hideTabBar ? " app-tab-shell--no-chrome" : ""}`}
-        style={{
-          flex: 1,
-          minHeight: 0,
-          width: "100%",
-          maxWidth: "100%",
-          background: "transparent",
-          color: "var(--text)",
-          display: "flex",
-          flexDirection: "column",
-          position: "relative",
-          boxSizing: "border-box",
-          paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
-        }}
-      >
-        <div
-          style={{
-            flex: 1,
-            position: "relative",
-            overflow: "hidden",
-            minHeight: 0,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <ScreenTransition activeKey={activeTab} variant={screenTransitionVariant} layerBackground="transparent">
-            <Current
-              state={state}
-              setState={setState}
-              navigate={navigate}
-              logFoodOpenRequest={activeTab === "nutrition" ? logFoodOpenRequest : undefined}
-              onLogFoodOpenRequestHandled={
-                activeTab === "nutrition" ? () => setLogFoodOpenRequest(0) : undefined
-              }
-              onLogFoodOpenChange={activeTab === "nutrition" ? setLogFoodOverlayOpen : undefined}
-              onRoutineEditorOpenChange={activeTab === "workout" ? setRoutineEditorOpen : undefined}
-              homeReselectRequest={homeReselectRequest}
-              onHomeReselectHandled={() => setHomeReselectRequest(0)}
-              mobilityPreviewRequest={activeTab === "home" ? mobilityPreviewRequest : undefined}
-              onMobilityPreviewRequestHandled={activeTab === "home" ? () => setMobilityPreviewRequest(0) : undefined}
-              onMobilitySessionOpenChange={activeTab === "home" ? setMobilitySessionOpen : undefined}
-              sundayCheckIn={
-                activeTab === "home"
-                  ? {
-                      available: sundayWeeklyCheckIn.available,
-                      completed: sundayWeeklyCheckIn.completed,
-                      data: sundayWeeklyCheckIn.data,
-                      onOpenFlow: sundayWeeklyCheckIn.openFlow,
-                    }
-                  : undefined
-              }
-            />
-          </ScreenTransition>
-        </div>
-
-        <nav
-          className={`tabbar${hideTabBar ? " tabbar--hidden" : ""}`}
-          aria-label="Main"
-          aria-hidden={hideTabBar}
-        >
-          {TABS.map((t) => {
-            const active = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                className="tab tap"
-                aria-current={active}
-                tabIndex={hideTabBar ? -1 : undefined}
-                onClick={() => navigate(t.id)}
-              >
-                <t.Icon size={22} stroke={1.6} />
-                <span className="tlabel">{t.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {state.workoutSummary ? (
-          <WorkoutSummarySheet
-            open={showWorkoutSummary}
-            summary={state.workoutSummary}
-            unitPreferences={state.unitPreferences}
-            onDone={() => {
-              setState((s) => dismissWorkoutSummary(s));
-              navigate("home");
-            }}
-          />
-        ) : null}
-
-        {state.pendingTemplateOrderUpdatePrompt ? (
-          <UpdateTemplateOrderConfirmSheet
-            templateName={state.pendingTemplateOrderUpdatePrompt.templateName}
-            onUpdate={() => setState((s) => applyTemplateOrderUpdate(s))}
-            onDismiss={() => setState((s) => dismissTemplateOrderUpdatePrompt(s))}
-          />
-        ) : null}
-      </div>
-      </OnboardingGate>
-
-      <SundayWeeklyCheckInFlow
-        open={sundayWeeklyCheckIn.flowOpen}
-        data={sundayWeeklyCheckIn.data}
-        unitPreferences={state.unitPreferences}
-        onClose={sundayWeeklyCheckIn.closeFlow}
-        onComplete={sundayWeeklyCheckIn.complete}
-        onPresentChange={setSundayCheckInPresent}
-      />
-      </>
-      )}
+      {mainContent}
+      {bootSplashOverlay}
     </FitnessSyncContext.Provider>
   );
 }

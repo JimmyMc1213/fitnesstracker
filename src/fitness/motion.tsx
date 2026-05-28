@@ -26,12 +26,12 @@ export const MOTION_DURATIONS = {
 export type NavDirection = "forward" | "back";
 
 const TAB_PAGE_VARIANTS: Variants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -6 },
 };
 
-const TAB_PAGE_TRANSITION: Transition = { duration: 0.15, ease: "easeInOut" };
+const TAB_PAGE_TRANSITION: Transition = { duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] };
 
 /** Matches `.page-transition` / `fadeSlideIn` for in-screen phase swaps (workout, mobility). */
 export const PAGE_LAYER_VARIANTS: Variants = {
@@ -171,6 +171,118 @@ export const bottomSheetPanelTheme: CSSProperties = {
   border: "0.5px solid var(--sheet-panel-border)",
   boxShadow: "var(--card-shadow)",
 };
+
+export const CONFIRM_MODAL_BORDER = "0.5px solid rgba(255, 255, 255, 0.08)";
+
+export const CONFIRM_DESTRUCTIVE_COLOR = "#FF6961";
+
+/** Centered confirmation dialog chrome (callers can override width via `panelStyle`). */
+export const confirmCenterDialogPanelStyle: CSSProperties = {
+  ...bottomSheetPanelTheme,
+  width: "100%",
+  maxWidth: 280,
+  padding: 28,
+  border: CONFIRM_MODAL_BORDER,
+};
+
+/** Bottom-sheet confirmation chrome. */
+export const confirmBottomSheetPanelStyle: CSSProperties = {
+  ...bottomSheetPanelTheme,
+  width: "100%",
+  maxWidth: 440,
+  padding: 24,
+  borderRadius: "20px 20px 0 0",
+  border: CONFIRM_MODAL_BORDER,
+  borderBottom: "none",
+};
+
+export const confirmSheetTitleStyle: CSSProperties = {
+  fontSize: 17,
+  fontWeight: 700,
+  letterSpacing: "-0.02em",
+  color: "var(--text-primary)",
+};
+
+export const confirmSheetMessageStyle: CSSProperties = {
+  margin: "10px 0 0",
+  fontSize: 14,
+  fontWeight: 400,
+  lineHeight: 1.5,
+  color: "var(--text-muted-soft)",
+};
+
+const confirmActionButtonBase: CSSProperties = {
+  flex: 1,
+  padding: "14px 12px",
+  border: "none",
+  background: "transparent",
+  fontSize: 15,
+  fontWeight: 600,
+  letterSpacing: "-0.01em",
+};
+
+export function ConfirmSheetActions({
+  cancelLabel,
+  confirmLabel,
+  confirmBusy = false,
+  confirmBusyLabel,
+  confirmTone = "destructive",
+  contentPadding = 28,
+  onCancel,
+  onConfirm,
+}: {
+  cancelLabel: string;
+  confirmLabel: string;
+  confirmBusy?: boolean;
+  confirmBusyLabel?: string;
+  /** Primary = accent text on the right; destructive = red. */
+  confirmTone?: "destructive" | "primary";
+  contentPadding?: number;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const confirmColor = confirmTone === "primary" ? "var(--text-primary)" : CONFIRM_DESTRUCTIVE_COLOR;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        marginTop: 20,
+        marginLeft: -contentPadding,
+        marginRight: -contentPadding,
+        marginBottom: -contentPadding,
+        borderTop: CONFIRM_MODAL_BORDER,
+      }}
+    >
+      <button
+        type="button"
+        className="tap"
+        disabled={confirmBusy}
+        onClick={onCancel}
+        style={{
+          ...confirmActionButtonBase,
+          color: "var(--text-primary)",
+          opacity: confirmBusy ? 0.45 : 1,
+        }}
+      >
+        {cancelLabel}
+      </button>
+      <button
+        type="button"
+        className="tap"
+        disabled={confirmBusy}
+        onClick={onConfirm}
+        style={{
+          ...confirmActionButtonBase,
+          color: confirmColor,
+          opacity: confirmBusy ? 0.45 : 1,
+        }}
+      >
+        {confirmBusy ? (confirmBusyLabel ?? "Deleting…") : confirmLabel}
+      </button>
+    </div>
+  );
+}
 
 export function closeAfterMotion(clear: () => void, durationMs: number = MOTION_DURATIONS.sheetExit) {
   window.setTimeout(clear, durationMs);
@@ -360,7 +472,12 @@ export function BottomSheet({
             aria-labelledby={ariaLabelledBy}
             aria-label={ariaLabel}
             className={`card ${panelClassName}`.trim()}
-            style={panelStyle}
+            style={{
+              ...bottomSheetPanelTheme,
+              width: "100%",
+              borderRadius: "20px 20px 0 0",
+              ...panelStyle,
+            }}
             onMouseDown={(e) => e.stopPropagation()}
             initial="initial"
             animate="animate"
@@ -505,7 +622,10 @@ export function CenterDialog({
         >
           <motion.div
             className="card"
-            style={panelStyle}
+            style={{
+              ...confirmCenterDialogPanelStyle,
+              ...panelStyle,
+            }}
             onMouseDown={(e) => e.stopPropagation()}
             initial="initial"
             animate="animate"

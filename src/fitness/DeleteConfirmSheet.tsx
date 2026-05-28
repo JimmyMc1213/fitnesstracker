@@ -1,16 +1,14 @@
 import type { ReactNode } from "react";
 
-import { PrimaryButton } from "./shared";
-import { BottomSheet, CenterDialog, bottomSheetPanelTheme } from "./motion";
-
-const DESTRUCTIVE = "#FF6961";
-
-const panelStyle = {
-  ...bottomSheetPanelTheme,
-  width: "100%",
-  maxWidth: 440,
-  padding: 20,
-} as const;
+import {
+  BottomSheet,
+  CenterDialog,
+  ConfirmSheetActions,
+  confirmBottomSheetPanelStyle,
+  confirmCenterDialogPanelStyle,
+  confirmSheetMessageStyle,
+  confirmSheetTitleStyle,
+} from "./motion";
 
 export function DeleteConfirmSheet({
   open = true,
@@ -20,6 +18,8 @@ export function DeleteConfirmSheet({
   confirmLabel = "Delete",
   zIndex = 1100,
   placement = "bottom",
+  variant = "default",
+  confirmBusy = false,
   onCancel,
   onConfirm,
 }: {
@@ -29,48 +29,38 @@ export function DeleteConfirmSheet({
   cancelLabel?: string;
   confirmLabel?: string;
   zIndex?: number;
+  confirmBusy?: boolean;
+  /** Compact centered layout for delete-account confirmations. */
+  variant?: "default" | "account";
   /** Use `center` when the sheet would sit behind the tab bar on main screens. */
   placement?: "bottom" | "center";
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  void variant;
+
+  const isCenter = placement === "center";
+  const panelStyle = isCenter ? confirmCenterDialogPanelStyle : confirmBottomSheetPanelStyle;
+  const contentPadding = isCenter ? 28 : 24;
+
   const content = (
     <>
-      <div
-        id="delete-confirm-title"
-        style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)" }}
-      >
+      <div id="delete-confirm-title" style={confirmSheetTitleStyle}>
         {title}
       </div>
-      <p style={{ margin: "10px 0 18px", fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: "var(--text-muted-soft)" }}>
-        {message}
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <PrimaryButton block onClick={onCancel} style={{ fontWeight: 700 }}>
-          {cancelLabel}
-        </PrimaryButton>
-        <button
-          type="button"
-          className="tap"
-          onClick={onConfirm}
-          style={{
-            width: "100%",
-            padding: 14,
-            borderRadius: 12,
-            border: "0.5px solid rgba(255,69,58,0.35)",
-            background: "rgba(255,69,58,0.12)",
-            color: DESTRUCTIVE,
-            fontSize: 15,
-            fontWeight: 600,
-          }}
-        >
-          {confirmLabel}
-        </button>
-      </div>
+      <p style={confirmSheetMessageStyle}>{message}</p>
+      <ConfirmSheetActions
+        cancelLabel={cancelLabel}
+        confirmLabel={confirmLabel}
+        confirmBusy={confirmBusy}
+        contentPadding={contentPadding}
+        onCancel={onCancel}
+        onConfirm={onConfirm}
+      />
     </>
   );
 
-  if (placement === "center") {
+  if (isCenter) {
     return (
       <CenterDialog open={open} onClose={onCancel} zIndex={zIndex} ariaLabelledBy="delete-confirm-title" panelStyle={panelStyle}>
         {content}

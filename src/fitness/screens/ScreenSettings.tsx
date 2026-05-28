@@ -1,10 +1,14 @@
-import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 
 import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { MOTION_DURATIONS, ScreenTransition } from "../motion";
 import { localDateKey } from "../dailyPlan";
 import { buildHabitsForDateKey } from "../data";
 import { useFitnessSync } from "../FitnessSyncContext";
+import { IconSpeakerphone, IconToolsKitchen2 } from "@tabler/icons-react";
+import InstagramIcon from "../../assets/brand-icons/instagram.svg";
+import TikTokIcon from "../../assets/brand-icons/tiktok.svg";
+import XIcon from "../../assets/brand-icons/x.svg";
 import {
   IconBell,
   IconBolt,
@@ -13,11 +17,10 @@ import {
   IconDroplet,
   IconDumbbell,
   IconFlag,
-  IconFork,
   IconHabits,
   IconLogout,
   IconMail,
-  IconMegaphone,
+
   IconMoon,
   IconRun,
   IconScale,
@@ -25,7 +28,6 @@ import {
   IconShield,
   IconSun,
   IconSync,
-  IconUser,
 } from "../icons";
 import {
   SettingsComingSoonRow,
@@ -60,6 +62,8 @@ import {
 import type { EquipmentSetup, HabitTemplate, MacroTotals, ScreenProps, UnitPreferences } from "../types";
 import { sanitizeUserText } from "../userText";
 
+type YouSubPanel = null | "change-password";
+
 type SettingsPanel =
   | null
   | "you"
@@ -73,6 +77,14 @@ type SettingsPanel =
   | "equipment"
   | "habits"
   | "program";
+
+type SettingsLayerKey = Exclude<SettingsPanel, null> | "hub" | "you:change-password";
+
+function settingsLayerKey(panel: SettingsPanel, youSubPanel: YouSubPanel): SettingsLayerKey {
+  if (panel === null) return "hub";
+  if (panel === "you" && youSubPanel === "change-password") return "you:change-password";
+  return panel;
+}
 
 const PANEL_TITLES: Record<Exclude<SettingsPanel, null>, string> = {
   you: "You",
@@ -131,7 +143,19 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
   const T = state.nutritionTargets;
 
   const [panel, setPanel] = useState<SettingsPanel>(null);
+  const [youSubPanel, setYouSubPanel] = useState<YouSubPanel>(null);
   const [titleKey, setTitleKey] = useState<Exclude<SettingsPanel, null> | "hub">("hub");
+  const [currentPasswordIn, setCurrentPasswordIn] = useState("");
+  const [newPasswordIn, setNewPasswordIn] = useState("");
+  const [confirmPasswordIn, setConfirmPasswordIn] = useState("");
+  const [changePasswordError, setChangePasswordError] = useState<string | null>(null);
+  const [changePasswordSuccess, setChangePasswordSuccess] = useState(false);
+  const [changePasswordBusy, setChangePasswordBusy] = useState(false);
+  const [emailEditing, setEmailEditing] = useState(false);
+  const [emailIn, setEmailIn] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSuccess, setEmailSuccess] = useState(false);
+  const [emailBusy, setEmailBusy] = useState(false);
   const [calIn, setCalIn] = useState(String(T.cal));
   const [pIn, setPIn] = useState(String(T.p));
   const [cIn, setCIn] = useState(String(T.c));
@@ -150,18 +174,47 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
   const [syncHint, setSyncHint] = useState<string | null>(null);
   const [notificationPermission, setNotificationPermission] = useState(getNotificationPermission);
   const [pendingHabitRemove, setPendingHabitRemove] = useState<{ id: string; name: string } | null>(null);
+  const [deleteAccountStep, setDeleteAccountStep] = useState<null | "warn" | "final">(null);
+  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
+  const [deleteAccountNotice, setDeleteAccountNotice] = useState<string | null>(null);
+  const [deleteAccountBusy, setDeleteAccountBusy] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const activeScrollElRef = useRef<HTMLDivElement | null>(null);
-  const hubScrollTopRef = useRef(0);
+  const scrollByLayerRef = useRef<Partial<Record<SettingsLayerKey, number>>>({});
+  const scrollRestoredLayerRef = useRef<SettingsLayerKey | null>(null);
+  const activeLayerKey = settingsLayerKey(panel, youSubPanel);
 
-  function bindSettingsScrollRef(layerKey: SettingsPanel | "hub") {
-    return (el: HTMLDivElement | null) => {
-      if (layerKey !== (panel ?? "hub")) return;
-      activeScrollElRef.current = el;
-      if (!el) return;
-      el.style.overflow = "";
-      el.scrollTop = layerKey === "hub" ? hubScrollTopRef.current : 0;
+  useEffect(() => {
+    scrollRestoredLayerRef.current = null;
+  }, [activeLayerKey]);
+
+  useEffect(() => {
+    const el = activeScrollElRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      scrollByLayerRef.current[activeLayerKey] = el.scrollTop;
     };
-  }
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [activeLayerKey]);
+
+  const settingsScrollRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      if (el) {
+        activeScrollElRef.current = el;
+        el.style.overflow = "";
+        if (scrollRestoredLayerRef.current !== activeLayerKey) {
+          scrollRestoredLayerRef.current = activeLayerKey;
+          el.scrollTop = scrollByLayerRef.current[activeLayerKey] ?? 0;
+        }
+        return;
+      }
+      if (activeScrollElRef.current === el) {
+        activeScrollElRef.current = null;
+      }
+    },
+    [activeLayerKey],
+  );
 
   useEffect(() => {
     if (panel === null) {
@@ -172,18 +225,62 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
     return () => window.clearTimeout(id);
   }, [panel]);
 
+  function resetChangePasswordForm() {
+    setCurrentPasswordIn("");
+    setNewPasswordIn("");
+    setConfirmPasswordIn("");
+    setChangePasswordError(null);
+    setChangePasswordSuccess(false);
+    setChangePasswordBusy(false);
+  }
+
+  function resetEmailEditForm() {
+    setEmailEditing(false);
+    setEmailIn("");
+    setEmailError(null);
+    setEmailSuccess(false);
+    setEmailBusy(false);
+  }
+
+  function openEmailEdit() {
+    setEmailIn(sync.sessionEmail ?? "");
+    setEmailError(null);
+    setEmailSuccess(false);
+    setEmailEditing(true);
+  }
+
+  function openYouSubPanel(next: Exclude<YouSubPanel, null>) {
+    resetEmailEditForm();
+    resetChangePasswordForm();
+    setYouSubPanel(next);
+  }
+
+  function closeYouSubPanel() {
+    resetChangePasswordForm();
+    resetEmailEditForm();
+    setYouSubPanel(null);
+  }
+
   function openPanel(next: Exclude<SettingsPanel, null>) {
     if (panel === null && activeScrollElRef.current) {
-      hubScrollTopRef.current = activeScrollElRef.current.scrollTop;
+      scrollByLayerRef.current.hub = activeScrollElRef.current.scrollTop;
+    }
+    if (next !== "you") {
+      closeYouSubPanel();
     }
     setPanel(next);
   }
 
   function closePanel() {
+    closeYouSubPanel();
     setPanel(null);
   }
 
   function handleHeaderBack() {
+    if (panel === "you" && youSubPanel) {
+      closeYouSubPanel();
+      return;
+    }
     if (panel) {
       closePanel();
       return;
@@ -246,7 +343,12 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
     };
   }
 
-  const headerTitle = titleKey === "hub" ? "Settings" : PANEL_TITLES[titleKey];
+  const headerTitle =
+    panel === "you" && youSubPanel === "change-password"
+      ? "Change Password"
+      : titleKey === "hub"
+        ? "Settings"
+        : PANEL_TITLES[titleKey];
 
   function renderHub() {
     const accountTrailing = !sync.configured
@@ -285,7 +387,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
 
         <SettingsHubSection title="Goals & tracking">
           <SettingsRow
-            icon={rowIcon(<IconFork size={16} stroke={1.6} />)}
+            icon={rowIcon(<IconToolsKitchen2 size={16} stroke={1.6} />)}
             label="Fuel targets"
             trailing={`${T.cal} kcal`}
             onClick={() => openPanel("fuel-targets")}
@@ -345,13 +447,13 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
           <SettingsComingSoonRow icon={rowIcon(<IconDocument size={16} stroke={1.6} />)} label="Terms of service" />
           <SettingsComingSoonRow icon={rowIcon(<IconShield size={16} stroke={1.6} />)} label="Privacy policy" />
           <SettingsComingSoonRow icon={rowIcon(<IconMail size={16} stroke={1.6} />)} label="Support email" />
-          <SettingsComingSoonRow icon={rowIcon(<IconMegaphone size={16} stroke={1.6} />)} label="Request a feature" />
+          <SettingsComingSoonRow icon={rowIcon(<IconSpeakerphone size={16} stroke={1.6} />)} label="Request a feature" />
         </SettingsHubSection>
 
         <SettingsHubSection title="Socials">
-          <SettingsComingSoonRow icon={rowIcon(<IconUser size={16} stroke={1.6} />)} label="Instagram" />
-          <SettingsComingSoonRow icon={rowIcon(<IconUser size={16} stroke={1.6} />)} label="TikTok" />
-          <SettingsComingSoonRow icon={rowIcon(<IconUser size={16} stroke={1.6} />)} label="X" />
+          <SettingsComingSoonRow icon={rowIcon(<InstagramIcon width={16} height={16} aria-hidden />)} label="Instagram" />
+          <SettingsComingSoonRow icon={rowIcon(<TikTokIcon width={16} height={16} aria-hidden />)} label="TikTok" />
+          <SettingsComingSoonRow icon={rowIcon(<XIcon width={16} height={16} aria-hidden />)} label="X" />
         </SettingsHubSection>
 
         {sync.sessionEmail ? (
@@ -361,11 +463,143 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
                 icon={rowIcon(<IconLogout size={16} stroke={1.6} />)}
                 label="Sign out"
                 trailing={null}
-                onClick={() => void sync.signOut()}
+                onClick={() => setShowSignOutConfirm(true)}
               />
             </div>
           </SettingsHubSection>
         ) : null}
+
+        {sync.sessionEmail ? (
+          <div className="settings-delete-account">
+            {deleteAccountNotice ? (
+              <p className="settings-delete-account__notice">{deleteAccountNotice}</p>
+            ) : null}
+            {deleteAccountError ? (
+              <p className="settings-delete-account__error">{deleteAccountError}</p>
+            ) : null}
+            <button
+              type="button"
+              className="tap settings-delete-account__btn"
+              disabled={deleteAccountBusy || sync.busy}
+              onClick={() => {
+                setDeleteAccountError(null);
+                setDeleteAccountNotice(null);
+                setDeleteAccountStep("warn");
+              }}
+            >
+              Delete Account
+            </button>
+          </div>
+        ) : null}
+      </>
+    );
+  }
+
+  function renderChangePasswordPanel() {
+    const canSubmit =
+      !changePasswordBusy &&
+      currentPasswordIn.length > 0 &&
+      newPasswordIn.length > 0 &&
+      confirmPasswordIn.length > 0;
+
+    return (
+      <>
+        <SettingsHelper>Enter your current password, then choose a new one.</SettingsHelper>
+        <div className="card settings-detail-card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            Current password
+            <input
+              className="input"
+              style={{ marginTop: 8 }}
+              type="password"
+              autoComplete="current-password"
+              placeholder="Current password"
+              value={currentPasswordIn}
+              onChange={(e) => {
+                setCurrentPasswordIn(e.target.value);
+                setChangePasswordError(null);
+                setChangePasswordSuccess(false);
+              }}
+              aria-label="Current password"
+            />
+          </label>
+          <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            New password
+            <input
+              className="input"
+              style={{ marginTop: 8 }}
+              type="password"
+              autoComplete="new-password"
+              placeholder="New password"
+              value={newPasswordIn}
+              onChange={(e) => {
+                setNewPasswordIn(e.target.value);
+                setChangePasswordError(null);
+                setChangePasswordSuccess(false);
+              }}
+              aria-label="New password"
+            />
+          </label>
+          <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            Confirm new password
+            <input
+              className="input"
+              style={{ marginTop: 8 }}
+              type="password"
+              autoComplete="new-password"
+              placeholder="Confirm new password"
+              value={confirmPasswordIn}
+              onChange={(e) => {
+                setConfirmPasswordIn(e.target.value);
+                setChangePasswordError(null);
+                setChangePasswordSuccess(false);
+              }}
+              aria-label="Confirm new password"
+            />
+          </label>
+          {changePasswordError ? (
+            <p style={{ margin: 0, fontSize: 13, color: "rgba(248,113,113,0.95)", lineHeight: 1.45 }}>{changePasswordError}</p>
+          ) : null}
+          {changePasswordSuccess ? (
+            <p style={{ margin: 0, fontSize: 13, color: "rgba(120,200,255,0.95)", lineHeight: 1.45 }}>Password updated.</p>
+          ) : null}
+          <button
+            type="button"
+            className="tap"
+            disabled={!canSubmit}
+            onClick={async () => {
+              if (newPasswordIn !== confirmPasswordIn) {
+                setChangePasswordError("New passwords don't match.");
+                setChangePasswordSuccess(false);
+                return;
+              }
+              setChangePasswordBusy(true);
+              setChangePasswordError(null);
+              setChangePasswordSuccess(false);
+              const r = await sync.changePassword(currentPasswordIn, newPasswordIn);
+              setChangePasswordBusy(false);
+              if (r.error) {
+                setChangePasswordError(r.error);
+                return;
+              }
+              setCurrentPasswordIn("");
+              setNewPasswordIn("");
+              setConfirmPasswordIn("");
+              setChangePasswordSuccess(true);
+            }}
+            style={{
+              padding: "12px 14px",
+              borderRadius: 12,
+              fontWeight: 700,
+              fontSize: 14,
+              border: "none",
+              background: !canSubmit ? "var(--btn-disabled-bg)" : "var(--surface-selected)",
+              color: "var(--text-primary)",
+            }}
+          >
+            Update password
+          </button>
+        </div>
       </>
     );
   }
@@ -393,6 +627,98 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
             />
           </label>
         </div>
+        {sync.sessionEmail ? (
+          <SettingsHubSection title="Personal info">
+            {emailEditing ? (
+              <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
+                <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  Email
+                  <input
+                    className="input"
+                    style={{ marginTop: 8 }}
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    value={emailIn}
+                    onChange={(e) => {
+                      setEmailIn(e.target.value);
+                      setEmailError(null);
+                      setEmailSuccess(false);
+                    }}
+                    aria-label="Email"
+                  />
+                </label>
+                {emailError ? (
+                  <p style={{ margin: 0, fontSize: 13, color: "rgba(248,113,113,0.95)", lineHeight: 1.45 }}>{emailError}</p>
+                ) : null}
+                {emailSuccess ? (
+                  <p style={{ margin: 0, fontSize: 13, color: "rgba(120,200,255,0.95)", lineHeight: 1.45 }}>
+                    A confirmation link has been sent to your new email. It won&apos;t update until you confirm.
+                  </p>
+                ) : null}
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    className="tap"
+                    disabled={emailBusy || !emailIn.includes("@")}
+                    onClick={async () => {
+                      setEmailBusy(true);
+                      setEmailError(null);
+                      setEmailSuccess(false);
+                      const r = await sync.updateEmail(emailIn);
+                      setEmailBusy(false);
+                      if (r.error) {
+                        setEmailError(r.error);
+                        return;
+                      }
+                      setEmailSuccess(true);
+                    }}
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: 12,
+                      fontWeight: 700,
+                      fontSize: 14,
+                      border: "none",
+                      background: emailBusy || !emailIn.includes("@") ? "var(--btn-disabled-bg)" : "var(--surface-selected)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    className="tap"
+                    disabled={emailBusy}
+                    onClick={resetEmailEditForm}
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: 12,
+                      fontWeight: 600,
+                      fontSize: 14,
+                      border: "none",
+                      background: "var(--surface-3)",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <SettingsRow
+                icon={rowIcon(<IconMail size={16} stroke={1.6} />)}
+                label="Email"
+                trailing={sync.sessionEmail}
+                onClick={openEmailEdit}
+              />
+            )}
+            <SettingsRow
+              icon={rowIcon(<IconShield size={16} stroke={1.6} />)}
+              label="Change password"
+              onClick={() => openYouSubPanel("change-password")}
+            />
+          </SettingsHubSection>
+        ) : null}
       </>
     );
   }
@@ -522,7 +848,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
               <button
                 type="button"
                 className="tap"
-                onClick={() => void sync.signOut()}
+                onClick={() => setShowSignOutConfirm(true)}
                 style={{
                   padding: "10px 14px",
                   borderRadius: 10,
@@ -904,7 +1230,8 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
     );
   }
 
-  function renderPanelByKey(panelKey: SettingsPanel | "hub") {
+  function renderPanelByKey(panelKey: SettingsLayerKey) {
+    if (panelKey === "you:change-password") return renderChangePasswordPanel();
     switch (panelKey) {
       case "you":
         return renderYouPanel();
@@ -954,13 +1281,78 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
         </div>
       </header>
 
-      <ScreenTransition activeKey={panel ?? "hub"} variant="fade">
+      <ScreenTransition activeKey={settingsLayerKey(panel, youSubPanel)} variant="fade">
         {(layerKey) => (
-          <div ref={bindSettingsScrollRef(layerKey as SettingsPanel | "hub")} className="settings-sheet-body">
-            {renderPanelByKey(layerKey as SettingsPanel | "hub")}
+          <div ref={settingsScrollRef} className="settings-sheet-body">
+            {renderPanelByKey(layerKey as SettingsLayerKey)}
           </div>
         )}
       </ScreenTransition>
+      {showSignOutConfirm ? (
+        <DeleteConfirmSheet
+          variant="account"
+          title="Sign out?"
+          cancelLabel="Cancel"
+          confirmLabel="Sign out"
+          placement="center"
+          zIndex={1300}
+          message="Your local data stays on this device, but cloud sync pauses until you sign in again."
+          onCancel={() => setShowSignOutConfirm(false)}
+          onConfirm={() => {
+            setShowSignOutConfirm(false);
+            void sync.signOut();
+          }}
+        />
+      ) : null}
+      {deleteAccountStep === "warn" ? (
+        <DeleteConfirmSheet
+          variant="account"
+          title="Delete account?"
+          cancelLabel="Cancel"
+          confirmLabel="Continue"
+          placement="center"
+          zIndex={1300}
+          message="This will permanently delete your account and all data stored in the cloud. You can cancel now if you only meant to sign out."
+          onCancel={() => setDeleteAccountStep(null)}
+          onConfirm={() => setDeleteAccountStep("final")}
+        />
+      ) : null}
+      {deleteAccountStep === "final" ? (
+        <DeleteConfirmSheet
+          variant="account"
+          title="Delete account permanently?"
+          cancelLabel="Cancel"
+          confirmLabel="Delete account"
+          placement="center"
+          zIndex={1301}
+          confirmBusy={deleteAccountBusy}
+          message="This will permanently delete your account and all your data. This cannot be undone."
+          onCancel={() => {
+            if (!deleteAccountBusy) setDeleteAccountStep(null);
+          }}
+          onConfirm={() => {
+            if (deleteAccountBusy) return;
+            void (async () => {
+              setDeleteAccountError(null);
+              setDeleteAccountNotice(null);
+              setDeleteAccountBusy(true);
+              const result = await sync.deleteAccount({ confirmed: true });
+              setDeleteAccountBusy(false);
+              if (result.error) {
+                setDeleteAccountError(result.error);
+                return;
+              }
+              setDeleteAccountStep(null);
+              if (result.dryRun) {
+                setDeleteAccountNotice("Dry run OK — your account was not deleted.");
+                return;
+              }
+              closePanel();
+              navigate("home");
+            })();
+          }}
+        />
+      ) : null}
       {pendingHabitRemove ? (
         <DeleteConfirmSheet
           title="Remove habit?"

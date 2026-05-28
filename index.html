@@ -12,14 +12,126 @@
     <meta name="color-scheme" content="light dark" />
     <script>
       (function () {
-        try {
-          var theme = localStorage.getItem("gymmy_theme");
-          document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
-        } catch (e) {
-          document.documentElement.setAttribute("data-theme", "light");
+        function readBootTheme() {
+          try {
+            var theme = localStorage.getItem("gymmy_theme");
+            if (theme === "dark" || theme === "light") return theme;
+            var fitness = localStorage.getItem("fitcoach:persist:v1");
+            if (fitness) {
+              var parsed = JSON.parse(fitness);
+              if (parsed && parsed.theme === "dark") return "dark";
+              if (parsed && parsed.theme === "light") return "light";
+            }
+            if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+              return "dark";
+            }
+          } catch (e) {}
+          return "light";
         }
+
+        var theme = readBootTheme();
+        var isDark = theme === "dark";
+        document.documentElement.setAttribute("data-theme", theme);
+        window.__gymmyBootAt = Date.now();
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", isDark ? "#0a0a0a" : "#ffffff");
       })();
     </script>
+    <style>
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: env(safe-area-inset-top, 0px) 24px env(safe-area-inset-bottom, 0px);
+        opacity: 0;
+        animation: bootSplashIn 720ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      #boot-splash.boot-splash--out {
+        animation: none;
+        transition: opacity 880ms cubic-bezier(0.4, 0, 0.6, 1) 180ms;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #boot-splash.boot-splash--out .boot-splash__mark {
+        animation: none;
+        transition:
+          opacity 680ms cubic-bezier(0.4, 0, 0.6, 1),
+          transform 680ms cubic-bezier(0.4, 0, 0.6, 1);
+        opacity: 0;
+        transform: scale(0.97);
+      }
+
+      @keyframes bootSplashIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      html[data-theme="dark"] #boot-splash {
+        background: #0a0a0a;
+        color: #ffffff;
+      }
+
+      html[data-theme="light"] #boot-splash {
+        background: #ffffff;
+        color: #0a0a0a;
+      }
+
+      .boot-splash__mark {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: Inter, -apple-system, system-ui, sans-serif;
+        opacity: 0;
+        transform: scale(0.97);
+        animation: bootMarkIn 880ms cubic-bezier(0.16, 1, 0.3, 1) 160ms forwards;
+      }
+
+      @keyframes bootMarkIn {
+        from {
+          opacity: 0;
+          transform: scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .boot-splash__logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+      }
+
+      html[data-theme="dark"] .boot-splash__logo {
+        background: #ffffff;
+        color: #0a0a0a;
+      }
+
+      html[data-theme="light"] .boot-splash__logo {
+        background: #0a0a0a;
+        color: #ffffff;
+      }
+
+      .boot-splash__wordmark {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+    </style>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -28,6 +140,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
   <body>
+    <div id="boot-splash" aria-hidden="true">
+      <div class="boot-splash__mark">
+        <div class="boot-splash__logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="3" y="8" width="3" height="8" rx="1.5" fill="currentColor"></rect>
+            <rect x="6.5" y="9.5" width="2.5" height="5" rx="1.25" fill="currentColor"></rect>
+            <rect x="9" y="11" width="6" height="2" rx="1" fill="currentColor"></rect>
+            <rect x="15" y="9.5" width="2.5" height="5" rx="1.25" fill="currentColor"></rect>
+            <rect x="18" y="8" width="3" height="8" rx="1.5" fill="currentColor"></rect>
+          </svg>
+        </div>
+        <span class="boot-splash__wordmark">Gymmy</span>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

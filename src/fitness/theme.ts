@@ -1,3 +1,5 @@
+import { FITNESS_LOCAL_STORAGE_KEY } from "./persistFitnessSlice";
+
 export type AppTheme = "dark" | "light";
 
 export const GYMMY_THEME_KEY = "gymmy_theme";
@@ -44,11 +46,21 @@ export function readStoredTheme(): AppTheme {
   if (typeof localStorage === "undefined") return DEFAULT_APP_THEME;
   try {
     const raw = localStorage.getItem(GYMMY_THEME_KEY);
-    if (raw == null) return DEFAULT_APP_THEME;
-    return normalizeAppTheme(raw);
+    if (raw === "dark" || raw === "light") return raw;
+
+    const fitnessRaw = localStorage.getItem(FITNESS_LOCAL_STORAGE_KEY);
+    if (fitnessRaw) {
+      const parsed = JSON.parse(fitnessRaw) as { theme?: unknown };
+      if (parsed?.theme === "dark" || parsed?.theme === "light") return parsed.theme;
+    }
+
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches) {
+      return "dark";
+    }
   } catch {
     return DEFAULT_APP_THEME;
   }
+  return DEFAULT_APP_THEME;
 }
 
 const THEME_TRANSITION_MS = 380;

@@ -136,7 +136,7 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
         style={{
           position: "fixed",
           right: 22,
-          bottom: "calc(88px + env(safe-area-inset-bottom))",
+          bottom: "var(--tabbar-fab-offset)",
           width: 56,
           height: 56,
           borderRadius: 999,
@@ -167,7 +167,6 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
         editItem={editingFoodItem}
       />
 
-      <div style={{ height: 96 }} />
     </div>
   );
 }

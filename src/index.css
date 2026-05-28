@@ -174,7 +174,16 @@
   --chart-bar-label: rgba(255, 255, 255, 0.3);
   --tabbar-bg: rgba(6, 6, 8, 0.68);
   --tabbar-border: rgba(255, 255, 255, 0.05);
-  --tabbar-chrome: calc(60px + max(8px, env(safe-area-inset-bottom, 0px)));
+  --tabbar-float-offset: 24px;
+  --tabbar-pill-height: 60px;
+  --tabbar-scroll-extra: 28px;
+  --tabbar-scroll-clearance: calc(
+    var(--tabbar-float-offset) + var(--tabbar-pill-height) + var(--tabbar-scroll-extra) +
+      env(safe-area-inset-bottom, 0px)
+  );
+  --tabbar-fab-offset: calc(
+    var(--tabbar-float-offset) + var(--tabbar-pill-height) + 4px + env(safe-area-inset-bottom, 0px)
+  );
   --workout-keypad-chrome: calc(248px + max(8px, env(safe-area-inset-bottom, 0px)));
   --btn-disabled-bg: rgba(255, 255, 255, 0.08);
   --btn-disabled-fg: rgba(255, 255, 255, 0.35);
@@ -333,7 +342,6 @@
   --chart-bar-label: rgba(0, 0, 0, 0.38);
   --tabbar-bg: rgba(255, 255, 255, 0.88);
   --tabbar-border: rgba(0, 0, 0, 0.08);
-  --tabbar-chrome: calc(60px + max(8px, env(safe-area-inset-bottom, 0px)));
   --workout-keypad-chrome: calc(248px + max(8px, env(safe-area-inset-bottom, 0px)));
   --btn-disabled-bg: rgba(0, 0, 0, 0.06);
   --btn-disabled-fg: rgba(0, 0, 0, 0.35);
@@ -388,7 +396,7 @@ html.theme-transition *::after {
  * `100lvh` so the keyboard overlays without shrinking the layout frame. Avoid `100dvh`
  * here — it tracks visual viewport changes and nudges content when iOS opens the keyboard.
  * `body` is fixed to block iOS document scroll/pan on input focus. Scrolling stays inside
- * `.screen`; tab bar + safe-area insets unchanged. */
+ * `.screen`; scrolling stays inside screen panels. */
 html {
   margin: 0;
   padding: 0;
@@ -600,6 +608,10 @@ textarea {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   transition: padding-bottom var(--motion-sheet-duration, 280ms) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.app-tab-shell:not(.app-tab-shell--no-chrome) .screen:not(.screen--workout-keypad-open) {
+  padding-bottom: var(--tabbar-scroll-clearance);
 }
 
 .screen::-webkit-scrollbar {
@@ -978,12 +990,9 @@ textarea {
   border-radius: 999px;
 }
 
-/* Tab bar is fixed to the layout viewport bottom so the on-screen keyboard
- * (interactive-widget=overlays-content) covers it instead of pushing it up.
- * `.app-tab-shell` reserves space so scrollable content clears the bar. */
+/* Tab bar floats above content; shell fills the viewport (no bottom chrome inset). */
 .app-tab-shell {
-  padding-bottom: var(--tabbar-chrome);
-  transition: padding-bottom 150ms ease-in-out;
+  padding-bottom: 0;
 }
 
 .app-tab-shell--no-chrome {
@@ -994,18 +1003,19 @@ textarea {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   box-sizing: border-box;
-  width: 100%;
-  padding: 8px 16px;
-  /* `constant()` for older WebKit; `env()` wins when supported */
-  padding-bottom: max(8px, constant(safe-area-inset-bottom));
-  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+  width: 290px;
+  max-width: calc(100vw - 32px);
+  margin-inline: auto;
+  padding: 8px 12px;
   background: var(--tabbar-bg);
   backdrop-filter: blur(22px) saturate(140%);
   -webkit-backdrop-filter: blur(22px) saturate(140%);
-  border-top: 0.5px solid var(--tabbar-border);
+  border: 0.5px solid var(--tabbar-border);
+  border-radius: 9999px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 4px;
@@ -1023,7 +1033,6 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .app-tab-shell,
   .tabbar {
     transition: none;
   }
@@ -1035,17 +1044,17 @@ textarea {
   align-items: center;
   gap: 4px;
   padding: 6px 0;
-  color: var(--tertiary);
   min-height: 44px;
   justify-content: center;
 }
 
-.tab[aria-current="true"] {
-  color: var(--text);
-}
-
 .tab svg {
   display: block;
+  color: var(--tertiary);
+}
+
+.tab[aria-current="true"] svg {
+  color: var(--text);
 }
 
 .tab .tlabel {
@@ -1101,9 +1110,58 @@ input[type="number"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
-  color: #000000;
+  background: var(--bg);
+  color: var(--text-primary);
   padding: env(safe-area-inset-top, 0px) 24px env(safe-area-inset-bottom, 0px);
+  opacity: 1;
+  animation: appSplashScreenIn 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: opacity 600ms ease-out;
+}
+
+.app-splash-screen--out {
+  animation: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes appSplashScreenIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.gymmy-splash-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gymmy-splash-mark__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--text-primary);
+  color: var(--bg);
+}
+
+.gymmy-splash-mark__wordmark {
+  font-family: var(--ui);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.gymmy-splash-mark--instant {
+  opacity: 1;
+  transform: none;
+  animation: none;
 }
 
 .app-splash-screen__mark {
@@ -1121,13 +1179,13 @@ input[type="number"] {
 }
 
 .motion-splash-mark {
-  animation: splashMarkIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: splashMarkIn 880ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes splashMarkIn {
   from {
     opacity: 0;
-    transform: scale(0.96);
+    transform: scale(0.97);
   }
   to {
     opacity: 1;
@@ -1141,24 +1199,37 @@ input[type="number"] {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  background: #ffffff;
-  color: #000000;
+  background: var(--bg);
+  color: var(--text-primary);
   overflow: hidden;
 }
 
 .onboarding-welcome__splash-layer {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: env(safe-area-inset-top, 0px) 24px env(safe-area-inset-bottom, 0px);
-  transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  background: var(--bg);
+  transition: opacity 880ms cubic-bezier(0.4, 0, 0.6, 1) 120ms;
+}
+
+.onboarding-welcome__splash-layer .gymmy-splash-mark {
+  transition:
+    opacity 880ms cubic-bezier(0.4, 0, 0.6, 1),
+    transform 880ms cubic-bezier(0.4, 0, 0.6, 1);
 }
 
 .onboarding-welcome--ready .onboarding-welcome__splash-layer {
   opacity: 0;
   pointer-events: none;
+}
+
+.onboarding-welcome--ready .onboarding-welcome__splash-layer .gymmy-splash-mark {
+  opacity: 0;
+  transform: scale(0.97);
 }
 
 .onboarding-welcome__mark {
@@ -1174,8 +1245,8 @@ input[type="number"] {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: #000000;
-  color: #ffffff;
+  background: var(--text-primary);
+  color: var(--bg);
 }
 
 .onboarding-welcome__wordmark {
@@ -1187,6 +1258,8 @@ input[type="number"] {
 }
 
 .onboarding-welcome__landing {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1197,16 +1270,34 @@ input[type="number"] {
     28px
     max(1.25rem, env(safe-area-inset-bottom));
   box-sizing: border-box;
-  opacity: 0;
-  transform: translateY(12px);
-  transition:
-    opacity 520ms cubic-bezier(0.22, 1, 0.36, 1) 180ms,
-    transform 520ms cubic-bezier(0.22, 1, 0.36, 1) 180ms;
 }
 
-.onboarding-welcome--ready .onboarding-welcome__landing {
+.onboarding-welcome__hero,
+.onboarding-welcome__copy,
+.onboarding-welcome__actions {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 880ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 880ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.onboarding-welcome--ready .onboarding-welcome__hero {
   opacity: 1;
   transform: translateY(0);
+  transition-delay: 100ms;
+}
+
+.onboarding-welcome--ready .onboarding-welcome__copy {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 220ms;
+}
+
+.onboarding-welcome--ready .onboarding-welcome__actions {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 340ms;
 }
 
 .onboarding-welcome__hero {
@@ -1230,7 +1321,7 @@ input[type="number"] {
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--text-secondary);
   margin: 0 0 16px;
   text-align: center;
 }
@@ -1295,8 +1386,8 @@ input[type="number"] {
   width: 100%;
   border: none;
   border-radius: 9999px;
-  background: #000000;
-  color: #ffffff;
+  background: var(--text-primary);
+  color: var(--bg);
   padding: 16px 20px;
   font-size: 16px;
   font-weight: 700;
@@ -1306,7 +1397,7 @@ input[type="number"] {
 .onboarding-welcome__signin {
   border: none;
   background: transparent;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.4;
   cursor: pointer;
@@ -4147,7 +4238,11 @@ input[type="number"] {
   .motion-stack-enter-back .onboarding-welcome__copy,
   .motion-splash-mark,
   .onboarding-welcome__splash-layer,
+  .onboarding-welcome__splash-layer .gymmy-splash-mark,
   .onboarding-welcome__landing,
+  .onboarding-welcome__hero,
+  .onboarding-welcome__copy,
+  .onboarding-welcome__actions,
   .dob-wheel-column__item,
   .date-wheel-picker__item,
   .date-wheel-picker__label,
@@ -4328,6 +4423,49 @@ input[type="number"] {
 
 .settings-sign-out-row .settings-row__label {
   color: rgba(248, 113, 113, 0.95);
+}
+
+.settings-delete-account {
+  margin-top: 4px;
+  padding: 8px 0 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-delete-account__error {
+  margin: 0;
+  font-size: 13;
+  line-height: 1.45;
+  color: rgba(248, 113, 113, 0.95);
+  text-align: center;
+}
+
+.settings-delete-account__notice {
+  margin: 0;
+  font-size: 13;
+  line-height: 1.45;
+  color: rgba(120, 200, 255, 0.95);
+  text-align: center;
+}
+
+.settings-delete-account__btn {
+  padding: 6px 4px;
+  border: none;
+  background: transparent;
+  color: rgba(248, 113, 113, 0.72);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.settings-delete-account__btn:hover:not(:disabled) {
+  color: rgba(248, 113, 113, 0.95);
+}
+
+.settings-delete-account__btn:disabled {
+  opacity: 0.45;
 }
 
 .settings-screen {

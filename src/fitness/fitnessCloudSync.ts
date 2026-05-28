@@ -8,6 +8,8 @@ import { mergePersistedFitnessSlices } from "./mergePersistedFitnessSlices";
 import { normalizeOnboardingDraft } from "./onboardingDraft";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { savePersistedSlice, sliceFromAppState } from "./persistFitnessSlice";
+import { deleteUserAccount, isDeleteAccountDryRunEnabled } from "./deleteUserAccount";
+import { resetLocalAfterAccountDelete } from "./resetAfterAccountDelete";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import { loadSyncMeta, saveSyncMeta } from "./syncMeta";
 import type { AppState } from "./types";
@@ -144,6 +146,25 @@ function formatSyncedLabel(ts: number | null): string | null {
   }
 }
 
+export async function updateUserEmail(
+  currentEmail: string | null | undefined,
+  newEmail: string,
+): Promise<{ error?: string }> {
+  const sb = getSupabase();
+  if (!sb) return { error: "Add Supabase keys to sync." };
+  if (!currentEmail) return { error: "Sign in to change your email." };
+
+  const trimmed = newEmail.trim();
+  if (!trimmed.includes("@")) return { error: "Enter a valid email address." };
+  if (trimmed.toLowerCase() === currentEmail.toLowerCase()) {
+    return { error: "That's already your email." };
+  }
+
+  const { error } = await sb.auth.updateUser({ email: trimmed });
+  if (error) return { error: error.message };
+  return {};
+}
+
 export function useFitnessCloudSync(
   syncSig: string,
   state: AppState,
@@ -158,6 +179,7 @@ export function useFitnessCloudSync(
   const [busy, setBusy] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
+  const [welcomeResetNonce, setWelcomeResetNonce] = useState(0);
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -375,12 +397,60 @@ export function useFitnessCloudSync(
     return { needsConfirmation: true };
   }, [setState]);
 
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    const sb = getSupabase();
+    if (!sb) return { error: "Add Supabase keys to sync." };
+    const email = session?.user?.email;
+    if (!email) return { error: "Sign in to change your password." };
+
+    const { error: verifyError } = await sb.auth.signInWithPassword({ email, password: currentPassword });
+    if (verifyError) return { error: "Current password is incorrect." };
+
+    const { error } = await sb.auth.updateUser({ password: newPassword });
+    if (error) return { error: error.message };
+    return {};
+  }, [session?.user?.email]);
+
+  const updateEmail = useCallback(
+    async (newEmail: string) => updateUserEmail(session?.user?.email, newEmail),
+    [session?.user?.email],
+  );
+
   const signOut = useCallback(async () => {
     const sb = getSupabase();
     if (!sb) return;
     await sb.auth.signOut();
     setSession(null);
   }, []);
+
+  const deleteAccount = useCallback(async (opts: { confirmed: true }) => {
+    const sb = getSupabase();
+    if (!sb) return { error: "Add Supabase keys to sync." };
+
+    const dryRun = isDeleteAccountDryRunEnabled();
+    setBusy(true);
+    setLastError(null);
+    try {
+      return await deleteUserAccount({
+        confirmed: opts.confirmed,
+        userId: session?.user?.id,
+        dryRun,
+        invokeDeleteUser: (body) => sb.functions.invoke("delete-user", { method: "POST", body }),
+        signOut: async () => {
+          await sb.auth.signOut();
+          setSession(null);
+        },
+        onDeleted: () => {
+          resetLocalAfterAccountDelete(setState);
+          setWelcomeResetNonce((n) => n + 1);
+        },
+      });
+    } catch (e) {
+      return { error: userFacingSyncError(e, "Account deletion failed. Try again.") };
+    } finally {
+      setBusy(false);
+    }
+  }, [session?.user?.id, setState]);
 
   const syncNow = useCallback(async () => {
     const sb = getSupabase();
@@ -455,7 +525,11 @@ export function useFitnessCloudSync(
     signInWithPassword,
     signInWithOAuth,
     signUpWithEmail,
+    changePassword,
+    updateEmail,
     signOut,
+    welcomeResetNonce,
+    deleteAccount,
     syncNow,
     restoreFromCloud,
   };

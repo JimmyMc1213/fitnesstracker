@@ -1,45 +1,73 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const SPLASH_DURATION_MS = 1400;
+import { GymmySplashMark } from "./GymmySplashMark";
 
-function GymmyLogoMark({ size = 36 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 100 100"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      <rect x="5" y="32" width="13" height="36" rx="6" fill="currentColor" />
-      <rect x="19" y="37" width="10" height="26" rx="5" fill="currentColor" />
-      <rect x="29" y="45" width="42" height="10" rx="5" fill="currentColor" />
-      <rect x="71" y="37" width="10" height="26" rx="5" fill="currentColor" />
-      <rect x="82" y="32" width="13" height="36" rx="6" fill="currentColor" />
-    </svg>
-  );
-}
+const SPLASH_FADE_OUT_MS = 600;
 
 type AppSplashScreenProps = {
-  onComplete: () => void;
+  /** When true, plays the exit fade-out before unmounting. */
+  dismiss?: boolean;
+  onExitComplete?: () => void;
 };
 
-export function AppSplashScreen({ onComplete }: AppSplashScreenProps) {
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+export function AppSplashScreen({ dismiss = false, onExitComplete }: AppSplashScreenProps) {
+  const [mounted, setMounted] = useState(true);
+  const [exiting, setExiting] = useState(false);
+  const divRef = useRef<HTMLDivElement>(null);
+  const onExitCompleteRef = useRef(onExitComplete);
+  onExitCompleteRef.current = onExitComplete;
+  const finishedRef = useRef(false);
 
   useEffect(() => {
-    const id = window.setTimeout(() => onCompleteRef.current(), SPLASH_DURATION_MS);
+    if (!dismiss || exiting) return;
+    const frame = window.requestAnimationFrame(() => {
+      const el = divRef.current;
+      if (!el) return;
+      // Stop the fill-mode animation so it no longer controls opacity.
+      el.style.animation = "none";
+      // Force a reflow — browser now resolves opacity: 1 from the base class.
+      void el.offsetHeight;
+      // Apply the fade transition then set the target opacity.
+      el.style.transition = `opacity ${SPLASH_FADE_OUT_MS}ms ease-out`;
+      el.style.opacity = "0";
+      setExiting(true);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [dismiss, exiting]);
+
+  useEffect(() => {
+    if (!exiting) return;
+
+    const finish = () => {
+      if (finishedRef.current) return;
+      finishedRef.current = true;
+      setMounted(false);
+      onExitCompleteRef.current?.();
+    };
+
+    const id = window.setTimeout(finish, SPLASH_FADE_OUT_MS);
     return () => window.clearTimeout(id);
-  }, []);
+  }, [exiting]);
+
+  const handleTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
+    if (event.propertyName !== "opacity" || !exiting || finishedRef.current) return;
+    finishedRef.current = true;
+    setMounted(false);
+    onExitCompleteRef.current?.();
+  };
+
+  if (!mounted) return null;
 
   return (
-    <div className="app-splash-screen" role="status" aria-label="Loading Gymmy">
-      <div className="app-splash-screen__mark motion-splash-mark">
-        <GymmyLogoMark size={34} />
-        <span className="app-splash-screen__wordmark">Gymmy</span>
-      </div>
+    <div
+      ref={divRef}
+      className={`app-splash-screen${exiting ? " app-splash-screen--out" : ""}`}
+      role="status"
+      aria-label="Loading Gymmy"
+      aria-hidden={exiting}
+      onTransitionEnd={handleTransitionEnd}
+    >
+      <GymmySplashMark />
     </div>
   );
 }

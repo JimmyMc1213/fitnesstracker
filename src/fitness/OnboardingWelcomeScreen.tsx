@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
 import welcomeWorkoutScreenshot from "../assets/onboarding/welcome-workout-active-session.png";
+import { bootSplashPresent } from "./bootSplash";
+import { GymmySplashMark } from "./GymmySplashMark";
+import { WELCOME_SPLASH_HOLD_MS } from "./splashTiming";
 
 type Phase = "splash" | "welcome";
 
@@ -8,20 +11,6 @@ type OnboardingWelcomeScreenProps = {
   onGetStarted: () => void;
   onSignIn?: () => void;
 };
-
-function LogoPlaceholder() {
-  return (
-    <div className="onboarding-welcome__logo-placeholder" aria-hidden>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="3" y="8" width="3" height="8" rx="1.5" fill="currentColor" />
-        <rect x="6.5" y="9.5" width="2.5" height="5" rx="1.25" fill="currentColor" />
-        <rect x="9" y="11" width="6" height="2" rx="1" fill="currentColor" />
-        <rect x="15" y="9.5" width="2.5" height="5" rx="1.25" fill="currentColor" />
-        <rect x="18" y="8" width="3" height="8" rx="1.5" fill="currentColor" />
-      </svg>
-    </div>
-  );
-}
 
 function PhoneHeroMockup() {
   return (
@@ -43,9 +32,10 @@ function PhoneHeroMockup() {
 
 export function OnboardingWelcomeScreen({ onGetStarted, onSignIn }: OnboardingWelcomeScreenProps) {
   const [phase, setPhase] = useState<Phase>("splash");
+  const [splashInstant] = useState(() => bootSplashPresent());
 
   useEffect(() => {
-    const id = window.setTimeout(() => setPhase("welcome"), 1200);
+    const id = window.setTimeout(() => setPhase("welcome"), WELCOME_SPLASH_HOLD_MS);
     return () => window.clearTimeout(id);
   }, []);
 
@@ -55,10 +45,7 @@ export function OnboardingWelcomeScreen({ onGetStarted, onSignIn }: OnboardingWe
       aria-label={phase === "splash" ? "Loading Gymmy" : "Welcome to Gymmy"}
     >
       <div className="onboarding-welcome__splash-layer" aria-hidden={phase !== "splash"}>
-        <div className="onboarding-welcome__mark motion-splash-mark">
-          <LogoPlaceholder />
-          <span className="onboarding-welcome__wordmark">Gymmy</span>
-        </div>
+        <GymmySplashMark instant={splashInstant} />
       </div>
 
       <div className="onboarding-welcome__landing" aria-hidden={phase !== "welcome"}>

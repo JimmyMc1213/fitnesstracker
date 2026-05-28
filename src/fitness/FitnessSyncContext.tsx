@@ -13,7 +13,13 @@ export type FitnessSyncContextValue = {
   signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
   signInWithOAuth: (provider: "apple" | "google") => Promise<{ error?: string }>;
   signUpWithEmail: (email: string, password: string, name: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ error?: string }>;
+  updateEmail: (newEmail: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
+  /** Increments after a successful account deletion (reset welcome / onboarding UI). */
+  welcomeResetNonce: number;
+  /** Requires `{ confirmed: true }` — only call after the user completes delete confirmations in Settings. */
+  deleteAccount: (opts: { confirmed: true }) => Promise<{ error?: string; dryRun?: boolean }>;
   syncNow: () => Promise<void>;
   /** Unconditional cloud pull + merge into local state (welcome sign-in restore). */
   restoreFromCloud: () => Promise<boolean>;
@@ -30,7 +36,11 @@ const disabledSync: FitnessSyncContextValue = {
   signInWithPassword: async () => ({ error: "Sync unavailable" }),
   signInWithOAuth: async () => ({ error: "Sync unavailable" }),
   signUpWithEmail: async () => ({ error: "Sync unavailable" as string }),
+  changePassword: async () => ({ error: "Sync unavailable" }),
+  updateEmail: async () => ({ error: "Sync unavailable" }),
   signOut: async () => {},
+  welcomeResetNonce: 0,
+  deleteAccount: async () => ({ error: "Sync unavailable" as string }),
   syncNow: async () => {},
   restoreFromCloud: async () => false,
 };

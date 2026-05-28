@@ -31,6 +31,10 @@ export function ThemeProvider({
   const [theme, setThemeState] = useState<AppTheme>(() => readStoredTheme());
 
   useEffect(() => {
+    applyThemeToDocument(readStoredTheme());
+  }, []);
+
+  useEffect(() => {
     if (persistedTheme == null) return;
     const next = normalizeAppTheme(persistedTheme);
     setThemeState(next);
