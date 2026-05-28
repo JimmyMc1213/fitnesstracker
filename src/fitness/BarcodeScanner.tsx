@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from "re
 import {
   BarcodeFormat,
   BrowserCodeReader,
-  BrowserMultiFormatOneDReader as BrowserBarcodeReader,
+  BrowserMultiFormatReader,
   type IScannerControls,
 } from "@zxing/browser";
 import { DecodeHintType } from "@zxing/library";
@@ -22,11 +22,21 @@ const BARCODE_FORMATS = [
   BarcodeFormat.CODE_128,
 ] as const;
 
-const SCAN_ATTEMPT_INTERVAL_MS = 300;
+const SCAN_ATTEMPT_INTERVAL_MS = 150;
+
+const VIDEO_CONSTRAINTS: MediaStreamConstraints = {
+  audio: false,
+  video: {
+    facingMode: { ideal: "environment" },
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
+  },
+};
 
 function createBarcodeReaderHints() {
   const hints = new Map<DecodeHintType, unknown>();
   hints.set(DecodeHintType.POSSIBLE_FORMATS, [...BARCODE_FORMATS]);
+  hints.set(DecodeHintType.TRY_HARDER, true);
   return hints;
 }
 
@@ -39,10 +49,21 @@ function stopVideoStream(video: HTMLVideoElement | null) {
   BrowserCodeReader.cleanVideoSource(video);
 }
 
+async function pickRearCameraDeviceId(): Promise<string | undefined> {
+  try {
+    const devices = await BrowserCodeReader.listVideoInputDevices();
+    if (devices.length === 0) return undefined;
+    const rear = devices.find((d) => /back|rear|environment/i.test(d.label));
+    return rear?.deviceId ?? devices[devices.length - 1]?.deviceId;
+  } catch {
+    return undefined;
+  }
+}
+
 export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
-  const readerRef = useRef<BrowserBarcodeReader | null>(null);
+  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const scannedRef = useRef(false);
   const onScanRef = useRef(onScan);
   const onCloseRef = useRef(onClose);
@@ -56,7 +77,6 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     controlsRef.current = null;
     readerRef.current = null;
     stopVideoStream(videoRef.current);
-    BrowserCodeReader.releaseAllStreams();
   }, []);
 
   const handleClose = useCallback(() => {
@@ -68,7 +88,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     scannedRef.current = false;
     setError(null);
 
-    const reader = new BrowserBarcodeReader(createBarcodeReaderHints(), {
+    const reader = new BrowserMultiFormatReader(createBarcodeReaderHints(), {
       delayBetweenScanAttempts: SCAN_ATTEMPT_INTERVAL_MS,
     });
     readerRef.current = reader;
@@ -77,7 +97,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
     let cancelled = false;
 
-    const onDecode: Parameters<BrowserBarcodeReader["decodeFromVideoDevice"]>[2] = (result) => {
+    const onDecode: Parameters<BrowserMultiFormatReader["decodeFromConstraints"]>[2] = (result) => {
       if (cancelled || scannedRef.current || !result) return;
       scannedRef.current = true;
       const code = result.getText();
@@ -86,21 +106,34 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     };
 
     const startScan = async () => {
-      try {
-        const controls = await reader.decodeFromVideoDevice(
-          null as unknown as string | undefined,
-          video,
-          onDecode,
-        );
-        if (cancelled) {
-          controls.stop();
+      const attempts: Array<() => Promise<IScannerControls>> = [
+        () => reader.decodeFromConstraints(VIDEO_CONSTRAINTS, video, onDecode),
+        () => reader.decodeFromVideoDevice(undefined, video, onDecode),
+        async () => {
+          const deviceId = await pickRearCameraDeviceId();
+          if (!deviceId) throw new Error("No camera found");
+          return reader.decodeFromVideoDevice(deviceId, video, onDecode);
+        },
+      ];
+
+      let lastErr: unknown;
+      for (const attempt of attempts) {
+        if (cancelled) return;
+        try {
+          const controls = await attempt();
+          if (cancelled) {
+            controls.stop();
+            return;
+          }
+          controlsRef.current = controls;
           return;
+        } catch (err) {
+          lastErr = err;
         }
-        controlsRef.current = controls;
-      } catch (fallbackErr) {
-        if (!cancelled) {
-          setError(fallbackErr instanceof Error ? fallbackErr.message : "Unable to access camera");
-        }
+      }
+
+      if (!cancelled) {
+        setError(lastErr instanceof Error ? lastErr.message : "Unable to access camera");
       }
     };
 
