@@ -174,7 +174,7 @@
   --chart-bar-label: rgba(255, 255, 255, 0.3);
   --tabbar-bg: rgba(6, 6, 8, 0.68);
   --tabbar-border: rgba(255, 255, 255, 0.05);
-  --tabbar-float-offset: 24px;
+  --tabbar-float-offset: 16px;
   --tabbar-pill-height: 60px;
   --tabbar-scroll-extra: 28px;
   --tabbar-scroll-clearance: calc(
@@ -1003,7 +1003,7 @@ textarea {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--tabbar-float-offset) + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   box-sizing: border-box;
   width: 290px;
