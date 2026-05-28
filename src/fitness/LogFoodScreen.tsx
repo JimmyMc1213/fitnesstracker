@@ -62,14 +62,14 @@ import { PrimaryButton } from "./shared";
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { FoodSearchSkeletonList } from "./FoodSearchSkeletonList";
 import { IconScan } from "./icons";
+import { clampMacroInputString, parseBoundedMacro } from "./macroLimits";
 import { closeAfterMotion, FullScreenOverlay, MOTION_DURATIONS, ScreenTransition } from "./motion";
-import type { AppState, NutritionLoggedItem, NutritionMeal, NutritionMealItem, NutritionPreset, NutritionUserFood } from "./types";
+import type { AppState, MacroTotals, NutritionLoggedItem, NutritionMeal, NutritionMealItem, NutritionPreset, NutritionUserFood } from "./types";
 
 type PickerContext = "log" | "mealIngredient";
 
-function parseMacro(raw: string): number {
-  const n = parseFloat(raw);
-  return Number.isFinite(n) && n >= 0 ? n : 0;
+function blurMacroInput(key: keyof MacroTotals, raw: string, setRaw: (value: string) => void) {
+  setRaw(clampMacroInputString(raw, key));
 }
 
 type LogFoodTab = "all" | "myFoods" | "myMeals" | "saved";
@@ -716,10 +716,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
 
   function logManualAndClose() {
     const macros = {
-      cal: parseMacro(draftCal),
-      p: parseMacro(draftP),
-      c: parseMacro(draftC),
-      f: parseMacro(draftF),
+      cal: parseBoundedMacro(draftCal, "cal"),
+      p: parseBoundedMacro(draftP, "p"),
+      c: parseBoundedMacro(draftC, "c"),
+      f: parseBoundedMacro(draftF, "f"),
     };
     const name = draftName.trim() || "Food";
     const servingLabel = draftServing.trim() ? draftServing.trim() : undefined;
@@ -834,10 +834,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     const item: NutritionMealItem = {
       id: newNutritionItemId(),
       name,
-      cal: parseMacro(mealIngredientCal),
-      p: parseMacro(mealIngredientP),
-      c: parseMacro(mealIngredientC),
-      f: parseMacro(mealIngredientF),
+      cal: parseBoundedMacro(mealIngredientCal, "cal"),
+      p: parseBoundedMacro(mealIngredientP, "p"),
+      c: parseBoundedMacro(mealIngredientC, "c"),
+      f: parseBoundedMacro(mealIngredientF, "f"),
       ...(mealIngredientServing.trim() ? { servingLabel: mealIngredientServing.trim() } : {}),
     };
     setMealDraftItems((prev) => [...prev, item]);
@@ -1399,7 +1399,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                       <AnimatedNumberFlip value={String(pickerMacros.cal)} />
                     </FitText>
                     <span className="unit" style={{ flexShrink: 0 }}>
-                      kcal
+                      cal
                     </span>
                   </div>
                 </div>
@@ -1534,12 +1534,13 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   />
                 </label>
                 <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                  Calories (kcal)
+                  Calories (cal)
                   <input
                     placeholder="0"
                     aria-label="Ingredient calories"
                     value={mealIngredientCal}
                     onChange={(e) => setMealIngredientCal(e.target.value)}
+                    onBlur={() => blurMacroInput("cal", mealIngredientCal, setMealIngredientCal)}
                     inputMode="decimal"
                     className="input"
                     style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
@@ -1560,6 +1561,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                         aria-label={field.label}
                         value={field.value}
                         onChange={(e) => field.set(e.target.value)}
+                        onBlur={() => blurMacroInput(field.key, field.value, field.set)}
                         inputMode="decimal"
                         className="input"
                         style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
@@ -1616,7 +1618,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{curated.name}</div>
                                   <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
-                                    {macros.cal} kcal · {formatGramsInLabel(curated.defaultServing.label)}
+                                    {macros.cal} cal · {formatGramsInLabel(curated.defaultServing.label)}
                                   </div>
                                 </div>
                                 <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
@@ -1641,7 +1643,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{displayFoodName(food.name, food.source)}</div>
                                 <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
-                                  {Math.round(Number(food.cal) || 0)} kcal · {formatGramsInLabel(food.defaultServing)}
+                                  {Math.round(Number(food.cal) || 0)} cal · {formatGramsInLabel(food.defaultServing)}
                                 </div>
                               </div>
                               <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
@@ -1671,7 +1673,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{food.name}</div>
                         <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
-                          {Math.round(Number(food.cal) || 0)} kcal · {food.servingLabel?.trim() || DEFAULT_SERVING}
+                          {Math.round(Number(food.cal) || 0)} cal · {food.servingLabel?.trim() || DEFAULT_SERVING}
                         </div>
                       </div>
                       <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 600, color: "var(--pos, #4ade80)" }}>Add</span>
@@ -1695,7 +1697,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{preset.name.trim() || "Food"}</div>
                         <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
-                          {Math.round(Number(preset.cal) || 0)} kcal · {preset.servingLabel?.trim() || `${Math.round(Number(preset.p) || 0)}g protein`}
+                          {Math.round(Number(preset.cal) || 0)} cal · {preset.servingLabel?.trim() || `${Math.round(Number(preset.p) || 0)}g protein`}
                         </div>
                       </div>
                       <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 600, color: "var(--pos, #4ade80)" }}>Add</span>
@@ -1718,7 +1720,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                     />
                   </label>
                   <div style={{ fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
-                    {Math.round(mealDraftMacros.cal)} kcal · {Math.round(mealDraftMacros.p)}g protein · {mealDraftItems.length} ingredient{mealDraftItems.length === 1 ? "" : "s"}
+                    {Math.round(mealDraftMacros.cal)} cal · {Math.round(mealDraftMacros.p)}g protein · {mealDraftItems.length} ingredient{mealDraftItems.length === 1 ? "" : "s"}
                   </div>
                 </div>
 
@@ -1738,7 +1740,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{item.name}</div>
                           <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
-                            {Math.round(Number(item.cal) || 0)} kcal · {item.servingLabel?.trim() || DEFAULT_SERVING}
+                            {Math.round(Number(item.cal) || 0)} cal · {item.servingLabel?.trim() || DEFAULT_SERVING}
                           </div>
                         </div>
                         <button
@@ -1808,10 +1810,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 {renderFavoriteButton(
                   {
                     name: draftName.trim() || "Food",
-                    cal: parseMacro(draftCal),
-                    p: parseMacro(draftP),
-                    c: parseMacro(draftC),
-                    f: parseMacro(draftF),
+                    cal: parseBoundedMacro(draftCal, "cal"),
+                    p: parseBoundedMacro(draftP, "p"),
+                    c: parseBoundedMacro(draftC, "c"),
+                    f: parseBoundedMacro(draftF, "f"),
                     servingLabel: draftServing.trim() || undefined,
                   },
                   draftName.trim() || "food",
@@ -1829,12 +1831,13 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 />
               </label>
               <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                Calories (kcal)
+                Calories (cal)
                 <input
                   placeholder="0"
                   aria-label="Calories"
                   value={draftCal}
                   onChange={(e) => setDraftCal(e.target.value)}
+                  onBlur={() => blurMacroInput("cal", draftCal, setDraftCal)}
                   inputMode="decimal"
                   className="input"
                   style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }}
@@ -1843,15 +1846,15 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
                 <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Protein (g)
-                  <input placeholder="0" aria-label="Protein grams" value={draftP} onChange={(e) => setDraftP(e.target.value)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
+                  <input placeholder="0" aria-label="Protein grams" value={draftP} onChange={(e) => setDraftP(e.target.value)} onBlur={() => blurMacroInput("p", draftP, setDraftP)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
                 </label>
                 <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Carbs (g)
-                  <input placeholder="0" aria-label="Carbs grams" value={draftC} onChange={(e) => setDraftC(e.target.value)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
+                  <input placeholder="0" aria-label="Carbs grams" value={draftC} onChange={(e) => setDraftC(e.target.value)} onBlur={() => blurMacroInput("c", draftC, setDraftC)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
                 </label>
                 <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   Fat (g)
-                  <input placeholder="0" aria-label="Fat grams" value={draftF} onChange={(e) => setDraftF(e.target.value)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
+                  <input placeholder="0" aria-label="Fat grams" value={draftF} onChange={(e) => setDraftF(e.target.value)} onBlur={() => blurMacroInput("f", draftF, setDraftF)} inputMode="decimal" className="input" style={{ marginTop: 8, fontVariantNumeric: "tabular-nums" }} />
                 </label>
               </div>
               <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
@@ -1965,7 +1968,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                       <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>{curated.name}</div>
                                       <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                                        {macros.cal} kcal · {formatGramsInLabel(curated.defaultServing.label)}
+                                        {macros.cal} cal · {formatGramsInLabel(curated.defaultServing.label)}
                                       </div>
                                     </div>
                                     {renderFavoriteButton(
@@ -2003,7 +2006,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                                   <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>{displayFoodName(food.name, food.source)}</div>
                                     <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                                      {Math.round(Number(food.cal) || 0)} kcal · {formatGramsInLabel(food.defaultServing)}
+                                      {Math.round(Number(food.cal) || 0)} cal · {formatGramsInLabel(food.defaultServing)}
                                       {food.brand ? ` · ${food.brand}` : ""}
                                     </div>
                                   </div>
@@ -2055,7 +2058,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                                 {displayFoodName(it.name.trim() || "Food", it.source)}
                               </div>
                               <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                                {Math.round(Number(it.cal) || 0)} kcal · {formatGramsInLabel(it.servingLabel?.trim() || DEFAULT_SERVING)}
+                                {Math.round(Number(it.cal) || 0)} cal · {formatGramsInLabel(it.servingLabel?.trim() || DEFAULT_SERVING)}
                               </div>
                             </div>
                             {renderFavoriteButton(
@@ -2115,7 +2118,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                               {food.name}
                             </div>
                             <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                              {Math.round(Number(food.cal) || 0)} kcal · {food.servingLabel?.trim() || DEFAULT_SERVING}
+                              {Math.round(Number(food.cal) || 0)} cal · {food.servingLabel?.trim() || DEFAULT_SERVING}
                             </div>
                           </div>
                         </button>
@@ -2177,7 +2180,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                             {preset.name.trim() || "Food"}
                           </div>
                           <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                            {Math.round(Number(preset.cal) || 0)} kcal · {preset.servingLabel?.trim() || `${Math.round(Number(preset.p) || 0)}g protein`}
+                            {Math.round(Number(preset.cal) || 0)} cal · {preset.servingLabel?.trim() || `${Math.round(Number(preset.p) || 0)}g protein`}
                           </div>
                         </div>
                         {renderFavoriteButton(
@@ -2238,7 +2241,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                                 {meal.name}
                               </div>
                               <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                                {Math.round(mealMacros.cal)} kcal · {Math.round(mealMacros.p)}g protein
+                                {Math.round(mealMacros.cal)} cal · {Math.round(mealMacros.p)}g protein
                                 {servingLabel ? ` · ${servingLabel}` : ""}
                               </div>
                             </div>

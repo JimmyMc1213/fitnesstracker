@@ -131,7 +131,7 @@ export function OnboardingPlanReady({
       <section className="onboarding-plan-ready__section onboarding-plan-ready__section--fuel">
         <h3 className="onboarding-plan-ready__label">Daily fuel</h3>
         <div className="onboarding-plan-ready__macros">
-          <MacroStat value={macros.cal} label="kcal" waveIndex={0} />
+          <MacroStat value={macros.cal} label="cal" waveIndex={0} />
           <MacroStat value={macros.p} label="g protein" tone="protein" waveIndex={1} />
           <MacroStat value={macros.c} label="g carbs" tone="carbs" waveIndex={2} />
           <MacroStat value={macros.f} label="g fat" tone="fat" waveIndex={3} />

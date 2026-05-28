@@ -1,4 +1,5 @@
 import type { MacroTotals, NutritionLoggedItem, NutritionPreset, NutritionUserFood } from "./types";
+import { clampMacroTotals, clampMacroValue } from "./macroLimits";
 
 export const ZERO_MACROS: MacroTotals = { cal: 0, p: 0, c: 0, f: 0 };
 
@@ -51,12 +52,12 @@ export function normalizeNutritionManualByDay(raw: unknown): Record<string, Macr
   for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !v || typeof v !== "object") continue;
     const o = v as Record<string, unknown>;
-    out[k] = {
+    out[k] = clampMacroTotals({
       cal: Number(o.cal) || 0,
       p: Number(o.p) || 0,
       c: Number(o.c) || 0,
       f: Number(o.f) || 0,
-    };
+    });
   }
   return out;
 }
@@ -84,10 +85,12 @@ export function normalizeNutritionItemsByDay(raw: unknown): Record<string, Nutri
       const row: NutritionLoggedItem = {
         id: typeof r.id === "string" && r.id ? r.id : `${k}-row-${i}`,
         name: typeof r.name === "string" ? r.name : "",
-        cal: Number(r.cal) || 0,
-        p: Number(r.p) || 0,
-        c: Number(r.c) || 0,
-        f: Number(r.f) || 0,
+        ...clampMacroTotals({
+          cal: Number(r.cal) || 0,
+          p: Number(r.p) || 0,
+          c: Number(r.c) || 0,
+          f: Number(r.f) || 0,
+        }),
         loggedAtMs,
         ...(servingLabel ? { servingLabel } : {}),
         ...(source ? { source } : {}),
@@ -125,10 +128,12 @@ export function mergePersistedNutritionDays(
         {
           id: `imported-${k}`,
           name: "",
-          cal: Number(t.cal) || 0,
-          p: Number(t.p) || 0,
-          c: Number(t.c) || 0,
-          f: Number(t.f) || 0,
+          ...clampMacroTotals({
+            cal: Number(t.cal) || 0,
+            p: Number(t.p) || 0,
+            c: Number(t.c) || 0,
+            f: Number(t.f) || 0,
+          }),
           loggedAtMs: stableLegacyNutritionLoggedAtMs(k, 0),
         },
       ];
@@ -167,10 +172,7 @@ export function addNutritionFavorite(
   const row: NutritionPreset = {
     id: `fav-${now}-${Math.random().toString(36).slice(2, 9)}`,
     name: input.name.trim() || "Food",
-    cal: Number(input.cal) || 0,
-    p: Number(input.p) || 0,
-    c: Number(input.c) || 0,
-    f: Number(input.f) || 0,
+    ...clampMacroTotals(input),
     lastUsedAtMs: 0,
     favoritedAtMs: now,
     ...(input.servingLabel?.trim() ? { servingLabel: input.servingLabel.trim() } : {}),
@@ -211,10 +213,10 @@ export function normalizeNutritionPresets(raw: unknown): NutritionPreset[] {
     if (!o || typeof o !== "object") continue;
     const r = o as Record<string, unknown>;
     const name = typeof r.name === "string" ? r.name : "";
-    const cal = Number(r.cal) || 0;
-    const p = Number(r.p) || 0;
-    const c = Number(r.c) || 0;
-    const f = Number(r.f) || 0;
+    const cal = clampMacroValue("cal", Number(r.cal) || 0);
+    const p = clampMacroValue("p", Number(r.p) || 0);
+    const c = clampMacroValue("c", Number(r.c) || 0);
+    const f = clampMacroValue("f", Number(r.f) || 0);
     const id = typeof r.id === "string" && r.id ? r.id : `preset-${i}`;
     const lastUsedAtMs = typeof r.lastUsedAtMs === "number" ? r.lastUsedAtMs : 0;
     const favoritedAtMs = typeof r.favoritedAtMs === "number" ? r.favoritedAtMs : undefined;

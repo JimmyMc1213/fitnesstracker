@@ -1,4 +1,5 @@
 import { appendNutritionLoggedItem, buildNutritionLoggedItem, newNutritionItemId } from "./nutritionLog";
+import { clampMacroTotals } from "./macroLimits";
 import type {
   AppState,
   MacroTotals,
@@ -25,10 +26,12 @@ function normalizeMealItem(raw: unknown, index: number): NutritionMealItem | nul
   return {
     id,
     name,
-    cal: Number(r.cal) || 0,
-    p: Number(r.p) || 0,
-    c: Number(r.c) || 0,
-    f: Number(r.f) || 0,
+    ...clampMacroTotals({
+      cal: Number(r.cal) || 0,
+      p: Number(r.p) || 0,
+      c: Number(r.c) || 0,
+      f: Number(r.f) || 0,
+    }),
     ...(servingLabel ? { servingLabel } : {}),
     ...(source ? { source } : {}),
     ...(externalId ? { externalId } : {}),

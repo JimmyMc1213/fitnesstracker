@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { MacroTotals } from "./types";
+import { clampMacroValue } from "./macroLimits";
 
 type MacroKey = "cal" | "p" | "c" | "f";
 
@@ -31,12 +32,14 @@ function PencilIcon() {
 }
 
 function MacroValueField({
+  macroKey,
   label,
   value,
   unit,
   onChange,
   large = false,
 }: {
+  macroKey: MacroKey;
   label: string;
   value: number;
   unit: string;
@@ -57,7 +60,7 @@ function MacroValueField({
 
   function commitDraft() {
     const n = parseInt(draft, 10);
-    if (Number.isFinite(n) && n >= 0) onChange(n);
+    if (Number.isFinite(n) && n >= 0) onChange(clampMacroValue(macroKey, n));
     else setDraft(String(value));
     setEditing(false);
   }
@@ -122,9 +125,10 @@ export function OnboardingDailyFuelPlan({ macros, computedMacros, onChangeMacros
       <div className="onboarding-gradient-card onboarding-fuel-hero">
         <p className="onboarding-fuel-hero__label">Daily calories</p>
         <MacroValueField
+          macroKey="cal"
           label="Calories"
           value={macros.cal}
-          unit="kcal"
+          unit="cal"
           large
           onChange={(cal) => onChangeMacros({ ...macros, cal })}
         />
@@ -142,6 +146,7 @@ export function OnboardingDailyFuelPlan({ macros, computedMacros, onChangeMacros
               <span className={`onboarding-fuel-row__tag onboarding-fuel-row__tag--${row.tagTone}`}>{row.tag}</span>
             </div>
             <MacroValueField
+              macroKey={row.key}
               label={row.label}
               value={macros[row.key]}
               unit={row.unit}

@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 
 import { useFitnessSync } from "./FitnessSyncContext";
 import { GymmySplashMark } from "./GymmySplashMark";
+import { PasswordInput } from "./PasswordInput";
 
 type View = "landing" | "signin" | "signin-form" | "signup";
 
@@ -209,11 +210,8 @@ export function AuthScreen({
               autoComplete="email"
               aria-label="Email"
             />
-            <input
-              className="onboarding-input-pill"
-              placeholder="Password"
+            <PasswordInput
               value={password}
-              type="password"
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
               aria-label="Password"
@@ -255,11 +253,8 @@ export function AuthScreen({
             autoComplete="email"
             aria-label="Email"
           />
-          <input
-            className="onboarding-input-pill"
-            placeholder="Password"
+          <PasswordInput
             value={password}
-            type="password"
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
             aria-label="Password"

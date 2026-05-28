@@ -218,7 +218,7 @@ export function DayProgressSheet({
                   </div>
                   <div style={{ fontSize: 20, fontWeight: 700, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>
                     {Math.round(habits.calories)}
-                    <span style={{ fontSize: 12, fontWeight: 500, marginLeft: 6, color: "var(--text-ghost)" }}>kcal</span>
+                    <span style={{ fontSize: 12, fontWeight: 500, marginLeft: 6, color: "var(--text-ghost)" }}>cal</span>
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-ghost)", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>
                     P {Math.round(habits.protein)} · C {Math.round(habits.carbs)} · F {Math.round(habits.fat)} g

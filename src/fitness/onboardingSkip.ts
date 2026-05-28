@@ -1,14 +1,16 @@
 import { clearOnboardingDraftStorage } from "./onboardingDraft";
 import { savePersistedSlice, type PersistedFitnessSlice } from "./persistFitnessSlice";
 
-const DEFAULT_LEGACY_EMAILS = ["jimmymccarthy1213@outlook.com"];
-
 export function legacyUserEmails(): string[] {
   const raw = import.meta.env.VITE_LEGACY_USER_EMAILS;
   if (typeof raw === "string" && raw.trim()) {
     return raw.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
   }
-  return DEFAULT_LEGACY_EMAILS.map((e) => e.toLowerCase());
+  const devSkip = import.meta.env.VITE_DEV_SKIP_EMAIL;
+  if (typeof devSkip === "string" && devSkip.trim()) {
+    return [devSkip.trim().toLowerCase()];
+  }
+  return [];
 }
 
 export function isLegacyUserEmail(email: string | null | undefined): boolean {

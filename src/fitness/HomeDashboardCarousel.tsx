@@ -152,7 +152,7 @@ function FuelSlide({
                 fontVariantNumeric: "tabular-nums",
               }}
             >
-              {kcalLeft.toLocaleString()} kcal left
+              {kcalLeft.toLocaleString()} cal left
             </div>
           </div>
           <MacroBar label="Protein" value={totals.p} target={targets.p} color="var(--macro-protein)" />

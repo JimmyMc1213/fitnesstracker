@@ -72,6 +72,7 @@ import {
   weightUnitLabel,
 } from "../unitPreferences";
 import type { EquipmentSetup, HabitTemplate, MacroTotals, OnboardingProfile, ScreenProps, UnitPreferences } from "../types";
+import { clampMacroInputString, clampMacroValue } from "../macroLimits";
 import { sanitizeUserText } from "../userText";
 
 type YouSubPanel = null | "change-password";
@@ -390,12 +391,13 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
         setRaw(v);
         if (v === "" || v === "-") return;
         const n = parseFloat(v);
-        if (Number.isFinite(n) && n >= 0) commit({ [key]: n } as Partial<MacroTotals>);
+        if (Number.isFinite(n) && n >= 0) commit({ [key]: clampMacroValue(key, n) } as Partial<MacroTotals>);
       },
       onBlur: () => {
-        const n = parseFloat(raw);
-        const val = Number.isFinite(n) && n >= 0 ? n : 0;
-        setRaw(String(val));
+        const clampedRaw = clampMacroInputString(raw, key);
+        setRaw(clampedRaw);
+        const n = parseFloat(clampedRaw);
+        const val = Number.isFinite(n) && n >= 0 ? clampMacroValue(key, n) : 0;
         commit({ [key]: val } as Partial<MacroTotals>);
       },
       inputMode: "decimal" as const,
@@ -455,7 +457,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
           <SettingsRow
             icon={rowIcon(<IconToolsKitchen2 size={16} stroke={1.6} />)}
             label="Fuel targets"
-            trailing={`${T.cal} kcal`}
+            trailing={`${T.cal} cal`}
             onClick={() => openPanel("fuel-targets")}
           />
           <SettingsRow
@@ -1158,7 +1160,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
         <SettingsHelper>Daily calorie and macro goals used on Home, Fuel, habits copy, and weekly review math.</SettingsHelper>
         <div className="card settings-detail-card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            Calories (kcal)
+            Calories (cal)
             <input aria-label="Target calories" {...macroFieldProps("cal", calIn, setCalIn)} />
           </label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>

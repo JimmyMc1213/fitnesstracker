@@ -67,6 +67,14 @@ describe("nutritionLog", () => {
     expect(unfavorited.nutritionPresets).toHaveLength(0);
   });
 
+  it("buildNutritionLoggedItem clamps absurd macro values", () => {
+    const row = buildNutritionLoggedItem({ cal: 200_000, p: 50_000, c: 40, f: -5 }, "Huge meal");
+    expect(row.cal).toBe(20_000);
+    expect(row.p).toBe(999);
+    expect(row.c).toBe(40);
+    expect(row.f).toBe(0);
+  });
+
   it("buildNutritionLoggedItem sets loggedAtMs and optional metadata when provided", () => {
     const row = buildNutritionLoggedItem({ cal: 10, p: 1, c: 0, f: 0 }, "Soup", {
       loggedAtMs: 42,

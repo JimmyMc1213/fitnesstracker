@@ -97,7 +97,7 @@ export function MacroRing({
           {Math.round(value)}
         </div>
         <div style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 400 }}>
-          of {target} kcal
+          of {target} cal
         </div>
       </div>
     </div>

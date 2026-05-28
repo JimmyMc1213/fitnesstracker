@@ -21,6 +21,7 @@ import { normalizeExerciseSessionHistoryByKey } from "./exerciseSessionHistory";
 import { normalizeWorkoutHistory } from "./workoutHistory";
 import { normalizeExerciseNotesByKey } from "./exerciseNotes";
 import { normalizeExperienceLevel } from "./experienceLevel";
+import { clampMacroTotals } from "./macroLimits";
 import { normalizeEquipmentSetup } from "./equipmentSetup";
 import {
   applyStreakEligibility,
@@ -361,7 +362,9 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
   const { slice: migrated } = migratePersistedFitnessSlice(p);
   p = migrated;
 
-  const nutritionTargets = p?.nutritionTargets ? { ...p.nutritionTargets } : { ...DEFAULT_NUTRITION_TARGETS };
+  const nutritionTargets = clampMacroTotals(
+    p?.nutritionTargets ? { ...p.nutritionTargets } : { ...DEFAULT_NUTRITION_TARGETS },
+  );
   const lastAdj =
     typeof p?.lastAdjustmentSundayKey === "string" ? p.lastAdjustmentSundayKey : null;
   const reviewDone =

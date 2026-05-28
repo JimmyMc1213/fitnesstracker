@@ -227,7 +227,7 @@ export function BarcodeScanOverlay({ setState, onClose }: BarcodeScanOverlayProp
           <>
             <div style={{ fontSize: 11, color: "var(--pos)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>✓ Match found</div>
             <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)", marginTop: 8 }}>Chobani · Greek Yogurt</div>
-            <div style={{ fontSize: 12, color: "var(--text-muted-soft)", marginTop: 6, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>150 kcal · 25P · 9C · 0F</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted-soft)", marginTop: 6, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>150 cal · 25P · 9C · 0F</div>
           </>
         )}
       </div>

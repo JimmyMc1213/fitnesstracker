@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_ONBOARDING_PROFILE } from "./onboardingProfile";
 import {
@@ -11,9 +11,18 @@ import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { FITNESS_LOCAL_STORAGE_KEY } from "./persistFitnessSlice";
 
 describe("onboardingSkip", () => {
-  it("treats personal outlook email as legacy; dev email is not legacy", () => {
-    expect(isLegacyUserEmail("jimmymccarthy1213@outlook.com")).toBe(true);
-    expect(isLegacyUserEmail("jimmy.mccarthy@nodoublesgolfco.com")).toBe(false);
+  beforeEach(() => {
+    vi.stubEnv("VITE_LEGACY_USER_EMAILS", "");
+    vi.stubEnv("VITE_DEV_SKIP_EMAIL", "test@example.com");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("treats VITE_DEV_SKIP_EMAIL as legacy when VITE_LEGACY_USER_EMAILS is unset", () => {
+    expect(isLegacyUserEmail("test@example.com")).toBe(true);
+    expect(isLegacyUserEmail("other-user@example.com")).toBe(false);
   });
 
   it("skips when onboarding profile setup flags are present without onboardingComplete", () => {

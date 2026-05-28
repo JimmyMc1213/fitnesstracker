@@ -300,7 +300,7 @@ export function ScreenProgress({ state, setState, onProgressGalleryOpenChange }:
                   </span>
                   <div style={{ textAlign: "right", minWidth: 0 }}>
                     <div style={{ color: "var(--text-soft)", fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
-                      {ev.before.cal}→{ev.after.cal} kcal · {formatWeeklyRateLbsPerWeek(ev.weeklyLossLbs, wUnit)}
+                      {ev.before.cal}→{ev.after.cal} cal · {formatWeeklyRateLbsPerWeek(ev.weeklyLossLbs, wUnit)}
                     </div>
                     {ev.recommendedDeltaCal != null && ev.appliedDeltaCal != null && ev.recommendedDeltaCal !== ev.appliedDeltaCal ? (
                       <div style={{ fontSize: 10, color: "var(--text-tertiary)", marginTop: 4, fontVariantNumeric: "tabular-nums" }}>
@@ -321,7 +321,7 @@ export function ScreenProgress({ state, setState, onProgressGalleryOpenChange }:
       <div className="card" style={{ padding: 18 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {[
-            { label: "Calories", value: String(T.cal), unit: "kcal" },
+            { label: "Calories", value: String(T.cal), unit: "cal" },
             { label: "Protein", value: String(T.p), unit: "g" },
             { label: "Carbs", value: String(T.c), unit: "g" },
             { label: "Fat", value: String(T.f), unit: "g" },

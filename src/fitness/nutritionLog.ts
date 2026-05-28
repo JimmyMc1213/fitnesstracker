@@ -1,4 +1,5 @@
 import { applyStreakEligibility } from "./dailyStreak";
+import { clampMacroTotals } from "./macroLimits";
 import { addNutritionFavorite, isNutritionFavorite, nutritionPresetFingerprint, touchNutritionPresetById } from "./nutritionTotals";
 import type { AppState, MacroTotals, NutritionLoggedItem, NutritionPreset, NutritionUserFood } from "./types";
 
@@ -59,13 +60,14 @@ export function buildNutritionLoggedItem(
   const extras = typeof idOrExtras === "object" && idOrExtras !== null ? idOrExtras : undefined;
   const id = typeof idOrExtras === "string" ? idOrExtras : (extras?.id ?? newNutritionItemId());
   const loggedAtMs = extras?.loggedAtMs ?? Date.now();
+  const bounded = clampMacroTotals(macros);
   const base: NutritionLoggedItem = {
     id,
     name,
-    cal: Number(macros.cal) || 0,
-    p: Number(macros.p) || 0,
-    c: Number(macros.c) || 0,
-    f: Number(macros.f) || 0,
+    cal: bounded.cal,
+    p: bounded.p,
+    c: bounded.c,
+    f: bounded.f,
     loggedAtMs,
   };
   const sl =
@@ -162,8 +164,9 @@ export function updateNutritionLoggedItem(
   const prev = state.nutritionItemsByDay[dateKey] ?? [];
   const idx = prev.findIndex((row) => row.id === itemId);
   if (idx < 0) return state;
+  const bounded = clampMacroTotals(patch);
   const nextRows = [...prev];
-  nextRows[idx] = { ...patch, id: itemId };
+  nextRows[idx] = { ...patch, ...bounded, id: itemId };
   return applyStreakEligibility(
     {
       ...state,
@@ -247,13 +250,14 @@ export function upsertNutritionUserFood(
   const now = Date.now();
   const id = input.id ?? newNutritionItemId();
   const existing = foods.find((f) => f.id === id);
+  const bounded = clampMacroTotals(input);
   const row: NutritionUserFood = {
     id,
     name: input.name.trim() || "Food",
-    cal: Number(input.cal) || 0,
-    p: Number(input.p) || 0,
-    c: Number(input.c) || 0,
-    f: Number(input.f) || 0,
+    cal: bounded.cal,
+    p: bounded.p,
+    c: bounded.c,
+    f: bounded.f,
     savedAtMs: existing?.savedAtMs ?? now,
     updatedAtMs: now,
     ...(input.servingLabel?.trim() ? { servingLabel: input.servingLabel.trim() } : {}),

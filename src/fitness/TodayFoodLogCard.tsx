@@ -34,6 +34,57 @@ function displayServingLabel(label: string): string {
   });
 }
 
+const MACRO_COLORS = {
+  Protein: "var(--macro-protein)",
+  Carbs: "var(--macro-carbs)",
+  Fat: "var(--macro-fat)",
+} as const;
+
+const macroDotStyle = { color: "var(--text-ghost)", margin: "0 5px" } as const;
+
+function FoodLogMacroLine({ item }: { item: NutritionLoggedItem }) {
+  const macros = [
+    { key: "Protein" as const, letter: "P", grams: Math.round(Number(item.p) || 0) },
+    { key: "Carbs" as const, letter: "C", grams: Math.round(Number(item.c) || 0) },
+    { key: "Fat" as const, letter: "F", grams: Math.round(Number(item.f) || 0) },
+  ];
+
+  return (
+    <div style={{ marginTop: 6 }}>
+      <div
+        style={{
+          fontSize: 16,
+          fontWeight: 600,
+          color: "var(--text-faint-soft)",
+          fontVariantNumeric: "tabular-nums",
+          lineHeight: 1.2,
+          letterSpacing: "-0.02em",
+        }}
+      >
+        {Math.round(Number(item.cal) || 0)} cal
+      </div>
+      <div
+        style={{
+          marginTop: 4,
+          fontSize: 12,
+          fontWeight: 500,
+          fontVariantNumeric: "tabular-nums",
+          lineHeight: 1.4,
+        }}
+      >
+        {macros.map((macro, idx) => (
+          <span key={macro.key}>
+            {idx > 0 ? <span style={macroDotStyle}>·</span> : null}
+            <span style={{ color: MACRO_COLORS[macro.key] }}>
+              {macro.letter} {macro.grams}g
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 type SwipeableFoodLogRowProps = {
   item: NutritionLoggedItem;
   onEdit: (item: NutritionLoggedItem) => void;
@@ -75,35 +126,44 @@ function SwipeableFoodLogRow({
             }
           }}
           style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 10,
             padding: "14px 16px",
             background: "var(--card-gradient-bg)",
             cursor: "pointer",
           }}
         >
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+            <div
+              style={{
+                minWidth: 0,
+                flex: 1,
+                fontSize: 14,
+                fontWeight: 600,
+                color: "var(--text-primary)",
+                letterSpacing: "-0.02em",
+                lineHeight: 1.3,
+              }}
+            >
               {displayName}
+              {item.servingLabel?.trim() ? (
+                <span style={{ fontWeight: 500, color: "var(--text-faint-soft)" }}>
+                  {" · "}
+                  {displayServingLabel(item.servingLabel.trim())}
+                </span>
+              ) : null}
             </div>
             <div
               style={{
-                fontSize: 12,
-                color: "var(--text-faint-soft)",
+                flexShrink: 0,
+                fontSize: 11,
+                color: "var(--text-ghost)",
                 fontWeight: 500,
-                marginTop: 4,
                 fontVariantNumeric: "tabular-nums",
               }}
             >
-              {Math.round(Number(item.cal) || 0)} kcal · P {Math.round(Number(item.p) || 0)}g
-              {item.servingLabel?.trim() ? ` · ${displayServingLabel(item.servingLabel.trim())}` : ""}
-            </div>
-            <div style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, marginTop: 2 }}>
               {formatLoggedTime(item.loggedAtMs)}
             </div>
           </div>
+          <FoodLogMacroLine item={item} />
         </div>
       </SwipeToDelete>
     </div>

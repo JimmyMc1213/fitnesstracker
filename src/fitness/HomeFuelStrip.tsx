@@ -35,7 +35,7 @@ export function HomeFuelStrip({ totals, targets, label = "Fuel · Today" }: Prop
               fontVariantNumeric: "tabular-nums",
             }}
           >
-            {kcalLeft} kcal left
+            {kcalLeft} cal left
           </div>
         </div>
       </div>

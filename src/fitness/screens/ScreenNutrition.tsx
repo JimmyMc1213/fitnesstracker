@@ -76,12 +76,12 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
                   fontVariantNumeric: "tabular-nums",
                 }}
               >
-                {kcalLeft} kcal left
+                {kcalLeft} cal left
               </div>
             </div>
-            <MacroBar label="Protein" value={totals.p} target={T.p} />
-            <MacroBar label="Carbs" value={totals.c} target={T.c} />
-            <MacroBar label="Fat" value={totals.f} target={T.f} />
+            <MacroBar label="Protein" value={totals.p} target={T.p} color="var(--macro-protein)" />
+            <MacroBar label="Carbs" value={totals.c} target={T.c} color="var(--macro-carbs)" />
+            <MacroBar label="Fat" value={totals.f} target={T.f} color="var(--macro-fat)" />
           </div>
         </div>
         {T.p > 0 && proteinLeft > 0 ? (

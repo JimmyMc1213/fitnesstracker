@@ -333,8 +333,8 @@ export function buildSundayFuelUpdate(state: AppState): SundayCheckInFuelUpdate 
     kcal: t.cal,
     proteinG: t.p,
     summary: changedRecently
-      ? `Targets stay put: ${t.cal.toLocaleString()} kcal · ${t.p}g P. Pace is good. Re-evaluate next Sunday.`
-      : `Targets stay put: ${t.cal.toLocaleString()} kcal · ${t.p}g P. Pace is good. Re-evaluate next Sunday.`,
+      ? `Targets stay put: ${t.cal.toLocaleString()} cal · ${t.p}g P. Pace is good. Re-evaluate next Sunday.`
+      : `Targets stay put: ${t.cal.toLocaleString()} cal · ${t.p}g P. Pace is good. Re-evaluate next Sunday.`,
   };
 }
 
