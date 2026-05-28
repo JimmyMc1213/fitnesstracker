@@ -251,6 +251,103 @@ function isGramOrOzUnit(unit: string): boolean {
   );
 }
 
+/** Map a logged serving label onto the picker's measurement list (ids differ from buildMeasurements). */
+export function resolvePickerMeasurementFromServing(
+  measurements: FoodMeasurement[],
+  fixedLabels: Record<string, string>,
+  servingLabel: string,
+): { measurementId: string; quantity: string } {
+  const trimmed = servingLabel.trim();
+  const parsed = parseServingLabel(trimmed);
+  const fallback = measurements[0];
+  if (!fallback) return { measurementId: "100g", quantity: "100" };
+
+  const multiFixed = trimmed.match(/^([\d.]+)\s*[×x]\s*(.+)$/i);
+  if (multiFixed) {
+    const qty = multiFixed[1];
+    const innerLabel = multiFixed[2].trim();
+    for (const m of measurements) {
+      const fixed = fixedLabels[m.id];
+      if (fixed && fixed.trim().toLowerCase() === innerLabel.toLowerCase()) {
+        return { measurementId: m.id, quantity: qty };
+      }
+    }
+  }
+
+  if (!parsed) {
+    return { measurementId: fallback.id, quantity: String(fallback.defaultQuantity) };
+  }
+
+  const quantity = String(parsed.quantity);
+
+  for (const m of measurements) {
+    const fixed = fixedLabels[m.id];
+    if (fixed && fixed.trim().toLowerCase() === trimmed.toLowerCase()) {
+      return { measurementId: m.id, quantity };
+    }
+  }
+
+  if (parsed.unit === "g" || parsed.unit === "gram" || parsed.unit === "grams") {
+    const gramMeas =
+      measurements.find((m) => m.id === "100g") ??
+      measurements.find((m) => m.id === "g") ??
+      measurements.find((m) => m.unitSuffix === "g" && m.gramsPerUnit === 1);
+    if (gramMeas) {
+      return { measurementId: gramMeas.id, quantity: String(parsed.grams ?? parsed.quantity) };
+    }
+  }
+
+  if (parsed.unit === "oz" || parsed.unit === "ounce" || parsed.unit === "ounces") {
+    const ozMeas =
+      measurements.find((m) => m.id === "oz") ??
+      measurements.find((m) => m.unitSuffix === "oz");
+    if (ozMeas) return { measurementId: ozMeas.id, quantity };
+  }
+
+  for (const m of measurements) {
+    if (formatServingLabel(m, parsed.quantity).replace(/\s+/g, " ").toLowerCase() === trimmed.toLowerCase()) {
+      return { measurementId: m.id, quantity };
+    }
+  }
+
+  if (parsed.grams && parsed.grams > 0) {
+    for (const m of measurements) {
+      const expectedGrams = m.gramsPerUnit * parsed.quantity;
+      if (Number.isFinite(expectedGrams) && Math.abs(expectedGrams - parsed.grams) < 0.5) {
+        return { measurementId: m.id, quantity };
+      }
+    }
+  }
+
+  return { measurementId: fallback.id, quantity };
+}
+
+/** When the stored serving label hides quantity (e.g. "1 breast" for 14 breasts), infer from logged macros. */
+export function inferLoggedServingQuantity(
+  item: NutritionLoggedItem,
+  food: FoodSearchResult,
+  measurement: FoodMeasurement,
+  parsedQuantity: number,
+  baseGrams: number,
+): number {
+  const loggedCal = Number(item.cal) || 0;
+  const expected = scaleMacros(
+    food,
+    computeServingMultiplier(measurement, parsedQuantity, baseGrams),
+  );
+  const tolerance = Math.max(8, loggedCal * 0.05);
+  if (Math.abs(expected.cal - loggedCal) <= tolerance) return parsedQuantity;
+
+  const oneUnitCal = scaleMacros(food, computeServingMultiplier(measurement, 1, baseGrams)).cal;
+  if (oneUnitCal <= 0) return parsedQuantity;
+
+  const inferred = loggedCal / oneUnitCal;
+  if (!Number.isFinite(inferred) || inferred <= 0) return parsedQuantity;
+
+  if (Math.abs(inferred - Math.round(inferred)) < 0.05) return Math.round(inferred);
+  return Math.round(inferred * 10) / 10;
+}
+
 /** Reconstruct picker state when editing a catalog-logged food row. */
 export function loggedItemToPickerEdit(item: NutritionLoggedItem): {
   food: FoodSearchResult;

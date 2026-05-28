@@ -7,7 +7,10 @@ import {
   loggedItemToPickerEdit,
   parseQuantityInput,
   parseServingLabel,
+  inferLoggedServingQuantity,
+  resolvePickerMeasurementFromServing,
 } from "./foodMeasurements";
+import type { FoodMeasurement } from "./foodSearchTypes";
 import type { FoodSearchResult } from "./foodSearchTypes";
 
 const chicken: FoodSearchResult = {
@@ -95,5 +98,80 @@ describe("foodMeasurements", () => {
         f: 0,
       }),
     ).toBeNull();
+  });
+
+  it("resolves gram servings to the 100g picker preset", () => {
+    const measurements: FoodMeasurement[] = [
+      { id: "smart-default", label: "1 breast (8oz)", unitSuffix: "", gramsPerUnit: 226, defaultQuantity: 1 },
+      { id: "100g", label: "100g", unitSuffix: "g", gramsPerUnit: 1, defaultQuantity: 100 },
+      { id: "oz", label: "Oz", unitSuffix: "oz", gramsPerUnit: 28.3495, defaultQuantity: 3.5 },
+    ];
+    const fixedLabels = { "smart-default": "1 breast (8oz)" };
+
+    expect(
+      resolvePickerMeasurementFromServing(measurements, fixedLabels, "100 g"),
+    ).toEqual({ measurementId: "100g", quantity: "100" });
+  });
+
+  it("resolves fixed-label servings to smart-default", () => {
+    const measurements: FoodMeasurement[] = [
+      { id: "smart-default", label: "1 breast (8oz)", unitSuffix: "", gramsPerUnit: 226, defaultQuantity: 1 },
+      { id: "100g", label: "100g", unitSuffix: "g", gramsPerUnit: 1, defaultQuantity: 100 },
+      { id: "oz", label: "Oz", unitSuffix: "oz", gramsPerUnit: 28.3495, defaultQuantity: 3.5 },
+    ];
+    const fixedLabels = { "smart-default": "1 breast (8oz)" };
+
+    expect(
+      resolvePickerMeasurementFromServing(measurements, fixedLabels, "1 breast (8oz)"),
+    ).toEqual({ measurementId: "smart-default", quantity: "1" });
+  });
+
+  it("resolves multi-count fixed-label servings", () => {
+    const measurements: FoodMeasurement[] = [
+      { id: "smart-default", label: "1 breast (8oz)", unitSuffix: "", gramsPerUnit: 226, defaultQuantity: 1 },
+      { id: "100g", label: "100g", unitSuffix: "g", gramsPerUnit: 1, defaultQuantity: 100 },
+    ];
+    const fixedLabels = { "smart-default": "1 breast (8oz)" };
+
+    expect(
+      resolvePickerMeasurementFromServing(measurements, fixedLabels, "14 × 1 breast (8oz)"),
+    ).toEqual({ measurementId: "smart-default", quantity: "14" });
+  });
+
+  it("infers hidden quantity from logged macros when label says 1 serving", () => {
+    const food: FoodSearchResult = {
+      id: "c1",
+      name: "Chicken Breast, Cooked",
+      cal: 165,
+      p: 31,
+      c: 0,
+      f: 3.6,
+      defaultServing: "100 g",
+      baseGrams: 100,
+      source: "curated",
+      externalId: "c_chicken_breast",
+      servings: [],
+    };
+    const measurement: FoodMeasurement = {
+      id: "smart-default",
+      label: "1 breast (8oz)",
+      unitSuffix: "",
+      gramsPerUnit: 226,
+      defaultQuantity: 1,
+    };
+    const logged = {
+      id: "log-1",
+      name: "Chicken Breast, Cooked",
+      cal: 5222,
+      p: 434,
+      c: 0,
+      f: 50.4,
+      servingLabel: "1 breast (8oz)",
+      source: "curated",
+      externalId: "c_chicken_breast",
+      loggedAtMs: 1,
+    };
+
+    expect(inferLoggedServingQuantity(logged, food, measurement, 1, 100)).toBe(14);
   });
 });

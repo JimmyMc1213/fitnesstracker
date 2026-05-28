@@ -5,6 +5,8 @@ import {
   buildLoggedItemFromMeal,
   formatMealServingLabel,
   logNutritionMealToDay,
+  mealItemFromPreset,
+  mealItemFromUserFood,
   mergeNutritionMeals,
   normalizeNutritionMeals,
   removeNutritionMeal,
@@ -119,6 +121,43 @@ describe("meal state helpers", () => {
     const state = logNutritionMealToDay(baseState(), "2026-05-23", meal);
     expect(state.nutritionItemsByDay["2026-05-23"]).toHaveLength(1);
     expect(state.nutritionItemsByDay["2026-05-23"]?.[0]?.name).toBe("Protein bowl");
+  });
+});
+
+describe("mealItemFromUserFood and mealItemFromPreset", () => {
+  it("copies user food fields into a meal ingredient", () => {
+    const item = mealItemFromUserFood({
+      id: "uf-1",
+      name: "Greek yogurt",
+      cal: 100,
+      p: 17,
+      c: 6,
+      f: 0,
+      servingLabel: "1 cup",
+      source: "manual",
+    });
+    expect(item.name).toBe("Greek yogurt");
+    expect(item.cal).toBe(100);
+    expect(item.servingLabel).toBe("1 cup");
+    expect(item.source).toBe("manual");
+    expect(item.id).not.toBe("uf-1");
+  });
+
+  it("copies favorite preset fields into a meal ingredient", () => {
+    const item = mealItemFromPreset({
+      id: "preset-1",
+      name: "Protein shake",
+      cal: 250,
+      p: 30,
+      c: 10,
+      f: 5,
+      servingLabel: "1 scoop",
+      lastUsedAtMs: 1000,
+      favoritedAtMs: 2000,
+    });
+    expect(item.name).toBe("Protein shake");
+    expect(item.servingLabel).toBe("1 scoop");
+    expect(item.p).toBe(30);
   });
 });
 

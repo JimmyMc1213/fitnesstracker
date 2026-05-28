@@ -21,7 +21,9 @@ import {
   formatServingLabel,
   getBaseGrams,
   inferMeasurementFromServing,
+  inferLoggedServingQuantity,
   loggedItemToPickerEdit,
+  resolvePickerMeasurementFromServing,
   OZ_TO_G,
   parseQuantityInput,
   parseServingLabel,
@@ -48,6 +50,7 @@ import {
   appendNutritionMeal,
   formatMealServingLabel,
   logNutritionMealToDay,
+  mealItemFromPreset,
   mealItemFromUserFood,
   removeNutritionMeal,
   sumMealMacros,
@@ -59,7 +62,7 @@ import { PrimaryButton } from "./shared";
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { FoodSearchSkeletonList } from "./FoodSearchSkeletonList";
 import { IconScan } from "./icons";
-import { closeAfterMotion, FullScreenOverlay, MOTION_DURATIONS } from "./motion";
+import { closeAfterMotion, FullScreenOverlay, MOTION_DURATIONS, ScreenTransition } from "./motion";
 import type { AppState, NutritionLoggedItem, NutritionMeal, NutritionMealItem, NutritionPreset, NutritionUserFood } from "./types";
 
 type PickerContext = "log" | "mealIngredient";
@@ -314,11 +317,11 @@ function buildPickerMeasurements(
   }
 
   add({
-    id: "custom",
-    label: "Custom",
+    id: "oz",
+    label: "Oz",
     unitSuffix: "oz",
     gramsPerUnit: OZ_TO_G,
-    defaultQuantity: 4,
+    defaultQuantity: Math.round((baseGrams / OZ_TO_G) * 10) / 10,
   });
 
   if (!curated) {
@@ -337,7 +340,12 @@ function pickerServingLabel(
   fixedLabels: Record<string, string>,
 ): string {
   const fixed = fixedLabels[measurement.id];
-  if (fixed) return fixed;
+  if (fixed) {
+    const q = Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+    if (q === 1) return fixed;
+    const qStr = Number.isInteger(q) ? String(q) : String(Math.round(q * 10) / 10);
+    return `${qStr} × ${fixed}`;
+  }
   return formatServingLabel(measurement, quantity);
 }
 
@@ -434,6 +442,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   const [pickerContext, setPickerContext] = useState<PickerContext>("log");
   const [mealAddSearchOpen, setMealAddSearchOpen] = useState(false);
   const [mealAddMyFoodsOpen, setMealAddMyFoodsOpen] = useState(false);
+  const [mealAddFavoritesOpen, setMealAddFavoritesOpen] = useState(false);
   const [mealIngredientManualOpen, setMealIngredientManualOpen] = useState(false);
   const [mealIngredientName, setMealIngredientName] = useState("");
   const [mealIngredientCal, setMealIngredientCal] = useState("");
@@ -576,6 +585,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     setPickerContext("log");
     setMealAddSearchOpen(false);
     setMealAddMyFoodsOpen(false);
+    setMealAddFavoritesOpen(false);
     setMealIngredientManualOpen(false);
     resetMealIngredientDraft();
   }
@@ -613,15 +623,34 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
 
     const pickerEdit = loggedItemToPickerEdit(item);
     if (pickerEdit) {
-      setPickerFood(pickerEdit.food);
-      if (pickerEdit.food.source === "curated") {
-        const curated = CURATED_FOODS.find((f) => f.id === pickerEdit.food.externalId) ?? null;
-        setPickerCurated(curated);
-      } else {
-        setPickerCurated(null);
+      const curated =
+        pickerEdit.food.source === "curated"
+          ? (CURATED_FOODS.find((f) => f.id === pickerEdit.food.externalId) ?? null)
+          : null;
+      let food = curated ? curatedToSearchResult(curated) : pickerEdit.food;
+      const { measurements, fixedLabels } = buildPickerMeasurements(food, curated ?? undefined);
+      const resolved = resolvePickerMeasurementFromServing(
+        measurements,
+        fixedLabels,
+        item.servingLabel?.trim() ?? "",
+      );
+      const measurement =
+        measurements.find((m) => m.id === resolved.measurementId) ?? measurements[0] ?? null;
+      const baseGrams = getBaseGrams(food);
+      let quantityNum =
+        parseQuantityInput(resolved.quantity) ?? measurement?.defaultQuantity ?? 1;
+      if (measurement) {
+        quantityNum = inferLoggedServingQuantity(item, food, measurement, quantityNum, baseGrams);
+        if (!curated) {
+          const mult = computeServingMultiplier(measurement, quantityNum, baseGrams);
+          const baseMacros = scaleMacros(item, mult > 0 ? 1 / mult : 1);
+          food = { ...food, ...baseMacros };
+        }
       }
-      setPickerMeasurementId(pickerEdit.measurementId);
-      setPickerQuantity(pickerEdit.quantity);
+      setPickerFood(food);
+      setPickerCurated(curated);
+      setPickerMeasurementId(measurement?.id ?? resolved.measurementId);
+      setPickerQuantity(String(quantityNum));
       setManualOpen(false);
       resetManualDraft();
       return;
@@ -658,9 +687,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         resetMealIngredientDraft();
         return;
       }
-      if (mealAddSearchOpen || mealAddMyFoodsOpen) {
+      if (mealAddSearchOpen || mealAddMyFoodsOpen || mealAddFavoritesOpen) {
         setMealAddSearchOpen(false);
         setMealAddMyFoodsOpen(false);
+        setMealAddFavoritesOpen(false);
         setSearch("");
         setApiResults([]);
         return;
@@ -818,6 +848,11 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   function addMealIngredientFromUserFood(food: NutritionUserFood) {
     setMealDraftItems((prev) => [...prev, mealItemFromUserFood(food)]);
     setMealAddMyFoodsOpen(false);
+  }
+
+  function addMealIngredientFromPreset(preset: NutritionPreset) {
+    setMealDraftItems((prev) => [...prev, mealItemFromPreset(preset)]);
+    setMealAddFavoritesOpen(false);
   }
 
   function openEditUserFood(food: NutritionUserFood) {
@@ -1015,6 +1050,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   }
 
   async function handleBarcodeScan(code: string) {
+    const addingToMeal = mealEditorOpen && !mealIngredientManualOpen;
     setScannerOpen(false);
     setBarcodeLookupLoading(true);
     setBarcodeFeedback(null);
@@ -1025,6 +1061,13 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         return;
       }
       submitCommunityFoodFromBarcodeScan(code, food);
+      if (addingToMeal) {
+        setMealAddSearchOpen(false);
+        setMealAddMyFoodsOpen(false);
+        setMealAddFavoritesOpen(false);
+        openPicker(food, "mealIngredient");
+        return;
+      }
       if (dayLogAtCapacity) {
         setBarcodeFeedback("Daily log limit reached. Remove an entry to add more.");
         return;
@@ -1059,7 +1102,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
 
   const tabs: LogFoodTab[] = ["all", "myFoods", "myMeals", "saved"];
 
-  const showScanButton = !pickerFood && !mealEditorOpen && !manualOpen;
+  const showScanButton = !pickerFood && !manualOpen && (!mealEditorOpen || !mealIngredientManualOpen);
 
   const tabButtonStyle = (active: boolean) =>
     ({
@@ -1473,6 +1516,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       ) : mealEditorOpen ? (
         <>
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px 100px", WebkitOverflowScrolling: "touch" }}>
+            {barcodeFeedback ? (
+              <p style={{ margin: "0 0 12px", fontSize: 14, color: "var(--neg)", lineHeight: 1.5 }}>{barcodeFeedback}</p>
+            ) : null}
+            {barcodeLookupLoading ? <FoodSearchSkeletonList variant="plain" /> : null}
             {mealIngredientManualOpen ? (
               <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
                 <label style={{ fontSize: 11, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
@@ -1632,6 +1679,30 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   ))}
                 </div>
               )
+            ) : mealAddFavoritesOpen ? (
+              favoritePresets.length === 0 ? (
+                <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)" }}>No favorite foods yet. Star foods while logging to save them here.</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  {favoritePresets.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      className="tap"
+                      style={foodRowStyle}
+                      onClick={() => addMealIngredientFromPreset(preset)}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{preset.name.trim() || "Food"}</div>
+                        <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontVariantNumeric: "tabular-nums" }}>
+                          {Math.round(Number(preset.cal) || 0)} kcal · {preset.servingLabel?.trim() || `${Math.round(Number(preset.p) || 0)}g protein`}
+                        </div>
+                      </div>
+                      <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 600, color: "var(--pos, #4ade80)" }}>Add</span>
+                    </button>
+                  ))}
+                </div>
+              )
             ) : (
               <>
                 <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14, marginBottom: 12 }}>
@@ -1685,13 +1756,16 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 )}
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <button type="button" className="tap" onClick={() => { setMealAddSearchOpen(true); setMealAddMyFoodsOpen(false); setMealIngredientManualOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid var(--sheet-panel-border)", background: "var(--surface-3)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
+                  <button type="button" className="tap" onClick={() => { setMealAddSearchOpen(true); setMealAddMyFoodsOpen(false); setMealAddFavoritesOpen(false); setMealIngredientManualOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid var(--sheet-panel-border)", background: "var(--surface-3)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
                     Add from search
                   </button>
-                  <button type="button" className="tap" onClick={() => { setMealAddMyFoodsOpen(true); setMealAddSearchOpen(false); setMealIngredientManualOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid var(--sheet-panel-border)", background: "var(--surface-3)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
+                  <button type="button" className="tap" onClick={() => { setMealAddMyFoodsOpen(true); setMealAddSearchOpen(false); setMealAddFavoritesOpen(false); setMealIngredientManualOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid var(--sheet-panel-border)", background: "var(--surface-3)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
                     Add from My foods
                   </button>
-                  <button type="button" className="tap" onClick={() => { setMealIngredientManualOpen(true); setMealAddSearchOpen(false); setMealAddMyFoodsOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid var(--sheet-panel-border)", background: "var(--surface-3)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
+                  <button type="button" className="tap" onClick={() => { setMealAddFavoritesOpen(true); setMealAddSearchOpen(false); setMealAddMyFoodsOpen(false); setMealIngredientManualOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid var(--sheet-panel-border)", background: "var(--surface-3)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
+                    Add from Favorite foods
+                  </button>
+                  <button type="button" className="tap" onClick={() => { setMealIngredientManualOpen(true); setMealAddSearchOpen(false); setMealAddMyFoodsOpen(false); setMealAddFavoritesOpen(false); }} style={{ padding: "12px 14px", borderRadius: 12, border: "0.5px solid var(--sheet-panel-border)", background: "var(--surface-3)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, textAlign: "left" }}>
                     Add manually
                   </button>
                 </div>
@@ -1711,7 +1785,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
               <PrimaryButton block onClick={addMealIngredientFromManual} style={{ fontWeight: 700 }}>
                 Add ingredient
               </PrimaryButton>
-            ) : mealAddSearchOpen || mealAddMyFoodsOpen ? null : (
+            ) : mealAddSearchOpen || mealAddMyFoodsOpen || mealAddFavoritesOpen ? null : (
               <PrimaryButton
                 block
                 onClick={saveMealDraft}
@@ -1828,7 +1902,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
               ))}
             </div>
 
-            {tab === "all" ? (
+            <ScreenTransition activeKey={tab} variant="fade" style={{ flex: "none", minHeight: 0 }}>
+              {(activeTab) => (
+                <>
+            {activeTab === "all" ? (
               <>
                 <input
                   ref={searchInputRef}
@@ -2008,7 +2085,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   </>
                 )}
               </>
-            ) : tab === "myFoods" ? (
+            ) : activeTab === "myFoods" ? (
               <>
                 {userFoods.length === 0 ? (
                   <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
@@ -2076,7 +2153,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   </div>
                 )}
               </>
-            ) : tab === "saved" ? (
+            ) : activeTab === "saved" ? (
               <>
                 {favoritePresets.length === 0 ? (
                   <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
@@ -2128,7 +2205,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   </div>
                 )}
               </>
-            ) : tab === "myMeals" ? (
+            ) : activeTab === "myMeals" ? (
               <>
                 {savedMeals.length === 0 ? (
                   <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 400, lineHeight: 1.5 }}>
@@ -2202,6 +2279,9 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 )}
               </>
             ) : null}
+                </>
+              )}
+            </ScreenTransition>
           </div>
 
           <div

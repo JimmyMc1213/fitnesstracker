@@ -1,5 +1,13 @@
 import { appendNutritionLoggedItem, buildNutritionLoggedItem, newNutritionItemId } from "./nutritionLog";
-import type { AppState, MacroTotals, NutritionLoggedItem, NutritionMeal, NutritionMealItem, NutritionUserFood } from "./types";
+import type {
+  AppState,
+  MacroTotals,
+  NutritionLoggedItem,
+  NutritionMeal,
+  NutritionMealItem,
+  NutritionPreset,
+  NutritionUserFood,
+} from "./types";
 
 const MAX_NUTRITION_MEALS = 100;
 
@@ -93,6 +101,18 @@ export function mealItemFromUserFood(food: NutritionUserFood): NutritionMealItem
     ...(food.servingLabel?.trim() ? { servingLabel: food.servingLabel.trim() } : {}),
     ...(food.source?.trim() ? { source: food.source.trim() } : {}),
     ...(food.externalId?.trim() ? { externalId: food.externalId.trim() } : {}),
+  };
+}
+
+export function mealItemFromPreset(preset: NutritionPreset): NutritionMealItem {
+  return {
+    id: newNutritionItemId(),
+    name: preset.name.trim() || "Food",
+    cal: Number(preset.cal) || 0,
+    p: Number(preset.p) || 0,
+    c: Number(preset.c) || 0,
+    f: Number(preset.f) || 0,
+    ...(preset.servingLabel?.trim() ? { servingLabel: preset.servingLabel.trim() } : {}),
   };
 }
 
