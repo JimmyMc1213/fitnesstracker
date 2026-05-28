@@ -65,10 +65,47 @@ export function applyGoalSettingsPatch(
   if (!state.onboardingProfile) return state;
   const currentWeightLbs = latestWeightLbs(state);
   const onboardingProfile = normalizeGoalProfilePatch(state.onboardingProfile, patch, currentWeightLbs);
+  return applyGoalSettingsProfile(state, onboardingProfile, currentWeightLbs);
+}
+
+export function applyGoalSettingsDraft(state: AppState, draft: OnboardingProfile): AppState {
+  if (!state.onboardingProfile) return state;
+  const currentWeightLbs = latestWeightLbs(state);
+  const goal = draft.goal ?? "maintain";
+  const onboardingProfile: OnboardingProfile = {
+    ...state.onboardingProfile,
+    goal,
+    goalWeightLbs: goal === "maintain" ? undefined : draft.goalWeightLbs,
+    pace: goal === "maintain" ? undefined : draft.pace,
+  };
+  return applyGoalSettingsProfile(state, onboardingProfile, currentWeightLbs);
+}
+
+function applyGoalSettingsProfile(
+  state: AppState,
+  onboardingProfile: OnboardingProfile,
+  currentWeightLbs: number,
+): AppState {
   const progressGoal = progressGoalFromOnboarding(onboardingProfile, {
     anchorWeightLbs: currentWeightLbs,
     progressStartWeightLbs: state.progressGoal?.progressStartWeightLbs,
   });
   const nutritionTargets = calculateNutritionTargets(nutritionCalcInputFromOnboardingProfile(onboardingProfile));
   return { ...state, onboardingProfile, progressGoal, nutritionTargets };
+}
+
+export type GoalSettingsFields = Pick<OnboardingProfile, "goal" | "goalWeightLbs" | "pace">;
+
+function snapshotGoalSettings(profile: OnboardingProfile): GoalSettingsFields {
+  return {
+    goal: profile.goal,
+    goalWeightLbs: profile.goalWeightLbs,
+    pace: profile.pace,
+  };
+}
+
+export function isGoalSettingsDirty(saved: OnboardingProfile, draft: OnboardingProfile): boolean {
+  const a = snapshotGoalSettings(saved);
+  const b = snapshotGoalSettings(draft);
+  return a.goal !== b.goal || a.goalWeightLbs !== b.goalWeightLbs || a.pace !== b.pace;
 }

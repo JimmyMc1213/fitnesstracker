@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ComponentType, type ReactNode, type SVGProps } from "react";
 
 import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { MOTION_DURATIONS, ScreenTransition } from "../motion";
@@ -39,10 +39,18 @@ import { useTheme } from "../ThemeContext";
 import type { AppTheme } from "../theme";
 import { UnitPreferencePicker } from "../UnitPreferencePicker";
 import { EquipmentSetupPicker } from "../EquipmentSetupPicker";
-import { ChangeGoalConfirmSheet } from "../ChangeGoalConfirmSheet";
+import { DiscardGoalChangesConfirmSheet, SaveGoalConfirmSheet } from "../GoalSettingsConfirmSheets";
 import { GoalSettingsPicker } from "../GoalSettingsPicker";
-import { applyGoalSettingsPatch, latestWeightLbs, nutritionGoalSettingsLabel } from "../goalSettings";
+import {
+  applyGoalSettingsDraft,
+  isGoalSettingsDirty,
+  isGoalWeightValid,
+  latestWeightLbs,
+  normalizeGoalProfilePatch,
+  nutritionGoalSettingsLabel,
+} from "../goalSettings";
 import { nutritionGoalLabel } from "../nutritionCalculator";
+import { progressGoalFromOnboarding } from "../onboardingProfile";
 import { rebuildWorkoutTemplatesForEquipment } from "../workoutTemplateBuilder";
 import { EQUIPMENT_SETUP_LABELS } from "../equipmentSetup";
 import { NotificationPreferencesPicker } from "../NotificationPreferencesPicker";
@@ -62,7 +70,7 @@ import {
   volumeUnitLabel,
   weightUnitLabel,
 } from "../unitPreferences";
-import type { EquipmentSetup, HabitTemplate, MacroTotals, NutritionGoal, ScreenProps, UnitPreferences } from "../types";
+import type { EquipmentSetup, HabitTemplate, MacroTotals, OnboardingProfile, ScreenProps, UnitPreferences } from "../types";
 import { sanitizeUserText } from "../userText";
 
 type YouSubPanel = null | "change-password";
@@ -108,6 +116,14 @@ const PANEL_TITLES: Record<Exclude<SettingsPanel, null>, string> = {
 function rowIcon(node: ReactNode) {
   return node;
 }
+
+function brandSocialIcon(component: unknown): ComponentType<SVGProps<SVGSVGElement>> {
+  return component as ComponentType<SVGProps<SVGSVGElement>>;
+}
+
+const InstagramBrandIcon = brandSocialIcon(InstagramIcon);
+const TikTokBrandIcon = brandSocialIcon(TikTokIcon);
+const XBrandIcon = brandSocialIcon(XIcon);
 
 function AppleSignInIcon() {
   return (
@@ -192,7 +208,8 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
   const [deleteAccountNotice, setDeleteAccountNotice] = useState<string | null>(null);
   const [deleteAccountBusy, setDeleteAccountBusy] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
-  const [pendingGoalChange, setPendingGoalChange] = useState<NutritionGoal | null>(null);
+  const [goalDraft, setGoalDraft] = useState<OnboardingProfile | null>(null);
+  const [goalConfirm, setGoalConfirm] = useState<null | "save" | "discard">(null);
   const activeScrollElRef = useRef<HTMLDivElement | null>(null);
   const scrollByLayerRef = useRef<Partial<Record<SettingsLayerKey, number>>>({});
   const scrollRestoredLayerRef = useRef<SettingsLayerKey | null>(null);
@@ -282,21 +299,46 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
     if (next !== "you") {
       closeYouSubPanel();
     }
-    if (next !== "goal") {
-      setPendingGoalChange(null);
+    if (next === "goal" && state.onboardingProfile) {
+      setGoalDraft({ ...state.onboardingProfile });
+      setGoalConfirm(null);
+    } else if (next !== "goal") {
+      setGoalDraft(null);
+      setGoalConfirm(null);
     }
     setPanel(next);
   }
 
   function closePanel() {
     closeYouSubPanel();
-    setPendingGoalChange(null);
+    setGoalDraft(null);
+    setGoalConfirm(null);
     setPanel(null);
+  }
+
+  function updateGoalDraft(patch: Partial<Pick<OnboardingProfile, "goal" | "goalWeightLbs" | "pace">>) {
+    setGoalDraft((draft) => {
+      if (!draft) return draft;
+      return normalizeGoalProfilePatch(draft, patch, latestWeightLbs(state));
+    });
+  }
+
+  function requestGoalPanelExit() {
+    const saved = state.onboardingProfile;
+    if (saved && goalDraft && isGoalSettingsDirty(saved, goalDraft)) {
+      setGoalConfirm("discard");
+      return;
+    }
+    closePanel();
   }
 
   function handleHeaderBack() {
     if (panel === "you" && youSubPanel) {
       closeYouSubPanel();
+      return;
+    }
+    if (panel === "goal") {
+      requestGoalPanelExit();
       return;
     }
     if (panel) {
@@ -367,6 +409,11 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
       : titleKey === "hub"
         ? "Settings"
         : PANEL_TITLES[titleKey];
+
+  const goalDraftDirty =
+    state.onboardingProfile && goalDraft ? isGoalSettingsDirty(state.onboardingProfile, goalDraft) : false;
+  const goalDraftSavable =
+    goalDraft != null && isGoalWeightValid(goalDraft, latestWeightLbs(state)) && goalDraftDirty;
 
   function renderHub() {
     const accountTrailing = !sync.configured
@@ -473,9 +520,9 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
         </SettingsHubSection>
 
         <SettingsHubSection title="Socials">
-          <SettingsComingSoonRow icon={rowIcon(<InstagramIcon width={16} height={16} aria-hidden />)} label="Instagram" />
-          <SettingsComingSoonRow icon={rowIcon(<TikTokIcon width={16} height={16} aria-hidden />)} label="TikTok" />
-          <SettingsComingSoonRow icon={rowIcon(<XIcon width={16} height={16} aria-hidden />)} label="X" />
+          <SettingsComingSoonRow icon={rowIcon(<InstagramBrandIcon width={16} height={16} aria-hidden />)} label="Instagram" />
+          <SettingsComingSoonRow icon={rowIcon(<TikTokBrandIcon width={16} height={16} aria-hidden />)} label="TikTok" />
+          <SettingsComingSoonRow icon={rowIcon(<XBrandIcon width={16} height={16} aria-hidden />)} label="X" />
         </SettingsHubSection>
 
         {sync.sessionEmail ? (
@@ -1219,30 +1266,33 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
   }
 
   function renderGoalPanel() {
-    const profile = state.onboardingProfile;
+    const savedProfile = state.onboardingProfile;
+    const profile = goalDraft ?? savedProfile;
     if (!profile) return null;
 
     const currentWeightLbs = latestWeightLbs(state);
     const wUnit = state.unitPreferences.weightUnit;
+    const previewGoal = progressGoalFromOnboarding(profile, {
+      anchorWeightLbs: currentWeightLbs,
+      progressStartWeightLbs: state.progressGoal?.progressStartWeightLbs,
+    });
 
     return (
       <>
         <SettingsHelper>
-          Your goal drives calorie targets, coaching, and the weight range on Progress. Changes update fuel targets
-          automatically.
+          Your goal drives calorie targets, coaching, and the weight range on Progress. Tap Save when you are ready to
+          apply changes.
         </SettingsHelper>
-        {state.progressGoal ? (
-          <div className="card settings-detail-card" style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-            Goal range: {formatWeightFromLbs(state.progressGoal.goalWeightLowLbs, wUnit)}–
-            {formatWeightFromLbs(state.progressGoal.goalWeightHighLbs, wUnit)} {weightUnitLabel(wUnit)}
-          </div>
-        ) : null}
+        <div className="card settings-detail-card" style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+          Goal range: {formatWeightFromLbs(previewGoal.goalWeightLowLbs, wUnit)}–
+          {formatWeightFromLbs(previewGoal.goalWeightHighLbs, wUnit)} {weightUnitLabel(wUnit)}
+          {goalDraftDirty ? " · unsaved" : null}
+        </div>
         <GoalSettingsPicker
           profile={profile}
           currentWeightLbs={currentWeightLbs}
           weightUnit={wUnit}
-          onGoalChange={setPendingGoalChange}
-          onChange={(patch) => setState((s) => applyGoalSettingsPatch(s, patch))}
+          onChange={updateGoalDraft}
         />
       </>
     );
@@ -1314,7 +1364,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
 
   return (
     <div className="settings-screen">
-      <header className="settings-sheet-header">
+      <header className={`settings-sheet-header${panel === "goal" ? " settings-sheet-header--with-action" : ""}`}>
         <div className="settings-sheet-header__side">
           <button
             type="button"
@@ -1328,8 +1378,20 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
         <h1 id="settings-title" className="settings-sheet-header__title">
           {headerTitle}
         </h1>
-        <div className="settings-sheet-header__side">
-          <span className="settings-sheet-header__spacer" aria-hidden />
+        <div className="settings-sheet-header__side settings-sheet-header__side--end">
+          {panel === "goal" ? (
+            <button
+              type="button"
+              className="tap settings-sheet-header__text-btn"
+              disabled={!goalDraftSavable}
+              onClick={() => setGoalConfirm("save")}
+              aria-label="Save goal changes"
+            >
+              Save
+            </button>
+          ) : (
+            <span className="settings-sheet-header__spacer" aria-hidden />
+          )}
         </div>
       </header>
 
@@ -1340,16 +1402,20 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
           </div>
         )}
       </ScreenTransition>
-      {pendingGoalChange ? (
-        <ChangeGoalConfirmSheet
-          currentGoal={state.onboardingProfile?.goal ?? "maintain"}
-          nextGoal={pendingGoalChange}
-          onCancel={() => setPendingGoalChange(null)}
+      {goalConfirm === "save" ? (
+        <SaveGoalConfirmSheet
+          onCancel={() => setGoalConfirm(null)}
           onConfirm={() => {
-            const nextGoal = pendingGoalChange;
-            setPendingGoalChange(null);
-            setState((s) => applyGoalSettingsPatch(s, { goal: nextGoal }));
+            if (!goalDraft) return;
+            setState((s) => applyGoalSettingsDraft(s, goalDraft));
+            closePanel();
           }}
+        />
+      ) : null}
+      {goalConfirm === "discard" ? (
+        <DiscardGoalChangesConfirmSheet
+          onCancel={() => setGoalConfirm(null)}
+          onConfirm={() => closePanel()}
         />
       ) : null}
       {showSignOutConfirm ? (

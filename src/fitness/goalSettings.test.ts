@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { DEFAULT_ONBOARDING_PROFILE } from "./onboardingProfile";
 import {
+  applyGoalSettingsDraft,
   applyGoalSettingsPatch,
+  isGoalSettingsDirty,
   isGoalWeightValid,
   latestWeightLbs,
   normalizeGoalProfilePatch,
@@ -57,5 +59,32 @@ describe("goalSettings", () => {
       weightLog: [{ dateKey: "2026-05-20", weightLbs: 185 }],
     });
     expect(latestWeightLbs(state)).toBe(185);
+  });
+
+  it("detects dirty goal settings", () => {
+    const saved = { ...DEFAULT_ONBOARDING_PROFILE, goal: "maintain" as const };
+    const draft = { ...saved, goal: "cut" as const, goalWeightLbs: 165, pace: "balanced" as const };
+    expect(isGoalSettingsDirty(saved, draft)).toBe(true);
+    expect(isGoalSettingsDirty(saved, saved)).toBe(false);
+  });
+
+  it("applies a full draft on save", () => {
+    const state = minimalAppState({
+      onboardingProfile: { ...DEFAULT_ONBOARDING_PROFILE, goal: "maintain" },
+      progressGoal: {
+        goalWeightLowLbs: 177,
+        goalWeightHighLbs: 183,
+        progressStartWeightLbs: 180,
+      },
+    });
+    const draft = {
+      ...DEFAULT_ONBOARDING_PROFILE,
+      goal: "cut" as const,
+      goalWeightLbs: 165,
+      pace: "balanced" as const,
+    };
+    const next = applyGoalSettingsDraft(state, draft);
+    expect(next.onboardingProfile?.goal).toBe("cut");
+    expect(next.progressGoal?.goalWeightHighLbs).toBe(165);
   });
 });

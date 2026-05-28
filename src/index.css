@@ -4519,6 +4519,32 @@ input[type="number"] {
   padding: 0;
 }
 
+.settings-sheet-header--with-action {
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+}
+
+.settings-sheet-header__side--end {
+  justify-content: flex-end;
+  min-width: 40px;
+}
+
+.settings-sheet-header__text-btn {
+  height: 40px;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.settings-sheet-header__text-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .settings-sheet-header__title {
   margin: 0;
   min-width: 0;

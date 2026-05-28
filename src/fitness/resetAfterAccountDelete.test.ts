@@ -30,12 +30,12 @@ describe("resetLocalAfterAccountDelete", () => {
       ...buildAppStateFromPersisted({
         onboardingComplete: true,
         displayName: "Alex",
-        workoutsCompletedByDay: { "2026-05-01": 1 },
+        workoutsCompletedByDay: { "2026-05-01": true },
       }),
       onboardingComplete: true,
       onboardingProfile: { goal: "cut" } as never,
       displayName: "Alex",
-      workoutsCompletedByDay: { "2026-05-01": 1 },
+      workoutsCompletedByDay: { "2026-05-01": true },
     } as never);
     saveSyncMeta({ lastSeenRemoteUpdatedAtMs: 99_999 });
 

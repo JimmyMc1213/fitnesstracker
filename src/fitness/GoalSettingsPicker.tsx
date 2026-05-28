@@ -8,20 +8,18 @@ import {
   nutritionGoalSettingsLabel,
 } from "./goalSettings";
 import { defaultGoalWeightLbs, goalWeightRangeLbs, WeightRulerPicker } from "./WeightRulerPicker";
-import type { NutritionGoal, OnboardingProfile, WeightUnit } from "./types";
+import type { OnboardingProfile, WeightUnit } from "./types";
 
 export function GoalSettingsPicker({
   profile,
   currentWeightLbs,
   weightUnit,
-  onGoalChange,
   onChange,
 }: {
   profile: OnboardingProfile;
   currentWeightLbs: number;
   weightUnit: WeightUnit;
-  onGoalChange: (goal: NutritionGoal) => void;
-  onChange: (patch: Partial<Pick<OnboardingProfile, "goalWeightLbs" | "pace">>) => void;
+  onChange: (patch: Partial<Pick<OnboardingProfile, "goal" | "goalWeightLbs" | "pace">>) => void;
 }) {
   const goal = profile.goal ?? "maintain";
 
@@ -31,13 +29,7 @@ export function GoalSettingsPicker({
         <h2 className="settings-inline-label">Primary goal</h2>
         <OnboardingPillStack>
           {NUTRITION_GOALS.map((g) => (
-            <OnboardingSegment
-              key={g}
-              selected={goal === g}
-              onClick={() => {
-                if (g !== goal) onGoalChange(g);
-              }}
-            >
+            <OnboardingSegment key={g} selected={goal === g} onClick={() => onChange({ goal: g })}>
               {nutritionGoalSettingsLabel(g)}
             </OnboardingSegment>
           ))}
