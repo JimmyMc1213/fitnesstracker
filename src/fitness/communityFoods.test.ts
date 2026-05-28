@@ -4,12 +4,12 @@ import { communityFoodRowFromSearchResult, submitCommunityFoodFromBarcodeScan } 
 import type { FoodSearchResult } from "./foodSearchTypes";
 
 const upsert = vi.fn();
-const getSession = vi.fn();
+const getUser = vi.fn();
 
 vi.mock("./supabaseClient", () => ({
   isSupabaseConfigured: () => true,
   getSupabase: () => ({
-    auth: { getSession },
+    auth: { getUser },
     from: () => ({ upsert }),
   }),
 }));
@@ -46,7 +46,7 @@ describe("communityFoods", () => {
   });
 
   it("upserts silently when signed in", async () => {
-    getSession.mockResolvedValue({ data: { session: { user: { id: "user-abc" } } } });
+    getUser.mockResolvedValue({ data: { user: { id: "user-abc" } }, error: null });
     upsert.mockResolvedValue({ error: null });
 
     submitCommunityFoodFromBarcodeScan("12345678901", offFood);
@@ -64,12 +64,29 @@ describe("communityFoods", () => {
 
   it("skips upsert when not signed in", async () => {
     upsert.mockClear();
-    getSession.mockResolvedValue({ data: { session: null } });
+    getUser.mockResolvedValue({ data: { user: null }, error: null });
 
     submitCommunityFoodFromBarcodeScan("12345678901", offFood);
     await Promise.resolve();
     await Promise.resolve();
 
     expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it("logs upsert failures", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    getUser.mockResolvedValue({ data: { user: { id: "user-abc" } }, error: null });
+    upsert.mockResolvedValue({ error: { message: "new row violates row-level security policy" } });
+
+    submitCommunityFoodFromBarcodeScan("12345678901", offFood);
+
+    await vi.waitFor(() => {
+      expect(warn).toHaveBeenCalledWith(
+        "[Fitcoach] community_foods save failed:",
+        "new row violates row-level security policy",
+      );
+    });
+
+    warn.mockRestore();
   });
 });

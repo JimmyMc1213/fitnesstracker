@@ -63,6 +63,11 @@ export function communityFoodRowFromSearchResult(
   };
 }
 
+function logCommunityFoodSaveFailure(err: unknown): void {
+  const msg = err instanceof Error ? err.message : String(err);
+  console.warn("[Fitcoach] community_foods save failed:", msg);
+}
+
 async function upsertCommunityFood(barcode: string, food: FoodSearchResult): Promise<void> {
   if (!isSupabaseConfigured()) return;
 
@@ -70,20 +75,35 @@ async function upsertCommunityFood(barcode: string, food: FoodSearchResult): Pro
   if (!sb) return;
 
   const {
-    data: { session },
-  } = await sb.auth.getSession();
-  const userId = session?.user?.id;
-  if (!userId) return;
+    data: { user },
+    error: authError,
+  } = await sb.auth.getUser();
+  const userId = user?.id;
+  if (authError || !userId) {
+    if (import.meta.env.DEV) {
+      console.warn("[Fitcoach] community_foods save skipped: sign in required.");
+    }
+    return;
+  }
 
   const row = communityFoodRowFromSearchResult(barcode, food);
-  if (!row) return;
+  if (!row) {
+    if (import.meta.env.DEV) {
+      console.warn("[Fitcoach] community_foods save skipped: could not build row from scan.");
+    }
+    return;
+  }
 
-  await sb.from("community_foods").upsert({ ...row, submitted_by: userId }, { onConflict: "barcode" });
+  const { error } = await sb
+    .from("community_foods")
+    .upsert({ ...row, submitted_by: userId }, { onConflict: "barcode" });
+
+  if (error) throw new Error(error.message);
 }
 
 /** Fire-and-forget upsert into community_foods after a successful OFF barcode lookup. */
 export function submitCommunityFoodFromBarcodeScan(barcode: string, food: FoodSearchResult): void {
-  void upsertCommunityFood(barcode, food).catch(() => {
-    /* silent background write */
+  void upsertCommunityFood(barcode, food).catch((err) => {
+    logCommunityFoodSaveFailure(err);
   });
 }
