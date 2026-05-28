@@ -89,7 +89,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
 
   if (showCheckInHistoryPage) {
     return (
-      <FullScreenOverlay open zIndex={120}>
+      <FullScreenOverlay open zIndex={120} motionVariant="fade">
         <ScreenSundayCheckInHistory
           state={state}
           setState={setState}
@@ -101,7 +101,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
   }
 
   return (
-    <div className="screen">
+    <div className="screen page-transition">
       <ScreenHeader title="Progress" />
 
       <div className="card" style={{ padding: 18, marginTop: 18 }}>

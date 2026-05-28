@@ -608,7 +608,7 @@ export function WorkoutRoutineEditor({
   const body = (
     <>
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-      <div className="screen" style={{ flex: 1, overflowY: "auto", paddingBottom: 12 }}>
+      <div className="screen page-transition" style={{ flex: 1, overflowY: "auto", paddingBottom: 12 }}>
         <div className="between" style={{ alignItems: "center", marginBottom: 8 }}>
           <button
             type="button"
@@ -956,7 +956,7 @@ export function WorkoutRoutineEditor({
   }
 
   return (
-    <FullScreenOverlay open zIndex={120}>
+    <FullScreenOverlay open zIndex={120} motionVariant="fade">
       {body}
     </FullScreenOverlay>
   );

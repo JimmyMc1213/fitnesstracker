@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { ScreenHeader } from "../shared";
@@ -27,9 +27,12 @@ const ACCENT_BLUE = "var(--accent)";
 
 type Props = ScreenProps & {
   onBack: () => void;
+  onWorkoutStarted?: () => void;
 };
 
-export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
+export function ScreenWorkoutHistory({ state, setState, onBack, onWorkoutStarted }: Props) {
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const [previewSession, setPreviewSession] = useState<CompletedWorkoutSession | null>(null);
   const [actionSession, setActionSession] = useState<CompletedWorkoutSession | null>(null);
   const [pendingDeleteSession, setPendingDeleteSession] = useState<CompletedWorkoutSession | null>(null);
@@ -62,12 +65,16 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
   function executeStart(session: CompletedWorkoutSession) {
     setState((s) => startWorkoutFromHistory(s, session));
     setPreviewSession(null);
+    setActionSession(null);
     setPendingStartSession(null);
+    setSaveSession(null);
+    setPendingReplaceTemplateId(null);
+    onWorkoutStarted?.();
     onBack();
   }
 
   function requestStart(session: CompletedWorkoutSession) {
-    if (hasActiveWorkoutSession(state)) {
+    if (hasActiveWorkoutSession(stateRef.current)) {
       setPendingStartSession(session);
       return;
     }
@@ -96,10 +103,13 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
 
   function confirmReplaceTemplate() {
     if (!saveSession || !pendingReplaceTemplateId) return;
-    setState((s) => replaceTemplateFromHistory(s, saveSession, pendingReplaceTemplateId));
+    const session = saveSession;
+    const templateId = pendingReplaceTemplateId;
+    setState((s) => replaceTemplateFromHistory(s, session, templateId));
     setSaveSession(null);
     setPendingReplaceTemplateId(null);
     setPreviewSession(null);
+    setActionSession(null);
   }
 
   const replaceTemplate = pendingReplaceTemplateId
@@ -107,7 +117,7 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
     : null;
 
   return (
-    <div className="screen">
+    <div className="screen page-transition">
       <div className="between" style={{ alignItems: "center", marginBottom: 8, marginTop: 4 }}>
         <button
           type="button"
@@ -235,6 +245,7 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
               saved exercises will be overwritten.
             </>
           }
+          cancelLabel="Go back"
           onCancel={() => setPendingReplaceTemplateId(null)}
           onSave={confirmReplaceTemplate}
         />

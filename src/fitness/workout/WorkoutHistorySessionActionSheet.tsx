@@ -91,16 +91,16 @@ export function WorkoutHistorySessionActionSheet({
         label="Start workout"
         icon={<IconBolt size={18} stroke={1.75} />}
         onClick={() => {
+          onStart();
           onClose();
-          queueMicrotask(() => onStart());
         }}
       />
       <ActionRow
         label="Save workout"
         icon={<IconBook size={18} stroke={1.75} />}
         onClick={() => {
+          onSave();
           onClose();
-          queueMicrotask(() => onSave());
         }}
       />
       <ActionRow
@@ -108,8 +108,8 @@ export function WorkoutHistorySessionActionSheet({
         icon={<IconTrash size={18} stroke={1.75} />}
         destructive
         onClick={() => {
+          onDelete();
           onClose();
-          queueMicrotask(() => onDelete());
         }}
       />
     </CenterDialog>

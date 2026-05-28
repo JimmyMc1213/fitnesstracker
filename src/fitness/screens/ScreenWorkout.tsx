@@ -717,9 +717,21 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
     endSessionToIdle(true);
   }
 
-  function endSessionToIdle(completed: boolean) {
+  function resetActiveSessionUiState() {
+    setShowExSearch(false);
+    setExpandedProgressId(null);
+    setPreviewRoutineId(null);
+    setRestTimer(null);
+    setRestSheetExerciseId(null);
+    setRestedRestSecByExerciseId({});
+    setSwapExerciseId(null);
+    setPendingExerciseDelete(null);
     setShowEmptyFinishConfirm(false);
     setShowCancelWorkoutConfirm(false);
+    setRejectShakeSet(null);
+  }
+
+  function endSessionToIdle(completed: boolean) {
     if (completed) {
       setState((s) => {
         const result = finishWorkout(s);
@@ -741,13 +753,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
         },
       }));
     }
-    setShowExSearch(false);
-    setExpandedProgressId(null);
-    setPreviewRoutineId(null);
-    setRestTimer(null);
-    setRestSheetExerciseId(null);
-    setRestedRestSecByExerciseId({});
-    setSwapExerciseId(null);
+    resetActiveSessionUiState();
   }
 
   function updateSessionTitle(text: string) {
@@ -771,12 +777,13 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
 
   if (showHistoryPage) {
     return (
-      <FullScreenOverlay open={showHistoryPage} zIndex={120}>
+      <FullScreenOverlay open={showHistoryPage} zIndex={120} motionVariant="fade">
         <ScreenWorkoutHistory
           state={state}
           setState={setState}
           navigate={() => {}}
           onBack={() => setShowHistoryPage(false)}
+          onWorkoutStarted={resetActiveSessionUiState}
         />
       </FullScreenOverlay>
     );

@@ -1,7 +1,7 @@
 import {
-  BottomSheet,
+  CenterDialog,
   ConfirmSheetActions,
-  confirmBottomSheetPanelStyle,
+  confirmCenterDialogPanelStyle,
   confirmSheetMessageStyle,
   confirmSheetTitleStyle,
 } from "../motion";
@@ -18,12 +18,12 @@ export function ReplaceActiveWorkoutConfirmSheet({
   onStartNew: () => void;
 }) {
   return (
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onKeepCurrent}
-      zIndex={1300}
+      zIndex={1400}
       ariaLabelledBy="replace-active-workout-title"
-      panelStyle={confirmBottomSheetPanelStyle}
+      panelStyle={confirmCenterDialogPanelStyle}
     >
       <div id="replace-active-workout-title" style={confirmSheetTitleStyle}>
         Replace active workout?
@@ -37,10 +37,10 @@ export function ReplaceActiveWorkoutConfirmSheet({
         cancelLabel="Keep current"
         confirmLabel="Start workout"
         confirmTone="primary"
-        contentPadding={24}
+        contentPadding={28}
         onCancel={onKeepCurrent}
         onConfirm={onStartNew}
       />
-    </BottomSheet>
+    </CenterDialog>
   );
 }

@@ -495,13 +495,22 @@ export function BottomSheet({
   return createPortal(overlay, document.body);
 }
 
+const fadeOverlayVariants = (reduceMotion: boolean): Variants =>
+  reduceMotion
+    ? REDUCED_VARIANTS
+    : {
+        initial: { opacity: 0 },
+        animate: { opacity: 1, transition: PAGE_LAYER_TRANSITION },
+        exit: { opacity: 0, transition: PAGE_LAYER_TRANSITION },
+      };
+
 type FullScreenOverlayProps = {
   open: boolean;
   zIndex?: number;
   className?: string;
   style?: CSSProperties;
-  /** `push` slides partially left on exit (stack). `dismiss` slides back out to the right. */
-  motionVariant?: "push" | "dismiss";
+  /** `fade` for full-screen pages; `push` slides partially left on exit; `dismiss` slides back out to the right. */
+  motionVariant?: "fade" | "push" | "dismiss";
   children: ReactNode;
 };
 
@@ -510,11 +519,16 @@ export function FullScreenOverlay({
   zIndex = 200,
   className = "",
   style,
-  motionVariant = "push",
+  motionVariant = "fade",
   children,
 }: FullScreenOverlayProps) {
   const reduceMotion = useReducedMotion();
-  const variants = motionVariant === "dismiss" ? dismissVariants(!!reduceMotion) : pushVariants(!!reduceMotion);
+  const variants =
+    motionVariant === "dismiss"
+      ? dismissVariants(!!reduceMotion)
+      : motionVariant === "push"
+        ? pushVariants(!!reduceMotion)
+        : fadeOverlayVariants(!!reduceMotion);
 
   const overlay = (
     <AnimatePresence>

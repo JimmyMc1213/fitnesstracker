@@ -37,9 +37,9 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
   }
 
   return (
-    <FullScreenOverlay open={visible} zIndex={250}>
+    <FullScreenOverlay open={visible} zIndex={250} motionVariant="fade">
       <div
-        className="screen"
+        className="screen page-transition"
         style={{
           flex: 1,
           overflowY: "auto",

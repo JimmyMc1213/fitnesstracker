@@ -317,7 +317,7 @@ export function WeeklyRoutineBuilderFlow({ mode, state, onApply, onSaveCustomExe
   );
 
   return (
-    <FullScreenOverlay open zIndex={130}>
+    <FullScreenOverlay open zIndex={130} motionVariant="fade">
       {shell}
     </FullScreenOverlay>
   );

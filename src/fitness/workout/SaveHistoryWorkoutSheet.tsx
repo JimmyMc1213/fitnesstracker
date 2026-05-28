@@ -1,4 +1,4 @@
-import { BottomSheet, bottomSheetPanelTheme } from "../motion";
+import { CenterDialog, bottomSheetPanelTheme } from "../motion";
 import type { WorkoutRoutineTemplate } from "../types";
 
 type SaveHistoryWorkoutSheetProps = {
@@ -9,6 +9,17 @@ type SaveHistoryWorkoutSheetProps = {
   onReplaceTemplate: (templateId: string) => void;
   onClose: () => void;
 };
+
+const panelStyle = {
+  ...bottomSheetPanelTheme,
+  width: "100%",
+  maxWidth: 320,
+  maxHeight: "min(78vh, 520px)",
+  display: "flex",
+  flexDirection: "column",
+  overflow: "hidden",
+  padding: "16px 12px 12px",
+} as const;
 
 function ActionRow({
   title,
@@ -55,21 +66,12 @@ export function SaveHistoryWorkoutSheet({
   onClose,
 }: SaveHistoryWorkoutSheetProps) {
   return (
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onClose}
-      zIndex={1300}
+      zIndex={1400}
       ariaLabelledBy="save-history-workout-title"
-      panelStyle={{
-        ...bottomSheetPanelTheme,
-        width: "100%",
-        maxWidth: 440,
-        maxHeight: "min(78vh, 520px)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        padding: "12px 12px 20px",
-      }}
+      panelStyle={panelStyle}
     >
       <div
         id="save-history-workout-title"
@@ -116,6 +118,6 @@ export function SaveHistoryWorkoutSheet({
           </div>
         </>
       ) : null}
-    </BottomSheet>
+    </CenterDialog>
   );
 }

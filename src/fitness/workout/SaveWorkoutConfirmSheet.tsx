@@ -1,7 +1,7 @@
 import {
-  BottomSheet,
+  CenterDialog,
   ConfirmSheetActions,
-  confirmBottomSheetPanelStyle,
+  confirmCenterDialogPanelStyle,
   confirmSheetMessageStyle,
   confirmSheetTitleStyle,
 } from "../motion";
@@ -11,22 +11,28 @@ export function SaveWorkoutConfirmSheet({
   open = true,
   workoutName,
   message,
+  cancelLabel = "Keep editing",
+  confirmLabel = "Save workout",
+  zIndex = 1400,
   onSave,
   onCancel,
 }: {
   open?: boolean;
   workoutName: string;
   message?: ReactNode;
+  cancelLabel?: string;
+  confirmLabel?: string;
+  zIndex?: number;
   onSave: () => void;
   onCancel: () => void;
 }) {
   return (
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onCancel}
-      zIndex={1300}
+      zIndex={zIndex}
       ariaLabelledBy="save-workout-confirm-title"
-      panelStyle={confirmBottomSheetPanelStyle}
+      panelStyle={confirmCenterDialogPanelStyle}
     >
       <div id="save-workout-confirm-title" style={confirmSheetTitleStyle}>
         Save changes?
@@ -41,13 +47,13 @@ export function SaveWorkoutConfirmSheet({
         )}
       </p>
       <ConfirmSheetActions
-        cancelLabel="Keep editing"
-        confirmLabel="Save workout"
+        cancelLabel={cancelLabel}
+        confirmLabel={confirmLabel}
         confirmTone="primary"
-        contentPadding={24}
+        contentPadding={28}
         onCancel={onCancel}
         onConfirm={onSave}
       />
-    </BottomSheet>
+    </CenterDialog>
   );
 }

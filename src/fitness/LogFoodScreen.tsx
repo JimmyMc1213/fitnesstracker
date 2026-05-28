@@ -1032,10 +1032,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   };
 
   return (
-    <FullScreenOverlay open={open} zIndex={250} style={{ background: "var(--bg, #07080c)" }}>
+    <FullScreenOverlay open={open} zIndex={250} motionVariant="fade" style={{ background: "var(--bg, #07080c)" }}>
       <div
         role="presentation"
-        className="screen"
+        className="screen page-transition"
         style={{
           flex: 1,
           minHeight: 0,

@@ -100,8 +100,8 @@ export function WorkoutYearView({ open, state, initialYear, onClose, onSelectMon
   const workoutCount = workoutDays.size;
 
   return (
-    <FullScreenOverlay open={open} zIndex={120}>
-      <div className="screen" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+    <FullScreenOverlay open={open} zIndex={120} motionVariant="fade">
+      <div className="screen page-transition" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
         <div className="between" style={{ alignItems: "center", marginBottom: 8, marginTop: 4 }}>
           <button
             type="button"

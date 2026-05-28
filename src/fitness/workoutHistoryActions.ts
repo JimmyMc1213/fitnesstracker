@@ -80,7 +80,6 @@ export function startWorkoutFromHistory(state: AppState, session: CompletedWorko
   return {
     ...state,
     workout: {
-      ...state.workout,
       splitId: "",
       exercises,
       startedAt: formatSessionClock(now),
