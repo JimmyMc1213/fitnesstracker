@@ -1,6 +1,6 @@
 import { newTemplateExerciseLine } from "./data";
 import { defaultTrainingWeekdaysForProfile } from "./workoutWeekCalendar";
-import type { WorkoutDaysPerWeek, WorkoutRoutineTemplate } from "./types";
+import type { WorkoutRoutineTemplate } from "./types";
 
 export type WorkoutStarterExerciseDef = {
   name: string;
@@ -730,12 +730,12 @@ export function findWorkoutStarterTemplate(id: string): WorkoutStarterTemplate |
 }
 
 export function defaultWeekdaysForStarter(starter: WorkoutStarterTemplate): string[] {
-  const count = starter.days.length as WorkoutDaysPerWeek;
-  if (count >= 3 && count <= 6) {
-    return [...defaultTrainingWeekdaysForProfile(count)];
-  }
+  const count = starter.days.length;
   if (count === 1) return ["Mon"];
   if (count === 2) return ["Mon", "Thu"];
+  if (count === 3 || count === 4 || count === 5 || count === 6) {
+    return [...defaultTrainingWeekdaysForProfile(count)];
+  }
   return defaultTrainingWeekdaysForProfile(3);
 }
 

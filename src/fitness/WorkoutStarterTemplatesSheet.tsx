@@ -238,7 +238,7 @@ export function WorkoutStarterTemplatesSheet({
               marginBottom: 12,
             }}
           >
-            <IconSearch size={18} stroke={1.75} color="var(--text-ghost)" />
+            <IconSearch size={18} stroke={1.75} style={{ color: "var(--text-ghost)", flexShrink: 0 }} />
             <input
               type="search"
               value={query}
