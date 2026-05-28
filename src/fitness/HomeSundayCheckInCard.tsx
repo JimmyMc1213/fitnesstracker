@@ -1,5 +1,4 @@
 import { IconCheck, IconChevR } from "./icons";
-import { PrimaryButton } from "./shared";
 import { formatWeightFromLbs, weightUnitLabel } from "./unitPreferences";
 import type { SundayCheckInData } from "./sundayCheckIn";
 import type { UnitPreferences } from "./types";
@@ -12,8 +11,7 @@ type Props = {
 };
 
 const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"] as const;
-const SUCCESS_GREEN = "#22c55e";
-const SUCCESS_GREEN_SOLID = "#16a34a";
+const SUCCESS_GREEN = "#16a34a";
 
 export function HomeSundayCheckInCard({ data, completed = false, unitPreferences, onReview }: Props) {
   const wUnit = unitPreferences.weightUnit;
@@ -27,171 +25,146 @@ export function HomeSundayCheckInCard({ data, completed = false, unitPreferences
       : null;
 
   return (
-    <div
-      className="card home-sunday-check-in-card"
+    <button
+      type="button"
+      className="tap card home-sunday-check-in-card"
+      onClick={onReview}
+      aria-label={completed ? "View Sunday check-in recap" : "Open Sunday check-in"}
       style={{
         marginTop: 18,
-        padding: 14,
-        borderRadius: 14,
-        borderColor: "rgba(96,165,250,0.24)",
-        background: "linear-gradient(180deg, rgba(96,165,250,0.06) 0%, var(--bg-secondary) 42%)",
+        padding: 16,
+        width: "100%",
+        textAlign: "left",
+        borderColor: "var(--border)",
+        background: "var(--bg-secondary)",
       }}
     >
-      <button
-        type="button"
-        className="tap"
-        onClick={onReview}
-        aria-label="Open Sunday check-in"
-        style={{
-          width: "100%",
-          padding: 0,
-          border: "none",
-          background: "none",
-          color: "inherit",
-          textAlign: "left",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 11,
-              background: "var(--primary)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              color: "var(--primary-fg)",
-              lineHeight: 1,
-            }}
-          >
-            <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.06em" }}>SUN</span>
-            <span style={{ fontSize: 14, fontWeight: 800, marginTop: 1, fontVariantNumeric: "tabular-nums" }}>
-              {sundayDom}
-            </span>
-          </div>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 11,
+            background: "var(--surface-1)",
+            border: "0.5px solid var(--divider-subtle)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            color: "var(--text-secondary)",
+            lineHeight: 1,
+          }}
+        >
+          <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: "0.06em" }}>SUN</span>
+          <span style={{ fontSize: 14, fontWeight: 700, marginTop: 1, fontVariantNumeric: "tabular-nums" }}>
+            {sundayDom}
+          </span>
+        </div>
 
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="between" style={{ alignItems: "center", gap: 8 }}>
-              <div style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 700,
-                    letterSpacing: "0.07em",
-                    textTransform: "uppercase",
-                    color: "rgba(96,165,250,0.85)",
-                    marginBottom: 3,
-                  }}
-                >
-                  Sunday check-in
-                </div>
-                <div
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 700,
-                    letterSpacing: "-0.02em",
-                    lineHeight: 1.2,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  Week {data.weekNumber} in the books
-                </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="between" style={{ alignItems: "center", gap: 8 }}>
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "var(--text-ghost)",
+                  marginBottom: 4,
+                }}
+              >
+                Sunday check-in
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-                {completed ? <CompleteBadge /> : data.onTrack ? <OnTrackBadge /> : null}
-                <IconChevR size={13} style={{ color: "var(--text-tertiary)" }} aria-hidden />
+              <div
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  letterSpacing: "-0.01em",
+                  lineHeight: 1.25,
+                  color: "var(--text-primary)",
+                }}
+              >
+                Week {data.weekNumber} in the books
               </div>
             </div>
-
-            <p
-              style={{
-                margin: "6px 0 0",
-                fontSize: 11,
-                fontWeight: 500,
-                lineHeight: 1.4,
-                color: "var(--text-secondary)",
-              }}
-            >
-              {data.workoutsCompleted}/{data.workoutsPlanned} workouts · {data.proteinDaysHit}/7 protein
-              {weightText ? (
-                <>
-                  {" · "}
-                  <span
-                    style={{
-                      color: weightNegative ? SUCCESS_GREEN : weightPositive ? "#fbbf24" : "var(--text-secondary)",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {weightText}
-                  </span>
-                </>
-              ) : null}
-            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+              {completed ? <CompleteBadge /> : data.onTrack ? <OnTrackBadge /> : null}
+              <IconChevR size={14} style={{ color: "var(--text-tertiary)" }} aria-hidden />
+            </div>
           </div>
+
+          <p
+            style={{
+              margin: "6px 0 0",
+              fontSize: 11,
+              fontWeight: 500,
+              lineHeight: 1.4,
+              color: "var(--text-secondary)",
+            }}
+          >
+            {data.workoutsCompleted}/{data.workoutsPlanned} workouts · {data.proteinDaysHit}/7 protein
+            {weightText ? (
+              <>
+                {" · "}
+                <span
+                  style={{
+                    color: weightNegative ? SUCCESS_GREEN : weightPositive ? "#d97706" : "var(--text-secondary)",
+                    fontWeight: 600,
+                  }}
+                >
+                  {weightText}
+                </span>
+              </>
+            ) : null}
+          </p>
         </div>
-      </button>
+      </div>
 
       <WeekDayTracker cells={data.dayCells} />
 
-      <PrimaryButton
-        block
-        onClick={onReview}
+      <div
         style={{
-          marginTop: 12,
-          borderRadius: 999,
-          padding: "11px 14px",
-          fontSize: 13,
+          marginTop: 10,
+          fontSize: 12,
           fontWeight: 600,
-          minHeight: 40,
+          color: "var(--text-tertiary)",
         }}
       >
         {completed ? "View recap" : "Review the week"}
-      </PrimaryButton>
-    </div>
+      </div>
+    </button>
+  );
+}
+
+function StatusBadge({ label }: { label: string }) {
+  return (
+    <span
+      style={{
+        fontSize: 8,
+        fontWeight: 700,
+        letterSpacing: "0.05em",
+        textTransform: "uppercase",
+        color: SUCCESS_GREEN,
+        padding: "3px 7px",
+        borderRadius: 999,
+        background: "rgba(22, 163, 74, 0.1)",
+        border: "0.5px solid rgba(22, 163, 74, 0.18)",
+        flexShrink: 0,
+      }}
+    >
+      {label}
+    </span>
   );
 }
 
 function CompleteBadge() {
-  return (
-    <span
-      style={{
-        fontSize: 8,
-        fontWeight: 800,
-        letterSpacing: "0.05em",
-        textTransform: "uppercase",
-        color: "#fff",
-        padding: "3px 7px",
-        borderRadius: 999,
-        background: SUCCESS_GREEN_SOLID,
-        flexShrink: 0,
-      }}
-    >
-      Done
-    </span>
-  );
+  return <StatusBadge label="Done" />;
 }
 
 function OnTrackBadge() {
-  return (
-    <span
-      style={{
-        fontSize: 8,
-        fontWeight: 800,
-        letterSpacing: "0.05em",
-        textTransform: "uppercase",
-        color: "#fff",
-        padding: "3px 7px",
-        borderRadius: 999,
-        background: SUCCESS_GREEN_SOLID,
-        flexShrink: 0,
-      }}
-    >
-      On track
-    </span>
-  );
+  return <StatusBadge label="On track" />;
 }
 
 function WeekDayTracker({ cells }: { cells: SundayCheckInData["dayCells"] }) {
@@ -207,24 +180,24 @@ function WeekDayTracker({ cells }: { cells: SundayCheckInData["dayCells"] }) {
             <div
               style={{
                 width: "100%",
-                maxWidth: 28,
+                maxWidth: 26,
                 aspectRatio: "1",
                 borderRadius: 7,
                 display: "grid",
                 placeItems: "center",
-                background: completed ? "var(--primary)" : "var(--surface-1)",
-                border: completed ? "none" : "0.5px solid var(--divider-subtle)",
-                color: completed ? "var(--primary-fg)" : "var(--text-ghost)",
+                background: completed ? "rgba(22, 163, 74, 0.1)" : "var(--surface-1)",
+                border: completed ? "0.5px solid rgba(22, 163, 74, 0.18)" : "0.5px solid var(--divider-subtle)",
+                color: completed ? SUCCESS_GREEN : "var(--text-ghost)",
               }}
             >
-              {completed ? <IconCheck size={11} stroke={2.5} /> : null}
+              {completed ? <IconCheck size={10} stroke={2.5} /> : null}
             </div>
             <div
               style={{
                 width: "65%",
                 height: 2,
                 borderRadius: 999,
-                background: cell.proteinHit ? SUCCESS_GREEN : "transparent",
+                background: cell.proteinHit ? "rgba(22, 163, 74, 0.45)" : "transparent",
               }}
             />
             <span style={{ fontSize: 9, fontWeight: 600, color: "var(--text-ghost)" }}>

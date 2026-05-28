@@ -31,8 +31,6 @@ import {
   isOnboardingPreviewToolsActive,
 } from "./devPreviewOnboarding";
 import { AppSplashScreen } from "./AppSplashScreen";
-import { dismissBootSplash } from "./bootSplash";
-import { bootSplashHoldRemainingMs } from "./splashTiming";
 import { OnboardingFlow } from "./OnboardingFlow";
 import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
 import { clearOnboardingDraftStorage, initialOnboardingWizardDraft } from "./onboardingDraft";
@@ -200,15 +198,6 @@ function FitnessAppMain({
   const [minHoldElapsed, setMinHoldElapsed] = useState(false);
   const [signInRestorePending, setSignInRestorePending] = useState(false);
   const [welcomeSignInError, setWelcomeSignInError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const id = window.setTimeout(() => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => dismissBootSplash());
-      });
-    }, bootSplashHoldRemainingMs());
-    return () => window.clearTimeout(id);
-  }, []);
 
   useEffect(() => {
     setState((s) => {
@@ -648,7 +637,9 @@ function FitnessAppMain({
 
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
-      {mainContent}
+      <div className={bootSplashMounted ? "app-shell--splash-hidden" : undefined} aria-hidden={bootSplashMounted}>
+        {mainContent}
+      </div>
       {bootSplashOverlay}
     </FitnessSyncContext.Provider>
   );

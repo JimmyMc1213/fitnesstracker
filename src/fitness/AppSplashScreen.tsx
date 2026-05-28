@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
+import { bootSplashPresent, dismissBootSplash } from "./bootSplash";
 import { GymmySplashMark } from "./GymmySplashMark";
+import { bootSplashHoldRemainingMs } from "./splashTiming";
 
 const SPLASH_FADE_OUT_MS = 600;
 
@@ -11,12 +13,23 @@ type AppSplashScreenProps = {
 };
 
 export function AppSplashScreen({ dismiss = false, onExitComplete }: AppSplashScreenProps) {
+  const [instant] = useState(() => bootSplashPresent());
   const [mounted, setMounted] = useState(true);
   const [exiting, setExiting] = useState(false);
   const divRef = useRef<HTMLDivElement>(null);
   const onExitCompleteRef = useRef(onExitComplete);
   onExitCompleteRef.current = onExitComplete;
   const finishedRef = useRef(false);
+
+  useLayoutEffect(() => {
+    if (!instant) return;
+    const id = window.setTimeout(() => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => dismissBootSplash());
+      });
+    }, bootSplashHoldRemainingMs());
+    return () => window.clearTimeout(id);
+  }, [instant]);
 
   useEffect(() => {
     if (!dismiss || exiting) return;
@@ -61,13 +74,13 @@ export function AppSplashScreen({ dismiss = false, onExitComplete }: AppSplashSc
   return (
     <div
       ref={divRef}
-      className={`app-splash-screen${exiting ? " app-splash-screen--out" : ""}`}
+      className={`app-splash-screen${instant ? " app-splash-screen--instant" : ""}${exiting ? " app-splash-screen--out" : ""}`}
       role="status"
       aria-label="Loading Gymmy"
       aria-hidden={exiting}
       onTransitionEnd={handleTransitionEnd}
     >
-      <GymmySplashMark />
+      <GymmySplashMark instant={instant} />
     </div>
   );
 }

@@ -1294,6 +1294,16 @@ input[type="number"] {
   transition: opacity 600ms ease-out;
 }
 
+.app-splash-screen--instant {
+  animation: none;
+  opacity: 1;
+}
+
+.app-shell--splash-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .app-splash-screen--out {
   animation: none;
   opacity: 0;
