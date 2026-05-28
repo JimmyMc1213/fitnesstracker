@@ -10,7 +10,7 @@ import { MobilityRoutineFlow } from "../stretch/MobilityRoutineFlow";
 import { isMobilityHabit } from "../mobilityHabit";
 import { HomeDashboardCarousel } from "../HomeDashboardCarousel";
 import { homeGreetingTitle } from "../homeGreeting";
-import { IconChevR, IconSettings } from "../icons";
+import { IconChevR, IconPlus, IconSettings } from "../icons";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { WeighInCoachReaction } from "../WeighInCoachReaction";
 import { WeighInSheet } from "../WeighInSheet";
@@ -240,12 +240,14 @@ export function ScreenHome({
               height: 44,
               borderRadius: 999,
               background: "var(--surface-3)",
-              display: "grid",
-              placeItems: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               flexShrink: 0,
+              color: "var(--text-secondary)",
             }}
           >
-            <span style={{ fontSize: 18, fontWeight: 700, color: "var(--text-secondary)" }}>+</span>
+            <IconPlus size={18} stroke={2.5} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", color: "var(--text-primary)" }}>Morning weigh-in</div>

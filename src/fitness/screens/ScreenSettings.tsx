@@ -22,6 +22,7 @@ import {
   IconMail,
 
   IconMoon,
+  IconPlus,
   IconRun,
   IconScale,
   IconSettings,
@@ -1256,9 +1257,13 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
               fontWeight: 600,
               color: "var(--text-secondary)",
               background: "transparent",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
             }}
           >
-            + Add habit
+            <IconPlus size={13} stroke={2.5} />
+            Add habit
           </button>
         </div>
       </>

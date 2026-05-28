@@ -518,8 +518,10 @@ type FullScreenOverlayProps = {
   zIndex?: number;
   className?: string;
   style?: CSSProperties;
-  /** `fade` for full-screen pages; `page` adds a subtle slide; `push` slides partially left on exit; `dismiss` slides back out to the right. */
+  /** `fade` for full-screen pages; `page` adds a subtle slide; `push` slides in from the right; `dismiss` slides back out to the right. */
   motionVariant?: "fade" | "page" | "push" | "dismiss";
+  /** Edge-to-edge page: no outer padding; safe-area insets live on scroll content inside. */
+  edgeToEdge?: boolean;
   children: ReactNode;
 };
 
@@ -529,6 +531,7 @@ export function FullScreenOverlay({
   className = "",
   style,
   motionVariant = "fade",
+  edgeToEdge = false,
   children,
 }: FullScreenOverlayProps) {
   const reduceMotion = useReducedMotion();
@@ -546,7 +549,7 @@ export function FullScreenOverlay({
       {open ? (
         <motion.div
           key="fullscreen-overlay"
-          className={`motion-panel ${className}`.trim()}
+          className={`motion-panel${edgeToEdge ? " fullscreen-page" : ""} ${className}`.trim()}
           initial="initial"
           animate="animate"
           exit="exit"
@@ -559,8 +562,8 @@ export function FullScreenOverlay({
             flexDirection: "column",
             overflow: "hidden",
             background: "var(--bg-deep)",
-            paddingTop: "max(12px, env(safe-area-inset-top, 0px))",
-            paddingBottom: "env(safe-area-inset-bottom, 0px)",
+            paddingTop: edgeToEdge ? 0 : "max(12px, env(safe-area-inset-top, 0px))",
+            paddingBottom: edgeToEdge ? 0 : "env(safe-area-inset-bottom, 0px)",
             boxSizing: "border-box",
             willChange: "transform, opacity",
             ...style,

@@ -6,6 +6,7 @@ import {
   estimateRoutineSessionSeconds,
   formatEstimatedSessionMinutes,
 } from "./estimateSessionDuration";
+import { IconPlus } from "./icons";
 import { nextTrainingDayFrom } from "./trainingCalendar";
 import { resolveCoachTaskNavigation } from "./coachTaskActions";
 import { MacroBar, MacroRing, PrimaryButton, SecondaryButton } from "./shared";
@@ -174,9 +175,13 @@ function FuelSlide({
             fontSize: 12,
             fontWeight: 600,
             textAlign: "left",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
           }}
         >
-          + Log fuel →
+          <IconPlus size={12} stroke={2.5} />
+          Log fuel →
         </button>
       ) : (
         <div style={{ marginTop: 12, height: 18 }} aria-hidden />

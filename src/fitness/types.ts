@@ -336,6 +336,19 @@ export type UnitPreferences = {
 
 export type TabId = "home" | "nutrition" | "workout" | "progress" | "stretch" | "settings";
 
+/** Standalone progress photo in the Progress gallery (not tied to a weigh-in). */
+export type ProgressPicEntry = {
+  id: string;
+  dateKey: string;
+  photoDataUrl: string;
+  addedAtIso: string;
+};
+
+/** Hashed 4-digit PIN for optional progress-pic gallery lock. */
+export type ProgressPicsLockConfig = {
+  pinHash: string;
+};
+
 export type WeightEntry = {
   dateKey: string;
   weightLbs: number;
@@ -479,6 +492,10 @@ export type AppState = {
   habits: Habit[];
   nutritionTargets: MacroTotals;
   weightLog: WeightEntry[];
+  /** Progress tab photo gallery (JPEG data URLs). */
+  progressPics: ProgressPicEntry[];
+  /** Optional client-side lock for the progress-pic gallery. */
+  progressPicsLock: ProgressPicsLockConfig | null;
   /** Last Sunday you applied an approved fuel change. */
   lastAdjustmentSundayKey: string | null;
   /** Last Sunday you finished the review flow (approve or skip), blocks the sheet until next week. */
@@ -550,6 +567,8 @@ export type ScreenProps = {
   onLogFoodOpenChange?: (open: boolean) => void;
   /** Workout tab reports routine editor open state so the main tab bar can hide. */
   onRoutineEditorOpenChange?: (open: boolean) => void;
+  /** Progress tab reports progress-pics gallery page open so the main tab bar can hide. */
+  onProgressGalleryOpenChange?: (open: boolean) => void;
   /** Incremented when Home tab is tapped while already active — dismiss home overlays. */
   homeReselectRequest?: number;
   onHomeReselectHandled?: () => void;

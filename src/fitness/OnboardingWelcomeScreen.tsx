@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-import welcomeWorkoutScreenshot from "../assets/onboarding/welcome-workout-active-session.png";
 import { bootSplashPresent } from "./bootSplash";
 import { GymmySplashMark } from "./GymmySplashMark";
 import { WELCOME_SPLASH_HOLD_MS } from "./splashTiming";
@@ -12,20 +11,10 @@ type OnboardingWelcomeScreenProps = {
   onSignIn?: () => void;
 };
 
-function PhoneHeroMockup() {
+function PhonePreviewPlaceholder() {
   return (
-    <div className="onboarding-welcome__phone" aria-hidden>
-      <span className="onboarding-welcome__brand">Gymmy</span>
-      <div className="onboarding-welcome__phone-bezel">
-        <div className="onboarding-welcome__phone-screen">
-          <img
-            className="onboarding-welcome__phone-screenshot"
-            src={welcomeWorkoutScreenshot}
-            alt=""
-            decoding="async"
-          />
-        </div>
-      </div>
+    <div className="onboarding-welcome__preview" aria-hidden>
+      <span className="onboarding-welcome__preview-label">App Preview</span>
     </div>
   );
 }
@@ -49,21 +38,34 @@ export function OnboardingWelcomeScreen({ onGetStarted, onSignIn }: OnboardingWe
       </div>
 
       <div className="onboarding-welcome__landing" aria-hidden={phase !== "welcome"}>
+        <div className="onboarding-welcome__brand-row motion-welcome-brand">
+          <GymmySplashMark instant />
+        </div>
+
         <div className="onboarding-welcome__hero motion-welcome-hero">
-          <PhoneHeroMockup />
+          <PhonePreviewPlaceholder />
         </div>
 
         <div className="onboarding-welcome__copy motion-welcome-copy">
-          <h1 className="onboarding-welcome__headline">Your coach. Your plan. Your transformation.</h1>
+          <h1 className="onboarding-welcome__headline">Your program. Smarter every session.</h1>
+          <p className="onboarding-welcome__subline">
+            Progressive training and nutrition, built around you.
+          </p>
         </div>
 
         <div className="onboarding-welcome__actions motion-welcome-actions">
           <button type="button" className="onboarding-welcome__cta tap" onClick={onGetStarted}>
             Get Started
           </button>
-          <button type="button" className="onboarding-welcome__signin tap" onClick={onSignIn}>
-            Already have an account? <strong>Sign In</strong>
-          </button>
+          {onSignIn ? (
+            <p className="onboarding-welcome__signin">
+              Already have an account?{" "}
+              <button type="button" className="onboarding-welcome__signin-link tap" onClick={onSignIn}>
+                Sign in
+              </button>
+            </p>
+          ) : null}
+          {/* Apple Sign-In button goes here */}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { IconClock } from "../icons";
+import { IconClock, IconPlus } from "../icons";
 import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
 import type { PreWorkoutCoachBrief } from "../preWorkoutCoachBrief";
 import { ScreenHeader, PrimaryButton, SecondaryButton } from "../shared";
@@ -97,9 +97,13 @@ export function WorkoutIdleDashboard({
                   fontWeight: 600,
                   color: "var(--text-ghost)",
                   padding: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
                 }}
               >
-                + Add day
+                <IconPlus size={13} stroke={2.5} />
+                Add day
               </button>
             ) : null}
           </div>
@@ -114,9 +118,13 @@ export function WorkoutIdleDashboard({
                 color: "#6EB7FF",
                 padding: "6px 0 6px 10px",
                 flexShrink: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
               }}
             >
-              + New weekly routine
+              <IconPlus size={13} stroke={2.5} />
+              New weekly routine
             </button>
           ) : null}
         </div>

@@ -1,3 +1,4 @@
+import { normalizeProgressPics, normalizeProgressPicsLock, withProgressPicsDefaults } from "./progressPics";
 import { normalizeSundayCheckInHistory } from "./sundayCheckInHistory";
 import { localDateKey } from "./dailyPlan";
 import { sanitizeCoachCopy } from "./exerciseSessionNotes";
@@ -439,6 +440,8 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     }),
     nutritionTargets,
     weightLog,
+    progressPics: normalizeProgressPics(p?.progressPics),
+    progressPicsLock: normalizeProgressPicsLock(p?.progressPicsLock),
     lastAdjustmentSundayKey: lastAdj,
     sundayReviewCompletedKey: reviewDone,
     weekFocusCommitments: normalizeWeekFocusCommitments(p?.weekFocusCommitments),
@@ -483,5 +486,5 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     waterDailyTargetOz,
   };
 
-  return applyStreakEligibility(baseState, todayKey);
+  return withProgressPicsDefaults(applyStreakEligibility(baseState, todayKey));
 }

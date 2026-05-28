@@ -14,6 +14,7 @@ import {
   IconChevR,
   IconDumbbell,
   IconMoon,
+  IconPlus,
   IconScale,
   IconX,
 } from "./icons";
@@ -725,9 +726,13 @@ function StepCommitments({
                 color: "var(--text-secondary)",
                 fontSize: 14,
                 fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
               }}
             >
-              + Create custom commitment
+              <IconPlus size={14} stroke={2.5} />
+              Create custom commitment
             </button>
           )
         ) : null}

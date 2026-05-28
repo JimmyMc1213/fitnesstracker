@@ -1086,13 +1086,13 @@ export function OnboardingFlow({
       <OnboardingShell
         step={step}
         title="Save your progress"
-        subtitle="Sign in to keep your plan synced across devices."
+        subtitle="Your plan stays synced to your account across devices."
         onBack={goBack}
         onContinue={goNext}
         hideFooter
         contentClassName="onboarding-shell__content--save-progress"
       >
-        <OnboardingSaveProgress onSkip={goNext} onSignedIn={goNext} />
+        <OnboardingSaveProgress onContinue={goNext} />
       </OnboardingShell>
     );
   }

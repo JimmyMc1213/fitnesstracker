@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/collapsible";
 
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
+import { IconMinus, IconPlus } from "./icons";
 import { newTemplateExerciseLine, resizeWorkoutSets } from "./data";
 import { estimatedSessionLabel } from "./estimateSessionDuration";
 import exerciseLibrary from "./exerciseLibrary";
@@ -75,7 +76,16 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
               </div>
               <CollapsibleContext>
                 {(ctx) => (
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 18 }}>{ctx.open ? "−" : "+"}</span>
+                  <span
+                    style={{
+                      color: "rgba(255,255,255,0.4)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {ctx.open ? <IconMinus size={18} stroke={2.5} /> : <IconPlus size={18} stroke={2.5} />}
+                  </span>
                 )}
               </CollapsibleContext>
             </CollapsibleTrigger>

@@ -4,7 +4,7 @@ import { AddHabitSheet } from "./AddHabitSheet";
 import { buildHabitsForDateKey, planWeekIndex } from "./data";
 import { habitIconComponent } from "./habitIcons";
 import { isActionHabit, isWeighInActionHabit } from "./habits";
-import { IconCheck, IconChevR, IconGrip, IconMinus, IconMobilityRunner } from "./icons";
+import { IconCheck, IconChevR, IconGrip, IconMinus, IconMobilityRunner, IconPlus } from "./icons";
 import { isMobilityHabit } from "./mobilityHabit";
 import { SortableExerciseList } from "./SortableExerciseList";
 import { MOBILITY_ACCENT, MOBILITY_BG, MOBILITY_BORDER } from "./workoutUiTokens";
@@ -558,9 +558,13 @@ export function HomeDailyHabitsCard({
                   background: "transparent",
                   width: "100%",
                   textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
                 }}
               >
-                + Add habit
+                <IconPlus size={13} stroke={2.5} />
+                Add habit
               </button>
             </>
           ) : (

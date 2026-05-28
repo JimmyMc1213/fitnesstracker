@@ -1,12 +1,14 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { IconArrowDown, IconArrowUp, IconPlus } from "../icons";
 import { WorkoutCalendarCard } from "../WorkoutCalendarCard";
 import { PersonalRecordsSection } from "../PersonalRecordsSection";
 import { AverageCalTrackerCard } from "../AverageCalTrackerCard";
 import { SundayCheckInHistorySection } from "../SundayCheckInHistorySection";
+import { ProgressPicsSection } from "../ProgressPicsSection";
 import { LineChart, ScreenHeader, SectionLabel } from "../shared";
 import { FullScreenOverlay } from "../motion";
+import { ScreenProgressPicsGallery } from "./ScreenProgressPicsGallery";
 import { ScreenSundayCheckInHistory } from "./ScreenSundayCheckInHistory";
 import { WeighInSheet, weighInDateKeyToday } from "../WeighInSheet";
 import {
@@ -30,12 +32,18 @@ const BODY_WEIGHT_CHART_STROKE = "var(--accent)";
 const CHART_PAD_LEFT = 12;
 const CHART_PAD_RIGHT = 36;
 
-export function ScreenProgress({ state, setState }: ScreenProps) {
+export function ScreenProgress({ state, setState, onProgressGalleryOpenChange }: ScreenProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null);
   const [chartW, setChartW] = useState(0);
   const [weighInOpen, setWeighInOpen] = useState(false);
   const [showCheckInHistoryPage, setShowCheckInHistoryPage] = useState(false);
+  const [showPicsGalleryPage, setShowPicsGalleryPage] = useState(false);
   const wUnit = state.unitPreferences.weightUnit;
+
+  useEffect(() => {
+    onProgressGalleryOpenChange?.(showPicsGalleryPage);
+    return () => onProgressGalleryOpenChange?.(false);
+  }, [showPicsGalleryPage, onProgressGalleryOpenChange]);
   const dateKeyToday = weighInDateKeyToday();
   const todayEntry = state.weightLog.find((e) => e.dateKey === dateKeyToday);
 
@@ -87,20 +95,39 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
 
   const T = state.nutritionTargets;
 
-  if (showCheckInHistoryPage) {
-    return (
-      <FullScreenOverlay open zIndex={120} motionVariant="fade">
-        <ScreenSundayCheckInHistory
-          state={state}
-          setState={setState}
-          navigate={() => {}}
-          onBack={() => setShowCheckInHistoryPage(false)}
-        />
-      </FullScreenOverlay>
-    );
-  }
+  const showMainProgress = !showCheckInHistoryPage && !showPicsGalleryPage;
 
   return (
+    <>
+      <FullScreenOverlay open={showCheckInHistoryPage} zIndex={120} motionVariant="fade">
+        {showCheckInHistoryPage ? (
+          <ScreenSundayCheckInHistory
+            state={state}
+            setState={setState}
+            navigate={() => {}}
+            onBack={() => setShowCheckInHistoryPage(false)}
+          />
+        ) : null}
+      </FullScreenOverlay>
+
+      <FullScreenOverlay
+        open={showPicsGalleryPage}
+        zIndex={120}
+        motionVariant="fade"
+        edgeToEdge
+        className="fullscreen-page"
+      >
+        {showPicsGalleryPage ? (
+          <ScreenProgressPicsGallery
+            state={state}
+            setState={setState}
+            navigate={() => {}}
+            onBack={() => setShowPicsGalleryPage(false)}
+          />
+        ) : null}
+      </FullScreenOverlay>
+
+      {showMainProgress ? (
     <div className="screen page-transition">
       <ScreenHeader title="Progress" />
 
@@ -199,6 +226,8 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
           )}
         </div>
       </div>
+
+      <ProgressPicsSection state={state} onOpenGallery={() => setShowPicsGalleryPage(true)} />
 
       <AverageCalTrackerCard state={state} todayKey={dateKeyToday} />
 
@@ -313,5 +342,7 @@ export function ScreenProgress({ state, setState }: ScreenProps) {
 
       <div style={{ height: 8 }} />
     </div>
+      ) : null}
+    </>
   );
 }

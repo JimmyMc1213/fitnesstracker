@@ -35,14 +35,14 @@ describe("onboardingSkip", () => {
     ).toBe(true);
   });
 
-  it("skips onboarding when a cloud session is already active", () => {
+  it("does not skip onboarding for a signed-in user without completed setup", () => {
     expect(
       shouldSkipOnboarding({
         persisted: { onboardingComplete: false },
         sessionEmail: "jimmy.mccarthy@nodoublesgolfco.com",
         forcePreview: false,
       }),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("finalizeSignedInAppAccess marks onboarding complete and clears draft storage", () => {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { localDateKey } from "../dailyPlan";
+import { IconPlus } from "../icons";
 import { LogFoodScreen } from "../LogFoodScreen";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { MacroBar, MacroRing, ScreenHeader } from "../shared";
@@ -143,16 +144,15 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
           border: "none",
           background: "var(--pos, #4ade80)",
           color: "#07080c",
-          fontSize: 28,
-          fontWeight: 600,
-          lineHeight: 1,
-          display: "grid",
-          placeItems: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 0,
           boxShadow: "0 8px 24px rgba(0, 0, 0, 0.45)",
           zIndex: 50,
         }}
       >
-        +
+        <IconPlus size={28} stroke={2.5} />
       </button>
 
       <LogFoodScreen

@@ -7,7 +7,7 @@ async function clickContinue(page: Page) {
 }
 
 async function advanceHookScreens(page: Page) {
-  await expect(page.getByRole("heading", { name: /your coach\. your plan\. your transformation\./i })).toBeVisible({ timeout: 5000 });
+  await expect(page.getByRole("heading", { name: /your program\. smarter every session\./i })).toBeVisible({ timeout: 5000 });
   await page.getByRole("button", { name: "Get Started" }).click();
   await expect(page.getByRole("heading", { name: /what's your gender/i })).toBeVisible();
 }

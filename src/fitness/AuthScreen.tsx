@@ -1,6 +1,7 @@
-import { useState, type CSSProperties } from "react";
+import { useState, type ReactNode } from "react";
 
 import { useFitnessSync } from "./FitnessSyncContext";
+import { GymmySplashMark } from "./GymmySplashMark";
 
 type View = "landing" | "signin" | "signin-form" | "signup";
 
@@ -12,6 +13,89 @@ type AuthScreenProps = {
   onGetStarted?: () => void;
   onSignInSuccess?: () => void;
 };
+
+function AppleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+    </svg>
+  );
+}
+
+function AuthDivider() {
+  return (
+    <div className="auth-screen__divider" aria-hidden>
+      <span className="auth-screen__divider-line" />
+      <span className="auth-screen__divider-text">or continue with</span>
+      <span className="auth-screen__divider-line" />
+    </div>
+  );
+}
+
+function AppleSignInPlaceholder() {
+  return (
+    <button
+      type="button"
+      className="tap onboarding-oauth-btn onboarding-oauth-btn--apple"
+      disabled
+      aria-label="Continue with Apple, coming soon"
+    >
+      <AppleIcon />
+      Continue with Apple
+    </button>
+  );
+}
+
+function AuthFormShell({
+  viewKey,
+  title,
+  fields,
+  messages,
+  primaryLabel,
+  primaryLoadingLabel,
+  onPrimary,
+  primaryDisabled,
+  toggleLabel,
+  toggleActionLabel,
+  onToggle,
+}: {
+  viewKey: string;
+  title: string;
+  fields: ReactNode;
+  messages?: ReactNode;
+  primaryLabel: string;
+  primaryLoadingLabel: string;
+  onPrimary: () => void;
+  primaryDisabled?: boolean;
+  toggleLabel: string;
+  toggleActionLabel: string;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="auth-screen">
+      <div key={viewKey} className="auth-screen__panel auth-screen__panel--form motion-step">
+        <GymmySplashMark instant className="auth-screen__logo" />
+        <h1 className="auth-screen__title">{title}</h1>
+
+        <div className="auth-screen__body">
+          <div className="auth-screen__form">{fields}</div>
+          <AuthDivider />
+          <AppleSignInPlaceholder />
+          {messages}
+        </div>
+
+        <div className="auth-screen__footer">
+          <button type="button" className="tap onboarding-continue" onClick={onPrimary} disabled={primaryDisabled}>
+            {primaryDisabled ? primaryLoadingLabel : primaryLabel}
+          </button>
+          <button type="button" className="auth-screen__toggle tap" onClick={onToggle}>
+            {toggleLabel} <strong>{toggleActionLabel}</strong>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function AuthScreen({
   initialView = "landing",
@@ -53,90 +137,24 @@ export function AuthScreen({
     else onSignInSuccess?.();
   };
 
-  const s: Record<string, CSSProperties> = {
-    logo: { fontSize: 28, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 },
-    sub: { fontSize: 14, color: "var(--text-ghost)", marginBottom: 48 },
-    card: {
-      width: "100%",
-      maxWidth: 380,
-      background: "var(--card-2)",
-      borderRadius: 20,
-      padding: "28px 24px",
-      display: "flex",
-      flexDirection: "column",
-      gap: 12,
-    },
-    title: { fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 },
-    input: {
-      background: "#2a2a2a",
-      border: "none",
-      borderRadius: 12,
-      padding: "14px 16px",
-      fontSize: 16,
-      color: "var(--text-primary)",
-      outline: "none",
-      width: "100%",
-      boxSizing: "border-box",
-    },
-    btn: {
-      background: "var(--primary)",
-      color: "var(--primary-fg)",
-      border: "none",
-      borderRadius: 12,
-      padding: "15px",
-      fontSize: 16,
-      fontWeight: 700,
-      cursor: "pointer",
-      marginTop: 4,
-    },
-    ghost: {
-      background: "transparent",
-      color: "var(--text-muted-soft)",
-      border: "none",
-      fontSize: 14,
-      cursor: "pointer",
-      padding: "8px 0",
-      textAlign: "center",
-    },
-    error: { color: "#ff4d4d", fontSize: 13, textAlign: "center" },
-    info: { color: "rgba(120,200,255,0.95)", fontSize: 13, textAlign: "center" as const, lineHeight: 1.5 },
-    landingBtn: {
-      width: "100%",
-      maxWidth: 380,
-      padding: "15px",
-      borderRadius: 12,
-      fontSize: 16,
-      fontWeight: 700,
-      cursor: "pointer",
-      marginBottom: 12,
-    },
-  };
-
   if (view === "landing")
     return (
       <div className="auth-screen">
-        <div key="landing" className="motion-step" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={s.logo}>Fit Coach</div>
-        <div style={s.sub}>Your personal training companion</div>
-        <button
-          style={{ ...s.landingBtn, background: "var(--primary)", color: "var(--primary-fg)", border: "none" }}
-          type="button"
-          onClick={() => setView("signup")}
-        >
-          Create Account
-        </button>
-        <button
-          style={{
-            ...s.landingBtn,
-            background: "transparent",
-            color: "var(--text-primary)",
-            border: "1px solid var(--border-strong)",
-          }}
-          type="button"
-          onClick={() => setView("signin")}
-        >
-          Sign In
-        </button>
+        <div key="landing" className="auth-screen__panel auth-screen__panel--landing motion-step">
+          <GymmySplashMark instant className="auth-screen__logo" />
+          <p className="auth-screen__subtitle">Your personal training companion</p>
+          <div className="auth-screen__actions">
+            <button type="button" className="tap onboarding-continue" onClick={() => setView("signup")}>
+              Create Account
+            </button>
+            <button
+              type="button"
+              className="tap onboarding-continue onboarding-continue--dark"
+              onClick={() => setView("signin-form")}
+            >
+              Sign In
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -144,138 +162,126 @@ export function AuthScreen({
   if (view === "signin")
     return (
       <div className="auth-screen">
-        <div key="signin" className="motion-step" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <div style={s.logo}>Gymmy</div>
-          <div style={s.sub}>Sign in to pick up where you left off</div>
-          <button
-            style={{ ...s.landingBtn, background: "var(--primary)", color: "var(--primary-fg)", border: "none" }}
-            type="button"
-            onClick={() => setView("signup")}
-          >
-            Sign in with App
-          </button>
-          <button
-            style={{
-              ...s.landingBtn,
-              background: "transparent",
-              color: "var(--text-primary)",
-              border: "1px solid var(--border-strong)",
-            }}
-            type="button"
-            onClick={() => setView("signup")}
-          >
-            Sign in with Gymmy
-          </button>
-          {externalError ? <div style={{ ...s.error, maxWidth: 380, marginTop: 4 }}>{externalError}</div> : null}
+        <div key="signin" className="auth-screen__panel motion-step">
+          <GymmySplashMark instant className="auth-screen__logo" />
+          <h1 className="auth-screen__title">Welcome back</h1>
+          <div className="auth-screen__actions">
+            <button type="button" className="tap onboarding-continue" onClick={() => setView("signin-form")}>
+              Sign in with email
+            </button>
+            <AppleSignInPlaceholder />
+          </div>
+          {externalError ? <p className="auth-screen__error">{externalError}</p> : null}
           {fromWelcome ? (
-            <button style={{ ...s.ghost, marginTop: 8 }} type="button" onClick={onGetStarted}>
+            <button type="button" className="auth-screen__toggle tap" onClick={onGetStarted}>
               New to Gymmy? <strong>Get Started</strong>
             </button>
-          ) : null}
+          ) : (
+            <button type="button" className="auth-screen__toggle tap" onClick={() => setView("signup")}>
+              Don&apos;t have an account? <strong>Sign up</strong>
+            </button>
+          )}
         </div>
       </div>
     );
 
   if (view === "signup")
     return (
-      <div className="auth-screen">
-        <div key="signup" className="motion-step" style={s.card}>
-          <div style={s.title}>Create Account</div>
+      <AuthFormShell
+        viewKey="signup"
+        title="Create your account"
+        fields={
+          <>
+            <input
+              className="onboarding-input-pill"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
+              aria-label="Name"
+            />
+            <input
+              className="onboarding-input-pill"
+              placeholder="Email"
+              value={email}
+              type="email"
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              aria-label="Email"
+            />
+            <input
+              className="onboarding-input-pill"
+              placeholder="Password"
+              value={password}
+              type="password"
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+              aria-label="Password"
+            />
+          </>
+        }
+        messages={
+          <>
+            {error ? <p className="auth-screen__error">{error}</p> : null}
+            {info ? <p className="auth-screen__info">{info}</p> : null}
+          </>
+        }
+        primaryLabel="Create Account"
+        primaryLoadingLabel="Creating…"
+        onPrimary={() => void handleSignUp()}
+        primaryDisabled={loading}
+        toggleLabel="Already have an account?"
+        toggleActionLabel="Sign in"
+        onToggle={() => {
+          setError(null);
+          setInfo(null);
+          setView("signin-form");
+        }}
+      />
+    );
+
+  return (
+    <AuthFormShell
+      viewKey="signin-form"
+      title="Welcome back"
+      fields={
+        <>
           <input
-            style={s.input}
-            placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoComplete="name"
-          />
-          <input
-            style={s.input}
+            className="onboarding-input-pill"
             placeholder="Email"
             value={email}
             type="email"
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
+            aria-label="Email"
           />
           <input
-            style={s.input}
+            className="onboarding-input-pill"
             placeholder="Password"
             value={password}
             type="password"
             onChange={(e) => setPassword(e.target.value)}
-            autoComplete="new-password"
+            autoComplete="current-password"
+            aria-label="Password"
           />
-          {error ? <div style={s.error}>{error}</div> : null}
-          {info ? <div style={s.info}>{info}</div> : null}
-          <button style={s.btn} type="button" onClick={() => void handleSignUp()} disabled={loading}>
-            {loading ? "Creating…" : "Create Account"}
-          </button>
-          <button
-            style={s.ghost}
-            type="button"
-            onClick={() => {
-              setError(null);
-              setInfo(null);
-              setView("signin-form");
-            }}
-          >
-            Already have an account? Sign in
-          </button>
-        </div>
-      </div>
-    );
-
-  return (
-    <div className="auth-screen">
-      <div key="signin-form" className="motion-step" style={s.card}>
-        <div style={s.title}>Sign In</div>
-        <input
-          style={s.input}
-          placeholder="Email"
-          value={email}
-          type="email"
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-        />
-        <input
-          style={s.input}
-          placeholder="Password"
-          value={password}
-          type="password"
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="current-password"
-        />
-        {error || externalError ? <div style={s.error}>{error ?? externalError}</div> : null}
-        <button style={s.btn} type="button" onClick={() => void handleSignIn()} disabled={loading}>
-          {loading ? "Signing in…" : "Sign In"}
-        </button>
-        {fromWelcome ? (
-          <button style={s.ghost} type="button" onClick={onGetStarted}>
-            New to Gymmy? <strong>Get Started</strong>
-          </button>
-        ) : (
-          <button
-            style={s.ghost}
-            type="button"
-            onClick={() => {
-              setError(null);
-              setInfo(null);
-              setView("signup");
-            }}
-          >
-            Don&apos;t have an account? Create one
-          </button>
-        )}
-        <button
-          style={{ ...s.ghost, marginTop: -4 }}
-          type="button"
-          onClick={() => {
-            setError(null);
-            setView("signin");
-          }}
-        >
-          Back
-        </button>
-      </div>
-    </div>
+        </>
+      }
+      messages={error || externalError ? <p className="auth-screen__error">{error ?? externalError}</p> : null}
+      primaryLabel="Sign In"
+      primaryLoadingLabel="Signing in…"
+      onPrimary={() => void handleSignIn()}
+      primaryDisabled={loading}
+      toggleLabel={fromWelcome ? "New to Gymmy?" : "Don't have an account?"}
+      toggleActionLabel={fromWelcome ? "Get Started" : "Sign up"}
+      onToggle={() => {
+        if (fromWelcome) {
+          onGetStarted?.();
+          return;
+        }
+        setError(null);
+        setInfo(null);
+        setView("signup");
+      }}
+    />
   );
 }

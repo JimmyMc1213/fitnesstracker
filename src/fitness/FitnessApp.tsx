@@ -9,6 +9,7 @@ import { AuthScreen } from "./AuthScreen";
 import { FitnessSyncContext, useFitnessSync } from "./FitnessSyncContext";
 import { useFitnessCloudSync } from "./fitnessCloudSync";
 import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
+import { withProgressPicsDefaults } from "./progressPics";
 import {
   FITNESS_LOCAL_STORAGE_KEY,
   loadPersistedSlice,
@@ -37,7 +38,6 @@ import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
 import { clearOnboardingDraftStorage, initialOnboardingWizardDraft } from "./onboardingDraft";
 import { captureOAuthReturnForSaveProgress } from "./oauthReturnCapture";
 import { finalizeSignedInAppAccess, shouldSkipOnboarding } from "./onboardingSkip";
-import { saveSyncMeta } from "./syncMeta";
 import {
   IconBarbell,
   IconToolsKitchen2,
@@ -194,7 +194,7 @@ function FitnessAppMain({
   const [homeReselectRequest, setHomeReselectRequest] = useState(0);
   const [logFoodOverlayOpen, setLogFoodOverlayOpen] = useState(false);
   const [routineEditorOpen, setRoutineEditorOpen] = useState(false);
-  const [authViewOverride, setAuthViewOverride] = useState<"landing" | "signin" | "signup" | null>(null);
+  const [progressGalleryOpen, setProgressGalleryOpen] = useState(false);
   const [introWelcomeDone, setIntroWelcomeDone] = useState(false);
   const [bootSplashMounted, setBootSplashMounted] = useState(true);
   const [minHoldElapsed, setMinHoldElapsed] = useState(false);
@@ -209,6 +209,13 @@ function FitnessAppMain({
     }, bootSplashHoldRemainingMs());
     return () => window.clearTimeout(id);
   }, []);
+
+  useEffect(() => {
+    setState((s) => {
+      if (Array.isArray(s.progressPics) && s.progressPicsLock !== undefined) return s;
+      return withProgressPicsDefaults(s);
+    });
+  }, [setState]);
 
   useEffect(() => {
     const id = window.setTimeout(() => setMinHoldElapsed(true), 800);
@@ -229,7 +236,6 @@ function FitnessAppMain({
   useEffect(() => {
     if (fitnessSync.welcomeResetNonce === 0) return;
     setIntroWelcomeDone(false);
-    setAuthViewOverride(null);
     setSignInRestorePending(false);
     setWelcomeSignInError(null);
     setTab("home");
@@ -239,32 +245,29 @@ function FitnessAppMain({
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  const completeWelcomeSignIn = () => {
+  const completeSignedInSession = () => {
     const persisted = loadPersistedSlice() ?? sliceFromAppState(stateRef.current);
-    const nextSlice = finalizeSignedInAppAccess(persisted);
+    const nextSlice = shouldSkipOnboarding({
+      persisted,
+      sessionEmail: fitnessSync.sessionEmail,
+      forcePreview: false,
+    })
+      ? finalizeSignedInAppAccess(persisted)
+      : persisted;
     setState(buildAppStateFromPersisted(nextSlice));
     setWelcomeSignInError(null);
-    setIntroWelcomeDone(true);
+    setIntroWelcomeDone(shouldSkipOnboarding({
+      persisted: nextSlice,
+      sessionEmail: fitnessSync.sessionEmail,
+      forcePreview: false,
+    }));
     setSignInRestorePending(false);
-    setAuthViewOverride(null);
   };
 
-  const openSignIn = async () => {
+  const switchAccount = async () => {
     setWelcomeSignInError(null);
-    if (fitnessSync.sessionEmail) {
-      setSignInRestorePending(true);
-      setAuthViewOverride("signin");
-      return;
-    }
     setSignInRestorePending(false);
-    clearOnboardingDraftStorage();
-    saveSyncMeta({ lastSeenRemoteUpdatedAtMs: 0 });
-    setState((s) => {
-      const next = { ...s, onboardingDraft: null };
-      savePersistedSlice(sliceFromAppState(next));
-      return next;
-    });
-    setAuthViewOverride("signin");
+    setIntroWelcomeDone(false);
     await fitnessSync.signOut();
   };
 
@@ -383,7 +386,8 @@ function FitnessAppMain({
     logFoodOverlayOpen ||
     routineEditorOpen ||
     mobilitySessionOpen ||
-    sundayCheckInPresent;
+    sundayCheckInPresent ||
+    progressGalleryOpen;
 
   const devPreviewOnboarding = isOnboardingPreviewToolsActive() && isDevPreviewOnboardingEnabled();
   const introEligible = !state.onboardingComplete || devPreviewOnboarding;
@@ -391,6 +395,10 @@ function FitnessAppMain({
   const resumeIntroStep = restorableIntroDraft?.stepIndex ?? 0;
 
   const awaitingSessionBootstrap = fitnessSync.configured && !fitnessSync.sessionResolved;
+  const needsAuth =
+    fitnessSync.configured && fitnessSync.sessionResolved && fitnessSync.sessionEmail == null;
+  const restoringAfterSignIn =
+    signInRestorePending && fitnessSync.sessionEmail != null;
   const awaitingSignedInHydration =
     fitnessSync.configured &&
     fitnessSync.sessionEmail != null &&
@@ -404,8 +412,10 @@ function FitnessAppMain({
   });
 
   const showIntroWelcome =
+    !needsAuth &&
     !awaitingSessionBootstrap &&
     !awaitingSignedInHydration &&
+    !restoringAfterSignIn &&
     introEligible &&
     !introWelcomeDone &&
     !state.onboardingComplete &&
@@ -417,24 +427,15 @@ function FitnessAppMain({
   const needsBootSplash =
     awaitingSessionBootstrap ||
     awaitingSignedInHydration ||
-    (authViewOverride === "signin" &&
-      signInRestorePending &&
-      fitnessSync.sessionEmail != null &&
-      !fitnessSync.fitnessHydrated) ||
+    restoringAfterSignIn ||
     (fitnessSync.sessionEmail != null && !fitnessSync.fitnessHydrated && !onboardingInProgress);
 
   const bootSplashOverlay = bootSplashMounted ? (
     <AppSplashScreen dismiss={!needsBootSplash && minHoldElapsed} onExitComplete={() => setBootSplashMounted(false)} />
   ) : null;
 
-  const handleOnboardingSignIn = () => {
-    void openSignIn();
-  };
-
   const handleGetStarted = () => {
     setWelcomeSignInError(null);
-    setSignInRestorePending(false);
-    setAuthViewOverride(null);
     setIntroWelcomeDone(true);
   };
 
@@ -449,14 +450,12 @@ function FitnessAppMain({
 
     if (fitnessSync.sessionEmail) {
       setSignInRestorePending(true);
-      setAuthViewOverride("signin");
       return;
     }
-    void openSignIn();
   }, [fitnessSync.sessionResolved, fitnessSync.sessionEmail]);
 
   useEffect(() => {
-    if (!signInRestorePending || authViewOverride !== "signin") return;
+    if (!signInRestorePending) return;
     if (!fitnessSync.sessionEmail || !fitnessSync.fitnessHydrated) return;
 
     let cancelled = false;
@@ -471,7 +470,7 @@ function FitnessAppMain({
         /* restoreFromCloud records lastError */
       }
       if (!cancelled) {
-        completeWelcomeSignIn();
+        completeSignedInSession();
       }
     })();
 
@@ -480,56 +479,34 @@ function FitnessAppMain({
     };
   }, [
     signInRestorePending,
-    authViewOverride,
     fitnessSync.sessionEmail,
     fitnessSync.fitnessHydrated,
     fitnessSync.restoreFromCloud,
   ]);
 
   useEffect(() => {
-    if (signInRestorePending) return;
-    if (!fitnessSync.sessionEmail || !fitnessSync.fitnessHydrated) return;
-
-    if (!stateRef.current.onboardingComplete) {
-      const nextSlice = finalizeSignedInAppAccess(loadPersistedSlice() ?? sliceFromAppState(stateRef.current));
-      setState(buildAppStateFromPersisted(nextSlice));
-    }
-    setIntroWelcomeDone(true);
-    setAuthViewOverride(null);
-  }, [
-    signInRestorePending,
-    fitnessSync.sessionEmail,
-    fitnessSync.fitnessHydrated,
-    syncSig,
-  ]);
-
-  useEffect(() => {
     if (!signInRestorePending || !fitnessSync.sessionEmail) return;
     const id = window.setTimeout(() => {
-      completeWelcomeSignIn();
+      completeSignedInSession();
     }, 10_000);
     return () => window.clearTimeout(id);
   }, [signInRestorePending, fitnessSync.sessionEmail]);
 
   let mainContent: ReactNode = null;
 
-  if (awaitingSessionBootstrap || awaitingSignedInHydration) {
+  if (awaitingSessionBootstrap || awaitingSignedInHydration || restoringAfterSignIn) {
     mainContent = null;
-  } else if (authViewOverride === "signin") {
-    if (!(signInRestorePending && fitnessSync.sessionEmail && !fitnessSync.fitnessHydrated)) {
-      mainContent = (
-        <AuthScreen
-          initialView="signin"
-          fromWelcome
-          externalError={welcomeSignInError}
-          onGetStarted={handleGetStarted}
-          onSignInSuccess={() => setSignInRestorePending(true)}
-        />
-      );
-    }
+  } else if (needsAuth) {
+    mainContent = (
+      <AuthScreen
+        initialView="landing"
+        externalError={welcomeSignInError}
+        onSignInSuccess={() => setSignInRestorePending(true)}
+      />
+    );
   } else if (showIntroWelcome) {
     mainContent = (
-      <OnboardingWelcomeScreen onGetStarted={handleGetStarted} onSignIn={handleOnboardingSignIn} />
+      <OnboardingWelcomeScreen onGetStarted={handleGetStarted} onSignIn={() => void switchAccount()} />
     );
   } else {
     mainContent = (
@@ -537,7 +514,7 @@ function FitnessAppMain({
         <OnboardingGate
           state={state}
           setState={setState}
-          onSignIn={handleOnboardingSignIn}
+          onSignIn={() => void switchAccount()}
           introWelcomeDone={introWelcomeDone}
           onLeavePreview={() => setIntroWelcomeDone(true)}
           hideDevToolbar={routineEditorOpen}
@@ -579,6 +556,7 @@ function FitnessAppMain({
                   }
                   onLogFoodOpenChange={activeTab === "nutrition" ? setLogFoodOverlayOpen : undefined}
                   onRoutineEditorOpenChange={activeTab === "workout" ? setRoutineEditorOpen : undefined}
+                  onProgressGalleryOpenChange={activeTab === "progress" ? setProgressGalleryOpen : undefined}
                   homeReselectRequest={homeReselectRequest}
                   onHomeReselectHandled={() => setHomeReselectRequest(0)}
                   mobilityPreviewRequest={activeTab === "home" ? mobilityPreviewRequest : undefined}

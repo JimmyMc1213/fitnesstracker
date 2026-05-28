@@ -331,6 +331,8 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     nutritionMeals: mergeNutritionMeals(local.nutritionMeals ?? [], remote.nutritionMeals ?? []),
     nutritionTargets: { ...local.nutritionTargets, ...remote.nutritionTargets },
     weightLog: mergeWeightLog(local.weightLog, remote.weightLog),
+    progressPics: mergeById(local.progressPics ?? [], remote.progressPics ?? [], 200),
+    progressPicsLock: local.progressPicsLock ?? remote.progressPicsLock ?? null,
     lastAdjustmentSundayKey:
       [local.lastAdjustmentSundayKey, remote.lastAdjustmentSundayKey]
         .filter(Boolean)

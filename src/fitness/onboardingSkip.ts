@@ -34,11 +34,10 @@ export function hasOnboardingProfileSetup(p: Partial<PersistedFitnessSlice> | nu
 
 export function shouldSkipOnboarding(opts: {
   persisted: Partial<PersistedFitnessSlice> | null | undefined;
-  sessionEmail: string | null | undefined;
+  sessionEmail?: string | null | undefined;
   forcePreview?: boolean;
 }): boolean {
   if (opts.forcePreview) return false;
-  if (opts.sessionEmail?.trim()) return true;
   if (opts.persisted?.onboardingComplete === true) return true;
   if (hasOnboardingProfileSetup(opts.persisted)) return true;
   if (isLegacyUserEmail(opts.sessionEmail)) return true;
