@@ -18,6 +18,15 @@ type FoodSearchResult = {
 };
 
 const MAX_RESULTS = 20;
+const COMMUNITY_SOURCE_BOOST = 100;
+
+function sourceBoost(item: FoodSearchResult): number {
+  return item.source === "community" ? COMMUNITY_SOURCE_BOOST : 0;
+}
+
+function totalScore(item: FoodSearchResult, query: string): number {
+  return scoreResult(item, query) + brandQueryBoost(item, query) + sourceBoost(item);
+}
 
 function normalizeFoodName(name: string): string {
   return name
@@ -169,8 +178,8 @@ function pickPreferredDuplicate(
     return candidateBrandBoost > existingBrandBoost ? candidate : existing;
   }
 
-  const candidateScore = scoreResult(candidate, query);
-  const existingScore = scoreResult(existing, query);
+  const candidateScore = totalScore(candidate, query);
+  const existingScore = totalScore(existing, query);
   if (candidateScore !== existingScore) {
     return candidateScore > existingScore ? candidate : existing;
   }
@@ -186,8 +195,8 @@ function pickPreferredDuplicate(
 
 function rankFoodSearchResults(results: FoodSearchResult[], query: string): FoodSearchResult[] {
   return [...results].sort((a, b) => {
-    const scoreA = scoreResult(a, query) + brandQueryBoost(a, query);
-    const scoreB = scoreResult(b, query) + brandQueryBoost(b, query);
+    const scoreA = totalScore(a, query);
+    const scoreB = totalScore(b, query);
     if (scoreB !== scoreA) return scoreB - scoreA;
 
     const tieA = dataTypeTiebreak(a);
@@ -202,8 +211,9 @@ export function mergeFoodSearchResults(
   usda: FoodSearchResult[],
   off: FoodSearchResult[],
   query: string,
+  community: FoodSearchResult[] = [],
 ): FoodSearchResult[] {
-  const combined = [...usda, ...off];
+  const combined = [...usda, ...off, ...community];
   const kept: FoodSearchResult[] = [];
 
   for (const candidate of combined) {

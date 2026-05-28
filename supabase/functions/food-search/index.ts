@@ -34,6 +34,18 @@ type FoodSearchResult = {
   servings: FoodServing[];
 };
 
+type CommunityFoodRow = {
+  barcode: string;
+  name: string;
+  brand: string | null;
+  serving_label: string;
+  serving_grams: number;
+  cal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+
 const NUTRIENT_KCAL = new Set([1008, 2047, 2048]);
 const NUTRIENT_PROTEIN = 1003;
 const NUTRIENT_CARBS = 1005;
@@ -350,7 +362,71 @@ async function searchOff(query: string): Promise<FoodSearchResult[]> {
   return results;
 }
 
-async function resolveAuthenticatedUserId(req: Request): Promise<string | null> {
+function escapeIlikeTerm(term: string): string {
+  return term.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
+}
+
+function mapCommunityFood(raw: CommunityFoodRow): FoodSearchResult | null {
+  const barcode = typeof raw.barcode === "string" ? raw.barcode.trim() : "";
+  const name = typeof raw.name === "string" ? raw.name.trim() : "";
+  if (!barcode || !name) return null;
+
+  const servingLabel =
+    typeof raw.serving_label === "string" && raw.serving_label.trim()
+      ? raw.serving_label.trim()
+      : "1 serving";
+  const servingGrams = Number(raw.serving_grams);
+  const baseGrams = Number.isFinite(servingGrams) && servingGrams > 0 ? servingGrams : 100;
+  const brand = typeof raw.brand === "string" && raw.brand.trim() ? raw.brand.trim() : undefined;
+
+  return {
+    id: `community-${barcode}`,
+    name,
+    ...(brand ? { brand } : {}),
+    cal: Math.round(Number(raw.cal) || 0),
+    p: Math.round((Number(raw.protein) || 0) * 10) / 10,
+    c: Math.round((Number(raw.carbs) || 0) * 10) / 10,
+    f: Math.round((Number(raw.fat) || 0) * 10) / 10,
+    defaultServing: servingLabel,
+    baseGrams,
+    source: "community",
+    externalId: barcode,
+    servings: [
+      { label: `½ ${servingLabel}`, multiplier: 0.5 },
+      { label: servingLabel, multiplier: 1 },
+      { label: `2× ${servingLabel}`, multiplier: 2 },
+    ],
+  };
+}
+
+async function searchCommunityFoods(
+  userClient: ReturnType<typeof createClient>,
+  query: string,
+): Promise<FoodSearchResult[]> {
+  const pattern = `%${escapeIlikeTerm(query)}%`;
+  const { data, error } = await userClient
+    .from("community_foods")
+    .select("barcode,name,brand,serving_label,serving_grams,cal,protein,carbs,fat")
+    .or(`name.ilike.${pattern},brand.ilike.${pattern}`)
+    .limit(20);
+
+  if (error) {
+    console.error("community_foods search failed", error);
+    return [];
+  }
+
+  const results: FoodSearchResult[] = [];
+  for (const row of data ?? []) {
+    if (!row || typeof row !== "object") continue;
+    const mapped = mapCommunityFood(row as CommunityFoodRow);
+    if (mapped) results.push(mapped);
+  }
+  return results;
+}
+
+async function resolveAuthenticatedUserClient(
+  req: Request,
+): Promise<{ userId: string; client: ReturnType<typeof createClient> } | null> {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) return null;
 
@@ -371,7 +447,7 @@ async function resolveAuthenticatedUserId(req: Request): Promise<string | null> 
     error,
   } = await userClient.auth.getUser();
   if (error || !user) return null;
-  return user.id;
+  return { userId: user.id, client: userClient };
 }
 
 Deno.serve(async (req) => {
@@ -380,10 +456,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const userId = await resolveAuthenticatedUserId(req);
-    if (!userId) {
+    const auth = await resolveAuthenticatedUserClient(req);
+    if (!auth) {
       return unauthorizedResponse(corsHeaders);
     }
+    const { userId, client: userClient } = auth;
 
     const rateLimit = checkFoodSearchRateLimit(userId);
     if (!rateLimit.allowed) {
@@ -416,16 +493,25 @@ Deno.serve(async (req) => {
       return [] as FoodSearchResult[];
     });
 
-    const [usdaResults, offResults] = await Promise.all([usdaPromise, offPromise]);
+    const communityPromise = searchCommunityFoods(userClient, query).catch((e) => {
+      console.error("community_foods error", e);
+      return [] as FoodSearchResult[];
+    });
 
-    if (!apiKey && usdaResults.length === 0 && offResults.length === 0) {
+    const [usdaResults, offResults, communityResults] = await Promise.all([
+      usdaPromise,
+      offPromise,
+      communityPromise,
+    ]);
+
+    if (!apiKey && usdaResults.length === 0 && offResults.length === 0 && communityResults.length === 0) {
       return new Response(JSON.stringify({ error: "Food search temporarily unavailable. Try again." }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const results = mergeFoodSearchResults(usdaResults, offResults, query);
+    const results = mergeFoodSearchResults(usdaResults, offResults, query, communityResults);
 
     return new Response(JSON.stringify({ results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

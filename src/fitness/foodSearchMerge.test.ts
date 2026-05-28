@@ -122,6 +122,40 @@ describe("foodSearchMerge", () => {
     expect(ranked[0].brand).toBe("Raising Cane's");
   });
 
+  it("ranks community foods above USDA and OFF with +100 source boost", () => {
+    const usda = [
+      mockResult({
+        id: "usda-1",
+        name: "Acme cereal",
+        source: "usda",
+        externalId: "1",
+        cal: 150,
+      }),
+    ];
+    const off = [
+      mockResult({
+        id: "off-1",
+        name: "Acme cereal",
+        brand: "Acme",
+        source: "off",
+        externalId: "12345",
+        cal: 150,
+      }),
+    ];
+    const community = [
+      mockResult({
+        id: "community-0012345678901",
+        name: "Acme cereal",
+        brand: "Acme",
+        source: "community",
+        externalId: "0012345678901",
+        cal: 150,
+      }),
+    ];
+    const merged = mergeFoodSearchResults(usda, off, "acme cereal", community);
+    expect(merged[0].source).toBe("community");
+  });
+
   it("areSimilarFoods matches same source id", () => {
     const a = mockResult({ id: "usda-1", name: "Egg", source: "usda", externalId: "99" });
     const b = mockResult({ id: "usda-1", name: "Egg", source: "usda", externalId: "99" });

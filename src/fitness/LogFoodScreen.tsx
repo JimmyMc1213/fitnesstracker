@@ -26,6 +26,7 @@ import {
   parseQuantityInput,
   parseServingLabel,
 } from "./foodMeasurements";
+import { submitCommunityFoodFromBarcodeScan } from "./communityFoods";
 import { FoodSearchError, lookupFoodByBarcode, searchFoods } from "./foodSearchService";
 import type { FoodMeasurement, FoodSearchResult } from "./foodSearchTypes";
 import {
@@ -1023,6 +1024,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         setBarcodeFeedback("Product not found.");
         return;
       }
+      submitCommunityFoodFromBarcodeScan(code, food);
       if (dayLogAtCapacity) {
         setBarcodeFeedback("Daily log limit reached. Remove an entry to add more.");
         return;
