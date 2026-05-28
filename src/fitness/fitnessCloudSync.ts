@@ -9,6 +9,7 @@ import { normalizeOnboardingDraft } from "./onboardingDraft";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { savePersistedSlice, sliceFromAppState } from "./persistFitnessSlice";
 import { deleteUserAccount, isDeleteAccountDryRunEnabled } from "./deleteUserAccount";
+import { isFitnessPayloadTooLarge } from "./fitnessPayloadGuard";
 import { resetLocalAfterAccountDelete } from "./resetAfterAccountDelete";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import { loadSyncMeta, saveSyncMeta } from "./syncMeta";
@@ -104,6 +105,10 @@ async function tryPush(
   slice: PersistedFitnessSlice,
   meta: { lastSeenRemoteUpdatedAtMs: number },
 ): Promise<{ ok: true; meta: { lastSeenRemoteUpdatedAtMs: number } } | { conflict: true } | { error: string }> {
+  if (isFitnessPayloadTooLarge(slice)) {
+    return { error: "Your saved data is too large to sync. Remove old logs or contact support." };
+  }
+
   const sb = getSupabase();
   if (!sb) return { error: "Supabase not configured" };
   const now = Date.now();

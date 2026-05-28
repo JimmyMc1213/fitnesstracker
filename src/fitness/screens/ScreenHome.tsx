@@ -257,7 +257,9 @@ export function ScreenHome({
         </button>
       ) : null}
 
-      {weighInReaction ? <WeighInCoachReaction adjustment={weighInReaction} /> : null}
+      {weighInReaction ? (
+        <WeighInCoachReaction adjustment={weighInReaction} displayName={greetingName} />
+      ) : null}
 
       {isViewingToday && weekFocus.length > 0 && state.weekFocusWeekStartKey ? (
         <HomeWeekFocusCard

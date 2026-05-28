@@ -1,12 +1,17 @@
 import type { CoachAdjustment } from "./coachEngine";
+import { greetingFirstName } from "./homeGreeting";
+import { COACH_BLUE_LABEL } from "./workoutUiTokens";
 
 type Props = {
   adjustment: CoachAdjustment;
+  displayName?: string;
 };
 
 /** Inline coach copy after a logged weigh-in, engine message only (FTI-36). */
-export function WeighInCoachReaction({ adjustment }: Props) {
+export function WeighInCoachReaction({ adjustment, displayName = "" }: Props) {
   const nudge = adjustment.macroNudge;
+  const firstName = greetingFirstName(displayName);
+  const greeting = firstName ? `Hey ${firstName}, Just Checking in.` : "Hey there, Just Checking in.";
 
   return (
     <div
@@ -21,15 +26,14 @@ export function WeighInCoachReaction({ adjustment }: Props) {
     >
       <div
         style={{
-          fontSize: 10,
-          fontWeight: 600,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "var(--text-faint-soft)",
+          fontSize: 12,
+          fontWeight: 500,
+          lineHeight: 1.5,
           marginBottom: 6,
         }}
       >
-        Coach check-in
+        <span style={{ color: COACH_BLUE_LABEL, fontWeight: 600 }}>Coach:</span>{" "}
+        <span style={{ color: "var(--text-soft)" }}>{greeting}</span>
       </div>
       <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: "var(--text-soft)", fontWeight: 500 }}>
         {adjustment.message}

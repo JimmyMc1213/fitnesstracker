@@ -1,5 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
+import {
+  badQueryResponse,
+  checkFoodSearchRateLimit,
+  rateLimitedResponse,
+  sanitizeFoodSearchQuery,
+  unauthorizedResponse,
+} from "./guards.ts";
 import { mergeFoodSearchResults } from "./merge.ts";
 
 const corsHeaders = {
@@ -252,24 +260,57 @@ async function searchOff(query: string): Promise<FoodSearchResult[]> {
   return results;
 }
 
+async function resolveAuthenticatedUserId(req: Request): Promise<string | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim();
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")?.trim();
+  if (!supabaseUrl || !anonKey) {
+    console.error("food-search: missing Supabase env");
+    return null;
+  }
+
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const {
+    data: { user },
+    error,
+  } = await userClient.auth.getUser();
+  if (error || !user) return null;
+  return user.id;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    let query = "";
-    if (req.method === "GET") {
-      query = new URL(req.url).searchParams.get("query")?.trim() ?? "";
-    } else {
-      const body = await req.json().catch(() => ({}));
-      query = typeof body?.query === "string" ? body.query.trim() : "";
+    const userId = await resolveAuthenticatedUserId(req);
+    if (!userId) {
+      return unauthorizedResponse(corsHeaders);
     }
 
-    if (query.length < 2) {
-      return new Response(JSON.stringify({ results: [] }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const rateLimit = checkFoodSearchRateLimit(userId);
+    if (!rateLimit.allowed) {
+      return rateLimitedResponse(rateLimit.retryAfterSec, corsHeaders);
+    }
+
+    let rawQuery = "";
+    if (req.method === "GET") {
+      rawQuery = new URL(req.url).searchParams.get("query") ?? "";
+    } else {
+      const body = await req.json().catch(() => ({}));
+      rawQuery = typeof body?.query === "string" ? body.query : "";
+    }
+
+    const query = sanitizeFoodSearchQuery(rawQuery);
+    if (!query) {
+      return badQueryResponse(corsHeaders);
     }
 
     const apiKey = Deno.env.get("USDA_FDC_API_KEY")?.trim();

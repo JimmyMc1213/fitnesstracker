@@ -3,21 +3,36 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearFoodSearchCache, FoodSearchError, FOOD_SEARCH_RESULT_LIMIT, searchFoods } from "./foodSearchService";
 
 const invoke = vi.fn();
+const getSession = vi.fn();
 
 vi.mock("./supabaseClient", () => ({
   isSupabaseConfigured: () => true,
-  getSupabase: () => ({ functions: { invoke } }),
+  getSupabase: () => ({
+    functions: { invoke },
+    auth: { getSession },
+  }),
 }));
 
 describe("foodSearchService", () => {
   afterEach(() => {
     invoke.mockReset();
+    getSession.mockReset();
+    getSession.mockResolvedValue({ data: { session: { user: { id: "user-1" } } } });
     clearFoodSearchCache();
   });
 
   it("returns empty for short queries without calling invoke", async () => {
     const rows = await searchFoods("a");
     expect(rows).toEqual([]);
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
+  it("requires sign-in before calling food-search", async () => {
+    getSession.mockResolvedValue({ data: { session: null } });
+    await expect(searchFoods("chicken")).rejects.toMatchObject({
+      message: "Sign in to search the food database.",
+      code: "auth_required",
+    });
     expect(invoke).not.toHaveBeenCalled();
   });
 
@@ -50,6 +65,14 @@ describe("foodSearchService", () => {
   it("throws FoodSearchError on API error payload", async () => {
     invoke.mockResolvedValue({ data: { error: "USDA unavailable" }, error: null });
     await expect(searchFoods("egg")).rejects.toThrow(FoodSearchError);
+  });
+
+  it("maps rate-limit responses", async () => {
+    invoke.mockResolvedValue({
+      data: { error: "Too many food searches. Wait a moment and try again." },
+      error: null,
+    });
+    await expect(searchFoods("egg")).rejects.toMatchObject({ code: "rate_limited" });
   });
 
   it("throws FoodSearchError on invoke failure", async () => {
@@ -98,5 +121,14 @@ describe("foodSearchService", () => {
     invoke.mockResolvedValue({ data: { results: rows }, error: null });
     const out = await searchFoods("food bulk");
     expect(out).toHaveLength(FOOD_SEARCH_RESULT_LIMIT);
+  });
+
+  it("caps long queries before invoke", async () => {
+    invoke.mockResolvedValue({ data: { results: [] }, error: null });
+    const longQuery = "a".repeat(150);
+    await searchFoods(longQuery);
+    expect(invoke).toHaveBeenCalledWith("food-search", {
+      body: { query: "a".repeat(100) },
+    });
   });
 });

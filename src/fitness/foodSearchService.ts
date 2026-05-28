@@ -1,4 +1,5 @@
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
+import { sanitizeFoodSearchQuery } from "./foodSearchGuards";
 import type { FoodSearchErrorResponse, FoodSearchResponse, FoodSearchResult } from "./foodSearchTypes";
 
 /** Max merged USDA + OFF rows returned to the UI (matches Edge Function cap). */
@@ -13,7 +14,7 @@ export function clearFoodSearchCache(): void {
 
 function cacheResults(query: string, results: FoodSearchResult[]): FoodSearchResult[] {
   const limited = results.slice(0, FOOD_SEARCH_RESULT_LIMIT);
-  const key = query.trim().toLowerCase();
+  const key = query.toLowerCase();
   searchCache.set(key, limited);
   if (searchCache.size > MAX_CACHE_ENTRIES) {
     const oldest = searchCache.keys().next().value;
@@ -23,7 +24,10 @@ function cacheResults(query: string, results: FoodSearchResult[]): FoodSearchRes
 }
 
 export class FoodSearchError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    readonly code?: "auth_required" | "rate_limited" | "unavailable",
+  ) {
     super(message);
     this.name = "FoodSearchError";
   }
@@ -69,10 +73,23 @@ function e2eMockResults(query: string): FoodSearchResult[] | null {
   ];
 }
 
-/** Call Supabase Edge Function `food-search` (USDA + Open Food Facts). */
+function parseInvokeError(data: unknown, invokeError: { message?: string } | null): never {
+  const body = data && typeof data === "object" ? (data as FoodSearchErrorResponse) : null;
+  const message = body?.error?.trim() || invokeError?.message?.trim() || "Food search failed.";
+
+  if (/sign in to search/i.test(message)) {
+    throw new FoodSearchError(message, "auth_required");
+  }
+  if (/too many food searches/i.test(message)) {
+    throw new FoodSearchError(message, "rate_limited");
+  }
+  throw new FoodSearchError(message, "unavailable");
+}
+
+/** Call Supabase Edge Function `food-search` (USDA + Open Food Facts). Requires sign-in. */
 export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
-  const q = query.trim();
-  if (q.length < 2) return [];
+  const q = sanitizeFoodSearchQuery(query);
+  if (!q) return [];
 
   const cacheKey = q.toLowerCase();
   const cached = searchCache.get(cacheKey);
@@ -82,20 +99,27 @@ export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
   if (mocked !== null) return cacheResults(q, mocked);
 
   if (!isSupabaseConfigured()) {
-    throw new FoodSearchError("Supabase is not configured. Check your .env file.");
+    throw new FoodSearchError("Supabase is not configured. Check your .env file.", "unavailable");
   }
 
   const sb = getSupabase();
   if (!sb) {
-    throw new FoodSearchError("Supabase client unavailable.");
+    throw new FoodSearchError("Supabase client unavailable.", "unavailable");
+  }
+
+  const {
+    data: { session },
+  } = await sb.auth.getSession();
+  if (!session?.user) {
+    throw new FoodSearchError("Sign in to search the food database.", "auth_required");
   }
 
   const { data, error } = await sb.functions.invoke("food-search", {
     body: { query: q },
   });
 
-  if (error) {
-    throw new FoodSearchError(error.message || "Food search failed.");
+  if (error || (data && typeof data === "object" && "error" in data && typeof (data as FoodSearchErrorResponse).error === "string")) {
+    parseInvokeError(data, error);
   }
 
   return cacheResults(q, parseResults(data));
