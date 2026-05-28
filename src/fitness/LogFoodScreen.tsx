@@ -340,6 +340,31 @@ function pickerServingLabel(
   return formatServingLabel(measurement, quantity);
 }
 
+function logFoodSearchResultWithDefaultServing(
+  food: FoodSearchResult,
+  dateKey: string,
+  setState: Dispatch<SetStateAction<AppState>>,
+  curated?: CuratedFood,
+): boolean {
+  const { measurements, fixedLabels } = buildPickerMeasurements(food, curated);
+  const measurement = measurements[0];
+  if (!measurement) return false;
+
+  const baseGrams = getBaseGrams(food);
+  const quantity = measurement.defaultQuantity;
+  const multiplier = computeServingMultiplier(measurement, quantity, baseGrams);
+  const macros = scaleMacros(food, multiplier);
+  const servingLabel = pickerServingLabel(measurement, quantity, fixedLabels);
+  const row = buildNutritionLoggedItem(macros, food.name, {
+    loggedAtMs: Date.now(),
+    servingLabel,
+    source: food.source,
+    externalId: food.externalId,
+  });
+  setState((s) => appendNutritionLoggedItem(s, dateKey, row));
+  return true;
+}
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -419,8 +444,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   const [pendingDelete, setPendingDelete] = useState<PendingFoodDelete | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [barcodeLookupLoading, setBarcodeLookupLoading] = useState(false);
-  const [barcodeResults, setBarcodeResults] = useState<FoodSearchResult[]>([]);
-  const [barcodeNotFound, setBarcodeNotFound] = useState(false);
+  const [barcodeFeedback, setBarcodeFeedback] = useState<string | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const pickerQuantityInputRef = useRef<HTMLInputElement>(null);
@@ -539,8 +563,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       resetMealEditor();
       setScannerOpen(false);
       setBarcodeLookupLoading(false);
-      setBarcodeResults([]);
-      setBarcodeNotFound(false);
+      setBarcodeFeedback(null);
     }
   }, [open]);
 
@@ -993,17 +1016,21 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   async function handleBarcodeScan(code: string) {
     setScannerOpen(false);
     setBarcodeLookupLoading(true);
-    setBarcodeNotFound(false);
-    setBarcodeResults([]);
+    setBarcodeFeedback(null);
     try {
       const food = await lookupFoodByBarcode(code);
       if (!food) {
-        setBarcodeNotFound(true);
+        setBarcodeFeedback("Product not found.");
         return;
       }
-      setBarcodeResults([food]);
+      if (dayLogAtCapacity) {
+        setBarcodeFeedback("Daily log limit reached. Remove an entry to add more.");
+        return;
+      }
+      logFoodSearchResultWithDefaultServing(food, dateKey, setState);
+      requestClose();
     } catch {
-      setBarcodeNotFound(true);
+      setBarcodeFeedback("Product not found.");
     } finally {
       setBarcodeLookupLoading(false);
     }
@@ -1815,50 +1842,11 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   style={searchInputStyle}
                 />
 
-                {barcodeNotFound ? (
-                  <p style={{ margin: "0 0 12px", fontSize: 14, color: "var(--neg)", lineHeight: 1.5 }}>Product not found.</p>
+                {barcodeFeedback ? (
+                  <p style={{ margin: "0 0 12px", fontSize: 14, color: "var(--neg)", lineHeight: 1.5 }}>{barcodeFeedback}</p>
                 ) : null}
 
                 {barcodeLookupLoading ? <FoodSearchSkeletonList variant="card" /> : null}
-
-                {barcodeResults.length > 0 ? (
-                  <div className="card" style={{ ...foodListCardStyle, marginBottom: 16 }}>
-                    {barcodeResults.map((food, idx) => (
-                      <button
-                        key={food.id}
-                        type="button"
-                        className="tap between"
-                        style={{
-                          ...foodRowStyle,
-                          borderBottom: idx === barcodeResults.length - 1 ? "none" : foodRowStyle.borderBottom,
-                        }}
-                        onClick={() => openPicker(food)}
-                      >
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
-                            {displayFoodName(food.name, food.source)}
-                          </div>
-                          <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                            {Math.round(Number(food.cal) || 0)} kcal · {formatGramsInLabel(food.defaultServing)}
-                            {food.brand ? ` · ${food.brand}` : ""}
-                          </div>
-                        </div>
-                        {renderFavoriteButton(
-                          {
-                            name: displayFoodName(food.name, food.source),
-                            cal: Number(food.cal) || 0,
-                            p: Number(food.p) || 0,
-                            c: Number(food.c) || 0,
-                            f: Number(food.f) || 0,
-                            servingLabel: food.defaultServing,
-                          },
-                          food.name,
-                        )}
-                        <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
 
                 {searchActive ? (
                   <>
