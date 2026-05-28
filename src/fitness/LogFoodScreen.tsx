@@ -26,7 +26,7 @@ import {
   parseQuantityInput,
   parseServingLabel,
 } from "./foodMeasurements";
-import { FoodSearchError, mapOffProduct, searchFoods } from "./foodSearchService";
+import { FoodSearchError, lookupFoodByBarcode, searchFoods } from "./foodSearchService";
 import type { FoodMeasurement, FoodSearchResult } from "./foodSearchTypes";
 import {
   appendNutritionLoggedItem,
@@ -996,21 +996,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     setBarcodeNotFound(false);
     setBarcodeResults([]);
     try {
-      const barcode = code.trim().replace(/\s/g, "");
-      const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=code,product_name,product_name_en,brands,serving_size,serving_quantity,serving_quantity_unit,nutriments`;
-      const res = await fetch(url, {
-        headers: { "User-Agent": "Fitcoach/1.0 (barcode lookup)" },
-      });
-      if (!res.ok) {
-        setBarcodeNotFound(true);
-        return;
-      }
-      const payload = (await res.json()) as { status?: number; product?: Record<string, unknown> };
-      if (payload.status !== 1 || !payload.product) {
-        setBarcodeNotFound(true);
-        return;
-      }
-      const food = mapOffProduct(payload.product);
+      const food = await lookupFoodByBarcode(code);
       if (!food) {
         setBarcodeNotFound(true);
         return;

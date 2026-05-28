@@ -253,25 +253,58 @@ export function mapOffProduct(raw: Record<string, unknown>): FoodSearchResult | 
   };
 }
 
-/** Look up a packaged food by UPC/EAN via Open Food Facts. */
-export async function lookupFoodByBarcode(barcode: string): Promise<FoodSearchResult | null> {
-  const code = barcode.trim().replace(/\s/g, "");
-  if (code.length < 8) return null;
+/** Exact barcode product lookup — never use the OFF search endpoint for scans. */
+export const OFF_BARCODE_PRODUCT_API = "https://world.openfoodfacts.org/api/v2/product";
 
-  const url = new URL(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}`);
+export type OffBarcodeLookupPayload = {
+  status?: number;
+  status_verbose?: string;
+  product?: Record<string, unknown> | null;
+};
+
+/** Normalize UPC/EAN digits so 12-digit UPC-A matches 13-digit EAN-13 with a leading zero. */
+export function normalizeBarcodeDigits(code: string): string {
+  const digits = code.replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.length <= 13) return digits.padStart(13, "0");
+  return digits;
+}
+
+export function offBarcodesMatch(scanned: string, productCode: string): boolean {
+  const a = normalizeBarcodeDigits(scanned);
+  const b = normalizeBarcodeDigits(productCode);
+  if (!a || !b) return false;
+  return a === b;
+}
+
+function offBarcodeProductUrl(barcode: string): string {
+  const url = new URL(`${OFF_BARCODE_PRODUCT_API}/${encodeURIComponent(barcode)}.json`);
   url.searchParams.set(
     "fields",
     "code,product_name,product_name_en,brands,serving_size,serving_quantity,serving_quantity_unit,nutriments",
   );
+  return url.toString();
+}
 
-  const res = await fetch(url.toString(), {
+/** Look up a packaged food by UPC/EAN via the OFF exact-product endpoint only. */
+export async function lookupFoodByBarcode(barcode: string): Promise<FoodSearchResult | null> {
+  const code = barcode.trim().replace(/\s/g, "");
+  if (code.length < 8) return null;
+
+  const res = await fetch(offBarcodeProductUrl(code), {
     headers: { "User-Agent": "Fitcoach/1.0 (barcode lookup)" },
   });
   if (!res.ok) return null;
 
-  const payload = (await res.json()) as { status?: number; product?: Record<string, unknown> };
-  if (payload.status !== 1 || !payload.product) return null;
-  return mapOffProduct(payload.product);
+  const payload = (await res.json()) as OffBarcodeLookupPayload;
+  if (payload.status === 0 || payload.product == null) return null;
+  if (payload.status !== 1) return null;
+
+  const product = payload.product;
+  const productCode = String(product.code ?? product._id ?? "").trim();
+  if (productCode && !offBarcodesMatch(code, productCode)) return null;
+
+  return mapOffProduct(product);
 }
 
 /** Debounce helper for search input (~300ms). */

@@ -4,7 +4,11 @@ import {
   clearFoodSearchCache,
   FoodSearchError,
   FOOD_SEARCH_RESULT_LIMIT,
+  lookupFoodByBarcode,
   mapOffProduct,
+  normalizeBarcodeDigits,
+  offBarcodesMatch,
+  OFF_BARCODE_PRODUCT_API,
   searchFoods,
 } from "./foodSearchService";
 
@@ -166,6 +170,68 @@ describe("foodSearchService", () => {
     expect(food?.cal).toBe(180);
     expect(food?.p).toBe(21);
     expect(food?.baseGrams).toBe(49);
+  });
+
+  it("normalizes UPC-A and EAN-13 barcodes for comparison", () => {
+    expect(normalizeBarcodeDigits("036000291452")).toBe("0036000291452");
+    expect(normalizeBarcodeDigits("0036000291452")).toBe("0036000291452");
+    expect(offBarcodesMatch("036000291452", "0036000291452")).toBe(true);
+    expect(offBarcodesMatch("1234567890123", "9990001112223")).toBe(false);
+  });
+
+  it("lookupFoodByBarcode uses the exact OFF product endpoint", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: 1,
+        product: {
+          code: "0036000291452",
+          product_name: "Test Bar",
+          nutriments: { "energy-kcal_serving": 180, proteins_serving: 21 },
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const food = await lookupFoodByBarcode("036000291452");
+    expect(food?.name).toBe("Test Bar");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const calledUrl = String(fetchMock.mock.calls[0][0]);
+    expect(calledUrl).toContain(`${OFF_BARCODE_PRODUCT_API}/036000291452.json`);
+    expect(calledUrl).not.toContain("/api/v2/search");
+
+    vi.unstubAllGlobals();
+  });
+
+  it("lookupFoodByBarcode returns null when OFF status is 0", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ status: 0, status_verbose: "product not found", product: null }),
+      }),
+    );
+    expect(await lookupFoodByBarcode("1234567890123")).toBeNull();
+    vi.unstubAllGlobals();
+  });
+
+  it("lookupFoodByBarcode returns null when product code does not match scan", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          status: 1,
+          product: {
+            code: "9990001112223",
+            product_name: "Wrong Product",
+            nutriments: { "energy-kcal_serving": 200, proteins_serving: 10 },
+          },
+        }),
+      }),
+    );
+    expect(await lookupFoodByBarcode("1234567890123")).toBeNull();
+    vi.unstubAllGlobals();
   });
 
   it("caps long queries before invoke", async () => {
