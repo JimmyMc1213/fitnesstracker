@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { BrowserCodeReader, BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
+import {
+  BarcodeFormat,
+  BrowserCodeReader,
+  BrowserMultiFormatOneDReader as BrowserBarcodeReader,
+  type IScannerControls,
+} from "@zxing/browser";
+import { DecodeHintType } from "@zxing/library";
 
 import { IconX } from "./icons";
 
@@ -7,6 +13,22 @@ type BarcodeScannerProps = {
   onScan: (code: string) => void;
   onClose: () => void;
 };
+
+const BARCODE_FORMATS = [
+  BarcodeFormat.EAN_13,
+  BarcodeFormat.EAN_8,
+  BarcodeFormat.UPC_A,
+  BarcodeFormat.UPC_E,
+  BarcodeFormat.CODE_128,
+] as const;
+
+const SCAN_ATTEMPT_INTERVAL_MS = 300;
+
+function createBarcodeReaderHints() {
+  const hints = new Map<DecodeHintType, unknown>();
+  hints.set(DecodeHintType.POSSIBLE_FORMATS, [...BARCODE_FORMATS]);
+  return hints;
+}
 
 function stopVideoStream(video: HTMLVideoElement | null) {
   if (!video) return;
@@ -20,7 +42,7 @@ function stopVideoStream(video: HTMLVideoElement | null) {
 export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const readerRef = useRef<BrowserBarcodeReader | null>(null);
   const scannedRef = useRef(false);
   const onScanRef = useRef(onScan);
   const onCloseRef = useRef(onClose);
@@ -46,14 +68,16 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     scannedRef.current = false;
     setError(null);
 
-    const reader = new BrowserMultiFormatReader();
+    const reader = new BrowserBarcodeReader(createBarcodeReaderHints(), {
+      delayBetweenScanAttempts: SCAN_ATTEMPT_INTERVAL_MS,
+    });
     readerRef.current = reader;
     const video = videoRef.current;
     if (!video) return;
 
     let cancelled = false;
 
-    const onDecode: Parameters<BrowserMultiFormatReader["decodeFromConstraints"]>[2] = (result) => {
+    const onDecode: Parameters<BrowserBarcodeReader["decodeFromVideoDevice"]>[2] = (result) => {
       if (cancelled || scannedRef.current || !result) return;
       scannedRef.current = true;
       const code = result.getText();
@@ -63,8 +87,8 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
     const startScan = async () => {
       try {
-        const controls = await reader.decodeFromConstraints(
-          { video: { facingMode: { ideal: "environment" } } },
+        const controls = await reader.decodeFromVideoDevice(
+          null as unknown as string | undefined,
           video,
           onDecode,
         );
@@ -73,19 +97,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           return;
         }
         controlsRef.current = controls;
-      } catch {
-        if (cancelled) return;
-        try {
-          const controls = await reader.decodeFromVideoDevice(undefined, video, onDecode);
-          if (cancelled) {
-            controls.stop();
-            return;
-          }
-          controlsRef.current = controls;
-        } catch (fallbackErr) {
-          if (!cancelled) {
-            setError(fallbackErr instanceof Error ? fallbackErr.message : "Unable to access camera");
-          }
+      } catch (fallbackErr) {
+        if (!cancelled) {
+          setError(fallbackErr instanceof Error ? fallbackErr.message : "Unable to access camera");
         }
       }
     };
