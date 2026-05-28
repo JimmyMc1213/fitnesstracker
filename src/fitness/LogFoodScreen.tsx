@@ -1030,7 +1030,6 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         return;
       }
       logFoodSearchResultWithDefaultServing(food, dateKey, setState);
-      requestClose();
     } catch {
       setBarcodeFeedback("Product not found.");
     } finally {
