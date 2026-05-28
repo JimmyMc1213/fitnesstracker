@@ -3,6 +3,10 @@ import { useState } from "react";
 import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { ScreenHeader } from "../shared";
 import { WorkoutSessionPreviewSheet } from "../WorkoutSessionPreviewSheet";
+import { ReplaceActiveWorkoutConfirmSheet } from "../workout/ReplaceActiveWorkoutConfirmSheet";
+import { SaveHistoryWorkoutSheet } from "../workout/SaveHistoryWorkoutSheet";
+import { SaveWorkoutConfirmSheet } from "../workout/SaveWorkoutConfirmSheet";
+import { WorkoutHistorySessionActionSheet } from "../workout/WorkoutHistorySessionActionSheet";
 import { WorkoutHistorySessionCard } from "../workout/WorkoutHistorySessionCard";
 import {
   formatWorkoutHistoryDate,
@@ -10,6 +14,12 @@ import {
   removeWorkoutFromHistory,
   workoutsCompletedByDayFromHistory,
 } from "../workoutHistory";
+import {
+  appendTemplateFromHistory,
+  hasActiveWorkoutSession,
+  replaceTemplateFromHistory,
+  startWorkoutFromHistory,
+} from "../workoutHistoryActions";
 import { groupSessionsByMonth, monthGroupLabel } from "../workoutHistorySessionStats";
 import type { CompletedWorkoutSession, ScreenProps } from "../types";
 
@@ -21,7 +31,11 @@ type Props = ScreenProps & {
 
 export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
   const [previewSession, setPreviewSession] = useState<CompletedWorkoutSession | null>(null);
+  const [actionSession, setActionSession] = useState<CompletedWorkoutSession | null>(null);
   const [pendingDeleteSession, setPendingDeleteSession] = useState<CompletedWorkoutSession | null>(null);
+  const [pendingStartSession, setPendingStartSession] = useState<CompletedWorkoutSession | null>(null);
+  const [saveSession, setSaveSession] = useState<CompletedWorkoutSession | null>(null);
+  const [pendingReplaceTemplateId, setPendingReplaceTemplateId] = useState<string | null>(null);
   const sessions = getWorkoutHistorySorted(state.workoutHistory);
   const grouped = groupSessionsByMonth(sessions);
   const wUnit = state.unitPreferences.weightUnit;
@@ -44,6 +58,53 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
     if (previewSession?.id === session.id) setPreviewSession(null);
     setPendingDeleteSession(null);
   }
+
+  function executeStart(session: CompletedWorkoutSession) {
+    setState((s) => startWorkoutFromHistory(s, session));
+    setPreviewSession(null);
+    setPendingStartSession(null);
+    onBack();
+  }
+
+  function requestStart(session: CompletedWorkoutSession) {
+    if (hasActiveWorkoutSession(state)) {
+      setPendingStartSession(session);
+      return;
+    }
+    executeStart(session);
+  }
+
+  function requestSave(session: CompletedWorkoutSession) {
+    if (state.workoutTemplates.length === 0) {
+      setState((s) => appendTemplateFromHistory(s, session));
+      setPreviewSession(null);
+      return;
+    }
+    setSaveSession(session);
+  }
+
+  function confirmSaveAsNew() {
+    if (!saveSession) return;
+    setState((s) => appendTemplateFromHistory(s, saveSession));
+    setSaveSession(null);
+    setPreviewSession(null);
+  }
+
+  function requestReplaceTemplate(templateId: string) {
+    setPendingReplaceTemplateId(templateId);
+  }
+
+  function confirmReplaceTemplate() {
+    if (!saveSession || !pendingReplaceTemplateId) return;
+    setState((s) => replaceTemplateFromHistory(s, saveSession, pendingReplaceTemplateId));
+    setSaveSession(null);
+    setPendingReplaceTemplateId(null);
+    setPreviewSession(null);
+  }
+
+  const replaceTemplate = pendingReplaceTemplateId
+    ? state.workoutTemplates.find((t) => t.id === pendingReplaceTemplateId)
+    : null;
 
   return (
     <div className="screen">
@@ -96,6 +157,7 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
                     workoutHistory={state.workoutHistory}
                     weightUnit={wUnit}
                     onOpen={() => setPreviewSession(session)}
+                    onShowActions={() => setActionSession(session)}
                     onDelete={() => requestDeleteSession(session)}
                   />
                 ))}
@@ -115,11 +177,23 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
         />
       ) : null}
 
+      {actionSession ? (
+        <WorkoutHistorySessionActionSheet
+          sessionTitle={actionSession.title}
+          onStart={() => requestStart(actionSession)}
+          onSave={() => requestSave(actionSession)}
+          onDelete={() => requestDeleteSession(actionSession)}
+          onClose={() => setActionSession(null)}
+        />
+      ) : null}
+
       {pendingDeleteSession ? (
         <DeleteConfirmSheet
           title="Delete workout?"
           cancelLabel="Keep workout"
           confirmLabel="Delete workout"
+          placement="center"
+          zIndex={1400}
           message={
             <>
               Delete <strong style={{ color: "var(--text-primary)" }}>{pendingDeleteSession.title}</strong> from{" "}
@@ -129,6 +203,40 @@ export function ScreenWorkoutHistory({ state, setState, onBack }: Props) {
           }
           onCancel={() => setPendingDeleteSession(null)}
           onConfirm={confirmDeleteSession}
+        />
+      ) : null}
+
+      {pendingStartSession ? (
+        <ReplaceActiveWorkoutConfirmSheet
+          workoutTitle={pendingStartSession.title}
+          onKeepCurrent={() => setPendingStartSession(null)}
+          onStartNew={() => executeStart(pendingStartSession)}
+        />
+      ) : null}
+
+      {saveSession && !pendingReplaceTemplateId ? (
+        <SaveHistoryWorkoutSheet
+          sessionTitle={saveSession.title}
+          templates={state.workoutTemplates}
+          onSaveAsNew={confirmSaveAsNew}
+          onReplaceTemplate={requestReplaceTemplate}
+          onClose={() => setSaveSession(null)}
+        />
+      ) : null}
+
+      {saveSession && pendingReplaceTemplateId && replaceTemplate ? (
+        <SaveWorkoutConfirmSheet
+          workoutName={replaceTemplate.name}
+          message={
+            <>
+              Replace <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>{replaceTemplate.name}</span> with
+              exercises from{" "}
+              <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>{saveSession.title}</span>? The current
+              saved exercises will be overwritten.
+            </>
+          }
+          onCancel={() => setPendingReplaceTemplateId(null)}
+          onSave={confirmReplaceTemplate}
         />
       ) : null}
     </div>

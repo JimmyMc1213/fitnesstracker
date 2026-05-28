@@ -15,12 +15,14 @@ export function WorkoutHistorySessionCard({
   workoutHistory,
   weightUnit,
   onOpen,
+  onShowActions,
   onDelete,
 }: {
   session: CompletedWorkoutSession;
   workoutHistory: CompletedWorkoutSession[] | undefined;
   weightUnit: WeightUnit;
   onOpen: () => void;
+  onShowActions: () => void;
   onDelete: () => void;
 }) {
   const volume = sessionLoggedVolume(session);
@@ -59,7 +61,7 @@ export function WorkoutHistorySessionCard({
         <button
           type="button"
           className="tap"
-          onClick={onOpen}
+          onClick={onShowActions}
           aria-label={`Options for ${session.title}`}
           style={{
             width: 32,

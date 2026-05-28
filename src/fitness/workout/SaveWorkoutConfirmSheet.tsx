@@ -5,15 +5,18 @@ import {
   confirmSheetMessageStyle,
   confirmSheetTitleStyle,
 } from "../motion";
+import type { ReactNode } from "react";
 
 export function SaveWorkoutConfirmSheet({
   open = true,
   workoutName,
+  message,
   onSave,
   onCancel,
 }: {
   open?: boolean;
   workoutName: string;
+  message?: ReactNode;
   onSave: () => void;
   onCancel: () => void;
 }) {
@@ -29,9 +32,13 @@ export function SaveWorkoutConfirmSheet({
         Save changes?
       </div>
       <p style={confirmSheetMessageStyle}>
-        Your updates to{" "}
-        <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>{workoutName}</span> will replace the saved
-        workout.
+        {message ?? (
+          <>
+            Your updates to{" "}
+            <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>{workoutName}</span> will replace the saved
+            workout.
+          </>
+        )}
       </p>
       <ConfirmSheetActions
         cancelLabel="Keep editing"
