@@ -504,13 +504,22 @@ const fadeOverlayVariants = (reduceMotion: boolean): Variants =>
         exit: { opacity: 0, transition: PAGE_LAYER_TRANSITION },
       };
 
+const pageOverlayVariants = (reduceMotion: boolean): Variants =>
+  reduceMotion
+    ? REDUCED_VARIANTS
+    : {
+        initial: { opacity: 0, y: 8 },
+        animate: { opacity: 1, y: 0, transition: PAGE_LAYER_TRANSITION },
+        exit: { opacity: 0, y: 4, transition: PAGE_LAYER_TRANSITION },
+      };
+
 type FullScreenOverlayProps = {
   open: boolean;
   zIndex?: number;
   className?: string;
   style?: CSSProperties;
-  /** `fade` for full-screen pages; `push` slides partially left on exit; `dismiss` slides back out to the right. */
-  motionVariant?: "fade" | "push" | "dismiss";
+  /** `fade` for full-screen pages; `page` adds a subtle slide; `push` slides partially left on exit; `dismiss` slides back out to the right. */
+  motionVariant?: "fade" | "page" | "push" | "dismiss";
   children: ReactNode;
 };
 
@@ -528,7 +537,9 @@ export function FullScreenOverlay({
       ? dismissVariants(!!reduceMotion)
       : motionVariant === "push"
         ? pushVariants(!!reduceMotion)
-        : fadeOverlayVariants(!!reduceMotion);
+        : motionVariant === "page"
+          ? pageOverlayVariants(!!reduceMotion)
+          : fadeOverlayVariants(!!reduceMotion);
 
   const overlay = (
     <AnimatePresence>

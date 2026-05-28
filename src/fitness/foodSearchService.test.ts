@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { clearFoodSearchCache, FoodSearchError, FOOD_SEARCH_RESULT_LIMIT, searchFoods } from "./foodSearchService";
+import {
+  clearFoodSearchCache,
+  FoodSearchError,
+  FOOD_SEARCH_RESULT_LIMIT,
+  mapOffProduct,
+  searchFoods,
+} from "./foodSearchService";
 
 const invoke = vi.fn();
 const getSession = vi.fn();
@@ -121,6 +127,45 @@ describe("foodSearchService", () => {
     invoke.mockResolvedValue({ data: { results: rows }, error: null });
     const out = await searchFoods("food bulk");
     expect(out).toHaveLength(FOOD_SEARCH_RESULT_LIMIT);
+  });
+
+  it("maps OFF barcode products using per-serving macros and gram weight", () => {
+    const food = mapOffProduct({
+      code: "1234567890123",
+      product_name: "Pure Protein Bar",
+      serving_size: "1 bar (60 g)",
+      nutriments: {
+        "energy-kcal_serving": 180,
+        proteins_serving: 21,
+        carbohydrates_serving: 4,
+        fat_serving: 4.5,
+        "energy-kcal_100g": 367,
+        proteins_100g: 42,
+      },
+    });
+    expect(food).toMatchObject({
+      cal: 180,
+      p: 21,
+      baseGrams: 60,
+      defaultServing: "1 bar (60 g)",
+    });
+  });
+
+  it("infers OFF serving grams from per-serving and per-100g calories when label omits weight", () => {
+    const food = mapOffProduct({
+      code: "999",
+      product_name: "Protein Bar",
+      serving_size: "1 bar",
+      nutriments: {
+        "energy-kcal_serving": 180,
+        proteins_serving: 21,
+        "energy-kcal_100g": 367,
+        proteins_100g: 42,
+      },
+    });
+    expect(food?.cal).toBe(180);
+    expect(food?.p).toBe(21);
+    expect(food?.baseGrams).toBe(49);
   });
 
   it("caps long queries before invoke", async () => {

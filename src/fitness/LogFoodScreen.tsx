@@ -58,7 +58,7 @@ import { PrimaryButton } from "./shared";
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { FoodSearchSkeletonList } from "./FoodSearchSkeletonList";
 import { IconScan } from "./icons";
-import { FullScreenOverlay } from "./motion";
+import { closeAfterMotion, FullScreenOverlay, MOTION_DURATIONS } from "./motion";
 import type { AppState, NutritionLoggedItem, NutritionMeal, NutritionMealItem, NutritionPreset, NutritionUserFood } from "./types";
 
 type PickerContext = "log" | "mealIngredient";
@@ -300,13 +300,17 @@ function buildPickerMeasurements(
     );
   }
 
-  add({
-    id: "100g",
-    label: "100g",
-    unitSuffix: "g",
-    gramsPerUnit: 1,
-    defaultQuantity: 100,
-  });
+  const hideHundredGramPreset =
+    food.source === "off" && baseGrams > 0 && Math.round(baseGrams) !== 100;
+  if (!hideHundredGramPreset) {
+    add({
+      id: "100g",
+      label: "100g",
+      unitSuffix: "g",
+      gramsPerUnit: 1,
+      defaultQuantity: 100,
+    });
+  }
 
   add({
     id: "custom",
@@ -362,6 +366,19 @@ function tabLabel(t: LogFoodTab): string {
 }
 
 export function LogFoodScreen({ open, onClose, dateKey, state, setState, editItem }: Props) {
+  const [closing, setClosing] = useState(false);
+  const visible = open && !closing;
+
+  useEffect(() => {
+    if (!open) setClosing(false);
+  }, [open]);
+
+  function requestClose() {
+    if (closing) return;
+    setClosing(true);
+    closeAfterMotion(onClose, MOTION_DURATIONS.panel);
+  }
+
   const [tab, setTab] = useState<LogFoodTab>("all");
   const [search, setSearch] = useState("");
   const [manualOpen, setManualOpen] = useState(false);
@@ -601,7 +618,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
 
   function handleBack() {
     if (editingLoggedItemId) {
-      onClose();
+      requestClose();
       return;
     }
     if (mealEditorOpen) {
@@ -640,7 +657,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       setPickerQuantity("");
       return;
     }
-    onClose();
+    requestClose();
   }
 
   function logManualAndClose() {
@@ -680,7 +697,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       setEditingLoggedItemId(null);
       setManualOpen(false);
       resetManualDraft();
-      onClose();
+      requestClose();
       return;
     }
 
@@ -694,7 +711,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     });
     setManualOpen(false);
     resetManualDraft();
-    onClose();
+    requestClose();
   }
 
   function resetManualDraft() {
@@ -739,7 +756,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
 
   function logSavedMeal(meal: NutritionMeal) {
     setState((s) => logNutritionMealToDay(s, dateKey, meal));
-    onClose();
+    requestClose();
   }
 
   function deleteSavedMeal(meal: NutritionMeal) {
@@ -798,12 +815,12 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       ...(food.externalId?.trim() ? { externalId: food.externalId.trim() } : {}),
     });
     setState((s) => appendNutritionLoggedItem(s, dateKey, row));
-    onClose();
+    requestClose();
   }
 
   function logFavoritePreset(preset: NutritionPreset) {
     setState((s) => appendNutritionPresetToDay(s, dateKey, preset));
-    onClose();
+    requestClose();
   }
 
   function relogItem(item: NutritionLoggedItem) {
@@ -818,7 +835,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       },
     );
     setState((s) => appendNutritionLoggedItem(s, dateKey, row));
-    onClose();
+    requestClose();
   }
 
   function openPicker(food: FoodSearchResult, context: PickerContext = "log") {
@@ -890,7 +907,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       setPickerCurated(null);
       setPickerMeasurementId("g");
       setPickerQuantity("");
-      onClose();
+      requestClose();
       return;
     }
 
@@ -905,7 +922,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     setPickerCurated(null);
     setPickerMeasurementId("g");
     setPickerQuantity("");
-    onClose();
+    requestClose();
   }
 
   function savePickerToMyFoods() {
@@ -1077,7 +1094,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   };
 
   return (
-    <FullScreenOverlay open={open} zIndex={250} motionVariant="fade" style={{ background: "var(--bg, #07080c)" }}>
+    <FullScreenOverlay open={visible} zIndex={250} motionVariant="page" style={{ background: "var(--bg, #07080c)" }}>
       <div
         role="presentation"
         className="screen page-transition"

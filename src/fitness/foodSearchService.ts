@@ -1,4 +1,4 @@
-import { parseServingLabel } from "./foodMeasurements";
+import { extractGramsFromServingText } from "./foodMeasurements";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import { sanitizeFoodSearchQuery } from "./foodSearchGuards";
 import type { FoodSearchErrorResponse, FoodSearchResponse, FoodSearchResult } from "./foodSearchTypes";
@@ -131,6 +131,89 @@ function offNum(raw: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+function resolveOffServing(
+  raw: Record<string, unknown>,
+): { defaultServing: string; baseGrams: number } {
+  const servingSizeRaw = typeof raw.serving_size === "string" ? raw.serving_size.trim() : "";
+  const servingQuantity = offNum(raw.serving_quantity);
+  const servingUnit = (
+    typeof raw.serving_quantity_unit === "string" ? raw.serving_quantity_unit.trim() : "g"
+  ).toLowerCase();
+
+  let defaultServing = "100 g";
+  let baseGrams = 100;
+
+  if (servingSizeRaw) {
+    defaultServing = servingSizeRaw;
+    const grams = extractGramsFromServingText(servingSizeRaw);
+    if (grams) baseGrams = grams;
+  }
+
+  if (baseGrams === 100 && servingQuantity > 0) {
+    if (servingUnit === "g" || servingUnit === "gram" || servingUnit === "grams") {
+      baseGrams = servingQuantity;
+      if (!servingSizeRaw) defaultServing = `${servingQuantity} g`;
+    } else if (servingUnit === "ml") {
+      baseGrams = servingQuantity;
+      if (!servingSizeRaw) defaultServing = `${servingQuantity} ml`;
+    } else {
+      const combined = `${servingQuantity} ${servingUnit}`;
+      const grams = extractGramsFromServingText(combined);
+      if (grams) baseGrams = grams;
+      if (!servingSizeRaw) defaultServing = combined;
+    }
+  }
+
+  return { defaultServing, baseGrams };
+}
+
+function resolveOffMacros(
+  nutriments: Record<string, unknown>,
+  baseGrams: number,
+): { cal: number; p: number; c: number; f: number } {
+  const calServing = offNum(nutriments["energy-kcal_serving"]) || offNum(nutriments.energy_kcal_serving);
+  const pServing = offNum(nutriments.proteins_serving);
+  const cServing = offNum(nutriments.carbohydrates_serving);
+  const fServing = offNum(nutriments.fat_serving);
+
+  const cal100 = offNum(nutriments["energy-kcal_100g"]) || offNum(nutriments.energy_kcal_100g);
+  const p100 = offNum(nutriments.proteins_100g);
+  const c100 = offNum(nutriments.carbohydrates_100g);
+  const f100 = offNum(nutriments.fat_100g);
+
+  if (calServing > 0) {
+    return {
+      cal: Math.round(calServing),
+      p: Math.round(pServing * 10) / 10,
+      c: Math.round(cServing * 10) / 10,
+      f: Math.round(fServing * 10) / 10,
+    };
+  }
+
+  const mult = baseGrams / 100;
+  return {
+    cal: Math.round(cal100 * mult),
+    p: Math.round(p100 * mult * 10) / 10,
+    c: Math.round(c100 * mult * 10) / 10,
+    f: Math.round(f100 * mult * 10) / 10,
+  };
+}
+
+function inferOffBaseGrams(
+  nutriments: Record<string, unknown>,
+  baseGrams: number,
+): number {
+  if (baseGrams !== 100) return baseGrams;
+
+  const calServing = offNum(nutriments["energy-kcal_serving"]) || offNum(nutriments.energy_kcal_serving);
+  const cal100 = offNum(nutriments["energy-kcal_100g"]) || offNum(nutriments.energy_kcal_100g);
+  if (calServing <= 0 || cal100 <= 0) return baseGrams;
+
+  const implied = Math.round((calServing / cal100) * 100);
+  if (implied >= 15 && implied <= 800) return implied;
+  return baseGrams;
+}
+
 export function mapOffProduct(raw: Record<string, unknown>): FoodSearchResult | null {
   const code = raw.code ?? raw._id;
   const externalId = code != null ? String(code) : "";
@@ -144,33 +227,9 @@ export function mapOffProduct(raw: Record<string, unknown>): FoodSearchResult | 
   const brand = brandsRaw ? brandsRaw.split(",")[0]?.trim() : undefined;
 
   const nutriments = (raw.nutriments ?? {}) as Record<string, unknown>;
-  const per100g = offNum(nutriments["energy-kcal_100g"]) || offNum(nutriments.energy_kcal_100g);
-  const cal = Math.round(per100g);
-  const p = Math.round(offNum(nutriments.proteins_100g) * 10) / 10;
-  const c = Math.round(offNum(nutriments.carbohydrates_100g) * 10) / 10;
-  const f = Math.round(offNum(nutriments.fat_100g) * 10) / 10;
-
-  const servingSizeRaw = typeof raw.serving_size === "string" ? raw.serving_size.trim() : "";
-  const servingQuantity = offNum(raw.serving_quantity);
-  const servingUnit = typeof raw.serving_quantity_unit === "string" ? raw.serving_quantity_unit.trim() : "g";
-
-  let defaultServing = "100 g";
-  let baseGrams = 100;
-  if (servingSizeRaw) {
-    defaultServing = servingSizeRaw;
-    const parsed = parseServingLabel(servingSizeRaw);
-    if (parsed?.grams && parsed.grams > 0) baseGrams = parsed.grams;
-  } else if (servingQuantity > 0) {
-    defaultServing = `${servingQuantity} ${servingUnit}`;
-    const parsed = parseServingLabel(defaultServing);
-    if (parsed?.grams && parsed.grams > 0) baseGrams = parsed.grams;
-  }
-
-  const multiplierFrom100g = baseGrams / 100;
-  const servingCal = Math.round(cal * multiplierFrom100g);
-  const servingP = Math.round(p * multiplierFrom100g * 10) / 10;
-  const servingC = Math.round(c * multiplierFrom100g * 10) / 10;
-  const servingF = Math.round(f * multiplierFrom100g * 10) / 10;
+  const { defaultServing, baseGrams: servingGrams } = resolveOffServing(raw);
+  const baseGrams = inferOffBaseGrams(nutriments, servingGrams);
+  const { cal: servingCal, p: servingP, c: servingC, f: servingF } = resolveOffMacros(nutriments, baseGrams);
 
   const servings = [
     { label: `½ ${defaultServing}`, multiplier: 0.5 },

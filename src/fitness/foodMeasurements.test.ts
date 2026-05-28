@@ -29,6 +29,9 @@ describe("foodMeasurements", () => {
   it("parses gram and oz serving labels", () => {
     expect(parseServingLabel("100 g")).toEqual({ quantity: 100, unit: "g", grams: 100 });
     expect(parseServingLabel("4 oz")?.grams).toBeCloseTo(113.4, 1);
+    expect(parseServingLabel("60g")).toEqual({ quantity: 60, unit: "g", grams: 60 });
+    expect(parseServingLabel("1 bar (60 g)")).toEqual({ quantity: 1, unit: "serving", grams: 60 });
+    expect(parseServingLabel("49")).toEqual({ quantity: 49, unit: "g", grams: 49 });
   });
 
   it("builds g and oz measurements plus portion labels", () => {

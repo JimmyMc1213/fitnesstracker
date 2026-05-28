@@ -13,9 +13,42 @@ export type ParsedServing = {
   grams: number | null;
 };
 
-/** Parse labels like "100 g", "3.5 oz", "1 cup". */
+/** Parse labels like "100 g", "60g", "3.5 oz", "1 bar (60 g)". */
 export function parseServingLabel(label: string): ParsedServing | null {
   const trimmed = label.trim();
+  if (!trimmed) return null;
+
+  const parenGrams = trimmed.match(/\(\s*([\d.]+)\s*g\s*\)/i);
+  if (parenGrams) {
+    const grams = parseFloat(parenGrams[1]);
+    if (Number.isFinite(grams) && grams > 0) {
+      const qtyMatch = trimmed.match(/^([\d.]+)/);
+      const quantity = qtyMatch ? parseFloat(qtyMatch[1]) : 1;
+      return {
+        quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+        unit: "serving",
+        grams,
+      };
+    }
+  }
+
+  const compactGram = trimmed.match(/^([\d.]+)\s*g$/i);
+  if (compactGram) {
+    const quantity = parseFloat(compactGram[1]);
+    if (Number.isFinite(quantity) && quantity > 0) {
+      return { quantity, unit: "g", grams: quantity };
+    }
+  }
+
+  const numericOnly = trimmed.match(/^([\d.]+)$/);
+  if (numericOnly) {
+    const quantity = parseFloat(numericOnly[1]);
+    // OFF `serving_size` is often a plain gram weight (e.g. "60").
+    if (Number.isFinite(quantity) && quantity > 0) {
+      return { quantity, unit: "g", grams: quantity };
+    }
+  }
+
   const match = trimmed.match(/^([\d.]+)\s*(.+)$/i);
   if (!match) return null;
   const quantity = parseFloat(match[1]);
@@ -23,6 +56,12 @@ export function parseServingLabel(label: string): ParsedServing | null {
   if (!Number.isFinite(quantity) || quantity <= 0 || !unit) return null;
   const grams = gramsForUnit(quantity, unit);
   return { quantity, unit, grams };
+}
+
+/** Extract gram weight from Open Food Facts serving text when possible. */
+export function extractGramsFromServingText(text: string): number | null {
+  const parsed = parseServingLabel(text);
+  return parsed?.grams && parsed.grams > 0 ? parsed.grams : null;
 }
 
 function gramsForUnit(quantity: number, unit: string): number | null {
