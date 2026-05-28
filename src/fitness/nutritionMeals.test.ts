@@ -135,6 +135,7 @@ describe("mealItemFromUserFood and mealItemFromPreset", () => {
       f: 0,
       servingLabel: "1 cup",
       source: "manual",
+      savedAtMs: 0,
     });
     expect(item.name).toBe("Greek yogurt");
     expect(item.cal).toBe(100);
