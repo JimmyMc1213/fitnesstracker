@@ -88,4 +88,18 @@ describe("progressGoalFromOnboarding", () => {
     expect(goal.goalWeightLowLbs).toBe(175);
     expect(goal.progressStartWeightLbs).toBe(160);
   });
+
+  it("uses anchor weight when provided", () => {
+    const goal = progressGoalFromOnboarding(
+      {
+        ...DEFAULT_ONBOARDING_PROFILE,
+        goal: "cut",
+        weightLbs: 200,
+        goalWeightLbs: 170,
+      },
+      { anchorWeightLbs: 185, progressStartWeightLbs: 200 },
+    );
+    expect(goal.goalWeightHighLbs).toBe(170);
+    expect(goal.progressStartWeightLbs).toBe(200);
+  });
 });

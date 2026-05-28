@@ -39,6 +39,10 @@ import { useTheme } from "../ThemeContext";
 import type { AppTheme } from "../theme";
 import { UnitPreferencePicker } from "../UnitPreferencePicker";
 import { EquipmentSetupPicker } from "../EquipmentSetupPicker";
+import { ChangeGoalConfirmSheet } from "../ChangeGoalConfirmSheet";
+import { GoalSettingsPicker } from "../GoalSettingsPicker";
+import { applyGoalSettingsPatch, latestWeightLbs, nutritionGoalSettingsLabel } from "../goalSettings";
+import { nutritionGoalLabel } from "../nutritionCalculator";
 import { rebuildWorkoutTemplatesForEquipment } from "../workoutTemplateBuilder";
 import { EQUIPMENT_SETUP_LABELS } from "../equipmentSetup";
 import { NotificationPreferencesPicker } from "../NotificationPreferencesPicker";
@@ -55,11 +59,10 @@ import {
 } from "../waterIntake";
 import {
   formatWeightFromLbs,
-  heightUnitLabel,
   volumeUnitLabel,
   weightUnitLabel,
 } from "../unitPreferences";
-import type { EquipmentSetup, HabitTemplate, MacroTotals, ScreenProps, UnitPreferences } from "../types";
+import type { EquipmentSetup, HabitTemplate, MacroTotals, NutritionGoal, ScreenProps, UnitPreferences } from "../types";
 import { sanitizeUserText } from "../userText";
 
 type YouSubPanel = null | "change-password";
@@ -72,6 +75,7 @@ type SettingsPanel =
   | "units"
   | "fuel-targets"
   | "hydration"
+  | "goal"
   | "reminders"
   | "rest-timer"
   | "equipment"
@@ -93,6 +97,7 @@ const PANEL_TITLES: Record<Exclude<SettingsPanel, null>, string> = {
   units: "Units",
   "fuel-targets": "Fuel targets",
   hydration: "Hydration",
+  goal: "Goal",
   reminders: "Reminders",
   "rest-timer": "Rest timer",
   equipment: "Equipment",
@@ -102,6 +107,14 @@ const PANEL_TITLES: Record<Exclude<SettingsPanel, null>, string> = {
 
 function rowIcon(node: ReactNode) {
   return node;
+}
+
+function AppleSignInIcon() {
+  return (
+    <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+    </svg>
+  );
 }
 
 function newHabitId(): string {
@@ -179,6 +192,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
   const [deleteAccountNotice, setDeleteAccountNotice] = useState<string | null>(null);
   const [deleteAccountBusy, setDeleteAccountBusy] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [pendingGoalChange, setPendingGoalChange] = useState<NutritionGoal | null>(null);
   const activeScrollElRef = useRef<HTMLDivElement | null>(null);
   const scrollByLayerRef = useRef<Partial<Record<SettingsLayerKey, number>>>({});
   const scrollRestoredLayerRef = useRef<SettingsLayerKey | null>(null);
@@ -268,11 +282,15 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
     if (next !== "you") {
       closeYouSubPanel();
     }
+    if (next !== "goal") {
+      setPendingGoalChange(null);
+    }
     setPanel(next);
   }
 
   function closePanel() {
     closeYouSubPanel();
+    setPendingGoalChange(null);
     setPanel(null);
   }
 
@@ -398,12 +416,16 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
             trailing={formatVolumeFromOz(state.waterDailyTargetOz, volumeUnit)}
             onClick={() => openPanel("hydration")}
           />
-          {state.progressGoal ? (
+          {state.onboardingProfile ? (
             <SettingsRow
               icon={rowIcon(<IconFlag size={16} stroke={1.6} />)}
-              label="Goal range"
-              trailing={`${formatWeightFromLbs(state.progressGoal.goalWeightLowLbs, state.unitPreferences.weightUnit)}–${formatWeightFromLbs(state.progressGoal.goalWeightHighLbs, state.unitPreferences.weightUnit)} ${weightUnitLabel(state.unitPreferences.weightUnit)}`}
-              disabled
+              label="Goal"
+              trailing={
+                state.progressGoal
+                  ? `${nutritionGoalLabel(state.onboardingProfile.goal ?? "maintain")} · ${formatWeightFromLbs(state.progressGoal.goalWeightLowLbs, state.unitPreferences.weightUnit)}–${formatWeightFromLbs(state.progressGoal.goalWeightHighLbs, state.unitPreferences.weightUnit)} ${weightUnitLabel(state.unitPreferences.weightUnit)}`
+                  : nutritionGoalSettingsLabel(state.onboardingProfile.goal ?? "maintain")
+              }
+              onClick={() => openPanel("goal")}
             />
           ) : null}
           <SettingsRow
@@ -628,7 +650,8 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
           </label>
         </div>
         {sync.sessionEmail ? (
-          <SettingsHubSection title="Personal info">
+          <>
+            <SettingsHubSection title="Personal info">
             {emailEditing ? (
               <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
                 <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
@@ -718,6 +741,13 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
               onClick={() => openYouSubPanel("change-password")}
             />
           </SettingsHubSection>
+          <SettingsHubSection title="Connected accounts">
+            <SettingsComingSoonRow
+              icon={rowIcon(<AppleSignInIcon />)}
+              label="Apple Sign-In"
+            />
+          </SettingsHubSection>
+          </>
         ) : null}
       </>
     );
@@ -1188,19 +1218,39 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
     );
   }
 
+  function renderGoalPanel() {
+    const profile = state.onboardingProfile;
+    if (!profile) return null;
+
+    const currentWeightLbs = latestWeightLbs(state);
+    const wUnit = state.unitPreferences.weightUnit;
+
+    return (
+      <>
+        <SettingsHelper>
+          Your goal drives calorie targets, coaching, and the weight range on Progress. Changes update fuel targets
+          automatically.
+        </SettingsHelper>
+        {state.progressGoal ? (
+          <div className="card settings-detail-card" style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+            Goal range: {formatWeightFromLbs(state.progressGoal.goalWeightLowLbs, wUnit)}–
+            {formatWeightFromLbs(state.progressGoal.goalWeightHighLbs, wUnit)} {weightUnitLabel(wUnit)}
+          </div>
+        ) : null}
+        <GoalSettingsPicker
+          profile={profile}
+          currentWeightLbs={currentWeightLbs}
+          weightUnit={wUnit}
+          onGoalChange={setPendingGoalChange}
+          onChange={(patch) => setState((s) => applyGoalSettingsPatch(s, patch))}
+        />
+      </>
+    );
+  }
+
   function renderProgramPanel() {
     return (
       <>
-        {state.progressGoal ? (
-          <>
-            <h2 className="settings-inline-label">Goal range</h2>
-            <div className="card settings-detail-card" style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-              {formatWeightFromLbs(state.progressGoal.goalWeightLowLbs, state.unitPreferences.weightUnit)}–
-              {formatWeightFromLbs(state.progressGoal.goalWeightHighLbs, state.unitPreferences.weightUnit)}{" "}
-              {weightUnitLabel(state.unitPreferences.weightUnit)} · height in {heightUnitLabel(state.unitPreferences.heightUnit)}
-            </div>
-          </>
-        ) : null}
         <div className="card settings-detail-card" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Steps goal
@@ -1245,6 +1295,8 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
         return renderFuelTargetsPanel();
       case "hydration":
         return renderHydrationPanel();
+      case "goal":
+        return renderGoalPanel();
       case "reminders":
         return renderRemindersPanel();
       case "rest-timer":
@@ -1288,6 +1340,18 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
           </div>
         )}
       </ScreenTransition>
+      {pendingGoalChange ? (
+        <ChangeGoalConfirmSheet
+          currentGoal={state.onboardingProfile?.goal ?? "maintain"}
+          nextGoal={pendingGoalChange}
+          onCancel={() => setPendingGoalChange(null)}
+          onConfirm={() => {
+            const nextGoal = pendingGoalChange;
+            setPendingGoalChange(null);
+            setState((s) => applyGoalSettingsPatch(s, { goal: nextGoal }));
+          }}
+        />
+      ) : null}
       {showSignOutConfirm ? (
         <DeleteConfirmSheet
           variant="account"

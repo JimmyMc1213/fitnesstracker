@@ -178,22 +178,33 @@ export function normalizeOnboardingProfile(raw: unknown): OnboardingProfile | nu
   };
 }
 
-export function progressGoalFromOnboarding(profile: OnboardingProfile): ProgressGoalConfig {
-  const w = profile.weightLbs;
+export type ProgressGoalOptions = {
+  /** Weight anchor for goal range math (defaults to profile.weightLbs). */
+  anchorWeightLbs?: number;
+  /** Keep an existing progress bar baseline when updating goal in settings. */
+  progressStartWeightLbs?: number;
+};
+
+export function progressGoalFromOnboarding(
+  profile: OnboardingProfile,
+  options?: ProgressGoalOptions,
+): ProgressGoalConfig {
+  const w = options?.anchorWeightLbs ?? profile.weightLbs;
   const target = profile.goalWeightLbs;
+  const progressStartWeightLbs = options?.progressStartWeightLbs ?? Math.round(w);
 
   if (profile.goal === "cut") {
     if (target != null && target < w) {
       return {
         goalWeightLowLbs: Math.round(target - 3),
         goalWeightHighLbs: Math.round(target),
-        progressStartWeightLbs: Math.round(w),
+        progressStartWeightLbs,
       };
     }
     return {
       goalWeightLowLbs: Math.round(w - 12),
       goalWeightHighLbs: Math.round(w - 5),
-      progressStartWeightLbs: Math.round(w),
+      progressStartWeightLbs,
     };
   }
   if (profile.goal === "bulk") {
@@ -201,18 +212,18 @@ export function progressGoalFromOnboarding(profile: OnboardingProfile): Progress
       return {
         goalWeightLowLbs: Math.round(target),
         goalWeightHighLbs: Math.round(target + 3),
-        progressStartWeightLbs: Math.round(w),
+        progressStartWeightLbs,
       };
     }
     return {
       goalWeightLowLbs: Math.round(w + 3),
       goalWeightHighLbs: Math.round(w + 12),
-      progressStartWeightLbs: Math.round(w),
+      progressStartWeightLbs,
     };
   }
   return {
     goalWeightLowLbs: Math.round(w - 3),
     goalWeightHighLbs: Math.round(w + 3),
-    progressStartWeightLbs: Math.round(w),
+    progressStartWeightLbs,
   };
 }

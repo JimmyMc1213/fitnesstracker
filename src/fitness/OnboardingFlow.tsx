@@ -67,6 +67,7 @@ import {
 } from "./unitPreferences";
 import { DateOfBirthWheelPicker } from "./DateOfBirthWheelPicker";
 import { defaultGoalWeightLbs, goalWeightRangeLbs, WeightRulerPicker } from "./WeightRulerPicker";
+import { clampGoalWeightLbs, isGoalWeightValid } from "./goalSettings";
 import { ReferralSourcePicker } from "./ReferralSourcePicker";
 import { OnboardingHeightInput } from "./OnboardingHeightInput";
 import { OnboardingWeightInput } from "./OnboardingWeightInput";
@@ -115,21 +116,6 @@ function defaultDateOfBirthFromAge(age: number): string {
   d.setMonth(5);
   d.setDate(15);
   return localDateKey(d);
-}
-
-function isGoalWeightValid(profile: OnboardingProfile): boolean {
-  if (profile.goal === "maintain") return true;
-  const target = profile.goalWeightLbs;
-  if (target == null || !Number.isFinite(target)) return false;
-  const w = profile.weightLbs;
-  if (Math.abs(target - w) < 3) return false;
-  if (profile.goal === "cut") return target >= w - 80 && target <= w - 5;
-  if (profile.goal === "bulk") return target >= w + 3 && target <= w + 50;
-  return false;
-}
-
-function clampGoalWeightLbs(valueLbs: number, minLbs: number, maxLbs: number): number {
-  return Math.min(maxLbs, Math.max(minLbs, valueLbs));
 }
 
 function isMacrosValid(macros: MacroTotals): boolean {
@@ -735,7 +721,7 @@ export function OnboardingFlow({
         contentClassName={goalWeightReinforcement ? "onboarding-shell__content--centered" : undefined}
         onBack={goBack}
         onContinue={goNext}
-        continueDisabled={!goalWeightReinforcement && !isGoalWeightValid(profile)}
+        continueDisabled={!goalWeightReinforcement && !isGoalWeightValid(profile, profile.weightLbs)}
       >
         {goalWeightReinforcement ? (
           <OnboardingGoalWeightReinforcement
