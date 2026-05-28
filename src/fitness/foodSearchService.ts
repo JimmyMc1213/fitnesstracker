@@ -1,3 +1,4 @@
+import { parseServingLabel } from "./foodMeasurements";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import { sanitizeFoodSearchQuery } from "./foodSearchGuards";
 import type { FoodSearchErrorResponse, FoodSearchResponse, FoodSearchResult } from "./foodSearchTypes";
@@ -123,6 +124,95 @@ export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
   }
 
   return cacheResults(q, parseResults(data));
+}
+
+function offNum(raw: unknown): number {
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+
+export function mapOffProduct(raw: Record<string, unknown>): FoodSearchResult | null {
+  const code = raw.code ?? raw._id;
+  const externalId = code != null ? String(code) : "";
+  const name =
+    (typeof raw.product_name === "string" && raw.product_name.trim()) ||
+    (typeof raw.product_name_en === "string" && raw.product_name_en.trim()) ||
+    "";
+  if (!externalId || !name) return null;
+
+  const brandsRaw = typeof raw.brands === "string" ? raw.brands.trim() : "";
+  const brand = brandsRaw ? brandsRaw.split(",")[0]?.trim() : undefined;
+
+  const nutriments = (raw.nutriments ?? {}) as Record<string, unknown>;
+  const per100g = offNum(nutriments["energy-kcal_100g"]) || offNum(nutriments.energy_kcal_100g);
+  const cal = Math.round(per100g);
+  const p = Math.round(offNum(nutriments.proteins_100g) * 10) / 10;
+  const c = Math.round(offNum(nutriments.carbohydrates_100g) * 10) / 10;
+  const f = Math.round(offNum(nutriments.fat_100g) * 10) / 10;
+
+  const servingSizeRaw = typeof raw.serving_size === "string" ? raw.serving_size.trim() : "";
+  const servingQuantity = offNum(raw.serving_quantity);
+  const servingUnit = typeof raw.serving_quantity_unit === "string" ? raw.serving_quantity_unit.trim() : "g";
+
+  let defaultServing = "100 g";
+  let baseGrams = 100;
+  if (servingSizeRaw) {
+    defaultServing = servingSizeRaw;
+    const parsed = parseServingLabel(servingSizeRaw);
+    if (parsed?.grams && parsed.grams > 0) baseGrams = parsed.grams;
+  } else if (servingQuantity > 0) {
+    defaultServing = `${servingQuantity} ${servingUnit}`;
+    const parsed = parseServingLabel(defaultServing);
+    if (parsed?.grams && parsed.grams > 0) baseGrams = parsed.grams;
+  }
+
+  const multiplierFrom100g = baseGrams / 100;
+  const servingCal = Math.round(cal * multiplierFrom100g);
+  const servingP = Math.round(p * multiplierFrom100g * 10) / 10;
+  const servingC = Math.round(c * multiplierFrom100g * 10) / 10;
+  const servingF = Math.round(f * multiplierFrom100g * 10) / 10;
+
+  const servings = [
+    { label: `½ ${defaultServing}`, multiplier: 0.5 },
+    { label: defaultServing, multiplier: 1 },
+    { label: `2× ${defaultServing}`, multiplier: 2 },
+  ];
+
+  return {
+    id: `off-${externalId}`,
+    name: name.trim(),
+    ...(brand ? { brand } : {}),
+    cal: servingCal,
+    p: servingP,
+    c: servingC,
+    f: servingF,
+    defaultServing,
+    baseGrams,
+    source: "off",
+    externalId,
+    servings,
+  };
+}
+
+/** Look up a packaged food by UPC/EAN via Open Food Facts. */
+export async function lookupFoodByBarcode(barcode: string): Promise<FoodSearchResult | null> {
+  const code = barcode.trim().replace(/\s/g, "");
+  if (code.length < 8) return null;
+
+  const url = new URL(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}`);
+  url.searchParams.set(
+    "fields",
+    "code,product_name,product_name_en,brands,serving_size,serving_quantity,serving_quantity_unit,nutriments",
+  );
+
+  const res = await fetch(url.toString(), {
+    headers: { "User-Agent": "Fitcoach/1.0 (barcode lookup)" },
+  });
+  if (!res.ok) return null;
+
+  const payload = (await res.json()) as { status?: number; product?: Record<string, unknown> };
+  if (payload.status !== 1 || !payload.product) return null;
+  return mapOffProduct(payload.product);
 }
 
 /** Debounce helper for search input (~300ms). */

@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import { AnimatedNumberFlip } from "./AnimatedNumberFlip";
+import { BarcodeScanner } from "./BarcodeScanner";
 import { CURATED_FOODS, type CuratedFood } from "./curatedFoods";
 import { scaleMacros } from "./foodSearchMacros";
 import {
@@ -25,7 +26,7 @@ import {
   parseQuantityInput,
   parseServingLabel,
 } from "./foodMeasurements";
-import { FoodSearchError, searchFoods } from "./foodSearchService";
+import { FoodSearchError, mapOffProduct, searchFoods } from "./foodSearchService";
 import type { FoodMeasurement, FoodSearchResult } from "./foodSearchTypes";
 import {
   appendNutritionLoggedItem,
@@ -56,6 +57,7 @@ import { formatMacroGrams, formatServing, toTitleCase } from "./utils/foodDispla
 import { PrimaryButton } from "./shared";
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { FoodSearchSkeletonList } from "./FoodSearchSkeletonList";
+import { IconScan } from "./icons";
 import { FullScreenOverlay } from "./motion";
 import type { AppState, NutritionLoggedItem, NutritionMeal, NutritionMealItem, NutritionPreset, NutritionUserFood } from "./types";
 
@@ -398,6 +400,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   const [mealIngredientServing, setMealIngredientServing] = useState("");
 
   const [pendingDelete, setPendingDelete] = useState<PendingFoodDelete | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [barcodeLookupLoading, setBarcodeLookupLoading] = useState(false);
+  const [barcodeResults, setBarcodeResults] = useState<FoodSearchResult[]>([]);
+  const [barcodeNotFound, setBarcodeNotFound] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const pickerQuantityInputRef = useRef<HTMLInputElement>(null);
@@ -514,6 +520,10 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       setEditingUserFoodId(null);
       setEditingLoggedItemId(null);
       resetMealEditor();
+      setScannerOpen(false);
+      setBarcodeLookupLoading(false);
+      setBarcodeResults([]);
+      setBarcodeNotFound(false);
     }
   }, [open]);
 
@@ -963,6 +973,39 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     );
   }
 
+  async function handleBarcodeScan(code: string) {
+    setScannerOpen(false);
+    setBarcodeLookupLoading(true);
+    setBarcodeNotFound(false);
+    setBarcodeResults([]);
+    try {
+      const barcode = code.trim().replace(/\s/g, "");
+      const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=code,product_name,product_name_en,brands,serving_size,serving_quantity,serving_quantity_unit,nutriments`;
+      const res = await fetch(url, {
+        headers: { "User-Agent": "Fitcoach/1.0 (barcode lookup)" },
+      });
+      if (!res.ok) {
+        setBarcodeNotFound(true);
+        return;
+      }
+      const payload = (await res.json()) as { status?: number; product?: Record<string, unknown> };
+      if (payload.status !== 1 || !payload.product) {
+        setBarcodeNotFound(true);
+        return;
+      }
+      const food = mapOffProduct(payload.product);
+      if (!food) {
+        setBarcodeNotFound(true);
+        return;
+      }
+      setBarcodeResults([food]);
+    } catch {
+      setBarcodeNotFound(true);
+    } finally {
+      setBarcodeLookupLoading(false);
+    }
+  }
+
   function retrySearch() {
     const q = search.trim();
     if (q.length < MIN_SEARCH_LEN) return;
@@ -984,6 +1027,8 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   }
 
   const tabs: LogFoodTab[] = ["all", "myFoods", "myMeals", "saved"];
+
+  const showScanButton = !pickerFood && !mealEditorOpen && !manualOpen;
 
   const tabButtonStyle = (active: boolean) =>
     ({
@@ -1085,7 +1130,17 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         >
           ←
         </button>
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
+        <h1
+          style={{
+            margin: 0,
+            flex: 1,
+            minWidth: 0,
+            fontSize: 20,
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+            color: "var(--text-primary)",
+          }}
+        >
           {pickerFood
             ? pickerContext === "mealIngredient"
               ? "Add ingredient"
@@ -1100,6 +1155,32 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                 ? "Edit food"
                 : "Log Food"}
         </h1>
+        {showScanButton ? (
+          <button
+            type="button"
+            className="tap"
+            onClick={() => setScannerOpen(true)}
+            aria-label="Scan barcode"
+            style={{
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 14px",
+              borderRadius: 999,
+              border: "0.5px solid color-mix(in srgb, var(--primary) 35%, var(--border))",
+              background: "var(--primary)",
+              color: "var(--primary-fg)",
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              boxShadow: "0 2px 8px color-mix(in srgb, var(--text-primary) 14%, transparent)",
+            }}
+          >
+            <IconScan size={17} stroke={2.25} />
+            Scan
+          </button>
+        ) : null}
       </div>
 
       {pickerFood ? (
@@ -1731,6 +1812,51 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                   style={searchInputStyle}
                 />
 
+                {barcodeNotFound ? (
+                  <p style={{ margin: "0 0 12px", fontSize: 14, color: "var(--neg)", lineHeight: 1.5 }}>Product not found.</p>
+                ) : null}
+
+                {barcodeLookupLoading ? <FoodSearchSkeletonList variant="card" /> : null}
+
+                {barcodeResults.length > 0 ? (
+                  <div className="card" style={{ ...foodListCardStyle, marginBottom: 16 }}>
+                    {barcodeResults.map((food, idx) => (
+                      <button
+                        key={food.id}
+                        type="button"
+                        className="tap between"
+                        style={{
+                          ...foodRowStyle,
+                          borderBottom: idx === barcodeResults.length - 1 ? "none" : foodRowStyle.borderBottom,
+                        }}
+                        onClick={() => openPicker(food)}
+                      >
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
+                            {displayFoodName(food.name, food.source)}
+                          </div>
+                          <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                            {Math.round(Number(food.cal) || 0)} kcal · {formatGramsInLabel(food.defaultServing)}
+                            {food.brand ? ` · ${food.brand}` : ""}
+                          </div>
+                        </div>
+                        {renderFavoriteButton(
+                          {
+                            name: displayFoodName(food.name, food.source),
+                            cal: Number(food.cal) || 0,
+                            p: Number(food.p) || 0,
+                            c: Number(food.c) || 0,
+                            f: Number(food.f) || 0,
+                            servingLabel: food.defaultServing,
+                          },
+                          food.name,
+                        )}
+                        <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+
                 {searchActive ? (
                   <>
                     {searchLoading ? (
@@ -2106,6 +2232,11 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         </>
       )}
       </div>
+      {scannerOpen ? (
+        <div style={{ position: "fixed", inset: 0, zIndex: 400 }}>
+          <BarcodeScanner onScan={handleBarcodeScan} onClose={() => setScannerOpen(false)} />
+        </div>
+      ) : null}
       {pendingDelete ? (
         <DeleteConfirmSheet
           title={
