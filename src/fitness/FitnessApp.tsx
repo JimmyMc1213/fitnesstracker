@@ -637,7 +637,10 @@ function FitnessAppMain({
 
   return (
     <FitnessSyncContext.Provider value={fitnessSync}>
-      <div className={bootSplashMounted ? "app-shell--splash-hidden" : undefined} aria-hidden={bootSplashMounted}>
+      <div
+        className={bootSplashMounted ? "app-shell app-shell--splash-hidden" : "app-shell"}
+        aria-hidden={bootSplashMounted}
+      >
         {mainContent}
       </div>
       {bootSplashOverlay}

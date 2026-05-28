@@ -1,12 +1,26 @@
 export const DEFAULT_REST_TIMER_SECONDS = 60;
 
+/** Minimum rest duration users can set (prevents instant-skip exploits). */
+export const MIN_REST_TIMER_SECONDS = 15;
+
+/** Maximum rest duration users can set (prevents absurd values / storage abuse). */
+export const MAX_REST_TIMER_SECONDS = 600;
+
 export const REST_TIMER_PRESETS = [30, 60, 90, 120] as const;
 
 export type RestTimerPreset = (typeof REST_TIMER_PRESETS)[number];
 
+export function clampRestTimerSeconds(raw: unknown, fallback = DEFAULT_REST_TIMER_SECONDS): number {
+  const n = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.round(Math.min(MAX_REST_TIMER_SECONDS, Math.max(MIN_REST_TIMER_SECONDS, n)));
+}
+
 export function normalizeRestTimerDefaultSeconds(raw: unknown): number {
   const n = typeof raw === "number" ? raw : DEFAULT_REST_TIMER_SECONDS;
-  if (!Number.isFinite(n) || n < 15 || n > 600) return DEFAULT_REST_TIMER_SECONDS;
+  if (!Number.isFinite(n) || n < MIN_REST_TIMER_SECONDS || n > MAX_REST_TIMER_SECONDS) {
+    return DEFAULT_REST_TIMER_SECONDS;
+  }
   return Math.round(n);
 }
 
@@ -16,7 +30,7 @@ export function normalizeRestTimerSecondsByExerciseKey(raw: unknown): Record<str
   for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
     if (typeof k !== "string") continue;
     const n = typeof v === "number" ? v : Number(v);
-    if (!Number.isFinite(n) || n < 15 || n > 600) continue;
+    if (!Number.isFinite(n) || n < MIN_REST_TIMER_SECONDS || n > MAX_REST_TIMER_SECONDS) continue;
     out[k] = Math.round(n);
   }
   return out;

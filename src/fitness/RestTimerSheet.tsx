@@ -2,13 +2,9 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { CenterDialog, bottomSheetPanelTheme } from "./motion";
 import { PrimaryButton } from "./shared";
-import {
-  PRESET_SELECTED_BG,
-  PRESET_SELECTED_BORDER,
-  PRESET_SELECTED_COLOR,
-  COACH_BLUE,
-} from "./workoutUiTokens";
-import { REST_TIMER_PRESETS, formatRestDuration } from "./restTimerPreferences";
+import { COACH_BLUE } from "./workoutUiTokens";
+import { RestTimerDurationPicker } from "./RestTimerDurationPicker";
+import { formatRestDuration, MAX_REST_TIMER_SECONDS, MIN_REST_TIMER_SECONDS } from "./restTimerPreferences";
 import type { RestTimerPhase } from "./RestTimerStrip";
 
 type Props = {
@@ -178,34 +174,11 @@ export function RestTimerSheet({
         </p>
       ) : null}
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-        {REST_TIMER_PRESETS.map((sec) => {
-          const selected = selectedPresetSec === sec;
-          return (
-            <button
-              key={sec}
-              type="button"
-              className="tap"
-              aria-pressed={selected}
-              onClick={() => onSelectPreset(sec)}
-              style={{
-                flex: "1 1 calc(25% - 6px)",
-                minWidth: 64,
-                padding: "10px 8px",
-                borderRadius: 10,
-                border: selected ? `0.5px solid ${PRESET_SELECTED_BORDER}` : "0.5px solid var(--border)",
-                background: selected ? PRESET_SELECTED_BG : "var(--surface-1)",
-                color: selected ? PRESET_SELECTED_COLOR : "var(--text-muted-soft)",
-                fontSize: 13,
-                fontWeight: 600,
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              {sec}s
-            </button>
-          );
-        })}
-      </div>
+      <RestTimerDurationPicker
+        variant="sheet"
+        value={selectedPresetSec}
+        onChange={onSelectPreset}
+      />
 
       {isRunning ? (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
@@ -213,15 +186,21 @@ export function RestTimerSheet({
             type="button"
             className="tap"
             onClick={() => onAdjustSeconds(-15)}
-            disabled={displaySec <= 15}
-            style={sheetActionStyle(displaySec <= 15)}
+            disabled={displaySec <= MIN_REST_TIMER_SECONDS}
+            style={sheetActionStyle(displaySec <= MIN_REST_TIMER_SECONDS)}
           >
             −15s
           </button>
           <button type="button" className="tap" onClick={onTogglePause} style={sheetActionStyle(false)}>
             {paused ? "Resume" : "Pause"}
           </button>
-          <button type="button" className="tap" onClick={() => onAdjustSeconds(15)} style={sheetActionStyle(false)}>
+          <button
+            type="button"
+            className="tap"
+            onClick={() => onAdjustSeconds(15)}
+            disabled={displaySec >= MAX_REST_TIMER_SECONDS}
+            style={sheetActionStyle(displaySec >= MAX_REST_TIMER_SECONDS)}
+          >
             +15s
           </button>
         </div>

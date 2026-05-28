@@ -12,7 +12,7 @@ import { IconPlus } from "../icons";
 import { ScreenWorkoutHistory } from "./ScreenWorkoutHistory";
 import { FullScreenOverlay } from "../motion";
 import { SortableExerciseList } from "../SortableExerciseList";
-import type { ScreenProps, WorkoutExercise, WorkoutSetKind } from "../types";
+import type { ScreenProps, WorkoutExercise, WorkoutRoutineTemplate, WorkoutSetKind } from "../types";
 import { defaultExerciseTarget } from "../exercisePrescriptionDefaults";
 import { autofillExerciseSets, buildSetsForExercise, findLastLoggedExerciseSets } from "../workoutAutofill";
 import { buildSetCompletionPatch, canCompleteSet } from "../workoutPreviousSets";
@@ -26,7 +26,11 @@ import { WorkoutCoachCard } from "../WorkoutCoachCard";
 import { WorkoutSessionStickyHeader } from "../WorkoutSessionStickyHeader";
 import { RestTimerSheet } from "../RestTimerSheet";
 import type { RestTimerPhase } from "../RestTimerStrip";
-import { restDurationForExercise } from "../restTimerPreferences";
+import {
+  clampRestTimerSeconds,
+  MAX_REST_TIMER_SECONDS,
+  restDurationForExercise,
+} from "../restTimerPreferences";
 import { ExerciseSwapSheet } from "../ExerciseSwapSheet";
 import { RoutineExerciseSearchSheet } from "../RoutineExerciseSearchSheet";
 import { isTrainingDay } from "../trainingCalendar";
@@ -41,6 +45,8 @@ import { WorkoutIdleDashboard } from "../workout/WorkoutIdleDashboard";
 import { WorkoutSessionHeader } from "../workout/WorkoutSessionHeader";
 import { CreateWeeklyRoutineSheet } from "../CreateWeeklyRoutineSheet";
 import { WeeklyRoutineBuilderFlow, type WeeklyRoutineBuilderMode } from "../WeeklyRoutineBuilderFlow";
+import { applyWeeklyRoutineToState, profilePatchFromRoutineInputs } from "../buildWeeklyRoutine";
+import { WorkoutStarterTemplatesSheet } from "../WorkoutStarterTemplatesSheet";
 
 function formatSessionClock(d: Date): string {
   return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
@@ -78,10 +84,14 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
 
   const [showCreateWeeklyRoutineSheet, setShowCreateWeeklyRoutineSheet] = useState(false);
+  const [showStarterTemplatesSheet, setShowStarterTemplatesSheet] = useState(false);
   const [weeklyRoutineBuilderMode, setWeeklyRoutineBuilderMode] = useState<WeeklyRoutineBuilderMode | null>(null);
 
   const workoutOverlayOpen =
-    editingRoutineId !== null || weeklyRoutineBuilderMode !== null || showCreateWeeklyRoutineSheet;
+    editingRoutineId !== null ||
+    weeklyRoutineBuilderMode !== null ||
+    showCreateWeeklyRoutineSheet ||
+    showStarterTemplatesSheet;
 
   useEffect(() => {
     onRoutineEditorOpenChange?.(workoutOverlayOpen);
@@ -403,24 +413,25 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   }
 
   function setRestPreset(exercise: WorkoutExercise, seconds: number) {
+    const clamped = clampRestTimerSeconds(seconds);
     const key = exerciseNoteKey(exercise.name, exercise.label);
     setState((s) => ({
       ...s,
-      restTimerSecondsByExerciseKey: { ...s.restTimerSecondsByExerciseKey, [key]: seconds },
+      restTimerSecondsByExerciseKey: { ...s.restTimerSecondsByExerciseKey, [key]: clamped },
     }));
     setRestTimer((current) => {
       if (!current || current.exerciseId !== exercise.id || current.completed) return current;
       if (current.paused) {
         return {
           ...current,
-          durationSec: seconds,
-          pausedRemainingMs: seconds * 1000,
+          durationSec: clamped,
+          pausedRemainingMs: clamped * 1000,
         };
       }
       return {
         ...current,
-        durationSec: seconds,
-        endsAtMs: Date.now() + seconds * 1000,
+        durationSec: clamped,
+        endsAtMs: Date.now() + clamped * 1000,
       };
     });
   }
@@ -430,25 +441,29 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
       if (!current || current.completed) return current;
       const deltaMs = deltaSec * 1000;
       if (current.paused) {
-        const nextRemainingMs = Math.max(0, (current.pausedRemainingMs ?? 0) + deltaMs);
+        const nextRemainingMs = Math.max(
+          0,
+          Math.min(MAX_REST_TIMER_SECONDS * 1000, (current.pausedRemainingMs ?? 0) + deltaMs),
+        );
         if (nextRemainingMs <= 0) {
           return { ...current, completed: true, paused: false, pausedRemainingMs: undefined };
         }
+        const nextRemainingSec = Math.ceil(nextRemainingMs / 1000);
         return {
           ...current,
           pausedRemainingMs: nextRemainingMs,
-          durationSec: current.durationSec + Math.max(0, deltaSec),
+          durationSec: Math.max(current.durationSec, nextRemainingSec),
         };
       }
       const remaining = Math.max(0, Math.ceil((current.endsAtMs - Date.now()) / 1000));
-      const nextRemaining = remaining + deltaSec;
+      const nextRemaining = Math.max(0, Math.min(MAX_REST_TIMER_SECONDS, remaining + deltaSec));
       if (nextRemaining <= 0) {
         return { ...current, completed: true, endsAtMs: Date.now() };
       }
       return {
         ...current,
         endsAtMs: Date.now() + nextRemaining * 1000,
-        durationSec: current.durationSec + Math.max(0, deltaSec),
+        durationSec: Math.max(current.durationSec, nextRemaining),
       };
     });
   }
@@ -709,6 +724,21 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
     });
   }
 
+  function addStarterTemplateDays(templates: WorkoutRoutineTemplate[]) {
+    if (templates.length === 0) return;
+    setState((s) => ({
+      ...s,
+      workoutTemplates: [...s.workoutTemplates, ...templates],
+    }));
+  }
+
+  function useStarterTemplateProgram(templates: WorkoutRoutineTemplate[]) {
+    if (templates.length === 0) return;
+    const trainingWeekdays = templates.map((t) => t.dayLabel.trim()).filter(Boolean);
+    const patch = profilePatchFromRoutineInputs(trainingWeekdays);
+    setState((s) => applyWeeklyRoutineToState(s, templates, patch));
+  }
+
   function requestFinishWorkout() {
     if (doneSets === 0) {
       setShowEmptyFinishConfirm(true);
@@ -837,7 +867,16 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
           startTemplateWorkout={startTemplateWorkout}
           onShowHistory={() => setShowHistoryPage(true)}
           onCreateWeeklyRoutine={() => setShowCreateWeeklyRoutineSheet(true)}
+          onBrowseTemplates={() => setShowStarterTemplatesSheet(true)}
         />
+        {showStarterTemplatesSheet ? (
+          <WorkoutStarterTemplatesSheet
+            open
+            onClose={() => setShowStarterTemplatesSheet(false)}
+            onAddDays={addStarterTemplateDays}
+            onUseProgram={useStarterTemplateProgram}
+          />
+        ) : null}
         {showCreateWeeklyRoutineSheet ? (
           <CreateWeeklyRoutineSheet
             onClose={() => setShowCreateWeeklyRoutineSheet(false)}

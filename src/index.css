@@ -51,6 +51,17 @@
   --macro-carbs: #e85d5d;
   --macro-fat: #6db88a;
   --macro-hydration: #5a9ae8;
+  /* Tab bar layout — theme-agnostic (surface colors live in data-theme blocks). */
+  --tabbar-float-offset: 16px;
+  --tabbar-pill-height: 60px;
+  --tabbar-scroll-extra: 28px;
+  --tabbar-scroll-clearance: calc(
+    var(--tabbar-float-offset) + var(--tabbar-pill-height) + var(--tabbar-scroll-extra) +
+      env(safe-area-inset-bottom, 0px)
+  );
+  --tabbar-fab-offset: calc(
+    var(--tabbar-float-offset) + var(--tabbar-pill-height) + 4px + env(safe-area-inset-bottom, 0px)
+  );
 }
 
 [data-theme="dark"] {
@@ -174,16 +185,6 @@
   --chart-bar-label: rgba(255, 255, 255, 0.3);
   --tabbar-bg: rgba(6, 6, 8, 0.68);
   --tabbar-border: rgba(255, 255, 255, 0.05);
-  --tabbar-float-offset: 16px;
-  --tabbar-pill-height: 60px;
-  --tabbar-scroll-extra: 28px;
-  --tabbar-scroll-clearance: calc(
-    var(--tabbar-float-offset) + var(--tabbar-pill-height) + var(--tabbar-scroll-extra) +
-      env(safe-area-inset-bottom, 0px)
-  );
-  --tabbar-fab-offset: calc(
-    var(--tabbar-float-offset) + var(--tabbar-pill-height) + 4px + env(safe-area-inset-bottom, 0px)
-  );
   --workout-keypad-chrome: calc(248px + max(8px, env(safe-area-inset-bottom, 0px)));
   --btn-disabled-bg: rgba(255, 255, 255, 0.08);
   --btn-disabled-fg: rgba(255, 255, 255, 0.35);
@@ -1297,6 +1298,16 @@ input[type="number"] {
 .app-splash-screen--instant {
   animation: none;
   opacity: 1;
+}
+
+/* Fills the flex column under .app-root so tab .screen panels can scroll internally. */
+.app-shell {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .app-shell--splash-hidden {

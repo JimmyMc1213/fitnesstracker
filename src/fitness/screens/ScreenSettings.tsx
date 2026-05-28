@@ -56,7 +56,8 @@ import { rebuildWorkoutTemplatesForEquipment } from "../workoutTemplateBuilder";
 import { EQUIPMENT_SETUP_LABELS } from "../equipmentSetup";
 import { NotificationPreferencesPicker } from "../NotificationPreferencesPicker";
 import { getNotificationPermission } from "../notificationPermission";
-import { REST_TIMER_PRESETS } from "../restTimerPreferences";
+import { RestTimerDurationPicker } from "../RestTimerDurationPicker";
+import { formatRestDuration } from "../restTimerPreferences";
 import { PRESET_SELECTED_BG, PRESET_SELECTED_BORDER, PRESET_SELECTED_COLOR } from "../workoutUiTokens";
 import {
   formatWaterVolumeAlt,
@@ -495,7 +496,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
           <SettingsRow
             icon={rowIcon(<IconSettings size={16} stroke={1.6} />)}
             label="Rest timer"
-            trailing={`${state.restTimerDefaultSeconds}s`}
+            trailing={formatRestDuration(state.restTimerDefaultSeconds)}
             onClick={() => openPanel("rest-timer")}
           />
           <SettingsRow
@@ -1008,37 +1009,15 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
       <>
         <SettingsHelper>Default rest between sets. Tap the timer line on any exercise to change it for that exercise.</SettingsHelper>
         <div className="card settings-detail-card">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {REST_TIMER_PRESETS.map((sec) => {
-              const selected = state.restTimerDefaultSeconds === sec;
-              return (
-                <button
-                  key={sec}
-                  type="button"
-                  className="tap"
-                  aria-pressed={selected}
-                  onClick={() =>
-                    setState((s) => ({
-                      ...s,
-                      restTimerDefaultSeconds: sec,
-                    }))
-                  }
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: 10,
-                    border: selected ? `0.5px solid ${PRESET_SELECTED_BORDER}` : "0.5px solid var(--border)",
-                    background: selected ? PRESET_SELECTED_BG : "var(--surface-1)",
-                    color: selected ? PRESET_SELECTED_COLOR : "var(--text-muted-soft)",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {sec}s
-                </button>
-              );
-            })}
-          </div>
+          <RestTimerDurationPicker
+            value={state.restTimerDefaultSeconds}
+            onChange={(restTimerDefaultSeconds) =>
+              setState((s) => ({
+                ...s,
+                restTimerDefaultSeconds,
+              }))
+            }
+          />
         </div>
       </>
     );

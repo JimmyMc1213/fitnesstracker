@@ -6,6 +6,39 @@ import type { AppState } from "../types";
 import { NEW_ROUTINE_EDITOR_ID } from "../screens/WorkoutRoutineEditor";
 import { COACH_BLUE_LABEL, COACH_CARD_BG, COACH_CARD_BORDER } from "../workoutUiTokens";
 
+function WorkoutHeaderActions({
+  onBrowseTemplates,
+  onShowHistory,
+}: {
+  onBrowseTemplates: () => void;
+  onShowHistory: () => void;
+}) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+      <button
+        type="button"
+        className="tap"
+        onClick={onBrowseTemplates}
+        style={{
+          height: 32,
+          padding: "0 10px",
+          borderRadius: 10,
+          border: "0.5px solid var(--border)",
+          background: "var(--surface-3)",
+          color: "#6EB7FF",
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: "-0.01em",
+          flexShrink: 0,
+        }}
+      >
+        Templates
+      </button>
+      <HistoryHeaderButton onClick={onShowHistory} />
+    </div>
+  );
+}
+
 function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -41,6 +74,7 @@ export function WorkoutIdleDashboard({
   startTemplateWorkout,
   onShowHistory,
   onCreateWeeklyRoutine,
+  onBrowseTemplates,
 }: {
   state: AppState;
   preWorkoutCoach: { brief: PreWorkoutCoachBrief; todayTemplateId: string } | null;
@@ -51,6 +85,7 @@ export function WorkoutIdleDashboard({
   startTemplateWorkout: (templateId: string) => void;
   onShowHistory: () => void;
   onCreateWeeklyRoutine: () => void;
+  onBrowseTemplates: () => void;
 }) {
   const previewTpl = previewRoutineId ? state.workoutTemplates.find((t) => t.id === previewRoutineId) : null;
   const idleCoachSubtitle = preWorkoutCoach?.brief.headline;
@@ -67,7 +102,7 @@ export function WorkoutIdleDashboard({
           eyebrow="TRAINING"
           title="Start Workout"
           subtitle={idleCoachSubtitle}
-          right={<HistoryHeaderButton onClick={onShowHistory} />}
+          right={<WorkoutHeaderActions onBrowseTemplates={onBrowseTemplates} onShowHistory={onShowHistory} />}
         />
 
         <PrimaryButton block onClick={startEmptyWorkout} style={{ marginTop: 20 }}>
