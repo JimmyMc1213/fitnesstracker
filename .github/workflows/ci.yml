@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, monorepo]
   pull_request:
-    branches: [main]
+    branches: [main, monorepo]
 
 jobs:
   quality-gate:
@@ -39,3 +39,4 @@ jobs:
       - name: E2E tests
         run: npm run test:e2e --workspace=@newyouai/pwa
         env:
+          PLAYWRIGHT_BROWSERS_PATH: .playwright-browsers
