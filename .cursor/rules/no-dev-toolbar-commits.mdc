@@ -1,0 +1,18 @@
+---
+description: Never commit or push dev toolbar / dev button changes unless explicitly requested
+alwaysApply: true
+---
+
+# No dev toolbar in commits
+
+When committing or pushing (especially to `demo1`), **never include** dev-only UI unless the user explicitly asks for it.
+
+Exclude from staging and commits:
+
+- `src/fitness/DevOnboardingToolbar.tsx`
+- `src/fitness/devPreviewOnboarding.ts`
+- Any change whose primary purpose is exposing, enabling, or modifying the floating dev onboarding button / "Open onboarding" toolbar, or the Sunday check-in dev preview button
+
+Do not wait for the user to repeat "don't push dev button" — apply this by default on every commit and push.
+
+If dev toolbar files are mixed with other work, stage only the non-dev files.
