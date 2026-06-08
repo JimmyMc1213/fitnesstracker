@@ -33,7 +33,9 @@ npm run typecheck
 
 ## Migration status
 
-Phases A–G complete on `monorepo` branch. Plan: `_bmad-output/planning-artifacts/turborepo-migration-plan.md`.
+Phases A–G + I complete on **`main`**. Plan: `_bmad-output/planning-artifacts/turborepo-migration-plan.md`.
+
+The `monorepo` branch is kept for reference; **`main` is the default branch** for GitHub and Vercel production deploys.
 
 ## Restore point
 
