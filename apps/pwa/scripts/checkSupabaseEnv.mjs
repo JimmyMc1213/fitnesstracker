@@ -7,8 +7,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(__dirname, "..");
-const envPath = path.join(root, ".env");
+const appRoot = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(__dirname, "../..");
+const envPath = [path.join(appRoot, ".env"), path.join(repoRoot, ".env")].find((candidate) =>
+  fs.existsSync(candidate),
+);
 
 function parseDotEnv(src) {
   /** @type {Record<string, string>} */
@@ -31,7 +34,7 @@ function parseDotEnv(src) {
   return out;
 }
 
-if (!fs.existsSync(envPath)) {
+if (!envPath) {
   console.warn("\n[Fitcoach] No .env file at project root - cloud sync env vars will be missing.\n");
   process.exit(0);
 }

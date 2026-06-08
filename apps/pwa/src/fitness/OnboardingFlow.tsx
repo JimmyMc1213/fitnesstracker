@@ -16,7 +16,16 @@ import {
 import { NotificationPreferencesPicker } from "./NotificationPreferencesPicker";
 import { ONBOARDING_NOTIFICATION_DEFAULTS, anyNotificationEnabled } from "./notificationPreferences";
 import { requestNotificationPermission } from "./notificationPermission";
-import { ageFromDateOfBirth, completeOnboardingProfile, DEFAULT_ONBOARDING_PROFILE, FRESH_ONBOARDING_PROFILE, normalizeOnboardingProfile, nutritionCalcInputFromOnboardingProfile, progressGoalFromOnboarding } from "./onboardingProfile";
+import {
+  ageFromDateOfBirth,
+  completeOnboardingProfile,
+  DEFAULT_ONBOARDING_CURRENT_WEIGHT_LBS,
+  DEFAULT_ONBOARDING_PROFILE,
+  FRESH_ONBOARDING_PROFILE,
+  normalizeOnboardingProfile,
+  nutritionCalcInputFromOnboardingProfile,
+  progressGoalFromOnboarding,
+} from "./onboardingProfile";
 import {
   buildOnboardingDraft,
   clearOnboardingDraftStorage,
@@ -111,14 +120,12 @@ import { defaultTrainingWeekdaysForProfile } from "./workoutWeekCalendar";
 import {
   DEFAULT_UNIT_PREFERENCES,
   isValidWeighInLbs,
-  weighInRangeHint,
 } from "./unitPreferences";
 import { DateOfBirthWheelPicker } from "./DateOfBirthWheelPicker";
 import { defaultGoalWeightLbs, goalWeightRangeLbs, WeightRulerPicker } from "./WeightRulerPicker";
 import { clampGoalWeightLbs, isGoalWeightValid } from "./goalSettings";
 import { ReferralSourcePicker } from "./ReferralSourcePicker";
 import { OnboardingHeightInput } from "./OnboardingHeightInput";
-import { OnboardingWeightInput } from "./OnboardingWeightInput";
 import { sessionDurationFromSessionLength, sessionLengthFromDuration } from "./workoutSplitByDays";
 import { restSecondsForSessionLength } from "./sessionLengthConfig";
 import { buildWeeklyRoutineTemplates } from "./buildWeeklyRoutine";
@@ -407,6 +414,14 @@ export function OnboardingFlow({
 
   useEffect(() => {
     if (step !== 21) setMacroContinueConfirmOpen(false);
+  }, [step]);
+
+  useEffect(() => {
+    if (step !== 7) return;
+    setProfile((p) => {
+      if (isValidWeighInLbs(p.weightLbs)) return p;
+      return { ...p, weightLbs: DEFAULT_ONBOARDING_CURRENT_WEIGHT_LBS };
+    });
   }, [step]);
 
   useEffect(() => {
@@ -1027,26 +1042,28 @@ export function OnboardingFlow({
 
   if (step === 7) {
     const wUnit = unitPreferences.weightUnit;
+    const currentWeightLbs = isValidWeighInLbs(profile.weightLbs)
+      ? profile.weightLbs
+      : DEFAULT_ONBOARDING_CURRENT_WEIGHT_LBS;
 
     return (
       <OnboardingShell
         step={step}
         title="What's your current weight?"
+        subtitle="Slide the ruler to set your weight."
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!weightStepValid}
+        contentClassName="onboarding-shell__content--compact"
       >
-        <div className="onboarding-gradient-card">
-          <OnboardingWeightInput
-            unit={wUnit}
-            weightLbs={profile.weightLbs}
-            resetKey={wUnit}
-            onWeightChange={(weightLbs) => setProfile((p) => ({ ...p, weightLbs }))}
-          />
-          {!weightStepValid ? (
-            <p style={{ margin: "10px 0 0", fontSize: 13, color: "rgba(248,113,113,0.9)" }}>{weighInRangeHint(wUnit)}</p>
-          ) : null}
-        </div>
+        <WeightRulerPicker
+          valueLbs={currentWeightLbs}
+          minLbs={70}
+          maxLbs={450}
+          unit={wUnit}
+          directionLabel="Current weight"
+          onChange={(weightLbs) => setProfile((p) => ({ ...p, weightLbs }))}
+        />
       </OnboardingShell>
     );
   }

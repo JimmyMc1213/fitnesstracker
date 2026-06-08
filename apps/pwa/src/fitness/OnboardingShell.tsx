@@ -9,6 +9,7 @@ import {
   onboardingProgressStep,
 } from "./onboardingSteps";
 import { FutureYouGenerationPillSlot } from "./FutureYouGenerationPillContext";
+import { KEYBOARD_OPEN_THRESHOLD, useKeyboardViewport } from "./motion";
 
 export { ONBOARDING_TOTAL_STEPS };
 
@@ -111,13 +112,18 @@ export function OnboardingShell({
   const pct = Math.round(((progressStep + 1) / totalSteps) * 100);
   const showGenerationPill =
     !hideGenerationPill && step >= ONBOARDING_STEP_ACTIVITY && step <= ONBOARDING_STEP_FUTURE_YOU_SUCCESS;
+  const { keyboardBottom } = useKeyboardViewport();
+  const keyboardOpen = keyboardBottom >= KEYBOARD_OPEN_THRESHOLD;
+  const shellPaddingBottom = keyboardOpen
+    ? `calc(max(1.25rem, env(safe-area-inset-bottom)) + ${keyboardBottom}px)`
+    : "max(1.25rem, env(safe-area-inset-bottom))";
 
   return (
     <div
       className={shellClassName ? `onboarding-shell ${shellClassName}` : "onboarding-shell"}
       style={{
         paddingTop: "max(0.5rem, env(safe-area-inset-top))",
-        paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))",
+        paddingBottom: shellPaddingBottom,
         paddingLeft: 23,
         paddingRight: 23,
       }}

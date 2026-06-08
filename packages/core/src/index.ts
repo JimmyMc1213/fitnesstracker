@@ -1,0 +1,1 @@
+// @newyouai/core stub

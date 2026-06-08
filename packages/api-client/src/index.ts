@@ -1,0 +1,1 @@
+// @newyouai/api-client stub

@@ -56,6 +56,9 @@ export const FRESH_ONBOARDING_PROFILE: OnboardingProfile = {
   age: 0,
 };
 
+/** Sensible starting point on the current-weight ruler (within 70–450 lb). */
+export const DEFAULT_ONBOARDING_CURRENT_WEIGHT_LBS = 160;
+
 export function nutritionCalcInputFromOnboardingProfile(
   profile: OnboardingProfile,
   ageOverride?: number,
