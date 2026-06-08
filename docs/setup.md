@@ -25,6 +25,16 @@ npm run dev:admin    # Admin → http://localhost:3001
 - Root `.env` is loaded by `apps/pwa` (vite + predev script).
 - See [env-matrix.md](./env-matrix.md) for per-app variables.
 
+## Production URLs
+
+| App | Domain |
+|-----|--------|
+| PWA | https://app.newyouai.app |
+| Marketing | https://newyouai.app |
+| Admin | https://admin.newyouai.app |
+
+Deploy config: [vercel.md](./vercel.md)
+
 ## Quality gates
 
 ```bash

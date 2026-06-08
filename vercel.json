@@ -1,6 +1,0 @@
-{
-  "buildCommand": "npx turbo run build --filter=@newyouai/pwa",
-  "outputDirectory": "apps/pwa/dist",
-  "installCommand": "npm ci",
-  "framework": null
-}
