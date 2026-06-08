@@ -35,6 +35,8 @@ npm run dev:admin    # Admin → http://localhost:3001
 
 Deploy config: [vercel.md](./vercel.md)
 
+Future mobile: [eas-ios.md](./eas-ios.md) (Phase H, not started)
+
 ## Quality gates
 
 ```bash

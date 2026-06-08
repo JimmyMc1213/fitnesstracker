@@ -23,6 +23,18 @@ npm run test:e2e
 npm run typecheck
 ```
 
+## Packages
+
+| Package | Status |
+|---------|--------|
+| `@newyouai/config` | Tailwind preset + tsconfig base (used by web/admin) |
+| `@newyouai/types` | Stub — types still live in `apps/pwa/src/fitness/types.ts` |
+| `@newyouai/api-client`, `@newyouai/core`, `@newyouai/ui` | Stubs for future extraction |
+
+## Migration status
+
+Phases A–G complete on `monorepo` branch. Plan: `_bmad-output/planning-artifacts/turborepo-migration-plan.md`.
+
 ## Restore point
 
 Before monorepo migration: branch `backup/pre-monorepo-migration`, tag `pre-monorepo-migration`.

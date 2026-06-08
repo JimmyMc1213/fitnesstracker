@@ -1,20 +1,36 @@
-# Fitcoach, Project Context
+# New You AI — Project Context
 
-**Last updated:** 2026-05-23 (FTI-51 week boundary rules)
+**Last updated:** 2026-06-08 (monorepo migration)
+
+---
+
+## Repository layout
+
+| Path | Purpose |
+|------|---------|
+| `apps/pwa/` | Product PWA (`@newyouai/pwa`) — primary codebase |
+| `apps/pwa/src/fitness/` | Core app logic (~430 files) |
+| `apps/web/` | Marketing site (`newyouai.app`) |
+| `apps/admin/` | Staff dashboard (`admin.newyouai.app`) |
+| `packages/config/` | Shared Tailwind preset + tsconfig base |
+| `packages/types/` | Shared types stub (PWA still uses `apps/pwa/src/fitness/types.ts`) |
+| `supabase/` | Migrations + Edge Functions (repo root) |
+
+**Production:** `app.newyouai.app` (PWA). Deploy docs: `docs/vercel.md`.
 
 ---
 
 ## Week boundary rules
 
-Fitcoach uses **two intentional week definitions**, they are not bugs.
+New You AI uses **two intentional week definitions** — they are not bugs.
 
 | Surface | Week starts | Week ends | Rationale |
 | --- | --- | --- | --- |
 | **Streak calendar** (Home header dots) | **Sunday** | Saturday | Visual habit chain aligned with US calendar columns (S M T W T F S) |
 | **Weekly summary** (workouts, volume, nutrition days) | **Monday** | Sunday | Training-week accounting; copy says "resets Monday" |
-| **Coach weigh-in trend** | Monday-aligned windows |, | `coachEngine` uses `startOfWeekMonday` for week-over-week weight deltas |
+| **Coach weigh-in trend** | Monday-aligned windows | — | `coachEngine` uses `startOfWeekMonday` for week-over-week weight deltas |
 
-### Pure helpers (`src/fitness/trainingCalendar.ts`)
+### Pure helpers (`apps/pwa/src/fitness/trainingCalendar.ts`)
 
 - `startOfWeekSunday(dateKey)`: streak calendar anchor
 - `startOfWeekMonday(dateKey)`: re-export from `weeklySummary.ts`
@@ -28,9 +44,12 @@ On Sunday, the streak dot row shows the **Sun–Sat** week containing today, whi
 
 ## Quality gates
 
-- `npm run build`
-- `npm test` (Vitest, pure modules)
-- `npm run test:e2e` (Playwright, coach navigation + fuel quick-log; builds without Supabase env)
+From repo root:
+
+```bash
+npx turbo run typecheck build test
+npm run test:e2e --workspace=@newyouai/pwa
+```
 
 ---
 
