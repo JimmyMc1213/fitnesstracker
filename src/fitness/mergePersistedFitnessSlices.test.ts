@@ -36,3 +36,28 @@ describe("mergePersistedFitnessSlices onboarding draft", () => {
     expect(merged.onboardingDraft).toBeNull();
   });
 });
+
+describe("mergePersistedFitnessSlices futureYou", () => {
+  it("prefers cleared local Future You over a remote ready job after in-app delete", () => {
+    const local = minimalSlice({
+      subscriptionTier: "pro",
+      onboardingComplete: true,
+      futureYou: { onboardingGoalLocked: true },
+    });
+    const remote = minimalSlice({
+      subscriptionTier: "pro",
+      onboardingComplete: true,
+      futureYou: {
+        generationStatus: "ready",
+        generationJobId: "job-old",
+        photoStoragePath: "users/u/source/x.jpg",
+        resultStoragePath: "users/u/result/y.png",
+      },
+    });
+
+    const merged = mergePersistedFitnessSlices(local, remote);
+    expect(merged.futureYou).toEqual({ onboardingGoalLocked: true });
+    expect(merged.subscriptionTier).toBe("pro");
+    expect(merged.onboardingComplete).toBe(true);
+  });
+});

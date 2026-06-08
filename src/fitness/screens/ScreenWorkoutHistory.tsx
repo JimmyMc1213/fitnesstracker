@@ -202,7 +202,6 @@ export function ScreenWorkoutHistory({ state, setState, onBack, onWorkoutStarted
           title="Delete workout?"
           cancelLabel="Keep workout"
           confirmLabel="Delete workout"
-          placement="center"
           zIndex={1400}
           message={
             <>

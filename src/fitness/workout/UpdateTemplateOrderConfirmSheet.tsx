@@ -1,7 +1,7 @@
 import {
-  BottomSheet,
+  CenterDialog,
   ConfirmSheetActions,
-  confirmBottomSheetPanelStyle,
+  confirmCenterDialogPanelStyle,
   confirmSheetMessageStyle,
   confirmSheetTitleStyle,
 } from "../motion";
@@ -18,12 +18,12 @@ export function UpdateTemplateOrderConfirmSheet({
   onDismiss: () => void;
 }) {
   return (
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onDismiss}
       zIndex={1100}
       ariaLabelledBy="update-template-order-title"
-      panelStyle={confirmBottomSheetPanelStyle}
+      panelStyle={confirmCenterDialogPanelStyle}
     >
       <div id="update-template-order-title" style={confirmSheetTitleStyle}>
         Update routine order?
@@ -36,10 +36,10 @@ export function UpdateTemplateOrderConfirmSheet({
         cancelLabel="Not now"
         confirmLabel="Update template"
         confirmTone="primary"
-        contentPadding={24}
+        contentPadding={28}
         onCancel={onDismiss}
         onConfirm={onUpdate}
       />
-    </BottomSheet>
+    </CenterDialog>
   );
 }

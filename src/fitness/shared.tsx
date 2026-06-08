@@ -250,16 +250,25 @@ export function ScreenHeader({
   title,
   subtitle,
   right,
+  titleAlign = "left",
 }: {
   eyebrow?: string;
   title: string;
   subtitle?: string;
   right?: ReactNode;
+  titleAlign?: "left" | "center";
 }) {
+  const centered = titleAlign === "center";
   return (
     <div style={{ paddingTop: 8, paddingBottom: 4 }}>
-      <div className="between" style={{ alignItems: "flex-start" }}>
-        <div>
+      <div
+        className="between"
+        style={{
+          alignItems: "flex-start",
+          justifyContent: centered ? "center" : undefined,
+        }}
+      >
+        <div style={centered ? { textAlign: "center", width: "100%" } : undefined}>
           {eyebrow && <div className="h-greeting">{eyebrow}</div>}
           <div className="h-title">{title}</div>
           {subtitle && (

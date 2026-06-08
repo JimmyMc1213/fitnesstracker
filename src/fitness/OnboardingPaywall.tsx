@@ -1,25 +1,81 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+
+import type { FutureYouDraft } from "./futureYouDraft";
+import { FUTURE_YOU_PRIVACY_POLICY_URL, PAYWALL_TERMS_URL } from "./futureYouLegal";
+import { OnboardingPaywallFutureYouHero } from "./OnboardingPaywallFutureYouHero";
+import { OnboardingPaywallPlanPicker } from "./OnboardingPaywallPlanPicker";
+import { OnboardingPaywallPlanSummary } from "./OnboardingPaywallPlanSummary";
+import type { PaywallBillingPeriod } from "./paywallPlans";
+import type { OnboardingPlanSnapshot } from "./onboardingPlanSnapshot";
+import {
+  paywallFooterStartStep,
+  paywallRevealDelaySec,
+} from "./onboardingPaywallReveal";
+import {
+  futureYouPaywallCtaLabel,
+  isFutureYouPaywallCtaEnabled,
+  isFutureYouPaywallHeroVisible,
+} from "./futureYouPaywallModel";
+import type { FutureYouJobStatus } from "./futureYouJobs";
+import type { UserGender } from "./types";
 
 type Props = {
-  onSelectTier: (tier: "free" | "pro") => void;
+  onSelectTier: (tier: "pro") => void;
   onBack: () => void;
-  /** Optional preview content inside the phone mockup. */
-  phonePreview?: ReactNode;
+  planSnapshot: OnboardingPlanSnapshot;
+  futureYou: FutureYouDraft;
+  generationStatus: FutureYouJobStatus | "idle";
+  gender: UserGender | undefined;
+  photoBlocked: boolean;
+  previewMode?: boolean;
 };
 
-function PaywallPhonePlaceholder({ children }: { children?: ReactNode }) {
+function PaywallReveal({
+  step,
+  variant = "vertical",
+  className,
+  children,
+}: {
+  step: number;
+  variant?: "vertical" | "headline";
+  className?: string;
+  children: ReactNode;
+}) {
+  const variantClass =
+    variant === "headline" ? " onboarding-paywall__wave-item--headline" : " onboarding-paywall__wave-item--vertical";
   return (
-    <div className="onboarding-paywall__phone" aria-hidden={!children}>
-      <div className="onboarding-paywall__phone-bezel">
-        <div className="onboarding-paywall__phone-screen">{children}</div>
-      </div>
+    <div
+      className={`onboarding-paywall__wave-item${variantClass}${className ? ` ${className}` : ""}`}
+      style={{ animationDelay: `${paywallRevealDelaySec(step)}s` }}
+    >
+      {children}
     </div>
   );
 }
 
-export function OnboardingPaywall({ onSelectTier, onBack, phonePreview }: Props) {
+export function OnboardingPaywall({
+  onSelectTier,
+  onBack,
+  planSnapshot,
+  futureYou,
+  generationStatus,
+  gender,
+  photoBlocked,
+  previewMode = false,
+}: Props) {
+  const [billingPeriod, setBillingPeriod] = useState<PaywallBillingPeriod>("yearly");
+  const heroVisible = isFutureYouPaywallHeroVisible(futureYou, photoBlocked);
+  const ctaEnabled = isFutureYouPaywallCtaEnabled(futureYou, generationStatus, photoBlocked);
+  const ctaLabel = futureYouPaywallCtaLabel(
+    futureYou,
+    generationStatus,
+    photoBlocked,
+    billingPeriod,
+  );
+  const footerStartStep = paywallFooterStartStep(heroVisible);
+
   return (
-    <div className="onboarding-paywall">
+    <div className={`onboarding-paywall${heroVisible ? " onboarding-paywall--hero" : " onboarding-paywall--plan-only"}`}>
       <header className="onboarding-paywall__header">
         <button
           type="button"
@@ -27,35 +83,90 @@ export function OnboardingPaywall({ onSelectTier, onBack, phonePreview }: Props)
           onClick={onBack}
           aria-label="Back"
         >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path
-                d="M15 18l-6-6 6-6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M15 18l-6-6 6-6"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
       </header>
 
       <div className="onboarding-paywall__body">
-        <h1 className="onboarding-paywall__headline">Unlock Gymmy to reach your goals faster.</h1>
+        <PaywallReveal step={0} variant="headline">
+          <h1 className="onboarding-paywall__headline">
+            {heroVisible ? (
+              <>
+                Unlock <span className="onboarding-goal-weight-accent">NewYouAI</span> to see what you
+                can look like.
+              </>
+            ) : (
+              <>
+                Unlock <span className="onboarding-goal-weight-accent">NewYouAI</span> to reach your
+                goals faster.
+              </>
+            )}
+          </h1>
+        </PaywallReveal>
 
-        <div className="onboarding-paywall__hero">
-          <PaywallPhonePlaceholder>{phonePreview}</PaywallPhonePlaceholder>
-        </div>
+        {heroVisible ? (
+          <OnboardingPaywallFutureYouHero
+            timeline={planSnapshot.timeline}
+            gender={gender}
+            status={generationStatus}
+            jobId={futureYou.generationJobId}
+            previewMode={previewMode}
+          />
+        ) : (
+          <PaywallReveal step={1} className="onboarding-paywall__wave-item--stretch">
+            <OnboardingPaywallPlanSummary planSnapshot={planSnapshot} />
+          </PaywallReveal>
+        )}
       </div>
 
       <footer className="onboarding-paywall__footer">
-        <p className="onboarding-paywall__trust">✓ No Payment Due Now</p>
-        <button type="button" className="tap onboarding-paywall__cta" onClick={() => onSelectTier("pro")}>
-          Continue
-        </button>
-        <p className="onboarding-paywall__pricing">Just $79.99 per year ($6.67/mo)</p>
-        <button type="button" className="tap onboarding-paywall__free-link" onClick={() => onSelectTier("free")}>
-          Continue with free
-        </button>
+        <div className="onboarding-paywall__checkout">
+          <PaywallReveal step={footerStartStep}>
+            <OnboardingPaywallPlanPicker value={billingPeriod} onChange={setBillingPeriod} />
+          </PaywallReveal>
+          <PaywallReveal step={footerStartStep + 1}>
+            <button
+              type="button"
+              className="tap onboarding-paywall__cta onboarding-paywall__cta--gold"
+              disabled={!ctaEnabled}
+              aria-disabled={!ctaEnabled}
+              onClick={() => onSelectTier("pro")}
+            >
+              {ctaLabel}
+            </button>
+          </PaywallReveal>
+        </div>
+        <PaywallReveal step={footerStartStep + 2}>
+          <nav className="onboarding-paywall__legal" aria-label="Subscription options">
+            <button type="button" className="onboarding-paywall__legal-link tap">
+              Restore Purchases
+            </button>
+            <a
+              href={PAYWALL_TERMS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="onboarding-paywall__legal-link"
+            >
+              Terms
+            </a>
+            <a
+              href={FUTURE_YOU_PRIVACY_POLICY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="onboarding-paywall__legal-link"
+            >
+              Privacy
+            </a>
+          </nav>
+        </PaywallReveal>
       </footer>
     </div>
   );

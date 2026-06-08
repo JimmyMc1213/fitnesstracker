@@ -1,9 +1,15 @@
-import { IconClock, IconPlus } from "../icons";
+import { useState } from "react";
+
+import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
+import { IconClock, IconMoreVertical, IconPlus } from "../icons";
 import { RoutinePreviewSheet } from "../RoutinePreviewSheet";
-import type { PreWorkoutCoachBrief } from "../preWorkoutCoachBrief";
+import { buildRoutinePreviewCoachBrief, type PreWorkoutCoachBrief } from "../preWorkoutCoachBrief";
+import { routineTemplateContentKey } from "../routineTemplateFocus";
 import { ScreenHeader, PrimaryButton, SecondaryButton } from "../shared";
 import type { AppState } from "../types";
 import { NEW_ROUTINE_EDITOR_ID } from "../screens/WorkoutRoutineEditor";
+import { RenameRoutineSheet } from "./RenameRoutineSheet";
+import { WorkoutRoutineActionSheet } from "./WorkoutRoutineActionSheet";
 import { COACH_BLUE_LABEL, COACH_CARD_BG, COACH_CARD_BORDER } from "../workoutUiTokens";
 
 function WorkoutHeaderActions({
@@ -69,7 +75,10 @@ export function WorkoutIdleDashboard({
   preWorkoutCoach,
   previewRoutineId,
   setPreviewRoutineId,
-  setEditingRoutineId,
+  onEditRoutine,
+  onDuplicateRoutine,
+  onRenameRoutine,
+  onDeleteRoutine,
   startEmptyWorkout,
   startTemplateWorkout,
   onShowHistory,
@@ -80,20 +89,43 @@ export function WorkoutIdleDashboard({
   preWorkoutCoach: { brief: PreWorkoutCoachBrief; todayTemplateId: string } | null;
   previewRoutineId: string | null;
   setPreviewRoutineId: (id: string | null) => void;
-  setEditingRoutineId: (id: string | null) => void;
+  onEditRoutine: (templateId: string) => void;
+  onDuplicateRoutine: (templateId: string) => void;
+  onRenameRoutine: (templateId: string, name: string) => void;
+  onDeleteRoutine: (templateId: string) => void;
   startEmptyWorkout: () => void;
   startTemplateWorkout: (templateId: string) => void;
   onShowHistory: () => void;
   onCreateWeeklyRoutine: () => void;
   onBrowseTemplates: () => void;
 }) {
+  const [menuRoutineId, setMenuRoutineId] = useState<string | null>(null);
+  const [renameRoutineId, setRenameRoutineId] = useState<string | null>(null);
+  const [deleteRoutineId, setDeleteRoutineId] = useState<string | null>(null);
+
   const previewTpl = previewRoutineId ? state.workoutTemplates.find((t) => t.id === previewRoutineId) : null;
+  const menuTpl = menuRoutineId ? state.workoutTemplates.find((t) => t.id === menuRoutineId) : null;
+  const renameTpl = renameRoutineId ? state.workoutTemplates.find((t) => t.id === renameRoutineId) : null;
+  const deleteTpl = deleteRoutineId ? state.workoutTemplates.find((t) => t.id === deleteRoutineId) : null;
+
   const idleCoachSubtitle = preWorkoutCoach?.brief.headline;
   const todayTemplateId = preWorkoutCoach?.todayTemplateId ?? null;
-  const previewCoachBrief =
-    previewTpl && todayTemplateId && previewTpl.id === todayTemplateId
-      ? preWorkoutCoach?.brief
-      : undefined;
+  const previewCoachBrief: PreWorkoutCoachBrief | undefined = previewTpl
+    ? buildRoutinePreviewCoachBrief(previewTpl, {
+        isTodayWorkout: previewTpl.id === todayTemplateId,
+        todayHeadline: preWorkoutCoach?.brief.headline,
+      })
+    : undefined;
+
+  function openRoutineMenu(templateId: string) {
+    setMenuRoutineId(templateId);
+  }
+
+  function confirmDeleteRoutine() {
+    if (!deleteRoutineId) return;
+    onDeleteRoutine(deleteRoutineId);
+    setDeleteRoutineId(null);
+  }
 
   return (
     <>
@@ -125,7 +157,7 @@ export function WorkoutIdleDashboard({
               <button
                 type="button"
                 className="tap"
-                onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)}
+                onClick={() => onEditRoutine(NEW_ROUTINE_EDITOR_ID)}
                 style={{
                   alignSelf: "flex-start",
                   fontSize: 13,
@@ -174,7 +206,7 @@ export function WorkoutIdleDashboard({
             </PrimaryButton>
             <SecondaryButton
               block
-              onClick={() => setEditingRoutineId(NEW_ROUTINE_EDITOR_ID)}
+              onClick={() => onEditRoutine(NEW_ROUTINE_EDITOR_ID)}
               style={{ marginTop: 12 }}
             >
               Add a single workout day
@@ -265,19 +297,24 @@ export function WorkoutIdleDashboard({
                   <button
                     type="button"
                     className="tap"
-                    onClick={() => setEditingRoutineId(tpl.id)}
+                    aria-label={`Options for ${tpl.name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openRoutineMenu(tpl.id);
+                    }}
                     style={{
                       padding: "16px 14px",
                       border: "none",
                       borderLeft: isTodayWorkout ? `0.5px solid ${COACH_CARD_BORDER}` : "0.5px solid var(--border)",
                       background: isTodayWorkout ? "rgba(10,132,255,0.06)" : "var(--surface-1)",
-                      color: "#6EB7FF",
-                      fontSize: 13,
-                      fontWeight: 600,
+                      color: "var(--text-muted-soft)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                       flexShrink: 0,
                     }}
                   >
-                    Edit
+                    <IconMoreVertical size={20} />
                   </button>
                 </div>
               );
@@ -289,17 +326,54 @@ export function WorkoutIdleDashboard({
       </div>
       {previewTpl ? (
         <RoutinePreviewSheet
+          key={routineTemplateContentKey(previewTpl)}
           template={previewTpl}
           coachBrief={previewCoachBrief}
           onClose={() => setPreviewRoutineId(null)}
-          onEdit={() => {
-            setPreviewRoutineId(null);
-            setEditingRoutineId(previewTpl.id);
-          }}
+          onOpenMenu={() => openRoutineMenu(previewTpl.id)}
           onStart={() => {
             startTemplateWorkout(previewTpl.id);
             setPreviewRoutineId(null);
           }}
+        />
+      ) : null}
+      {menuTpl ? (
+        <WorkoutRoutineActionSheet
+          template={menuTpl}
+          onClose={() => setMenuRoutineId(null)}
+          onEdit={() => {
+            setPreviewRoutineId(null);
+            onEditRoutine(menuTpl.id);
+          }}
+          onRename={() => setRenameRoutineId(menuTpl.id)}
+          onDuplicate={() => onDuplicateRoutine(menuTpl.id)}
+          onDelete={() => setDeleteRoutineId(menuTpl.id)}
+        />
+      ) : null}
+      {renameTpl ? (
+        <RenameRoutineSheet
+          template={renameTpl}
+          onClose={() => setRenameRoutineId(null)}
+          onSave={(name) => {
+            onRenameRoutine(renameTpl.id, name);
+            setRenameRoutineId(null);
+          }}
+        />
+      ) : null}
+      {deleteTpl ? (
+        <DeleteConfirmSheet
+          title="Delete workout?"
+          cancelLabel="Keep workout"
+          confirmLabel="Delete workout"
+          zIndex={1400}
+          message={
+            <>
+              Delete <strong style={{ color: "var(--text-primary)" }}>{deleteTpl.name.trim() || "this workout"}</strong>?
+              This can&apos;t be undone.
+            </>
+          }
+          onCancel={() => setDeleteRoutineId(null)}
+          onConfirm={confirmDeleteRoutine}
         />
       ) : null}
     </>

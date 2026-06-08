@@ -6,6 +6,7 @@ const REVEAL_WIDTH = 72;
 const SWIPE_START_PX = 10;
 const DELETE_THRESHOLD = REVEAL_WIDTH * 0.85;
 const SNAP_OPEN_THRESHOLD = REVEAL_WIDTH * 0.35;
+const RELEASE_DELETE_THRESHOLD = 56;
 
 type SwipeToDeleteProps = {
   deleteLabel: string;
@@ -21,6 +22,11 @@ type SwipeToDeleteProps = {
   allowInteractiveStart?: boolean;
   /** Slide the row off-screen before calling onDelete (e.g. workout set rows). */
   animateCommitDelete?: boolean;
+  /**
+   * Swipe freely with no distance cap; delete on release if past threshold.
+   * No snap-open stop — row springs back or commits delete.
+   */
+  releaseToDelete?: boolean;
   borderRadius?: number;
   /** When this value changes, swipe offset resets (e.g. after list re-index). */
   resetKey?: string | number;
@@ -37,6 +43,7 @@ export function SwipeToDelete({
   onTap,
   allowInteractiveStart = false,
   animateCommitDelete = false,
+  releaseToDelete = true,
   borderRadius = 14,
   resetKey,
 }: SwipeToDeleteProps) {
@@ -51,6 +58,7 @@ export function SwipeToDelete({
   const pointerIdRef = useRef<number | null>(null);
 
   function clampOffset(value: number): number {
+    if (releaseToDelete) return Math.min(0, value);
     return Math.min(0, Math.max(-REVEAL_WIDTH, value));
   }
 
@@ -65,8 +73,9 @@ export function SwipeToDelete({
   }
 
   useEffect(() => {
+    if (releaseToDelete) return;
     applyOffset(isOpen ? -REVEAL_WIDTH : 0, true);
-  }, [isOpen]);
+  }, [isOpen, releaseToDelete]);
 
   useEffect(() => {
     if (resetKey == null) return;
@@ -76,7 +85,8 @@ export function SwipeToDelete({
   }, [resetKey]);
 
   function commitDelete() {
-    if (animateCommitDelete) {
+    const shouldAnimate = animateCommitDelete || releaseToDelete;
+    if (shouldAnimate) {
       const width = contentRef.current?.offsetWidth ?? REVEAL_WIDTH * 2;
       applyOffset(-width, true);
       onClose?.();
@@ -88,6 +98,16 @@ export function SwipeToDelete({
   }
 
   function settleOffset(current: number) {
+    if (releaseToDelete) {
+      if (current <= -RELEASE_DELETE_THRESHOLD) {
+        commitDelete();
+        return;
+      }
+      applyOffset(0, true);
+      onClose?.();
+      return;
+    }
+
     if (current <= -DELETE_THRESHOLD) {
       commitDelete();
       return;
@@ -117,7 +137,7 @@ export function SwipeToDelete({
     pointerIdRef.current = e.pointerId;
     startXRef.current = e.clientX;
     startYRef.current = e.clientY;
-    startOffsetRef.current = isOpen ? -REVEAL_WIDTH : offsetRef.current;
+    startOffsetRef.current = releaseToDelete ? offsetRef.current : isOpen ? -REVEAL_WIDTH : offsetRef.current;
     setPressing(true);
     applyOffset(startOffsetRef.current, false);
   }
@@ -149,7 +169,12 @@ export function SwipeToDelete({
     }
 
     if (!swipingRef.current) {
-      if (isOpen || offsetRef.current < -4) {
+      if (!releaseToDelete && (isOpen || offsetRef.current < -4)) {
+        applyOffset(0, true);
+        onClose?.();
+        return;
+      }
+      if (releaseToDelete && offsetRef.current < -4) {
         applyOffset(0, true);
         onClose?.();
         return;
@@ -176,30 +201,52 @@ export function SwipeToDelete({
         touchAction: "pan-y",
       }}
     >
-      <button
-        type="button"
-        aria-label={deleteLabel}
-        onClick={handleDeleteClick}
-        tabIndex={revealed ? 0 : -1}
-        disabled={disabled}
-        style={{
-          position: "absolute",
-          inset: "0 0 0 auto",
-          width: REVEAL_WIDTH,
-          display: "grid",
-          placeItems: "center",
-          border: "none",
-          borderRadius,
-          background: "rgba(255, 85, 85, 0.18)",
-          color: "#FF6961",
-          cursor: disabled ? "default" : "pointer",
-          opacity: revealed ? 1 : 0,
-          pointerEvents: revealed && !disabled ? "auto" : "none",
-          transition: "opacity 0.18s ease",
-        }}
-      >
-        <IconTrash size={20} stroke={1.75} />
-      </button>
+      {releaseToDelete ? (
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "grid",
+            placeItems: "center",
+            justifyItems: "end",
+            paddingRight: (REVEAL_WIDTH - 20) / 2,
+            borderRadius,
+            background: "rgba(255, 85, 85, 0.18)",
+            color: "#FF6961",
+            opacity: revealed ? 1 : 0,
+            transition: "opacity 0.18s ease",
+            pointerEvents: "none",
+          }}
+        >
+          <IconTrash size={20} stroke={1.75} />
+        </div>
+      ) : (
+        <button
+          type="button"
+          aria-label={deleteLabel}
+          onClick={handleDeleteClick}
+          tabIndex={revealed ? 0 : -1}
+          disabled={disabled}
+          style={{
+            position: "absolute",
+            inset: "0 0 0 auto",
+            width: REVEAL_WIDTH,
+            display: "grid",
+            placeItems: "center",
+            border: "none",
+            borderRadius,
+            background: "rgba(255, 85, 85, 0.18)",
+            color: "#FF6961",
+            cursor: disabled ? "default" : "pointer",
+            opacity: revealed ? 1 : 0,
+            pointerEvents: revealed && !disabled ? "auto" : "none",
+            transition: "opacity 0.18s ease",
+          }}
+        >
+          <IconTrash size={20} stroke={1.75} />
+        </button>
+      )}
 
       <div
         ref={contentRef}

@@ -304,7 +304,6 @@ export function WeeklyRoutineBuilderFlow({ mode, state, onApply, onSaveCustomExe
           title="Replace current program?"
           cancelLabel="Keep current workouts"
           confirmLabel="Replace program"
-          placement="center"
           message="Your existing workouts will be replaced with this new weekly routine."
           onCancel={() => {
             pendingApplyTemplatesRef.current = null;

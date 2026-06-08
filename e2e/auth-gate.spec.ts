@@ -12,17 +12,22 @@ async function clearSupabaseSession(page: import("@playwright/test").Page) {
   });
 }
 
+async function expectAuthWelcome(page: import("@playwright/test").Page) {
+  await expect(page.getByRole("button", { name: "Get Started" })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("heading", { name: /your program\. smarter every session\./i })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+}
+
 test.describe("auth gate (requires Supabase-configured dev server)", () => {
   test.beforeEach(async ({ page }) => {
     await clearFitnessStorage(page);
     await clearSupabaseSession(page);
   });
 
-  test("signed-out user sees auth screen and cannot reach main tabs", async ({ page }) => {
+  test("signed-out user sees welcome hook and cannot reach main tabs", async ({ page }) => {
     await page.goto(DEV_URL);
 
-    await expect(page.getByRole("button", { name: "Create Account" })).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole("button", { name: "Sign In" })).toBeVisible();
+    await expectAuthWelcome(page);
     await expect(page.getByRole("navigation", { name: "Main" })).toHaveCount(0);
     await expect(page.getByText("Good morning")).toHaveCount(0);
   });
@@ -40,19 +45,60 @@ test.describe("auth gate (requires Supabase-configured dev server)", () => {
     });
     await page.goto(DEV_URL);
 
-    await expect(page.getByRole("button", { name: "Create Account" })).toBeVisible({ timeout: 15_000 });
+    await expectAuthWelcome(page);
     await expect(page.getByRole("navigation", { name: "Main" })).toHaveCount(0);
   });
 
-  test("auth screen comes before onboarding welcome", async ({ page }) => {
+  test("get started opens sign up before onboarding wizard", async ({ page }) => {
     await page.goto(DEV_URL);
 
-    await expect(page.getByRole("button", { name: "Create Account" })).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole("heading", { name: /your program\. smarter every session\./i })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Get Started" })).toHaveCount(0);
+    await expectAuthWelcome(page);
 
-    await page.getByRole("button", { name: "Create Account" }).click();
+    await page.getByRole("button", { name: "Get Started" }).click();
+    await expect(page.getByRole("heading", { name: /create your account/i })).toBeVisible();
     await expect(page.getByRole("textbox", { name: "Email" })).toBeVisible();
     await expect(page.getByRole("heading", { name: /what's your gender/i })).toHaveCount(0);
+  });
+
+  test("sign in link opens sign-in form before onboarding wizard", async ({ page }) => {
+    await page.goto(DEV_URL);
+
+    await expectAuthWelcome(page);
+
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Email" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /choose your look/i })).toHaveCount(0);
+  });
+
+  test("signed-out user cannot reach theme picker or gender step", async ({ page }) => {
+    await page.goto(DEV_URL);
+
+    await expectAuthWelcome(page);
+    await expect(page.getByRole("heading", { name: /choose your look/i })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: /what's your gender/i })).toHaveCount(0);
+  });
+
+  test("signed-out user with mid-onboarding draft still sees auth welcome", async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "fitcoach:persist:v1",
+        JSON.stringify({
+          onboardingComplete: false,
+          onboardingDraft: {
+            version: 16,
+            stepIndex: 3,
+            updatedAtIso: "2026-01-01T00:00:00.000Z",
+            displayName: "",
+            unitPreferences: { weightUnit: "lbs", heightUnit: "ft_in" },
+            profile: { goal: "cut", heightIn: 70, weightLbs: 180, gender: "male" },
+          },
+        }),
+      );
+    });
+    await page.goto(DEV_URL);
+
+    await expectAuthWelcome(page);
+    await expect(page.getByRole("heading", { name: /when were you born/i })).toHaveCount(0);
   });
 });

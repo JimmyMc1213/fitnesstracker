@@ -103,7 +103,6 @@ export function WorkoutExerciseCard({
 }) {
   const [showActions, setShowActions] = useState(false);
   const [setKindPickerIndex, setSetKindPickerIndex] = useState<number | null>(null);
-  const [openSwipeSetIndex, setOpenSwipeSetIndex] = useState<number | null>(null);
   const [deletingSetIndex, setDeletingSetIndex] = useState<number | null>(null);
   const setBlockRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
@@ -114,7 +113,6 @@ export function WorkoutExerciseCard({
 
   function requestRemoveSet(si: number) {
     if (deletingSetIndex != null) return;
-    setOpenSwipeSetIndex(null);
     const block = setBlockRefs.current.get(si);
     if (!block) {
       onRemoveSet(exercise.id, si);
@@ -134,7 +132,6 @@ export function WorkoutExerciseCard({
     if (e.target !== e.currentTarget || e.propertyName !== "max-height") return;
     onRemoveSet(exercise.id, si);
     setDeletingSetIndex(null);
-    setOpenSwipeSetIndex(null);
     setBlockRefs.current.clear();
   }
 
@@ -308,9 +305,6 @@ export function WorkoutExerciseCard({
                   deleteLabel={`Delete set ${si + 1}`}
                   onDelete={() => requestRemoveSet(si)}
                   disabled={isListDragging || deletingSetIndex != null}
-                  isOpen={openSwipeSetIndex === si}
-                  onOpen={() => setOpenSwipeSetIndex(si)}
-                  onClose={() => setOpenSwipeSetIndex((idx) => (idx === si ? null : idx))}
                   allowInteractiveStart
                   animateCommitDelete
                   borderRadius={8}

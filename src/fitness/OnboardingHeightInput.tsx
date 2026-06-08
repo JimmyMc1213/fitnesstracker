@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { cmFromInches, inchesFromCm } from "./unitPreferences";
 import type { HeightDisplayUnit } from "./types";
@@ -16,19 +16,19 @@ export function OnboardingHeightInput({
   unit,
   heightIn,
   onHeightChange,
-  onFieldsCompleteChange,
   resetKey,
 }: {
   unit: HeightDisplayUnit;
   heightIn: number;
   onHeightChange: (heightIn: number) => void;
-  onFieldsCompleteChange: (complete: boolean) => void;
   resetKey?: string | number;
 }) {
   const initial = textsFromHeightIn(heightIn);
   const [feetText, setFeetText] = useState(initial.feet);
   const [inchesText, setInchesText] = useState(initial.inches);
   const [cmText, setCmText] = useState(initial.cm);
+  const onHeightChangeRef = useRef(onHeightChange);
+  onHeightChangeRef.current = onHeightChange;
 
   useEffect(() => {
     const next = textsFromHeightIn(heightIn);
@@ -41,32 +41,28 @@ export function OnboardingHeightInput({
 
   useEffect(() => {
     if (unit === "cm") {
-      const complete = cmText !== "" && cmText !== ".";
-      onFieldsCompleteChange(complete);
-      if (!complete) {
-        onHeightChange(0);
+      if (cmText === "" || cmText === ".") {
+        onHeightChangeRef.current(0);
         return;
       }
       const inches = inchesFromCm(parseFloat(cmText));
-      onHeightChange(inches ?? 0);
+      onHeightChangeRef.current(inches ?? 0);
       return;
     }
 
-    const complete = feetText !== "" && inchesText !== "";
-    onFieldsCompleteChange(complete);
-    if (!complete) {
-      onHeightChange(0);
+    if (feetText === "" || inchesText === "") {
+      onHeightChangeRef.current(0);
       return;
     }
 
     const ft = parseInt(feetText, 10);
     const inch = parseInt(inchesText, 10);
     if (!Number.isFinite(ft) || !Number.isFinite(inch)) {
-      onHeightChange(0);
+      onHeightChangeRef.current(0);
       return;
     }
-    onHeightChange(ft * 12 + inch);
-  }, [unit, feetText, inchesText, cmText, onHeightChange, onFieldsCompleteChange]);
+    onHeightChangeRef.current(ft * 12 + inch);
+  }, [unit, feetText, inchesText, cmText]);
 
   if (unit === "cm") {
     return (

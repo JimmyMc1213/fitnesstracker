@@ -1,8 +1,10 @@
 # Gymmy - Free vs Pro Tier Matrix
 
 **Status:** Approved for onboarding paywall copy and future IAP gating  
-**Last updated:** 2026-05-23  
+**Last updated:** 2026-05-29  
 **App name:** Gymmy (placeholder product name)
+
+> **Pending update (2026-05-29):** Product direction shifting to **paid-only + 14-day trial** (no free tier). See `future-you-onboarding-spec.md`. Matrix below still describes Free/Pro until IAP sprint rewrites it.
 
 ---
 

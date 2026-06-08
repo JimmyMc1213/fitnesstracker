@@ -10,6 +10,11 @@ import {
 } from "./restTimerPreferences";
 import { mergeNotificationPreferences, normalizeNotificationPreferences } from "./notificationPreferences";
 import { mergeOnboardingDrafts, normalizeOnboardingDraft } from "./onboardingDraft";
+import {
+  isFutureYouMediaCleared,
+  mergeFutureYouDraft,
+  normalizeFutureYouDraft,
+} from "./futureYouDraft";
 import { nutritionPresetFingerprint } from "./nutritionTotals";
 import { hasExistingFitnessData } from "./onboardingSkip";
 import { normalizeAppTheme } from "./theme";
@@ -22,6 +27,7 @@ import type {
   AdjustmentEvent,
   EquipmentSetup,
   ExperienceLevel,
+  FutureYouDraft,
   LoggedFood,
   NutritionLoggedItem,
   NutritionMeal,
@@ -293,6 +299,56 @@ function mergeSubscriptionTier(
   return local ?? remote ?? null;
 }
 
+function mergeReminderDismissedDateKey(a: string | undefined, b: string | undefined): string | undefined {
+  if (!a?.trim()) return b?.trim() || undefined;
+  if (!b?.trim()) return a.trim();
+  return a >= b ? a.trim() : b.trim();
+}
+
+function mergeFutureYouReminderPrefs(
+  draft: FutureYouDraft | undefined,
+  local: FutureYouDraft | undefined,
+  remote: FutureYouDraft | undefined,
+): FutureYouDraft | undefined {
+  if (!draft) return undefined;
+  return mergeFutureYouDraft(draft, {
+    remindersMuted: local?.remindersMuted === true || remote?.remindersMuted === true,
+    reminderDismissedDateKey: mergeReminderDismissedDateKey(
+      local?.reminderDismissedDateKey,
+      remote?.reminderDismissedDateKey,
+    ),
+  });
+}
+
+function mergeFutureYouPersisted(
+  local: FutureYouDraft | undefined,
+  remote: FutureYouDraft | undefined,
+): FutureYouDraft | undefined {
+  const normalizedLocal = normalizeFutureYouDraft(local);
+  const normalizedRemote = normalizeFutureYouDraft(remote);
+  if (!normalizedLocal && !normalizedRemote) return undefined;
+  if (!normalizedLocal) {
+    return mergeFutureYouReminderPrefs(normalizedRemote, normalizedLocal, normalizedRemote);
+  }
+  if (!normalizedRemote) {
+    return mergeFutureYouReminderPrefs(normalizedLocal, normalizedLocal, normalizedRemote);
+  }
+  if (isFutureYouMediaCleared(normalizedLocal) && !isFutureYouMediaCleared(normalizedRemote)) {
+    return mergeFutureYouReminderPrefs(normalizedLocal, normalizedLocal, normalizedRemote);
+  }
+  if (normalizedRemote.generationStatus === "ready") {
+    return mergeFutureYouReminderPrefs(normalizedRemote, normalizedLocal, normalizedRemote);
+  }
+  if (normalizedLocal.generationStatus === "ready") {
+    return mergeFutureYouReminderPrefs(normalizedLocal, normalizedLocal, normalizedRemote);
+  }
+  return mergeFutureYouReminderPrefs(
+    mergeFutureYouDraft(normalizedLocal, normalizedRemote),
+    normalizedLocal,
+    normalizedRemote,
+  );
+}
+
 function mergeOnboardingFields(
   local: PersistedFitnessSlice,
   remote: PersistedFitnessSlice,
@@ -433,6 +489,7 @@ export function mergePersistedFitnessSlices(local: PersistedFitnessSlice, remote
     ...mergeOnboardingFields(local, remote),
     theme: normalizeAppTheme(remote.theme ?? local.theme),
     subscriptionTier: mergeSubscriptionTier(local.subscriptionTier, remote.subscriptionTier),
+    futureYou: mergeFutureYouPersisted(local.futureYou, remote.futureYou),
     notificationPreferences: mergeNotificationPreferences(
       normalizeNotificationPreferences(local.notificationPreferences),
       normalizeNotificationPreferences(remote.notificationPreferences),

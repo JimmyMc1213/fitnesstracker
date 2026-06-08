@@ -48,6 +48,24 @@ export function isValidWeighInLbs(lbs: number): boolean {
   return Number.isFinite(lbs) && lbs >= 70 && lbs <= 450;
 }
 
+/** Parse free-form onboarding weigh-in text in the user's unit → canonical lbs (0 when empty/invalid). */
+export function lbsFromWeightInputText(text: string, unit: WeightUnit): number {
+  if (text === "" || text === ".") return 0;
+  const n = parseFloat(text);
+  if (!Number.isFinite(n)) return 0;
+  const lbs = parseWeightToLbs(n, unit);
+  return Number.isFinite(lbs) ? lbs : 0;
+}
+
+export function weighInRangeHint(unit: WeightUnit): string {
+  if (unit === "kg") {
+    const minKg = Math.round((70 / LBS_PER_KG) * 10) / 10;
+    const maxKg = Math.round((450 / LBS_PER_KG) * 10) / 10;
+    return `Enter a weight between ${minKg} and ${maxKg} kg`;
+  }
+  return "Enter a weight between 70 and 450 lbs";
+}
+
 export function formatHeightFromInches(inches: number, unit: HeightDisplayUnit): string {
   if (!Number.isFinite(inches) || inches <= 0) return ", ";
   if (unit === "cm") return String(Math.round(inches / IN_PER_CM));

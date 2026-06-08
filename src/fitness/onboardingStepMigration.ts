@@ -85,3 +85,9 @@ export function migrateRemoveCoachingLoopStepIndex(stepIndex: number): number {
   if (stepIndex > 20) return stepIndex - 1;
   return Math.min(Math.max(0, stepIndex), 28);
 }
+
+/** v17 step index → v18 (save progress screen removed; paywall renumbered 28 → 27). */
+export function migrateRemoveSaveProgressStepIndex(stepIndex: number): number {
+  if (stepIndex > 27) return stepIndex - 1;
+  return Math.min(Math.max(0, stepIndex), 27);
+}

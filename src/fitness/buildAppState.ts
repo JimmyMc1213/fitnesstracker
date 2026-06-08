@@ -33,10 +33,11 @@ import { normalizeNutritionMeals } from "./nutritionMeals";
 import { mergePersistedNutritionDays, normalizeNutritionPresets, normalizeNutritionUserFoods } from "./nutritionTotals";
 import { normalizeOnboardingProfile, DEFAULT_ONBOARDING_PROFILE } from "./onboardingProfile";
 import { normalizeOnboardingDraft } from "./onboardingDraft";
+import { normalizeFutureYouDraft } from "./futureYouDraft";
 import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
 import { normalizeRestTimerDefaultSeconds, normalizeRestTimerSecondsByExerciseKey } from "./restTimerPreferences";
 import { restSecondsFromTrainingDuration } from "./sessionLengthConfig";
-import { normalizeAppTheme, readStoredTheme } from "./theme";
+import { readStoredTheme } from "./theme";
 import { normalizeNotificationPreferences } from "./notificationPreferences";
 import { normalizeUnitPreferences } from "./unitPreferences";
 import { normalizeWaterDailyTargetOz, normalizeWaterLogByDay } from "./waterIntake";
@@ -406,7 +407,8 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
   );
   const onboardingDraft = onboardingComplete ? null : normalizeOnboardingDraft(p?.onboardingDraft);
   const subscriptionTier = normalizeSubscriptionTier(p?.subscriptionTier);
-  const theme = p?.theme != null ? normalizeAppTheme(p.theme) : readStoredTheme();
+  const futureYou = normalizeFutureYouDraft(p?.futureYou);
+  const theme = readStoredTheme();
 
   const baseState: AppState = {
     displayName,
@@ -484,6 +486,7 @@ export function buildAppStateFromPersisted(p: Partial<PersistedFitnessSlice> | n
     onboardingDraft,
     theme,
     subscriptionTier,
+    futureYou,
     notificationPreferences: normalizeNotificationPreferences(p?.notificationPreferences),
     waterLogByDay: normalizeWaterLogByDay(p?.waterLogByDay),
     waterDailyTargetOz,

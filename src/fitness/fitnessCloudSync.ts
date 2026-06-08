@@ -426,6 +426,7 @@ export function useFitnessCloudSync(
     if (!sb) return;
     await sb.auth.signOut();
     setSession(null);
+    setWelcomeResetNonce((n) => n + 1);
   }, []);
 
   const deleteAccount = useCallback(async (opts: { confirmed: true }) => {

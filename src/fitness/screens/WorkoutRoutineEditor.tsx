@@ -14,9 +14,10 @@ import {
   parseWorkoutTarget,
   syncTargetRepRange,
 } from "../workoutTarget";
+import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { DeleteExerciseConfirmSheet } from "../workout/DeleteExerciseConfirmSheet";
 import { SaveWorkoutConfirmSheet } from "../workout/SaveWorkoutConfirmSheet";
-import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
+import { resolveRoutineFocusOnSave } from "../routineTemplateFocus";
 import { CARD_PADDING, EDITOR_LIST_GAP, labelStyle, SECONDARY_ACTION_COLOR, workoutFieldInputStyle } from "../workoutUiTokens";
 
 /** Pass as `editingRoutineId` to open the editor for a brand-new routine. */
@@ -458,6 +459,7 @@ export function WorkoutRoutineEditor({
   const [name, setName] = useState("");
   const [dayLabel, setDayLabel] = useState("");
   const [focus, setFocus] = useState("");
+  const [focusDirty, setFocusDirty] = useState(false);
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [searchSheet, setSearchSheet] = useState<SearchSheetMode | null>(null);
   const [pendingExerciseDelete, setPendingExerciseDelete] = useState<{
@@ -478,11 +480,13 @@ export function WorkoutRoutineEditor({
       setName(template.name);
       setDayLabel(template.dayLabel);
       setFocus(template.focus);
+      setFocusDirty(false);
       setExercises(template.exercises.map((e) => ({ ...e, sets: e.sets.map((s) => ({ ...s })) })));
     } else {
       setName("");
       setDayLabel("");
       setFocus("");
+      setFocusDirty(false);
       setExercises([]);
     }
     setSearchSheet(null);
@@ -573,7 +577,8 @@ export function WorkoutRoutineEditor({
   }
 
   function handleSave() {
-    onSave(buildDraftTemplate(template, name, dayLabel, focus, exercises));
+    const resolvedFocus = resolveRoutineFocusOnSave(focus, focusDirty, exercises);
+    onSave(buildDraftTemplate(template, name, dayLabel, resolvedFocus, exercises));
   }
 
   function handleSaveClick() {
@@ -694,7 +699,13 @@ export function WorkoutRoutineEditor({
                 })}
               </div>
             </div>
-            <CollapsibleFocusField value={focus} onChange={setFocus} />
+            <CollapsibleFocusField
+              value={focus}
+              onChange={(next) => {
+                setFocus(next);
+                setFocusDirty(true);
+              }}
+            />
           </div>
 
           <div className="between" style={{ marginTop: 24, marginBottom: 10 }}>

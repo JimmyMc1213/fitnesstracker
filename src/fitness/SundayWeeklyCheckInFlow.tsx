@@ -402,24 +402,24 @@ function StepOverview({ data }: { data: SundayCheckInData; unitPreferences: Unit
       ) : null}
       <StatusPill label={data.statusLabel} positive={data.onTrack} />
 
-      {data.hasFullRecap ? (
-        <div
-          style={{
-            marginTop: 18,
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 10,
-          }}
-        >
-          {data.metrics.map((metric) => (
-            <MetricTile key={metric.label} metric={metric} />
-          ))}
-        </div>
-      ) : (
-        <p style={{ marginTop: 18, fontSize: 13, lineHeight: 1.45, color: "var(--text-soft)", fontWeight: 500 }}>
-          Log your weight a few times this week for a full recap.
+      <div
+        style={{
+          marginTop: 18,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 10,
+        }}
+      >
+        {data.metrics.map((metric) => (
+          <MetricTile key={metric.label} metric={metric} />
+        ))}
+      </div>
+
+      {!data.hasFullRecap ? (
+        <p style={{ margin: "12px 0 0", fontSize: 12, lineHeight: 1.45, color: "var(--text-ghost)", fontWeight: 500 }}>
+          Log your weight a few times next week for a full weight recap.
         </p>
-      )}
+      ) : null}
     </>
   );
 }

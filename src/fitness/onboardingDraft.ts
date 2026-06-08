@@ -8,14 +8,18 @@ import {
   migrateSaveProgressStepIndex,
   migrateSessionLengthBeforeCalendarStepIndex,
   migrateRemoveCoachingLoopStepIndex,
+  migrateRemoveSaveProgressStepIndex,
   migrateThemeStepIndex,
   migrateTrainingDurationStepIndex,
   migrateV2StepIndex,
 } from "./onboardingStepMigration";
+import { clampOnboardingStepIndex } from "./onboardingSteps";
+import { normalizeFutureYouDraft } from "./futureYouDraft";
 import { safeJsonParse } from "./safeJsonParse";
 import type {
   EquipmentSetup,
   ExperienceLevel,
+  FutureYouDraft,
   MacroTotals,
   NotificationPreferences,
   OnboardingDraft,
@@ -26,8 +30,10 @@ import type {
 } from "./types";
 import type { AppTheme } from "./theme";
 
-/** v2 = 11-step wizard; v3 = 23-screen Gymmy onboarding v2; v4 = + referral; v5 = + motivation survey; v6 = + comparison (removed in v7); v8 = nutrition before training plan; v9 = + session duration screen; v10 = + plan-building screen after potential chart; v11 = session length before workout calendar + workout plan engine; v12 = edit split screen removed from onboarding; v13 = + notification pre-prompt before reminder picker; v14 = + save progress before paywall; v15 = + theme picker after welcome; v16 = coaching loop screen removed. */
-export const ONBOARDING_DRAFT_VERSION = 16;
+/** v2 = 11-step wizard; v3 = 23-screen Gymmy onboarding v2; v4 = + referral; v5 = + motivation survey; v6 = + comparison (removed in v7); v8 = nutrition before training plan; v9 = + session duration screen; v10 = + plan-building screen after potential chart; v11 = session length before workout calendar + workout plan engine; v12 = edit split screen removed from onboarding; v13 = + notification pre-prompt before reminder picker; v14 = + save progress before paywall; v15 = + theme picker after welcome; v16 = coaching loop screen removed; v17 = + Future You steps 10b/10c; v18 = save progress screen removed (paywall at 27). */
+export const ONBOARDING_DRAFT_VERSION = 18;
+export const ONBOARDING_DRAFT_VERSION_PRE_SAVE_PROGRESS_REMOVED = 17;
+export const ONBOARDING_DRAFT_VERSION_PRE_FUTURE_YOU = 16;
 export const ONBOARDING_DRAFT_VERSION_PRE_COACHING_LOOP = 15;
 export const ONBOARDING_DRAFT_VERSION_PRE_THEME = 14;
 export const ONBOARDING_DRAFT_VERSION_PRE_SAVE_PROGRESS = 13;
@@ -56,6 +62,7 @@ export type OnboardingDraftInput = {
   notificationPrefs?: NotificationPreferences;
   subscriptionTier?: "free" | "pro" | null;
   theme?: AppTheme;
+  futureYou?: FutureYouDraft;
 };
 
 export function buildOnboardingDraft(input: OnboardingDraftInput): OnboardingDraft {
@@ -74,6 +81,7 @@ export function buildOnboardingDraft(input: OnboardingDraftInput): OnboardingDra
     notificationPrefs: input.notificationPrefs ? { ...input.notificationPrefs } : undefined,
     subscriptionTier: input.subscriptionTier ?? undefined,
     theme: input.theme,
+    futureYou: input.futureYou ? { ...input.futureYou } : undefined,
   };
 }
 
@@ -82,10 +90,12 @@ function draftTimestamp(draft: OnboardingDraft): string {
 }
 
 function migrateToCurrentStepIndex(stepIndex: number): number {
-  return migrateRemoveCoachingLoopStepIndex(
-    migrateThemeStepIndex(
-      migrateSaveProgressStepIndex(
-        migrateNotificationPrePromptStepIndex(migrateRemoveOnboardingEditStepIndex(Math.round(stepIndex))),
+  return migrateRemoveSaveProgressStepIndex(
+    migrateRemoveCoachingLoopStepIndex(
+      migrateThemeStepIndex(
+        migrateSaveProgressStepIndex(
+          migrateNotificationPrePromptStepIndex(migrateRemoveOnboardingEditStepIndex(Math.round(stepIndex))),
+        ),
       ),
     ),
   );
@@ -96,23 +106,41 @@ function migrateDraftVersion(raw: Record<string, unknown>): { stepIndex: number;
   const stepIndex = Number(raw.stepIndex);
   if (!Number.isFinite(stepIndex) || stepIndex < 0) return null;
   if (version === ONBOARDING_DRAFT_VERSION) {
-    return { stepIndex: Math.round(stepIndex), version: ONBOARDING_DRAFT_VERSION };
+    return { stepIndex: clampOnboardingStepIndex(stepIndex), version: ONBOARDING_DRAFT_VERSION };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_PRE_SAVE_PROGRESS_REMOVED) {
+    return {
+      stepIndex: migrateRemoveSaveProgressStepIndex(clampOnboardingStepIndex(stepIndex)),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
+  }
+  if (version === ONBOARDING_DRAFT_VERSION_PRE_FUTURE_YOU) {
+    return {
+      stepIndex: migrateRemoveSaveProgressStepIndex(clampOnboardingStepIndex(stepIndex)),
+      version: ONBOARDING_DRAFT_VERSION,
+    };
   }
   if (version === ONBOARDING_DRAFT_VERSION_PRE_COACHING_LOOP) {
     return {
-      stepIndex: migrateRemoveCoachingLoopStepIndex(Math.round(stepIndex)),
+      stepIndex: migrateRemoveSaveProgressStepIndex(migrateRemoveCoachingLoopStepIndex(Math.round(stepIndex))),
       version: ONBOARDING_DRAFT_VERSION,
     };
   }
   if (version === ONBOARDING_DRAFT_VERSION_PRE_THEME) {
     return {
-      stepIndex: migrateRemoveCoachingLoopStepIndex(migrateThemeStepIndex(Math.round(stepIndex))),
+      stepIndex: migrateRemoveSaveProgressStepIndex(
+        migrateRemoveCoachingLoopStepIndex(migrateThemeStepIndex(Math.round(stepIndex))),
+      ),
       version: ONBOARDING_DRAFT_VERSION,
     };
   }
   if (version === ONBOARDING_DRAFT_VERSION_PRE_SAVE_PROGRESS) {
     return {
-      stepIndex: migrateThemeStepIndex(migrateSaveProgressStepIndex(Math.round(stepIndex))),
+      stepIndex: migrateRemoveSaveProgressStepIndex(
+        migrateRemoveCoachingLoopStepIndex(
+          migrateThemeStepIndex(migrateSaveProgressStepIndex(Math.round(stepIndex))),
+        ),
+      ),
       version: ONBOARDING_DRAFT_VERSION,
     };
   }
@@ -250,6 +278,7 @@ export function normalizeOnboardingDraft(raw: unknown): OnboardingDraft | null {
         : undefined,
     subscriptionTier,
     theme: o.theme === "light" || o.theme === "dark" ? o.theme : undefined,
+    futureYou: normalizeFutureYouDraft(o.futureYou),
   };
 }
 
@@ -290,6 +319,8 @@ export function readGymmyOnboardingDraft(): OnboardingDraft | null {
     const version = Number((parsed as Record<string, unknown>).version);
     if (
       version !== ONBOARDING_DRAFT_VERSION &&
+      version !== ONBOARDING_DRAFT_VERSION_PRE_SAVE_PROGRESS_REMOVED &&
+      version !== ONBOARDING_DRAFT_VERSION_PRE_FUTURE_YOU &&
       version !== ONBOARDING_DRAFT_VERSION_PRE_THEME &&
       version !== ONBOARDING_DRAFT_VERSION_PRE_SAVE_PROGRESS &&
       version !== ONBOARDING_DRAFT_VERSION_PRE_NOTIFICATION_PROMPT &&

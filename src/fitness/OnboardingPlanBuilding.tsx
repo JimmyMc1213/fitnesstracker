@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+import { FutureYouGenerationPillSlot } from "./FutureYouGenerationPillContext";
+
 const BUILD_DURATION_MS = 12500;
 
 const STATUS_MESSAGES = [
@@ -107,6 +109,7 @@ export function OnboardingPlanBuilding({ onComplete }: { onComplete: () => void 
         paddingRight: 23,
       }}
     >
+      <FutureYouGenerationPillSlot />
       <div className="onboarding-plan-building" role="status" aria-live="polite" aria-busy={progress < 100}>
         <p className="onboarding-plan-building__pct">{progress}%</p>
         <h2 className="onboarding-plan-building__headline">We&apos;re setting everything up for you</h2>

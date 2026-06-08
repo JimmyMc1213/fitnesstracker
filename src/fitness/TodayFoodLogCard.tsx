@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 
 import { MAX_NUTRITION_ITEMS_PER_DAY, removeNutritionLoggedItem } from "./nutritionLog";
 import { SwipeToDelete } from "./SwipeToDelete";
@@ -89,19 +89,9 @@ type SwipeableFoodLogRowProps = {
   item: NutritionLoggedItem;
   onEdit: (item: NutritionLoggedItem) => void;
   onRemove: () => void;
-  isOpen: boolean;
-  onOpen: (itemId: string) => void;
-  onClose: () => void;
 };
 
-function SwipeableFoodLogRow({
-  item,
-  onEdit,
-  onRemove,
-  isOpen,
-  onOpen,
-  onClose,
-}: SwipeableFoodLogRowProps) {
+function SwipeableFoodLogRow({ item, onEdit, onRemove }: SwipeableFoodLogRowProps) {
   const displayName = displayFoodName(item);
 
   return (
@@ -109,9 +99,6 @@ function SwipeableFoodLogRow({
       <SwipeToDelete
         deleteLabel={`Delete ${displayName}`}
         onDelete={onRemove}
-        isOpen={isOpen}
-        onOpen={() => onOpen(item.id)}
-        onClose={onClose}
         onTap={() => onEdit(item)}
         borderRadius={16}
       >
@@ -171,8 +158,6 @@ function SwipeableFoodLogRow({
 }
 
 export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
-  const [openItemId, setOpenItemId] = useState<string | null>(null);
-
   const sorted = [...items].sort((a, b) => {
     const ta = typeof a.loggedAtMs === "number" ? a.loggedAtMs : 0;
     const tb = typeof b.loggedAtMs === "number" ? b.loggedAtMs : 0;
@@ -180,12 +165,6 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
   });
 
   const atDailyCap = sorted.length >= MAX_NUTRITION_ITEMS_PER_DAY;
-
-  useEffect(() => {
-    if (openItemId && !sorted.some((item) => item.id === openItemId)) {
-      setOpenItemId(null);
-    }
-  }, [openItemId, sorted]);
 
   return (
     <div style={{ marginTop: 18 }}>
@@ -215,13 +194,7 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
               key={item.id}
               item={item}
               onEdit={onEdit}
-              onRemove={() => {
-                setOpenItemId(null);
-                onRemove(item.id);
-              }}
-              isOpen={openItemId === item.id}
-              onOpen={setOpenItemId}
-              onClose={() => setOpenItemId(null)}
+              onRemove={() => onRemove(item.id)}
             />
           ))}
           {atDailyCap ? (

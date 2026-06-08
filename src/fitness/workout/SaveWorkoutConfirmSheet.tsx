@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 
 export function SaveWorkoutConfirmSheet({
   open = true,
+  title = "Save changes?",
   workoutName,
   message,
   cancelLabel = "Keep editing",
@@ -18,6 +19,7 @@ export function SaveWorkoutConfirmSheet({
   onCancel,
 }: {
   open?: boolean;
+  title?: string;
   workoutName: string;
   message?: ReactNode;
   cancelLabel?: string;
@@ -35,7 +37,7 @@ export function SaveWorkoutConfirmSheet({
       panelStyle={confirmCenterDialogPanelStyle}
     >
       <div id="save-workout-confirm-title" style={confirmSheetTitleStyle}>
-        Save changes?
+        {title}
       </div>
       <p style={confirmSheetMessageStyle}>
         {message ?? (

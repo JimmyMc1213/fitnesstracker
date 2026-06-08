@@ -3,12 +3,15 @@ import { useEffect, useState } from "react";
 import { bootSplashPresent } from "./bootSplash";
 import { GymmySplashMark } from "./GymmySplashMark";
 import { WELCOME_SPLASH_HOLD_MS } from "./splashTiming";
+import { markWelcomeSplashPlayed, welcomeSplashAlreadyPlayed } from "./welcomeSplash";
 
 type Phase = "splash" | "welcome";
 
 type OnboardingWelcomeScreenProps = {
   onGetStarted: () => void;
   onSignIn?: () => void;
+  /** Auth entry: "Already have an account? Sign in". Onboarding step 0: switch account. */
+  signInPrompt?: "existing-account" | "switch-account";
 };
 
 function PhonePreviewPlaceholder() {
@@ -19,14 +22,22 @@ function PhonePreviewPlaceholder() {
   );
 }
 
-export function OnboardingWelcomeScreen({ onGetStarted, onSignIn }: OnboardingWelcomeScreenProps) {
-  const [phase, setPhase] = useState<Phase>("splash");
+export function OnboardingWelcomeScreen({
+  onGetStarted,
+  onSignIn,
+  signInPrompt = "existing-account",
+}: OnboardingWelcomeScreenProps) {
+  const [phase, setPhase] = useState<Phase>(() =>
+    welcomeSplashAlreadyPlayed() ? "welcome" : "splash",
+  );
   const [splashInstant] = useState(() => bootSplashPresent());
 
   useEffect(() => {
+    if (phase !== "splash") return;
+    markWelcomeSplashPlayed();
     const id = window.setTimeout(() => setPhase("welcome"), WELCOME_SPLASH_HOLD_MS);
     return () => window.clearTimeout(id);
-  }, []);
+  }, [phase]);
 
   return (
     <div
@@ -59,9 +70,9 @@ export function OnboardingWelcomeScreen({ onGetStarted, onSignIn }: OnboardingWe
           </button>
           {onSignIn ? (
             <p className="onboarding-welcome__signin">
-              Already have an account?{" "}
+              {signInPrompt === "switch-account" ? "Use a different account?" : "Already have an account?"}{" "}
               <button type="button" className="onboarding-welcome__signin-link tap" onClick={onSignIn}>
-                Sign in
+                {signInPrompt === "switch-account" ? "Sign out" : "Sign in"}
               </button>
             </p>
           ) : null}

@@ -1,61 +1,21 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
-import { FITNESS_LOCAL_STORAGE_KEY, GYMMY_ONBOARDING_DRAFT_KEY, clearFitnessStorage } from "./helpers/seed";
+import { clearFitnessStorage } from "./helpers/seed";
+import {
+  advanceFromCalendarToFuelTargets,
+  advanceFromFuelTargetsToPlanReady,
+  advanceHookScreens,
+  advanceToCalendarMaintain,
+  advanceToPaywallFromPlanReady,
+  clickContinue,
+} from "./helpers/onboarding";
 
-async function clickContinue(page: Page) {
+async function completeOnboardingFromCalendar(page: import("@playwright/test").Page) {
+  await advanceFromCalendarToFuelTargets(page);
+  await advanceFromFuelTargetsToPlanReady(page);
+  await advanceToPaywallFromPlanReady(page);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-}
-
-async function advanceHookScreens(page: Page) {
-  await expect(page.getByRole("heading", { name: /your program\. smarter every session\./i })).toBeVisible({ timeout: 5000 });
-  await page.getByRole("button", { name: "Get Started" }).click();
-  await expect(page.getByRole("heading", { name: /what's your gender/i })).toBeVisible();
-}
-
-async function advanceToCalendarMaintain(page: Page) {
-  await advanceHookScreens(page);
-  await clickContinue(page); // gender
-  await clickContinue(page); // dob
-  await clickContinue(page); // units
-  await clickContinue(page); // height
-  await clickContinue(page); // weight
-  await page.getByRole("button", { name: "Maintain and perform" }).click();
-  await clickContinue(page); // goal -> activity
-  await clickContinue(page); // activity
-  await clickContinue(page); // experience
-  await clickContinue(page); // equipment
-  await expect(page.getByRole("heading", { name: "Which days can you train?" })).toBeVisible();
-}
-
-async function completeOnboardingFromCalendar(page: Page) {
-  await clickContinue(page); // calendar -> session duration
-  await page.getByRole("button", { name: "1 hour – 1.5 hours", exact: true }).click();
-  await clickContinue(page); // duration -> schedule reinforcement
-  await expect(page.getByText(/tailor every workout around you and your schedule/i)).toBeVisible();
-  await clickContinue(page); // schedule reinforcement -> obstacles
-  await page.getByRole("button", { name: "Starting strong then falling off" }).click();
-  await clickContinue(page); // obstacles -> diet
-  await page.getByRole("button", { name: "Classic", exact: true }).click();
-  await clickContinue(page); // diet -> accomplishments
-  await page.getByRole("button", { name: "Eat and live healthier" }).click();
-  await clickContinue(page); // training style -> plan building
-  await expect(page.getByRole("heading", { name: "Your fuel targets" })).toBeVisible({ timeout: 20_000 });
-  await clickContinue(page); // macros -> protein priority
-  await page.getByRole("button", { name: "Show training plan" }).click();
-  await expect(page.getByRole("heading", { name: /here's your training plan/i })).toBeVisible();
-  await page.getByRole("button", { name: "Let's go" }).click(); // split reveal -> notification pre-prompt
-  await expect(page.getByRole("heading", { name: /reach your goals with notifications/i })).toBeVisible();
-  await page.getByRole("button", { name: "Allow" }).click(); // pre-prompt -> reminder picker
-  await expect(page.getByRole("heading", { name: "Stay on track" })).toBeVisible();
-  await page.getByRole("button", { name: "Skip for now", exact: true }).click(); // reminders -> plan ready
-  await expect(page.getByRole("heading", { name: /your plan is ready/i })).toBeVisible({ timeout: 10_000 });
-  await page.getByRole("button", { name: "Start my plan" }).click();
-  await expect(page.getByRole("heading", { name: "Save your progress" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Sign in with Apple" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
-  await page.getByRole("button", { name: /sign in later\? Skip/i }).click();
-  await expect(page.getByRole("heading", { name: "Unlock Gymmy to reach your goals faster." })).toBeVisible();
-  await page.getByRole("button", { name: "Continue with free" }).click();
+  await page.getByRole("button", { name: "Start My Journey" }).click();
   await expect(page.getByText("Today's plan")).toBeVisible();
 }
 
@@ -94,3 +54,5 @@ test("week calendar: 3-day minimum validation", async ({ page }) => {
   await expect(page.getByText(/4 days selected/)).toBeVisible();
   await expect(continueBtn).toBeEnabled();
 });
+
+export { advanceHookScreens, clickContinue };

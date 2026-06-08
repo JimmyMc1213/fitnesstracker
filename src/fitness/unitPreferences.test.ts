@@ -11,7 +11,9 @@ import {
   heightUnitLabel,
   inchesFromCm,
   isValidWeighInLbs,
+  lbsFromWeightInputText,
   LBS_PER_KG,
+  weighInRangeHint,
   normalizeUnitPreferences,
   parseSetWeightInput,
   parseWeightToLbs,
@@ -88,6 +90,20 @@ describe("weight conversions", () => {
     expect(isValidWeighInLbs(69.9)).toBe(false);
     expect(isValidWeighInLbs(450.1)).toBe(false);
     expect(isValidWeighInLbs(NaN)).toBe(false);
+  });
+
+  it("parses onboarding weight text synchronously", () => {
+    expect(lbsFromWeightInputText("", "lbs")).toBe(0);
+    expect(lbsFromWeightInputText(".", "lbs")).toBe(0);
+    expect(lbsFromWeightInputText("180", "lbs")).toBe(180);
+    expect(lbsFromWeightInputText("180.", "lbs")).toBe(180);
+    expect(lbsFromWeightInputText("80", "kg")).toBeCloseTo(80 * LBS_PER_KG, 2);
+  });
+
+  it("shows unit-aware weigh-in hints", () => {
+    expect(weighInRangeHint("lbs")).toContain("70");
+    expect(weighInRangeHint("lbs")).toContain("450 lbs");
+    expect(weighInRangeHint("kg")).toContain("kg");
   });
 });
 

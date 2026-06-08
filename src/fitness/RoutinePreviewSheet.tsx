@@ -2,13 +2,13 @@ import { PrimaryButton } from "./shared";
 import type { WorkoutRoutineTemplate } from "./types";
 import { buildWorkoutWarmup } from "./workoutWarmup";
 import { WorkoutWarmupGroups } from "./workout/WorkoutWarmupGroups";
+import { IconMoreVertical } from "./icons";
 import {
   COACH_BLUE_LABEL,
   COACH_CARD_BG,
   COACH_CARD_BORDER,
   coachMajorTitleStyle,
   labelStyle,
-  SECONDARY_ACTION_COLOR,
 } from "./workoutUiTokens";
 import { BottomSheet, bottomSheetPanelTheme } from "./motion";
 
@@ -22,7 +22,7 @@ type RoutinePreviewSheetProps = {
   template: WorkoutRoutineTemplate;
   coachBrief?: CoachBriefContent;
   onClose: () => void;
-  onEdit: () => void;
+  onOpenMenu: () => void;
   onStart: () => void;
 };
 
@@ -31,7 +31,7 @@ export function RoutinePreviewSheet({
   template,
   coachBrief,
   onClose,
-  onEdit,
+  onOpenMenu,
   onStart,
 }: RoutinePreviewSheetProps) {
   const totalSets = template.exercises.reduce((a, e) => a + e.sets.length, 0);
@@ -72,8 +72,24 @@ export function RoutinePreviewSheet({
                 {template.name}
               </div>
             </div>
-            <button type="button" className="tap" onClick={onEdit} style={{ fontSize: 14, fontWeight: 600, color: SECONDARY_ACTION_COLOR, padding: 4, flexShrink: 0 }}>
-              Edit
+            <button
+              type="button"
+              className="tap"
+              onClick={onOpenMenu}
+              aria-label={`Options for ${template.name}`}
+              style={{
+                flexShrink: 0,
+                display: "grid",
+                placeItems: "center",
+                width: 36,
+                height: 36,
+                padding: 0,
+                border: "none",
+                background: "transparent",
+                color: "var(--text-muted-soft)",
+              }}
+            >
+              <IconMoreVertical size={20} />
             </button>
           </div>
 
@@ -173,7 +189,7 @@ export function RoutinePreviewSheet({
           </PrimaryButton>
           {template.exercises.length === 0 ? (
             <p style={{ margin: "8px 0 0", textAlign: "center", fontSize: 11, color: "var(--text-ghost)" }}>
-              Add exercises in Edit before starting.
+              Add exercises before starting.
             </p>
           ) : (
             <button

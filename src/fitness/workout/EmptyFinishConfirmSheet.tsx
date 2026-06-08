@@ -1,7 +1,7 @@
 import {
-  BottomSheet,
+  CenterDialog,
   ConfirmSheetActions,
-  confirmBottomSheetPanelStyle,
+  confirmCenterDialogPanelStyle,
   confirmSheetMessageStyle,
   confirmSheetTitleStyle,
 } from "../motion";
@@ -16,12 +16,12 @@ export function EmptyFinishConfirmSheet({
   onQuit: () => void;
 }) {
   return (
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onKeepTraining}
       zIndex={1100}
       ariaLabelledBy="empty-finish-title"
-      panelStyle={confirmBottomSheetPanelStyle}
+      panelStyle={confirmCenterDialogPanelStyle}
     >
       <div id="empty-finish-title" style={confirmSheetTitleStyle}>
         Nothing logged yet
@@ -32,10 +32,10 @@ export function EmptyFinishConfirmSheet({
       <ConfirmSheetActions
         cancelLabel="Keep training"
         confirmLabel="Quit workout"
-        contentPadding={24}
+        contentPadding={28}
         onCancel={onKeepTraining}
         onConfirm={onQuit}
       />
-    </BottomSheet>
+    </CenterDialog>
   );
 }

@@ -25,15 +25,61 @@ import {
   type OnboardingDraftInput,
 } from "./onboardingDraft";
 import { OnboardingDailyFuelPlan } from "./OnboardingDailyFuelPlan";
+import { OnboardingMacroEditConfirmSheet } from "./OnboardingMacroEditConfirmSheet";
+import { shouldConfirmMacroEditOnContinue } from "./onboardingMacroEdit";
 import { OnboardingGoalWeightReinforcement } from "./OnboardingGoalWeightReinforcement";
 import { OnboardingPlanBuilding } from "./OnboardingPlanBuilding";
 import { OnboardingIconOptionPicker } from "./OnboardingIconOptionPicker";
 import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
 import { OnboardingThemePicker } from "./OnboardingThemePicker";
 import { useTheme } from "./ThemeContext";
-import type { AppTheme } from "./theme";
+import { readStoredTheme, type AppTheme } from "./theme";
+import { OnboardingFutureYouMotivation } from "./OnboardingFutureYouMotivation";
+import { OnboardingFutureYouPhoto } from "./OnboardingFutureYouPhoto";
+import { fireFutureYouSuccessConfetti } from "./confetti";
 import { OnboardingPaywall } from "./OnboardingPaywall";
-import { OnboardingSaveProgress } from "./OnboardingSaveProgress";
+import { onboardingPlanReadyContinueLabel } from "./futureYouPaywallModel";
+import { OnboardingFutureYouSuccess } from "./OnboardingFutureYouSuccess";
+import { canAccessFutureYouSuccessScreen, isFutureYouSuccessHeroVisible } from "./futureYouSuccessModel";
+import { mergeFutureYouDraft, canRevisitFutureYouPhoto } from "./futureYouDraft";
+import { isFutureYouPhotoBlocked } from "./futureYouAge";
+import {
+  buildFutureYouGenerateProfile,
+  FutureYouGenerateError,
+  startFutureYouGeneration,
+} from "./futureYouGenerateService";
+import { futureYouTimelineFromProfile } from "./futureYouTimeline";
+import { FutureYouUploadError, uploadFutureYouPhoto } from "./futureYouUploadService";
+import { FutureYouGenerationPill } from "./FutureYouGenerationPill";
+import { FutureYouGenerationPillProvider } from "./FutureYouGenerationPillContext";
+import { FutureYouReadyBanner } from "./FutureYouReadyBanner";
+import {
+  isFutureYouGenerationPillVisible,
+  isFutureYouReadyBannerVisible,
+} from "./futureYouGenerationPillModel";
+import { useFutureYouGenerationPoll } from "./useFutureYouGenerationPoll";
+import { compressImageToJpegDataUrl } from "./imageCompress";
+import {
+  clampOnboardingStepIndex,
+  isOnboardingBackIntoGoalLockBlocked,
+  isOnboardingBackLocked,
+  ONBOARDING_STEP_ACTIVITY,
+  ONBOARDING_STEP_FUTURE_YOU_MOTIVATION,
+  ONBOARDING_STEP_FUTURE_YOU_PHOTO,
+  ONBOARDING_STEP_FUTURE_YOU_SUCCESS,
+  ONBOARDING_STEP_PAYWALL,
+  ONBOARDING_STEP_PACE,
+} from "./onboardingSteps";
+import {
+  backStepFromFutureYouPhoto,
+  isGoalWeightOrPaceStep,
+  isMaintainGoal,
+  isOnboardingGoalEditNavigationBlocked,
+  isOnboardingIntoGoalLockNavigationBlocked,
+  nextStepAfterGoal,
+  resolveOnboardingStepOnRestore,
+} from "./onboardingRouting";
+import { buildOnboardingPlanSnapshot } from "./onboardingPlanSnapshot";
 import { OnboardingPlanReady } from "./OnboardingPlanReady";
 import { OnboardingPillStack, OnboardingSegment } from "./OnboardingSegment";
 import { OnboardingShell, ONBOARDING_TOTAL_STEPS } from "./OnboardingShell";
@@ -64,6 +110,8 @@ import { UnitPreferencePicker } from "./UnitPreferencePicker";
 import { defaultTrainingWeekdaysForProfile } from "./workoutWeekCalendar";
 import {
   DEFAULT_UNIT_PREFERENCES,
+  isValidWeighInLbs,
+  weighInRangeHint,
 } from "./unitPreferences";
 import { DateOfBirthWheelPicker } from "./DateOfBirthWheelPicker";
 import { defaultGoalWeightLbs, goalWeightRangeLbs, WeightRulerPicker } from "./WeightRulerPicker";
@@ -91,6 +139,7 @@ import type {
   UnitPreferences,
   UserGender,
   WorkoutRoutineTemplate,
+  FutureYouDraft,
 } from "./types";
 
 const TOTAL_STEPS = ONBOARDING_TOTAL_STEPS;
@@ -133,11 +182,13 @@ function isMacrosValid(macros: MacroTotals): boolean {
 
 /** Clamp saved step indices from older onboarding flows. */
 function migrateOnboardingStepIndex(stepIndex: number): number {
-  return Math.min(Math.max(0, Math.round(stepIndex)), TOTAL_STEPS - 1);
+  return clampOnboardingStepIndex(stepIndex);
 }
 
 function onboardingScreenKey(step: number, goalWeightReinforcement: boolean): string {
   if (step === 9 && goalWeightReinforcement) return "9-reinforcement";
+  if (step === ONBOARDING_STEP_FUTURE_YOU_PHOTO) return "10b-photo";
+  if (step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION) return "10c-motivation";
   return String(step);
 }
 
@@ -171,7 +222,7 @@ function onboardingStateFromDraft(draft: OnboardingDraft) {
       buildDraftTemplatesFromSelections(profile, draft.experienceLevel, draft.equipmentSetup, sessionLength)
     : [];
   return {
-    step: Math.min(migrateOnboardingStepIndex(draft.stepIndex), TOTAL_STEPS - 1),
+    step: resolveOnboardingStepOnRestore(migrateOnboardingStepIndex(draft.stepIndex), profile.goal, draft.futureYou),
     displayName: draft.displayName,
     unitPreferences: { ...draft.unitPreferences },
     experienceLevel: draft.experienceLevel,
@@ -186,7 +237,8 @@ function onboardingStateFromDraft(draft: OnboardingDraft) {
         calculateNutritionTargets(nutritionCalcInputFromOnboardingProfile(profile))
       : { cal: 0, p: 0, c: 0, f: 0 },
     notificationPrefs: { ...(draft.notificationPrefs ?? ONBOARDING_NOTIFICATION_DEFAULTS) },
-    theme: draft.theme ?? "light",
+    theme: draft.theme ?? readStoredTheme(),
+    futureYou: draft.futureYou ? { ...draft.futureYou } : undefined,
   };
 }
 
@@ -194,25 +246,26 @@ export function OnboardingFlow({
   setState,
   onComplete,
   onSignIn,
-  introWelcomeDone = false,
   accountDisplayName = "",
   initialDraft,
   previewMode = false,
+  skipWelcomeStep = false,
 }: {
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   onComplete?: () => void;
   onSignIn?: () => void;
-  introWelcomeDone?: boolean;
   accountDisplayName?: string;
   initialDraft?: OnboardingDraft | null;
   previewMode?: boolean;
+  /** Supabase auth entry already showed marketing welcome — start at theme picker. */
+  skipWelcomeStep?: boolean;
 }) {
-  const { setTheme } = useTheme();
+  const { theme: activeTheme, setTheme } = useTheme();
   const restored = initialOnboardingWizardDraft(initialDraft);
   const initial = restored ? onboardingStateFromDraft(restored) : null;
   const [step, setStep] = useState(() => {
     const restoredStep = initial?.step ?? 0;
-    if (introWelcomeDone && restoredStep === 0) return 1;
+    if (skipWelcomeStep && restoredStep === 0) return 1;
     return restoredStep;
   });
   const displayName = accountDisplayName.trim() || (initial?.displayName ?? "").trim();
@@ -239,9 +292,21 @@ export function OnboardingFlow({
   );
   const [goalWeightReinforcement, setGoalWeightReinforcement] = useState(false);
   const [navDirection, setNavDirection] = useState<NavDirection>("forward");
-  const [heightFieldsComplete, setHeightFieldsComplete] = useState(false);
-  const [weightFieldComplete, setWeightFieldComplete] = useState(false);
-  const [draftTheme, setDraftTheme] = useState<AppTheme>(() => initial?.theme ?? restored?.theme ?? "light");
+  const [draftTheme, setDraftTheme] = useState<AppTheme>(
+    () => initial?.theme ?? restored?.theme ?? readStoredTheme(),
+  );
+  const [futureYou, setFutureYou] = useState<FutureYouDraft>(() =>
+    initial?.futureYou ? { ...initial.futureYou } : {},
+  );
+  const [pendingSubscriptionTier, setPendingSubscriptionTier] = useState<SubscriptionTier | null>(() =>
+    restored?.subscriptionTier === "pro" ? "pro" : null,
+  );
+  const [futureYouPhotoPreview, setFutureYouPhotoPreview] = useState<string | null>(null);
+  const [futureYouUploading, setFutureYouUploading] = useState(false);
+  const [futureYouUploadError, setFutureYouUploadError] = useState<string | null>(null);
+  const [futureYouGenerating, setFutureYouGenerating] = useState(false);
+  const [futureYouGenerateError, setFutureYouGenerateError] = useState<string | null>(null);
+  const [macroContinueConfirmOpen, setMacroContinueConfirmOpen] = useState(false);
 
   const dobAge = useMemo(
     () => (profile.dateOfBirth ? ageFromDateOfBirth(profile.dateOfBirth) : null),
@@ -261,12 +326,24 @@ export function OnboardingFlow({
     [profileForCalc, dobAge],
   );
 
+  const planSnapshot = useMemo(
+    () =>
+      buildOnboardingPlanSnapshot({
+        displayName: displayName.trim() || "Friend",
+        macros,
+        profile: profileForCalc,
+        templates: draftTemplates,
+        volumeUnit: unitPreferences.volumeUnit,
+      }),
+    [displayName, macros, profileForCalc, draftTemplates, unitPreferences.volumeUnit],
+  );
+
   const heightValid = profile.heightIn >= 48 && profile.heightIn <= 96;
-  const heightStepValid = heightValid && heightFieldsComplete;
-  const weightValid = profile.weightLbs >= 70 && profile.weightLbs <= 450;
-  const weightStepValid = weightValid && weightFieldComplete;
+  const heightStepValid = heightValid;
+  const weightStepValid = isValidWeighInLbs(profile.weightLbs);
   const dobValid = dobAge != null && dobAge >= 13 && dobAge <= 100;
   const paceValid = profile.goal === "maintain" || profile.pace != null;
+  const futureYouBlocked = isFutureYouPhotoBlocked(dobAge);
 
   const formRef = useRef({
     step,
@@ -280,6 +357,7 @@ export function OnboardingFlow({
     macros,
     notificationPrefs,
     draftTheme,
+    futureYou,
   });
   formRef.current = {
     step,
@@ -293,7 +371,15 @@ export function OnboardingFlow({
     macros,
     notificationPrefs,
     draftTheme,
+    futureYou,
   };
+
+  useEffect(() => {
+    const fromDraft = initial?.theme ?? restored?.theme;
+    if (fromDraft === "dark" || fromDraft === "light") {
+      setTheme(fromDraft);
+    }
+  }, [initial?.theme, restored?.theme, setTheme]);
 
   useEffect(() => {
     const onLeave = () => {
@@ -311,6 +397,7 @@ export function OnboardingFlow({
           macros: f.macros,
           notificationPrefs: f.notificationPrefs,
           theme: f.draftTheme,
+          futureYou: f.futureYou,
         }),
       );
     };
@@ -319,18 +406,15 @@ export function OnboardingFlow({
   }, []);
 
   useEffect(() => {
-    if (step === 0 && introWelcomeDone) {
-      goToStep(1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, introWelcomeDone]);
+    if (step !== 21) setMacroContinueConfirmOpen(false);
+  }, [step]);
 
   useEffect(() => {
     if (step !== 9) {
       setGoalWeightReinforcement(false);
       return;
     }
-    if (profile.goal === "maintain") return;
+    if (isMaintainGoal(profile.goal)) return;
     if (profile.goalWeightLbs != null) return;
     setProfile((p) => ({
       ...p,
@@ -338,7 +422,55 @@ export function OnboardingFlow({
     }));
   }, [step, profile.goal, profile.goalWeightLbs, profile.weightLbs]);
 
+  const pollFutureYouEnabled =
+    step >= ONBOARDING_STEP_ACTIVITY &&
+    step <= ONBOARDING_STEP_FUTURE_YOU_SUCCESS &&
+    isFutureYouGenerationPillVisible(futureYou);
+
+  const generationPollStatus = useFutureYouGenerationPoll({
+    futureYou,
+    pollEnabled: pollFutureYouEnabled,
+    previewMode,
+    onFutureYouPatch: (patch) => {
+      setFutureYou((current) => {
+        const next = mergeFutureYouDraft(current, patch);
+        const f = formRef.current;
+        saveOnboardingDraftToLocalStorage(
+          buildOnboardingDraft({
+            stepIndex: f.step,
+            displayName: f.displayName,
+            unitPreferences: f.unitPreferences,
+            experienceLevel: f.experienceLevel,
+            equipmentSetup: f.equipmentSetup,
+            sessionLength: f.sessionLength,
+            profile: f.profile,
+            draftTemplates: f.draftTemplates,
+            macros: f.macros,
+            notificationPrefs: f.notificationPrefs,
+            theme: f.draftTheme,
+            futureYou: next,
+          }),
+        );
+        return next;
+      });
+    },
+  });
+
+  const generationPill =
+    pollFutureYouEnabled ?
+      <FutureYouGenerationPill
+        status={generationPollStatus}
+        motivationId={futureYou.motivationId}
+        goal={profile.goal ?? "cut"}
+        gender={profile.gender ?? "other"}
+      />
+    : null;
+
   function persistDraftSync(nextStepIndex: number, overrides?: Partial<OnboardingDraftInput>) {
+    const subscriptionTierForDraft =
+      overrides && Object.prototype.hasOwnProperty.call(overrides, "subscriptionTier") ?
+        (overrides.subscriptionTier ?? undefined)
+      : (pendingSubscriptionTier ?? undefined);
     const draft = buildOnboardingDraft({
       stepIndex: nextStepIndex,
       displayName,
@@ -351,31 +483,189 @@ export function OnboardingFlow({
       macros,
       notificationPrefs,
       theme: draftTheme,
+      futureYou,
+      subscriptionTier: subscriptionTierForDraft,
       ...overrides,
     });
     saveOnboardingDraftToLocalStorage(draft);
     setState((s) => ({ ...s, onboardingComplete: false, onboardingDraft: draft }));
   }
 
+  function patchFutureYou(patch: Partial<FutureYouDraft>) {
+    setFutureYou((current) => mergeFutureYouDraft(current, patch));
+  }
+
+  function futureYouSkippedDraft() {
+    return mergeFutureYouDraft(futureYou, {
+      photoSkipped: true,
+      photoUploaded: false,
+      photoStoragePath: undefined,
+      motivationId: undefined,
+      motivationIsGeneric: undefined,
+      generationStatus: "idle",
+      generationJobId: undefined,
+      onboardingGoalLocked: true,
+    });
+  }
+
+  async function onPickFutureYouPhoto(file: File) {
+    setFutureYouUploadError(null);
+    try {
+      const preview = await compressImageToJpegDataUrl(file);
+      setFutureYouPhotoPreview(preview);
+      const consentAt = futureYou.photoAiConsentAt ?? new Date().toISOString();
+      patchFutureYou({
+        photoSkipped: false,
+        photoUploaded: false,
+        photoStoragePath: undefined,
+        photoAiConsentAt: consentAt,
+      });
+    } catch (error) {
+      if (error instanceof FutureYouUploadError) {
+        setFutureYouUploadError(error.message);
+        return;
+      }
+      setFutureYouUploadError("Could not read that photo. Try another image.");
+    }
+  }
+
+  function skipFutureYouPhoto() {
+    setFutureYouPhotoPreview(null);
+    setFutureYouUploadError(null);
+    const nextFutureYou = futureYouSkippedDraft();
+    setFutureYou(nextFutureYou);
+    goToStep(ONBOARDING_STEP_ACTIVITY, { futureYou: nextFutureYou });
+  }
+
+  async function continueFutureYouMotivation() {
+    const motivationId = futureYou.motivationId?.trim();
+    if (!motivationId || !futureYou.photoStoragePath || futureYouGenerating) return;
+
+    if (
+      futureYou.generationJobId &&
+      futureYou.generationStatus &&
+      futureYou.generationStatus !== "idle" &&
+      futureYou.generationStatus !== "failed"
+    ) {
+      goToStep(ONBOARDING_STEP_ACTIVITY);
+      return;
+    }
+
+    setFutureYouGenerateError(null);
+    setFutureYouGenerating(true);
+    try {
+      const gender = profile.gender ?? "other";
+      const generateProfile = buildFutureYouGenerateProfile({
+        goal: profile.goal ?? "maintain",
+        gender,
+        weightLbs: profile.weightLbs,
+        goalWeightLbs: profile.goalWeightLbs,
+      });
+      const timeline = futureYouTimelineFromProfile(profileForCalc);
+      const result =
+        previewMode ?
+          { jobId: crypto.randomUUID(), status: "generating" as const }
+        : await startFutureYouGeneration({
+            sourcePath: futureYou.photoStoragePath,
+            motivationId,
+            profile: generateProfile,
+            timeline,
+          });
+      const nextFutureYou = mergeFutureYouDraft(futureYou, {
+        motivationId,
+        motivationIsGeneric: futureYou.motivationIsGeneric,
+        generationJobId: result.jobId,
+        generationStatus: result.status,
+      });
+      setFutureYou(nextFutureYou);
+      goToStep(ONBOARDING_STEP_ACTIVITY, { futureYou: nextFutureYou });
+    } catch (error) {
+      const message =
+        error instanceof FutureYouGenerateError ?
+          error.message
+        : "Could not start generation. Try again.";
+      setFutureYouGenerateError(message);
+    } finally {
+      setFutureYouGenerating(false);
+    }
+  }
+
+  async function continueFutureYouPhoto(previewOverride?: string, consentAtOverride?: string) {
+    const preview = previewOverride ?? futureYouPhotoPreview;
+    const consentAt = consentAtOverride ?? futureYou.photoAiConsentAt;
+    if (futureYouBlocked || !preview || !consentAt) return;
+    setFutureYouUploadError(null);
+    setFutureYouUploading(true);
+    try {
+      const uploaded =
+        previewMode ?
+          { path: `users/preview/source/${crypto.randomUUID()}.jpg`, uploadId: "preview", bucket: "future-you" }
+        : await uploadFutureYouPhoto(preview);
+      const nextFutureYou = mergeFutureYouDraft(futureYou, {
+        photoSkipped: false,
+        photoUploaded: true,
+        photoAiConsentAt: consentAt,
+        photoStoragePath: uploaded.path,
+        onboardingGoalLocked: true,
+      });
+      setFutureYou(nextFutureYou);
+      goToStep(ONBOARDING_STEP_FUTURE_YOU_MOTIVATION, { futureYou: nextFutureYou });
+    } catch (error) {
+      const message =
+        error instanceof FutureYouUploadError ?
+          error.message
+        : "Photo upload failed. Try again.";
+      setFutureYouUploadError(message);
+    } finally {
+      setFutureYouUploading(false);
+    }
+  }
+
   function goToStep(next: number, overrides?: Partial<OnboardingDraftInput>, direction?: NavDirection) {
+    const mergedFutureYou = { ...futureYou, ...overrides?.futureYou };
+    if (isOnboardingGoalEditNavigationBlocked(step, next)) return;
+    if (isOnboardingIntoGoalLockNavigationBlocked(step, next, mergedFutureYou)) return;
     setNavDirection(direction ?? (next >= step ? "forward" : "back"));
     persistDraftSync(next, overrides);
     setStep(next);
   }
 
-  function nextAfterGoal(): number {
-    return profile.goal === "maintain" ? 11 : 9;
-  }
-
-  function prevBeforeActivity(): number {
-    return profile.goal === "maintain" ? 8 : 10;
-  }
-
   function goNext() {
     const overrides: Partial<OnboardingDraftInput> = {};
 
+    if (isGoalWeightOrPaceStep(step) && isMaintainGoal(profile.goal)) {
+      const goalLocked = mergeFutureYouDraft(futureYou, { onboardingGoalLocked: true });
+      patchFutureYou({ onboardingGoalLocked: true });
+      overrides.futureYou = goalLocked;
+      goToStep(ONBOARDING_STEP_FUTURE_YOU_PHOTO, overrides);
+      return;
+    }
+
     if (step === 8) {
-      goToStep(nextAfterGoal(), overrides);
+      if (isMaintainGoal(profile.goal)) {
+        const goalLocked = mergeFutureYouDraft(futureYou, { onboardingGoalLocked: true });
+        patchFutureYou({ onboardingGoalLocked: true });
+        overrides.futureYou = goalLocked;
+      }
+      goToStep(nextStepAfterGoal(profile.goal), overrides);
+      return;
+    }
+
+    if (step === ONBOARDING_STEP_PACE) {
+      if (!paceValid) return;
+      const goalLocked = mergeFutureYouDraft(futureYou, { onboardingGoalLocked: true });
+      patchFutureYou({ onboardingGoalLocked: true });
+      overrides.futureYou = goalLocked;
+      goToStep(ONBOARDING_STEP_FUTURE_YOU_PHOTO, overrides);
+      return;
+    }
+
+    if (step === ONBOARDING_STEP_FUTURE_YOU_PHOTO) {
+      return;
+    }
+
+    if (step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION) {
+      void continueFutureYouMotivation();
       return;
     }
 
@@ -394,8 +684,18 @@ export function OnboardingFlow({
     }
 
     if (step === 21) {
-      overrides.macros = computedMacros;
-      setMacros(computedMacros);
+      if (
+        shouldConfirmMacroEditOnContinue(
+          macros,
+          computedMacros,
+          futureYou,
+          generationPollStatus,
+        )
+      ) {
+        setMacroContinueConfirmOpen(true);
+        return;
+      }
+      overrides.macros = macros;
       goToStep(22, overrides);
       return;
     }
@@ -426,26 +726,36 @@ export function OnboardingFlow({
       return;
     }
 
-    if (step === 27) {
-      goToStep(28, overrides);
-      return;
-    }
-
     const next = Math.min(step + 1, TOTAL_STEPS - 1);
-    if (step === 10 && profile.goal !== "maintain" && !profile.pace) {
+    if (step === ONBOARDING_STEP_PACE && profile.goal !== "maintain" && !profile.pace) {
       return;
     }
     goToStep(next, overrides);
   }
 
   function goBack() {
+    if (isOnboardingBackLocked(step, futureYou)) return;
+
+    if (step === ONBOARDING_STEP_ACTIVITY && canRevisitFutureYouPhoto(futureYou)) {
+      goToStep(ONBOARDING_STEP_FUTURE_YOU_PHOTO);
+      return;
+    }
+
     if (step === 9 && goalWeightReinforcement) {
       setNavDirection("back");
       setGoalWeightReinforcement(false);
       return;
     }
-    if (step === 11) {
-      goToStep(prevBeforeActivity());
+    if (step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION) {
+      goToStep(ONBOARDING_STEP_FUTURE_YOU_PHOTO);
+      return;
+    }
+    if (step === ONBOARDING_STEP_FUTURE_YOU_PHOTO) {
+      if (canRevisitFutureYouPhoto(futureYou)) {
+        goToStep(ONBOARDING_STEP_ACTIVITY);
+        return;
+      }
+      goToStep(backStepFromFutureYouPhoto(profile.goal));
       return;
     }
     if (step === 21) {
@@ -460,11 +770,18 @@ export function OnboardingFlow({
       goToStep(21);
       return;
     }
-    if (step === 28) {
-      goToStep(27);
+    if (step === ONBOARDING_STEP_FUTURE_YOU_SUCCESS) {
+      setPendingSubscriptionTier(null);
+      goToStep(ONBOARDING_STEP_PAYWALL, { subscriptionTier: null });
       return;
     }
-    goToStep(Math.max(step - 1, 0));
+    if (step === ONBOARDING_STEP_PAYWALL) {
+      goToStep(26);
+      return;
+    }
+    const prev = step - 1;
+    if (isOnboardingBackIntoGoalLockBlocked(step, prev, futureYou)) return;
+    goToStep(Math.max(prev, 0));
   }
 
   function handlePlanBuildingComplete() {
@@ -487,12 +804,9 @@ export function OnboardingFlow({
   }
 
   function finish(subscriptionTier: SubscriptionTier, notificationPreferences: NotificationPreferences) {
-    if (previewMode) {
-      onComplete?.();
-      return;
+    if (!previewMode) {
+      clearOnboardingDraftStorage();
     }
-
-    clearOnboardingDraftStorage();
     const planStartIso = localDateKey(new Date());
     const age = profile.dateOfBirth ? (ageFromDateOfBirth(profile.dateOfBirth) ?? profile.age) : profile.age;
     const finalProfile = completeOnboardingProfile(
@@ -528,7 +842,8 @@ export function OnboardingFlow({
         progressGoal,
         planStartIso,
         subscriptionTier,
-        theme: draftTheme,
+        theme: activeTheme,
+        futureYou: Object.keys(futureYou).length > 0 ? { ...futureYou } : undefined,
         habitTemplates,
         habitsDoneByDay,
         habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey, {
@@ -548,10 +863,56 @@ export function OnboardingFlow({
     finish(tier, prefs);
   }
 
+  function handlePaywallSubscribe(tier: SubscriptionTier) {
+    setPendingSubscriptionTier(tier);
+    goToStep(ONBOARDING_STEP_FUTURE_YOU_SUCCESS, { subscriptionTier: tier });
+  }
+
+  useEffect(() => {
+    if (step !== ONBOARDING_STEP_FUTURE_YOU_SUCCESS || pendingSubscriptionTier !== "pro") return;
+    if (!isFutureYouSuccessHeroVisible(futureYou, futureYouBlocked)) return;
+    let stop: (() => void) | undefined;
+    const id = window.setTimeout(() => {
+      stop = fireFutureYouSuccessConfetti(4000);
+    }, 280);
+    return () => {
+      window.clearTimeout(id);
+      stop?.();
+    };
+  }, [step, pendingSubscriptionTier, futureYou, futureYouBlocked]);
+
+  useEffect(() => {
+    if (step !== ONBOARDING_STEP_FUTURE_YOU_SUCCESS || previewMode) return;
+    if (
+      canAccessFutureYouSuccessScreen(
+        futureYou,
+        futureYouBlocked,
+        generationPollStatus,
+        pendingSubscriptionTier,
+      )
+    ) {
+      return;
+    }
+    setPendingSubscriptionTier(null);
+    goToStep(ONBOARDING_STEP_PAYWALL, { subscriptionTier: null });
+  }, [
+    step,
+    previewMode,
+    futureYou,
+    futureYouBlocked,
+    generationPollStatus,
+    pendingSubscriptionTier,
+  ]);
+
   function renderCurrentStep(): ReactNode {
   if (step === 0) {
-    if (introWelcomeDone) return null;
-    return <OnboardingWelcomeScreen onGetStarted={goNext} onSignIn={onSignIn} />;
+    return (
+      <OnboardingWelcomeScreen
+        signInPrompt="switch-account"
+        onGetStarted={goNext}
+        onSignIn={onSignIn}
+      />
+    );
   }
 
   if (step === 1) {
@@ -655,7 +1016,6 @@ export function OnboardingFlow({
             heightIn={profile.heightIn}
             resetKey={hUnit}
             onHeightChange={(heightIn) => setProfile((p) => ({ ...p, heightIn }))}
-            onFieldsCompleteChange={setHeightFieldsComplete}
           />
           {!heightStepValid ? (
             <p style={{ margin: "10px 0 0", fontSize: 13, color: "rgba(248,113,113,0.9)" }}>Enter a height between 4&apos;0&quot; and 8&apos;0&quot;</p>
@@ -682,10 +1042,9 @@ export function OnboardingFlow({
             weightLbs={profile.weightLbs}
             resetKey={wUnit}
             onWeightChange={(weightLbs) => setProfile((p) => ({ ...p, weightLbs }))}
-            onFieldCompleteChange={setWeightFieldComplete}
           />
           {!weightStepValid ? (
-            <p style={{ margin: "10px 0 0", fontSize: 13, color: "rgba(248,113,113,0.9)" }}>Enter a weight between 70 and 450 lbs</p>
+            <p style={{ margin: "10px 0 0", fontSize: 13, color: "rgba(248,113,113,0.9)" }}>{weighInRangeHint(wUnit)}</p>
           ) : null}
         </div>
       </OnboardingShell>
@@ -748,9 +1107,16 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 10) {
+  if (step === ONBOARDING_STEP_PACE) {
     return (
-      <OnboardingShell step={step} title="How fast do you want to get there?" subtitle="Honest answer. We'll set the plan in the real world." onBack={goBack} onContinue={goNext} continueDisabled={!paceValid}>
+      <OnboardingShell
+        step={step}
+        title="How fast do you want to get there?"
+        subtitle="Honest answer. We'll set the plan in the real world."
+        onBack={goBack}
+        onContinue={goNext}
+        continueDisabled={!paceValid}
+      >
         <OnboardingPillStack>
           {PACES.map(({ value, label, hint }) => (
             <div key={value}>
@@ -767,9 +1133,94 @@ export function OnboardingFlow({
     );
   }
 
-  if (step === 11) {
+  if (step === ONBOARDING_STEP_FUTURE_YOU_PHOTO) {
     return (
-      <OnboardingShell step={step} title="How active are you outside the gym?" subtitle="Helps us size your daily fuel targets." onBack={goBack} onContinue={goNext} continueDisabled={!profile.activityLevel}>
+      <OnboardingShell
+        step={step}
+        title={
+          <>
+            See your <span className="onboarding-goal-weight-accent">Future You</span>
+          </>
+        }
+        subtitle="Upload a photo to see what you could look like and get a personalized plan to help you get there."
+        helperClassName="onboarding-helper--future-you"
+        contentClassName="onboarding-shell__content--compact onboarding-shell__content--future-you"
+        shellClassName="onboarding-shell--future-you"
+        compactFooter
+        hideContinue
+        footerGhostAction={{ label: "Skip", onClick: skipFutureYouPhoto }}
+        onBack={goBack}
+        onContinue={goNext}
+      >
+        <OnboardingFutureYouPhoto
+          gender={profile.gender}
+          age={dobAge}
+          photoPreview={futureYouPhotoPreview}
+          photoSaved={Boolean(futureYou.photoStoragePath && !futureYouPhotoPreview)}
+          photoAiConsentAt={futureYou.photoAiConsentAt}
+          uploading={futureYouUploading}
+          uploadError={futureYouUploadError}
+          onPickPhoto={onPickFutureYouPhoto}
+          onConfirmPhoto={() => void continueFutureYouPhoto()}
+          onRetryUpload={() => void continueFutureYouPhoto()}
+          onGrantAiConsent={() => {
+            if (!futureYou.photoAiConsentAt) {
+              patchFutureYou({ photoAiConsentAt: new Date().toISOString() });
+            }
+          }}
+          onClearPhoto={() => {
+            setFutureYouPhotoPreview(null);
+            setFutureYouUploadError(null);
+            patchFutureYou({ photoUploaded: false, photoStoragePath: undefined });
+          }}
+        />
+      </OnboardingShell>
+    );
+  }
+
+  if (step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION) {
+    const gender = profile.gender ?? "other";
+
+    return (
+      <OnboardingShell
+        step={step}
+        title="What's your why?"
+        subtitle="Pick one focus — we'll personalize your Future You while you finish onboarding."
+        contentClassName="onboarding-shell__content--compact"
+        onBack={goBack}
+        onContinue={goNext}
+        continueDisabled={!futureYou.motivationId || futureYouGenerating}
+        continueLabel={futureYouGenerating ? "Starting…" : "Continue"}
+      >
+        <OnboardingFutureYouMotivation
+          goal={profile.goal ?? "maintain"}
+          gender={gender}
+          selectedId={futureYou.motivationId}
+          onSelect={(motivationId, isGeneric) => {
+            setFutureYouGenerateError(null);
+            patchFutureYou({ motivationId, motivationIsGeneric: isGeneric });
+          }}
+        />
+        {futureYouGenerateError ? (
+          <p role="alert" className="future-you-motivation-step__error">
+            {futureYouGenerateError}
+          </p>
+        ) : null}
+      </OnboardingShell>
+    );
+  }
+
+  if (step === ONBOARDING_STEP_ACTIVITY) {
+    const showBackToPhoto = canRevisitFutureYouPhoto(futureYou);
+    return (
+      <OnboardingShell
+        step={step}
+        title="How active are you outside the gym?"
+        subtitle="Helps us size your daily fuel targets."
+        onBack={showBackToPhoto ? goBack : undefined}
+        onContinue={goNext}
+        continueDisabled={!profile.activityLevel}
+      >
         <OnboardingPillStack>
           {ACTIVITY_LEVELS.map((level) => (
             <OnboardingSegment key={level} selected={profile.activityLevel === level} onClick={() => setProfile((p) => ({ ...p, activityLevel: level }))}>
@@ -961,21 +1412,32 @@ export function OnboardingFlow({
 
   if (step === 21) {
     return (
-      <OnboardingShell
-        step={step}
-        title="Your fuel targets"
-        subtitle="Gymmy calculated these from your stats and goal. Tap any number to adjust."
-        onBack={goBack}
-        onContinue={goNext}
-        continueDisabled={!isMacrosValid(macros)}
-      >
-        <OnboardingDailyFuelPlan
-          macros={macros}
-          computedMacros={computedMacros}
-          onChangeMacros={setMacros}
-          onReset={() => setMacros(computedMacros)}
-        />
-      </OnboardingShell>
+      <>
+        <OnboardingShell
+          step={step}
+          title="Your fuel targets"
+          subtitle="Gymmy calculated these from your stats and goal. Tap any number to adjust."
+          onBack={goBack}
+          onContinue={goNext}
+          continueDisabled={!isMacrosValid(macros)}
+        >
+          <OnboardingDailyFuelPlan
+            macros={macros}
+            computedMacros={computedMacros}
+            onChangeMacros={setMacros}
+            onReset={() => setMacros(computedMacros)}
+          />
+        </OnboardingShell>
+        {macroContinueConfirmOpen ?
+          <OnboardingMacroEditConfirmSheet
+            onCancel={() => setMacroContinueConfirmOpen(false)}
+            onConfirm={() => {
+              setMacroContinueConfirmOpen(false);
+              goToStep(22, { macros });
+            }}
+          />
+        : null}
+      </>
     );
   }
 
@@ -1056,6 +1518,7 @@ export function OnboardingFlow({
 
   if (step === 26) {
     const name = displayName.trim() || "Friend";
+    const showFutureYouReadyBanner = isFutureYouReadyBannerVisible(futureYou, generationPollStatus);
     return (
       <OnboardingShell
         step={step}
@@ -1063,42 +1526,50 @@ export function OnboardingFlow({
         subtitle="Everything is set. Your coach is ready when you are."
         headlineClassName="onboarding-headline--plan-ready"
         helperClassName="onboarding-helper--plan-ready"
+        afterHeadline={showFutureYouReadyBanner ? <FutureYouReadyBanner /> : undefined}
+        hideGenerationPill
         onBack={goBack}
         onContinue={goNext}
-        continueLabel="Start my plan"
+        continueLabel={onboardingPlanReadyContinueLabel(futureYou, futureYouBlocked)}
         continueTone="gold"
         compactFooter
         contentClassName="onboarding-shell__content--plan-ready"
       >
-        <OnboardingPlanReady
-          displayName={displayName}
-          macros={macros}
-          profile={profile}
-          templates={draftTemplates}
-          volumeUnit={unitPreferences.volumeUnit}
-        />
+        <OnboardingPlanReady planSnapshot={planSnapshot} />
       </OnboardingShell>
     );
   }
 
-  if (step === 27) {
+  if (step === ONBOARDING_STEP_PAYWALL) {
     return (
-      <OnboardingShell
-        step={step}
-        title="Save your progress"
-        subtitle="Your plan stays synced to your account across devices."
+      <OnboardingPaywall
+        planSnapshot={planSnapshot}
+        futureYou={futureYou}
+        generationStatus={generationPollStatus}
+        gender={profile.gender}
+        photoBlocked={futureYouBlocked}
+        previewMode={previewMode}
+        onSelectTier={handlePaywallSubscribe}
         onBack={goBack}
-        onContinue={goNext}
-        hideFooter
-        contentClassName="onboarding-shell__content--save-progress"
-      >
-        <OnboardingSaveProgress onContinue={goNext} />
-      </OnboardingShell>
+      />
     );
   }
 
-  if (step === 28) {
-    return <OnboardingPaywall onSelectTier={(tier) => void finishWithTier(tier)} onBack={goBack} />;
+  if (step === ONBOARDING_STEP_FUTURE_YOU_SUCCESS && pendingSubscriptionTier === "pro") {
+    return (
+      <OnboardingFutureYouSuccess
+        timeline={planSnapshot.timeline}
+        planSnapshot={planSnapshot}
+        futureYou={futureYou}
+        generationStatus={generationPollStatus}
+        gender={profile.gender}
+        photoBlocked={futureYouBlocked}
+        subscriptionTier={pendingSubscriptionTier}
+        displayName={displayName}
+        previewMode={previewMode}
+        onContinue={() => void finishWithTier(pendingSubscriptionTier)}
+      />
+    );
   }
 
   return null;
@@ -1108,13 +1579,15 @@ export function OnboardingFlow({
   if (!screen) return null;
 
   return (
-    <ScreenTransition
-      activeKey={onboardingScreenKey(step, goalWeightReinforcement)}
-      variant="stack"
-      direction={navDirection}
-      style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}
-    >
-      {screen}
-    </ScreenTransition>
+    <FutureYouGenerationPillProvider pill={generationPill}>
+      <ScreenTransition
+        activeKey={onboardingScreenKey(step, goalWeightReinforcement)}
+        variant="stack"
+        direction={navDirection}
+        style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}
+      >
+        {screen}
+      </ScreenTransition>
+    </FutureYouGenerationPillProvider>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { buildCoachContext, getHomeCoachPlan, getWeighInReactionForDisplay } from "../coachEngine";
 import { buildHabitsForDateKey, planWeekIndex, pruneHabitsDoneByDay } from "../data";
@@ -6,12 +6,21 @@ import { dailyHabitTemplatesFromState, habitsForDateKey, HomeDailyHabitsCard } f
 import { activeWeekFocusCommitments, HomeWeekFocusCard } from "../HomeWeekFocusCard";
 import { HomeSundayCheckInCard } from "../HomeSundayCheckInCard";
 import { formatDateKeyEyebrow, localDateKey } from "../dailyPlan";
+import { mergeFutureYouDraft } from "../futureYouDraft";
+import {
+  shouldShowFutureYouSkipperReminderPill,
+  shouldShowHomeNewYouHeaderButton,
+} from "../futureYouHomeEntryModel";
+import { FutureYouSkipperReminderPill } from "../FutureYouSkipperReminderPill";
+import { HomeNewYouHeaderButton } from "../HomeNewYouHeaderButton";
 import { MobilityRoutineFlow } from "../stretch/MobilityRoutineFlow";
 import { isMobilityHabit } from "../mobilityHabit";
 import { HomeDashboardCarousel } from "../HomeDashboardCarousel";
 import { homeGreetingTitle } from "../homeGreeting";
 import { IconChevR, IconPlus, IconSettings } from "../icons";
 import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
+import { savePersistedSlice, sliceFromAppState } from "../persistFitnessSlice";
+import { useFutureYouEntry } from "../useFutureYouEntry";
 import { WeighInCoachReaction } from "../WeighInCoachReaction";
 import { WeighInSheet } from "../WeighInSheet";
 import { ScreenHeader } from "../shared";
@@ -154,6 +163,49 @@ export function ScreenHome({
     return getWeighInReactionForDisplay(coachCtx, dayEntry);
   }, [isViewingToday, dayEntry, coachCtx]);
 
+  const futureYouEntry = useFutureYouEntry(state);
+  const futureYouHomeInput = useMemo(
+    () => ({
+      mode: futureYouEntry.mode,
+      photoBlocked: futureYouEntry.photoBlocked,
+      onboardingComplete: state.onboardingComplete,
+      futureYou: state.futureYou,
+      todayDateKey: dateKeyToday,
+    }),
+    [
+      futureYouEntry.mode,
+      futureYouEntry.photoBlocked,
+      state.onboardingComplete,
+      state.futureYou,
+      dateKeyToday,
+    ],
+  );
+  const showNewYouHeaderButton = shouldShowHomeNewYouHeaderButton(futureYouHomeInput);
+  const showNewYouReminderPill =
+    isViewingToday &&
+    showWeighInFullCard &&
+    shouldShowFutureYouSkipperReminderPill(futureYouHomeInput);
+
+  const openNewYouUpload = useCallback(
+    () => navigate("future_you", { openFutureYouUpload: true }),
+    [navigate],
+  );
+
+  function patchFutureYou(patch: Parameters<typeof mergeFutureYouDraft>[1]) {
+    setState((s) => {
+      const nextState = {
+        ...s,
+        futureYou: mergeFutureYouDraft(s.futureYou, patch),
+      };
+      savePersistedSlice(sliceFromAppState(nextState));
+      return nextState;
+    });
+  }
+
+  function dismissNewYouReminderPill() {
+    patchFutureYou({ reminderDismissedDateKey: dateKeyToday });
+  }
+
   return (
     <MobilityRoutineFlow
       state={state}
@@ -168,23 +220,26 @@ export function ScreenHome({
         eyebrow={headerEyebrow}
         title={headerTitle}
         right={
-          <button
-            type="button"
-            className="tap"
-            onClick={() => navigate("settings")}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 999,
-              border: "0.5px solid var(--border)",
-              display: "grid",
-              placeItems: "center",
-              color: "var(--text-secondary)",
-            }}
-            aria-label="Settings"
-          >
-            <IconSettings size={16} />
-          </button>
+          <div className="home-header-actions">
+            {showNewYouHeaderButton ? <HomeNewYouHeaderButton onClick={openNewYouUpload} /> : null}
+            <button
+              type="button"
+              className="tap"
+              onClick={() => navigate("settings")}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 999,
+                border: "0.5px solid var(--border)",
+                display: "grid",
+                placeItems: "center",
+                color: "var(--text-secondary)",
+              }}
+              aria-label="Settings"
+            >
+              <IconSettings size={16} />
+            </button>
+          </div>
         }
       />
 
@@ -206,6 +261,10 @@ export function ScreenHome({
         >
           Back to today
         </button>
+      ) : null}
+
+      {showNewYouReminderPill ? (
+        <FutureYouSkipperReminderPill onOpen={openNewYouUpload} onDismiss={dismissNewYouReminderPill} />
       ) : null}
 
       {isViewingToday && sundayCheckIn?.available && sundayCheckIn.data ? (

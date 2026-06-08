@@ -31,25 +31,26 @@ import {
 import { submitCommunityFoodFromBarcodeScan } from "./communityFoods";
 import { FoodSearchError, lookupFoodByBarcode, searchFoods } from "./foodSearchService";
 import type { FoodMeasurement, FoodSearchResult } from "./foodSearchTypes";
+import { FoodAddedToast, useFoodAddedToast } from "./FoodAddedToast";
 import {
   appendNutritionLoggedItem,
-  appendNutritionPresetToDay,
   appendNutritionUserFoodToState,
   buildNutritionLoggedItem,
   canAppendNutritionItem,
   getRecentlyLoggedFoods,
   newNutritionItemId,
   nutritionUserFoodFromLoggedItem,
+  removeNutritionLoggedItem,
   removeNutritionUserFoodFromState,
   toggleNutritionFavoriteInState,
   updateNutritionLoggedItem,
   updateNutritionUserFoodInState,
 } from "./nutritionLog";
-import { isNutritionFavorite } from "./nutritionTotals";
+import { isNutritionFavorite, touchNutritionPresetById } from "./nutritionTotals";
 import {
   appendNutritionMeal,
+  buildLoggedItemFromMeal,
   formatMealServingLabel,
-  logNutritionMealToDay,
   mealItemFromPreset,
   mealItemFromUserFood,
   removeNutritionMeal,
@@ -63,7 +64,7 @@ import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { FoodSearchSkeletonList } from "./FoodSearchSkeletonList";
 import { IconScan } from "./icons";
 import { clampMacroInputString, parseBoundedMacro } from "./macroLimits";
-import { closeAfterMotion, FullScreenOverlay, MOTION_DURATIONS, ScreenTransition } from "./motion";
+import { closeAfterMotion, FullScreenOverlay, MOTION_DURATIONS, ScreenTransition, useKeyboardViewport } from "./motion";
 import type { AppState, MacroTotals, NutritionLoggedItem, NutritionMeal, NutritionMealItem, NutritionPreset, NutritionUserFood } from "./types";
 
 type PickerContext = "log" | "mealIngredient";
@@ -354,6 +355,7 @@ function logFoodSearchResultWithDefaultServing(
   dateKey: string,
   setState: Dispatch<SetStateAction<AppState>>,
   curated?: CuratedFood,
+  onLogged?: (itemId: string) => void,
 ): boolean {
   const { measurements, fixedLabels } = buildPickerMeasurements(food, curated);
   const measurement = measurements[0];
@@ -371,6 +373,7 @@ function logFoodSearchResultWithDefaultServing(
     externalId: food.externalId,
   });
   setState((s) => appendNutritionLoggedItem(s, dateKey, row));
+  onLogged?.(row.id);
   return true;
 }
 
@@ -402,10 +405,63 @@ function tabLabel(t: LogFoodTab): string {
 export function LogFoodScreen({ open, onClose, dateKey, state, setState, editItem }: Props) {
   const [closing, setClosing] = useState(false);
   const visible = open && !closing;
+  const foodAddedToast = useFoodAddedToast();
+  const hideFoodAddedToast = foodAddedToast.hide;
+  const { keyboardBottom } = useKeyboardViewport();
+  const [highlightItemId, setHighlightItemId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) setClosing(false);
   }, [open]);
+
+  useEffect(() => {
+    if (!open) hideFoodAddedToast();
+  }, [open, hideFoodAddedToast]);
+
+  useEffect(() => {
+    if (!highlightItemId) return;
+    const id = window.setTimeout(() => setHighlightItemId(null), 2400);
+    return () => window.clearTimeout(id);
+  }, [highlightItemId]);
+
+  function resetLogSubview() {
+    setManualOpen(false);
+    resetManualDraft();
+    setPickerFood(null);
+    setPickerCurated(null);
+    setPickerMeasurementId("g");
+    setPickerQuantity("");
+    setMealAddSearchOpen(false);
+    setMealAddMyFoodsOpen(false);
+    setMealAddFavoritesOpen(false);
+    setSearch("");
+    setApiResults([]);
+  }
+
+  function afterFoodLogged(itemId: string) {
+    resetLogSubview();
+    foodAddedToast.show(itemId);
+  }
+
+  function handleViewLoggedFood() {
+    const itemId = foodAddedToast.itemId;
+    if (!itemId) return;
+    setTab("all");
+    setHighlightItemId(itemId);
+    foodAddedToast.hide();
+    window.requestAnimationFrame(() => {
+      const row = scrollContainerRef.current?.querySelector(`[data-recent-item-id="${itemId}"]`);
+      row?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  }
+
+  function handleUndoLoggedFood() {
+    const itemId = foodAddedToast.itemId;
+    if (!itemId) return;
+    setState((s) => removeNutritionLoggedItem(s, dateKey, itemId));
+    if (highlightItemId === itemId) setHighlightItemId(null);
+    foodAddedToast.hide();
+  }
 
   function requestClose() {
     if (closing) return;
@@ -615,11 +671,12 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function openEditLoggedItem(item: NutritionLoggedItem) {
-    setEditingLoggedItemId(item.id);
+  function openLoggedItemEditor(item: NutritionLoggedItem, mode: "edit" | "relog") {
+    setEditingLoggedItemId(mode === "edit" ? item.id : null);
     setTab("all");
     setSearch("");
     setEditingUserFoodId(null);
+    setPickerContext("log");
 
     const pickerEdit = loggedItemToPickerEdit(item);
     if (pickerEdit) {
@@ -667,6 +724,14 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
     setDraftF(String(Number(item.f) || 0));
     setDraftServing(item.servingLabel?.trim() ?? "");
     setManualOpen(true);
+  }
+
+  function openEditLoggedItem(item: NutritionLoggedItem) {
+    openLoggedItemEditor(item, "edit");
+  }
+
+  function openRecentItemForLog(item: NutritionLoggedItem) {
+    openLoggedItemEditor(item, "relog");
   }
 
   function handleBack() {
@@ -763,9 +828,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       const withLog = appendNutritionLoggedItem(s, dateKey, row);
       return appendNutritionUserFoodToState(withLog, nutritionUserFoodFromLoggedItem(row));
     });
-    setManualOpen(false);
-    resetManualDraft();
-    requestClose();
+    afterFoodLogged(row.id);
   }
 
   function resetManualDraft() {
@@ -809,8 +872,9 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
   }
 
   function logSavedMeal(meal: NutritionMeal) {
-    setState((s) => logNutritionMealToDay(s, dateKey, meal));
-    requestClose();
+    const row = buildLoggedItemFromMeal(meal);
+    setState((s) => appendNutritionLoggedItem(s, dateKey, row));
+    afterFoodLogged(row.id);
   }
 
   function deleteSavedMeal(meal: NutritionMeal) {
@@ -874,12 +938,23 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       ...(food.externalId?.trim() ? { externalId: food.externalId.trim() } : {}),
     });
     setState((s) => appendNutritionLoggedItem(s, dateKey, row));
-    requestClose();
+    afterFoodLogged(row.id);
   }
 
   function logFavoritePreset(preset: NutritionPreset) {
-    setState((s) => appendNutritionPresetToDay(s, dateKey, preset));
-    requestClose();
+    const row = buildNutritionLoggedItem(preset, preset.name, {
+      loggedAtMs: Date.now(),
+      ...(preset.servingLabel?.trim() ? { servingLabel: preset.servingLabel.trim() } : {}),
+    });
+    setState((s) => {
+      const withRow = appendNutritionLoggedItem(s, dateKey, row);
+      if (withRow === s) return s;
+      return {
+        ...withRow,
+        nutritionPresets: touchNutritionPresetById(withRow.nutritionPresets, preset.id),
+      };
+    });
+    afterFoodLogged(row.id);
   }
 
   function relogItem(item: NutritionLoggedItem) {
@@ -894,7 +969,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       },
     );
     setState((s) => appendNutritionLoggedItem(s, dateKey, row));
-    requestClose();
+    afterFoodLogged(row.id);
   }
 
   function openPicker(food: FoodSearchResult, context: PickerContext = "log") {
@@ -977,11 +1052,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       externalId: pickerFood.externalId,
     });
     setState((s) => appendNutritionLoggedItem(s, dateKey, row));
-    setPickerFood(null);
-    setPickerCurated(null);
-    setPickerMeasurementId("g");
-    setPickerQuantity("");
-    requestClose();
+    afterFoodLogged(row.id);
   }
 
   function savePickerToMyFoods() {
@@ -1072,7 +1143,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         setBarcodeFeedback("Daily log limit reached. Remove an entry to add more.");
         return;
       }
-      logFoodSearchResultWithDefaultServing(food, dateKey, setState);
+      logFoodSearchResultWithDefaultServing(food, dateKey, setState, undefined, afterFoodLogged);
     } catch {
       setBarcodeFeedback("Product not found.");
     } finally {
@@ -1879,7 +1950,15 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
         </>
       ) : (
         <>
-          <div ref={scrollContainerRef} style={{ flex: 1, overflowY: "auto", padding: "12px 16px 108px", WebkitOverflowScrolling: "touch" }}>
+          <div
+            ref={scrollContainerRef}
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              padding: `12px 16px ${foodAddedToast.visible ? 24 : 108}px`,
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
             <div
               role="tablist"
               aria-label="Food sources"
@@ -2045,7 +2124,8 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                         {filteredRecent.map((it, idx) => (
                           <div
                             key={`${it.id}-${it.name}`}
-                            className="between"
+                            data-recent-item-id={it.id}
+                            className={`between${highlightItemId === it.id ? " food-log-recent-item--highlight" : ""}`}
                             style={{
                               alignItems: "center",
                               gap: 12,
@@ -2053,14 +2133,23 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                               borderBottom: idx === filteredRecent.length - 1 ? "none" : "1px solid var(--divider-subtle)",
                             }}
                           >
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
-                                {displayFoodName(it.name.trim() || "Food", it.source)}
+                            <button
+                              type="button"
+                              className="tap"
+                              style={{ ...foodRowStyle, flex: 1, padding: 0, borderBottom: "none" }}
+                              aria-label={`Edit and log ${it.name.trim() || "food"}`}
+                              onClick={() => openRecentItemForLog(it)}
+                            >
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
+                                  {displayFoodName(it.name.trim() || "Food", it.source)}
+                                </div>
+                                <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                                  {Math.round(Number(it.cal) || 0)} cal · {formatGramsInLabel(it.servingLabel?.trim() || DEFAULT_SERVING)}
+                                </div>
                               </div>
-                              <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                                {Math.round(Number(it.cal) || 0)} cal · {formatGramsInLabel(it.servingLabel?.trim() || DEFAULT_SERVING)}
-                              </div>
-                            </div>
+                              <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
+                            </button>
                             {renderFavoriteButton(
                               {
                                 name: it.name.trim() || "Food",
@@ -2288,21 +2377,25 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
           </div>
 
           <div
+            className="log-food-bottom-chrome"
             style={{
-              flexShrink: 0,
-              padding: "12px 18px calc(14px + env(safe-area-inset-bottom))",
-              borderTop: "0.5px solid var(--divider-subtle)",
-              background: "rgba(7,8,12,0.94)",
-              backdropFilter: "blur(8px)",
+              paddingBottom: `calc(14px + env(safe-area-inset-bottom, 0px) + ${keyboardBottom}px)`,
             }}
           >
-            <PrimaryButton
-              block
-              onClick={() => (tab === "myMeals" ? openCreateMeal() : setManualOpen(true))}
-              style={{ fontWeight: 700 }}
-            >
-              {tab === "myMeals" ? "Create meal" : "Manual Add"}
-            </PrimaryButton>
+            <FoodAddedToast
+              visible={foodAddedToast.visible}
+              onView={handleViewLoggedFood}
+              onUndo={handleUndoLoggedFood}
+            />
+            <div className="log-food-bottom-chrome__actions">
+              <PrimaryButton
+                block
+                onClick={() => (tab === "myMeals" ? openCreateMeal() : setManualOpen(true))}
+                style={{ fontWeight: 700 }}
+              >
+                {tab === "myMeals" ? "Create meal" : "Manual Add"}
+              </PrimaryButton>
+            </div>
           </div>
         </>
       )}
@@ -2357,6 +2450,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
           onConfirm={confirmPendingDelete}
         />
       ) : null}
+
     </FullScreenOverlay>
   );
 }

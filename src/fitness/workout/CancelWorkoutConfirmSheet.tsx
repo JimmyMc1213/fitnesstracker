@@ -1,7 +1,7 @@
 import {
-  BottomSheet,
+  CenterDialog,
   ConfirmSheetActions,
-  confirmBottomSheetPanelStyle,
+  confirmCenterDialogPanelStyle,
   confirmSheetMessageStyle,
   confirmSheetTitleStyle,
 } from "../motion";
@@ -16,12 +16,12 @@ export function CancelWorkoutConfirmSheet({
   onCancelWorkout: () => void;
 }) {
   return (
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onResume}
       zIndex={1300}
       ariaLabelledBy="cancel-workout-title"
-      panelStyle={confirmBottomSheetPanelStyle}
+      panelStyle={confirmCenterDialogPanelStyle}
     >
       <div id="cancel-workout-title" style={confirmSheetTitleStyle}>
         Cancel workout?
@@ -32,10 +32,10 @@ export function CancelWorkoutConfirmSheet({
       <ConfirmSheetActions
         cancelLabel="Resume"
         confirmLabel="Cancel workout"
-        contentPadding={24}
+        contentPadding={28}
         onCancel={onResume}
         onConfirm={onCancelWorkout}
       />
-    </BottomSheet>
+    </CenterDialog>
   );
 }

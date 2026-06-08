@@ -326,6 +326,8 @@ function HabitRowContent({
     gap: 12,
     borderColor: "var(--border)",
     overflow: "hidden",
+    width: "100%",
+    ...(editMode ? { flex: 1, minWidth: 0 } : {}),
     transition: "opacity 250ms ease, transform 250ms ease, max-height 250ms ease, margin 250ms ease, padding 250ms ease",
     opacity: removing ? 0 : 1,
     transform: removing ? "translateX(-12px)" : "translateX(0)",

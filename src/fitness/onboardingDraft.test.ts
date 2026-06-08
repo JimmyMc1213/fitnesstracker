@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { clampOnboardingStepIndex, ONBOARDING_STEP_FUTURE_YOU_SUCCESS } from "./onboardingSteps";
 import {
   buildOnboardingDraft,
   clearGymmyOnboardingDraft,
@@ -175,8 +176,8 @@ describe("onboardingDraft", () => {
         version: 13,
       });
 
-    expect(v13(26)?.stepIndex).toBe(27);
-    expect(v13(27)?.stepIndex).toBe(28);
+    expect(v13(26)?.stepIndex).toBe(26);
+    expect(v13(27)?.stepIndex).toBe(27);
   });
 
   it("migrates v14 draft step index when theme picker is inserted after welcome", () => {
@@ -196,7 +197,7 @@ describe("onboardingDraft", () => {
     expect(v14(0)?.stepIndex).toBe(0);
     expect(v14(1)?.stepIndex).toBe(2);
     expect(v14(27)?.stepIndex).toBe(27);
-    expect(v14(28)?.stepIndex).toBe(28);
+    expect(v14(28)?.stepIndex).toBe(27);
   });
 
   it("migrates v15 draft step index when coaching loop screen is removed", () => {
@@ -216,7 +217,40 @@ describe("onboardingDraft", () => {
     expect(v15(20)?.stepIndex).toBe(20);
     expect(v15(21)?.stepIndex).toBe(20);
     expect(v15(22)?.stepIndex).toBe(21);
-    expect(v15(29)?.stepIndex).toBe(28);
+    expect(v15(29)?.stepIndex).toBe(27);
+  });
+
+  it("migrates v17 draft step index when save progress screen is removed", () => {
+    const base = {
+      displayName: "Sam",
+      unitPreferences: DEFAULT_UNIT_PREFERENCES,
+      experienceLevel: DEFAULT_EXPERIENCE_LEVEL,
+      equipmentSetup: DEFAULT_EQUIPMENT_SETUP,
+      profile: DEFAULT_ONBOARDING_PROFILE,
+    };
+    const v17 = (stepIndex: number) =>
+      normalizeOnboardingDraft({
+        ...buildOnboardingDraft({ ...base, stepIndex }),
+        version: 17,
+      });
+
+    expect(v17(26)?.stepIndex).toBe(26);
+    expect(v17(27)?.stepIndex).toBe(27);
+    expect(v17(28)?.stepIndex).toBe(27);
+  });
+
+  it("allows step 28 for post-pay success screen", () => {
+    const draft = buildOnboardingDraft({
+      displayName: "Sam",
+      unitPreferences: DEFAULT_UNIT_PREFERENCES,
+      experienceLevel: DEFAULT_EXPERIENCE_LEVEL,
+      equipmentSetup: DEFAULT_EQUIPMENT_SETUP,
+      profile: DEFAULT_ONBOARDING_PROFILE,
+      stepIndex: ONBOARDING_STEP_FUTURE_YOU_SUCCESS,
+      subscriptionTier: "pro",
+    });
+    expect(draft.stepIndex).toBe(28);
+    expect(clampOnboardingStepIndex(28)).toBe(28);
   });
 
   it("migrates v7 draft step index when nutrition results move before training plan", () => {

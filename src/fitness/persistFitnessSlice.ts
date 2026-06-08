@@ -56,6 +56,7 @@ export type PersistedFitnessSlice = Pick<
   | "onboardingDraft"
   | "theme"
   | "subscriptionTier"
+  | "futureYou"
   | "notificationPreferences"
   | "waterLogByDay"
   | "waterDailyTargetOz"
@@ -112,6 +113,7 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
     onboardingDraft: state.onboardingDraft,
     theme: state.theme,
     subscriptionTier: state.subscriptionTier,
+    futureYou: state.futureYou,
     notificationPreferences: state.notificationPreferences,
     waterLogByDay: state.waterLogByDay,
     waterDailyTargetOz: state.waterDailyTargetOz,

@@ -1,7 +1,7 @@
 import {
-  BottomSheet,
+  CenterDialog,
   ConfirmSheetActions,
-  confirmBottomSheetPanelStyle,
+  confirmCenterDialogPanelStyle,
   confirmSheetMessageStyle,
   confirmSheetTitleStyle,
 } from "../motion";
@@ -16,12 +16,12 @@ export function LeaveStretchConfirmSheet({
   onLeave: () => void;
 }) {
   return (
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onKeepGoing}
       zIndex={1100}
       ariaLabelledBy="leave-stretch-title"
-      panelStyle={confirmBottomSheetPanelStyle}
+      panelStyle={confirmCenterDialogPanelStyle}
     >
       <div id="leave-stretch-title" style={confirmSheetTitleStyle}>
         Leave stretch?
@@ -32,10 +32,10 @@ export function LeaveStretchConfirmSheet({
       <ConfirmSheetActions
         cancelLabel="Keep going"
         confirmLabel="Leave stretch"
-        contentPadding={24}
+        contentPadding={28}
         onCancel={onKeepGoing}
         onConfirm={onLeave}
       />
-    </BottomSheet>
+    </CenterDialog>
   );
 }

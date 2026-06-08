@@ -4,14 +4,14 @@ import { useFitnessSync } from "./FitnessSyncContext";
 import { GymmySplashMark } from "./GymmySplashMark";
 import { PasswordInput } from "./PasswordInput";
 
-type View = "landing" | "signin" | "signin-form" | "signup";
+type View = "signup" | "signin-form";
 
 type AuthScreenProps = {
-  initialView?: "landing" | "signin" | "signup";
-  /** Welcome-screen sign in: hide create-account path; offer Get Started instead. */
+  initialView?: "signup" | "signin-form";
   fromWelcome?: boolean;
   externalError?: string | null;
   onGetStarted?: () => void;
+  onBackToWelcome?: () => void;
   onSignInSuccess?: () => void;
 };
 
@@ -59,6 +59,7 @@ function AuthFormShell({
   toggleLabel,
   toggleActionLabel,
   onToggle,
+  onBack,
 }: {
   viewKey: string;
   title: string;
@@ -71,10 +72,16 @@ function AuthFormShell({
   toggleLabel: string;
   toggleActionLabel: string;
   onToggle: () => void;
+  onBack?: () => void;
 }) {
   return (
     <div className="auth-screen">
       <div key={viewKey} className="auth-screen__panel auth-screen__panel--form motion-step">
+        {onBack ? (
+          <button type="button" className="auth-screen__back tap" onClick={onBack}>
+            Back
+          </button>
+        ) : null}
         <GymmySplashMark instant className="auth-screen__logo" />
         <h1 className="auth-screen__title">{title}</h1>
 
@@ -99,16 +106,15 @@ function AuthFormShell({
 }
 
 export function AuthScreen({
-  initialView = "landing",
+  initialView = "signup",
   fromWelcome = false,
   externalError = null,
   onGetStarted,
+  onBackToWelcome,
   onSignInSuccess,
 }: AuthScreenProps) {
   const sync = useFitnessSync();
-  const [view, setView] = useState<View>(
-    fromWelcome && initialView === "signin" ? "signin-form" : initialView,
-  );
+  const [view, setView] = useState<View>(initialView);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -138,59 +144,14 @@ export function AuthScreen({
     else onSignInSuccess?.();
   };
 
-  if (view === "landing")
-    return (
-      <div className="auth-screen">
-        <div key="landing" className="auth-screen__panel auth-screen__panel--landing motion-step">
-          <GymmySplashMark instant className="auth-screen__logo" />
-          <p className="auth-screen__subtitle">Your personal training companion</p>
-          <div className="auth-screen__actions">
-            <button type="button" className="tap onboarding-continue" onClick={() => setView("signup")}>
-              Create Account
-            </button>
-            <button
-              type="button"
-              className="tap onboarding-continue onboarding-continue--dark"
-              onClick={() => setView("signin-form")}
-            >
-              Sign In
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+  const backToWelcome = fromWelcome ? onBackToWelcome : undefined;
 
-  if (view === "signin")
-    return (
-      <div className="auth-screen">
-        <div key="signin" className="auth-screen__panel motion-step">
-          <GymmySplashMark instant className="auth-screen__logo" />
-          <h1 className="auth-screen__title">Welcome back</h1>
-          <div className="auth-screen__actions">
-            <button type="button" className="tap onboarding-continue" onClick={() => setView("signin-form")}>
-              Sign in with email
-            </button>
-            <AppleSignInPlaceholder />
-          </div>
-          {externalError ? <p className="auth-screen__error">{externalError}</p> : null}
-          {fromWelcome ? (
-            <button type="button" className="auth-screen__toggle tap" onClick={onGetStarted}>
-              New to Gymmy? <strong>Get Started</strong>
-            </button>
-          ) : (
-            <button type="button" className="auth-screen__toggle tap" onClick={() => setView("signup")}>
-              Don&apos;t have an account? <strong>Sign up</strong>
-            </button>
-          )}
-        </div>
-      </div>
-    );
-
-  if (view === "signup")
+  if (view === "signup") {
     return (
       <AuthFormShell
         viewKey="signup"
         title="Create your account"
+        onBack={backToWelcome}
         fields={
           <>
             <input
@@ -237,11 +198,13 @@ export function AuthScreen({
         }}
       />
     );
+  }
 
   return (
     <AuthFormShell
       viewKey="signin-form"
       title="Welcome back"
+      onBack={backToWelcome}
       fields={
         <>
           <input

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { buildPreWorkoutCoachBrief, shouldDefaultExpandCoachCard } from "../preWorkoutCoachBrief";
 import { localDateKey } from "../dailyPlan";
-import { cloneExercisesForNewSession } from "../data";
+import { cloneExercisesForNewSession, duplicateWorkoutTemplate } from "../data";
 import { ExerciseNotesEditSheet } from "../ExerciseNotesEditSheet";
 import { exerciseNoteKey, getExerciseNote, withExerciseNote } from "../exerciseNotes";
 import { progressiveOverloadInsight } from "../coach";
@@ -796,6 +796,38 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   const overloadTip = getFirstSessionCoachNote(state, w) ?? progressiveOverloadInsight(w);
   const sessionWarmup = useMemo(() => buildWorkoutWarmup(w.exercises), [w.exercises]);
 
+  function openRoutineEditor(templateId: string) {
+    if (templateId === NEW_ROUTINE_EDITOR_ID) {
+      setPreviewRoutineId(null);
+    } else {
+      setPreviewRoutineId((prev) => (prev === templateId ? prev : null));
+    }
+    setEditingRoutineId(templateId);
+  }
+
+  function duplicateRoutine(templateId: string) {
+    setState((s) => {
+      const tpl = s.workoutTemplates.find((t) => t.id === templateId);
+      if (!tpl) return s;
+      return { ...s, workoutTemplates: [...s.workoutTemplates, duplicateWorkoutTemplate(tpl)] };
+    });
+  }
+
+  function renameRoutine(templateId: string, name: string) {
+    setState((s) => ({
+      ...s,
+      workoutTemplates: s.workoutTemplates.map((t) => (t.id === templateId ? { ...t, name: name.trim() } : t)),
+    }));
+  }
+
+  function deleteRoutine(templateId: string) {
+    setState((s) => ({
+      ...s,
+      workoutTemplates: s.workoutTemplates.filter((t) => t.id !== templateId),
+    }));
+    setPreviewRoutineId((prev) => (prev === templateId ? null : prev));
+  }
+
   const editTemplate =
     editingRoutineId === NEW_ROUTINE_EDITOR_ID
       ? null
@@ -862,7 +894,10 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
           preWorkoutCoach={preWorkoutCoach}
           previewRoutineId={previewRoutineId}
           setPreviewRoutineId={setPreviewRoutineId}
-          setEditingRoutineId={setEditingRoutineId}
+          onEditRoutine={openRoutineEditor}
+          onDuplicateRoutine={duplicateRoutine}
+          onRenameRoutine={renameRoutine}
+          onDeleteRoutine={deleteRoutine}
           startEmptyWorkout={startEmptyWorkout}
           startTemplateWorkout={startTemplateWorkout}
           onShowHistory={() => setShowHistoryPage(true)}

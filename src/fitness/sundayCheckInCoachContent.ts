@@ -111,9 +111,11 @@ export function buildSundayCheckInMetrics(input: {
   const workoutStatus =
     input.workoutsCompleted >= input.workoutsPlanned
       ? "complete"
-      : missedWorkouts === 1
-        ? "1 missed"
-        : `${missedWorkouts} missed`;
+      : input.workoutsCompleted === 0
+        ? "none logged"
+        : missedWorkouts === 1
+          ? "1 missed"
+          : `${missedWorkouts} missed`;
 
   return [
     {
@@ -126,7 +128,12 @@ export function buildSundayCheckInMetrics(input: {
     {
       label: "Protein days",
       value: `${input.proteinDaysHit}/7`,
-      status: input.proteinDaysHit >= 5 ? "≥ 90% target" : "under target",
+      status:
+        input.proteinDaysHit === 0
+          ? "no data"
+          : input.proteinDaysHit >= 5
+            ? "≥ 90% target"
+            : "under target",
       tone: proteinTone,
       icon: "protein",
     },
@@ -139,7 +146,9 @@ export function buildSundayCheckInMetrics(input: {
       status:
         input.weightWeeklyAvgDelta != null
           ? `${Math.abs(input.weightWeeklyAvgDelta).toFixed(1)} lb/wk avg`
-          : "log more weigh-ins",
+          : input.weighInsThisWeek === 0
+            ? "no data"
+            : "log more weigh-ins",
       tone: weightTone,
       icon: "weight",
     },
@@ -160,7 +169,14 @@ export function buildSundayCheckInMetrics(input: {
     {
       label: "Weigh-ins",
       value: `${input.weighInsThisWeek}/7`,
-      status: input.weighInsThisWeek >= 5 ? "consistent" : input.weighInsThisWeek >= 3 ? "below target" : "log more",
+      status:
+        input.weighInsThisWeek === 0
+          ? "no data"
+          : input.weighInsThisWeek >= 5
+            ? "consistent"
+            : input.weighInsThisWeek >= 3
+              ? "below target"
+              : "log more",
       tone: weighInTone,
       icon: "weighIn",
     },

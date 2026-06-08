@@ -1,8 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
 
+import type { FutureYouDraft } from "./futureYouDraft";
 import type { AppTheme } from "./theme";
 
-export type { AppTheme };
+export type { AppTheme, FutureYouDraft };
 
 export type MacroTotals = { cal: number; p: number; c: number; f: number };
 
@@ -326,6 +327,8 @@ export type OnboardingDraft = {
   subscriptionTier?: SubscriptionTier;
   /** Light/dark appearance chosen during onboarding. */
   theme?: AppTheme;
+  /** Future You photo path, motivation, and generation job (local onboarding draft only). */
+  futureYou?: FutureYouDraft;
 };
 
 export type UnitPreferences = {
@@ -334,7 +337,7 @@ export type UnitPreferences = {
   volumeUnit: VolumeUnit;
 };
 
-export type TabId = "home" | "nutrition" | "workout" | "progress" | "stretch" | "settings";
+export type TabId = "home" | "nutrition" | "workout" | "progress" | "future_you" | "stretch" | "settings";
 
 /** Standalone progress photo in the Progress gallery (not tied to a weigh-in). */
 export type ProgressPicEntry = {
@@ -538,6 +541,8 @@ export type AppState = {
   theme: AppTheme;
   /** Tier chosen on paywall; null until onboarding paywall (FTI-74). */
   subscriptionTier: SubscriptionTier | null;
+  /** Saved Future You photo path, motivation, and generation job (post-onboarding). */
+  futureYou?: FutureYouDraft;
   /** Workout + nutrition reminder toggles, times, and last-fired dedupe keys. */
   notificationPreferences: NotificationPreferences;
   /** Per local calendar day, timestamped water intake entries. */
@@ -551,6 +556,8 @@ export type NavigateOptions = {
   openLogFood?: boolean;
   /** When navigating to Home, open the mobility preview sheet. */
   openMobilityPreview?: boolean;
+  /** When navigating to NewYou, open the photo upload flow after tab switch. */
+  openFutureYouUpload?: boolean;
 };
 
 export type NavigateFn = (tab: TabId, options?: NavigateOptions) => void;
@@ -575,6 +582,9 @@ export type ScreenProps = {
   /** Incremented when Home should open the mobility preview sheet. */
   mobilityPreviewRequest?: number;
   onMobilityPreviewRequestHandled?: () => void;
+  /** Incremented when routing should open NewYou photo upload on the NewYou tab. */
+  futureYouUploadRequest?: number;
+  onFutureYouUploadRequestHandled?: () => void;
   /** Home reports mobility session overlay open state so the main tab bar can hide. */
   onMobilitySessionOpenChange?: (open: boolean) => void;
   /** Sunday weekly check-in card + flow (Home only). */

@@ -1,14 +1,30 @@
 import type { ReactNode } from "react";
 
-export const ONBOARDING_TOTAL_STEPS = 29;
+import {
+  ONBOARDING_STEP_ACTIVITY,
+  ONBOARDING_STEP_FUTURE_YOU_MOTIVATION,
+  ONBOARDING_STEP_FUTURE_YOU_PHOTO,
+  ONBOARDING_STEP_FUTURE_YOU_SUCCESS,
+  ONBOARDING_TOTAL_STEPS,
+  onboardingProgressStep,
+} from "./onboardingSteps";
+import { FutureYouGenerationPillSlot } from "./FutureYouGenerationPillContext";
+
+export { ONBOARDING_TOTAL_STEPS };
 
 export function phaseForStep(step: number): { phaseLabel?: string } {
   if (step <= 1) return {};
   if (step <= 7) return { phaseLabel: "About you" };
-  if (step <= 11) return { phaseLabel: "Your goal" };
+  if (
+    step <= ONBOARDING_STEP_ACTIVITY ||
+    step === ONBOARDING_STEP_FUTURE_YOU_PHOTO ||
+    step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION
+  ) {
+    return { phaseLabel: "Your goal" };
+  }
   if (step <= 21) return { phaseLabel: "Your training" };
   if (step <= 23) return { phaseLabel: "Your fuel" };
-  if (step <= 28) return { phaseLabel: "Launch" };
+  if (step <= ONBOARDING_STEP_FUTURE_YOU_SUCCESS) return { phaseLabel: "Launch" };
   return {};
 }
 
@@ -48,7 +64,12 @@ export function OnboardingShell({
   continueTone = "light",
   continueClassName,
   footerGhostAction,
+  footerCaption,
   compactFooter = false,
+  hideContinue = false,
+  shellClassName,
+  afterHeadline,
+  hideGenerationPill = false,
 }: {
   step: number;
   totalSteps?: number;
@@ -72,15 +93,28 @@ export function OnboardingShell({
   continueTone?: "light" | "dark" | "blue" | "gold";
   continueClassName?: string;
   footerGhostAction?: { label: string; onClick: () => void };
+  /** Small centered line under the primary footer action. */
+  footerCaption?: string;
   /** Tighter spacing between content and footer actions. */
   compactFooter?: boolean;
+  /** Hide the primary continue button while keeping the footer shell (e.g. ghost skip). */
+  hideContinue?: boolean;
+  /** Extra class on the outer onboarding shell root. */
+  shellClassName?: string;
+  /** Optional content rendered below the headline/subtitle and above main content. */
+  afterHeadline?: ReactNode;
+  /** Hide the Future You generation pill on this screen (e.g. plan ready uses its own banner). */
+  hideGenerationPill?: boolean;
 }) {
   const { phaseLabel } = phaseForStep(step);
-  const pct = Math.round(((step + 1) / totalSteps) * 100);
+  const progressStep = onboardingProgressStep(step);
+  const pct = Math.round(((progressStep + 1) / totalSteps) * 100);
+  const showGenerationPill =
+    !hideGenerationPill && step >= ONBOARDING_STEP_ACTIVITY && step <= ONBOARDING_STEP_FUTURE_YOU_SUCCESS;
 
   return (
     <div
-      className="onboarding-shell"
+      className={shellClassName ? `onboarding-shell ${shellClassName}` : "onboarding-shell"}
       style={{
         paddingTop: "max(0.5rem, env(safe-area-inset-top))",
         paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))",
@@ -104,7 +138,7 @@ export function OnboardingShell({
           <div
             className="onboarding-progress-track"
             role="progressbar"
-            aria-valuenow={step + 1}
+            aria-valuenow={progressStep + 1}
             aria-valuemin={1}
             aria-valuemax={totalSteps}
             aria-label="Onboarding progress"
@@ -113,6 +147,8 @@ export function OnboardingShell({
           </div>
         </div>
       ) : null}
+
+      {showGenerationPill ? <FutureYouGenerationPillSlot /> : null}
 
       {eyebrow ? <p className="onboarding-eyebrow">{eyebrow}</p> : null}
       {!hideHeader ? (
@@ -123,6 +159,8 @@ export function OnboardingShell({
           ) : null}
         </>
       ) : null}
+
+      {afterHeadline}
 
       <div
         className={
@@ -149,22 +187,25 @@ export function OnboardingShell({
               {secondaryLabel}
             </button>
           ) : null}
-          <button
-            type="button"
-            className={`tap onboarding-continue${
-              continueTone === "dark"
-                ? " onboarding-continue--dark"
-                : continueTone === "blue"
-                  ? " onboarding-continue--blue"
-                  : continueTone === "gold"
-                    ? " onboarding-continue--gold"
-                    : ""
-            }${continueClassName ? ` ${continueClassName}` : ""}`}
-            disabled={continueDisabled}
-            onClick={onContinue}
-          >
-            {continueLabel}
-          </button>
+          {!hideContinue ? (
+            <button
+              type="button"
+              className={`tap onboarding-continue${
+                continueTone === "dark"
+                  ? " onboarding-continue--dark"
+                  : continueTone === "blue"
+                    ? " onboarding-continue--blue"
+                    : continueTone === "gold"
+                      ? " onboarding-continue--gold"
+                      : ""
+              }${continueClassName ? ` ${continueClassName}` : ""}`}
+              disabled={continueDisabled}
+              onClick={onContinue}
+            >
+              {continueLabel}
+            </button>
+          ) : null}
+          {footerCaption ? <p className="onboarding-footer-caption">{footerCaption}</p> : null}
           {footerGhostAction ? (
             <button type="button" className="tap onboarding-footer-ghost" onClick={footerGhostAction.onClick}>
               {footerGhostAction.label}

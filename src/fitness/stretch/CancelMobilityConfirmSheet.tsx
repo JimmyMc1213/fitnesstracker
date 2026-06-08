@@ -1,7 +1,7 @@
 import {
-  BottomSheet,
+  CenterDialog,
   ConfirmSheetActions,
-  confirmBottomSheetPanelStyle,
+  confirmCenterDialogPanelStyle,
   confirmSheetMessageStyle,
   confirmSheetTitleStyle,
 } from "../motion";
@@ -16,12 +16,12 @@ export function CancelMobilityConfirmSheet({
   onCancelSession: () => void;
 }) {
   return (
-    <BottomSheet
+    <CenterDialog
       open={open}
       onClose={onResume}
       zIndex={1300}
       ariaLabelledBy="cancel-mobility-title"
-      panelStyle={confirmBottomSheetPanelStyle}
+      panelStyle={confirmCenterDialogPanelStyle}
     >
       <div id="cancel-mobility-title" style={confirmSheetTitleStyle}>
         Cancel mobility session?
@@ -32,10 +32,10 @@ export function CancelMobilityConfirmSheet({
       <ConfirmSheetActions
         cancelLabel="Keep going"
         confirmLabel="Cancel session"
-        contentPadding={24}
+        contentPadding={28}
         onCancel={onResume}
         onConfirm={onCancelSession}
       />
-    </BottomSheet>
+    </CenterDialog>
   );
 }

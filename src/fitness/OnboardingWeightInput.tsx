@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { LBS_PER_KG, parseWeightToLbs } from "./unitPreferences";
+import { LBS_PER_KG, lbsFromWeightInputText } from "./unitPreferences";
 import type { WeightUnit } from "./types";
 
 function formatDecimal(n: number): string {
@@ -17,16 +17,16 @@ export function OnboardingWeightInput({
   unit,
   weightLbs,
   onWeightChange,
-  onFieldCompleteChange,
   resetKey,
 }: {
   unit: WeightUnit;
   weightLbs: number;
   onWeightChange: (weightLbs: number) => void;
-  onFieldCompleteChange: (complete: boolean) => void;
   resetKey?: string | number;
 }) {
   const [text, setText] = useState(() => textFromWeightLbs(weightLbs, unit));
+  const onWeightChangeRef = useRef(onWeightChange);
+  onWeightChangeRef.current = onWeightChange;
 
   useEffect(() => {
     setText(textFromWeightLbs(weightLbs, unit));
@@ -34,20 +34,10 @@ export function OnboardingWeightInput({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetKey]);
 
-  useEffect(() => {
-    const complete = text !== "" && text !== ".";
-    onFieldCompleteChange(complete);
-    if (!complete) {
-      onWeightChange(0);
-      return;
-    }
-    const n = parseFloat(text);
-    if (!Number.isFinite(n)) {
-      onWeightChange(0);
-      return;
-    }
-    onWeightChange(parseWeightToLbs(n, unit));
-  }, [text, unit, onWeightChange, onFieldCompleteChange]);
+  function commitText(raw: string) {
+    setText(raw);
+    onWeightChangeRef.current(lbsFromWeightInputText(raw, unit));
+  }
 
   return (
     <label className="onboarding-field-group">
@@ -62,7 +52,7 @@ export function OnboardingWeightInput({
         onChange={(e) => {
           const raw = e.target.value;
           if (raw !== "" && !/^\d*\.?\d*$/.test(raw)) return;
-          setText(raw);
+          commitText(raw);
         }}
       />
     </label>

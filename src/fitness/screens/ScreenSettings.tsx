@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ComponentType, type ReactNode, type SVGProps } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ComponentType,
+  type ReactNode,
+  type SVGProps,
+} from "react";
 
 import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { MOTION_DURATIONS, ScreenTransition } from "../motion";
@@ -17,6 +27,7 @@ import {
   IconDroplet,
   IconDumbbell,
   IconFlag,
+  IconFutureYou,
   IconHabits,
   IconLogout,
   IconMail,
@@ -51,7 +62,13 @@ import {
   nutritionGoalSettingsLabel,
 } from "../goalSettings";
 import { nutritionGoalLabel } from "../nutritionCalculator";
+import { isFutureYouPhotoBlocked } from "../futureYouAge";
+import { mergeFutureYouDraft } from "../futureYouDraft";
+import { shouldShowHomeNewYouHeaderButton } from "../futureYouHomeEntryModel";
+import { getHomeFutureYouEntryMode } from "../homeFutureYouModel";
+import { ageFromDateOfBirth } from "../onboardingProfile";
 import { progressGoalFromOnboarding } from "../onboardingProfile";
+import { savePersistedSlice, sliceFromAppState } from "../persistFitnessSlice";
 import { rebuildWorkoutTemplatesForEquipment } from "../workoutTemplateBuilder";
 import { EQUIPMENT_SETUP_LABELS } from "../equipmentSetup";
 import { NotificationPreferencesPicker } from "../NotificationPreferencesPicker";
@@ -201,6 +218,30 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
 
   const sync = useFitnessSync();
   const { theme, setTheme } = useTheme();
+
+  const futureYouReminderSettingVisible = useMemo(() => {
+    if (!state.onboardingComplete) return false;
+    const profile = state.onboardingProfile;
+    const age =
+      profile?.dateOfBirth ? ageFromDateOfBirth(profile.dateOfBirth) : (profile?.age ?? null);
+    const photoBlocked = isFutureYouPhotoBlocked(age);
+    const mode = getHomeFutureYouEntryMode(
+      state.futureYou,
+      photoBlocked,
+      state.subscriptionTier,
+      state.onboardingComplete,
+    );
+    const eligible = shouldShowHomeNewYouHeaderButton({
+      mode,
+      photoBlocked,
+      onboardingComplete: state.onboardingComplete,
+      futureYou: state.futureYou,
+      todayDateKey: todayKey,
+    });
+    return eligible || state.futureYou?.remindersMuted === true;
+  }, [state, todayKey]);
+
+  const newYouRemindersEnabled = state.futureYou?.remindersMuted !== true;
   const [syncEmail, setSyncEmail] = useState("");
   const [syncPassword, setSyncPassword] = useState("");
   const [syncHint, setSyncHint] = useState<string | null>(null);
@@ -1023,20 +1064,57 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
     );
   }
 
+  function setNewYouRemindersMuted(muted: boolean) {
+    setState((s) => {
+      const nextState = {
+        ...s,
+        futureYou: mergeFutureYouDraft(s.futureYou, { remindersMuted: muted }),
+      };
+      savePersistedSlice(sliceFromAppState(nextState));
+      return nextState;
+    });
+  }
+
   function renderRemindersPanel() {
     return (
-      <NotificationPreferencesPicker
-        value={state.notificationPreferences}
-        onChange={(notificationPreferences) =>
-          setState((s) => ({
-            ...s,
-            notificationPreferences,
-          }))
-        }
-        permission={notificationPermission}
-        onPermissionChange={setNotificationPermission}
-        showPermissionHint
-      />
+      <>
+        {futureYouReminderSettingVisible ? (
+          <SettingsHubSection title="NewYou">
+            <div className="settings-row settings-row--static">
+              <span className="settings-row__icon" aria-hidden>
+                <IconFutureYou size={16} stroke={1.6} />
+              </span>
+              <span className="settings-row__label">
+                Home reminders
+                <span className="settings-row__hint">Nudge to add a photo for your AI preview</span>
+              </span>
+              <span className="settings-row__trailing">
+                <button
+                  type="button"
+                  className="tap notification-picker__toggle"
+                  aria-label={newYouRemindersEnabled ? "NewYou reminders on" : "NewYou reminders off"}
+                  aria-pressed={newYouRemindersEnabled}
+                  onClick={() => setNewYouRemindersMuted(newYouRemindersEnabled)}
+                >
+                  <div className="notification-picker__toggle-knob" />
+                </button>
+              </span>
+            </div>
+          </SettingsHubSection>
+        ) : null}
+        <NotificationPreferencesPicker
+          value={state.notificationPreferences}
+          onChange={(notificationPreferences) =>
+            setState((s) => ({
+              ...s,
+              notificationPreferences,
+            }))
+          }
+          permission={notificationPermission}
+          onPermissionChange={setNotificationPermission}
+          showPermissionHint
+        />
+      </>
     );
   }
 
@@ -1410,7 +1488,6 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
           title="Sign out?"
           cancelLabel="Cancel"
           confirmLabel="Sign out"
-          placement="center"
           zIndex={1300}
           message="Your local data stays on this device, but cloud sync pauses until you sign in again."
           onCancel={() => setShowSignOutConfirm(false)}
@@ -1426,7 +1503,6 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
           title="Delete account?"
           cancelLabel="Cancel"
           confirmLabel="Continue"
-          placement="center"
           zIndex={1300}
           message="This will permanently delete your account and all data stored in the cloud. You can cancel now if you only meant to sign out."
           onCancel={() => setDeleteAccountStep(null)}
@@ -1439,7 +1515,6 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
           title="Delete account permanently?"
           cancelLabel="Cancel"
           confirmLabel="Delete account"
-          placement="center"
           zIndex={1301}
           confirmBusy={deleteAccountBusy}
           message="This will permanently delete your account and all your data. This cannot be undone."

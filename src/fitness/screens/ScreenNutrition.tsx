@@ -166,7 +166,6 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
         setState={setState}
         editItem={editingFoodItem}
       />
-
     </div>
   );
 }

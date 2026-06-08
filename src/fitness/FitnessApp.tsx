@@ -5,7 +5,7 @@ import { buildAppStateFromPersisted } from "./buildAppState";
 import { seedDefaultData } from "./defaultSeed";
 import { localDateKey } from "./dailyPlan";
 import { buildHabitsForDateKey } from "./data";
-import { AuthScreen } from "./AuthScreen";
+import { AuthEntryFlow } from "./AuthEntryFlow";
 import { FitnessSyncContext, useFitnessSync } from "./FitnessSyncContext";
 import { useFitnessCloudSync } from "./fitnessCloudSync";
 import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
@@ -19,6 +19,7 @@ import {
 import { ScreenHome } from "./screens/ScreenHome";
 import { ScreenNutrition } from "./screens/ScreenNutrition";
 import { ScreenProgress } from "./screens/ScreenProgress";
+import { ScreenFutureYou } from "./screens/ScreenFutureYou";
 import { ScreenSettings } from "./screens/ScreenSettings";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary, applyTemplateOrderUpdate, dismissTemplateOrderUpdatePrompt } from "./finishWorkout";
@@ -32,16 +33,16 @@ import {
 } from "./devPreviewOnboarding";
 import { AppSplashScreen } from "./AppSplashScreen";
 import { OnboardingFlow } from "./OnboardingFlow";
-import { OnboardingWelcomeScreen } from "./OnboardingWelcomeScreen";
-import { clearOnboardingDraftStorage, initialOnboardingWizardDraft } from "./onboardingDraft";
+import { clearOnboardingDraftStorage, initialOnboardingWizardDraft, normalizeOnboardingDraft } from "./onboardingDraft";
 import { captureOAuthReturnForSaveProgress } from "./oauthReturnCapture";
+import { needsAuthForApp, resolveAppShellMainView } from "./appShellRouting";
 import { finalizeSignedInAppAccess, shouldSkipOnboarding } from "./onboardingSkip";
 import {
   IconBarbell,
   IconToolsKitchen2,
   IconTrendingUp,
 } from "@tabler/icons-react";
-import { IconHome } from "./icons";
+import { IconFutureYou, IconHome } from "./icons";
 import { registerNotificationServiceWorker } from "./registerNotificationServiceWorker";
 import { checkAndFireDueNotifications } from "./notificationScheduler";
 import { SundayWeeklyCheckInFlow } from "./SundayWeeklyCheckInFlow";
@@ -77,7 +78,6 @@ function OnboardingGate({
   setState,
   children,
   onSignIn,
-  introWelcomeDone,
   onLeavePreview,
   hideDevToolbar = false,
 }: {
@@ -85,7 +85,6 @@ function OnboardingGate({
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   children: ReactNode;
   onSignIn?: () => void;
-  introWelcomeDone?: boolean;
   onLeavePreview?: () => void;
   hideDevToolbar?: boolean;
 }) {
@@ -107,7 +106,15 @@ function OnboardingGate({
     clearOnboardingDraftStorage();
     onLeavePreview?.();
     setState((s) => {
-      const next = { ...s, onboardingComplete: true, onboardingDraft: null };
+      const draft = normalizeOnboardingDraft(s.onboardingDraft);
+      const next = {
+        ...s,
+        onboardingComplete: true,
+        onboardingDraft: null,
+        futureYou: s.futureYou ?? (draft?.futureYou ? { ...draft.futureYou } : undefined),
+        subscriptionTier:
+          s.subscriptionTier === "pro" || draft?.subscriptionTier === "pro" ? ("pro" as const) : s.subscriptionTier,
+      };
       savePersistedSlice(sliceFromAppState(next));
       return next;
     });
@@ -129,6 +136,8 @@ function OnboardingGate({
   const showOnboarding =
     forcePreview || (!previewOnboardingDismissed && !state.onboardingComplete && !skipOnboarding);
 
+  const skipWelcomeStep = sync.configured;
+
   return (
     <>
       {showOnboarding ? (
@@ -137,9 +146,9 @@ function OnboardingGate({
           initialDraft={restorableDraft}
           accountDisplayName={state.displayName}
           previewMode={forcePreview}
+          skipWelcomeStep={skipWelcomeStep}
           onComplete={previewToolsActive ? dismissPreviewOnboarding : undefined}
           onSignIn={onSignIn}
-          introWelcomeDone={introWelcomeDone}
         />
       ) : (
         children
@@ -188,12 +197,12 @@ function FitnessAppMain({
   const [tabBarEnterDelayed, setTabBarEnterDelayed] = useState(false);
   const [logFoodOpenRequest, setLogFoodOpenRequest] = useState(0);
   const [mobilityPreviewRequest, setMobilityPreviewRequest] = useState(0);
+  const [futureYouUploadRequest, setFutureYouUploadRequest] = useState(0);
   const [mobilitySessionOpen, setMobilitySessionOpen] = useState(false);
   const [homeReselectRequest, setHomeReselectRequest] = useState(0);
   const [logFoodOverlayOpen, setLogFoodOverlayOpen] = useState(false);
   const [routineEditorOpen, setRoutineEditorOpen] = useState(false);
   const [progressGalleryOpen, setProgressGalleryOpen] = useState(false);
-  const [introWelcomeDone, setIntroWelcomeDone] = useState(false);
   const [bootSplashMounted, setBootSplashMounted] = useState(true);
   const [minHoldElapsed, setMinHoldElapsed] = useState(false);
   const [signInRestorePending, setSignInRestorePending] = useState(false);
@@ -224,7 +233,6 @@ function FitnessAppMain({
 
   useEffect(() => {
     if (fitnessSync.welcomeResetNonce === 0) return;
-    setIntroWelcomeDone(false);
     setSignInRestorePending(false);
     setWelcomeSignInError(null);
     setTab("home");
@@ -245,18 +253,12 @@ function FitnessAppMain({
       : persisted;
     setState(buildAppStateFromPersisted(nextSlice));
     setWelcomeSignInError(null);
-    setIntroWelcomeDone(shouldSkipOnboarding({
-      persisted: nextSlice,
-      sessionEmail: fitnessSync.sessionEmail,
-      forcePreview: false,
-    }));
     setSignInRestorePending(false);
   };
 
   const switchAccount = async () => {
     setWelcomeSignInError(null);
     setSignInRestorePending(false);
-    setIntroWelcomeDone(false);
     await fitnessSync.signOut();
   };
 
@@ -319,18 +321,25 @@ function FitnessAppMain({
     };
   }, []);
 
-  const TABS: { id: TabId; label: string; Icon: typeof IconHome }[] = [
+  const MAIN_TABS: { id: TabId; label: string; Icon: typeof IconHome }[] = [
     { id: "home", label: "Home", Icon: IconHome },
     { id: "nutrition", label: "Nutrition", Icon: IconToolsKitchen2 as typeof IconHome },
     { id: "workout", label: "Workout", Icon: IconBarbell as typeof IconHome },
     { id: "progress", label: "Progress", Icon: IconTrendingUp as typeof IconHome },
   ];
 
+  const FUTURE_YOU_TAB = {
+    id: "future_you" as const,
+    label: "NewYou",
+    Icon: IconFutureYou as typeof IconHome,
+  };
+
   const screens: Record<Exclude<TabId, "stretch">, ComponentType<ScreenProps>> = {
     home: ScreenHome,
     nutrition: ScreenNutrition,
     workout: ScreenWorkout,
     progress: ScreenProgress,
+    future_you: ScreenFutureYou,
     settings: ScreenSettings,
   };
 
@@ -354,6 +363,7 @@ function FitnessAppMain({
     setTab(nextTab);
     if (options?.openLogFood) setLogFoodOpenRequest((n) => n + 1);
     if (options?.openMobilityPreview) setMobilityPreviewRequest((n) => n + 1);
+    if (options?.openFutureYouUpload) setFutureYouUploadRequest((n) => n + 1);
   };
 
   useEffect(() => {
@@ -378,55 +388,34 @@ function FitnessAppMain({
     sundayCheckInPresent ||
     progressGalleryOpen;
 
-  const devPreviewOnboarding = isOnboardingPreviewToolsActive() && isDevPreviewOnboardingEnabled();
-  const introEligible = !state.onboardingComplete || devPreviewOnboarding;
-  const restorableIntroDraft = initialOnboardingWizardDraft(state.onboardingDraft);
-  const resumeIntroStep = restorableIntroDraft?.stepIndex ?? 0;
-
-  const awaitingSessionBootstrap = fitnessSync.configured && !fitnessSync.sessionResolved;
-  const needsAuth =
-    fitnessSync.configured && fitnessSync.sessionResolved && fitnessSync.sessionEmail == null;
-  const restoringAfterSignIn =
-    signInRestorePending && fitnessSync.sessionEmail != null;
-  const awaitingSignedInHydration =
-    fitnessSync.configured &&
-    fitnessSync.sessionEmail != null &&
-    !fitnessSync.fitnessHydrated &&
-    !state.onboardingComplete;
-
   const skipOnboardingForSession = shouldSkipOnboarding({
     persisted: sliceFromAppState(state),
     sessionEmail: fitnessSync.sessionEmail,
     forcePreview: false,
   });
 
-  const showIntroWelcome =
-    !needsAuth &&
-    !awaitingSessionBootstrap &&
-    !awaitingSignedInHydration &&
-    !restoringAfterSignIn &&
-    introEligible &&
-    !introWelcomeDone &&
-    !state.onboardingComplete &&
-    !skipOnboardingForSession &&
-    resumeIntroStep === 0;
+  const shellRoutingInput = {
+    configured: fitnessSync.configured,
+    sessionResolved: fitnessSync.sessionResolved,
+    sessionEmail: fitnessSync.sessionEmail,
+    signInRestorePending,
+    fitnessHydrated: fitnessSync.fitnessHydrated,
+    onboardingComplete: state.onboardingComplete,
+    skipOnboarding: skipOnboardingForSession,
+  };
+
+  const needsAuth = needsAuthForApp(shellRoutingInput);
+  const appShellMainView = resolveAppShellMainView(shellRoutingInput);
 
   const onboardingInProgress = !state.onboardingComplete;
 
   const needsBootSplash =
-    awaitingSessionBootstrap ||
-    awaitingSignedInHydration ||
-    restoringAfterSignIn ||
+    appShellMainView === "loading" ||
     (fitnessSync.sessionEmail != null && !fitnessSync.fitnessHydrated && !onboardingInProgress);
 
   const bootSplashOverlay = bootSplashMounted ? (
     <AppSplashScreen dismiss={!needsBootSplash && minHoldElapsed} onExitComplete={() => setBootSplashMounted(false)} />
   ) : null;
-
-  const handleGetStarted = () => {
-    setWelcomeSignInError(null);
-    setIntroWelcomeDone(true);
-  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -483,19 +472,15 @@ function FitnessAppMain({
 
   let mainContent: ReactNode = null;
 
-  if (awaitingSessionBootstrap || awaitingSignedInHydration || restoringAfterSignIn) {
+  if (appShellMainView === "loading") {
     mainContent = null;
   } else if (needsAuth) {
     mainContent = (
-      <AuthScreen
-        initialView="landing"
+      <AuthEntryFlow
+        key={fitnessSync.welcomeResetNonce}
         externalError={welcomeSignInError}
         onSignInSuccess={() => setSignInRestorePending(true)}
       />
-    );
-  } else if (showIntroWelcome) {
-    mainContent = (
-      <OnboardingWelcomeScreen onGetStarted={handleGetStarted} onSignIn={() => void switchAccount()} />
     );
   } else {
     mainContent = (
@@ -504,8 +489,6 @@ function FitnessAppMain({
           state={state}
           setState={setState}
           onSignIn={() => void switchAccount()}
-          introWelcomeDone={introWelcomeDone}
-          onLeavePreview={() => setIntroWelcomeDone(true)}
           hideDevToolbar={routineEditorOpen}
         >
           <div
@@ -552,6 +535,10 @@ function FitnessAppMain({
                   onMobilityPreviewRequestHandled={
                     activeTab === "home" ? () => setMobilityPreviewRequest(0) : undefined
                   }
+                  futureYouUploadRequest={activeTab === "future_you" ? futureYouUploadRequest : undefined}
+                  onFutureYouUploadRequestHandled={
+                    activeTab === "future_you" ? () => setFutureYouUploadRequest(0) : undefined
+                  }
                   onMobilitySessionOpenChange={activeTab === "home" ? setMobilitySessionOpen : undefined}
                   sundayCheckIn={
                     activeTab === "home"
@@ -567,39 +554,60 @@ function FitnessAppMain({
               </ScreenTransition>
             </div>
 
-            <nav
-              className={`tabbar${hideTabBar ? " tabbar--hidden" : ""}`}
-              aria-label="Main"
+            <div
+              className={`tabbar-dock${hideTabBar ? " tabbar-dock--hidden" : ""}`}
               aria-hidden={hideTabBar}
             >
-              {TABS.map((t) => {
-                const active = tab === t.id;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className="tab tap"
-                    aria-current={active}
-                    tabIndex={hideTabBar ? -1 : undefined}
-                    onClick={() => navigate(t.id)}
-                  >
-                    <motion.div
-                      animate={{ scale: active ? 1.15 : 1 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+              <nav className="tabbar tabbar--main" aria-label="Main">
+                {MAIN_TABS.map((t) => {
+                  const active = tab === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className="tab tap"
+                      aria-current={active}
+                      tabIndex={hideTabBar ? -1 : undefined}
+                      onClick={() => navigate(t.id)}
                     >
-                      <t.Icon size={20} stroke={active ? 2.2 : 2} />
-                    </motion.div>
-                    <motion.span
-                      className="tlabel"
-                      animate={{ color: active ? "var(--text)" : "var(--tertiary)" }}
-                      transition={{ duration: 0.22, ease: "easeOut" }}
-                    >
-                      {t.label}
-                    </motion.span>
-                  </button>
-                );
-              })}
-            </nav>
+                      <motion.div
+                        animate={{ scale: active ? 1.15 : 1 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                      >
+                        <t.Icon size={22} stroke={active ? 2.2 : 2} />
+                      </motion.div>
+                      <motion.span
+                        className="tlabel"
+                        animate={{ color: active ? "var(--text)" : "var(--tertiary)" }}
+                        transition={{ duration: 0.22, ease: "easeOut" }}
+                      >
+                        {t.label}
+                      </motion.span>
+                    </button>
+                  );
+                })}
+              </nav>
+
+              <button
+                type="button"
+                className="tabbar-future-you tap"
+                aria-label={FUTURE_YOU_TAB.label}
+                aria-current={tab === FUTURE_YOU_TAB.id}
+                tabIndex={hideTabBar ? -1 : undefined}
+                onClick={() => navigate(FUTURE_YOU_TAB.id)}
+              >
+                <motion.div
+                  animate={{ scale: tab === FUTURE_YOU_TAB.id ? 1.12 : 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                >
+                  <FUTURE_YOU_TAB.Icon
+                    size={26}
+                    stroke={tab === FUTURE_YOU_TAB.id ? 2.2 : 2}
+                  />
+                </motion.div>
+                <span className="tabbar-future-you__label">{FUTURE_YOU_TAB.label}</span>
+              </button>
+            </div>
 
             {state.workoutSummary ? (
               <WorkoutSummarySheet
@@ -631,6 +639,7 @@ function FitnessAppMain({
           onComplete={sundayWeeklyCheckIn.complete}
           onPresentChange={setSundayCheckInPresent}
         />
+
       </>
     );
   }

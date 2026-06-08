@@ -1,0 +1,136 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
+
+import {
+  FUTURE_YOU_BUCKET,
+  badUploadResponse,
+  buildFutureYouSourcePath,
+  unauthorizedResponse,
+  validateFutureYouImageDataUrl,
+  validateFutureYouUploadBytes,
+} from "./guards.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+async function resolveAuthenticatedUserClient(
+  req: Request,
+): Promise<{ userId: string; client: ReturnType<typeof createClient> } | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim();
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")?.trim();
+  if (!supabaseUrl || !anonKey) {
+    console.error("future-you-upload: missing Supabase env");
+    return null;
+  }
+
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const {
+    data: { user },
+    error,
+  } = await userClient.auth.getUser();
+  if (error || !user) return null;
+  return { userId: user.id, client: userClient };
+}
+
+async function readUploadFromRequest(req: Request) {
+  const contentType = req.headers.get("Content-Type")?.toLowerCase() ?? "";
+
+  if (contentType.includes("multipart/form-data")) {
+    const form = await req.formData();
+    const file = form.get("file");
+    if (!(file instanceof File)) {
+      return badUploadResponse("Missing photo file.", 400, corsHeaders);
+    }
+
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const validated = validateFutureYouUploadBytes(bytes);
+    if (!validated.ok) {
+      return badUploadResponse(validated.error, validated.status, corsHeaders);
+    }
+
+    return validated;
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const imageDataUrl = typeof body?.imageDataUrl === "string" ? body.imageDataUrl : "";
+  if (!imageDataUrl.trim()) {
+    return badUploadResponse("Missing photo. Send imageDataUrl or multipart file.", 400, corsHeaders);
+  }
+
+  const validated = validateFutureYouImageDataUrl(imageDataUrl);
+  if (!validated.ok) {
+    return badUploadResponse(validated.error, validated.status, corsHeaders);
+  }
+
+  return validated;
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const auth = await resolveAuthenticatedUserClient(req);
+    if (!auth) {
+      return unauthorizedResponse(corsHeaders);
+    }
+    const { userId, client: userClient } = auth;
+
+    const validated = await readUploadFromRequest(req);
+    if (validated instanceof Response) {
+      return validated;
+    }
+
+    const uploadId = crypto.randomUUID();
+    const { bytes, mimeType, extension } = validated.upload;
+    const path = buildFutureYouSourcePath(userId, uploadId, extension);
+    const storageMime = mimeType === "image/jpg" ? "image/jpeg" : mimeType;
+
+    const { error: uploadError } = await userClient.storage.from(FUTURE_YOU_BUCKET).upload(path, bytes, {
+      contentType: storageMime,
+      upsert: false,
+    });
+
+    if (uploadError) {
+      console.error("future-you-upload: storage upload failed", uploadError);
+      return new Response(JSON.stringify({ error: "Could not save your photo. Try again." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(
+      JSON.stringify({
+        path,
+        uploadId,
+        bucket: FUTURE_YOU_BUCKET,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  } catch (e) {
+    console.error("future-you-upload error", e);
+    return new Response(JSON.stringify({ error: "Photo upload failed. Try again." }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});

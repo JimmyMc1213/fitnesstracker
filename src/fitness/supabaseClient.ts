@@ -8,7 +8,7 @@ function envTrim(raw: string | undefined): string {
 }
 
 /** Browser-safe Supabase API key: use Publishable (new dashboard), or legacy anon JWT (`eyJ…`). Never use secret/service JWT in the app. */
-function clientSupabaseKey(): string {
+export function clientSupabaseKeyForFetch(): string {
   const publishable = envTrim(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
   const anonJwt = envTrim(import.meta.env.VITE_SUPABASE_ANON_KEY);
   return publishable || anonJwt;
@@ -18,7 +18,7 @@ let devLoggedMisconfigured = false;
 
 export function isSupabaseConfigured(): boolean {
   const url = envTrim(import.meta.env.VITE_SUPABASE_URL);
-  const key = clientSupabaseKey();
+  const key = clientSupabaseKeyForFetch();
   const urlOk = /^https:\/\/.+/i.test(url);
   const keyOk = key.length >= 12;
   const ok = urlOk && keyOk;
@@ -42,7 +42,7 @@ export function isSupabaseConfigured(): boolean {
 export function getSupabase(): SupabaseClient | null {
   if (!isSupabaseConfigured()) return null;
   const url = envTrim(import.meta.env.VITE_SUPABASE_URL);
-  const key = clientSupabaseKey();
+  const key = clientSupabaseKeyForFetch();
   if (cached === undefined) {
     cached = createClient(url, key, {
       auth: {

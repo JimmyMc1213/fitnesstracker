@@ -1,15 +1,12 @@
 import type { CSSProperties, ReactNode } from "react";
 
+import {
+  type OnboardingPlanSnapshot,
+} from "./onboardingPlanSnapshot";
 import { planReadyFirstCoachNote } from "./onboardingReinforcementCopy";
 import { weekdayMonStartIndex } from "./trainingCalendar";
 import { TypewriterText } from "./TypewriterText";
-import type { MacroTotals, OnboardingProfile, VolumeUnit, WorkoutRoutineTemplate } from "./types";
-import {
-  DEFAULT_WATER_DAILY_TARGET_OZ,
-  formatWaterVolume,
-} from "./waterIntake";
-
-const DEFAULT_STEPS_TARGET = 10_000;
+import { formatWaterVolume } from "./waterIntake";
 
 const PLAN_READY_LABEL_MS = 600;
 const PLAN_READY_SECTION_PAUSE_MS = 120;
@@ -44,13 +41,7 @@ function planReadyCoachDelay(weekRowCount: number): number {
 }
 
 type Props = {
-  displayName: string;
-  macros: MacroTotals;
-  profile: OnboardingProfile;
-  templates: WorkoutRoutineTemplate[];
-  waterDailyTargetOz?: number;
-  stepsTarget?: number;
-  volumeUnit?: VolumeUnit;
+  planSnapshot: OnboardingPlanSnapshot;
 };
 
 function MacroStat({
@@ -98,14 +89,8 @@ function HabitWave({
   );
 }
 
-export function OnboardingPlanReady({
-  macros,
-  profile,
-  templates,
-  waterDailyTargetOz = DEFAULT_WATER_DAILY_TARGET_OZ,
-  stepsTarget = DEFAULT_STEPS_TARGET,
-  volumeUnit = "oz",
-}: Props) {
+export function OnboardingPlanReady({ planSnapshot }: Props) {
+  const { macros, profile, templates, waterDailyTargetOz, stepsTarget, volumeUnit, timeline } = planSnapshot;
   const weekTemplates = [...templates].sort(
     (a, b) => weekdayMonStartIndex(a.dayLabel) - weekdayMonStartIndex(b.dayLabel),
   );
@@ -136,6 +121,12 @@ export function OnboardingPlanReady({
           <MacroStat value={macros.c} label="g carbs" tone="carbs" waveIndex={2} />
           <MacroStat value={macros.f} label="g fat" tone="fat" waveIndex={3} />
         </div>
+        <p
+          className="onboarding-plan-ready__timeline onboarding-plan-ready__wave-item onboarding-plan-ready__wave-item--vertical"
+          style={{ animationDelay: `${planReadyMacroDelay(3) + 0.35}s` }}
+        >
+          Goal timeline · {timeline}
+        </p>
       </section>
 
       <div className="onboarding-plan-ready__divider" aria-hidden />

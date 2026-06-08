@@ -353,6 +353,18 @@ export function IconUser(p: IconProps) {
   );
 }
 
+/** NewYou tab — Tabler users outline */
+export function IconFutureYou(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+      <path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      <path d="M21 21v-2a4 4 0 0 0 -3 -3.85" />
+    </Icon>
+  );
+}
+
 export function IconBell(p: IconProps) {
   return (
     <Icon {...p}>
@@ -444,6 +456,25 @@ export function IconLogout(p: IconProps) {
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
       <path d="M16 17l5-5-5-5" />
       <path d="M21 12H9" />
+    </Icon>
+  );
+}
+
+export function IconMoreVertical(p: IconProps) {
+  return (
+    <Icon {...p} stroke={p.stroke ?? 2}>
+      <circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none" />
+    </Icon>
+  );
+}
+
+export function IconCopy(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <rect x="9" y="9" width="13" height="13" rx="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
     </Icon>
   );
 }

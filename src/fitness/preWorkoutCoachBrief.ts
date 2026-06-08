@@ -1,6 +1,7 @@
 import { buildCoachContext, getHomeCoachPlan } from "./coachEngine";
 import { localDateKey } from "./dailyPlan";
-import type { AppState } from "./types";
+import { estimatedSessionLabel } from "./estimateSessionDuration";
+import type { AppState, WorkoutRoutineTemplate } from "./types";
 
 export type PreWorkoutCoachBrief = {
   headline: string;
@@ -36,5 +37,25 @@ export function buildPreWorkoutCoachBrief(
       rationale: startTask?.rationale,
     },
     todayTemplateId: ctx.todayTemplate.id,
+  };
+}
+
+/** Coach copy for a routine preview sheet — always derived from the current template snapshot. */
+export function buildRoutinePreviewCoachBrief(
+  template: WorkoutRoutineTemplate,
+  options?: { todayHeadline?: string; isTodayWorkout?: boolean },
+): PreWorkoutCoachBrief | undefined {
+  const focus = template.focus.trim();
+  const isTodayWorkout = options?.isTodayWorkout ?? false;
+  const headline =
+    isTodayWorkout && options?.todayHeadline
+      ? options.todayHeadline
+      : estimatedSessionLabel(template) || template.name;
+
+  if (!focus && !isTodayWorkout) return undefined;
+
+  return {
+    headline,
+    rationale: focus || undefined,
   };
 }

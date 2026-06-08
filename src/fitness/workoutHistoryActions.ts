@@ -2,6 +2,7 @@ import { localDateKey } from "./dailyPlan";
 import { cloneExercisesForNewSession } from "./data";
 import { defaultExerciseTarget } from "./exercisePrescriptionDefaults";
 import { buildSessionCoachNotesByExerciseId } from "./exerciseSessionNotes";
+import { templateFocusFromExercises } from "./routineTemplateFocus";
 import { autofillExerciseSets } from "./workoutAutofill";
 import type { AppState, CompletedWorkoutSession, WorkoutExercise, WorkoutRoutineTemplate } from "./types";
 
@@ -23,12 +24,6 @@ export function completedSessionToTemplateExercises(exercises: WorkoutExercise[]
       sets: Array.from({ length: setCount }, () => ({ w: 0, r: 0, done: false })),
     };
   });
-}
-
-function templateFocusFromExercises(exercises: WorkoutExercise[]): string {
-  const preview = exercises.slice(0, 3).map((e) => e.name);
-  if (preview.length === 0) return "Custom workout";
-  return preview.join(" · ") + (exercises.length > 3 ? ` · +${exercises.length - 3} more` : "");
 }
 
 export function templateFromCompletedSession(

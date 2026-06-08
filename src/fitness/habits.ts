@@ -83,28 +83,28 @@ export const ADDABLE_HABITS_CATALOG: HabitDefinition[] = [
     id: "cold_shower",
     name: "Cold shower",
     subtitle: "Recovery and mental clarity",
-    icon: "droplet",
+    icon: "snowflake",
     type: "manual",
   },
   {
     id: "pre_workout_meal",
     name: "Pre-workout meal",
     subtitle: "Fuel before you train",
-    icon: "bolt",
+    icon: "food",
     type: "manual",
   },
   {
     id: "post_workout_protein",
     name: "Post-workout protein",
     subtitle: "Protein within 30 min of finishing",
-    icon: "pill",
+    icon: "protein",
     type: "manual",
   },
   {
     id: "screen_free_bed",
     name: "Screen-free before bed",
     subtitle: "Better sleep, better recovery",
-    icon: "moon",
+    icon: "phone-off",
     type: "manual",
   },
   {
@@ -166,6 +166,7 @@ export function isLegacyDefaultHabitTemplates(templates: HabitTemplate[]): boole
 export function normalizeHabitIcon(icon: string): string {
   if (icon === "water" || icon === "droplet") return "drop";
   if (icon === "sleep") return "moon";
+  if (icon === "alcohol" || icon === "no_alcohol" || icon === "glass-off") return "ban";
   return icon;
 }
 
