@@ -2,6 +2,8 @@
   "files": [],
   "references": [
     { "path": "./apps/pwa" },
+    { "path": "./apps/web" },
+    { "path": "./apps/admin" },
     { "path": "./packages/config" },
     { "path": "./packages/types" },
     { "path": "./packages/api-client" },

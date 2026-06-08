@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "turbo run dev",
     "dev:pwa": "turbo run dev --filter=@newyouai/pwa",
+    "dev:web": "turbo run dev --filter=@newyouai/web",
+    "dev:admin": "turbo run dev --filter=@newyouai/admin",
     "build": "turbo run build",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e --filter=@newyouai/pwa",

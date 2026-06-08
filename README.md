@@ -4,15 +4,19 @@ npm workspaces + Turborepo monorepo for the New You AI fitness platform.
 
 ## Apps
 
-| Package | Path | Description |
-|---------|------|-------------|
-| `@newyouai/pwa` | `apps/pwa` | Vite React PWA (product app) |
+| Package | Path | Domain | Description |
+|---------|------|--------|-------------|
+| `@newyouai/pwa` | `apps/pwa` | `app.newyouai.app` | Vite React PWA (product) |
+| `@newyouai/web` | `apps/web` | `newyouai.app` | Next.js marketing site |
+| `@newyouai/admin` | `apps/admin` | `admin.newyouai.app` | Next.js staff dashboard |
 
 ## Commands (repo root)
 
 ```bash
 npm ci
 npm run dev:pwa
+npm run dev:web
+npm run dev:admin
 npm run build
 npm run test
 npm run test:e2e

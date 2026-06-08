@@ -56,7 +56,11 @@ describe("mergePersistedFitnessSlices futureYou", () => {
     });
 
     const merged = mergePersistedFitnessSlices(local, remote);
-    expect(merged.futureYou).toEqual({ onboardingGoalLocked: true });
+    expect(merged.futureYou).toEqual({
+      onboardingGoalLocked: true,
+      remindersMuted: false,
+      reminderDismissedDateKey: undefined,
+    });
     expect(merged.subscriptionTier).toBe("pro");
     expect(merged.onboardingComplete).toBe(true);
   });

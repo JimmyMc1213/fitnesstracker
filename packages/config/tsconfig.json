@@ -1,11 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "skipLibCheck": true,
-    "noEmit": true
-  },
-  "include": ["src"]
+  "extends": "./tsconfig.base.json",
+  "include": ["tailwind.preset.ts"]
 }
