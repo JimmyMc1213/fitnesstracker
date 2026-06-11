@@ -10,6 +10,8 @@
     "dev:pwa": "turbo run dev --filter=@newyouai/pwa",
     "dev:web": "turbo run dev --filter=@newyouai/web",
     "dev:admin": "turbo run dev --filter=@newyouai/admin",
+    "dev:mobile": "turbo run dev --filter=@newyouai/mobile",
+    "dev:mobile:client": "npm run dev --workspace=@newyouai/mobile",
     "build": "turbo run build",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e --filter=@newyouai/pwa",

@@ -35,7 +35,7 @@ npm run dev:admin    # Admin → http://localhost:3001
 
 Deploy config: [vercel.md](./vercel.md)
 
-Future mobile: [eas-ios.md](./eas-ios.md) (Phase H, not started)
+Mobile (Expo): [eas-ios.md](./eas-ios.md) — `npm run dev:mobile:client`
 
 ## Quality gates
 
@@ -43,3 +43,5 @@ Future mobile: [eas-ios.md](./eas-ios.md) (Phase H, not started)
 npx turbo run typecheck build test
 npm run test:e2e
 ```
+
+CI (`.github/workflows/ci.yml`) runs monorepo typecheck including `@newyouai/mobile`, an explicit mobile typecheck step, then build and PWA E2E.

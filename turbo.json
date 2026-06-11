@@ -15,7 +15,10 @@
         "VITE_PRIVACY_POLICY_URL",
         "VITE_TERMS_URL",
         "NEXT_PUBLIC_SUPABASE_URL",
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "EXPO_PUBLIC_SUPABASE_URL",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY"
       ]
     },
     "dev": { "cache": false, "persistent": true },

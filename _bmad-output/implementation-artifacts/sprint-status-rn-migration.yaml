@@ -1,0 +1,105 @@
+# Sprint Status — RN Migration
+
+project: fitnesstracker-rn-migration
+created: 2026-06-08
+resourcing: solo-dev-ai
+
+development_status:
+  epic-rn-0:
+    title: Migration foundation & dev environment
+    status: in-progress
+    stories:
+      rn-0-01-init-expo-monorepo:
+        title: Init Expo app in monorepo
+        status: done
+        file: implementation-artifacts/rn-0-01-init-expo-monorepo.md
+      rn-0-02-eas-profiles:
+        title: EAS profiles and dev client
+        status: done
+        file: implementation-artifacts/rn-0-02-eas-profiles-dev-client.md
+      rn-0-03-maestro-harness:
+        title: Maestro harness init
+        status: done
+        file: implementation-artifacts/rn-0-03-maestro-harness.md
+      rn-0-04-env-matrix:
+        title: Env matrix mobile vars
+        status: done
+        file: implementation-artifacts/rn-0-04-env-matrix.md
+      rn-0-05-ci-typecheck:
+        title: CI mobile typecheck
+        status: done
+        file: implementation-artifacts/rn-0-05-ci-typecheck.md
+      rn-0-06-nativewind:
+        title: NativeWind + tokens scaffold
+        status: backlog
+      rn-0-07-expo-router-root:
+        title: Expo Router root layout
+        status: backlog
+
+  epic-rn-1:
+    title: Shared platform layer
+    status: backlog
+
+  epic-rn-2:
+    title: Authentication & session
+    status: backlog
+
+  epic-rn-3:
+    title: Core navigation & app shell
+    status: backlog
+
+  epic-rn-4:
+    title: Onboarding v2
+    status: backlog
+
+  epic-rn-5:
+    title: Home & coach
+    status: backlog
+
+  epic-rn-6:
+    title: Workout domain
+    status: backlog
+
+  epic-rn-7:
+    title: Nutrition OS
+    status: backlog
+
+  epic-rn-8:
+    title: Progress & check-ins
+    status: backlog
+
+  epic-rn-9:
+    title: Future You
+    status: backlog
+
+  epic-rn-10:
+    title: Settings & account
+    status: backlog
+
+  epic-rn-push:
+    title: Push notifications
+    status: backlog
+
+  epic-rn-offline:
+    title: Persist & cloud sync adapter
+    status: backlog
+
+  epic-rn-store:
+    title: App Store ship
+    status: backlog
+
+  epic-rn-parity:
+    title: Parity verification & cutover
+    status: backlog
+
+planning_status:
+  phase-0-brief: complete
+  phase-1-inventory: complete
+  phase-2-research: complete
+  phase-3-architecture: complete
+  phase-4-prd: complete
+  phase-5-epics: complete
+  phase-6-testarch: complete
+  phase-7-readiness: ready-with-notes
+  phase-8-timeline: complete
+  phase-9-master-plan: complete

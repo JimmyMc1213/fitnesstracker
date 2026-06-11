@@ -21,11 +21,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Typecheck and build
-        run: npx turbo run typecheck build
+      - name: Typecheck
+        run: npx turbo run typecheck
         env:
           VITE_SUPABASE_URL: ""
           VITE_SUPABASE_PUBLISHABLE_KEY: ""
+          EXPO_PUBLIC_SUPABASE_URL: ""
+          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ""
+
+      # Explicit gate — @newyouai/mobile included in monorepo typecheck above (RN-0-05)
+      - name: Mobile typecheck
+        run: npx turbo run typecheck --filter=@newyouai/mobile
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ""
+          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ""
+
+      - name: Build
+        run: npx turbo run build
+        env:
+          VITE_SUPABASE_URL: ""
+          VITE_SUPABASE_PUBLISHABLE_KEY: ""
+          EXPO_PUBLIC_SUPABASE_URL: ""
+          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ""
 
       - name: Unit tests
         run: npx turbo run test --filter=@newyouai/pwa
