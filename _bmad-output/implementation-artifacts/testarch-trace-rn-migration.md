@@ -9,7 +9,7 @@ coverage_rule: 100% FR-M mapped
 
 | FR | PWA inventory IDs | Epic | Unit tests | E2E (Maestro) |
 |----|-------------------|------|------------|---------------|
-| FR-M1 Auth | S-02, S-03 | RN-2 | oauthReturnCapture.test.ts | rn-auth-gate.yaml |
+| FR-M1 Auth | S-02, S-03 | RN-2 | oauthReturnCapture.test.ts (PWA); auth helpers Vitest in RN-2-05 | rn-auth-gate.yaml, rn-auth-gate-sign-in.yaml, rn-auth-sign-up.yaml, rn-auth-sign-out.yaml |
 | FR-M2 Onboarding | OB-00..28 | RN-4 | onboardingRouting.test.ts, onboardingDraft.test.ts | rn-onboarding-v2.yaml, rn-onboarding-fy.yaml |
 | FR-M3 Home | T-01, H-* | RN-5 | coachEngine.test.ts, dailyPlan.test.ts | rn-coach-nutrition.yaml |
 | FR-M4 Workout | T-02, W-* | RN-6 | workoutAutofill.test.ts, workoutTemplates.test.ts | rn-workout-session.yaml |
@@ -38,5 +38,9 @@ coverage_rule: 100% FR-M mapped
 |-------|------|
 | RN-0-01 | turbo typecheck |
 | RN-0-03 | rn-smoke.yaml |
-| RN-2-01 | rn-auth-gate.yaml |
+| RN-2-01 | rn-auth-gate.yaml, rn-auth-gate-sign-in.yaml |
+| RN-2-02 | rn-auth-sign-up.yaml |
+| RN-2-03 | (manual / optional rn-auth-google.yaml) |
+| RN-2-04 | (manual TestFlight) |
+| RN-2-05 | rn-auth-sign-out.yaml + full auth Maestro sweep |
 | RN-6-03 | rn-workout-session.yaml |

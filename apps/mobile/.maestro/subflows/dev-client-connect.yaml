@@ -1,0 +1,12 @@
+# Shared steps after openLink — dismiss Expo dev client UI and recover from Metro errors.
+appId: app.newyouai.mobile
+---
+- tapOn:
+    text: Continue
+    optional: true
+- tapOn:
+    text: Dismiss
+    optional: true
+- tapOn:
+    text: Reload
+    optional: true

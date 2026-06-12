@@ -3,13 +3,15 @@
 # Optional sign-in: MAESTRO_TEST_EMAIL + MAESTRO_TEST_PASSWORD env vars
 appId: app.newyouai.mobile
 ---
-- launchApp
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
 - extendedWaitUntil:
     visible:
       id: auth-welcome-headline
     timeout: 60000
-- assertVisible:
-    id: auth-welcome-headline
 - assertNotVisible:
     id: home-title
 - tapOn:

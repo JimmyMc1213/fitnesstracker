@@ -2,8 +2,40 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
-last_updated: 2026-06-12
+last_updated: 2026-06-12  # RN-2 epic done (Maestro sweep green)
 resourcing: solo-dev-ai
+
+# RN-2 SCOPE LOCKS (2026-06-12 sprint planning):
+#   - Email sign-up + sign-in: IN SCOPE (RN-2-02; RN-2-01 done)
+#   - Google + Apple OAuth: IN SCOPE (RN-2-03, RN-2-04)
+#   - Sign-out + session refresh: IN SCOPE (RN-2-05)
+#   - Maestro auth E2E: IN SCOPE (epic close sweep on RN-2-05)
+#   - Password change, email update, account deletion: OUT OF SCOPE (RN-10)
+#   - Fitness cloud sync on auth: OUT OF SCOPE (RN-OFFLINE)
+#   - RevenueCat logIn after auth: OUT OF SCOPE (RN-4 paywall)
+#   - Onboarding post-auth routing: OUT OF SCOPE (RN-3 + RN-4)
+#   - Plan doc: sprint-rn-2-auth-session-plan.md
+#
+# RN-2 swarm order (execute in this sequence):
+#   RN-2-02 → RN-2-03 → RN-2-04 → RN-2-05 → retro
+#   Branch: epic-rn-2/authentication-session
+#   Kickoff: /bmad-swarm epic-rn-2
+#
+# BMAD SWARM ALIGNMENT:
+# =====================
+# - bmad-swarm epic-rn-2: COMPLETE on epic-rn-2/authentication-session
+# - Maestro sweep: npm run test:e2e:auth-all ✅ (2026-06-12)
+# - Per-story gate: npm run typecheck --workspace=@newyouai/mobile ✅
+# - Manual pending: Apple (Apple Dev approval), Google (Supabase provider creds)
+# - Metro for Maestro: npx expo start --dev-client --port 8082
+# - Rebuild dev client after OAuth/Apple native deps
+#
+# PENDING — Apple Sign-In (blocked on Apple Developer account approval):
+#   1. Apple Developer → App ID app.newyouai.mobile → enable Sign in with Apple
+#   2. Supabase → Auth → Providers → Apple → enable; Client IDs: app.newyouai.mobile
+#   3. eas build --profile development --platform ios (reinstall dev client)
+#   4. Test on physical device or TestFlight (simulator unreliable)
+#   Code is shipped (RN-2-04); resume when Apple account is active.
 
 development_status:
   epic-rn-0:
@@ -85,12 +117,38 @@ development_status:
 
   epic-rn-2:
     title: Authentication & session
-    status: in-progress
+    status: done
+    swarm_completed: 2026-06-12
+    plan: implementation-artifacts/sprint-rn-2-auth-session-plan.md
+    swarm_mode: epic-rn-2
+    swarm_branch: epic-rn-2/authentication-session
+    swarm_start: rn-2-02-email-sign-up
+    execute_order: rn-2-02 → rn-2-03 → rn-2-04 → rn-2-05
     stories:
       rn-2-01-supabase-securestore:
         title: Supabase client with SecureStore
-        status: in-progress
+        status: done
         file: implementation-artifacts/rn-2-01-supabase-securestore.md
+        completed: 2026-06-12
+      rn-2-02-email-sign-up:
+        title: Email sign-up flow
+        status: done
+        file: implementation-artifacts/rn-2-02-email-sign-up.md
+      rn-2-03-google-oauth:
+        title: Google OAuth via expo-auth-session
+        status: done
+        file: implementation-artifacts/rn-2-03-google-oauth.md
+      rn-2-04-apple-sign-in:
+        title: Apple Sign-In
+        status: done
+        file: implementation-artifacts/rn-2-04-apple-sign-in.md
+      rn-2-05-sign-out-session-oauth:
+        title: Sign out, session refresh, OAuth deep link
+        status: done
+        file: implementation-artifacts/rn-2-05-sign-out-session-oauth.md
+    retrospective:
+      epic-rn-2-retrospective:
+        status: optional
 
   epic-rn-3:
     title: Core navigation & app shell

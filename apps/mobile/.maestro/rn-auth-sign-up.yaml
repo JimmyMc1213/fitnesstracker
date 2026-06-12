@@ -1,0 +1,41 @@
+# RN-2-02 email sign-up — requires Supabase + disposable test account
+# Run: MAESTRO_TEST_SIGNUP_NAME=... MAESTRO_TEST_SIGNUP_EMAIL=... MAESTRO_TEST_SIGNUP_PASSWORD=... \
+#      maestro test .maestro/rn-auth-sign-up.yaml
+appId: app.newyouai.mobile
+env:
+  TEST_NAME: ${MAESTRO_TEST_SIGNUP_NAME}
+  TEST_EMAIL: ${MAESTRO_TEST_SIGNUP_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_SIGNUP_PASSWORD}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- tapOn:
+    id: auth-get-started-button
+- tapOn:
+    id: auth-sign-up-name
+- eraseText
+- inputText: ${TEST_NAME}
+- tapOn:
+    id: auth-sign-up-email
+- eraseText
+- inputText: ${TEST_EMAIL}
+- tapOn:
+    id: auth-sign-up-password
+- eraseText
+- inputText: ${TEST_PASSWORD}
+- tapOn:
+    id: auth-sign-up-title
+- tapOn:
+    id: auth-sign-up-submit
+- runFlow: subflows/dismiss-ios-password-prompt.yaml
+- extendedWaitUntil:
+    visible:
+      id: home-title
+    timeout: 30000

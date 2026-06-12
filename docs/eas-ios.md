@@ -103,14 +103,43 @@ Verify: `maestro --version`
 Requires the **dev client** installed on the iOS simulator (RN-0-02) and Metro serving the bundle:
 
 ```bash
-# Terminal 1 — from repo root
-npm run dev:mobile:client
+# Java (Maestro)
+export JAVA_HOME="/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
+
+# Terminal 1 — use 8082 if 8081 is taken by another project
+cd apps/mobile && npx expo start --dev-client --port 8082
 
 # Terminal 2 — from apps/mobile
 npm run test:e2e
 ```
 
 The smoke flow launches `app.newyouai.mobile`, waits for the home screen (`testID: home-title`), and asserts the RN-0-06 placeholder copy.
+
+### Auth Maestro (RN-2)
+
+With Supabase configured in `apps/mobile/.env`, auth flows use `clearState`/`clearKeychain` and connect to Metro via `openLink` → port **8082** (must match Terminal 1).
+
+```bash
+npm run test:e2e:auth
+npm run test:e2e:auth-all        # epic RN-2 sweep (provisions test user + runs all 4 flows)
+MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:auth-sign-in
+MAESTRO_TEST_SIGNUP_NAME=... MAESTRO_TEST_SIGNUP_EMAIL=... MAESTRO_TEST_SIGNUP_PASSWORD=... npm run test:e2e:auth-sign-up
+MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:auth-sign-out
+```
+
+See [`sprint-rn-2-auth-session-plan.md`](../_bmad-output/implementation-artifacts/sprint-rn-2-auth-session-plan.md).
+
+**OAuth / Apple (RN-2-03+):** Rebuild the dev client after pulling auth changes (`expo-apple-authentication`, `expo-auth-session`). Apple Sign-In requires the Sign in with Apple capability — verify on a physical device or TestFlight if the simulator sheet fails. Google OAuth redirect URLs: [`docs/env-matrix.md`](env-matrix.md#oauth-redirect-uris-rn-2-03).
+
+### Apple Sign-In — pending (Apple Developer account approval)
+
+App code is done (`AuthOAuthButtons`, `signInWithApple`, `usesAppleSignIn` in `app.config.ts`). Resume when the Apple Developer account is active:
+
+1. [Apple Developer → Identifiers](https://developer.apple.com/account/resources/identifiers/list/bundleId) — App ID `app.newyouai.mobile` → enable **Sign in with Apple**
+2. [Supabase → Apple provider](https://supabase.com/dashboard/project/ztedlrvvkcjxoomwavyd/auth/providers) — enable Apple; **Client IDs:** `app.newyouai.mobile`
+3. Rebuild dev client: `npm run eas build -- --profile development --platform ios`
+4. Test on a physical iPhone or TestFlight (simulator is unreliable for Apple auth)
 
 ### E2E simulator build (CI / RN-0-05)
 

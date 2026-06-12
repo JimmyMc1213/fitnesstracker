@@ -11,6 +11,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: false,
     bundleIdentifier: "app.newyouai.mobile",
+    usesAppleSignIn: true,
   },
   android: {
     adaptiveIcon: {
@@ -31,6 +32,7 @@ const config: ExpoConfig = {
     "expo-dev-client",
     "expo-router",
     "expo-secure-store",
+    "expo-apple-authentication",
     [
       "expo-splash-screen",
       {

@@ -4,7 +4,7 @@ phase: 9
 status: complete
 created: 2026-06-08
 readiness: READY WITH NOTES
-next_action: /bmad-dev-story RN-2-02 — Email sign-up flow
+next_action: /bmad-swarm epic-rn-3 — Core navigation & app shell
 ---
 
 # PWA → React Native Migration Plan
@@ -80,7 +80,9 @@ Two complementary layers — **regular testing first**, **Maestro E2E on top**. 
 
 | Flow | File | Epic |
 |------|------|------|
-| Auth gate | `rn-auth-gate.yaml` | RN-2 |
+| Auth gate | `rn-auth-gate.yaml`, `rn-auth-gate-sign-in.yaml` | RN-2 |
+| Auth sign-up | `rn-auth-sign-up.yaml` | RN-2 |
+| Auth sign-out | `rn-auth-sign-out.yaml` | RN-2 |
 | Onboarding v2 | `rn-onboarding-v2.yaml` | RN-4 |
 | Onboarding plan | `rn-onboarding-plan.yaml` | RN-4 |
 | Paywall + Future You | `rn-onboarding-fy.yaml` | RN-4, RN-9 |

@@ -1,13 +1,16 @@
 import { router } from "expo-router";
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function AuthWelcomeScreen() {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const [oauthError, setOauthError] = useState<string | null>(null);
 
   return (
     <View
@@ -46,7 +49,16 @@ export default function AuthWelcomeScreen() {
         </Text>
       </View>
 
-      <View className="mt-8 gap-4">
+      <View className="mt-6">
+        <AuthOAuthButtons onError={setOauthError} />
+        {oauthError ? (
+          <Text className="mt-3 text-center text-sm text-red-500" testID="auth-welcome-oauth-error">
+            {oauthError}
+          </Text>
+        ) : null}
+      </View>
+
+      <View className="mt-6 gap-4">
         <Pressable
           className="items-center rounded-full py-4"
           style={{ backgroundColor: colors.accent }}

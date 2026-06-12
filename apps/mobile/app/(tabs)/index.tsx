@@ -1,9 +1,22 @@
-import { Text, View } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
+import { useAuth } from "@/context/AuthContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function HomeScreen() {
   const { colors } = useAppTheme();
+  const { signOut } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   return (
     <View
@@ -24,11 +37,28 @@ export default function HomeScreen() {
         New You AI
       </Text>
       <Text className="mb-2 text-center text-base" style={{ color: colors.textSecondary }}>
-        Native iOS app — auth gate + SecureStore session (RN-2-01)
+        Native iOS app — authentication & session (RN-2)
       </Text>
-      <Text className="text-center text-sm" style={{ color: colors.textTertiary }}>
-        Light/dark tokens follow system appearance. PWA parity starts at RN-1.
+      <Text className="mb-8 text-center text-sm" style={{ color: colors.textTertiary }}>
+        Light/dark tokens follow system appearance. Full settings ship in RN-10.
       </Text>
+
+      <Pressable
+        className="min-w-[160px] items-center rounded-full border px-6 py-3"
+        style={{ borderColor: colors.border, opacity: signingOut ? 0.7 : 1 }}
+        onPress={() => void handleSignOut()}
+        disabled={signingOut}
+        testID="home-sign-out"
+        accessibilityLabel="Sign out"
+      >
+        {signingOut ? (
+          <ActivityIndicator color={colors.textPrimary} />
+        ) : (
+          <Text className="text-base font-semibold" style={{ color: colors.textPrimary }}>
+            Sign out
+          </Text>
+        )}
+      </Pressable>
     </View>
   );
 }

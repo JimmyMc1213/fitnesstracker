@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
 import { useAuth } from "@/context/AuthContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -114,6 +115,10 @@ export default function SignInScreen() {
             accessibilityLabel="Password"
             testID="auth-sign-in-password"
           />
+        </View>
+
+        <View className="mt-4">
+          <AuthOAuthButtons onError={setError} />
         </View>
 
         {error ? (

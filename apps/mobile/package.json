@@ -16,6 +16,9 @@
     "test:e2e": "maestro test .maestro/smoke.yaml",
     "test:e2e:auth": "maestro test .maestro/rn-auth-gate.yaml",
     "test:e2e:auth-sign-in": "maestro test .maestro/rn-auth-gate-sign-in.yaml",
+    "test:e2e:auth-sign-up": "maestro test .maestro/rn-auth-sign-up.yaml",
+    "test:e2e:auth-sign-out": "maestro test .maestro/rn-auth-sign-out.yaml",
+    "test:e2e:auth-all": "node scripts/run-auth-maestro.mjs",
     "lint": "echo lint-stub"
   },
   "dependencies": {
@@ -25,6 +28,8 @@
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@supabase/supabase-js": "^2.108.1",
     "expo": "~56.0.9",
+    "expo-apple-authentication": "~56.0.0",
+    "expo-auth-session": "~56.0.0",
     "expo-constants": "~56.0.17",
     "expo-dev-client": "~56.0.20",
     "expo-font": "~56.0.5",
