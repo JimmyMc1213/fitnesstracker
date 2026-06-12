@@ -194,12 +194,15 @@ Entitlement "pro" → subscriptionTier in persist slice → sync to Supabase
 
 ## 7. Test architecture hooks
 
-| Concern | Location |
-|---------|----------|
-| Vitest unit | `packages/*/src/**/*.test.ts` |
-| Maestro E2E | `apps/mobile/.maestro/*.yaml` |
-| testID convention | `{screen}-{element}` e.g. `home-weigh-in-button` |
-| CI | `.github/workflows/ci.yml` + optional `.eas/workflows/e2e-ios.yml` |
+**Two layers:** Vitest + typecheck (Layer 1, every PR) **plus** Maestro E2E (Layer 2, on top — not a substitute).
+
+| Concern | Location | Layer |
+|---------|----------|-------|
+| Vitest unit | `packages/*/src/**/*.test.ts` | 1 — blocking |
+| Typecheck | `turbo typecheck` | 1 — blocking |
+| Maestro E2E | `apps/mobile/.maestro/*.yaml` | 2 — blocking post RN-0-03 |
+| testID convention | `{screen}-{element}` e.g. `home-weigh-in-button` | 2 |
+| CI | `.github/workflows/ci.yml` + optional `.eas/workflows/e2e-ios.yml` | 1 + 2 |
 
 ---
 

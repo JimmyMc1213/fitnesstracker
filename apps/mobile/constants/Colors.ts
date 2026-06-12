@@ -1,19 +1,18 @@
-const tintColorLight = '#2f95dc';
-const tintColorDark = '#fff';
+import { darkThemeColors, lightThemeColors } from "@newyouai/config/tokens";
 
 export default {
   light: {
-    text: '#000',
-    background: '#fff',
-    tint: tintColorLight,
-    tabIconDefault: '#ccc',
-    tabIconSelected: tintColorLight,
+    text: lightThemeColors.textPrimary,
+    background: lightThemeColors.background,
+    tint: lightThemeColors.accent,
+    tabIconDefault: lightThemeColors.textTertiary,
+    tabIconSelected: lightThemeColors.accent,
   },
   dark: {
-    text: '#fff',
-    background: '#000',
-    tint: tintColorDark,
-    tabIconDefault: '#ccc',
-    tabIconSelected: tintColorDark,
+    text: darkThemeColors.textPrimary,
+    background: darkThemeColors.background,
+    tint: darkThemeColors.accent,
+    tabIconDefault: darkThemeColors.textTertiary,
+    tabIconSelected: darkThemeColors.accent,
   },
 };

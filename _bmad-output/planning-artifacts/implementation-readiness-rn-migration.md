@@ -45,7 +45,7 @@ scope: PWA → React Native migration planning
 | Fitcoach PRD | `prd.md` | Stale brand; non-goals list App Store as out of scope — conflicts with RN brief |
 | Fitcoach epics | `epics.md` | FTI sprint epics; separate from RN migration |
 | Turborepo plan | `turborepo-migration-plan.md` | Monorepo scaffold done; Phase H mobile pending |
-| Onboarding specs | `gymmy-onboarding-flow-v2.md`, `future-you-onboarding-spec.md` | UX reference for RN onboarding epic |
+| Onboarding specs | `gymmy-onboarding-flow-v2.md` (legacy PWA filename), `future-you-onboarding-spec.md` | UX reference for RN-4; **RN copy uses NewYou / New You AI only** |
 | App Store risks | `ai-transformation-photo-risks.md` | Required for RN-9 Future You |
 
 ### Duplicates / conflicts
@@ -76,7 +76,7 @@ Fitcoach `prd.md` (2026-05-23) covers PWA only. Gaps vs RN brief:
 | Native iOS app | Listed as non-goal (Sprint 2) | ❌ Must create FR-M* in `prd-rn-migration.md` |
 | IAP / StoreKit | Non-goal | ❌ TBD Phase 2 research |
 | Future You full MVP | Partial (specs exist separately) | ⚠️ Consolidate in RN PRD |
-| Maestro E2E | Not mentioned | ❌ Add to NFRs |
+| Maestro E2E | NFR-4 Layer 2 (on top of Vitest) | ✅ Addressed in `prd-rn-migration.md` |
 | SecureStore / native auth | Not mentioned | ❌ Add to NFRs |
 | App Store compliance | Not mentioned | ❌ Add FR-M13 |
 
@@ -112,7 +112,7 @@ Fitcoach `epics.md` + 50+ `fti-*.md` story files cover PWA sprint work (Sprint 1
 
 | Area | PWA reference | RN alignment note |
 |------|---------------|-------------------|
-| Onboarding v2 | `OnboardingFlow.tsx`, `gymmy-onboarding-flow-v2.md` | 31 steps must map 1:1 |
+| Onboarding v2 | `OnboardingFlow.tsx`, `gymmy-onboarding-flow-v2.md` | 31 steps must map 1:1; rebrand all user-facing copy to **NewYou** / **New You AI** |
 | Tab shell | `FitnessApp.tsx` | Expo Router tabs + floating Future You button |
 | Log Food overlay | `LogFoodScreen.tsx` | Modal stack with 4 tabs + barcode |
 | Workout session | `ScreenWorkout.tsx` | Highest overlay count; DnD reorder native replacement |

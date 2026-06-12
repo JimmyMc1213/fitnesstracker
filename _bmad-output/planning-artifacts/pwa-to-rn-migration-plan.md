@@ -4,7 +4,7 @@ phase: 9
 status: complete
 created: 2026-06-08
 readiness: READY WITH NOTES
-next_action: /bmad-dev-story RN-0-06 (NativeWind + tokens scaffold)
+next_action: /bmad-dev-story RN-2-02 — Email sign-up flow
 ---
 
 # PWA → React Native Migration Plan
@@ -12,6 +12,7 @@ next_action: /bmad-dev-story RN-0-06 (NativeWind + tokens scaffold)
 ## 1. Executive summary
 
 - Migrate **New You AI** from production PWA (`apps/pwa`) to **Expo React Native iOS app** (`apps/mobile`)
+- **RN branding lock:** user-facing name is **NewYou** / **New You AI** only — no Gymmy (or Fitcoach) in `apps/mobile`, RN stories, or RN Maestro flows
 - PWA is the **parity baseline** — 90+ flows inventoried, 97 Vitest + 7 Playwright specs
 - **Expo + Expo Router + NativeWind + Supabase + RevenueCat + Maestro**
 - ~40% TS logic shareable via `packages/*`; UI rebuilt
@@ -53,9 +54,51 @@ See [`epics-rn-migration.md`](epics-rn-migration.md)
 
 ## 6. Test strategy
 
-- Vitest in `packages/*` before UI ports
-- Maestro E2E on 9 critical flows
-- 100% FR traceability — see [`testarch-trace-rn-migration.md`](../implementation-artifacts/testarch-trace-rn-migration.md)
+Two complementary layers — **regular testing first**, **Maestro E2E on top**. Neither replaces the other.
+
+### Layer 1: Regular testing (every PR, blocking)
+
+| Gate | Tool | Scope |
+|------|------|-------|
+| Typecheck | `turbo typecheck` | Monorepo including `apps/mobile` |
+| Unit / integration | Vitest (`turbo test`) | `packages/core`, `packages/api-client` — port PWA logic before RN UI |
+| Component (selective) | Vitest + RNTL | Critical RN components only |
+
+- Shared logic **must** have Vitest coverage before the RN screen ships
+- CI blocks merge on typecheck + unit test failure (RN-0-05+)
+- PWA baseline: 97 Vitest + 7 Playwright specs to port or trace
+
+### Layer 2: Maestro E2E (on top of Layer 1)
+
+| Gate | Tool | Scope |
+|------|------|-------|
+| Smoke | Maestro | App launch + home visible (`smoke.yaml`) — RN-0-03 |
+| Critical paths | Maestro | 9 flows on iOS simulator/dev client |
+| Per-story DoD | Maestro | New flow when story touches a critical path |
+
+**Maestro flows** (`apps/mobile/.maestro/`):
+
+| Flow | File | Epic |
+|------|------|------|
+| Auth gate | `rn-auth-gate.yaml` | RN-2 |
+| Onboarding v2 | `rn-onboarding-v2.yaml` | RN-4 |
+| Onboarding plan | `rn-onboarding-plan.yaml` | RN-4 |
+| Paywall + Future You | `rn-onboarding-fy.yaml` | RN-4, RN-9 |
+| Workout session | `rn-workout-session.yaml` | RN-6 |
+| Nutrition log | `rn-nutrition-log.yaml` | RN-7 |
+| Coach → nutrition | `rn-coach-nutrition.yaml` | RN-5, RN-7 |
+| Cloud sync | `rn-sync-signin.yaml` | RN-OFFLINE |
+| Future You upload | `rn-future-you-upload.yaml` | RN-9 |
+
+- Maestro runs against dev client on iOS simulator (local + EAS `e2e-test` profile)
+- `testID` convention: `{screen}-{element}` on all Maestro-targeted elements
+- Progress/Settings/Sunday: add Maestro flows in RN-8/RN-10 or UAT checklist
+
+### Traceability
+
+- 100% FR-M1–M13 mapped to ≥1 test (unit and/or Maestro)
+- Full matrix: [`testarch-trace-rn-migration.md`](../implementation-artifacts/testarch-trace-rn-migration.md)
+- Test design detail: [`testarch-rn-migration-test-design.md`](../implementation-artifacts/testarch-rn-migration-test-design.md)
 
 ## 7. Timeline
 

@@ -1,7 +1,11 @@
+import {
+  FoodSearchError as ApiFoodSearchError,
+  searchFood as searchFoodApi,
+} from "@newyouai/api-client";
 import { extractGramsFromServingText } from "./foodMeasurements";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import { sanitizeFoodSearchQuery } from "./foodSearchGuards";
-import type { FoodSearchErrorResponse, FoodSearchResponse, FoodSearchResult } from "./foodSearchTypes";
+import type { FoodSearchResult } from "./foodSearchTypes";
 
 /** Max merged USDA + OFF rows returned to the UI (matches Edge Function cap). */
 export const FOOD_SEARCH_RESULT_LIMIT = 20;
@@ -24,28 +28,7 @@ function cacheResults(query: string, results: FoodSearchResult[]): FoodSearchRes
   return limited;
 }
 
-export class FoodSearchError extends Error {
-  constructor(
-    message: string,
-    readonly code?: "auth_required" | "rate_limited" | "unavailable",
-  ) {
-    super(message);
-    this.name = "FoodSearchError";
-  }
-}
-
-function parseResults(data: unknown): FoodSearchResult[] {
-  if (!data || typeof data !== "object") return [];
-  const err = data as FoodSearchErrorResponse;
-  if (typeof err.error === "string" && err.error.trim()) {
-    throw new FoodSearchError(err.error.trim());
-  }
-  const body = data as FoodSearchResponse;
-  if (!Array.isArray(body.results)) return [];
-  return body.results.filter(
-    (row) => row && typeof row.name === "string" && typeof row.externalId === "string",
-  ) as FoodSearchResult[];
-}
+export { ApiFoodSearchError as FoodSearchError };
 
 /** E2E preview builds set VITE_E2E_MOCK_FOOD_SEARCH=true to avoid live Supabase calls. */
 function e2eMockResults(query: string): FoodSearchResult[] | null {
@@ -74,19 +57,6 @@ function e2eMockResults(query: string): FoodSearchResult[] | null {
   ];
 }
 
-function parseInvokeError(data: unknown, invokeError: { message?: string } | null): never {
-  const body = data && typeof data === "object" ? (data as FoodSearchErrorResponse) : null;
-  const message = body?.error?.trim() || invokeError?.message?.trim() || "Food search failed.";
-
-  if (/sign in to search/i.test(message)) {
-    throw new FoodSearchError(message, "auth_required");
-  }
-  if (/too many food searches/i.test(message)) {
-    throw new FoodSearchError(message, "rate_limited");
-  }
-  throw new FoodSearchError(message, "unavailable");
-}
-
 /** Call Supabase Edge Function `food-search` (USDA + Open Food Facts). Requires sign-in. */
 export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
   const q = sanitizeFoodSearchQuery(query);
@@ -100,30 +70,23 @@ export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
   if (mocked !== null) return cacheResults(q, mocked);
 
   if (!isSupabaseConfigured()) {
-    throw new FoodSearchError("Supabase is not configured. Check your .env file.", "unavailable");
+    throw new ApiFoodSearchError("Supabase is not configured. Check your .env file.", "unavailable");
   }
 
   const sb = getSupabase();
   if (!sb) {
-    throw new FoodSearchError("Supabase client unavailable.", "unavailable");
+    throw new ApiFoodSearchError("Supabase client unavailable.", "unavailable");
   }
 
   const {
     data: { session },
   } = await sb.auth.getSession();
   if (!session?.user) {
-    throw new FoodSearchError("Sign in to search the food database.", "auth_required");
+    throw new ApiFoodSearchError("Sign in to search the food database.", "auth_required");
   }
 
-  const { data, error } = await sb.functions.invoke("food-search", {
-    body: { query: q },
-  });
-
-  if (error || (data && typeof data === "object" && "error" in data && typeof (data as FoodSearchErrorResponse).error === "string")) {
-    parseInvokeError(data, error);
-  }
-
-  return cacheResults(q, parseResults(data));
+  const results = await searchFoodApi(sb, q);
+  return cacheResults(q, results);
 }
 
 function offNum(raw: unknown): number {

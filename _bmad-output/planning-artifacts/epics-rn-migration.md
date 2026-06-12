@@ -260,7 +260,7 @@ Stories RN-4-01..12 cover step groups:
 - Acceptance criteria (Given/When/Then) referencing PWA
 - PWA reference: route, component paths
 - Tasks/subtasks checkboxes
-- Test tasks: Vitest files; Maestro flow name; testIDs
+- Test tasks (two layers): Vitest unit tests (Layer 1, required when logic extracted) + Maestro flow name (Layer 2, required when story touches critical path); testIDs for Maestro
 - Dependencies
 ```
 

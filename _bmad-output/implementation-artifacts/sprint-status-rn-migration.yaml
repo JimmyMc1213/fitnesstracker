@@ -2,12 +2,13 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
+last_updated: 2026-06-12
 resourcing: solo-dev-ai
 
 development_status:
   epic-rn-0:
     title: Migration foundation & dev environment
-    status: in-progress
+    status: done
     stories:
       rn-0-01-init-expo-monorepo:
         title: Init Expo app in monorepo
@@ -31,18 +32,65 @@ development_status:
         file: implementation-artifacts/rn-0-05-ci-typecheck.md
       rn-0-06-nativewind:
         title: NativeWind + tokens scaffold
-        status: backlog
+        status: done
+        file: implementation-artifacts/rn-0-06-nativewind-tokens.md
       rn-0-07-expo-router-root:
-        title: Expo Router root layout
-        status: backlog
+        title: Expo Router root layout + splash
+        status: done
+        file: implementation-artifacts/rn-0-07-expo-router-root.md
 
   epic-rn-1:
     title: Shared platform layer
-    status: backlog
+    status: done
+    swarm_mode: epic-rn-1
+    swarm_branch: epic-rn-1/shared-platform-layer
+    swarm_completed: 2026-06-10
+    stories:
+      rn-1-01-extract-types-package:
+        title: Extract types package
+        status: done
+        file: implementation-artifacts/rn-1-01-extract-types-package.md
+      rn-1-02-storage-adapter:
+        title: Storage adapter interface + AsyncStorage impl
+        status: done
+        file: implementation-artifacts/rn-1-02-storage-adapter.md
+      rn-1-03-merge-persisted-slices:
+        title: Extract mergePersistedFitnessSlices + tests
+        status: done
+        file: implementation-artifacts/rn-1-03-merge-persisted-slices.md
+      rn-1-04-onboarding-routing:
+        title: Extract onboarding routing + tests
+        status: done
+        file: implementation-artifacts/rn-1-04-onboarding-routing.md
+      rn-1-05-coach-engine:
+        title: Extract coach engine + tests
+        status: done
+        file: implementation-artifacts/rn-1-05-coach-engine.md
+      rn-1-06-sup-client:
+        title: Extract api-client Supabase factory
+        status: done
+        file: implementation-artifacts/rn-1-06-sup-client.md
+      rn-1-07-edge-functions:
+        title: Extract api-client Edge Function invoke
+        status: done
+        file: implementation-artifacts/rn-1-07-edge-functions.md
+      rn-1-08-pwa-imports:
+        title: PWA imports from packages (no behavior change)
+        status: done
+        file: implementation-artifacts/rn-1-08-pwa-imports.md
+      rn-1-09-vitest-workspace:
+        title: Vitest workspace config for packages/*
+        status: done
+        file: implementation-artifacts/rn-1-09-vitest-workspace.md
 
   epic-rn-2:
     title: Authentication & session
-    status: backlog
+    status: in-progress
+    stories:
+      rn-2-01-supabase-securestore:
+        title: Supabase client with SecureStore
+        status: in-progress
+        file: implementation-artifacts/rn-2-01-supabase-securestore.md
 
   epic-rn-3:
     title: Core navigation & app shell

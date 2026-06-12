@@ -5,16 +5,19 @@
   "type": "module",
   "exports": {
     "./tailwind": "./tailwind.preset.ts",
+    "./tokens": "./tokens.ts",
+    "./theme-vars": "./theme-vars.ts",
     "./tsconfig/base": "./tsconfig.base.json"
   },
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "lint": "echo lint-stub",
-    "test": "echo no-tests"
+    "test": "vitest run"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17",
-    "typescript": "~5.6.2"
+    "typescript": "~5.6.2",
+    "vitest": "^3.2.4"
   }
 }

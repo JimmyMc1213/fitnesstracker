@@ -1,12 +1,6 @@
-/** Postgres `future_you_jobs.status` values (migration 005). */
-export const FUTURE_YOU_JOB_STATUSES = [
-  "queued",
-  "generating",
-  "ready",
-  "failed",
-] as const;
+import { FUTURE_YOU_JOB_STATUSES, type FutureYouJobStatus } from "@newyouai/types";
 
-export type FutureYouJobStatus = (typeof FUTURE_YOU_JOB_STATUSES)[number];
+export { FUTURE_YOU_JOB_STATUSES, type FutureYouJobStatus };
 
 /** In-flight statuses — at most one row per user (partial unique index). */
 export const FUTURE_YOU_ACTIVE_STATUSES: readonly FutureYouJobStatus[] = [

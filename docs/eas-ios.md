@@ -11,6 +11,8 @@ Native iOS app: [`apps/mobile/`](../apps/mobile/)
 | RN-0-03 Maestro E2E harness | Done — smoke flow + `e2e-test` profile |
 | RN-0-04 Env matrix | Done — `EXPO_PUBLIC_SUPABASE_*` in `docs/env-matrix.md` |
 | RN-0-05 CI mobile typecheck | Done — GitHub Actions + turbo env |
+| RN-0-06 NativeWind + tokens | Done — `packages/config/tokens.ts`, NativeWind v4 in mobile |
+| RN-0-07 Root layout + splash | Done — `ThemeShell`, `BootSplash`, `theme-vars` light/dark |
 
 ## Two ways to run locally
 
@@ -108,7 +110,7 @@ npm run dev:mobile:client
 npm run test:e2e
 ```
 
-The smoke flow launches `app.newyouai.mobile`, waits for the home screen (`testID: home-title`), and asserts the RN-0-01 placeholder copy.
+The smoke flow launches `app.newyouai.mobile`, waits for the home screen (`testID: home-title`), and asserts the RN-0-06 placeholder copy.
 
 ### E2E simulator build (CI / RN-0-05)
 

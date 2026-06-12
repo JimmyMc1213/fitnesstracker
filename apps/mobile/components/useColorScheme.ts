@@ -1,6 +1,9 @@
-import { useColorScheme as useColorSchemeCore } from 'react-native';
+import { useColorScheme as useNativeWindColorScheme } from "nativewind";
 
-export const useColorScheme = () => {
-  const coreScheme = useColorSchemeCore();
-  return coreScheme === 'unspecified' ? 'light' : coreScheme;
-};
+export type ColorScheme = "light" | "dark";
+
+/** System-aware scheme for navigation chrome and legacy Colors map. */
+export function useColorScheme(): ColorScheme {
+  const { colorScheme } = useNativeWindColorScheme();
+  return colorScheme === "light" ? "light" : "dark";
+}

@@ -1,6 +1,9 @@
+import type { AppTheme } from "@newyouai/types";
+import { normalizeAppTheme as normalizeAppThemeCore } from "@newyouai/core";
+
 import { FITNESS_LOCAL_STORAGE_KEY } from "./persistFitnessSlice";
 
-export type AppTheme = "dark" | "light";
+export type { AppTheme };
 
 export const GYMMY_THEME_KEY = "gymmy_theme";
 
@@ -37,7 +40,7 @@ export function themeColors(theme: AppTheme) {
 }
 
 export function normalizeAppTheme(raw: unknown): AppTheme {
-  return raw === "light" ? "light" : "dark";
+  return normalizeAppThemeCore(raw);
 }
 
 export const DEFAULT_APP_THEME: AppTheme = "light";

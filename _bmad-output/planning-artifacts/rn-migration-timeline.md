@@ -13,10 +13,10 @@ estimate_weeks: 24-28
 | Phase | Weeks | Goal | Exit criteria |
 |-------|-------|------|---------------|
 | **Planning** | 1 | Phases 0–9 artifacts | Readiness READY WITH NOTES ✅ |
-| **Foundation** | 2–3 | RN-0, RN-0 Maestro | Dev client on simulator, CI green |
-| **Platform** | 2–3 | RN-1 package extraction | Vitest green in packages/* |
-| **Auth + shell** | 2–3 | RN-2, RN-3 | Auth E2E + tab shell |
-| **Vertical slice** | 2–3 | Onboarding[0-5] + home | First Maestro parity path |
+| **Foundation** | 2–3 | RN-0, RN-0 Maestro | Dev client on simulator, CI green, Maestro smoke passes |
+| **Platform** | 2–3 | RN-1 package extraction | Vitest green in packages/* (Layer 1) |
+| **Auth + shell** | 2–3 | RN-2, RN-3 | Vitest auth logic + Maestro auth E2E + tab shell |
+| **Vertical slice** | 2–3 | Onboarding[0-5] + home | First Maestro parity path (Layer 2 on top of unit tests) |
 | **Feature parity** | 12–14 | RN-4–RN-10, RN-PUSH, RN-OFFLINE | Trace matrix verified |
 | **Hardening** | 2–3 | Performance, a11y, edge cases | UAT sign-off |
 | **App Store** | 2–3 | RN-STORE, RN-PARITY | TestFlight → production approved |

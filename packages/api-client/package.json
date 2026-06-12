@@ -2,15 +2,25 @@
   "name": "@newyouai/api-client",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "lint": "echo lint-stub",
-    "test": "echo no-tests"
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@newyouai/types": "*",
+    "@supabase/supabase-js": "^2.105.4"
   },
   "devDependencies": {
-    "typescript": "~5.6.2"
+    "typescript": "~5.6.2",
+    "vitest": "^3.2.4"
   }
 }

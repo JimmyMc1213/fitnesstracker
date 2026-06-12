@@ -1,12 +1,10 @@
-# RN-0-03 smoke — dev client or e2e-test simulator build
+# App boot smoke — passes with or without Supabase (RN-2 auth gate)
 # Run from apps/mobile: npm run test:e2e
 appId: app.newyouai.mobile
 ---
 - launchApp
 - extendedWaitUntil:
     visible:
-      id: home-title
+      text: "NewYou"
     timeout: 60000
-- assertVisible:
-    id: home-title
-- assertVisible: Native iOS app — migration scaffold (RN-0-01)
+- assertVisible: "NewYou"

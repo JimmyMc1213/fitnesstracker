@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { CompletedWorkoutSession, MacroTotals, WeightEntry, WorkoutDaysPerWeek } from "@newyouai/types";
 
 import {
   buildCoachContext,
@@ -13,9 +14,8 @@ import {
   getWeighInReaction,
   getWeighInReactionForDisplay,
 } from "./coachEngine";
-import type { CompletedWorkoutSession, MacroTotals, WeightEntry, WorkoutDaysPerWeek } from "./types";
-import { DEFAULT_ONBOARDING_PROFILE } from "./onboardingProfile";
 import {
+  DEFAULT_ONBOARDING_PROFILE,
   minimalAppState,
   restDayAppState,
   trainingDayAppState,
@@ -25,9 +25,9 @@ import {
   workoutHistoryAppState,
 } from "./testFixtures/appStateFixtures";
 
-const MONDAY = new Date(2026, 4, 18, 9, 0); // 2026-05-18
+const MONDAY = new Date(2026, 4, 18, 9, 0);
 const MONDAY_KEY = "2026-05-18";
-const SUNDAY = new Date(2026, 4, 17, 9, 0); // 2026-05-17
+const SUNDAY = new Date(2026, 4, 17, 9, 0);
 const SUNDAY_KEY = "2026-05-17";
 
 const sampleSession: CompletedWorkoutSession = {
@@ -113,7 +113,7 @@ describe("getHomeCoachPlan", () => {
     const state = minimalAppState({
       nutritionTargets: { cal: 2500, p: 180, c: 250, f: 70 },
       nutritionItemsByDay: {
-        [MONDAY_KEY]: [{ id: "1", name: "Snack", cal: 200, p: 20, c: 10, f: 5 }],
+        [MONDAY_KEY]: [{ id: "1", name: "Snack", cal: 200, p: 20, c: 10, f: 5, loggedAtMs: 0 }],
       },
     });
     const ctx = buildCoachContext(state, MONDAY_KEY, MONDAY);

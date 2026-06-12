@@ -1,16 +1,21 @@
 import type { Config } from "tailwindcss";
 
-/** Brand tokens aligned with apps/pwa CSS variables (New You AI dark theme). */
+import { borderRadius, spacing, tailwindColors } from "./tokens";
+
+/** Brand tokens aligned with apps/pwa/src/fitness/theme.ts (New You AI). */
 const preset: Partial<Config> = {
   theme: {
     extend: {
-      colors: {
-        background: "#0a0a0a",
-        foreground: "#ffffff",
-        card: "#161616",
-        muted: "#888888",
-        accent: "#3B82F6",
-        border: "#2a2a2a",
+      colors: tailwindColors,
+      spacing: {
+        "screen-x": `${spacing.screenX}px`,
+        "card-pad": `${spacing.cardPadding}px`,
+        "section-gap": `${spacing.sectionGap}px`,
+      },
+      borderRadius: {
+        card: `${borderRadius.card}px`,
+        pill: `${borderRadius.pill}px`,
+        button: `${borderRadius.button}px`,
       },
       fontFamily: {
         sans: ["Inter", "-apple-system", "system-ui", "sans-serif"],

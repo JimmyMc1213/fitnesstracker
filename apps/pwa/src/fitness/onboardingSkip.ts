@@ -1,5 +1,6 @@
 import { clearOnboardingDraftStorage } from "./onboardingDraft";
 import { savePersistedSlice, type PersistedFitnessSlice } from "./persistFitnessSlice";
+import { hasExistingFitnessData as hasExistingFitnessDataCore } from "@newyouai/core";
 
 export function legacyUserEmails(): string[] {
   const raw = import.meta.env.VITE_LEGACY_USER_EMAILS;
@@ -19,8 +20,7 @@ export function isLegacyUserEmail(email: string | null | undefined): boolean {
 }
 
 export function hasExistingFitnessData(p: Partial<PersistedFitnessSlice> | null | undefined): boolean {
-  if (!p) return false;
-  return Object.keys(p.workoutsCompletedByDay ?? {}).length > 0 || (p.weightLog?.length ?? 0) > 0;
+  return hasExistingFitnessDataCore(p);
 }
 
 /** Profile + setup flags saved during onboarding, even if onboardingComplete never synced. */

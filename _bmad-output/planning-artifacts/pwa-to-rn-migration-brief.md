@@ -40,7 +40,7 @@ Migrate **New You AI** from its production-ready Vite PWA (`apps/pwa`, `app.newy
 - Cloud sync parity (`fitnessCloudSync`, local persist slice → native secure storage adapter)
 - Native replacements for web-only capabilities: camera, barcode scan, push notifications, secure token storage, photo save/share
 - **Future You full MVP** (upload, generate, gallery, paywall UI, report, delete)
-- Test strategy: Vitest for shared logic; Maestro E2E for critical iOS paths
+- Test strategy (two layers): **regular testing** (Vitest + typecheck, blocking every PR) **plus Maestro E2E on top** for critical iOS paths — Maestro does not replace unit tests
 - App Store readiness: privacy manifest, TestFlight, review checklist
 - Traceability: PWA screen → FR → epic → story → test
 
@@ -59,7 +59,7 @@ Migrate **New You AI** from its production-ready Vite PWA (`apps/pwa`, `app.newy
 |------|-----------|
 | **Feature parity** | Every in-scope PWA tab/flow has a mapped RN screen; trace matrix 100% for in-scope FRs |
 | **Behavior parity** | Acceptance criteria reference PWA behavior; UAT sign-off on critical paths |
-| **Test coverage** | Shared package logic unit-tested before UI port; E2E on auth, onboarding, workout session, nutrition log, sync |
+| **Test coverage** | Layer 1: Vitest + typecheck green before merge. Layer 2: Maestro E2E on auth, onboarding, workout session, nutrition log, sync |
 | **App Store readiness** | TestFlight build approved; privacy manifest; Future You AI disclosures per risk doc |
 | **Implementation readiness** | BMAD readiness report: READY or READY WITH NOTES |
 | **No silent deferrals** | Any cut from PWA scope documented with PO sign-off |

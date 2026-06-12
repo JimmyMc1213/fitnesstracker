@@ -1,66 +1,28 @@
-import type { AppState } from "./types";
-import { safeJsonParse } from "./safeJsonParse";
+import type { AppState, PersistedFitnessSlice } from "@newyouai/types";
+import {
+  FITNESS_LOCAL_STORAGE_KEY,
+  createLocalStorageAdapter,
+  savePersistedSlice as savePersistedSliceToAdapter,
+  safeJsonParse,
+} from "@newyouai/core";
+import type { SyncStorageLike } from "@newyouai/core";
 
-export const FITNESS_LOCAL_STORAGE_KEY = "fitcoach:persist:v1";
+function fitnessSyncStorage(): SyncStorageLike {
+  if (typeof localStorage !== "undefined") return localStorage;
+  const mem = new Map<string, string>();
+  return {
+    getItem: (key) => mem.get(key) ?? null,
+    setItem: (key, value) => {
+      mem.set(key, value);
+    },
+    removeItem: (key) => {
+      mem.delete(key);
+    },
+  };
+}
 
-const KEY = FITNESS_LOCAL_STORAGE_KEY;
-
-export type PersistedFitnessSlice = Pick<
-  AppState,
-  | "nutritionLog"
-  | "nutritionManualByDay"
-  | "nutritionItemsByDay"
-  | "nutritionPresets"
-  | "nutritionUserFoods"
-  | "nutritionMeals"
-  | "nutritionTargets"
-  | "weightLog"
-  | "progressPics"
-  | "progressPicsLock"
-  | "lastAdjustmentSundayKey"
-  | "sundayReviewCompletedKey"
-  | "weekFocusCommitments"
-  | "weekFocusWeekStartKey"
-  | "sundayCheckInHistory"
-  | "adjustmentHistory"
-  | "workout"
-  | "customExercises"
-  | "exerciseNotesByKey"
-  | "workoutTemplates"
-  | "workoutsCompletedByDay"
-  | "streakEligibleByDay"
-  | "fitnessStreakSnapshot"
-  | "streakSessionBaseline"
-  | "streakLossNoticeDismissedForKey"
-  | "exercisePersonalBests"
-  | "exerciseSessionHistoryByKey"
-  | "workoutHistory"
-  | "nightlyStretchCompletedArizonaKey"
-  | "nightlyStretchBlockIdsByArizonaDay"
-  | "displayName"
-  | "habitTemplates"
-  | "habitsDoneByDay"
-  | "planStartIso"
-  | "stepsTarget"
-  | "progressGoal"
-  | "unitPreferences"
-  | "unitPreferencesChosen"
-  | "experienceLevel"
-  | "experienceLevelChosen"
-  | "equipmentSetup"
-  | "equipmentSetupChosen"
-  | "restTimerDefaultSeconds"
-  | "restTimerSecondsByExerciseKey"
-  | "onboardingProfile"
-  | "onboardingComplete"
-  | "onboardingDraft"
-  | "theme"
-  | "subscriptionTier"
-  | "futureYou"
-  | "notificationPreferences"
-  | "waterLogByDay"
-  | "waterDailyTargetOz"
->;
+export { FITNESS_LOCAL_STORAGE_KEY };
+export type { PersistedFitnessSlice };
 
 export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
   return {
@@ -120,21 +82,19 @@ export function sliceFromAppState(state: AppState): PersistedFitnessSlice {
   };
 }
 
+/** Sync load — mirrors core `loadPersistedSlice` for browser localStorage. */
 export function loadPersistedSlice(): Partial<PersistedFitnessSlice> | null {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = fitnessSyncStorage().getItem(FITNESS_LOCAL_STORAGE_KEY);
     if (!raw) return null;
-    const parsed = safeJsonParse<Partial<PersistedFitnessSlice> | null>(raw, null, FITNESS_LOCAL_STORAGE_KEY);
-    return parsed;
+    return safeJsonParse<Partial<PersistedFitnessSlice> | null>(raw, null, FITNESS_LOCAL_STORAGE_KEY);
   } catch {
     return null;
   }
 }
 
+/** Sync save — delegates to core adapter; localStorage write completes before return. */
 export function savePersistedSlice(slice: PersistedFitnessSlice): void {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(slice));
-  } catch {
-    /* quota */
-  }
+  const adapter = createLocalStorageAdapter(fitnessSyncStorage());
+  void savePersistedSliceToAdapter(adapter, FITNESS_LOCAL_STORAGE_KEY, slice);
 }

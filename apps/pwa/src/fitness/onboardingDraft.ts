@@ -15,7 +15,7 @@ import {
 } from "./onboardingStepMigration";
 import { clampOnboardingStepIndex } from "./onboardingSteps";
 import { normalizeFutureYouDraft } from "./futureYouDraft";
-import { safeJsonParse } from "./safeJsonParse";
+import { safeJsonParse } from "@newyouai/core";
 import type {
   EquipmentSetup,
   ExperienceLevel,

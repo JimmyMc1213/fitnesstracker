@@ -13,7 +13,7 @@
 | `apps/pwa/` | `@newyouai/pwa` | **Product PWA** — migration parity baseline |
 | `apps/web/` | `@newyouai/web` | Marketing (Next.js) — out of RN scope |
 | `apps/admin/` | `@newyouai/admin` | Staff dashboard — out of RN scope |
-| `apps/mobile/` | *(not created)* | Target Expo RN iOS app |
+| `apps/mobile/` | Expo RN iOS app | Root layout + splash, NativeWind tokens (RN-0-07) |
 | `packages/config/` | `@newyouai/config` | Shared Tailwind/TS config (web/admin) |
 | `packages/types/` | `@newyouai/types` | Stub — extract during RN-1 |
 | `packages/core/` | `@newyouai/core` | Stub — extract during RN-1 |
@@ -87,6 +87,7 @@
 | 7 | Readiness | ✅ READY WITH NOTES |
 | 8 | Timeline | ✅ Complete |
 | 9 | Master plan | ✅ Complete |
-| **Next** | RN-0-06 NativeWind + tokens | 🔜 next |
+| **Next** | RN-2-01 Supabase client with SecureStore | 🔜 next |
+| **Swarm** | epic-rn-1/shared-platform-layer | ✅ RN-1 complete (2026-06-10) |
 
 Master plan: [`pwa-to-rn-migration-plan.md`](../_bmad-output/planning-artifacts/pwa-to-rn-migration-plan.md)

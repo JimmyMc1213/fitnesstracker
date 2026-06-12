@@ -1,17 +1,26 @@
 import { describe, expect, it } from "vitest";
 
-import { mergePersistedFitnessSlices } from "./mergePersistedFitnessSlices";
 import { buildOnboardingDraft } from "./onboardingDraft";
-import { DEFAULT_ONBOARDING_PROFILE } from "./onboardingProfile";
 import { DEFAULT_EQUIPMENT_SETUP } from "./equipmentSetup";
 import { DEFAULT_EXPERIENCE_LEVEL } from "./experienceLevel";
+import { mergePersistedFitnessSlices } from "./mergePersistedFitnessSlices";
 import { DEFAULT_UNIT_PREFERENCES } from "./unitPreferences";
-import type { PersistedFitnessSlice } from "./persistFitnessSlice";
-import { sliceFromAppState } from "./persistFitnessSlice";
-import { buildAppStateFromPersisted } from "./buildAppState";
+import { createEmptyPersistedSlice } from "./testFixtures";
 
-function minimalSlice(overrides: Partial<PersistedFitnessSlice> = {}): PersistedFitnessSlice {
-  return { ...sliceFromAppState(buildAppStateFromPersisted({})), ...overrides };
+const DEFAULT_ONBOARDING_PROFILE = {
+  goal: "maintain" as const,
+  heightIn: 70,
+  weightLbs: 180,
+  age: 30,
+  gender: "male" as const,
+  activityLevel: "moderate" as const,
+  workoutDaysPerWeek: 4 as const,
+  pace: "balanced" as const,
+  sessionDuration: "45_to_60" as const,
+};
+
+function minimalSlice(overrides: Partial<ReturnType<typeof createEmptyPersistedSlice>> = {}) {
+  return createEmptyPersistedSlice(overrides);
 }
 
 describe("mergePersistedFitnessSlices onboarding draft", () => {

@@ -1,0 +1,1 @@
+export const DEFAULT_REST_TIMER_SECONDS = 60;

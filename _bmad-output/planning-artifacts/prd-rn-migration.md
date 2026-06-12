@@ -216,10 +216,20 @@ App is ready for TestFlight and App Store submission.
 - Auth tokens in SecureStore
 - Certificate pinning not required MVP
 
-### NFR-4: Testing
-- 100% FR-M* mapped in trace matrix
-- Shared logic unit-tested in `packages/*` before UI port
-- Maestro E2E on auth, onboarding, workout, nutrition, sync, Future You upload
+### NFR-4: Testing (two layers — regular + Maestro)
+
+**Layer 1 — Regular testing (blocking on every PR):**
+- `turbo typecheck` and `turbo test` green in CI
+- Shared logic unit-tested in `packages/*` **before** RN UI port
+- Vitest ports from PWA test files where logic is extracted (coach, dailyPlan, workout, nutrition, Future You guards, etc.)
+
+**Layer 2 — Maestro E2E (on top of Layer 1, not a substitute):**
+- Maestro harness in `apps/mobile/.maestro/` (RN-0-03)
+- E2E flows on iOS simulator/dev client for: auth, onboarding, workout session, nutrition log, coach→nutrition, cloud sync, Future You upload
+- Per-story DoD: Maestro flow passes when story touches a critical path; `testID` on targeted elements
+
+**Traceability:**
+- 100% FR-M* mapped in trace matrix to ≥1 test (unit and/or Maestro)
 
 ### NFR-5: App Store compliance
 - Guideline 3.1.1 IAP for digital subscriptions

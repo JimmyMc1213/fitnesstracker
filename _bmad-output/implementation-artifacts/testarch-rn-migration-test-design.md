@@ -7,13 +7,16 @@ framework: Vitest + Maestro
 
 # Test Architecture — RN Migration
 
+**Principle:** Regular testing (Vitest + typecheck) is the foundation. Maestro E2E runs **on top** — it validates native UI flows that unit tests cannot cover. Both layers are required; Maestro does not replace Vitest.
+
 ## 1. Test pyramid
 
-| Layer | Tool | Scope | When |
-|-------|------|-------|------|
-| Unit | Vitest | `packages/core`, `packages/api-client` | Before UI port of each feature |
-| Component | Vitest + RNTL (optional) | Critical RN components | Selective |
-| E2E | Maestro | iOS simulator/dev client | Critical paths + per-epic smoke |
+| Layer | Tool | Scope | When | Blocking |
+|-------|------|-------|------|----------|
+| Typecheck | `turbo typecheck` | Monorepo incl. `apps/mobile` | Every PR | Yes |
+| Unit | Vitest | `packages/core`, `packages/api-client` | Before UI port of each feature | Yes |
+| Component | Vitest + RNTL (optional) | Critical RN components | Selective | Yes when added |
+| E2E | Maestro | iOS simulator/dev client | Critical paths + per-epic smoke | Yes (post RN-0-03) |
 
 ## 2. Framework setup (RN-0-03, RN-0-05)
 

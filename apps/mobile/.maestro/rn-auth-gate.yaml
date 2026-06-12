@@ -1,0 +1,28 @@
+# RN-2-01 auth gate — requires Supabase env in dev client build
+# Run from apps/mobile with EXPO_PUBLIC_SUPABASE_* set (see .env.example)
+# Optional sign-in: MAESTRO_TEST_EMAIL + MAESTRO_TEST_PASSWORD env vars
+appId: app.newyouai.mobile
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- assertVisible:
+    id: auth-welcome-headline
+- assertNotVisible:
+    id: home-title
+- tapOn:
+    id: auth-sign-in-link
+- assertVisible:
+    id: auth-sign-in-title
+- assertVisible:
+    id: auth-sign-in-email
+- tapOn:
+    id: auth-sign-in-back
+- tapOn:
+    id: auth-get-started-button
+- assertVisible:
+    id: auth-sign-up-title
+- assertVisible:
+    id: auth-sign-up-email

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { ONBOARDING_STEP_ACTIVITY, ONBOARDING_STEP_FUTURE_YOU_PHOTO, ONBOARDING_STEP_PACE } from "./onboardingSteps";
+import {
+  ONBOARDING_STEP_ACTIVITY,
+  ONBOARDING_STEP_FUTURE_YOU_PHOTO,
+  ONBOARDING_STEP_PACE,
+} from "./steps";
 import {
   backStepFromFutureYouPhoto,
   isGoalWeightOrPaceStep,
@@ -12,7 +16,7 @@ import {
   resolveGoalLockedOnboardingStep,
   resolveMaintainOnboardingStep,
   resolveOnboardingStepOnRestore,
-} from "./onboardingRouting";
+} from "./routing";
 
 describe("onboardingRouting", () => {
   it("identifies maintain goal and goal weight / pace steps", () => {
