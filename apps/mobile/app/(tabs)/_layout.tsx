@@ -1,71 +1,29 @@
-import { SymbolView } from 'expo-symbols';
-import { Link, Tabs } from 'expo-router';
-import { Platform, Pressable } from 'react-native';
+import { router, Tabs } from "expo-router";
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { AppShellErrorBoundary } from "@/components/AppShellErrorBoundary";
+import { TabBarDock } from "@/components/TabBarDock";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <Tabs
+    <AppShellErrorBoundary onRetry={() => router.replace("/(tabs)/home")}>
+      <Tabs
+      initialRouteName="home"
+      tabBar={(props) => (
+        <TabBarDock state={props.state} descriptors={props.descriptors} navigation={props.navigation} />
+      )}
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: false,
+        tabBarShowLabel: false,
         sceneStyle: { flex: 1 },
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
-            />
-          ),
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable style={{ marginRight: 15 }}>
-                {({ pressed }) => (
-                  <SymbolView
-                    name={{ ios: 'info.circle', android: 'info', web: 'info' }}
-                    size={25}
-                    tintColor={Colors[colorScheme].text}
-                    style={{ opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="two"
-        options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
-            />
-          ),
-        }}
-      />
+      }}
+    >
+      <Tabs.Screen name="home" options={{ title: "Home" }} />
+      <Tabs.Screen name="nutrition" options={{ title: "Nutrition" }} />
+      <Tabs.Screen name="workout" options={{ title: "Workout" }} />
+      <Tabs.Screen name="progress" options={{ title: "Progress" }} />
+      <Tabs.Screen name="settings" options={{ href: null, title: "Settings" }} />
+      <Tabs.Screen name="future-you" options={{ href: null, title: "NewYou" }} />
     </Tabs>
+    </AppShellErrorBoundary>
   );
 }

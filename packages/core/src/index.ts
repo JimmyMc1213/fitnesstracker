@@ -76,6 +76,14 @@ export type {
 } from "./storage";
 export { canRevisitFutureYouPhoto } from "./onboarding/future-you-routing";
 export {
+  canReachOnboardingWizard,
+  isAppShellLoading,
+  needsAuthForApp,
+  resolveAppShellMainView,
+  type AppShellMainView,
+  type AppShellRoutingInput,
+} from "./shell/appShellRouting";
+export {
   isMaintainGoal,
   isGoalWeightOrPaceStep,
   nextStepAfterGoal,

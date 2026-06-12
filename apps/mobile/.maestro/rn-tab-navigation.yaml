@@ -1,0 +1,87 @@
+# RN-3-01 tab navigation — requires Supabase + test account + Metro on :8082
+# Run: MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:tab-nav
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- tapOn:
+    id: auth-sign-in-link
+- tapOn:
+    id: auth-sign-in-email
+- eraseText
+- inputText: ${TEST_EMAIL}
+- tapOn:
+    id: auth-sign-in-password
+- eraseText
+- inputText: ${TEST_PASSWORD}
+- tapOn:
+    id: auth-sign-in-title
+- tapOn:
+    id: auth-sign-in-submit
+- runFlow: subflows/dismiss-ios-password-prompt.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- tapOn:
+    id: tab-bar-nutrition
+- extendedWaitUntil:
+    visible:
+      id: tab-nutrition
+    timeout: 10000
+- tapOn:
+    id: tab-bar-workout
+- extendedWaitUntil:
+    visible:
+      id: tab-workout
+    timeout: 10000
+- tapOn:
+    id: tab-bar-progress
+- extendedWaitUntil:
+    visible:
+      id: tab-progress
+    timeout: 10000
+- tapOn:
+    id: tab-fab-future-you
+- extendedWaitUntil:
+    visible:
+      id: tab-future-you
+    timeout: 10000
+- tapOn:
+    id: tab-bar-home
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 10000
+- assertVisible:
+    id: home-title
+- assertVisible:
+    id: home-sign-out
+- tapOn:
+    id: tab-bar-nutrition
+- extendedWaitUntil:
+    visible:
+      id: tab-nutrition
+    timeout: 10000
+- tapOn:
+    id: open-log-food
+- extendedWaitUntil:
+    visible:
+      id: modal-log-food
+    timeout: 10000
+- tapOn:
+    id: modal-close
+- extendedWaitUntil:
+    visible:
+      id: tab-nutrition
+    timeout: 10000

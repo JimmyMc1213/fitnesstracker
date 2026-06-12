@@ -2,9 +2,36 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
-last_updated: 2026-06-12  # RN-2 epic done (Maestro sweep green)
+last_updated: 2026-06-12  # epic-rn-3 COMPLETE — auth-all + tab-nav Maestro green
 resourcing: solo-dev-ai
 
+# RN-3 SCOPE LOCKS (2026-06-12 sprint planning):
+#   - Tab bar + Future You FAB: IN SCOPE (RN-3-01)
+#   - appShellRouting + useAppShellGate: IN SCOPE (RN-3-02)
+#   - (onboarding) stub route group: IN SCOPE (RN-3-02; wizard steps RN-4)
+#   - Modal shells log-food / sunday-check-in: IN SCOPE (RN-3-03)
+#   - Settings stack scaffold: IN SCOPE (RN-3-04; panel content RN-10)
+#   - Error/loading boundaries: IN SCOPE (RN-3-05)
+#   - Deep link stub newyouai://: IN SCOPE (RN-3-06)
+#   - Full tab screen content: OUT OF SCOPE (RN-5..RN-9)
+#   - Onboarding wizard steps: OUT OF SCOPE (RN-4)
+#   - Fitness cloud sync / hydration: OUT OF SCOPE (RN-OFFLINE)
+#   - Universal links: OUT OF SCOPE (RN-STORE)
+#   - Plan doc: sprint-rn-3-app-shell-plan.md
+#
+# RN-3 swarm order (execute in this sequence):
+#   RN-3-01 → RN-3-02 → RN-3-03 → RN-3-04 → RN-3-05 → RN-3-06 → retro
+#   Branch: epic-rn-3/core-navigation-app-shell
+#   Kickoff: /bmad-swarm epic-rn-3
+#
+# RN-3 BMAD SWARM ALIGNMENT:
+# ==========================
+# - bmad-swarm epic-rn-3: COMPLETE on epic-rn-3/core-navigation-app-shell (2026-06-12)
+# - Maestro sweep: npm run test:e2e:auth-all ✅ + npm run test:e2e:tab-nav ✅ (2026-06-12)
+# - Per-story gate: npm run typecheck --workspace=@newyouai/mobile ✅
+# - Metro for Maestro: npx expo start --dev-client --port 8082
+# - Story files: implementation-artifacts/rn-3-01..06 (all done)
+#
 # RN-2 SCOPE LOCKS (2026-06-12 sprint planning):
 #   - Email sign-up + sign-in: IN SCOPE (RN-2-02; RN-2-01 done)
 #   - Google + Apple OAuth: IN SCOPE (RN-2-03, RN-2-04)
@@ -148,11 +175,53 @@ development_status:
         file: implementation-artifacts/rn-2-05-sign-out-session-oauth.md
     retrospective:
       epic-rn-2-retrospective:
-        status: optional
+        status: done
+        file: implementation-artifacts/epic-rn-2-retro-2026-06-12.md
+        completed: 2026-06-12
 
   epic-rn-3:
     title: Core navigation & app shell
-    status: backlog
+    status: done
+    swarm_mode: epic-rn-3
+    swarm_branch: epic-rn-3/core-navigation-app-shell
+    swarm_completed: 2026-06-12
+    plan: implementation-artifacts/sprint-rn-3-app-shell-plan.md
+    swarm_start: rn-3-01-tab-bar-future-you-fab
+    execute_order: rn-3-01 → rn-3-02 → rn-3-03 → rn-3-04 → rn-3-05 → rn-3-06
+    stories:
+      rn-3-01-tab-bar-future-you-fab:
+        title: Tab bar with Future You FAB
+        status: done
+        file: implementation-artifacts/rn-3-01-tab-bar-future-you-fab.md
+        completed: 2026-06-12
+      rn-3-02-app-shell-routing:
+        title: appShellRouting parity (loading/auth/app)
+        status: done
+        file: implementation-artifacts/rn-3-02-app-shell-routing.md
+        completed: 2026-06-12
+      rn-3-03-modal-route-shells:
+        title: Modal routes — log-food, sunday-check-in shells
+        status: done
+        file: implementation-artifacts/rn-3-03-modal-route-shells.md
+        completed: 2026-06-12
+      rn-3-04-settings-stack-navigation:
+        title: Settings stack navigation
+        status: done
+        file: implementation-artifacts/rn-3-04-settings-stack-navigation.md
+        completed: 2026-06-12
+      rn-3-05-error-loading-boundaries:
+        title: Error/loading boundaries
+        status: done
+        file: implementation-artifacts/rn-3-05-error-loading-boundaries.md
+        completed: 2026-06-12
+      rn-3-06-deep-link-handler-stub:
+        title: Deep link handler stub
+        status: done
+        file: implementation-artifacts/rn-3-06-deep-link-handler-stub.md
+        completed: 2026-06-12
+    retrospective:
+      epic-rn-3-retrospective:
+        status: optional
 
   epic-rn-4:
     title: Onboarding v2

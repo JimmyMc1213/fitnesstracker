@@ -5,7 +5,7 @@ import {
   needsAuthForApp,
   resolveAppShellMainView,
   type AppShellRoutingInput,
-} from "@newyouai/core";
+} from "./appShellRouting";
 
 function baseInput(overrides: Partial<AppShellRoutingInput> = {}): AppShellRoutingInput {
   return {

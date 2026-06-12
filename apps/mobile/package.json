@@ -12,13 +12,14 @@
     "eas": "eas",
     "typecheck": "tsc --noEmit",
     "build": "echo mobile-build-stub",
-    "test": "echo no-tests",
+    "test": "vitest run",
     "test:e2e": "maestro test .maestro/smoke.yaml",
     "test:e2e:auth": "maestro test .maestro/rn-auth-gate.yaml",
     "test:e2e:auth-sign-in": "maestro test .maestro/rn-auth-gate-sign-in.yaml",
     "test:e2e:auth-sign-up": "maestro test .maestro/rn-auth-sign-up.yaml",
     "test:e2e:auth-sign-out": "maestro test .maestro/rn-auth-sign-out.yaml",
     "test:e2e:auth-all": "node scripts/run-auth-maestro.mjs",
+    "test:e2e:tab-nav": "node scripts/run-tab-nav-maestro.mjs",
     "lint": "echo lint-stub"
   },
   "dependencies": {
@@ -56,6 +57,7 @@
     "babel-preset-expo": "~56.0.0",
     "eas-cli": "^20.1.0",
     "tailwindcss": "^3.4.17",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "^3.2.4"
   }
 }

@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
@@ -8,6 +9,11 @@ export default function HomeScreen() {
   const { colors } = useAppTheme();
   const { signOut } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
+  const [devCrash, setDevCrash] = useState(false);
+
+  if (__DEV__ && devCrash) {
+    throw new Error("Dev-only app shell error boundary test");
+  }
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -27,7 +33,7 @@ export default function HomeScreen() {
         justifyContent: "center",
         backgroundColor: colors.background,
       }}
-      testID="home-screen"
+      testID="tab-home"
     >
       <Text
         className="mb-3 text-[28px] font-bold"
@@ -39,12 +45,12 @@ export default function HomeScreen() {
       <Text className="mb-2 text-center text-base" style={{ color: colors.textSecondary }}>
         Native iOS app — authentication & session (RN-2)
       </Text>
-      <Text className="mb-8 text-center text-sm" style={{ color: colors.textTertiary }}>
+      <Text className="mb-6 text-center text-sm" style={{ color: colors.textTertiary }}>
         Light/dark tokens follow system appearance. Full settings ship in RN-10.
       </Text>
 
       <Pressable
-        className="min-w-[160px] items-center rounded-full border px-6 py-3"
+        className="mb-6 min-w-[160px] items-center rounded-full border px-6 py-3"
         style={{ borderColor: colors.border, opacity: signingOut ? 0.7 : 1 }}
         onPress={() => void handleSignOut()}
         disabled={signingOut}
@@ -59,6 +65,41 @@ export default function HomeScreen() {
           </Text>
         )}
       </Pressable>
+
+      <Pressable
+        className="mb-3 min-w-[220px] items-center rounded-full border px-6 py-3"
+        style={{ borderColor: colors.border }}
+        onPress={() => router.push("/(modals)/sunday-check-in")}
+        testID="open-sunday-check-in"
+      >
+        <Text className="text-base font-semibold" style={{ color: colors.textPrimary }}>
+          Sunday check-in
+        </Text>
+      </Pressable>
+
+      <Pressable
+        className="min-w-[220px] items-center rounded-full border px-6 py-3"
+        style={{ borderColor: colors.border }}
+        onPress={() => router.push("/(tabs)/settings")}
+        testID="open-settings"
+      >
+        <Text className="text-base font-semibold" style={{ color: colors.textPrimary }}>
+          Settings
+        </Text>
+      </Pressable>
+
+      {__DEV__ ? (
+        <Pressable
+          className="mt-6 rounded-full border px-4 py-2"
+          style={{ borderColor: colors.border }}
+          onPress={() => setDevCrash(true)}
+          testID="dev-trigger-app-shell-error"
+        >
+          <Text className="text-sm" style={{ color: colors.textTertiary }}>
+            Dev: trigger error boundary
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }

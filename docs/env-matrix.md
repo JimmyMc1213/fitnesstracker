@@ -80,6 +80,35 @@ supabase config push --yes
 
 **Apple Sign-In (RN-2-04):** Enable **Apple** provider in Supabase dashboard. iOS builds need Sign in with Apple capability (`usesAppleSignIn: true` in `app.config.ts`). Full Apple auth testing may require TestFlight; simulator behavior varies.
 
+### Onboarding stub override (RN-3-02+)
+
+Until RN-4 wires real onboarding state, `@newyouai/onboardingComplete` in AsyncStorage controls shell routing:
+
+| Value | Signed-in destination |
+|-------|----------------------|
+| `true` (default) | `(tabs)` — Maestro auth flows |
+| `false` | `(onboarding)` stub |
+
+```javascript
+import AsyncStorage from "@react-native-async-storage/async-storage";
+await AsyncStorage.setItem("@newyouai/onboardingComplete", "false");
+```
+
+### Custom scheme deep links (RN-3-06)
+
+App scheme: **`newyouai`** (`apps/mobile/app.config.ts`). Stub routes:
+
+| URL | Destination |
+|-----|-------------|
+| `newyouai://home` | Home tab |
+| `newyouai://settings/account` | Settings account panel |
+| `newyouai://stretch` | Home tab (mobility param stub) |
+| `newyouai://auth/callback#access_token=…` | OAuth session handler (RN-2) |
+
+Simulator: `xcrun simctl openurl booted "newyouai://settings/account"`
+
+Universal links ship in RN-STORE.
+
 ### Future (documented for RN-1+)
 
 | Variable | Epic | Notes |

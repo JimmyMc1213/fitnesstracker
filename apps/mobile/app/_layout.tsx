@@ -1,24 +1,27 @@
 import { darkThemeColors, lightThemeColors } from "@newyouai/config/tokens";
+import { isAppShellLoading } from "@newyouai/core";
 import { useFonts } from "expo-font";
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState, type ReactNode } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
 import "react-native-reanimated";
 import "../global.css";
 
+import { AppShellErrorFallback } from "@/components/AppShellErrorFallback";
+import { AppShellLoading } from "@/components/AppShellLoading";
 import { BootSplash } from "@/components/BootSplash";
 import { ThemeShell } from "@/components/ThemeShell";
 import { useColorScheme } from "@/components/useColorScheme";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { useAuthGate } from "@/hooks/useAuthGate";
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { useAppShellGate, useAppShellRoutingInput } from "@/hooks/useAppShellGate";
+import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
+import { useOnboardingStub } from "@/hooks/useOnboardingStub";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from "expo-router";
+export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  return <AppShellErrorFallback onRetry={retry} />;
+}
 
 export const unstable_settings = {
   // Auth-first when Supabase is configured (AC1); tabs-first for unconfigured smoke (AC6).
@@ -79,37 +82,42 @@ export default function RootLayout() {
   );
 }
 
-function SessionLoadingGate({ children }: { children: ReactNode }) {
-  const { configured, sessionResolved } = useAuth();
-  const { colors } = useAppTheme();
+function AppShellLoadingGate({ children }: { children: ReactNode }) {
+  const { configured, sessionEmail } = useAuth();
+  const shellInput = useAppShellRoutingInput();
+  const { onboardingStubHydrated } = useOnboardingStub();
 
-  if (configured && !sessionResolved) {
-    return (
-      <View
-        style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background }}
-        testID="auth-session-loading"
-      >
-        <ActivityIndicator color={colors.accent} />
-      </View>
-    );
+  const awaitingOnboardingStub =
+    configured && sessionEmail != null && !onboardingStubHydrated;
+
+  if (awaitingOnboardingStub || (configured && isAppShellLoading(shellInput))) {
+    return <AppShellLoading />;
   }
 
   return children;
 }
 
+function DeepLinkListener() {
+  const { completeOAuthFromUrl } = useAuth();
+  useDeepLinkHandler(completeOAuthFromUrl);
+  return null;
+}
+
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  useAuthGate();
+  useAppShellGate();
 
   return (
     <ThemeProvider value={navigationTheme(colorScheme)}>
-      <SessionLoadingGate>
+      <AppShellLoadingGate>
+        <DeepLinkListener />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(onboarding)" />
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="modal" options={{ presentation: "modal", headerShown: true, title: "Info" }} />
+          <Stack.Screen name="(modals)" options={{ presentation: "modal", headerShown: false }} />
         </Stack>
-      </SessionLoadingGate>
+      </AppShellLoadingGate>
     </ThemeProvider>
   );
 }

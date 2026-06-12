@@ -28,6 +28,7 @@ type AuthContextValue = {
   signInWithOAuth: (provider: "google") => Promise<{ error?: string }>;
   signInWithApple: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
+  completeOAuthFromUrl: (redirectUrl: string) => Promise<{ error?: string }>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -266,6 +267,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithOAuth,
       signInWithApple,
       signOut,
+      completeOAuthFromUrl: completeOAuthRedirect,
     }),
     [
       configured,
@@ -276,6 +278,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithOAuth,
       signInWithApple,
       signOut,
+      completeOAuthRedirect,
     ],
   );
 
