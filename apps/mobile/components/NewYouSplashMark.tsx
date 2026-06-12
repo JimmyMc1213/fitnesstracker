@@ -1,15 +1,15 @@
-import { Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 function BrandIcon({ color }: { color: string }) {
   return (
-    <View className="h-[22px] w-[22px] flex-row items-center justify-center" accessibilityElementsHidden>
-      <View className="h-8 w-[3px] rounded-sm" style={{ backgroundColor: color }} />
-      <View className="mx-0.5 h-5 w-[2.5px] rounded-sm" style={{ backgroundColor: color }} />
-      <View className="h-0.5 w-6 rounded-sm" style={{ backgroundColor: color }} />
-      <View className="mx-0.5 h-5 w-[2.5px] rounded-sm" style={{ backgroundColor: color }} />
-      <View className="h-8 w-[3px] rounded-sm" style={{ backgroundColor: color }} />
+    <View style={styles.brandIcon} accessibilityElementsHidden>
+      <View style={[styles.brandBarTall, { backgroundColor: color }]} />
+      <View style={[styles.brandBarMid, { backgroundColor: color }]} />
+      <View style={[styles.brandBarWide, { backgroundColor: color }]} />
+      <View style={[styles.brandBarMid, { backgroundColor: color }]} />
+      <View style={[styles.brandBarTall, { backgroundColor: color }]} />
     </View>
   );
 }
@@ -18,16 +18,53 @@ export function NewYouSplashMark() {
   const { colors } = useAppTheme();
 
   return (
-    <View className="items-center" testID="splash-mark">
-      <View
-        className="mb-4 h-14 w-14 items-center justify-center rounded-2xl"
-        style={{ backgroundColor: colors.accent }}
-      >
+    <View style={styles.root} testID="splash-mark">
+      <View style={[styles.logoBox, { backgroundColor: colors.accent }]}>
         <BrandIcon color={colors.accentText} />
       </View>
-      <Text className="text-[28px] font-bold tracking-tight" style={{ color: colors.textPrimary }}>
-        NewYou
-      </Text>
+      <Text style={[styles.wordmark, { color: colors.textPrimary }]}>NewYou</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    alignItems: "center",
+  },
+  logoBox: {
+    marginBottom: 16,
+    height: 56,
+    width: 56,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 16,
+  },
+  wordmark: {
+    fontSize: 28,
+    fontWeight: "700",
+    letterSpacing: -0.5,
+  },
+  brandIcon: {
+    height: 22,
+    width: 22,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  brandBarTall: {
+    height: 32,
+    width: 3,
+    borderRadius: 2,
+  },
+  brandBarMid: {
+    marginHorizontal: 2,
+    height: 20,
+    width: 2.5,
+    borderRadius: 2,
+  },
+  brandBarWide: {
+    height: 2,
+    width: 24,
+    borderRadius: 2,
+  },
+});

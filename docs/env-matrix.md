@@ -80,14 +80,50 @@ supabase config push --yes
 
 **Apple Sign-In (RN-2-04):** Enable **Apple** provider in Supabase dashboard. iOS builds need Sign in with Apple capability (`usesAppleSignIn: true` in `app.config.ts`). Full Apple auth testing may require TestFlight; simulator behavior varies.
 
-### Onboarding stub override (RN-3-02+)
+### Onboarding wizard (RN-4+)
 
-Until RN-4 wires real onboarding state, `@newyouai/onboardingComplete` in AsyncStorage controls shell routing:
+`@newyouai/onboardingComplete` in AsyncStorage controls shell routing after sign-in:
 
 | Value | Signed-in destination |
 |-------|----------------------|
 | `true` (default) | `(tabs)` — Maestro auth flows |
-| `false` | `(onboarding)` stub |
+| `false` | `(onboarding)` wizard |
+
+Maestro escape hatch (default skips wizard):
+
+| Variable | Value | Effect |
+|----------|-------|--------|
+| `EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING` | unset or `true` | Default `@newyouai/onboardingComplete` = `true` |
+| `EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING` | `false` | Default `@newyouai/onboardingComplete` = `false` (exercise wizard in dev builds) |
+
+**Onboarding Maestro (RN-4-12):** Build dev client with `EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING=false`, then:
+
+```bash
+cd apps/mobile
+MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:onboarding
+```
+
+Epic close sweep also runs `npm run test:e2e:auth-all` and `npm run test:e2e:tab-nav`.
+
+Draft resume uses the same key as PWA: `gymmy_onboarding_draft`.
+
+### RevenueCat (RN-4-10+ paywall)
+
+Sandbox IAP uses `react-native-purchases`. Requires a **dev client rebuild** after adding the native module.
+
+| Variable | Required | Notes |
+|----------|:--------:|-------|
+| `EXPO_PUBLIC_REVENUECAT_IOS_KEY` | opt | RevenueCat iOS public API key (sandbox). Without it, paywall CTA uses **stub purchase** (assigns `pro` locally). |
+| `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` | opt | Android public API key when testing Android builds. |
+
+Stub path: when no key is set, tapping subscribe/restore succeeds immediately so Maestro and local dev can finish onboarding without StoreKit.
+
+```bash
+# apps/mobile/.env (local dev client)
+EXPO_PUBLIC_REVENUECAT_IOS_KEY=appl_xxxxxxxx
+```
+
+EAS: store as project secrets alongside Supabase vars. Production App Store products ship in RN-STORE epic.
 
 ```javascript
 import AsyncStorage from "@react-native-async-storage/async-storage";

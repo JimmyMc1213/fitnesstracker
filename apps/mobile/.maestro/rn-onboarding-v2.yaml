@@ -1,0 +1,16 @@
+# RN-4 onboarding v2 — maintain path through paywall stub to Home
+# Requires EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING=false dev client build
+# Run: MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:onboarding
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- runFlow: subflows/onboarding-sign-in.yaml
+- runFlow: subflows/onboarding-maintain-to-calendar.yaml
+- runFlow: subflows/onboarding-calendar-to-home.yaml

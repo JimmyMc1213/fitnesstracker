@@ -1,0 +1,98 @@
+appId: app.newyouai.mobile
+---
+- tapOn:
+    text: "Pick for me"
+- tapOn:
+    id: onboarding-continue
+# Split reveal
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-16
+    timeout: 10000
+- tapOn:
+    id: onboarding-continue
+# Dietary restrictions
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-18
+    timeout: 10000
+- tapOn:
+    text: "No restrictions. I eat everything"
+- tapOn:
+    id: onboarding-continue
+# Training style
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-19
+    timeout: 10000
+- tapOn:
+    text: "Tell me exactly what to do"
+- tapOn:
+    id: onboarding-continue
+# Plan building animation
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-20
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-21
+    timeout: 15000
+- tapOn:
+    id: onboarding-continue
+# Protein priority
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-22
+    timeout: 10000
+- tapOn:
+    id: onboarding-continue
+# Split summary (step 23)
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-23
+    timeout: 10000
+- tapOn:
+    id: onboarding-continue
+# Notification pre-prompt
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-24
+    timeout: 10000
+- tapOn:
+    id: onboarding-notification-allow
+# Reminder picker skip
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-25
+    timeout: 10000
+- tapOn:
+    id: onboarding-continue
+# Plan ready
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-26
+    timeout: 10000
+- tapOn:
+    id: onboarding-continue
+# Paywall stub
+- extendedWaitUntil:
+    visible:
+      id: onboarding-paywall
+    timeout: 10000
+- tapOn:
+    id: onboarding-paywall-cta
+# Success
+- extendedWaitUntil:
+    visible:
+      id: onboarding-future-you-success
+    timeout: 10000
+- tapOn:
+    id: onboarding-future-you-success-continue
+# Home tabs
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- assertVisible:
+    id: home-title

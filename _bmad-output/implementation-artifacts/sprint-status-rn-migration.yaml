@@ -2,9 +2,44 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
-last_updated: 2026-06-12  # epic-rn-3 COMPLETE — auth-all + tab-nav Maestro green
+last_updated: 2026-06-12  # RN-4 stories ready-for-dev — swarm-ready epic-rn-4
 resourcing: solo-dev-ai
 
+# RN-4 SCOPE LOCKS (2026-06-12 sprint planning):
+#   - Onboarding wizard shell + (onboarding)/[step]: IN SCOPE (RN-4-01)
+#   - OB-00–05 hook + about you: IN SCOPE (RN-4-02)
+#   - OB-06–08 height/weight/goal: IN SCOPE (RN-4-03)
+#   - OB-09–10 goal weight/pace + maintain branch: IN SCOPE (RN-4-04)
+#   - OB-10b–10c Future You photo + motivation: IN SCOPE (RN-4-05)
+#   - OB-11–15 training setup + calendar: IN SCOPE (RN-4-06)
+#   - OB-16–19 split reveal + training style: IN SCOPE (RN-4-07)
+#   - OB-20–22 plan build + fuel: IN SCOPE (RN-4-08)
+#   - OB-23–26 launch + plan ready: IN SCOPE (RN-4-09)
+#   - OB-27/28 paywall + RevenueCat sandbox: IN SCOPE (RN-4-10)
+#   - OB-28b Future You success + onboardingComplete: IN SCOPE (RN-4-11)
+#   - Draft resume + Maestro rn-onboarding-v2.yaml: IN SCOPE (RN-4-12)
+#   - Fitness cloud sync on complete: OUT OF SCOPE (RN-OFFLINE)
+#   - Real IAP / App Store products: OUT OF SCOPE (RN-STORE)
+#   - Home/coach tab content: OUT OF SCOPE (RN-5)
+#   - Push notification scheduling: OUT OF SCOPE (RN-PUSH; UI only in RN-4-09)
+#   - Plan doc: sprint-rn-4-onboarding-v2-plan.md
+#
+# RN-4 BMAD SWARM ALIGNMENT:
+# ==========================
+# - bmad-swarm epic-rn-4: DONE (2026-06-12) — RN-4-01..12 complete
+# - Branch: epic-rn-4/onboarding-v2
+# - Start: rn-4-01-onboarding-wizard-shell.md
+# - Per-story gate: npm run typecheck --workspace=@newyouai/mobile
+# - Epic close gate: npm run test:e2e:onboarding + auth-all + tab-nav (RN-4-12)
+# - Code review fixes 2026-06-12: Maestro flows expanded; typecheck + 40 unit tests pass
+# - Maestro locally: Java runtime + MAESTRO_TEST_* + EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING=false build
+# - Metro for Maestro: npx expo start --dev-client --port 8082
+#
+# RN-4 swarm order (execute in this sequence):
+#   RN-4-01 → RN-4-02 → RN-4-03 → RN-4-04 → RN-4-05 → RN-4-06 → RN-4-07
+#   → RN-4-08 → RN-4-09 → RN-4-10 → RN-4-11 → RN-4-12 → retro
+#   Kickoff: /bmad-swarm epic-rn-4
+#
 # RN-3 SCOPE LOCKS (2026-06-12 sprint planning):
 #   - Tab bar + Future You FAB: IN SCOPE (RN-3-01)
 #   - appShellRouting + useAppShellGate: IN SCOPE (RN-3-02)
@@ -225,7 +260,78 @@ development_status:
 
   epic-rn-4:
     title: Onboarding v2
-    status: backlog
+    status: done
+    completed: 2026-06-12
+    swarm_mode: epic-rn-4
+    swarm_branch: epic-rn-4/onboarding-v2
+    plan: implementation-artifacts/sprint-rn-4-onboarding-v2-plan.md
+    swarm_start: rn-4-01-onboarding-wizard-shell
+    swarm_ready: 2026-06-12
+    execute_order: rn-4-01 → rn-4-02 → rn-4-03 → rn-4-04 → rn-4-05 → rn-4-06 → rn-4-07 → rn-4-08 → rn-4-09 → rn-4-10 → rn-4-11 → rn-4-12
+    stories:
+      rn-4-01-onboarding-wizard-shell:
+        title: Onboarding wizard shell + step router
+        status: done
+        file: implementation-artifacts/rn-4-01-onboarding-wizard-shell.md
+        completed: 2026-06-12
+      rn-4-02-hook-about-you-ob-00-05:
+        title: Hook + About you OB-00–05
+        status: done
+        file: implementation-artifacts/rn-4-02-hook-about-you-ob-00-05.md
+        completed: 2026-06-12
+      rn-4-03-height-weight-goal-ob-06-08:
+        title: Height, weight, primary goal OB-06–08
+        status: done
+        file: implementation-artifacts/rn-4-03-height-weight-goal-ob-06-08.md
+        completed: 2026-06-12
+      rn-4-04-goal-weight-pace-ob-09-10:
+        title: Goal weight, pace, maintain branch OB-09–10
+        status: done
+        file: implementation-artifacts/rn-4-04-goal-weight-pace-ob-09-10.md
+        completed: 2026-06-12
+      rn-4-05-future-you-photo-motivation-ob-10bc:
+        title: Future You photo + motivation OB-10b–10c
+        status: done
+        file: implementation-artifacts/rn-4-05-future-you-photo-motivation-ob-10bc.md
+        completed: 2026-06-12
+      rn-4-06-training-setup-ob-11-15:
+        title: Training setup OB-11–15
+        status: done
+        file: implementation-artifacts/rn-4-06-training-setup-ob-11-15.md
+        completed: 2026-06-12
+      rn-4-07-split-training-style-ob-16-19:
+        title: Split reveal + training style OB-16–19
+        status: done
+        file: implementation-artifacts/rn-4-07-split-training-style-ob-16-19.md
+        completed: 2026-06-12
+      rn-4-08-plan-build-fuel-ob-20-22:
+        title: Plan build + fuel OB-20–22
+        status: done
+        file: implementation-artifacts/rn-4-08-plan-build-fuel-ob-20-22.md
+        completed: 2026-06-12
+      rn-4-09-launch-plan-ready-ob-23-26:
+        title: Launch screens through plan ready OB-23–26
+        status: done
+        file: implementation-artifacts/rn-4-09-launch-plan-ready-ob-23-26.md
+        completed: 2026-06-12
+      rn-4-10-paywall-revenuecat-ob-27:
+        title: Paywall + RevenueCat sandbox OB-27/28
+        status: done
+        file: implementation-artifacts/rn-4-10-paywall-revenuecat-ob-27.md
+        completed: 2026-06-12
+      rn-4-11-future-you-success-ob-28b:
+        title: Future You success + onboardingComplete OB-28b
+        status: done
+        file: implementation-artifacts/rn-4-11-future-you-success-ob-28b.md
+        completed: 2026-06-12
+      rn-4-12-draft-resume-maestro-e2e:
+        title: Draft resume + Maestro onboarding E2E
+        status: done
+        file: implementation-artifacts/rn-4-12-draft-resume-maestro-e2e.md
+        completed: 2026-06-12
+    retrospective:
+      epic-rn-4-retrospective:
+        status: optional
 
   epic-rn-5:
     title: Home & coach

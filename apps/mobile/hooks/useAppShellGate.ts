@@ -8,7 +8,7 @@ import { useRouter, useSegments } from "expo-router";
 import { useEffect, useMemo } from "react";
 
 import { useAuth } from "@/context/AuthContext";
-import { useOnboardingStub } from "@/hooks/useOnboardingStub";
+import { useOnboardingState } from "@/hooks/useOnboardingState";
 
 function buildShellRoutingInput(
   auth: Pick<
@@ -31,7 +31,7 @@ function buildShellRoutingInput(
 /** Redirects between `(auth)`, `(onboarding)`, and `(tabs)` based on app shell routing. */
 export function useAppShellGate() {
   const auth = useAuth();
-  const { onboardingComplete, onboardingStubHydrated } = useOnboardingStub();
+  const { onboardingComplete, onboardingHydrated } = useOnboardingState();
   const segments = useSegments();
   const router = useRouter();
 
@@ -42,7 +42,7 @@ export function useAppShellGate() {
 
   useEffect(() => {
     if (auth.configured && !auth.sessionResolved) return;
-    if (auth.configured && auth.sessionEmail && !onboardingStubHydrated) return;
+    if (auth.configured && auth.sessionEmail && !onboardingHydrated) return;
 
     const inAuthGroup = segments[0] === "(auth)";
     const inOnboardingGroup = segments[0] === "(onboarding)";
@@ -75,11 +75,11 @@ export function useAppShellGate() {
     if (inAuthGroup || inOnboardingGroup || (mainView === "app" && !inTabsGroup)) {
       router.replace("/(tabs)/home");
     }
-  }, [auth.configured, auth.sessionResolved, auth.sessionEmail, onboardingStubHydrated, segments, router, shellInput]);
+  }, [auth.configured, auth.sessionResolved, auth.sessionEmail, onboardingHydrated, segments, router, shellInput]);
 }
 
 export function useAppShellRoutingInput(): AppShellRoutingInput {
   const auth = useAuth();
-  const { onboardingComplete } = useOnboardingStub();
+  const { onboardingComplete } = useOnboardingState();
   return useMemo(() => buildShellRoutingInput(auth, onboardingComplete), [auth, onboardingComplete]);
 }

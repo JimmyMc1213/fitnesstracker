@@ -1,0 +1,162 @@
+import { useState } from "react";
+import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import type { FutureYouDraft, FutureYouJobStatus } from "@newyouai/types";
+
+import { OnboardingPaywallFutureYouHero } from "@/components/onboarding/OnboardingPaywallFutureYouHero";
+import { OnboardingPaywallPlanPicker } from "@/components/onboarding/OnboardingPaywallPlanPicker";
+import { OnboardingPaywallPlanSummary } from "@/components/onboarding/OnboardingPaywallPlanSummary";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { FUTURE_YOU_PRIVACY_POLICY_URL, PAYWALL_TERMS_URL } from "@/lib/futureYouLegal";
+import {
+  futureYouPaywallCtaLabel,
+  isFutureYouPaywallCtaEnabled,
+  isFutureYouPaywallHeroVisible,
+} from "@/lib/futureYouPaywallModel";
+import type { OnboardingPlanSnapshot } from "@/lib/onboardingPlanSnapshot";
+import type { PaywallBillingPeriod } from "@/lib/paywallPlans";
+import { purchaseProSubscription, restorePurchases } from "@/lib/revenueCat";
+
+type Props = {
+  onSelectTier: (tier: "pro") => void;
+  onBack: () => void;
+  planSnapshot: OnboardingPlanSnapshot;
+  futureYou: FutureYouDraft | undefined;
+  generationStatus: FutureYouJobStatus | "idle";
+  photoBlocked: boolean;
+};
+
+export function OnboardingPaywall({
+  onSelectTier,
+  onBack,
+  planSnapshot,
+  futureYou,
+  generationStatus,
+  photoBlocked,
+}: Props) {
+  const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const [billingPeriod, setBillingPeriod] = useState<PaywallBillingPeriod>("yearly");
+  const [purchasing, setPurchasing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const heroVisible = isFutureYouPaywallHeroVisible(futureYou, photoBlocked);
+  const ctaEnabled = isFutureYouPaywallCtaEnabled(futureYou, generationStatus, photoBlocked) && !purchasing;
+  const ctaLabel = futureYouPaywallCtaLabel(futureYou, generationStatus, photoBlocked, billingPeriod);
+
+  async function handlePurchase() {
+    if (!ctaEnabled) return;
+    setPurchasing(true);
+    setError(null);
+    const result = await purchaseProSubscription(billingPeriod);
+    setPurchasing(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    onSelectTier("pro");
+  }
+
+  async function handleRestore() {
+    if (!ctaEnabled) return;
+    setPurchasing(true);
+    setError(null);
+    const result = await restorePurchases();
+    setPurchasing(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    onSelectTier("pro");
+  }
+
+  return (
+    <View
+      testID="onboarding-paywall"
+      style={{
+        flex: 1,
+        backgroundColor: colors.background,
+        paddingTop: insets.top + 8,
+        paddingBottom: insets.bottom + 16,
+        paddingHorizontal: 23,
+      }}
+    >
+      <Pressable
+        onPress={onBack}
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+        testID="onboarding-back"
+        className="mb-4 h-10 w-10 items-center justify-center"
+      >
+        <Text className="text-2xl" style={{ color: colors.textPrimary }}>
+          ‹
+        </Text>
+      </Pressable>
+
+      <ScrollView className="flex-1" contentContainerStyle={{ gap: 20, paddingBottom: 16 }}>
+        <Text className="text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
+          {heroVisible ? (
+            <>
+              Unlock <Text style={{ color: colors.accent }}>NewYouAI</Text> to see what you can look like.
+            </>
+          ) : (
+            <>
+              Unlock <Text style={{ color: colors.accent }}>NewYouAI</Text> to reach your goals faster.
+            </>
+          )}
+        </Text>
+
+        {heroVisible ? (
+          <OnboardingPaywallFutureYouHero
+            timeline={planSnapshot.timeline}
+            jobId={futureYou?.generationJobId}
+            status={generationStatus}
+          />
+        ) : (
+          <OnboardingPaywallPlanSummary planSnapshot={planSnapshot} />
+        )}
+      </ScrollView>
+
+      <View className="gap-3">
+        <OnboardingPaywallPlanPicker value={billingPeriod} onChange={setBillingPeriod} />
+        <Pressable
+          onPress={() => void handlePurchase()}
+          disabled={!ctaEnabled}
+          testID="onboarding-paywall-cta"
+          className="items-center rounded-full py-4"
+          style={{
+            backgroundColor: ctaEnabled ? colors.accent : colors.border,
+            opacity: ctaEnabled ? 1 : 0.6,
+          }}
+        >
+          <Text className="text-base font-semibold" style={{ color: colors.accentText }}>
+            {purchasing ? "Processing…" : ctaLabel}
+          </Text>
+        </Pressable>
+        {error ? (
+          <Text className="text-center text-sm" style={{ color: "#f87171" }}>
+            {error}
+          </Text>
+        ) : null}
+        <View className="flex-row flex-wrap justify-center gap-x-4 gap-y-1">
+          <Pressable onPress={() => void handleRestore()} testID="onboarding-paywall-restore">
+            <Text className="text-sm underline" style={{ color: colors.textSecondary }}>
+              Restore Purchases
+            </Text>
+          </Pressable>
+          <Pressable onPress={() => void Linking.openURL(PAYWALL_TERMS_URL)}>
+            <Text className="text-sm underline" style={{ color: colors.textSecondary }}>
+              Terms
+            </Text>
+          </Pressable>
+          <Pressable onPress={() => void Linking.openURL(FUTURE_YOU_PRIVACY_POLICY_URL)}>
+            <Text className="text-sm underline" style={{ color: colors.textSecondary }}>
+              Privacy
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+}

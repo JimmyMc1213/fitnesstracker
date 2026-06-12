@@ -1,11 +1,11 @@
-import { themeColors } from "@newyouai/config/tokens";
-
-import { useColorScheme } from "@/components/useColorScheme";
+import { useThemePreference } from "@/hooks/useThemePreference";
 
 export function useAppTheme() {
-  const scheme = useColorScheme();
+  const { scheme, colors, theme, setTheme } = useThemePreference();
   return {
     scheme,
-    colors: themeColors(scheme),
+    colors,
+    theme,
+    setTheme,
   };
 }

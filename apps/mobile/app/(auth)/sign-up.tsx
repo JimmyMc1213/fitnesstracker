@@ -15,6 +15,7 @@ import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
 import { useAuth } from "@/context/AuthContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { authLayout } from "@/lib/authLayoutStyles";
 
 export default function SignUpScreen() {
   const { colors } = useAppTheme();
@@ -47,7 +48,6 @@ export default function SignUpScreen() {
       } else if (result.needsConfirmation) {
         setInfo("Check your inbox and click the confirmation link, then come back and sign in.");
       }
-      // Navigation to tabs is handled by useAuthGate when onAuthStateChange updates session.
     } catch {
       setError("Something went wrong. Try again.");
     } finally {
@@ -55,47 +55,51 @@ export default function SignUpScreen() {
     }
   };
 
+  const inputStyle = [
+    authLayout.input,
+    {
+      backgroundColor: colors.card,
+      color: colors.textPrimary,
+      borderColor: colors.border,
+    },
+  ];
+
   return (
     <KeyboardAvoidingView
-      className="flex-1"
-      style={{ backgroundColor: colors.background }}
+      style={[authLayout.screen, { backgroundColor: colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View
-        className="flex-1 px-screen-x"
-        style={{
-          paddingTop: insets.top + 16,
-          paddingBottom: insets.bottom + 24,
-        }}
+        style={[
+          authLayout.screenPadding,
+          {
+            paddingTop: insets.top + 16,
+            paddingBottom: insets.bottom + 24,
+          },
+        ]}
         testID="auth-sign-up-screen"
       >
         <Pressable onPress={() => router.back()} testID="auth-sign-up-back">
-          <Text className="text-base" style={{ color: colors.accent }}>
-            Back
-          </Text>
+          <Text style={{ color: colors.accent, fontSize: 16 }}>Back</Text>
         </Pressable>
 
-        <View className="mt-6 items-center">
+        <View style={{ marginTop: 24, alignItems: "center" }}>
           <NewYouSplashMark />
         </View>
 
         <Text
-          className="mt-8 text-center text-[26px] font-bold"
-          style={{ color: colors.textPrimary }}
+          style={[
+            authLayout.headline,
+            { marginTop: 32, color: colors.textPrimary, fontSize: 26 },
+          ]}
           testID="auth-sign-up-title"
         >
           Create your account
         </Text>
 
-        <View className="mt-8 gap-3">
+        <View style={authLayout.inputStack}>
           <TextInput
-            className="rounded-full px-5 py-4 text-base"
-            style={{
-              backgroundColor: colors.card,
-              color: colors.textPrimary,
-              borderColor: colors.border,
-              borderWidth: 1,
-            }}
+            style={inputStyle}
             placeholder="Name"
             placeholderTextColor={colors.textTertiary}
             value={name}
@@ -106,13 +110,7 @@ export default function SignUpScreen() {
             testID="auth-sign-up-name"
           />
           <TextInput
-            className="rounded-full px-5 py-4 text-base"
-            style={{
-              backgroundColor: colors.card,
-              color: colors.textPrimary,
-              borderColor: colors.border,
-              borderWidth: 1,
-            }}
+            style={inputStyle}
             placeholder="Email"
             placeholderTextColor={colors.textTertiary}
             value={email}
@@ -125,13 +123,7 @@ export default function SignUpScreen() {
             testID="auth-sign-up-email"
           />
           <TextInput
-            className="rounded-full px-5 py-4 text-base"
-            style={{
-              backgroundColor: colors.card,
-              color: colors.textPrimary,
-              borderColor: colors.border,
-              borderWidth: 1,
-            }}
+            style={inputStyle}
             placeholder="Password"
             placeholderTextColor={colors.textTertiary}
             value={password}
@@ -144,26 +136,34 @@ export default function SignUpScreen() {
           />
         </View>
 
-        <View className="mt-4">
+        <View style={{ marginTop: 16 }}>
           <AuthOAuthButtons onError={setError} />
         </View>
 
         {error ? (
-          <Text className="mt-4 text-center text-sm text-red-500" testID="auth-sign-up-error">
+          <Text
+            style={{ marginTop: 16, textAlign: "center", fontSize: 14, color: "#ef4444" }}
+            testID="auth-sign-up-error"
+          >
             {error}
           </Text>
         ) : null}
 
         {info ? (
-          <Text className="mt-4 text-center text-sm" style={{ color: colors.accent }} testID="auth-sign-up-info">
+          <Text
+            style={{ marginTop: 16, textAlign: "center", fontSize: 14, color: colors.accent }}
+            testID="auth-sign-up-info"
+          >
             {info}
           </Text>
         ) : null}
 
-        <View className="mt-auto gap-4">
+        <View style={authLayout.footerActions}>
           <Pressable
-            className="items-center rounded-full py-4"
-            style={{ backgroundColor: colors.accent, opacity: loading ? 0.7 : 1 }}
+            style={[
+              authLayout.primaryButton,
+              { backgroundColor: colors.accent, opacity: loading ? 0.7 : 1 },
+            ]}
             onPress={() => void handleSignUp()}
             disabled={loading}
             testID="auth-sign-up-submit"
@@ -171,19 +171,20 @@ export default function SignUpScreen() {
             {loading ? (
               <ActivityIndicator color={colors.accentText} />
             ) : (
-              <Text className="text-base font-semibold" style={{ color: colors.accentText }}>
+              <Text style={[authLayout.primaryButtonText, { color: colors.accentText }]}>
                 Create Account
               </Text>
             )}
           </Pressable>
 
           <Pressable
-            className="items-center py-2"
+            style={{ alignItems: "center", paddingVertical: 8 }}
             onPress={() => router.replace("/(auth)/sign-in")}
             testID="auth-sign-up-to-sign-in"
           >
-            <Text className="text-sm" style={{ color: colors.textSecondary }}>
-              Already have an account? <Text style={{ color: colors.accent, fontWeight: "600" }}>Sign in</Text>
+            <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+              Already have an account?{" "}
+              <Text style={{ color: colors.accent, fontWeight: "600" }}>Sign in</Text>
             </Text>
           </Pressable>
         </View>

@@ -1,0 +1,26 @@
+# RN-4 draft resume — calendar step after kill + relaunch
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- runFlow: subflows/onboarding-sign-in.yaml
+- runFlow: subflows/onboarding-maintain-to-calendar.yaml
+- tapOn:
+    text: "Pick for me"
+- stopApp
+- launchApp:
+    clearState: false
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-15
+    timeout: 60000
+- assertVisible:
+    text: "Which days can you train?"

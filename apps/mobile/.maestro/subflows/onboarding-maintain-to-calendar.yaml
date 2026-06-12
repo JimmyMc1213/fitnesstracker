@@ -1,0 +1,126 @@
+appId: app.newyouai.mobile
+---
+# Welcome + theme
+- tapOn:
+    id: onboarding-continue
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-1
+    timeout: 10000
+- tapOn:
+    id: onboarding-continue
+# Gender
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-2
+    timeout: 10000
+- tapOn:
+    text: "Male"
+- tapOn:
+    id: onboarding-continue
+# DOB (default seeded)
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-3
+    timeout: 10000
+- tapOn:
+    id: onboarding-continue
+# Referral
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-4
+    timeout: 10000
+- tapOn:
+    text: "Friend or family"
+- tapOn:
+    id: onboarding-continue
+# Units
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-5
+    timeout: 10000
+- tapOn:
+    id: onboarding-continue
+# Height
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-6
+    timeout: 10000
+- tapOn:
+    id: onboarding-height-feet
+- eraseText
+- inputText: "5"
+- tapOn:
+    id: onboarding-height-inches
+- eraseText
+- inputText: "10"
+- tapOn:
+    id: onboarding-continue
+# Weight
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-7
+    timeout: 10000
+- tapOn:
+    id: onboarding-weight-input
+- eraseText
+- inputText: "180"
+- tapOn:
+    id: onboarding-continue
+# Goal maintain
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-8
+    timeout: 10000
+- tapOn:
+    text: "Maintain and perform"
+- tapOn:
+    id: onboarding-continue
+# Future You photo skip
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-100
+    timeout: 10000
+- tapOn:
+    id: onboarding-skip
+# Activity
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-11
+    timeout: 10000
+- tapOn:
+    text: "Moderate (3-4 days/wk)"
+- tapOn:
+    id: onboarding-continue
+# Experience
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-12
+    timeout: 10000
+- tapOn:
+    text: "Intermediate"
+- tapOn:
+    id: onboarding-continue
+# Equipment
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-13
+    timeout: 10000
+- tapOn:
+    text: "Full gym"
+- tapOn:
+    id: onboarding-continue
+# Session length
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-14
+    timeout: 10000
+- tapOn:
+    text: "1 hour – 1.5 hours"
+- tapOn:
+    id: onboarding-continue
+# Calendar
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-15
+    timeout: 10000

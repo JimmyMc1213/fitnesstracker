@@ -3,6 +3,7 @@ import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native
 
 import { useAuth } from "@/context/AuthContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { authLayout } from "@/lib/authLayoutStyles";
 
 type AuthOAuthButtonsProps = {
   onError?: (message: string) => void;
@@ -11,12 +12,12 @@ type AuthOAuthButtonsProps = {
 function AuthDivider() {
   const { colors } = useAppTheme();
   return (
-    <View className="my-2 flex-row items-center gap-3" accessibilityElementsHidden>
-      <View className="h-px flex-1" style={{ backgroundColor: colors.border }} />
-      <Text className="text-xs" style={{ color: colors.textTertiary }}>
+    <View style={authLayout.oauthDividerRow} accessibilityElementsHidden>
+      <View style={[authLayout.oauthDividerLine, { backgroundColor: colors.border }]} />
+      <Text style={[authLayout.oauthDividerText, { color: colors.textTertiary }]}>
         or continue with
       </Text>
-      <View className="h-px flex-1" style={{ backgroundColor: colors.border }} />
+      <View style={[authLayout.oauthDividerLine, { backgroundColor: colors.border }]} />
     </View>
   );
 }
@@ -54,17 +55,19 @@ export function AuthOAuthButtons({ onError }: AuthOAuthButtonsProps) {
   const appleBusy = loadingProvider === "apple";
 
   return (
-    <View className="gap-3">
+    <View style={authLayout.oauthStack}>
       <AuthDivider />
 
       {Platform.OS === "ios" ? (
         <Pressable
-          className="flex-row items-center justify-center gap-2 rounded-full border py-4"
-          style={{
-            backgroundColor: colors.textPrimary,
-            borderColor: colors.textPrimary,
-            opacity: appleBusy ? 0.7 : 1,
-          }}
+          style={[
+            authLayout.oauthButton,
+            {
+              backgroundColor: colors.textPrimary,
+              borderColor: colors.textPrimary,
+              opacity: appleBusy ? 0.7 : 1,
+            },
+          ]}
           onPress={() => void handleApple()}
           disabled={loadingProvider !== null}
           testID="auth-oauth-apple"
@@ -73,7 +76,7 @@ export function AuthOAuthButtons({ onError }: AuthOAuthButtonsProps) {
           {appleBusy ? (
             <ActivityIndicator color={colors.background} />
           ) : (
-            <Text className="text-base font-semibold" style={{ color: colors.background }}>
+            <Text style={[authLayout.oauthButtonText, { color: colors.background }]}>
               Continue with Apple
             </Text>
           )}
@@ -81,12 +84,14 @@ export function AuthOAuthButtons({ onError }: AuthOAuthButtonsProps) {
       ) : null}
 
       <Pressable
-        className="flex-row items-center justify-center gap-2 rounded-full border py-4"
-        style={{
-          backgroundColor: colors.card,
-          borderColor: colors.border,
-          opacity: googleBusy ? 0.7 : 1,
-        }}
+        style={[
+          authLayout.oauthButton,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+            opacity: googleBusy ? 0.7 : 1,
+          },
+        ]}
         onPress={() => void handleGoogle()}
         disabled={loadingProvider !== null}
         testID="auth-oauth-google"
@@ -95,7 +100,7 @@ export function AuthOAuthButtons({ onError }: AuthOAuthButtonsProps) {
         {googleBusy ? (
           <ActivityIndicator color={colors.textPrimary} />
         ) : (
-          <Text className="text-base font-semibold" style={{ color: colors.textPrimary }}>
+          <Text style={[authLayout.oauthButtonText, { color: colors.textPrimary }]}>
             Continue with Google
           </Text>
         )}

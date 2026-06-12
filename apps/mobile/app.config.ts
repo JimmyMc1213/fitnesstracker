@@ -12,6 +12,12 @@ const config: ExpoConfig = {
     supportsTablet: false,
     bundleIdentifier: "app.newyouai.mobile",
     usesAppleSignIn: true,
+    infoPlist: {
+      NSCameraUsageDescription:
+        "New You AI uses your camera to capture a photo for your Future You transformation preview.",
+      NSPhotoLibraryUsageDescription:
+        "New You AI uses your photo library so you can choose a picture for your Future You preview.",
+    },
   },
   android: {
     adaptiveIcon: {
@@ -22,6 +28,7 @@ const config: ExpoConfig = {
     },
     package: "app.newyouai.mobile",
     predictiveBackGestureEnabled: false,
+    permissions: ["CAMERA"],
   },
   web: {
     bundler: "metro",
@@ -33,6 +40,15 @@ const config: ExpoConfig = {
     "expo-router",
     "expo-secure-store",
     "expo-apple-authentication",
+    [
+      "expo-image-picker",
+      {
+        photosPermission:
+          "New You AI uses your photo library so you can choose a picture for your Future You preview.",
+        cameraPermission:
+          "New You AI uses your camera to capture a photo for your Future You transformation preview.",
+      },
+    ],
     [
       "expo-splash-screen",
       {

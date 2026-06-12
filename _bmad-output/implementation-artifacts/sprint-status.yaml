@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-05-23 (Sprint 11 planned - Gymmy onboarding v2)
+# last_updated: 2026-06-12 (Sprint 4 sprint plan refreshed)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -106,6 +106,19 @@
 #   - No new Home cards
 #   - Primary CTA = lime green (--pos / #4ade80); design system carries forward
 #
+# Sprint 4 order (execute in this sequence):
+#   BMad: FTI-41 → 42 → 43 → 44 → 45 → 46
+#   Linear: FTI-41 → 42 → 43 → 44 → 45 → 46
+#
+# SPRINT 4 SCOPE LOCKS (2026-06-12 sprint planning refresh):
+#   - UI polish & IA only (FTI-41 → 46); screenshot-audit bugs + design system + Home/Progress/Settings
+#   - ScreenNutrition rebuild: OUT OF SCOPE (deferred Sprint 5 FTI-49)
+#   - Home Fuel strip: unchanged (no logging changes in S4)
+#   - FTI-13 AI coach (LLM): OUT OF SCOPE (deferred; rule-based voice sufficient)
+#   - Habits nav tab removed; habits folded into Home (FTI-44)
+#   - Primary CTA = lime green (--pos / #4ade80); FTI-41 fixes broken --lime token first
+#   - Epic status: done (2026-05-23); retro: epic-fti-sprint-4-retro-2026-05-23.md
+#
 # SPRINT 5 SCOPE LOCKS (2026-05-23 sprint planning):
 #   - FTI-13 AI coach (LLM): OUT OF SCOPE, gate met; Sprint 6 product decision
 #   - Native App Store wrapper: OUT OF SCOPE
@@ -152,7 +165,7 @@
 # - Sprint 11 planned (2026-05-23): FTI-73 → 72 → 74 → 75 (FTI-69/70/71 prerequisite done)
 
 generated: 2026-05-20
-last_updated: 2026-05-23  # Sprint 11 planned (Gymmy onboarding v2)
+last_updated: 2026-06-12  # Sprint 4 sprint plan refreshed (epic complete)
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear

@@ -1,0 +1,31 @@
+# RN-4 calendar — 3-day minimum validation
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- runFlow: subflows/onboarding-sign-in.yaml
+- runFlow: subflows/onboarding-maintain-to-calendar.yaml
+- tapOn:
+    text: "Pick for me"
+- assertVisible:
+    id: onboarding-continue
+- tapOn:
+    id: onboarding-calendar-day-Wed
+- tapOn:
+    id: onboarding-calendar-day-Thu
+- tapOn:
+    id: onboarding-calendar-day-Fri
+- assertVisible:
+    text: "2 days selected"
+- tapOn:
+    text: "Pick for me"
+- assertVisible:
+    text: "4 days selected"
+- tapOn:
+    id: onboarding-continue

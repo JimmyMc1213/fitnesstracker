@@ -1,0 +1,82 @@
+import type { OnboardingProfile } from "@newyouai/types";
+import { Pressable, Text, View } from "react-native";
+
+import { useAppTheme } from "@/hooks/useAppTheme";
+import {
+  GENERATED_TRAINING_DAY_LIMITS,
+  isValidTrainingWeekdaySelection,
+  pickTrainingWeekdaysForMe,
+  profileWithTrainingWeekdays,
+  TRAINING_WEEKDAY_ORDER,
+  TRAINING_WEEKDAY_SHORT,
+  trainingWeekdaySelectionHint,
+  toggleTrainingWeekday,
+} from "@/lib/workout/workoutWeekCalendar";
+
+export { isTrainingScheduleValid } from "@/lib/workout/workoutWeekCalendar";
+
+export function WorkoutWeekCalendarPicker({
+  profile,
+  onChange,
+  showPickForMe = true,
+}: {
+  profile: Pick<OnboardingProfile, "workoutDaysPerWeek" | "trainingWeekdays">;
+  onChange: (next: Pick<OnboardingProfile, "workoutDaysPerWeek" | "trainingWeekdays">) => void;
+  showPickForMe?: boolean;
+}) {
+  const { colors } = useAppTheme();
+  const selected = profile.trainingWeekdays ?? [];
+  const valid = isValidTrainingWeekdaySelection(selected, GENERATED_TRAINING_DAY_LIMITS);
+
+  function applyWeekdays(weekdays: string[]) {
+    onChange(profileWithTrainingWeekdays(profile, weekdays));
+  }
+
+  return (
+    <View accessibilityLabel="Which days can you train?">
+      <View
+        accessibilityRole="radiogroup"
+        accessibilityLabel="Training days of the week"
+        className="flex-row flex-wrap justify-between gap-2"
+      >
+        {TRAINING_WEEKDAY_ORDER.map((day) => {
+          const on = selected.includes(day);
+          return (
+            <Pressable
+              key={day}
+              testID={`onboarding-calendar-day-${day}`}
+              accessibilityRole="button"
+              accessibilityState={{ selected: on }}
+              accessibilityLabel={`${day}${on ? ", selected" : ""}`}
+              onPress={() => applyWeekdays(toggleTrainingWeekday(selected, day, GENERATED_TRAINING_DAY_LIMITS))}
+              className="h-11 w-11 items-center justify-center rounded-full border"
+              style={{
+                borderColor: on ? colors.accent : colors.border,
+                backgroundColor: on ? `${colors.accent}22` : colors.card,
+              }}
+            >
+              <Text className="text-sm font-semibold" style={{ color: on ? colors.accent : colors.textPrimary }}>
+                {TRAINING_WEEKDAY_SHORT[day]}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Text
+        className="mt-4 text-center text-sm"
+        style={{ color: valid ? colors.textSecondary : "#f87171" }}
+      >
+        {trainingWeekdaySelectionHint(selected, { includeSplitLabel: true, limits: GENERATED_TRAINING_DAY_LIMITS })}
+      </Text>
+
+      {showPickForMe ? (
+        <Pressable onPress={() => applyWeekdays(pickTrainingWeekdaysForMe(selected))} className="mt-3 items-center py-2">
+          <Text className="text-base font-medium" style={{ color: colors.accent }}>
+            Pick for me
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}

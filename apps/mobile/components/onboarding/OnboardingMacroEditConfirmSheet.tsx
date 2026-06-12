@@ -1,0 +1,47 @@
+import { Modal, Pressable, Text, View } from "react-native";
+
+import { useAppTheme } from "@/hooks/useAppTheme";
+
+export function OnboardingMacroEditConfirmSheet({
+  visible = true,
+  onCancel,
+  onConfirm,
+}: {
+  visible?: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const { colors } = useAppTheme();
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+      <View className="flex-1 items-center justify-center bg-black/60 px-6">
+        <View
+          className="w-full max-w-sm overflow-hidden rounded-2xl"
+          style={{ backgroundColor: colors.card }}
+        >
+          <View className="px-7 py-7">
+            <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
+              Update fuel targets?
+            </Text>
+            <Text className="mt-3 text-sm leading-5" style={{ color: colors.textSecondary }}>
+              Changing your targets may affect how accurate your Future You looks. Continue?
+            </Text>
+          </View>
+          <View className="flex-row border-t" style={{ borderColor: colors.border }}>
+            <Pressable onPress={onCancel} className="flex-1 items-center py-3.5">
+              <Text className="text-[15px] font-semibold" style={{ color: "#ff6b6b" }}>
+                Cancel
+              </Text>
+            </Pressable>
+            <Pressable onPress={onConfirm} className="flex-1 items-center py-3.5">
+              <Text className="text-[15px] font-semibold" style={{ color: colors.accent }}>
+                Continue
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}

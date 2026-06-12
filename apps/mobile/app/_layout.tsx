@@ -1,3 +1,5 @@
+import "../global.css";
+
 import { darkThemeColors, lightThemeColors } from "@newyouai/config/tokens";
 import { isAppShellLoading } from "@newyouai/core";
 import { useFonts } from "expo-font";
@@ -6,7 +8,6 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState, type ReactNode } from "react";
 import { View } from "react-native";
 import "react-native-reanimated";
-import "../global.css";
 
 import { AppShellErrorFallback } from "@/components/AppShellErrorFallback";
 import { AppShellLoading } from "@/components/AppShellLoading";
