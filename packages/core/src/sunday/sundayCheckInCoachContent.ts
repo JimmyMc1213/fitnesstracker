@@ -1,7 +1,5 @@
 import type { AppState, MacroTotals } from "@newyouai/types";
 
-import { buildCoachContext, getWeeklyCoachReview } from "../coach/coachEngine";
-import { localDateKey } from "../dates/dailyPlan";
 import { nutritionGoalHitForDateKey } from "../streak/dailyStreak";
 import { formatWeeklySummaryRange } from "../training/weeklySummary";
 import { exerciseNoteKey } from "../workout/exerciseNoteKey";
