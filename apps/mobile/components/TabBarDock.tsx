@@ -2,6 +2,7 @@ import { SymbolView } from "expo-symbols";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useWorkoutShell } from "@/context/WorkoutShellContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type TabRoute = {
@@ -59,6 +60,7 @@ const MAIN_TABS = [
 ] as const;
 
 export function TabBarDock({ state, descriptors, navigation: navigationProp }: TabBarDockProps) {
+  const { hideTabBar } = useWorkoutShell();
   const navigation = navigationProp as {
     emit: (event: { type: "tabPress"; target: string; canPreventDefault: true }) => {
       defaultPrevented: boolean;
@@ -70,6 +72,10 @@ export function TabBarDock({ state, descriptors, navigation: navigationProp }: T
 
   const futureYouRouteIndex = state.routes.findIndex((route) => route.name === "future-you");
   const isFutureYouFocused = state.index === futureYouRouteIndex;
+
+  if (hideTabBar) {
+    return null;
+  }
 
   return (
     <View

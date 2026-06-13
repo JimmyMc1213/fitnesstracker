@@ -1,0 +1,59 @@
+# RN-6-11 workout session smoke — start → log set → finish → summary
+# Run: EXPO_PUBLIC_E2E_FITNESS_SEED=workout-session MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:workout-session
+# Metro must be started with the same seed:
+#   cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=workout-session npx expo start --dev-client --port 8082
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- runFlow: subflows/auth-sign-in-credentials.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- tapOn:
+    id: tab-bar-workout
+- extendedWaitUntil:
+    visible:
+      id: workout-idle
+    timeout: 15000
+- assertVisible:
+    id: workout-idle-title
+- tapOn:
+    id: workout-routine-e2e-upper
+- extendedWaitUntil:
+    visible:
+      id: routine-preview-sheet
+    timeout: 10000
+- tapOn:
+    id: workout-start-e2e-upper
+- extendedWaitUntil:
+    visible:
+      id: workout-finish
+    timeout: 15000
+- assertVisible:
+    text: "Last session:"
+- tapOn:
+    id: workout-set-e2e-bench-0-done
+- tapOn:
+    id: workout-finish
+- extendedWaitUntil:
+    visible:
+      id: workout-summary
+    timeout: 15000
+- assertVisible:
+    text: "Workout complete"
+- assertVisible:
+    text: "Nice work, session saved"
+- assertVisible:
+    text: "E2E Upper strength"

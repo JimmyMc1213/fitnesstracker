@@ -2,9 +2,44 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
-last_updated: 2026-06-12  # RN-5 epic implemented — all stories in review
+last_updated: 2026-06-12  # RN-6 sprint plan generated
 resourcing: solo-dev-ai
 
+# RN-6 SCOPE LOCKS (2026-06-12 sprint planning):
+#   - Workout core extract (autofill, finish, previous sets): IN SCOPE (RN-6-01)
+#   - Idle dashboard + routine cards: IN SCOPE (RN-6-02)
+#   - Session start/header/finish/summary: IN SCOPE (RN-6-03)
+#   - Draggable exercise reorder: IN SCOPE (RN-6-04)
+#   - Exercise card + set logging + autofill: IN SCOPE (RN-6-05)
+#   - Numeric keypad + context: IN SCOPE (RN-6-06)
+#   - Rest timer + coach card + session notes: IN SCOPE (RN-6-07)
+#   - Exercise swap + set kind + notes sheets: IN SCOPE (RN-6-08)
+#   - Confirm sheets bundle: IN SCOPE (RN-6-09)
+#   - Routine editor + weekly builder + templates: IN SCOPE (RN-6-10)
+#   - Workout history + Maestro rn-workout-session.yaml: IN SCOPE (RN-6-11)
+#   - Tab bar hide during editor/active session: IN SCOPE (RN-6-01)
+#   - Nutrition log / barcode: OUT OF SCOPE (RN-7)
+#   - Cloud sync / hydration: OUT OF SCOPE (RN-OFFLINE)
+#   - LLM coach notes: OUT OF SCOPE (PWA FTI-55 flag only)
+#   - Full mobility/stretch session player: OUT OF SCOPE (RN-5 preview handoff)
+#   - Progress PR board / calendar UI: OUT OF SCOPE (RN-8)
+#   - Plan doc: sprint-rn-6-workout-plan.md
+#
+# RN-6 BMAD SWARM ALIGNMENT:
+# ==========================
+# - bmad-swarm epic-rn-6: ready (2026-06-12) — RN-6-01..11 story files created
+# - Branch: epic-rn-6/workout-domain
+# - Start: rn-6-01-workout-core-extract-phase-shell.md
+# - Per-story gate: npm run typecheck --workspace=@newyouai/mobile
+# - Logic gate: npm run test --workspace=@newyouai/core when packages/core touched
+# - Epic close gate: rn-workout-session.yaml + auth-all + tab-nav + coach-nutrition + onboarding (RN-6-11)
+# - Metro for Maestro: npx expo start --dev-client --port 8082
+#
+# RN-6 swarm order (execute in this sequence):
+#   RN-6-01 → RN-6-02 → RN-6-03 → RN-6-04 → RN-6-05 → RN-6-06 → RN-6-07
+#   → RN-6-08 → RN-6-09 → RN-6-10 → RN-6-11 → retro
+#   Kickoff: /bmad-swarm epic-rn-6
+#
 # RN-5 SCOPE LOCKS (2026-06-12 sprint planning):
 #   - Fitness state provider + home shell: IN SCOPE (RN-5-01)
 #   - Coach plan card + task routing: IN SCOPE (RN-5-02)
@@ -406,7 +441,73 @@ development_status:
 
   epic-rn-6:
     title: Workout domain
-    status: backlog
+    status: done
+    swarm_mode: epic-rn-6
+    swarm_branch: epic-rn-6/workout-domain
+    plan: implementation-artifacts/sprint-rn-6-workout-plan.md
+    swarm_start: rn-6-01-workout-core-extract-phase-shell
+    swarm_ready: 2026-06-12
+    swarm_completed: 2026-06-12
+    execute_order: rn-6-01 → rn-6-02 → rn-6-03 → rn-6-04 → rn-6-05 → rn-6-06 → rn-6-07 → rn-6-08 → rn-6-09 → rn-6-10 → rn-6-11
+    stories:
+      rn-6-01-workout-core-extract-phase-shell:
+        title: Workout core extract + phase shell
+        status: done
+        file: implementation-artifacts/rn-6-01-workout-core-extract-phase-shell.md
+        completed: 2026-06-12
+      rn-6-02-idle-dashboard-routines:
+        title: Idle dashboard + routine cards
+        status: done
+        file: implementation-artifacts/rn-6-02-idle-dashboard-routines.md
+        completed: 2026-06-12
+      rn-6-03-session-start-header-finish-summary:
+        title: Session start + header + finish + summary
+        status: done
+        file: implementation-artifacts/rn-6-03-session-start-header-finish-summary.md
+        completed: 2026-06-12
+      rn-6-04-draggable-exercise-reorder:
+        title: Draggable exercise reorder
+        status: done
+        file: implementation-artifacts/rn-6-04-draggable-exercise-reorder.md
+        completed: 2026-06-12
+      rn-6-05-exercise-card-set-logging-autofill:
+        title: Exercise card + set logging + autofill
+        status: done
+        file: implementation-artifacts/rn-6-05-exercise-card-set-logging-autofill.md
+        completed: 2026-06-12
+      rn-6-06-numeric-keypad-context:
+        title: Numeric keypad + context
+        status: done
+        file: implementation-artifacts/rn-6-06-numeric-keypad-context.md
+        completed: 2026-06-12
+      rn-6-07-rest-timer-coach-session-notes:
+        title: Rest timer + coach card + session notes
+        status: done
+        file: implementation-artifacts/rn-6-07-rest-timer-coach-session-notes.md
+        completed: 2026-06-12
+      rn-6-08-exercise-swap-set-kind-notes:
+        title: Exercise swap + set kind + notes sheets
+        status: done
+        file: implementation-artifacts/rn-6-08-exercise-swap-set-kind-notes.md
+        completed: 2026-06-12
+      rn-6-09-confirm-sheets-bundle:
+        title: Confirm sheets bundle
+        status: done
+        file: implementation-artifacts/rn-6-09-confirm-sheets-bundle.md
+        completed: 2026-06-12
+      rn-6-10-routine-editor-weekly-builder:
+        title: Routine editor + weekly builder + templates
+        status: done
+        file: implementation-artifacts/rn-6-10-routine-editor-weekly-builder.md
+        completed: 2026-06-12
+      rn-6-11-workout-history-maestro-e2e:
+        title: Workout history + Maestro E2E + epic polish
+        status: done
+        file: implementation-artifacts/rn-6-11-workout-history-maestro-e2e.md
+        completed: 2026-06-12
+    retrospective:
+      epic-rn-6-retrospective:
+        status: optional
 
   epic-rn-7:
     title: Nutrition OS

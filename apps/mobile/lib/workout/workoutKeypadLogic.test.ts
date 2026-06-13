@@ -1,0 +1,71 @@
+import { describe, expect, it } from "vitest";
+
+import type { WorkoutExercise } from "@newyouai/types";
+
+import {
+  advanceWorkoutKeypad,
+  appendKeypadDigit,
+  applyKeypadIncrement,
+  backspaceKeypadDraft,
+  nextWorkoutKeypadTarget,
+} from "./workoutKeypadLogic";
+
+const exercises: WorkoutExercise[] = [
+  {
+    id: "e1",
+    name: "Bench",
+    target: "3 × 10",
+    sets: [
+      { w: 0, r: 0, done: false },
+      { w: 0, r: 0, done: false },
+    ],
+  },
+  {
+    id: "e2",
+    name: "Row",
+    target: "3 × 10",
+    sets: [{ w: 0, r: 0, done: false }],
+  },
+];
+
+describe("workoutKeypadLogic", () => {
+  it("appends digits and blocks invalid reps decimals", () => {
+    expect(appendKeypadDigit("", "1", false)).toBe("1");
+    expect(appendKeypadDigit("12", ".", false)).toBe("12");
+    expect(appendKeypadDigit("12", ".", true)).toBe("12.");
+  });
+
+  it("increments weight and reps in display units", () => {
+    expect(applyKeypadIncrement("", "reps", 1, "lbs")).toBe("1");
+    expect(applyKeypadIncrement("135", "weight", 5, "lbs")).toBe("140");
+    expect(applyKeypadIncrement("60", "weight", 2.5, "kg")).toBe("62.5");
+  });
+
+  it("walks fields on next", () => {
+    expect(nextWorkoutKeypadTarget(exercises, { exerciseId: "e1", setIndex: 0, field: "weight" })).toEqual({
+      exerciseId: "e1",
+      setIndex: 0,
+      field: "reps",
+    });
+    expect(nextWorkoutKeypadTarget(exercises, { exerciseId: "e1", setIndex: 1, field: "reps" })).toEqual({
+      exerciseId: "e2",
+      setIndex: 0,
+      field: "weight",
+    });
+  });
+
+  it("marks set complete when advancing from reps", () => {
+    expect(advanceWorkoutKeypad(exercises, { exerciseId: "e1", setIndex: 0, field: "weight" })).toEqual({
+      completeSet: null,
+      nextTarget: { exerciseId: "e1", setIndex: 0, field: "reps" },
+    });
+    expect(advanceWorkoutKeypad(exercises, { exerciseId: "e1", setIndex: 0, field: "reps" })).toEqual({
+      completeSet: { exerciseId: "e1", setIndex: 0 },
+      nextTarget: { exerciseId: "e1", setIndex: 1, field: "weight" },
+    });
+  });
+
+  it("backspaces draft values", () => {
+    expect(backspaceKeypadDraft("135")).toBe("13");
+  });
+});

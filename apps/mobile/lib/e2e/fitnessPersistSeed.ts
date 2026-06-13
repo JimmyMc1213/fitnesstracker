@@ -55,9 +55,53 @@ export function coachNutritionPersistSeed(dateKey = localDateKey(new Date())): P
   };
 }
 
-export type E2eFitnessSeedName = "coach-nutrition";
+/** Routine with one exercise → Workout tab session smoke (start → log set → finish → summary). */
+export function workoutSessionPersistSeed(dateKey = localDateKey(new Date())): Partial<PersistedFitnessSlice> {
+  const base = basePersistSlice(dateKey);
+  const benchExercise = {
+    id: "e2e-bench",
+    name: "Bench press",
+    target: "3 × 10",
+    sets: [
+      { w: 135, r: 10, done: false },
+      { w: 135, r: 10, done: false },
+      { w: 135, r: 10, done: false },
+    ],
+  };
+  return {
+    ...base,
+    workoutHistory: [
+      {
+        id: "e2e-prev-session",
+        dayKey: dateKey,
+        endedAtMs: Date.now() - 86_400_000,
+        startedAtMs: Date.now() - 86_400_000 - 3_600_000,
+        title: "E2E Upper strength",
+        durationSec: 3600,
+        exercises: [
+          {
+            ...benchExercise,
+            sets: benchExercise.sets.map((s) => ({ ...s, done: true })),
+          },
+        ],
+      },
+    ],
+    workoutTemplates: [
+      {
+        id: "e2e-upper",
+        name: "E2E Upper strength",
+        dayLabel: "Mon",
+        focus: "Bench · Smoke test",
+        exercises: [benchExercise],
+      },
+    ],
+  };
+}
+
+export type E2eFitnessSeedName = "coach-nutrition" | "workout-session";
 
 export function e2eFitnessSeedByName(name: E2eFitnessSeedName): Partial<PersistedFitnessSlice> | null {
   if (name === "coach-nutrition") return coachNutritionPersistSeed();
+  if (name === "workout-session") return workoutSessionPersistSeed();
   return null;
 }

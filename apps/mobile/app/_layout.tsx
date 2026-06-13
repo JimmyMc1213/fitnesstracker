@@ -1,3 +1,4 @@
+import "react-native-gesture-handler";
 import "../global.css";
 
 import { darkThemeColors, lightThemeColors } from "@newyouai/config/tokens";
@@ -7,6 +8,7 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type ErrorBoundaryProps 
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState, type ReactNode } from "react";
 import { View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
 import { AppShellErrorFallback } from "@/components/AppShellErrorFallback";
@@ -73,16 +75,18 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeShell>
-      <AuthProvider>
-        <FitnessProvider>
-          <View style={{ flex: 1 }}>
-            <RootLayoutNav />
-            {bootSplashVisible ? <BootSplash onComplete={() => setBootSplashVisible(false)} /> : null}
-          </View>
-        </FitnessProvider>
-      </AuthProvider>
-    </ThemeShell>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeShell>
+        <AuthProvider>
+          <FitnessProvider>
+            <View style={{ flex: 1 }}>
+              <RootLayoutNav />
+              {bootSplashVisible ? <BootSplash onComplete={() => setBootSplashVisible(false)} /> : null}
+            </View>
+          </FitnessProvider>
+        </AuthProvider>
+      </ThemeShell>
+    </GestureHandlerRootView>
   );
 }
 
@@ -120,6 +124,7 @@ function RootLayoutNav() {
           <Stack.Screen name="(onboarding)" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="(modals)" options={{ presentation: "modal", headerShown: false }} />
+          <Stack.Screen name="workout" options={{ headerShown: false }} />
         </Stack>
       </AppShellLoadingGate>
     </ThemeProvider>

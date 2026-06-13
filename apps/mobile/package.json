@@ -23,6 +23,7 @@
     "test:e2e:tab-nav": "node scripts/run-tab-nav-maestro.mjs",
     "test:e2e:onboarding": "node scripts/run-onboarding-maestro.mjs",
     "test:e2e:coach-nutrition": "node scripts/run-coach-nutrition-maestro.mjs",
+    "test:e2e:workout-session": "node scripts/run-workout-session-maestro.mjs",
     "lint": "echo lint-stub"
   },
   "dependencies": {
@@ -52,6 +53,8 @@
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
     "react-native-css-interop": "^0.2.5",
+    "react-native-draggable-flatlist": "^4.0.3",
+    "react-native-gesture-handler": "^3.0.1",
     "react-native-purchases": "^10.3.0",
     "react-native-reanimated": "4.3.1",
     "react-native-safe-area-context": "~5.7.0",

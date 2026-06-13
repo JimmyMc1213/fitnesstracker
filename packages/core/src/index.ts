@@ -171,6 +171,67 @@ export {
   formatEstimatedSessionMinutes,
   estimatedSessionLabel,
 } from "./workout/estimateSessionDuration";
+export { exerciseNoteKey } from "./workout/exerciseNoteKey";
+export { formatSetWeight, weightUnitLabel, LBS_PER_KG } from "./workout/unitDisplay";
+export {
+  findLastLoggedExerciseSets,
+  autofillSetsForTemplateCount,
+  autofillExerciseSets,
+  buildSetsForExercise,
+} from "./workout/workoutAutofill";
+export {
+  formatPreviousSetLine,
+  previousSetsForExercise,
+  previousSetAtIndex,
+  previousSetLinesForExercise,
+  setFieldPlaceholder,
+  canCompleteSet,
+  buildSetCompletionPatch,
+} from "./workout/workoutPreviousSets";
+export { buildCompletedWorkoutSession, appendWorkoutHistory } from "./workout/workoutHistorySession";
+export {
+  normalizeExerciseKey,
+  sessionBestForExercise,
+  buildWorkoutSessionSummary,
+  personalBestsAfterSession,
+  formatWorkoutDuration,
+} from "./workout/workoutSummarySession";
+export {
+  appendExerciseSessionHistory,
+  getExerciseSessionHistory,
+} from "./workout/exerciseSessionHistoryAppend";
+export {
+  exerciseOrderKeys,
+  detectExerciseOrderChange,
+  applyOrderToTemplate,
+} from "./workout/workoutTemplateOrder";
+export {
+  finishWorkout,
+  applyTemplateOrderUpdate,
+  dismissTemplateOrderUpdatePrompt,
+  dismissWorkoutSummary,
+  type FinishWorkoutResult,
+} from "./workout/finishWorkout";
+export {
+  sanitizeCoachCopy,
+  getExerciseSessionNote,
+  buildSessionCoachNoteForExercise,
+  buildSessionCoachNotesByExerciseId,
+  type ExerciseSessionNoteContext,
+} from "./workout/exerciseSessionNotes";
+export {
+  REPS_ONLY_ADD_WEIGHT_THRESHOLD,
+  TIME_PROGRESSION_STEP_SEC,
+  TIME_STRUGGLE_DROP_SEC,
+  carryUsesMeters,
+  getExerciseProgressionKind,
+  resolveExerciseId,
+  type ExerciseProgressionKind,
+} from "./workout/exerciseProgressionProfile";
+export { findBrowsableExercise, BROWSABLE_EXERCISES } from "./workout/exerciseLookup";
+export { default as exerciseLibrary, type Exercise } from "./workout/exerciseLibrary";
+export { default as exerciseExpansion } from "./workout/exerciseExpansion";
+export { EXERCISE_EQUIPMENT_LABELS, inferExerciseEquipmentLabel, type ExerciseEquipmentLabel } from "./workout/exerciseLabels";
 export { progressiveOverloadInsight } from "./coach/progressiveOverload";
 export { homePlanSubline } from "./coach/homePlanSubline";
 export {

@@ -2,10 +2,12 @@ import { router, Tabs } from "expo-router";
 
 import { AppShellErrorBoundary } from "@/components/AppShellErrorBoundary";
 import { TabBarDock } from "@/components/TabBarDock";
+import { WorkoutShellProvider } from "@/context/WorkoutShellContext";
 
 export default function TabLayout() {
   return (
     <AppShellErrorBoundary onRetry={() => router.replace("/(tabs)/home")}>
+      <WorkoutShellProvider>
       <Tabs
       initialRouteName="home"
       tabBar={(props) => (
@@ -24,6 +26,7 @@ export default function TabLayout() {
       <Tabs.Screen name="settings" options={{ href: null, title: "Settings" }} />
       <Tabs.Screen name="future-you" options={{ href: null, title: "NewYou" }} />
     </Tabs>
+      </WorkoutShellProvider>
     </AppShellErrorBoundary>
   );
 }

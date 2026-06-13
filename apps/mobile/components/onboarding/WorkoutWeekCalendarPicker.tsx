@@ -11,6 +11,7 @@ import {
   TRAINING_WEEKDAY_SHORT,
   trainingWeekdaySelectionHint,
   toggleTrainingWeekday,
+  type TrainingWeekdaySelectionLimits,
 } from "@/lib/workout/workoutWeekCalendar";
 
 export { isTrainingScheduleValid } from "@/lib/workout/workoutWeekCalendar";
@@ -19,14 +20,18 @@ export function WorkoutWeekCalendarPicker({
   profile,
   onChange,
   showPickForMe = true,
+  includeSplitInHint = true,
+  selectionLimits = GENERATED_TRAINING_DAY_LIMITS,
 }: {
   profile: Pick<OnboardingProfile, "workoutDaysPerWeek" | "trainingWeekdays">;
   onChange: (next: Pick<OnboardingProfile, "workoutDaysPerWeek" | "trainingWeekdays">) => void;
   showPickForMe?: boolean;
+  includeSplitInHint?: boolean;
+  selectionLimits?: TrainingWeekdaySelectionLimits;
 }) {
   const { colors } = useAppTheme();
   const selected = profile.trainingWeekdays ?? [];
-  const valid = isValidTrainingWeekdaySelection(selected, GENERATED_TRAINING_DAY_LIMITS);
+  const valid = isValidTrainingWeekdaySelection(selected, selectionLimits);
 
   function applyWeekdays(weekdays: string[]) {
     onChange(profileWithTrainingWeekdays(profile, weekdays));
@@ -48,7 +53,7 @@ export function WorkoutWeekCalendarPicker({
               accessibilityRole="button"
               accessibilityState={{ selected: on }}
               accessibilityLabel={`${day}${on ? ", selected" : ""}`}
-              onPress={() => applyWeekdays(toggleTrainingWeekday(selected, day, GENERATED_TRAINING_DAY_LIMITS))}
+              onPress={() => applyWeekdays(toggleTrainingWeekday(selected, day, selectionLimits))}
               className="h-11 w-11 items-center justify-center rounded-full border"
               style={{
                 borderColor: on ? colors.accent : colors.border,
@@ -67,7 +72,10 @@ export function WorkoutWeekCalendarPicker({
         className="mt-4 text-center text-sm"
         style={{ color: valid ? colors.textSecondary : "#f87171" }}
       >
-        {trainingWeekdaySelectionHint(selected, { includeSplitLabel: true, limits: GENERATED_TRAINING_DAY_LIMITS })}
+        {trainingWeekdaySelectionHint(selected, {
+          includeSplitLabel: includeSplitInHint,
+          limits: selectionLimits,
+        })}
       </Text>
 
       {showPickForMe ? (

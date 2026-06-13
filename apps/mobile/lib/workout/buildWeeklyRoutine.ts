@@ -1,4 +1,5 @@
 import type {
+  AppState,
   EquipmentSetup,
   ExperienceLevel,
   OnboardingProfile,
@@ -7,7 +8,9 @@ import type {
   WorkoutRoutineTemplate,
 } from "@newyouai/types";
 
-import { buildWorkoutTemplatesForDays } from "./workoutSplitByDays";
+import { migrateTrainingSchedule } from "./migrateTrainingSchedule";
+import { restSecondsFromTrainingDuration } from "./sessionLengthConfig";
+import { buildWorkoutTemplatesForDays, sessionDurationFromSessionLength } from "./workoutSplitByDays";
 import { defaultTrainingWeekdaysForProfile } from "./workoutWeekCalendar";
 
 export const SESSION_LENGTH_OPTIONS: { value: SessionLength; label: string }[] = [
@@ -31,4 +34,86 @@ export function buildWeeklyRoutineTemplates(
     : defaultTrainingWeekdaysForProfile(daysPerWeek);
   const days = weekdays.length as WorkoutDaysPerWeek;
   return buildWorkoutTemplatesForDays(days, experienceLevel, equipmentSetup, weekdays, sessionLength);
+}
+
+export function buildBlankWeeklyRoutineTemplates(weekdays: string[]): WorkoutRoutineTemplate[] {
+  const stamp = Date.now();
+  return weekdays.map((dayLabel, idx) => ({
+    id: `custom-${dayLabel.toLowerCase()}-${stamp}-${idx}`,
+    name: `${dayLabel} workout`,
+    dayLabel,
+    focus: "",
+    exercises: [],
+  }));
+}
+
+export type WeeklyRoutineProfilePatch = Pick<
+  OnboardingProfile,
+  "workoutDaysPerWeek" | "trainingWeekdays" | "sessionDuration"
+>;
+
+export function applyWeeklyRoutineToState(
+  state: AppState,
+  templates: WorkoutRoutineTemplate[],
+  profilePatch: WeeklyRoutineProfilePatch,
+  options?: { experienceLevel?: ExperienceLevel; equipmentSetup?: EquipmentSetup },
+): AppState {
+  const profile: OnboardingProfile = {
+    ...(state.onboardingProfile ?? {}),
+    ...profilePatch,
+  } as OnboardingProfile;
+
+  const { profile: migratedProfile, templates: migratedTemplates } = migrateTrainingSchedule(profile, templates);
+
+  return {
+    ...state,
+    workoutTemplates: migratedTemplates,
+    onboardingProfile: migratedProfile,
+    ...(options?.experienceLevel != null ? { experienceLevel: options.experienceLevel } : {}),
+    ...(options?.equipmentSetup != null ? { equipmentSetup: options.equipmentSetup } : {}),
+    ...(profilePatch.sessionDuration != null
+      ? { restTimerDefaultSeconds: restSecondsFromTrainingDuration(profilePatch.sessionDuration) }
+      : {}),
+  };
+}
+
+export function profilePatchFromRoutineInputs(
+  trainingWeekdays: string[],
+  sessionLength?: SessionLength,
+): WeeklyRoutineProfilePatch {
+  return {
+    trainingWeekdays,
+    workoutDaysPerWeek: trainingWeekdays.length as OnboardingProfile["workoutDaysPerWeek"],
+    ...(sessionLength != null ? { sessionDuration: sessionDurationFromSessionLength(sessionLength) } : {}),
+  };
+}
+
+function exerciseContentKey(exercise: WorkoutRoutineTemplate["exercises"][number]): string {
+  return `${exercise.id}|${exercise.name}|${exercise.target ?? ""}|${exercise.label ?? ""}`;
+}
+
+/** Compare generated or edited weekly routines without set-level progress noise. */
+export function weeklyRoutineContentMatches(
+  next: WorkoutRoutineTemplate[],
+  current: WorkoutRoutineTemplate[],
+): boolean {
+  if (next.length !== current.length) return false;
+
+  return next.every((nextTemplate, index) => {
+    const currentTemplate = current[index];
+    if (
+      nextTemplate.id !== currentTemplate.id ||
+      nextTemplate.dayLabel !== currentTemplate.dayLabel ||
+      nextTemplate.name !== currentTemplate.name
+    ) {
+      return false;
+    }
+
+    if (nextTemplate.exercises.length !== currentTemplate.exercises.length) return false;
+
+    return nextTemplate.exercises.every(
+      (exercise, exerciseIndex) =>
+        exerciseContentKey(exercise) === exerciseContentKey(currentTemplate.exercises[exerciseIndex]),
+    );
+  });
 }
