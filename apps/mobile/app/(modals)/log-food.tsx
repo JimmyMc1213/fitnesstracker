@@ -1,32 +1,22 @@
-import { router } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { localDateKey } from "@newyouai/core";
+import { useLocalSearchParams } from "expo-router";
+import { useMemo } from "react";
 
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { LogFoodScreen } from "@/components/nutrition/LogFoodScreen";
+import { useFitnessState } from "@/context/FitnessContext";
 
 export default function LogFoodModalScreen() {
-  const { colors } = useAppTheme();
+  const { editItemId, dateKey } = useLocalSearchParams<{
+    editItemId?: string;
+    dateKey?: string;
+  }>();
+  const { state } = useFitnessState();
 
-  return (
-    <View
-      className="px-screen-x"
-      style={{ flex: 1, backgroundColor: colors.background, paddingTop: 24 }}
-      testID="modal-log-food"
-    >
-      <View className="mb-6 flex-row items-center justify-between">
-        <Text className="text-[22px] font-bold" style={{ color: colors.textPrimary }}>
-          Log Food
-        </Text>
-        <Pressable
-          onPress={() => router.back()}
-          testID="modal-close"
-          accessibilityLabel="Close"
-          className="rounded-full border px-4 py-2"
-          style={{ borderColor: colors.border }}
-        >
-          <Text style={{ color: colors.textPrimary }}>Close</Text>
-        </Pressable>
-      </View>
-      <Text style={{ color: colors.textSecondary }}>Nutrition log UI ships in RN-7.</Text>
-    </View>
-  );
+  const activeDateKey = dateKey ?? localDateKey(new Date());
+  const editItem = useMemo(() => {
+    if (!editItemId || !state) return null;
+    return (state.nutritionItemsByDay[activeDateKey] ?? []).find((row) => row.id === editItemId) ?? null;
+  }, [editItemId, activeDateKey, state]);
+
+  return <LogFoodScreen dateKey={activeDateKey} editItem={editItem} />;
 }

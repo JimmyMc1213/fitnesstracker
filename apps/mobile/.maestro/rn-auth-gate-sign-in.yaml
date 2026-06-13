@@ -14,8 +14,6 @@ env:
     visible:
       id: auth-welcome-headline
     timeout: 60000
-- tapOn:
-    id: auth-sign-in-link
 - runFlow: subflows/auth-sign-in-credentials.yaml
 - extendedWaitUntil:
     visible:

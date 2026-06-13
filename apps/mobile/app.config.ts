@@ -14,7 +14,7 @@ const config: ExpoConfig = {
     usesAppleSignIn: true,
     infoPlist: {
       NSCameraUsageDescription:
-        "New You AI uses your camera to capture a photo for your Future You transformation preview.",
+        "New You AI uses your camera to scan food barcodes and capture photos for your Future You transformation preview.",
       NSPhotoLibraryUsageDescription:
         "New You AI uses your photo library so you can choose a picture for your Future You preview.",
     },
@@ -41,12 +41,20 @@ const config: ExpoConfig = {
     "expo-secure-store",
     "expo-apple-authentication",
     [
+      "expo-camera",
+      {
+        cameraPermission:
+          "New You AI uses your camera to scan food barcodes and capture photos for your Future You preview.",
+        barcodeScannerEnabled: true,
+      },
+    ],
+    [
       "expo-image-picker",
       {
         photosPermission:
           "New You AI uses your photo library so you can choose a picture for your Future You preview.",
         cameraPermission:
-          "New You AI uses your camera to capture a photo for your Future You transformation preview.",
+          "New You AI uses your camera to scan food barcodes and capture photos for your Future You preview.",
       },
     ],
     [

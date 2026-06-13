@@ -1,0 +1,201 @@
+# RN-7-09 nutrition log smoke — manual add, search, my meals, recent re-log
+# Run: EXPO_PUBLIC_E2E_FITNESS_SEED=nutrition-log EXPO_PUBLIC_E2E_MOCK_FOOD_SEARCH=true MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:nutrition-log
+# Metro:
+#   cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=nutrition-log EXPO_PUBLIC_E2E_MOCK_FOOD_SEARCH=true npx expo start --dev-client --port 8082
+#
+# Stable testIDs: tab-nutrition, nutrition-cal-left, water-tracker, open-log-food, modal-log-food,
+# log-food-manual-add, manual-food-name, manual-food-calories, manual-food-protein, manual-food-log,
+# log-food-search-input, serving-picker-log-food, log-food-tab-myMeals, my-meal-row-e2e-meal-prep,
+# log-food-relog-e2e-light, today-food-log-name-*, food-added-toast-undo
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+---
+# Flow 1 — Manual add + swipe delete
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- runFlow: subflows/auth-sign-in-credentials.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- tapOn:
+    id: tab-bar-nutrition
+- extendedWaitUntil:
+    visible:
+      id: tab-nutrition
+    timeout: 10000
+- assertVisible:
+    id: water-tracker
+- assertVisible:
+    id: nutrition-cal-left
+- assertVisible:
+    text: "1,800 cal left"
+- tapOn:
+    id: open-log-food
+- extendedWaitUntil:
+    visible:
+      id: modal-log-food
+    timeout: 10000
+- tapOn:
+    id: log-food-manual-add
+- extendedWaitUntil:
+    visible:
+      id: manual-food-name
+    timeout: 5000
+- tapOn:
+    id: manual-food-name
+- inputText: "E2E shake"
+- tapOn:
+    id: manual-food-calories
+- inputText: "300"
+- tapOn:
+    id: manual-food-protein
+- inputText: "40"
+- tapOn:
+    id: manual-food-log
+- extendedWaitUntil:
+    notVisible:
+      id: modal-log-food
+    timeout: 10000
+- assertVisible:
+    text: "1,500 cal left"
+- assertVisible:
+    text: "60 / 180g"
+- assertVisible:
+    text: "E2E shake"
+---
+# Flow 2 — Search → serving → log
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- runFlow: subflows/auth-sign-in-credentials.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- tapOn:
+    id: tab-bar-nutrition
+- tapOn:
+    id: open-log-food
+- extendedWaitUntil:
+    visible:
+      id: modal-log-food
+    timeout: 10000
+- tapOn:
+    id: log-food-search-input
+- inputText: "chicken"
+- extendedWaitUntil:
+    visible:
+      text: "Grilled chicken breast"
+    timeout: 10000
+- tapOn:
+    text: "Grilled chicken breast"
+- extendedWaitUntil:
+    visible:
+      id: serving-picker
+    timeout: 10000
+- tapOn:
+    id: serving-picker-log-food
+- extendedWaitUntil:
+    notVisible:
+      id: modal-log-food
+    timeout: 10000
+- assertVisible:
+    text: "1,635 cal left"
+- assertVisible:
+    text: "51 / 180g"
+---
+# Flow 3 — My meals one-tap log
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- runFlow: subflows/auth-sign-in-credentials.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- tapOn:
+    id: tab-bar-nutrition
+- assertVisible:
+    text: "1,800 cal left"
+- assertVisible:
+    text: "20 / 180g"
+- tapOn:
+    id: open-log-food
+- tapOn:
+    id: log-food-tab-myMeals
+- extendedWaitUntil:
+    visible:
+      text: "E2E prep bowl"
+    timeout: 5000
+- tapOn:
+    id: my-meal-row-e2e-meal-prep
+- extendedWaitUntil:
+    notVisible:
+      id: modal-log-food
+    timeout: 10000
+- assertVisible:
+    text: "1,450 cal left"
+- assertVisible:
+    text: "63 / 180g"
+- assertVisible:
+    text: "E2E prep bowl"
+---
+# Flow 4 — Recently logged re-log
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- runFlow: subflows/auth-sign-in-credentials.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- tapOn:
+    id: tab-bar-nutrition
+- assertVisible:
+    text: "1,800 cal left"
+- assertVisible:
+    text: "20 / 180g"
+- tapOn:
+    id: open-log-food
+- extendedWaitUntil:
+    visible:
+      text: "Recently logged"
+    timeout: 5000
+- tapOn:
+    id: log-food-relog-e2e-light
+- extendedWaitUntil:
+    notVisible:
+      id: modal-log-food
+    timeout: 10000
+- assertVisible:
+    text: "1,600 cal left"
+- assertVisible:
+    text: "40 / 180g"

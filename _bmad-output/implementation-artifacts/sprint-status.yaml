@@ -1,5 +1,5 @@
 # generated: 2026-05-20
-# last_updated: 2026-06-12 (Sprint 4 sprint plan refreshed)
+# last_updated: 2026-06-12 (Sprint 7 sprint plan generated)
 # project: fitnesstracker
 # project_key: FTI
 # tracking_system: linear
@@ -89,7 +89,8 @@
 #   BMad: FTI-57 → 58 → 59
 #   Linear: FTI-51 → 52 → 53
 #
-# SPRINT 7 SCOPE LOCKS (2026-05-23 sprint planning):
+# SPRINT 7 SCOPE LOCKS (2026-06-12 sprint planning refresh):
+#   - Plan doc: sprint-7-nutrition-os-v2-chunk-1-plan.md
 #   - Nutrition OS v2 Chunk 1 only (FTI-57 → 58 → 59); one story per PR
 #   - USDA/OFF search, My meals wiring, barcode, voice log: OUT OF SCOPE (S8–9 / future)
 #   - ScreenWorkout phase 2: OUT OF SCOPE (Nutrition OS priority)
@@ -165,7 +166,7 @@
 # - Sprint 11 planned (2026-05-23): FTI-73 → 72 → 74 → 75 (FTI-69/70/71 prerequisite done)
 
 generated: 2026-05-20
-last_updated: 2026-06-12  # Sprint 4 sprint plan refreshed (epic complete)
+last_updated: 2026-06-12  # Sprint 7 sprint plan generated (epic complete)
 project: fitnesstracker
 project_key: FTI
 tracking_system: linear

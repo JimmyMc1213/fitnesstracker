@@ -2,9 +2,41 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
-last_updated: 2026-06-12  # RN-6 sprint plan generated
+last_updated: 2026-06-12  # RN-7 sprint plan generated
 resourcing: solo-dev-ai
 
+# RN-7 SCOPE LOCKS (2026-06-12 sprint planning):
+#   - Nutrition core extract + tab dashboard: IN SCOPE (RN-7-01)
+#   - Log Food modal shell + four tabs: IN SCOPE (RN-7-02)
+#   - Food search All tab + recently logged: IN SCOPE (RN-7-03)
+#   - Serving picker + log flow + undo toast: IN SCOPE (RN-7-04)
+#   - My Foods + Favorites tabs: IN SCOPE (RN-7-05)
+#   - My Meals + meal editor: IN SCOPE (RN-7-06)
+#   - Manual entry + barcode scanner: IN SCOPE (RN-7-07)
+#   - Today food log edit/delete swipe: IN SCOPE (RN-7-08)
+#   - Water tracker + Maestro rn-nutrition-log.yaml: IN SCOPE (RN-7-09)
+#   - Cloud sync / hydration restore: OUT OF SCOPE (RN-OFFLINE)
+#   - Fuel targets / hydration settings panels: OUT OF SCOPE (RN-10)
+#   - Home water tracker card: OUT OF SCOPE (Nutrition tab only; RN-5 carousel unchanged)
+#   - Progress avg calories chart: OUT OF SCOPE (RN-8)
+#   - Plan doc: sprint-rn-7-nutrition-plan.md
+#
+# RN-7 BMAD SWARM ALIGNMENT:
+# ==========================
+# - bmad-swarm epic-rn-7: ready (2026-06-12) — RN-7-01..09 story files created
+# - Branch: epic-rn-7/nutrition-os
+# - Start: rn-7-01-nutrition-core-extract-dashboard.md
+# - Per-story gate: npm run typecheck --workspace=@newyouai/mobile
+# - Logic gate: npm run test --workspace=@newyouai/core when packages/core touched
+# - Api gate: npm run test --workspace=@newyouai/api-client when packages/api-client touched
+# - Epic close gate: rn-nutrition-log.yaml + auth-all + tab-nav + coach-nutrition + onboarding + workout-session (RN-7-09)
+# - Metro for Maestro: EXPO_PUBLIC_E2E_MOCK_FOOD_SEARCH=true npx expo start --dev-client --port 8082
+#
+# RN-7 swarm order (execute in this sequence):
+#   RN-7-01 → RN-7-02 → RN-7-03 → RN-7-04 → RN-7-05 → RN-7-06 → RN-7-07
+#   → RN-7-08 → RN-7-09 → retro
+#   Kickoff: /bmad-create-story RN-7-01, then /bmad-swarm epic-rn-7
+#
 # RN-6 SCOPE LOCKS (2026-06-12 sprint planning):
 #   - Workout core extract (autofill, finish, previous sets): IN SCOPE (RN-6-01)
 #   - Idle dashboard + routine cards: IN SCOPE (RN-6-02)
@@ -511,7 +543,61 @@ development_status:
 
   epic-rn-7:
     title: Nutrition OS
-    status: backlog
+    status: done
+    swarm_mode: epic-rn-7
+    swarm_branch: epic-rn-7/nutrition-os
+    plan: implementation-artifacts/sprint-rn-7-nutrition-plan.md
+    swarm_start: rn-7-01-nutrition-core-extract-dashboard
+    swarm_ready: 2026-06-12
+    swarm_completed: 2026-06-12
+    execute_order: rn-7-01 → rn-7-02 → rn-7-03 → rn-7-04 → rn-7-05 → rn-7-06 → rn-7-07 → rn-7-08 → rn-7-09
+    stories:
+      rn-7-01-nutrition-core-extract-dashboard:
+        title: Nutrition core extract + tab dashboard
+        status: done
+        file: implementation-artifacts/rn-7-01-nutrition-core-extract-dashboard.md
+      rn-7-02-log-food-modal-shell-tabs:
+        title: Log Food modal shell + tab navigation
+        status: done
+        file: implementation-artifacts/rn-7-02-log-food-modal-shell-tabs.md
+      rn-7-03-food-search-all-tab-recent:
+        title: Food search All tab + recently logged
+        status: done
+        file: implementation-artifacts/rn-7-03-food-search-all-tab-recent.md
+        completed: 2026-06-12
+      rn-7-04-serving-picker-log-toast:
+        title: Serving picker + log flow + food added toast
+        status: done
+        file: implementation-artifacts/rn-7-04-serving-picker-log-toast.md
+        completed: 2026-06-12
+      rn-7-05-my-foods-favorites-tabs:
+        title: My Foods + Favorite foods tabs
+        status: done
+        file: implementation-artifacts/rn-7-05-my-foods-favorites-tabs.md
+        completed: 2026-06-12
+      rn-7-06-my-meals-meal-editor:
+        title: My Meals + meal editor
+        status: done
+        file: implementation-artifacts/rn-7-06-my-meals-meal-editor.md
+        completed: 2026-06-12
+      rn-7-07-manual-entry-barcode-scanner:
+        title: Manual entry + barcode scanner
+        status: done
+        file: implementation-artifacts/rn-7-07-manual-entry-barcode-scanner.md
+        completed: 2026-06-12
+      rn-7-08-today-food-log-edit-delete:
+        title: Today food log + edit/delete undo
+        status: done
+        file: implementation-artifacts/rn-7-08-today-food-log-edit-delete.md
+        completed: 2026-06-12
+      rn-7-09-water-tracker-maestro-e2e:
+        title: Water tracker + Maestro E2E + epic polish
+        status: done
+        file: implementation-artifacts/rn-7-09-water-tracker-maestro-e2e.md
+        completed: 2026-06-12
+    retrospective:
+      epic-rn-7-retrospective:
+        status: optional
 
   epic-rn-8:
     title: Progress & check-ins

@@ -1,6 +1,14 @@
 export { edgeFunctionErrorMessage } from "./edgeFunctionError";
 export { FoodSearchError, searchFood } from "./foodSearch";
 export {
+  lookupFoodByBarcode,
+  mapOffProduct,
+  normalizeBarcodeDigits,
+  offBarcodesMatch,
+  OFF_BARCODE_PRODUCT_API,
+  type OffBarcodeLookupPayload,
+} from "../offBarcodeLookup";
+export {
   deleteFutureYou,
   FutureYouDeleteError,
   FutureYouGenerateError,

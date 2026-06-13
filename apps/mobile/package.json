@@ -24,7 +24,9 @@
     "test:e2e:onboarding": "node scripts/run-onboarding-maestro.mjs",
     "test:e2e:coach-nutrition": "node scripts/run-coach-nutrition-maestro.mjs",
     "test:e2e:workout-session": "node scripts/run-workout-session-maestro.mjs",
+    "test:e2e:nutrition-log": "node scripts/run-nutrition-log-maestro.mjs",
     "test:e2e:epic-rn6-close": "node scripts/run-epic-rn6-close.mjs",
+    "test:e2e:epic-rn7-close": "node scripts/run-epic-rn7-close.mjs",
     "lint": "echo lint-stub"
   },
   "dependencies": {
@@ -36,6 +38,7 @@
     "expo": "~56.0.11",
     "expo-apple-authentication": "~56.0.0",
     "expo-auth-session": "~56.0.0",
+    "expo-camera": "~56.0.5",
     "expo-constants": "~56.0.18",
     "expo-crypto": "~56.0.4",
     "expo-dev-client": "~56.0.20",

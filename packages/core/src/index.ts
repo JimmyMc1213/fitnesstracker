@@ -42,7 +42,85 @@ export {
   isFutureYouMediaCleared,
   EMPTY_FUTURE_YOU_DRAFT,
 } from "./sync/futureYouDraft";
-export { nutritionPresetFingerprint } from "./nutrition/nutritionTotals";
+export {
+  ZERO_MACROS,
+  manualTotalsForDateKey,
+  sumNutritionItems,
+  effectiveNutritionTotalsForDateKey,
+  nutritionPresetFingerprint,
+  stableLegacyNutritionLoggedAtMs,
+  normalizeNutritionManualByDay,
+  normalizeNutritionItemsByDay,
+  mergePersistedNutritionDays,
+  addNutritionFavorite,
+  isNutritionFavorite,
+  touchNutritionPresetById,
+  normalizeNutritionPresets,
+  normalizeNutritionUserFoods,
+} from "./nutrition/nutritionTotals";
+export {
+  MACRO_LIMITS,
+  clampMacroValue,
+  clampMacroTotals,
+  parseBoundedMacro,
+  clampMacroInputString,
+} from "./nutrition/macroLimits";
+export { SERVING_DEFAULTS, getServingDefault } from "./nutrition/servingDefaults";
+export { scaleMacros } from "./nutrition/foodSearchMacros";
+export {
+  OZ_TO_G,
+  parseServingLabel,
+  extractGramsFromServingText,
+  buildMeasurements,
+  inferMeasurementFromServing,
+  getBaseGrams,
+  computeServingMultiplier,
+  formatServingLabel,
+  parseQuantityInput,
+  resolvePickerMeasurementFromServing,
+  inferLoggedServingQuantity,
+  loggedItemToPickerEdit,
+} from "./nutrition/foodMeasurements";
+export {
+  MAX_NUTRITION_ITEMS_PER_DAY,
+  nutritionItemsCountForDay,
+  canAppendNutritionItem,
+  newNutritionItemId,
+  PROTEIN_QUICK_ADD_PRESETS,
+  buildNutritionLoggedItem,
+  getRecentlyLoggedFoods,
+  appendNutritionLoggedItem,
+  removeNutritionLoggedItem,
+  updateNutritionLoggedItem,
+  appendNutritionPresetToDay,
+  topProteinPresetsForQuickLog,
+  addNutritionFavoriteToState,
+  removeNutritionFavoriteFromState,
+  toggleNutritionFavoriteInState,
+  upsertNutritionUserFood,
+  removeNutritionUserFood,
+  removeNutritionPreset,
+  nutritionUserFoodFromLoggedItem,
+  appendNutritionUserFoodToState,
+  updateNutritionUserFoodInState,
+  removeNutritionUserFoodFromState,
+  removeNutritionPresetFromState,
+} from "./nutrition/nutritionLog";
+export type { NutritionQuickAddPreset } from "./nutrition/nutritionLog";
+export {
+  normalizeNutritionMeals,
+  sumMealMacros,
+  formatMealServingLabel,
+  mealItemFromUserFood,
+  mealItemFromPreset,
+  upsertNutritionMeal,
+  appendNutritionMeal,
+  updateNutritionMeal,
+  removeNutritionMeal,
+  buildLoggedItemFromMeal,
+  logNutritionMealToDay,
+  mergeNutritionMeals,
+} from "./nutrition/nutritionMeals";
 export { hasExistingFitnessData } from "./sync/onboardingSkip";
 export { normalizeAppTheme } from "./sync/theme";
 export { DEFAULT_UNIT_PREFERENCES, normalizeUnitPreferences } from "./sync/unitPreferences";
@@ -51,7 +129,28 @@ export {
   mergeWaterLogByDay,
   normalizeWaterDailyTargetOz,
   normalizeWaterLogByDay,
+  normalizeWaterLogEntry,
 } from "./sync/waterIntake";
+export {
+  WATER_QUICK_ADD_OZ,
+  WATER_QUICK_ADD_L,
+  WATER_TARGET_PRESETS_OZ,
+  WATER_TARGET_PRESETS_L,
+  FL_OZ_TO_L,
+  L_TO_FL_OZ,
+  totalWaterOzForDateKey,
+  removeWaterLogEntry,
+  appendWaterLogEntry,
+  formatWaterOz,
+  formatWaterLitersFromOz,
+  parseVolumeToOz,
+  formatVolumeFromOz,
+  formatWaterVolume,
+  formatWaterVolumeAlt,
+  waterQuickAddPresets,
+  waterTargetPresets,
+  formatWaterPreset,
+} from "./nutrition/waterIntake";
 export {
   capSundayCheckInHistory,
   coalesceSundayCheckInRecord,
@@ -114,12 +213,6 @@ export {
   formatDailyPlanSubtitle,
 } from "./dates/dailyPlan";
 export { planWeekIndex } from "./plan/planWeekIndex";
-export {
-  ZERO_MACROS,
-  manualTotalsForDateKey,
-  sumNutritionItems,
-  effectiveNutritionTotalsForDateKey,
-} from "./nutrition/nutritionTotals";
 export {
   NUTRITION_GOAL_HIT_RATIO,
   nutritionGoalHitForDateKey,

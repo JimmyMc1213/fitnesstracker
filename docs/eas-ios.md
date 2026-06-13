@@ -160,6 +160,17 @@ Mobile env vars: [`docs/env-matrix.md`](env-matrix.md) (RN-0-04). Local template
 
 Supabase client code lands in RN-2; until then, smoke tests and the placeholder app do not require `.env`.
 
+## Camera permissions (RN-7-07 barcode)
+
+| Permission | Platform | Purpose |
+|------------|----------|---------|
+| `NSCameraUsageDescription` | iOS | Barcode scanning in Log Food + Future You photo capture |
+| `CAMERA` | Android | Same |
+
+Configured in [`apps/mobile/app.config.ts`](../apps/mobile/app.config.ts) via the `expo-camera` config plugin (`barcodeScannerEnabled: true`). **Rebuild the dev client** after pulling barcode changes — Expo Go does not include native barcode scanning.
+
+Simulator / Maestro: use **Enter barcode manually** in the scanner overlay (no physical camera required).
+
 ## Parity gate
 
 PWA stays live at `app.newyouai.app` until RN-PARITY sign-off. See [`pwa-to-rn-migration-plan.md`](../_bmad-output/planning-artifacts/pwa-to-rn-migration-plan.md).
