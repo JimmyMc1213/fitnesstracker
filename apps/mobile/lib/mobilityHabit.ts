@@ -1,7 +1,7 @@
 import type { HabitTemplate } from "@newyouai/types";
 
 export const MOBILITY_HABIT_ID = "habit-mobility";
-const LEGACY_MOBILITY_HABIT_ID = "h4";
+export const LEGACY_MOBILITY_HABIT_ID = "h4";
 
 export function mobilityHabitTemplate(): HabitTemplate {
   return {
@@ -10,6 +10,10 @@ export function mobilityHabitTemplate(): HabitTemplate {
     icon: "bolt",
     subtitle: "Stretch routine ~15 min",
   };
+}
+
+export function isMobilityHabit(habitId: string): boolean {
+  return habitId === MOBILITY_HABIT_ID || habitId === LEGACY_MOBILITY_HABIT_ID;
 }
 
 export function ensureMobilityHabitTemplate(templates: HabitTemplate[]): HabitTemplate[] {

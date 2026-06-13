@@ -1,4 +1,5 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { TabPlaceholderScreen } from "@/components/TabPlaceholderScreen";
@@ -6,6 +7,18 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function NutritionScreen() {
   const { colors } = useAppTheme();
+  const params = useLocalSearchParams<{ openLogFood?: string }>();
+  const handledOpenLogFoodRef = useRef(false);
+
+  useEffect(() => {
+    if (params.openLogFood !== "1") {
+      handledOpenLogFoodRef.current = false;
+      return;
+    }
+    if (handledOpenLogFoodRef.current) return;
+    handledOpenLogFoodRef.current = true;
+    router.push("/(modals)/log-food");
+  }, [params.openLogFood]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

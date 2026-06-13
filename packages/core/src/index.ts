@@ -174,6 +174,12 @@ export {
 export { progressiveOverloadInsight } from "./coach/progressiveOverload";
 export { homePlanSubline } from "./coach/homePlanSubline";
 export {
+  greetingFirstName,
+  homeGreetingTitle,
+  timeOfDayBucket,
+  type TimeOfDay,
+} from "./coach/homeGreeting";
+export {
   buildCoachContext,
   getHomeCoachPlan,
   getPostWorkoutRecap,

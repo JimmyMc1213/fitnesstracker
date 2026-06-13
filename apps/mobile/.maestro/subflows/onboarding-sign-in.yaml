@@ -4,19 +4,7 @@ appId: app.newyouai.mobile
     visible:
       id: auth-welcome-headline
     timeout: 60000
-- tapOn:
-    id: auth-sign-in-link
-- tapOn:
-    id: auth-sign-in-email
-- eraseText
-- inputText: ${TEST_EMAIL}
-- tapOn:
-    id: auth-sign-in-password
-- eraseText
-- inputText: ${TEST_PASSWORD}
-- tapOn:
-    id: auth-sign-in-submit
-- runFlow: subflows/dismiss-ios-password-prompt.yaml
+- runFlow: auth-sign-in-credentials.yaml
 - extendedWaitUntil:
     visible:
       id: onboarding-wizard

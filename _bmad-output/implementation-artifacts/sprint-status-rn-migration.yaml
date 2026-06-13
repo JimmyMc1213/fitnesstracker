@@ -2,9 +2,38 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
-last_updated: 2026-06-12  # RN-4 stories ready-for-dev — swarm-ready epic-rn-4
+last_updated: 2026-06-12  # RN-5 epic implemented — all stories in review
 resourcing: solo-dev-ai
 
+# RN-5 SCOPE LOCKS (2026-06-12 sprint planning):
+#   - Fitness state provider + home shell: IN SCOPE (RN-5-01)
+#   - Coach plan card + task routing: IN SCOPE (RN-5-02)
+#   - Fuel carousel + Reanimated macro rings: IN SCOPE (RN-5-03)
+#   - Daily habits + week focus cards: IN SCOPE (RN-5-04)
+#   - Weigh-in card + sheet + coach reaction: IN SCOPE (RN-5-05)
+#   - Sunday entry card + mobility preview + FY header: IN SCOPE (RN-5-06)
+#   - Maestro rn-coach-nutrition.yaml + epic polish: IN SCOPE (RN-5-07)
+#   - Cloud sync / fitness hydration restore: OUT OF SCOPE (RN-OFFLINE)
+#   - Full Sunday check-in flow: OUT OF SCOPE (RN-8)
+#   - Log food search/barcode/nutrition OS: OUT OF SCOPE (RN-7)
+#   - Workout session + stretch player: OUT OF SCOPE (RN-6)
+#   - Future You upload/gallery MVP: OUT OF SCOPE (RN-9)
+#   - Water tracker on Home: OUT OF SCOPE (RN-7)
+#   - Plan doc: sprint-rn-5-home-coach-plan.md
+#
+# RN-5 BMAD SWARM ALIGNMENT:
+# ==========================
+# - bmad-swarm epic-rn-5: ready (2026-06-12) — RN-5-01..07 story files created
+# - Branch: epic-rn-5/home-coach
+# - Start: rn-5-01-fitness-state-home-shell.md
+# - Per-story gate: npm run typecheck --workspace=@newyouai/mobile
+# - Epic close gate: npm run test:e2e:coach-nutrition + auth-all + tab-nav + onboarding (RN-5-07)
+# - Metro for Maestro: npx expo start --dev-client --port 8082
+#
+# RN-5 swarm order (execute in this sequence):
+#   RN-5-01 → RN-5-02 → RN-5-03 → RN-5-04 → RN-5-05 → RN-5-06 → RN-5-07 → retro
+#   Kickoff: /bmad-swarm epic-rn-5
+#
 # RN-4 SCOPE LOCKS (2026-06-12 sprint planning):
 #   - Onboarding wizard shell + (onboarding)/[step]: IN SCOPE (RN-4-01)
 #   - OB-00–05 hook + about you: IN SCOPE (RN-4-02)
@@ -335,7 +364,45 @@ development_status:
 
   epic-rn-5:
     title: Home & coach
-    status: backlog
+    status: review
+    swarm_mode: epic-rn-5
+    swarm_branch: epic-rn-5/home-coach
+    plan: implementation-artifacts/sprint-rn-5-home-coach-plan.md
+    swarm_start: rn-5-01-fitness-state-home-shell
+    swarm_ready: 2026-06-12
+    execute_order: rn-5-01 → rn-5-02 → rn-5-03 → rn-5-04 → rn-5-05 → rn-5-06 → rn-5-07
+    stories:
+      rn-5-01-fitness-state-home-shell:
+        title: Fitness state provider + home shell
+        status: review
+        file: implementation-artifacts/rn-5-01-fitness-state-home-shell.md
+      rn-5-02-coach-plan-card-task-routing:
+        title: Coach plan card + task routing
+        status: review
+        file: implementation-artifacts/rn-5-02-coach-plan-card-task-routing.md
+      rn-5-03-fuel-carousel-macro-rings:
+        title: Fuel carousel + animated macro rings
+        status: review
+        file: implementation-artifacts/rn-5-03-fuel-carousel-macro-rings.md
+      rn-5-04-daily-habits-week-focus:
+        title: Daily habits + week focus cards
+        status: review
+        file: implementation-artifacts/rn-5-04-daily-habits-week-focus.md
+      rn-5-05-weigh-in-sheet-reaction:
+        title: Weigh-in card + sheet + coach reaction
+        status: review
+        file: implementation-artifacts/rn-5-05-weigh-in-sheet-reaction.md
+      rn-5-06-sunday-mobility-future-you-entry:
+        title: Sunday card + mobility preview + Future You entry
+        status: review
+        file: implementation-artifacts/rn-5-06-sunday-mobility-future-you-entry.md
+      rn-5-07-maestro-coach-nutrition-e2e:
+        title: Maestro coach-nutrition + integration polish
+        status: review
+        file: implementation-artifacts/rn-5-07-maestro-coach-nutrition-e2e.md
+    retrospective:
+      epic-rn-5-retrospective:
+        status: optional
 
   epic-rn-6:
     title: Workout domain

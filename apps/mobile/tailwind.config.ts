@@ -7,6 +7,7 @@ import brandPreset from "@newyouai/config/tailwind";
 const nativewind = require("nativewind/preset") as Config;
 
 const config: Config = {
+  darkMode: "class",
   content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
   presets: [nativewind, brandPreset],
 };

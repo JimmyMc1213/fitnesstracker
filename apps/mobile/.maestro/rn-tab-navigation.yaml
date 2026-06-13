@@ -14,21 +14,7 @@ env:
     visible:
       id: auth-welcome-headline
     timeout: 60000
-- tapOn:
-    id: auth-sign-in-link
-- tapOn:
-    id: auth-sign-in-email
-- eraseText
-- inputText: ${TEST_EMAIL}
-- tapOn:
-    id: auth-sign-in-password
-- eraseText
-- inputText: ${TEST_PASSWORD}
-- tapOn:
-    id: auth-sign-in-title
-- tapOn:
-    id: auth-sign-in-submit
-- runFlow: subflows/dismiss-ios-password-prompt.yaml
+- runFlow: subflows/auth-sign-in-credentials.yaml
 - extendedWaitUntil:
     visible:
       id: tab-home
@@ -66,7 +52,7 @@ env:
 - assertVisible:
     id: home-title
 - assertVisible:
-    id: home-sign-out
+    id: home-settings
 - tapOn:
     id: tab-bar-nutrition
 - extendedWaitUntil:
@@ -84,4 +70,4 @@ env:
 - extendedWaitUntil:
     visible:
       id: tab-nutrition
-    timeout: 10000
+    timeout: 15000

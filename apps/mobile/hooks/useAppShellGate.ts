@@ -9,6 +9,7 @@ import { useEffect, useMemo } from "react";
 
 import { useAuth } from "@/context/AuthContext";
 import { useOnboardingState } from "@/hooks/useOnboardingState";
+import { isOnboardingPreviewActive, startOnboardingPreview } from "@/lib/devPreviewOnboarding";
 
 function buildShellRoutingInput(
   auth: Pick<
@@ -41,6 +42,15 @@ export function useAppShellGate() {
   );
 
   useEffect(() => {
+    if (typeof __DEV__ !== "undefined" && __DEV__) {
+      const flag = process.env.EXPO_PUBLIC_PREVIEW_ONBOARDING?.trim().toLowerCase();
+      if (flag === "1" || flag === "true") {
+        startOnboardingPreview();
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (auth.configured && !auth.sessionResolved) return;
     if (auth.configured && auth.sessionEmail && !onboardingHydrated) return;
 
@@ -50,6 +60,11 @@ export function useAppShellGate() {
     const inModalsGroup = segments[0] === "(modals)";
 
     if (inModalsGroup) return;
+
+    if (isOnboardingPreviewActive()) {
+      if (!inOnboardingGroup) router.replace("/(onboarding)");
+      return;
+    }
 
     if (!auth.configured) {
       if (inAuthGroup || inOnboardingGroup) {

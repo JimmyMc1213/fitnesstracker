@@ -1,0 +1,36 @@
+# RN-5-07 coach fuel task → Nutrition tab + Log Food modal
+# Run: EXPO_PUBLIC_E2E_FITNESS_SEED=coach-nutrition MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:coach-nutrition
+# Metro must be started with the same EXPO_PUBLIC_E2E_FITNESS_SEED env (e.g. EXPO_PUBLIC_E2E_FITNESS_SEED=coach-nutrition npm run dev)
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- runFlow: subflows/auth-sign-in-credentials.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: coach-plan-card
+    timeout: 15000
+- assertVisible:
+    text: "Today's plan"
+- tapOn:
+    id: coach-task-post_workout_review
+- extendedWaitUntil:
+    visible:
+      id: modal-log-food
+    timeout: 10000
+- tapOn:
+    id: modal-close

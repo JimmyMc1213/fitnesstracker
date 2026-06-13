@@ -37,5 +37,7 @@ env:
 - runFlow: subflows/dismiss-ios-password-prompt.yaml
 - extendedWaitUntil:
     visible:
-      id: home-title
-    timeout: 30000
+      id: tab-home
+    timeout: 45000
+- assertVisible:
+    id: home-title

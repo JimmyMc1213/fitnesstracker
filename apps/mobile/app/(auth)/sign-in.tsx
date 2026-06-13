@@ -94,6 +94,7 @@ export default function SignInScreen() {
             placeholderTextColor={colors.textTertiary}
             value={email}
             onChangeText={setEmail}
+            onEndEditing={(event) => setEmail(event.nativeEvent.text.trim())}
             autoCapitalize="none"
             autoComplete="email"
             keyboardType="email-address"
@@ -107,11 +108,13 @@ export default function SignInScreen() {
             placeholderTextColor={colors.textTertiary}
             value={password}
             onChangeText={setPassword}
+            onEndEditing={(event) => setPassword(event.nativeEvent.text)}
             secureTextEntry
             autoComplete="password"
             textContentType="password"
             accessibilityLabel="Password"
             testID="auth-sign-in-password"
+            onSubmitEditing={() => void handleSignIn()}
           />
         </View>
 

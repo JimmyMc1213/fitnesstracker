@@ -145,7 +145,7 @@ export function NotificationPreferencesPicker({ value, onChange, variant = "defa
           />
         ))}
         <Text className="text-center text-xs leading-5" style={{ color: colors.textTertiary }}>
-          Reminders work while Gymmy is open. Background notifications coming soon.
+          Reminders work while NewYou is open. Background notifications coming soon.
         </Text>
       </View>
     );

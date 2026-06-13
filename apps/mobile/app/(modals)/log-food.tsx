@@ -14,7 +14,7 @@ export default function LogFoodModalScreen() {
     >
       <View className="mb-6 flex-row items-center justify-between">
         <Text className="text-[22px] font-bold" style={{ color: colors.textPrimary }}>
-          Log food
+          Log Food
         </Text>
         <Pressable
           onPress={() => router.back()}

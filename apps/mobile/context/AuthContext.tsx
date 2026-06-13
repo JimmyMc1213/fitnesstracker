@@ -88,8 +88,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithPassword = useCallback(async (email: string, password: string) => {
     const sb = getSupabase();
     if (!sb) return { error: "Add Supabase keys to sign in." };
-    const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
+    const { data, error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
     if (error) return { error: error.message };
+    if (data.session) setSession(data.session);
+    setSessionResolved(true);
     return {};
   }, []);
 
@@ -106,11 +108,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (isDuplicateEmailError(error?.message)) {
-      const { error: signInError } = await sb.auth.signInWithPassword({
+      const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({
         email: trimmedEmail,
         password,
       });
-      if (!signInError) return {};
+      if (!signInError) {
+        if (signInData.session) setSession(signInData.session);
+        setSessionResolved(true);
+        return {};
+      }
       return {
         error:
           "An account with that email already exists. Check your password and try signing in instead.",
@@ -118,13 +124,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (error) return { error: error.message };
-    if (data.session) return {};
+    if (data.session) {
+      setSession(data.session);
+      setSessionResolved(true);
+      return {};
+    }
 
-    const { error: signInError } = await sb.auth.signInWithPassword({
+    const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({
       email: trimmedEmail,
       password,
     });
-    if (!signInError) return {};
+    if (!signInError) {
+      if (signInData.session) setSession(signInData.session);
+      setSessionResolved(true);
+      return {};
+    }
     return { needsConfirmation: true };
   }, []);
 

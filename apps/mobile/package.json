@@ -9,6 +9,7 @@
     "android": "expo start --dev-client --android",
     "ios": "expo start --dev-client --ios",
     "web": "expo start --web",
+    "dev:preview-onboarding": "EXPO_PUBLIC_PREVIEW_ONBOARDING=1 expo start --web --port 8085",
     "eas": "eas",
     "typecheck": "tsc --noEmit",
     "build": "echo mobile-build-stub",
@@ -21,6 +22,7 @@
     "test:e2e:auth-all": "node scripts/run-auth-maestro.mjs",
     "test:e2e:tab-nav": "node scripts/run-tab-nav-maestro.mjs",
     "test:e2e:onboarding": "node scripts/run-onboarding-maestro.mjs",
+    "test:e2e:coach-nutrition": "node scripts/run-coach-nutrition-maestro.mjs",
     "lint": "echo lint-stub"
   },
   "dependencies": {
@@ -33,6 +35,7 @@
     "expo-apple-authentication": "~56.0.0",
     "expo-auth-session": "~56.0.0",
     "expo-constants": "~56.0.18",
+    "expo-crypto": "~56.0.4",
     "expo-dev-client": "~56.0.20",
     "expo-font": "~56.0.6",
     "expo-image-manipulator": "~56.0.18",
@@ -53,6 +56,7 @@
     "react-native-reanimated": "4.3.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
+    "react-native-svg": "15.15.4",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.8.3"
   },

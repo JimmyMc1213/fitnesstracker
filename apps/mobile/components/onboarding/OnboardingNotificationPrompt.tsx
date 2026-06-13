@@ -35,7 +35,7 @@ export function OnboardingNotificationPrompt({ onChoice }: Props) {
       >
         <View className="px-5 py-6">
           <Text className="text-center text-base" style={{ color: colors.textPrimary }}>
-            Gymmy would like to send you Notifications
+            NewYou would like to send you Notifications
           </Text>
         </View>
         <View className="flex-row border-t" style={{ borderColor: colors.border }}>

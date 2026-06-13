@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logoBox: {
-    marginBottom: 16,
+    marginBottom: 12,
     height: 56,
     width: 56,
     alignItems: "center",
@@ -42,7 +42,9 @@ const styles = StyleSheet.create({
   wordmark: {
     fontSize: 28,
     fontWeight: "700",
+    lineHeight: 34,
     letterSpacing: -0.5,
+    paddingTop: 2,
   },
   brandIcon: {
     height: 22,
@@ -52,19 +54,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   brandBarTall: {
-    height: 32,
+    height: 14,
     width: 3,
-    borderRadius: 2,
+    borderRadius: 1.5,
   },
   brandBarMid: {
-    marginHorizontal: 2,
-    height: 20,
+    marginHorizontal: 1.5,
+    height: 10,
     width: 2.5,
-    borderRadius: 2,
+    borderRadius: 1.25,
   },
   brandBarWide: {
     height: 2,
-    width: 24,
-    borderRadius: 2,
+    width: 12,
+    borderRadius: 1,
   },
 });

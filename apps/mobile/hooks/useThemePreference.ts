@@ -2,13 +2,21 @@ import { normalizeAppTheme } from "@newyouai/core";
 import type { AppTheme } from "@newyouai/types";
 import { useColorScheme as useNativeWindColorScheme } from "nativewind";
 import { useCallback, useEffect, useState } from "react";
+import { Platform } from "react-native";
 
 import { readStoredTheme, writeStoredTheme } from "@/lib/themeStorage";
 import { themeColors } from "@newyouai/config/tokens";
 
+function applyWebColorScheme(theme: AppTheme) {
+  if (typeof document === "undefined") return;
+  document.documentElement.classList.toggle("dark", theme === "dark");
+}
+
 export function useThemePreference() {
   const { colorScheme, setColorScheme } = useNativeWindColorScheme();
-  const scheme = colorScheme === "light" ? "light" : "dark";
+  const [webTheme, setWebTheme] = useState<AppTheme>("light");
+  const nativeScheme = colorScheme === "light" ? "light" : "dark";
+  const scheme = Platform.OS === "web" ? webTheme : nativeScheme;
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -16,7 +24,12 @@ export function useThemePreference() {
     void (async () => {
       const stored = await readStoredTheme();
       if (cancelled) return;
-      setColorScheme(stored);
+      if (Platform.OS === "web") {
+        setWebTheme(stored);
+        applyWebColorScheme(stored);
+      } else {
+        setColorScheme(stored);
+      }
       setHydrated(true);
     })();
     return () => {
@@ -27,7 +40,12 @@ export function useThemePreference() {
   const setTheme = useCallback(
     (next: AppTheme) => {
       const normalized = normalizeAppTheme(next);
-      setColorScheme(normalized);
+      if (Platform.OS === "web") {
+        setWebTheme(normalized);
+        applyWebColorScheme(normalized);
+      } else {
+        setColorScheme(normalized);
+      }
       void writeStoredTheme(normalized);
     },
     [setColorScheme],

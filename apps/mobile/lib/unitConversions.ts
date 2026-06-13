@@ -12,6 +12,14 @@ export function parseWeightToLbs(value: number, unit: WeightUnit): number {
   return unit === "kg" ? value * LBS_PER_KG : value;
 }
 
+export function formatWeightFromLbs(lbs: number, unit: WeightUnit, decimals = 1): string {
+  if (!Number.isFinite(lbs)) return "";
+  if (unit === "kg") {
+    return (lbs / LBS_PER_KG).toFixed(decimals);
+  }
+  return lbs.toFixed(decimals);
+}
+
 export function lbsFromWeightInputText(text: string, unit: WeightUnit): number {
   if (text === "" || text === ".") return 0;
   const n = parseFloat(text);

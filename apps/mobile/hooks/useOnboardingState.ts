@@ -8,9 +8,17 @@ import {
   DEFAULT_ONBOARDING_COMPLETE,
   ONBOARDING_COMPLETE_STORAGE_KEY,
 } from "@/lib/onboardingStub";
+import { e2eFitnessSeedByName, type E2eFitnessSeedName } from "@/lib/e2e/fitnessPersistSeed";
 
 /** When unset, Maestro auth flows default to tabs (onboarding skipped). Set `false` to exercise the wizard. */
 function resolveDefaultOnboardingComplete(): boolean {
+  if (typeof __DEV__ !== "undefined" && __DEV__) {
+    const seedName = process.env.EXPO_PUBLIC_E2E_FITNESS_SEED?.trim();
+    if (seedName) {
+      const seed = e2eFitnessSeedByName(seedName as E2eFitnessSeedName);
+      if (seed?.onboardingComplete) return true;
+    }
+  }
   const flag = process.env.EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING?.trim().toLowerCase();
   if (flag === "false") return false;
   return DEFAULT_ONBOARDING_COMPLETE;
@@ -23,12 +31,18 @@ export function useOnboardingState() {
 
   useEffect(() => {
     let cancelled = false;
+    const skipOnboarding = resolveDefaultOnboardingComplete();
 
     void (async () => {
       try {
         const stored = await readOnboardingComplete();
         if (cancelled) return;
-        setOnboardingCompleteState(stored);
+        if (skipOnboarding && !stored) {
+          await writeOnboardingComplete(true);
+          setOnboardingCompleteState(true);
+        } else {
+          setOnboardingCompleteState(stored);
+        }
       } finally {
         if (!cancelled) setHydrated(true);
       }

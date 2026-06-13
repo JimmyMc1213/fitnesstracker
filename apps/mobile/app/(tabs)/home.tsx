@@ -1,105 +1,385 @@
-import { router } from "expo-router";
-import { useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import {
+  buildCoachContext,
+  effectiveNutritionTotalsForDateKey,
+  formatDateKeyEyebrow,
+  getHomeCoachPlan,
+  getWeighInReactionForDisplay,
+  homeGreetingTitle,
+  localDateKey,
+  mergeFutureYouDraft,
+  planWeekIndex,
+} from "@newyouai/core";
+import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useAuth } from "@/context/AuthContext";
+import { FutureYouSkipperReminderPill } from "@/components/home/FutureYouSkipperReminderPill";
+import { HomeDailyHabitsCard } from "@/components/home/HomeDailyHabitsCard";
+import { HomeDashboardCarousel } from "@/components/home/HomeDashboardCarousel";
+import { HomeNewYouHeaderButton } from "@/components/home/HomeNewYouHeaderButton";
+import { HomeSundayCheckInCard } from "@/components/home/HomeSundayCheckInCard";
+import {
+  activeWeekFocusCommitments,
+  HomeWeekFocusCard,
+} from "@/components/home/HomeWeekFocusCard";
+import { MobilityPreviewSheet } from "@/components/home/MobilityPreviewSheet";
+import { ScreenHeader } from "@/components/home/ScreenHeader";
+import { TodaysCoachPlanCard } from "@/components/home/TodaysCoachPlanCard";
+import { WeighInCoachReaction } from "@/components/home/WeighInCoachReaction";
+import { WeighInSheet } from "@/components/home/WeighInSheet";
+import { useFitnessState } from "@/context/FitnessContext";
+import { useFutureYouEntry } from "@/hooks/useFutureYouEntry";
+import { useSundayCheckInHome } from "@/hooks/useSundayCheckInHome";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { handleCoachTaskAction } from "@/lib/coachTaskActions";
+import {
+  shouldShowFutureYouSkipperReminderPill,
+  shouldShowHomeNewYouHeaderButton,
+} from "@/lib/futureYouHomeEntryModel";
+import {
+  buildHabitsForDateKey,
+  dailyHabitTemplatesFromState,
+  habitsForDateKey,
+  pruneHabitsDoneByDay,
+} from "@/lib/habits";
+import { isMobilityHabit } from "@/lib/mobilityHabit";
+import type { HabitTemplate } from "@newyouai/types";
 
 export default function HomeScreen() {
   const { colors } = useAppTheme();
-  const { signOut } = useAuth();
-  const [signingOut, setSigningOut] = useState(false);
-  const [devCrash, setDevCrash] = useState(false);
+  const insets = useSafeAreaInsets();
+  const { state, hydrated, setFitnessState } = useFitnessState();
+  const params = useLocalSearchParams<{ mobility?: string }>();
 
-  if (__DEV__ && devCrash) {
-    throw new Error("Dev-only app shell error boundary test");
+  const [clock, setClock] = useState(() => new Date());
+  const dateKeyToday = localDateKey(clock);
+  const [viewDateKey, setViewDateKey] = useState(dateKeyToday);
+  const activeDateKey = viewDateKey;
+  const isViewingToday = activeDateKey === dateKeyToday;
+
+  const [weighInOpen, setWeighInOpen] = useState(false);
+  const [mobilityPreviewOpen, setMobilityPreviewOpen] = useState(false);
+  const handledMobilityParamRef = useRef(false);
+
+  useEffect(() => {
+    const id = setInterval(() => setClock(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    if (viewDateKey > dateKeyToday) setViewDateKey(dateKeyToday);
+  }, [dateKeyToday, viewDateKey]);
+
+  const prevTodayKeyRef = useRef(dateKeyToday);
+  useEffect(() => {
+    const prevToday = prevTodayKeyRef.current;
+    if (prevToday !== dateKeyToday) {
+      setViewDateKey((vk) => (vk === prevToday ? dateKeyToday : vk));
+      prevTodayKeyRef.current = dateKeyToday;
+    }
+  }, [dateKeyToday]);
+
+  useEffect(() => {
+    if (params.mobility !== "1" || handledMobilityParamRef.current) return;
+    handledMobilityParamRef.current = true;
+    setMobilityPreviewOpen(true);
+  }, [params.mobility]);
+
+  const totals = useMemo(() => {
+    if (!state) return { cal: 0, p: 0, c: 0, f: 0 };
+    return effectiveNutritionTotalsForDateKey(
+      state.nutritionManualByDay,
+      state.nutritionItemsByDay,
+      activeDateKey,
+    );
+  }, [state, activeDateKey]);
+
+  const dayEntry = state?.weightLog.find((e) => e.dateKey === activeDateKey);
+  const greetingName = state?.displayName.trim() ?? "";
+  const todayForGreeting = isViewingToday ? clock : new Date(activeDateKey.replace(/-/g, "/"));
+
+  const { coachPlan, coachCtx } = useMemo(() => {
+    if (!state) return { coachPlan: null, coachCtx: null };
+    const ctx = buildCoachContext(
+      state,
+      activeDateKey,
+      isViewingToday ? clock : new Date(`${activeDateKey}T12:00:00`),
+    );
+    return {
+      coachPlan: isViewingToday ? getHomeCoachPlan(ctx) : null,
+      coachCtx: ctx,
+    };
+  }, [state, activeDateKey, clock, isViewingToday]);
+
+  const weekFocus = useMemo(() => {
+    if (!state) return [];
+    return activeWeekFocusCommitments(
+      state.weekFocusCommitments ?? [],
+      state.weekFocusWeekStartKey ?? null,
+      dateKeyToday,
+    );
+  }, [state, dateKeyToday]);
+
+  const weekFocusNumber = state
+    ? planWeekIndex(new Date(`${dateKeyToday}T12:00:00`), state.planStartIso)
+    : 1;
+
+  const weighInReaction = useMemo(() => {
+    if (!isViewingToday || !dayEntry || !coachCtx) return null;
+    return getWeighInReactionForDisplay(coachCtx, dayEntry);
+  }, [isViewingToday, dayEntry, coachCtx]);
+
+  const sundayCheckIn = useSundayCheckInHome(state);
+  const futureYouEntry = useFutureYouEntry(state);
+
+  const futureYouHomeInput = useMemo(
+    () => ({
+      mode: futureYouEntry.mode,
+      photoBlocked: futureYouEntry.photoBlocked,
+      onboardingComplete: state?.onboardingComplete ?? false,
+      futureYou: state?.futureYou,
+      todayDateKey: dateKeyToday,
+    }),
+    [
+      futureYouEntry.mode,
+      futureYouEntry.photoBlocked,
+      state?.onboardingComplete,
+      state?.futureYou,
+      dateKeyToday,
+    ],
+  );
+
+  const showNewYouHeaderButton = shouldShowHomeNewYouHeaderButton(futureYouHomeInput);
+  const showWeighInFullCard = isViewingToday && !dayEntry;
+  const showNewYouReminderPill =
+    isViewingToday &&
+    showWeighInFullCard &&
+    shouldShowFutureYouSkipperReminderPill(futureYouHomeInput);
+
+  const activeHabits = state ? habitsForDateKey(state, activeDateKey) : [];
+
+  const openNewYouUpload = useCallback(() => {
+    router.push({ pathname: "/(tabs)/future-you", params: { openFutureYouUpload: "1" } });
+  }, []);
+
+  const patchFutureYou = useCallback(
+    (patch: Parameters<typeof mergeFutureYouDraft>[1]) => {
+      setFitnessState((s) => ({
+        ...s,
+        futureYou: mergeFutureYouDraft(s.futureYou, patch),
+      }));
+    },
+    [setFitnessState],
+  );
+
+  const dismissNewYouReminderPill = useCallback(() => {
+    patchFutureYou({ reminderDismissedDateKey: dateKeyToday });
+  }, [patchFutureYou, dateKeyToday]);
+
+  if (!hydrated || !state) {
+    return (
+      <View
+        testID="tab-home"
+        className="flex-1 items-center justify-center px-screen-x"
+        style={{ backgroundColor: colors.background, paddingTop: insets.top }}
+      >
+        <Text style={{ color: colors.textSecondary }}>Loading…</Text>
+      </View>
+    );
   }
 
-  const handleSignOut = async () => {
-    setSigningOut(true);
-    try {
-      await signOut();
-    } finally {
-      setSigningOut(false);
-    }
-  };
+  const headerEyebrow = formatDateKeyEyebrow(activeDateKey);
+  const headerTitle = isViewingToday
+    ? homeGreetingTitle(greetingName, todayForGreeting)
+    : new Date(activeDateKey.replace(/-/g, "/")).toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      });
+
+  const fuelLabel = isViewingToday ? "Fuel · Today" : "Fuel";
+
+  function toggleHabit(id: string) {
+    if (isMobilityHabit(id)) return;
+    setFitnessState((s) => {
+      const doneMap = s.habitsDoneByDay[activeDateKey] ?? {};
+      const nextDone = !doneMap[id];
+      const habitsDoneByDay = {
+        ...s.habitsDoneByDay,
+        [activeDateKey]: { ...doneMap, [id]: nextDone },
+      };
+      const weightLogged = s.weightLog.some((e) => e.dateKey === activeDateKey);
+      const habits =
+        activeDateKey === dateKeyToday
+          ? buildHabitsForDateKey(s.habitTemplates, habitsDoneByDay, activeDateKey, { weightLogged })
+          : s.habits;
+      return { ...s, habits, habitsDoneByDay };
+    });
+  }
+
+  function saveDailyHabitTemplates(templates: HabitTemplate[]) {
+    setFitnessState((s) => {
+      const mobilityTemplates = s.habitTemplates.filter((t) => isMobilityHabit(t.id));
+      const nextTemplates = [...templates, ...mobilityTemplates];
+      const templateIds = new Set(nextTemplates.map((h) => h.id));
+      const habitsDoneByDay = pruneHabitsDoneByDay(s.habitsDoneByDay, templateIds);
+      const weightLogged = s.weightLog.some((e) => e.dateKey === dateKeyToday);
+      return {
+        ...s,
+        habitTemplates: nextTemplates,
+        habitsDoneByDay,
+        habits: buildHabitsForDateKey(nextTemplates, habitsDoneByDay, dateKeyToday, { weightLogged }),
+      };
+    });
+  }
 
   return (
-    <View
-      className="px-screen-x"
-      style={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: colors.background,
-      }}
-      testID="tab-home"
-    >
-      <Text
-        className="mb-3 text-[28px] font-bold"
-        style={{ color: colors.textPrimary }}
-        testID="home-title"
+    <>
+      <ScrollView
+        testID="tab-home"
+        className="px-screen-x"
+        style={{
+          flex: 1,
+          backgroundColor: colors.background,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom + 24,
+        }}
+        keyboardShouldPersistTaps="handled"
       >
-        New You AI
-      </Text>
-      <Text className="mb-2 text-center text-base" style={{ color: colors.textSecondary }}>
-        Native iOS app — authentication & session (RN-2)
-      </Text>
-      <Text className="mb-6 text-center text-sm" style={{ color: colors.textTertiary }}>
-        Light/dark tokens follow system appearance. Full settings ship in RN-10.
-      </Text>
+        <ScreenHeader
+          eyebrow={headerEyebrow}
+          title={headerTitle}
+          right={
+            <View className="flex-row items-center gap-2">
+              {showNewYouHeaderButton ? <HomeNewYouHeaderButton onPress={openNewYouUpload} /> : null}
+              <Pressable
+                onPress={() => router.push("/(tabs)/settings")}
+                testID="home-settings"
+                accessibilityLabel="Settings"
+                className="h-9 w-9 items-center justify-center rounded-full border"
+                style={{ borderColor: colors.border }}
+              >
+                <Text style={{ color: colors.textSecondary }}>⚙</Text>
+              </Pressable>
+            </View>
+          }
+        />
 
-      <Pressable
-        className="mb-6 min-w-[160px] items-center rounded-full border px-6 py-3"
-        style={{ borderColor: colors.border, opacity: signingOut ? 0.7 : 1 }}
-        onPress={() => void handleSignOut()}
-        disabled={signingOut}
-        testID="home-sign-out"
-        accessibilityLabel="Sign out"
-      >
-        {signingOut ? (
-          <ActivityIndicator color={colors.textPrimary} />
-        ) : (
-          <Text className="text-base font-semibold" style={{ color: colors.textPrimary }}>
-            Sign out
-          </Text>
-        )}
-      </Pressable>
+        {!isViewingToday ? (
+          <Pressable onPress={() => setViewDateKey(dateKeyToday)} className="mt-1">
+            <Text className="text-[13px] font-semibold" style={{ color: colors.textSecondary }}>
+              Back to today
+            </Text>
+          </Pressable>
+        ) : null}
 
-      <Pressable
-        className="mb-3 min-w-[220px] items-center rounded-full border px-6 py-3"
-        style={{ borderColor: colors.border }}
-        onPress={() => router.push("/(modals)/sunday-check-in")}
-        testID="open-sunday-check-in"
-      >
-        <Text className="text-base font-semibold" style={{ color: colors.textPrimary }}>
-          Sunday check-in
-        </Text>
-      </Pressable>
+        {showNewYouReminderPill ? (
+          <FutureYouSkipperReminderPill onOpen={openNewYouUpload} onDismiss={dismissNewYouReminderPill} />
+        ) : null}
 
-      <Pressable
-        className="min-w-[220px] items-center rounded-full border px-6 py-3"
-        style={{ borderColor: colors.border }}
-        onPress={() => router.push("/(tabs)/settings")}
-        testID="open-settings"
-      >
-        <Text className="text-base font-semibold" style={{ color: colors.textPrimary }}>
-          Settings
-        </Text>
-      </Pressable>
+        {isViewingToday && sundayCheckIn.available && sundayCheckIn.data ? (
+          <HomeSundayCheckInCard
+            data={sundayCheckIn.data}
+            completed={sundayCheckIn.completed}
+            unitPreferences={state.unitPreferences}
+            onReview={() => router.push("/(modals)/sunday-check-in")}
+          />
+        ) : null}
 
-      {__DEV__ ? (
-        <Pressable
-          className="mt-6 rounded-full border px-4 py-2"
-          style={{ borderColor: colors.border }}
-          onPress={() => setDevCrash(true)}
-          testID="dev-trigger-app-shell-error"
-        >
-          <Text className="text-sm" style={{ color: colors.textTertiary }}>
-            Dev: trigger error boundary
-          </Text>
-        </Pressable>
-      ) : null}
-    </View>
+        {showWeighInFullCard ? (
+          <Pressable
+            testID="weigh-in-card"
+            onPress={() => setWeighInOpen(true)}
+            accessibilityLabel="Log morning weigh-in"
+            className="mt-[18px] w-full flex-row items-center gap-3.5 rounded-xl border p-4"
+            style={{ borderColor: colors.border, backgroundColor: colors.card }}
+          >
+            <View
+              className="h-11 w-11 items-center justify-center rounded-full"
+              style={{ backgroundColor: colors.backgroundSecondary }}
+            >
+              <Text className="text-lg" style={{ color: colors.textSecondary }}>
+                +
+              </Text>
+            </View>
+            <View className="min-w-0 flex-1">
+              <Text className="text-[13px] font-semibold tracking-tight" style={{ color: colors.textPrimary }}>
+                Morning weigh-in
+              </Text>
+              <Text className="mt-1 text-[11px] font-medium" style={{ color: colors.textTertiary }}>
+                Log weight and optional progress photo
+              </Text>
+            </View>
+            <Text style={{ color: colors.textTertiary }}>›</Text>
+          </Pressable>
+        ) : null}
+
+        {weighInReaction ? (
+          <WeighInCoachReaction adjustment={weighInReaction} displayName={greetingName} />
+        ) : null}
+
+        {isViewingToday && weekFocus.length > 0 && state.weekFocusWeekStartKey ? (
+          <HomeWeekFocusCard
+            commitments={weekFocus}
+            weekStartKey={state.weekFocusWeekStartKey}
+            dateKey={dateKeyToday}
+            weekNumber={weekFocusNumber}
+          />
+        ) : null}
+
+        {isViewingToday && coachPlan ? (
+          <TodaysCoachPlanCard
+            plan={coachPlan}
+            onTaskAction={(task) =>
+              handleCoachTaskAction(task, { onOpenMobilityPreview: () => setMobilityPreviewOpen(true) })
+            }
+          />
+        ) : null}
+
+        <HomeDashboardCarousel
+          totals={totals}
+          targets={state.nutritionTargets}
+          isToday={isViewingToday}
+          label={fuelLabel}
+          coachCtx={coachCtx}
+          coachPlan={coachPlan}
+          state={state}
+          onLogFuel={() => router.push("/(tabs)/nutrition")}
+          onStartWorkout={() => router.push("/(tabs)/workout")}
+          onReviewWorkout={() => router.push("/(tabs)/workout")}
+          onOpenMobilityPreview={() => setMobilityPreviewOpen(true)}
+        />
+
+        <HomeDailyHabitsCard
+          habits={activeHabits}
+          dailyHabitTemplates={dailyHabitTemplatesFromState(state.habitTemplates)}
+          stepsTarget={state.stepsTarget}
+          planStartIso={state.planStartIso}
+          dateKey={activeDateKey}
+          readOnly={!isViewingToday}
+          onToggle={toggleHabit}
+          onMobilityPress={() => setMobilityPreviewOpen(true)}
+          onOpenWeighIn={() => setWeighInOpen(true)}
+          onSaveHabitTemplates={saveDailyHabitTemplates}
+        />
+
+        <View className="h-2" />
+      </ScrollView>
+
+      <WeighInSheet
+        open={weighInOpen}
+        onClose={() => setWeighInOpen(false)}
+        dateKey={dateKeyToday}
+        existing={dayEntry}
+        unitPreferences={state.unitPreferences}
+        setFitnessState={setFitnessState}
+      />
+
+      <MobilityPreviewSheet
+        open={mobilityPreviewOpen}
+        onClose={() => setMobilityPreviewOpen(false)}
+      />
+    </>
   );
 }

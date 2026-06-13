@@ -47,6 +47,7 @@ import {
 } from "@/components/onboarding/WorkoutWeekCalendarPicker";
 import { useFutureYouOnboarding } from "@/hooks/useFutureYouOnboarding";
 import { useOnboardingState } from "@/hooks/useOnboardingState";
+import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
 import { finishOnboarding } from "@/lib/finishOnboarding";
 import { canAccessFutureYouSuccessScreen } from "@/lib/futureYouSuccessModel";
 import { useOnboardingWizard } from "@/hooks/useOnboardingWizard";
@@ -830,7 +831,7 @@ export default function OnboardingWizardScreen() {
       <OnboardingShell
         step={stepIndex}
         title="Here's your training plan"
-        subtitle="Gymmy built this from your schedule and experience. Looks good?"
+        subtitle="NewYou built this from your schedule and experience. Looks good?"
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={templates.length === 0}
@@ -872,7 +873,7 @@ export default function OnboardingWizardScreen() {
       <OnboardingShell
         step={stepIndex}
         title="Stay on track"
-        subtitle="Gymmy works best when it knows your schedule. Totally optional, change anytime"
+        subtitle="NewYou works best when it knows your schedule. Totally optional, change anytime"
         onBack={goBack}
         onContinue={remindersEnabled ? goNext : skipReminders}
         continueLabel={remindersEnabled ? "Set up notifications" : "Skip for now"}
@@ -984,6 +985,7 @@ export default function OnboardingWizardScreen() {
           futureYou,
         });
         await setOnboardingComplete(true);
+        stopOnboardingPreview();
       } finally {
         setFinishingOnboarding(false);
       }

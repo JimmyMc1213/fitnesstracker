@@ -15,6 +15,7 @@ import { BootSplash } from "@/components/BootSplash";
 import { ThemeShell } from "@/components/ThemeShell";
 import { useColorScheme } from "@/components/useColorScheme";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { FitnessProvider } from "@/context/FitnessContext";
 import { useAppShellGate, useAppShellRoutingInput } from "@/hooks/useAppShellGate";
 import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
 import { useOnboardingStub } from "@/hooks/useOnboardingStub";
@@ -74,10 +75,12 @@ export default function RootLayout() {
   return (
     <ThemeShell>
       <AuthProvider>
-        <View style={{ flex: 1 }}>
-          <RootLayoutNav />
-          {bootSplashVisible ? <BootSplash onComplete={() => setBootSplashVisible(false)} /> : null}
-        </View>
+        <FitnessProvider>
+          <View style={{ flex: 1 }}>
+            <RootLayoutNav />
+            {bootSplashVisible ? <BootSplash onComplete={() => setBootSplashVisible(false)} /> : null}
+          </View>
+        </FitnessProvider>
       </AuthProvider>
     </ThemeShell>
   );

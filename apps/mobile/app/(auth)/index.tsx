@@ -1,12 +1,14 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
+import { WelcomePhonePreview } from "@/components/WelcomePhonePreview";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { authLayout } from "@/lib/authLayoutStyles";
+import { startOnboardingPreview } from "@/lib/devPreviewOnboarding";
 
 export default function AuthWelcomeScreen() {
   const { colors } = useAppTheme();
@@ -20,32 +22,29 @@ export default function AuthWelcomeScreen() {
         authLayout.screenPadding,
         {
           backgroundColor: colors.background,
-          paddingTop: insets.top + 16,
-          paddingBottom: insets.bottom + 24,
+          paddingTop: insets.top + 8,
+          paddingBottom: insets.bottom + 16,
         },
       ]}
       testID="auth-welcome-screen"
     >
-      <View style={authLayout.welcomeLanding}>
+      <ScrollView
+        style={authLayout.screen}
+        contentContainerStyle={authLayout.welcomeLanding}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={authLayout.brandRow}>
           <NewYouSplashMark />
         </View>
 
-        <View
-          style={[
-            authLayout.heroPreview,
-            { borderColor: colors.border, backgroundColor: colors.card },
-          ]}
-          accessibilityElementsHidden
-        >
-          <Text style={[authLayout.heroPreviewLabel, { color: colors.textTertiary }]}>
-            App Preview
-          </Text>
+        <View style={authLayout.heroRow}>
+          <WelcomePhonePreview />
         </View>
 
         <View style={authLayout.copyBlock}>
           <Text
-            style={[authLayout.headline, { color: colors.textPrimary }]}
+            style={[authLayout.welcomeHeadline, { color: colors.textPrimary }]}
             testID="auth-welcome-headline"
           >
             Your program. Smarter every session.
@@ -55,7 +54,7 @@ export default function AuthWelcomeScreen() {
           </Text>
         </View>
 
-        <View style={authLayout.actions}>
+        <View style={[authLayout.actions, { marginTop: "auto" as const, paddingTop: 12 }]}>
           <AuthOAuthButtons onError={setOauthError} />
           {oauthError ? (
             <Text
@@ -84,8 +83,23 @@ export default function AuthWelcomeScreen() {
               <Text style={[authLayout.signInLink, { color: colors.accent }]}>Sign in</Text>
             </Pressable>
           </View>
+
+          {__DEV__ ? (
+            <Pressable
+              onPress={() => {
+                startOnboardingPreview();
+                router.replace("/(onboarding)");
+              }}
+              testID="auth-preview-onboarding"
+              style={{ marginTop: 20, alignItems: "center", paddingVertical: 8 }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textSecondary }}>
+                Preview onboarding (dev)
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }

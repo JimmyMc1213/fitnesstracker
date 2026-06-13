@@ -13,25 +13,17 @@ export const authLayout = StyleSheet.create({
   },
   brandRow: {
     alignItems: "center",
-    paddingTop: 24,
+    flexShrink: 0,
+    paddingTop: 4,
   },
-  heroPreview: {
+  heroRow: {
     alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    maxWidth: 240,
-    aspectRatio: 9 / 16,
-    borderRadius: 28,
-    borderWidth: 1.5,
-    alignSelf: "center",
-  },
-  heroPreviewLabel: {
-    fontSize: 13,
-    fontWeight: "500",
-    letterSpacing: 0.3,
+    flexShrink: 0,
+    marginTop: 12,
   },
   copyBlock: {
-    marginTop: 32,
+    flexShrink: 0,
+    marginTop: 16,
     alignItems: "center",
   },
   headline: {
@@ -40,15 +32,22 @@ export const authLayout = StyleSheet.create({
     lineHeight: 34,
     textAlign: "center",
   },
+  welcomeHeadline: {
+    fontSize: 26,
+    fontWeight: "700",
+    lineHeight: 32,
+    textAlign: "center",
+  },
   subline: {
-    marginTop: 12,
-    fontSize: 16,
-    lineHeight: 22,
+    marginTop: 10,
+    fontSize: 15,
+    lineHeight: 21,
     textAlign: "center",
   },
   actions: {
-    marginTop: 24,
-    gap: 12,
+    flexShrink: 0,
+    marginTop: 16,
+    gap: 10,
   },
   oauthStack: {
     gap: 12,
@@ -57,7 +56,7 @@ export const authLayout = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    marginVertical: 8,
+    marginVertical: 4,
   },
   oauthDividerLine: {
     flex: 1,
@@ -71,7 +70,7 @@ export const authLayout = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: borderRadius.pill,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderWidth: 1,
   },
   oauthButtonText: {
@@ -82,7 +81,7 @@ export const authLayout = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: borderRadius.pill,
-    paddingVertical: 16,
+    paddingVertical: 14,
   },
   primaryButtonText: {
     fontSize: 16,
@@ -93,7 +92,7 @@ export const authLayout = StyleSheet.create({
     flexWrap: "wrap",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
+    marginTop: 10,
   },
   signInPrompt: {
     fontSize: 14,
@@ -103,9 +102,11 @@ export const authLayout = StyleSheet.create({
     fontWeight: "600",
   },
   welcomeLanding: {
-    flex: 1,
-    justifyContent: "space-evenly",
-    paddingVertical: 16,
+    flexGrow: 1,
+    gap: 2,
+    minHeight: "100%",
+    paddingTop: 4,
+    paddingBottom: 12,
   },
   input: {
     borderRadius: borderRadius.pill,

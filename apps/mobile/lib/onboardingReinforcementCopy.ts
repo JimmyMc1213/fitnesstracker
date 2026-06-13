@@ -26,7 +26,7 @@ export function goalWeightReinforcementParts(
 }
 
 export function goalWeightReinforcementSubtext(): string {
-  return "Most Gymmy users say the change feels obvious within a few weeks, and it's built to last.";
+  return "Most NewYou members say the change feels obvious within a few weeks, and it's built to last.";
 }
 
 /** First coach note on the plan-ready screen: what the coach does and how it supports the user's goal. */

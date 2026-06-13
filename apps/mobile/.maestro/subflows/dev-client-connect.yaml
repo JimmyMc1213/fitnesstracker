@@ -1,12 +1,19 @@
-# Shared steps after openLink — dismiss Expo dev client UI and recover from Metro errors.
+# Shared steps after openLink — wait for Metro bundle, dismiss Expo dev client intro, recover from errors.
 appId: app.newyouai.mobile
 ---
-- tapOn:
-    text: Continue
-    optional: true
-- tapOn:
-    text: Dismiss
-    optional: true
-- tapOn:
-    text: Reload
-    optional: true
+# Poll until auth welcome is reachable (Continue modal blocks headline until dismissed)
+- repeat:
+    times: 40
+    while:
+      notVisible:
+        id: auth-welcome-headline
+    commands:
+      - tapOn:
+          text: Continue
+          optional: true
+      - tapOn:
+          text: Dismiss
+          optional: true
+      - tapOn:
+          text: Reload
+          optional: true
