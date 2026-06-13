@@ -75,14 +75,17 @@ export default function AuthWelcomeScreen() {
             </Text>
           </Pressable>
 
-          <View style={authLayout.signInRow}>
+          <Pressable
+            testID="auth-sign-in-link"
+            style={authLayout.signInRow}
+            onPress={() => router.push("/(auth)/sign-in")}
+            accessibilityRole="link"
+          >
             <Text style={[authLayout.signInPrompt, { color: colors.textSecondary }]}>
               Already have an account?{" "}
             </Text>
-            <Pressable onPress={() => router.push("/(auth)/sign-in")} testID="auth-sign-in-link">
-              <Text style={[authLayout.signInLink, { color: colors.accent }]}>Sign in</Text>
-            </Pressable>
-          </View>
+            <Text style={[authLayout.signInLink, { color: colors.accent }]}>Sign in</Text>
+          </Pressable>
 
           {__DEV__ ? (
             <Pressable

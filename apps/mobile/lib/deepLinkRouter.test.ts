@@ -24,6 +24,13 @@ describe("resolveDeepLink", () => {
     });
   });
 
+  it("routes settings hub", () => {
+    expect(resolveDeepLink("newyouai://settings")).toEqual({
+      type: "navigate",
+      href: "/(tabs)/settings",
+    });
+  });
+
   it("routes stretch to home mobility stub", () => {
     expect(resolveDeepLink("newyouai://stretch")).toEqual({
       type: "navigate",

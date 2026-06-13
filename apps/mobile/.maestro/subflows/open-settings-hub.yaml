@@ -1,0 +1,12 @@
+# Open settings hub from home — gear is inset from top-right so it clears the Expo dev menu.
+appId: app.newyouai.mobile
+---
+- tapOn:
+    text: "Dismiss"
+    optional: true
+- tapOn:
+    id: home-settings
+- extendedWaitUntil:
+    visible:
+      id: settings-hub
+    timeout: 15000

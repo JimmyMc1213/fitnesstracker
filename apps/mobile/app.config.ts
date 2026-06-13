@@ -65,6 +65,7 @@ const config: ExpoConfig = {
         backgroundColor: "#0a0a0a",
       },
     ],
+    "expo-notifications",
   ],
   experiments: {
     typedRoutes: true,

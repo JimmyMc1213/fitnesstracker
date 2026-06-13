@@ -61,6 +61,10 @@ export function resolveDeepLink(url: string): DeepLinkAction {
     return { type: "navigate", href: "/(tabs)/settings/account" };
   }
 
+  if (path === "settings") {
+    return { type: "navigate", href: "/(tabs)/settings" };
+  }
+
   if (path === "settings/notifications") {
     return { type: "navigate", href: "/(tabs)/settings/notifications" };
   }

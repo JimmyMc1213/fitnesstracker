@@ -633,3 +633,29 @@ export {
   type CoachContext,
   type SundayCheckInCoachInput,
 } from "./coach/coachEngine";
+export {
+  calculateBmr,
+  calculateNutritionTargets,
+  calculateTdee,
+  type NutritionCalcInput,
+} from "./nutrition/calculator";
+export {
+  nutritionCalcInputFromOnboardingProfile,
+  nutritionGoalLabel,
+  progressGoalFromOnboarding,
+  type ProgressGoalOptions,
+} from "./onboarding/progressGoal";
+export { defaultGoalWeightLbs } from "./settings/goalWeight";
+export {
+  applyGoalSettingsDraft,
+  applyGoalSettingsPatch,
+  clampGoalWeightLbs,
+  GOAL_PACE_OPTIONS,
+  isGoalSettingsDirty,
+  isGoalWeightValid,
+  latestWeightLbs,
+  normalizeGoalProfilePatch,
+  NUTRITION_GOALS,
+  nutritionGoalSettingsLabel,
+  type GoalSettingsFields,
+} from "./settings/goalSettings";

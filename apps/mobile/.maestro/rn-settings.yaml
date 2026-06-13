@@ -1,5 +1,6 @@
-# RN-2-05 sign-out — requires Supabase + test account
-# Run: MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... maestro test .maestro/rn-auth-sign-out.yaml
+# RN-10-06 settings hub smoke — requires Supabase + onboarded seed + Metro on :8082
+# Run: EXPO_PUBLIC_E2E_FITNESS_SEED=coach-nutrition MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:settings
+# Metro: cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=coach-nutrition npx expo start --dev-client --port 8082
 appId: app.newyouai.mobile
 env:
   TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
@@ -19,25 +20,22 @@ env:
     visible:
       id: tab-home
     timeout: 45000
-- assertVisible:
-    id: home-title
 - runFlow: subflows/open-settings-hub.yaml
-- scrollUntilVisible:
-    element:
-      id: settings-sign-out
-    direction: DOWN
-    timeout: 15000
 - tapOn:
-    id: settings-sign-out
+    id: settings-row-fuel-targets
 - extendedWaitUntil:
     visible:
-      id: settings-sign-out-confirm
+      id: settings-panel-fuel-targets
     timeout: 10000
 - tapOn:
-    id: settings-sign-out-confirm
+    id: settings-panel-back
 - extendedWaitUntil:
     visible:
-      id: auth-welcome-headline
-    timeout: 30000
-- assertNotVisible:
-    id: home-title
+      id: settings-hub
+    timeout: 10000
+- tapOn:
+    id: settings-row-account
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-account
+    timeout: 10000

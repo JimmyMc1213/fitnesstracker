@@ -2,9 +2,38 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
-last_updated: 2026-06-12  # RN-9 all stories context created
+last_updated: 2026-06-13  # RN-10 all stories context created
 resourcing: solo-dev-ai
 
+# RN-10 SCOPE LOCKS (2026-06-13 sprint planning):
+#   - Settings core extract + full hub shell: IN SCOPE (RN-10-01)
+#   - You panel + change-password sub-layer: IN SCOPE (RN-10-02)
+#   - Account panel email + sync status row: IN SCOPE (RN-10-02)
+#   - Appearance + Units panels: IN SCOPE (RN-10-03)
+#   - Fuel targets + Hydration + Goal panels: IN SCOPE (RN-10-04)
+#   - Reminders + Rest timer + Equipment + Habits + Program: IN SCOPE (RN-10-05)
+#   - Sign out + Delete account + Legal/Socials + Maestro: IN SCOPE (RN-10-06)
+#   - Fitness cloud sync pull/push adapter: OUT OF SCOPE (RN-OFFLINE)
+#   - Push notification scheduling: OUT OF SCOPE (RN-PUSH; panel UI only RN-10-05)
+#   - RevenueCat restore purchases production: OUT OF SCOPE (RN-STORE)
+#   - Parity matrix sign-off: OUT OF SCOPE (RN-PARITY)
+#   - Plan doc: sprint-rn-10-settings-plan.md
+#
+# RN-10 BMAD SWARM ALIGNMENT:
+# ==========================
+# - bmad-swarm epic-rn-10: ready (2026-06-13) — RN-10-01..06 story files created (ultimate context)
+# - Branch: epic-rn-10/settings-account
+# - Start: rn-10-01-settings-core-extract-hub-shell.md
+# - Per-story gate: npm run typecheck --workspace=@newyouai/mobile
+# - Logic gate: npm run test --workspace=@newyouai/core when packages/core touched
+# - Api gate: npm run test --workspace=@newyouai/api-client when delete-user wired
+# - Epic close gate: rn-settings.yaml + rn-auth-sign-out.yaml + auth-all + tab-nav + onboarding + coach-nutrition + workout-session + nutrition-log + progress + sunday-check-in + future-you (RN-10-06)
+# - Metro for Maestro: npx expo start --dev-client --port 8082
+#
+# RN-10 swarm order (execute in this sequence):
+#   RN-10-01 → RN-10-02 → RN-10-03 → RN-10-04 → RN-10-05 → RN-10-06 → retro
+#   Kickoff: /bmad-create-story RN-10-01, then /bmad-swarm epic-rn-10
+#
 # RN-9 SCOPE LOCKS (2026-06-12 sprint planning):
 #   - Future You core extract + tab shell: IN SCOPE (RN-9-01)
 #   - Gallery view + tiles: IN SCOPE (RN-9-02)
@@ -770,7 +799,48 @@ development_status:
 
   epic-rn-10:
     title: Settings & account
-    status: backlog
+    status: done
+    swarm_mode: epic-rn-10
+    swarm_branch: epic-rn-10/settings-account
+    plan: implementation-artifacts/sprint-rn-10-settings-plan.md
+    swarm_start: rn-10-01-settings-core-extract-hub-shell
+    swarm_ready: 2026-06-13
+    swarm_completed: 2026-06-13
+    execute_order: rn-10-01 → rn-10-02 → rn-10-03 → rn-10-04 → rn-10-05 → rn-10-06
+    stories:
+      rn-10-01-settings-core-extract-hub-shell:
+        title: Settings core extract + hub shell
+        status: done
+        file: implementation-artifacts/rn-10-01-settings-core-extract-hub-shell.md
+        completed: 2026-06-13
+      rn-10-02-you-account-panels:
+        title: You + Account panels
+        status: done
+        file: implementation-artifacts/rn-10-02-you-account-panels.md
+        completed: 2026-06-13
+      rn-10-03-appearance-units-panels:
+        title: Appearance + Units panels
+        status: done
+        file: implementation-artifacts/rn-10-03-appearance-units-panels.md
+        completed: 2026-06-13
+      rn-10-04-fuel-hydration-goal-panels:
+        title: Fuel targets + Hydration + Goal panels
+        status: done
+        file: implementation-artifacts/rn-10-04-fuel-hydration-goal-panels.md
+        completed: 2026-06-13
+      rn-10-05-reminders-training-habits-program:
+        title: Reminders + Training + Habits + Program panels
+        status: done
+        file: implementation-artifacts/rn-10-05-reminders-training-habits-program.md
+        completed: 2026-06-13
+      rn-10-06-hub-actions-maestro-polish:
+        title: Hub actions + Maestro + epic polish
+        status: done
+        file: implementation-artifacts/rn-10-06-hub-actions-maestro-polish.md
+        completed: 2026-06-13
+    retrospective:
+      epic-rn-10-retrospective:
+        status: optional
 
   epic-rn-push:
     title: Push notifications

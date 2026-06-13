@@ -12,6 +12,7 @@ import {
 import { AppState, Platform, type AppStateStatus } from "react-native";
 
 import { mapOAuthSessionError, parseOAuthRedirectUrl } from "@/lib/authOAuth";
+import { changeUserPassword, updateUserEmail } from "@/lib/accountAuth";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -29,6 +30,8 @@ type AuthContextValue = {
   signInWithApple: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   completeOAuthFromUrl: (redirectUrl: string) => Promise<{ error?: string }>;
+  updateEmail: (newEmail: string) => Promise<{ error?: string }>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ error?: string }>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -270,6 +273,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const updateEmail = useCallback(
+    async (newEmail: string) => updateUserEmail(session?.user?.email, newEmail),
+    [session?.user?.email],
+  );
+
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) =>
+      changeUserPassword(session?.user?.email, currentPassword, newPassword),
+    [session?.user?.email],
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       configured,
@@ -282,6 +296,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithApple,
       signOut,
       completeOAuthFromUrl: completeOAuthRedirect,
+      updateEmail,
+      changePassword,
     }),
     [
       configured,
@@ -293,6 +309,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithApple,
       signOut,
       completeOAuthRedirect,
+      updateEmail,
+      changePassword,
     ],
   );
 

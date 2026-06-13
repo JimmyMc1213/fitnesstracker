@@ -58,6 +58,7 @@ export default function SignInScreen() {
     <KeyboardAvoidingView
       style={[authLayout.screen, { backgroundColor: colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      testID="auth-sign-in-screen"
     >
       <View
         style={[
@@ -67,7 +68,6 @@ export default function SignInScreen() {
             paddingBottom: insets.bottom + 24,
           },
         ]}
-        testID="auth-sign-in-screen"
       >
         <Pressable onPress={() => router.back()} testID="auth-sign-in-back">
           <Text style={{ color: colors.accent, fontSize: 16 }}>Back</Text>

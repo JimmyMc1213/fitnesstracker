@@ -260,8 +260,7 @@ export default function HomeScreen() {
           eyebrow={headerEyebrow}
           title={headerTitle}
           right={
-            <View className="flex-row items-center gap-2">
-              {showNewYouHeaderButton ? <HomeNewYouHeaderButton onPress={openNewYou} /> : null}
+            <View className="flex-row items-center gap-2" style={{ marginRight: 56 }}>
               <Pressable
                 onPress={() => router.push("/(tabs)/settings")}
                 testID="home-settings"
@@ -271,6 +270,7 @@ export default function HomeScreen() {
               >
                 <Text style={{ color: colors.textSecondary }}>⚙</Text>
               </Pressable>
+              {showNewYouHeaderButton ? <HomeNewYouHeaderButton onPress={openNewYou} /> : null}
             </View>
           }
         />

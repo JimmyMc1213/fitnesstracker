@@ -31,6 +31,7 @@ type FitnessContextValue = {
   state: AppState | null;
   hydrated: boolean;
   setFitnessState: (updater: AppState | ((prev: AppState) => AppState)) => void;
+  replaceFitnessState: (next: AppState) => void;
 };
 
 const FitnessContext = createContext<FitnessContextValue | null>(null);
@@ -82,13 +83,22 @@ export function FitnessProvider({ children }: { children: ReactNode }) {
     [persistState],
   );
 
+  const replaceFitnessState = useCallback(
+    (next: AppState) => {
+      setState(next);
+      persistState(next);
+    },
+    [persistState],
+  );
+
   const value = useMemo(
     () => ({
       state,
       hydrated,
       setFitnessState,
+      replaceFitnessState,
     }),
-    [state, hydrated, setFitnessState],
+    [state, hydrated, setFitnessState, replaceFitnessState],
   );
 
   return <FitnessContext.Provider value={value}>{children}</FitnessContext.Provider>;
