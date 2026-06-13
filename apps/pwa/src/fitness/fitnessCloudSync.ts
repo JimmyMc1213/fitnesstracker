@@ -1,19 +1,28 @@
+import {
+  formatSyncedLabel,
+  payloadToPersistedSlice,
+  pullRemoteIntoLocal as corePullRemoteIntoLocal,
+  pullRemoteMergeAlways as corePullRemoteMergeAlways,
+  tryPush as coreTryPush,
+  userFacingSyncError,
+} from "@newyouai/core";
 import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import type { Session } from "@supabase/supabase-js";
 
 import { buildAppStateFromPersisted } from "./buildAppState";
+import { createSupabaseSyncClient } from "./createSupabaseSyncClient";
 import type { FitnessSyncContextValue } from "./FitnessSyncContext";
 import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
-import { mergePersistedFitnessSlices } from "./mergePersistedFitnessSlices";
 import { normalizeOnboardingDraft } from "./onboardingDraft";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { savePersistedSlice, sliceFromAppState } from "./persistFitnessSlice";
 import { deleteUserAccount, isDeleteAccountDryRunEnabled } from "./deleteUserAccount";
-import { isFitnessPayloadTooLarge } from "./fitnessPayloadGuard";
 import { resetLocalAfterAccountDelete } from "./resetAfterAccountDelete";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import { loadSyncMeta, saveSyncMeta } from "./syncMeta";
 import type { AppState } from "./types";
+
+export { payloadToPersistedSlice };
 
 const HYDRATION_PULL_TIMEOUT_MS = 5000;
 
@@ -39,33 +48,6 @@ function persistSliceWithMigration(slice: PersistedFitnessSlice): PersistedFitne
   return next;
 }
 
-function userFacingSyncError(e: unknown, fallback: string): string {
-  if (e instanceof SyntaxError) return "Saved data could not be read. Using your local defaults.";
-  const msg = e instanceof Error ? e.message : fallback;
-  if (/unicode escape|json\.parse|syntaxerror|unexpected token/i.test(msg)) {
-    return "Saved data could not be read. Using your local defaults.";
-  }
-  return msg || fallback;
-}
-
-type FitnessUserRow = {
-  user_id: string;
-  payload: unknown;
-  updated_at_ms: number;
-};
-
-async function fetchFitnessRemoteRow(userId: string): Promise<FitnessUserRow | null> {
-  const sb = getSupabase();
-  if (!sb) return null;
-  const { data, error } = await sb.from("fitness_user_data").select("*").eq("user_id", userId).maybeSingle();
-  if (error || !data) return null;
-  return data as FitnessUserRow;
-}
-
-export function payloadToPersistedSlice(payload: unknown): PersistedFitnessSlice {
-  return sliceFromAppState(buildAppStateFromPersisted(payload as Partial<PersistedFitnessSlice> | null));
-}
-
 /** Pull when cloud snapshot is newer than what we last reconciled. */
 export async function pullRemoteIntoLocal(
   uid: string,
@@ -75,17 +57,9 @@ export async function pullRemoteIntoLocal(
   | { applied: false }
   | { applied: true; mergedSlice: PersistedFitnessSlice; meta: { lastSeenRemoteUpdatedAtMs: number } }
 > {
-  const row = await fetchFitnessRemoteRow(uid);
-  if (!row) return { applied: false };
-  if (row.updated_at_ms <= meta.lastSeenRemoteUpdatedAtMs) return { applied: false };
-
-  const remoteSlice = payloadToPersistedSlice(row.payload);
-  const mergedSlice = mergePersistedFitnessSlices(localSlice, remoteSlice);
-  return {
-    applied: true,
-    mergedSlice,
-    meta: { lastSeenRemoteUpdatedAtMs: row.updated_at_ms },
-  };
+  const client = createSupabaseSyncClient();
+  if (!client) return { applied: false };
+  return corePullRemoteIntoLocal(client, uid, localSlice, meta);
 }
 
 /** Merge unconditionally (after optimistic-lock conflict). */
@@ -93,11 +67,9 @@ export async function pullRemoteMergeAlways(
   uid: string,
   localSlice: PersistedFitnessSlice,
 ): Promise<{ mergedSlice: PersistedFitnessSlice; meta: { lastSeenRemoteUpdatedAtMs: number } } | null> {
-  const row = await fetchFitnessRemoteRow(uid);
-  if (!row) return null;
-  const remoteSlice = payloadToPersistedSlice(row.payload);
-  const mergedSlice = mergePersistedFitnessSlices(localSlice, remoteSlice);
-  return { mergedSlice, meta: { lastSeenRemoteUpdatedAtMs: row.updated_at_ms } };
+  const client = createSupabaseSyncClient();
+  if (!client) return null;
+  return corePullRemoteMergeAlways(client, uid, localSlice);
 }
 
 async function tryPush(
@@ -105,50 +77,9 @@ async function tryPush(
   slice: PersistedFitnessSlice,
   meta: { lastSeenRemoteUpdatedAtMs: number },
 ): Promise<{ ok: true; meta: { lastSeenRemoteUpdatedAtMs: number } } | { conflict: true } | { error: string }> {
-  if (isFitnessPayloadTooLarge(slice)) {
-    return { error: "Your saved data is too large to sync. Remove old logs or contact support." };
-  }
-
-  const sb = getSupabase();
-  if (!sb) return { error: "Supabase not configured" };
-  const now = Date.now();
-
-  const { data: row } = await sb.from("fitness_user_data").select("updated_at_ms").eq("user_id", uid).maybeSingle();
-
-  if (!row) {
-    const { error } = await sb.from("fitness_user_data").insert({
-      user_id: uid,
-      payload: slice,
-      updated_at_ms: now,
-    });
-    if (error) return { error: error.message };
-    return { ok: true, meta: { lastSeenRemoteUpdatedAtMs: now } };
-  }
-
-  if (row.updated_at_ms !== meta.lastSeenRemoteUpdatedAtMs) {
-    return { conflict: true };
-  }
-
-  const { data: updated, error } = await sb
-    .from("fitness_user_data")
-    .update({ payload: slice, updated_at_ms: now })
-    .eq("user_id", uid)
-    .eq("updated_at_ms", meta.lastSeenRemoteUpdatedAtMs)
-    .select("updated_at_ms");
-
-  if (error) return { error: error.message };
-  if (!updated?.length) return { conflict: true };
-
-  return { ok: true, meta: { lastSeenRemoteUpdatedAtMs: now } };
-}
-
-function formatSyncedLabel(ts: number | null): string | null {
-  if (ts == null) return null;
-  try {
-    return new Date(ts).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-  } catch {
-    return null;
-  }
+  const client = createSupabaseSyncClient();
+  if (!client) return { error: "Supabase not configured" };
+  return coreTryPush(client, uid, slice, meta);
 }
 
 export async function updateUserEmail(

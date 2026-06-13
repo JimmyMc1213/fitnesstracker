@@ -15,6 +15,7 @@ import {
 } from "@/components/settings/SettingsLayout";
 import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
+import { useFitnessSync } from "@/context/FitnessSyncContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { deleteUserAccount, isDeleteAccountDryRunEnabled } from "@/lib/deleteUserAccount";
 import { EQUIPMENT_SETUP_LABELS } from "@/lib/equipmentSetup";
@@ -57,6 +58,7 @@ async function openExternalUrl(url: string) {
 export default function SettingsHubScreen() {
   const { colors, theme } = useAppTheme();
   const { configured, session, sessionEmail, signOut } = useAuth();
+  const { lastSyncedLabel } = useFitnessSync();
   const { state, replaceFitnessState } = useFitnessState();
 
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
@@ -114,7 +116,11 @@ export default function SettingsHubScreen() {
 
   const volumeUnit = state.unitPreferences.volumeUnit;
   const weightUnit = state.unitPreferences.weightUnit;
-  const accountTrailing = !configured ? "Not configured" : sessionEmail ? "Signed in" : "Sign in";
+  const accountTrailing = !configured
+    ? "Not configured"
+    : sessionEmail
+      ? (lastSyncedLabel ?? "Signed in")
+      : "Sign in";
   const nutritionTargets = state.nutritionTargets;
 
   return (

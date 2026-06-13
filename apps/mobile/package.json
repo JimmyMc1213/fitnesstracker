@@ -29,6 +29,8 @@
     "test:e2e:progress": "node scripts/run-progress-maestro.mjs",
     "test:e2e:sunday-check-in": "node scripts/run-sunday-check-in-maestro.mjs",
     "test:e2e:future-you": "node scripts/run-future-you-maestro.mjs",
+    "test:e2e:sync": "node scripts/run-sync-maestro.mjs",
+    "test:e2e:epic-rn-offline-close": "node scripts/run-epic-rn-offline-close.mjs",
     "test:e2e:epic-rn6-close": "node scripts/run-epic-rn6-close.mjs",
     "test:e2e:epic-rn7-close": "node scripts/run-epic-rn7-close.mjs",
     "test:e2e:epic-rn8-close": "node scripts/run-epic-rn8-close.mjs",

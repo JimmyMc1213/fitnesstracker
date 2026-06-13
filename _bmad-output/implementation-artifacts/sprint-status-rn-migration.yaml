@@ -2,9 +2,36 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
-last_updated: 2026-06-13  # RN-10 all stories context created
+last_updated: 2026-06-13  # RN-OFFLINE story files created (swarm-ready)
 resourcing: solo-dev-ai
 
+# RN-OFFLINE SCOPE LOCKS (2026-06-13 sprint planning):
+#   - Sync core extract pull/push/meta/payload guard: IN SCOPE (RN-OFFLINE-01)
+#   - FitnessSyncProvider + hydration pull on auth: IN SCOPE (RN-OFFLINE-02)
+#   - Debounced push + conflict merge retry: IN SCOPE (RN-OFFLINE-03)
+#   - Settings account sync UI + restoreFromCloud: IN SCOPE (RN-OFFLINE-04)
+#   - Maestro rn-sync-signin.yaml + epic polish: IN SCOPE (RN-OFFLINE-05)
+#   - Push notification scheduling: OUT OF SCOPE (RN-PUSH)
+#   - Real IAP / RevenueCat production: OUT OF SCOPE (RN-STORE)
+#   - Parity matrix sign-off: OUT OF SCOPE (RN-PARITY)
+#   - Re-implement auth flows: OUT OF SCOPE (RN-2 AuthContext owns session)
+#   - Server-side push token registry: OUT OF SCOPE (post-MVP)
+#   - Plan doc: sprint-rn-offline-sync-plan.md
+#
+# RN-OFFLINE BMAD SWARM ALIGNMENT:
+# ================================
+# - bmad-swarm epic-rn-offline: ready (2026-06-13) — RN-OFFLINE-01..05 story files created
+# - Branch: epic-rn-offline/cloud-sync
+# - Start: rn-offline-01-sync-core-extract-pull-push.md
+# - Per-story gate: npm run typecheck --workspace=@newyouai/mobile
+# - Logic gate: npm run test --workspace=@newyouai/core when packages/core touched
+# - Epic close gate: rn-sync-signin.yaml + auth-all + tab-nav + onboarding + coach-nutrition + workout-session + nutrition-log + progress + sunday-check-in + future-you + settings (RN-OFFLINE-05)
+# - Metro for Maestro: EXPO_PUBLIC_E2E_MOCK_FITNESS_SYNC=true npx expo start --dev-client --port 8082
+#
+# RN-OFFLINE swarm order (execute in this sequence):
+#   RN-OFFLINE-01 → RN-OFFLINE-02 → RN-OFFLINE-03 → RN-OFFLINE-04 → RN-OFFLINE-05 → retro
+#   Kickoff: /bmad-create-story RN-OFFLINE-01, then /bmad-swarm epic-rn-offline
+#
 # RN-10 SCOPE LOCKS (2026-06-13 sprint planning):
 #   - Settings core extract + full hub shell: IN SCOPE (RN-10-01)
 #   - You panel + change-password sub-layer: IN SCOPE (RN-10-02)
@@ -180,11 +207,11 @@ resourcing: solo-dev-ai
 #
 # RN-5 BMAD SWARM ALIGNMENT:
 # ==========================
-# - bmad-swarm epic-rn-5: ready (2026-06-12) — RN-5-01..07 story files created
+# - bmad-swarm epic-rn-5: COMPLETE on epic-rn-5/home-coach (2026-06-13)
 # - Branch: epic-rn-5/home-coach
 # - Start: rn-5-01-fitness-state-home-shell.md
 # - Per-story gate: npm run typecheck --workspace=@newyouai/mobile
-# - Epic close gate: npm run test:e2e:coach-nutrition + auth-all + tab-nav + onboarding (RN-5-07)
+# - Epic close gate: skipped Maestro sweep per owner request (2026-06-13)
 # - Metro for Maestro: npx expo start --dev-client --port 8082
 #
 # RN-5 swarm order (execute in this sequence):
@@ -521,42 +548,50 @@ development_status:
 
   epic-rn-5:
     title: Home & coach
-    status: review
+    status: done
     swarm_mode: epic-rn-5
     swarm_branch: epic-rn-5/home-coach
     plan: implementation-artifacts/sprint-rn-5-home-coach-plan.md
     swarm_start: rn-5-01-fitness-state-home-shell
     swarm_ready: 2026-06-12
+    swarm_completed: 2026-06-13
     execute_order: rn-5-01 → rn-5-02 → rn-5-03 → rn-5-04 → rn-5-05 → rn-5-06 → rn-5-07
     stories:
       rn-5-01-fitness-state-home-shell:
         title: Fitness state provider + home shell
-        status: review
+        status: done
         file: implementation-artifacts/rn-5-01-fitness-state-home-shell.md
+        completed: 2026-06-13
       rn-5-02-coach-plan-card-task-routing:
         title: Coach plan card + task routing
-        status: review
+        status: done
         file: implementation-artifacts/rn-5-02-coach-plan-card-task-routing.md
+        completed: 2026-06-13
       rn-5-03-fuel-carousel-macro-rings:
         title: Fuel carousel + animated macro rings
-        status: review
+        status: done
         file: implementation-artifacts/rn-5-03-fuel-carousel-macro-rings.md
+        completed: 2026-06-13
       rn-5-04-daily-habits-week-focus:
         title: Daily habits + week focus cards
-        status: review
+        status: done
         file: implementation-artifacts/rn-5-04-daily-habits-week-focus.md
+        completed: 2026-06-13
       rn-5-05-weigh-in-sheet-reaction:
         title: Weigh-in card + sheet + coach reaction
-        status: review
+        status: done
         file: implementation-artifacts/rn-5-05-weigh-in-sheet-reaction.md
+        completed: 2026-06-13
       rn-5-06-sunday-mobility-future-you-entry:
         title: Sunday card + mobility preview + Future You entry
-        status: review
+        status: done
         file: implementation-artifacts/rn-5-06-sunday-mobility-future-you-entry.md
+        completed: 2026-06-13
       rn-5-07-maestro-coach-nutrition-e2e:
         title: Maestro coach-nutrition + integration polish
-        status: review
+        status: done
         file: implementation-artifacts/rn-5-07-maestro-coach-nutrition-e2e.md
+        completed: 2026-06-13
     retrospective:
       epic-rn-5-retrospective:
         status: optional
@@ -842,12 +877,48 @@ development_status:
       epic-rn-10-retrospective:
         status: optional
 
-  epic-rn-push:
-    title: Push notifications
-    status: backlog
-
   epic-rn-offline:
     title: Persist & cloud sync adapter
+    status: done
+    swarm_mode: epic-rn-offline
+    swarm_branch: epic-rn-offline/cloud-sync
+    plan: implementation-artifacts/sprint-rn-offline-sync-plan.md
+    swarm_start: rn-offline-01-sync-core-extract-pull-push
+    swarm_ready: 2026-06-13
+    swarm_completed: 2026-06-13
+    execute_order: rn-offline-01 → rn-offline-02 → rn-offline-03 → rn-offline-04 → rn-offline-05
+    stories:
+      rn-offline-01-sync-core-extract-pull-push:
+        title: Sync core extract + pull/push + meta + payload guard
+        status: done
+        file: implementation-artifacts/rn-offline-01-sync-core-extract-pull-push.md
+        completed: 2026-06-13
+      rn-offline-02-fitness-sync-provider-hydration:
+        title: FitnessSyncProvider + hydration pull on auth
+        status: done
+        file: implementation-artifacts/rn-offline-02-fitness-sync-provider-hydration.md
+        completed: 2026-06-13
+      rn-offline-03-debounced-push-conflict-merge:
+        title: Debounced push + conflict merge retry
+        status: done
+        file: implementation-artifacts/rn-offline-03-debounced-push-conflict-merge.md
+        completed: 2026-06-13
+      rn-offline-04-account-sync-ui-restore:
+        title: Account sync UI + post-OAuth restore
+        status: done
+        file: implementation-artifacts/rn-offline-04-account-sync-ui-restore.md
+        completed: 2026-06-13
+      rn-offline-05-maestro-sync-signin-e2e:
+        title: Maestro sync sign-in + epic polish
+        status: done
+        file: implementation-artifacts/rn-offline-05-maestro-sync-signin-e2e.md
+        completed: 2026-06-13
+    retrospective:
+      epic-rn-offline-retrospective:
+        status: optional
+
+  epic-rn-push:
+    title: Push notifications
     status: backlog
 
   epic-rn-store:

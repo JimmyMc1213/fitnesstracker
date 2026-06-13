@@ -30,6 +30,8 @@ function e2eSeedFromEnv(): Partial<PersistedFitnessSlice> | null {
 type FitnessContextValue = {
   state: AppState | null;
   hydrated: boolean;
+  /** Increments whenever fitness state is persisted — drives cloud sync debounce. */
+  syncRevision: number;
   setFitnessState: (updater: AppState | ((prev: AppState) => AppState)) => void;
   replaceFitnessState: (next: AppState) => void;
 };
@@ -41,6 +43,7 @@ const storageAdapter = createAsyncStorageAdapter();
 export function FitnessProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [syncRevision, setSyncRevision] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +72,7 @@ export function FitnessProvider({ children }: { children: ReactNode }) {
 
   const persistState = useCallback((next: AppState) => {
     void savePersistedSlice(storageAdapter, FITNESS_LOCAL_STORAGE_KEY, sliceFromAppState(next));
+    setSyncRevision((n) => n + 1);
   }, []);
 
   const setFitnessState = useCallback(
@@ -95,10 +99,11 @@ export function FitnessProvider({ children }: { children: ReactNode }) {
     () => ({
       state,
       hydrated,
+      syncRevision,
       setFitnessState,
       replaceFitnessState,
     }),
-    [state, hydrated, setFitnessState, replaceFitnessState],
+    [state, hydrated, syncRevision, setFitnessState, replaceFitnessState],
   );
 
   return <FitnessContext.Provider value={value}>{children}</FitnessContext.Provider>;

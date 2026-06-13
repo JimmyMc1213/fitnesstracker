@@ -4,6 +4,7 @@ export type DeepLinkNavigateAction = {
   type: "navigate";
   href:
     | "/(tabs)/home"
+    | "/(tabs)/settings"
     | "/(tabs)/settings/account"
     | "/(tabs)/settings/notifications"
     | { pathname: "/(tabs)/home"; params: { mobility: string } };

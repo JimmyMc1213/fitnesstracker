@@ -1,4 +1,23 @@
 export { mergePersistedFitnessSlices } from "./sync/mergePersistedFitnessSlices";
+export {
+  payloadToPersistedSlice,
+  pullRemoteIntoLocal,
+  pullRemoteMergeAlways,
+  tryPush,
+} from "./sync/fitnessCloudSyncEngine";
+export type { FitnessSyncClient, FitnessUserRow } from "./sync/fitnessCloudSyncEngine";
+export {
+  FITNESS_SYNC_META_KEY,
+  loadSyncMeta,
+  saveSyncMeta,
+} from "./sync/syncMeta";
+export type { FitnessSyncMeta } from "./sync/syncMeta";
+export {
+  MAX_FITNESS_PAYLOAD_BYTES,
+  fitnessPayloadByteLength,
+  isFitnessPayloadTooLarge,
+} from "./sync/fitnessPayloadGuard";
+export { formatSyncedLabel, userFacingSyncError } from "./sync/syncErrors";
 export { createEmptyPersistedSlice } from "./sync/testFixtures";
 export {
   buildOnboardingDraft,

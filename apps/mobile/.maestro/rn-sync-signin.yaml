@@ -1,0 +1,31 @@
+# RN-OFFLINE-05 sync sign-in — requires Supabase + test account (Option B: pre-seeded test user)
+# Run: MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:sync
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- runFlow: subflows/auth-sign-in-credentials.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 60000
+- tapOn:
+    id: tab-settings
+- tapOn:
+    id: settings-row-account
+- extendedWaitUntil:
+    visible:
+      id: settings-sync-now
+    timeout: 15000
+- assertVisible:
+    id: settings-sync-now

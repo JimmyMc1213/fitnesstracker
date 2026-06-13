@@ -18,6 +18,7 @@ import { ThemeShell } from "@/components/ThemeShell";
 import { useColorScheme } from "@/components/useColorScheme";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { FitnessProvider } from "@/context/FitnessContext";
+import { FitnessSyncProvider } from "@/context/FitnessSyncContext";
 import { useAppShellGate, useAppShellRoutingInput } from "@/hooks/useAppShellGate";
 import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
 import { useOnboardingStub } from "@/hooks/useOnboardingStub";
@@ -79,10 +80,12 @@ export default function RootLayout() {
       <ThemeShell>
         <AuthProvider>
           <FitnessProvider>
-            <View style={{ flex: 1 }}>
-              <RootLayoutNav />
-              {bootSplashVisible ? <BootSplash onComplete={() => setBootSplashVisible(false)} /> : null}
-            </View>
+            <FitnessSyncProvider>
+              <View style={{ flex: 1 }}>
+                <RootLayoutNav />
+                {bootSplashVisible ? <BootSplash onComplete={() => setBootSplashVisible(false)} /> : null}
+              </View>
+            </FitnessSyncProvider>
           </FitnessProvider>
         </AuthProvider>
       </ThemeShell>

@@ -8,6 +8,7 @@ import { useRouter, useSegments } from "expo-router";
 import { useEffect, useMemo } from "react";
 
 import { useAuth } from "@/context/AuthContext";
+import { useFitnessSync } from "@/context/FitnessSyncContext";
 import { useOnboardingState } from "@/hooks/useOnboardingState";
 import { isOnboardingPreviewActive, startOnboardingPreview } from "@/lib/devPreviewOnboarding";
 
@@ -17,13 +18,14 @@ function buildShellRoutingInput(
     "configured" | "sessionEmail" | "sessionResolved"
   >,
   onboardingComplete: boolean,
+  fitnessHydrated: boolean,
 ): AppShellRoutingInput {
   return {
     configured: auth.configured,
     sessionResolved: auth.sessionResolved,
     sessionEmail: auth.sessionEmail,
     signInRestorePending: false,
-    fitnessHydrated: true,
+    fitnessHydrated,
     onboardingComplete,
     skipOnboarding: false,
   };
@@ -32,13 +34,14 @@ function buildShellRoutingInput(
 /** Redirects between `(auth)`, `(onboarding)`, and `(tabs)` based on app shell routing. */
 export function useAppShellGate() {
   const auth = useAuth();
+  const { fitnessHydrated } = useFitnessSync();
   const { onboardingComplete, onboardingHydrated } = useOnboardingState();
   const segments = useSegments();
   const router = useRouter();
 
   const shellInput = useMemo(
-    () => buildShellRoutingInput(auth, onboardingComplete),
-    [auth, onboardingComplete],
+    () => buildShellRoutingInput(auth, onboardingComplete, fitnessHydrated),
+    [auth, onboardingComplete, fitnessHydrated],
   );
 
   useEffect(() => {
@@ -95,6 +98,10 @@ export function useAppShellGate() {
 
 export function useAppShellRoutingInput(): AppShellRoutingInput {
   const auth = useAuth();
+  const { fitnessHydrated } = useFitnessSync();
   const { onboardingComplete } = useOnboardingState();
-  return useMemo(() => buildShellRoutingInput(auth, onboardingComplete), [auth, onboardingComplete]);
+  return useMemo(
+    () => buildShellRoutingInput(auth, onboardingComplete, fitnessHydrated),
+    [auth, onboardingComplete, fitnessHydrated],
+  );
 }

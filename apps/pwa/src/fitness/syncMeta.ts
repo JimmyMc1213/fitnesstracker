@@ -1,13 +1,10 @@
-const KEY = "fitcoach:syncMeta:v1";
+import { FITNESS_SYNC_META_KEY, type FitnessSyncMeta } from "@newyouai/core";
 
-export type FitnessSyncMeta = {
-  /** Last `updated_at_ms` from Supabase we reconciled with (compare-and-swap baseline). */
-  lastSeenRemoteUpdatedAtMs: number;
-};
+export type { FitnessSyncMeta };
 
 export function loadSyncMeta(): FitnessSyncMeta {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(FITNESS_SYNC_META_KEY);
     if (!raw) return { lastSeenRemoteUpdatedAtMs: 0 };
     const o = JSON.parse(raw) as Partial<FitnessSyncMeta>;
     return {
@@ -23,7 +20,7 @@ export function loadSyncMeta(): FitnessSyncMeta {
 
 export function saveSyncMeta(meta: FitnessSyncMeta): void {
   try {
-    localStorage.setItem(KEY, JSON.stringify(meta));
+    localStorage.setItem(FITNESS_SYNC_META_KEY, JSON.stringify(meta));
   } catch {
     /* quota */
   }

@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import {
   SettingsDetailCard,
@@ -7,6 +7,7 @@ import {
   SettingsRow,
 } from "@/components/settings/SettingsLayout";
 import { useAuth } from "@/context/AuthContext";
+import { useFitnessSync } from "@/context/FitnessSyncContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { connectedAuthProviders } from "@/lib/accountAuth";
 
@@ -20,12 +21,23 @@ function providerLabel(provider: string): string {
 export function AccountPanel() {
   const { colors } = useAppTheme();
   const { configured, sessionEmail, session } = useAuth();
+  const { busy, lastError, lastSyncedLabel, syncNow } = useFitnessSync();
   const providers = connectedAuthProviders(session);
+
+  const syncStatusTrailing = !configured
+    ? "Not configured"
+    : !sessionEmail
+      ? "Sign in"
+      : busy
+        ? "Syncing…"
+        : lastSyncedLabel
+          ? `Last uploaded · ${lastSyncedLabel}`
+          : "Ready";
 
   return (
     <View>
       <SettingsHelper>
-        Sign in with the same account on your phone and computer. Cloud sync details land in a later release.
+        Sign in with the same account on your phone and computer to keep your fitness data in sync.
       </SettingsHelper>
 
       {!configured ? (
@@ -49,20 +61,43 @@ export function AccountPanel() {
           <Text className="mt-1 text-[13px]" style={{ color: colors.textSecondary }}>
             {sessionEmail}
           </Text>
-          <Text className="mt-2 text-[12px]" style={{ color: colors.textTertiary }}>
-            Signed in
-          </Text>
+          {lastSyncedLabel ? (
+            <Text className="mt-2 text-[12px]" style={{ color: colors.textTertiary }} testID="settings-account-sync-status">
+              Last uploaded · {lastSyncedLabel}
+            </Text>
+          ) : null}
         </SettingsDetailCard>
       )}
+
+      {lastError ? (
+        <Text className="mb-3 px-1 text-[12px]" style={{ color: "#FF453A" }}>
+          {lastError}
+        </Text>
+      ) : null}
 
       <SettingsHubSection title="Sync & backup">
         <SettingsRow
           icon={<Text style={{ color: colors.textTertiary }}>↻</Text>}
           label="Status"
-          trailing={!configured ? "Not configured" : sessionEmail ? "Signed in" : "Sign in"}
-          isLast
+          trailing={syncStatusTrailing}
+          testID="settings-account-sync-status"
           disabled
         />
+        <Pressable
+          disabled={!configured || !sessionEmail || busy}
+          onPress={() => void syncNow()}
+          testID="settings-sync-now"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !configured || !sessionEmail || busy, busy }}
+        >
+          <SettingsRow
+            icon={<Text style={{ color: colors.textTertiary }}>↑</Text>}
+            label="Sync now"
+            trailing={busy ? "…" : undefined}
+            isLast
+            disabled={!configured || !sessionEmail || busy}
+          />
+        </Pressable>
       </SettingsHubSection>
 
       {providers.length > 0 ? (
