@@ -19,9 +19,11 @@ import { useColorScheme } from "@/components/useColorScheme";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { FitnessProvider } from "@/context/FitnessContext";
 import { FitnessSyncProvider } from "@/context/FitnessSyncContext";
+import { NotificationSchedulerProvider } from "@/context/NotificationSchedulerContext";
 import { useAppShellGate, useAppShellRoutingInput } from "@/hooks/useAppShellGate";
 import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
 import { useOnboardingStub } from "@/hooks/useOnboardingStub";
+import { initLocalNotifications } from "@/lib/localNotifications";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 
 export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
@@ -71,6 +73,10 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+  useEffect(() => {
+    void initLocalNotifications();
+  }, []);
+
   if (!loaded) {
     return null;
   }
@@ -81,10 +87,12 @@ export default function RootLayout() {
         <AuthProvider>
           <FitnessProvider>
             <FitnessSyncProvider>
-              <View style={{ flex: 1 }}>
-                <RootLayoutNav />
-                {bootSplashVisible ? <BootSplash onComplete={() => setBootSplashVisible(false)} /> : null}
-              </View>
+              <NotificationSchedulerProvider>
+                <View style={{ flex: 1 }}>
+                  <RootLayoutNav />
+                  {bootSplashVisible ? <BootSplash onComplete={() => setBootSplashVisible(false)} /> : null}
+                </View>
+              </NotificationSchedulerProvider>
             </FitnessSyncProvider>
           </FitnessProvider>
         </AuthProvider>

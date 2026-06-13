@@ -62,6 +62,7 @@ import {
   anyNotificationEnabled,
   ONBOARDING_NOTIFICATION_DEFAULTS,
 } from "@/lib/notificationPreferences";
+import { requestNotificationPermission } from "@/lib/notificationPermission";
 import { ageFromDateOfBirth } from "@/lib/onboardingProfile";
 import { SESSION_LENGTH_OPTIONS } from "@/lib/workout/buildWeeklyRoutine";
 import {
@@ -881,13 +882,20 @@ export default function OnboardingWizardScreen() {
       goToStep(26, { notificationPrefs: { ...ONBOARDING_NOTIFICATION_DEFAULTS } });
     }
 
+    async function continueFromReminders() {
+      if (remindersEnabled) {
+        await requestNotificationPermission();
+      }
+      goNext();
+    }
+
     return (
       <OnboardingShell
         step={stepIndex}
         title="Stay on track"
         subtitle="NewYou works best when it knows your schedule. Totally optional, change anytime"
         onBack={goBack}
-        onContinue={remindersEnabled ? goNext : skipReminders}
+        onContinue={remindersEnabled ? continueFromReminders : skipReminders}
         continueLabel={remindersEnabled ? "Set up notifications" : "Skip for now"}
         footerGhostAction={remindersEnabled ? { label: "Skip for now", onPress: skipReminders } : undefined}
         generationPill={generationPill}

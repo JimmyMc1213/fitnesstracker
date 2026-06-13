@@ -20,7 +20,7 @@ coverage_rule: 100% FR-M mapped
 | FR-M9 Stretch | T-07, H-02 | RN-5 | mobilityHabit.test.ts | (UAT manual) |
 | FR-M10 Settings | T-06, ST-* | RN-10 | goalSettings.test.ts, unitPreferences.test.ts | (UAT manual) |
 | FR-M11 Sync | cross-cutting | RN-OFFLINE | mergePersistedFitnessSlices.test.ts | rn-sync-signin.yaml |
-| FR-M12 Push | OB-24/25, ST-09 | RN-PUSH | notificationScheduler.test.ts | (UAT manual) |
+| FR-M12 Push | OB-24/25, ST-09 | RN-PUSH | `packages/core/src/notifications/notificationScheduler.test.ts` | [docs/uat-rn-push-notifications.md](../../docs/uat-rn-push-notifications.md) (manual UAT) |
 | FR-M13 App Store | — | RN-STORE | — | TestFlight UAT |
 
 **Coverage:** 13/13 FR-M mapped ✅

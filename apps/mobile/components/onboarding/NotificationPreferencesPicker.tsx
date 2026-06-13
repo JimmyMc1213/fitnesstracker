@@ -233,7 +233,7 @@ export function NotificationPreferencesPicker({
           />
         ))}
         <Text className="text-center text-xs leading-5" style={{ color: colors.textTertiary }}>
-          Reminders work while NewYou is open. Background notifications coming soon.
+          Reminders appear as notifications on this device when enabled. Change times anytime in Settings → Reminders.
         </Text>
       </View>
     );
@@ -279,7 +279,7 @@ export function NotificationPreferencesPicker({
       ) : null}
 
       <Text className="text-xs leading-5" style={{ color: colors.textTertiary }}>
-        Reminders work while NewYou is open. Background notifications coming soon.
+        Reminders appear as notifications on this device when enabled. Change times anytime in Settings → Reminders.
       </Text>
     </View>
   );
