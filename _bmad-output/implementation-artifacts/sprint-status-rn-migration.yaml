@@ -2,9 +2,41 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
-last_updated: 2026-06-12  # RN-8 sprint plan generated
+last_updated: 2026-06-12  # RN-9 all stories context created
 resourcing: solo-dev-ai
 
+# RN-9 SCOPE LOCKS (2026-06-12 sprint planning):
+#   - Future You core extract + tab shell: IN SCOPE (RN-9-01)
+#   - Gallery view + tiles: IN SCOPE (RN-9-02)
+#   - Detail view + generation poll + reveal: IN SCOPE (RN-9-03)
+#   - Upload photo + consent + compress: IN SCOPE (RN-9-04)
+#   - Upload generate + poll complete: IN SCOPE (RN-9-05)
+#   - Fullscreen viewer: IN SCOPE (RN-9-06)
+#   - Replace dialog + delete transformation: IN SCOPE (RN-9-07)
+#   - Report offensive + Home entry + pro gating: IN SCOPE (RN-9-08)
+#   - Maestro rn-future-you-upload.yaml + disclosure audit: IN SCOPE (RN-9-09)
+#   - Real IAP / RevenueCat production: OUT OF SCOPE (RN-STORE)
+#   - Cloud sync / hydration restore: OUT OF SCOPE (RN-OFFLINE)
+#   - Admin future-you job monitor: OUT OF SCOPE
+#   - Progress pics pipeline: OUT OF SCOPE (RN-8)
+#   - Push FY reminders: OUT OF SCOPE (RN-PUSH)
+#   - Plan doc: sprint-rn-9-future-you-plan.md
+#
+# RN-9 BMAD SWARM ALIGNMENT:
+# ==========================
+# - bmad-swarm epic-rn-9: ready (2026-06-12) — RN-9-01..09 story files created
+# - Branch: epic-rn-9/future-you
+# - Start: rn-9-01-future-you-core-extract-tab-shell.md
+# - Per-story gate: npm run typecheck --workspace=@newyouai/mobile
+# - Logic gate: npm run test --workspace=@newyouai/core when packages/core touched
+# - Api gate: npm run test --workspace=@newyouai/api-client when packages/api-client touched
+# - Epic close gate: rn-future-you-upload.yaml + auth-all + tab-nav + coach-nutrition + onboarding + workout-session + nutrition-log + progress + sunday-check-in (RN-9-09)
+# - Metro for Maestro: EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true npx expo start --dev-client --port 8082
+#
+# RN-9 swarm order (execute in this sequence):
+#   RN-9-01 → RN-9-02 → RN-9-03 → RN-9-04 → RN-9-05 → RN-9-06 → RN-9-07 → RN-9-08 → RN-9-09 → retro
+#   Kickoff: /bmad-create-story RN-9-01, then /bmad-swarm epic-rn-9
+#
 # RN-8 SCOPE LOCKS (2026-06-12 sprint planning):
 #   - Progress core extract + weight chart tab shell: IN SCOPE (RN-8-01)
 #   - Weigh-in progress photo + Progress tab entry: IN SCOPE (RN-8-02)
@@ -678,7 +710,63 @@ development_status:
 
   epic-rn-9:
     title: Future You
-    status: backlog
+    status: done
+    swarm_mode: epic-rn-9
+    swarm_branch: epic-rn-9/future-you
+    plan: implementation-artifacts/sprint-rn-9-future-you-plan.md
+    swarm_start: rn-9-01-future-you-core-extract-tab-shell
+    swarm_ready: 2026-06-12
+    swarm_completed: 2026-06-12
+    execute_order: rn-9-01 → rn-9-02 → rn-9-03 → rn-9-04 → rn-9-05 → rn-9-06 → rn-9-07 → rn-9-08 → rn-9-09
+    stories:
+      rn-9-01-future-you-core-extract-tab-shell:
+        title: Future You core extract + tab shell
+        status: done
+        file: implementation-artifacts/rn-9-01-future-you-core-extract-tab-shell.md
+        completed: 2026-06-12
+      rn-9-02-gallery-view-tiles:
+        title: Gallery view + tiles
+        status: done
+        file: implementation-artifacts/rn-9-02-gallery-view-tiles.md
+        completed: 2026-06-12
+      rn-9-03-detail-poll-reveal:
+        title: Detail view + generation poll + reveal
+        status: done
+        file: implementation-artifacts/rn-9-03-detail-poll-reveal.md
+        completed: 2026-06-12
+      rn-9-04-upload-photo-consent:
+        title: Upload flow photo + consent + compress
+        status: done
+        file: implementation-artifacts/rn-9-04-upload-photo-consent.md
+        completed: 2026-06-12
+      rn-9-05-upload-generate-poll:
+        title: Upload flow generate + poll complete
+        status: done
+        file: implementation-artifacts/rn-9-05-upload-generate-poll.md
+        completed: 2026-06-12
+      rn-9-06-fullscreen-viewer:
+        title: Fullscreen viewer
+        status: done
+        file: implementation-artifacts/rn-9-06-fullscreen-viewer.md
+        completed: 2026-06-12
+      rn-9-07-replace-delete:
+        title: Replace dialog + delete transformation
+        status: done
+        file: implementation-artifacts/rn-9-07-replace-delete.md
+        completed: 2026-06-12
+      rn-9-08-report-home-gating:
+        title: Report offensive + Home entry + pro gating
+        status: done
+        file: implementation-artifacts/rn-9-08-report-home-gating.md
+        completed: 2026-06-12
+      rn-9-09-maestro-e2e-polish:
+        title: Maestro E2E + AI disclosure audit + epic polish
+        status: done
+        file: implementation-artifacts/rn-9-09-maestro-e2e-polish.md
+        completed: 2026-06-12
+    retrospective:
+      epic-rn-9-retrospective:
+        status: optional
 
   epic-rn-10:
     title: Settings & account

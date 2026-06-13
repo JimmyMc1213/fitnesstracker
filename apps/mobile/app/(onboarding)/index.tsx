@@ -45,6 +45,7 @@ import {
   isTrainingScheduleValid,
   WorkoutWeekCalendarPicker,
 } from "@/components/onboarding/WorkoutWeekCalendarPicker";
+import { useFutureYouGenerationPoll } from "@/hooks/useFutureYouGenerationPoll";
 import { useFutureYouOnboarding } from "@/hooks/useFutureYouOnboarding";
 import { useOnboardingState } from "@/hooks/useOnboardingState";
 import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
@@ -166,19 +167,30 @@ export default function OnboardingWizardScreen() {
 
   const activeMacros = macros ?? computedMacros;
 
+  const pollFutureYouEnabled =
+    stepIndex >= ONBOARDING_STEP_ACTIVITY &&
+    stepIndex <= ONBOARDING_STEP_FUTURE_YOU_SUCCESS &&
+    isFutureYouGenerationPillVisible(futureYou);
+
+  const generationPollStatus = useFutureYouGenerationPoll({
+    futureYou: futureYou ?? {},
+    pollEnabled: pollFutureYouEnabled,
+    onFutureYouPatch: patchFutureYou,
+  });
+
   const generationPill = useMemo(() => {
-    if (stepIndex < ONBOARDING_STEP_ACTIVITY || !isFutureYouGenerationPillVisible(futureYou)) {
+    if (!pollFutureYouEnabled) {
       return undefined;
     }
     return (
       <FutureYouGenerationPill
-        status={futureYou?.generationStatus ?? "idle"}
+        status={generationPollStatus}
         motivationId={futureYou?.motivationId}
         goal={profile.goal ?? "maintain"}
         gender={profile.gender ?? "other"}
       />
     );
-  }, [stepIndex, futureYou, profile.goal, profile.gender]);
+  }, [pollFutureYouEnabled, generationPollStatus, futureYou?.motivationId, profile.goal, profile.gender]);
 
   const activeTheme = draftTheme ?? theme;
   const dobValid = isValidOnboardingDateOfBirth(profile.dateOfBirth);

@@ -1,11 +1,3 @@
-import { TabPlaceholderScreen } from "@/components/TabPlaceholderScreen";
+import { FutureYouScreen } from "@/components/future-you/FutureYouScreen";
 
-export default function FutureYouScreen() {
-  return (
-    <TabPlaceholderScreen
-      testID="tab-future-you"
-      title="NewYou"
-      subtitle="Future You ships in RN-9."
-    />
-  );
-}
+export default FutureYouScreen;

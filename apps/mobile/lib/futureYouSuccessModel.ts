@@ -2,18 +2,15 @@ import type { FutureYouDraft, FutureYouJobStatus, SubscriptionTier } from "@newy
 
 import { isFutureYouPaywallHeroVisible } from "@/lib/futureYouPaywallModel";
 
-export const FUTURE_YOU_SUCCESS_AI_LABEL =
-  "AI generated · Illustrative preview — not medical advice";
-
-export const FUTURE_YOU_SUCCESS_WELCOME_PREFIX = "Welcome to ";
-export const FUTURE_YOU_SUCCESS_WELCOME_BRAND = "NewYouAI";
-export const FUTURE_YOU_SUCCESS_TAGLINE = "Your new chapter starts today.";
-export const FUTURE_YOU_SUCCESS_CTA_LABEL = "Start My Journey";
-
-export function formatFutureYouSuccessHeadline(displayName: string): string {
-  const name = displayName.trim() || "Friend";
-  return `You're ready, ${name}.`;
-}
+export {
+  FUTURE_YOU_SUCCESS_AI_LABEL,
+  FUTURE_YOU_SUCCESS_WELCOME_PREFIX,
+  FUTURE_YOU_SUCCESS_WELCOME_BRAND,
+  FUTURE_YOU_SUCCESS_TAGLINE,
+  FUTURE_YOU_SUCCESS_CTA_LABEL,
+  formatFutureYouSuccessHeadline,
+  isFutureYouPostPayEntitled,
+} from "@newyouai/core";
 
 export function isFutureYouSuccessHeroVisible(
   futureYou: FutureYouDraft | undefined,
@@ -24,10 +21,6 @@ export function isFutureYouSuccessHeroVisible(
 }
 
 /** Step 28b only after subscribe; photo path also requires generation ready. */
-export function isFutureYouPostPayEntitled(subscriptionTier: SubscriptionTier | null | undefined): boolean {
-  return subscriptionTier === "pro";
-}
-
 export function canAccessFutureYouSuccessScreen(
   futureYou: FutureYouDraft | undefined,
   photoBlocked: boolean,

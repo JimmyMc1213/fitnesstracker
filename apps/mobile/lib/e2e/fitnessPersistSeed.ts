@@ -210,7 +210,13 @@ export function progressPersistSeed(dateKey = localDateKey(new Date())): Partial
   };
 }
 
-export type E2eFitnessSeedName = "coach-nutrition" | "workout-session" | "meal-log" | "nutrition-log" | "progress";
+export type E2eFitnessSeedName =
+  | "coach-nutrition"
+  | "workout-session"
+  | "meal-log"
+  | "nutrition-log"
+  | "progress"
+  | "future-you";
 
 /**
  * Nutrition Maestro smoke — light breakfast logged + E2E prep bowl in My meals.
@@ -220,11 +226,17 @@ export function nutritionLogPersistSeed(dateKey = localDateKey(new Date())): Par
   return mealLogPersistSeed(dateKey);
 }
 
+/** Future You Maestro — onboarding complete, pro tier, empty gallery (upload smoke). */
+export function futureYouPersistSeed(dateKey = localDateKey(new Date())): Partial<PersistedFitnessSlice> {
+  return basePersistSlice(dateKey);
+}
+
 export function e2eFitnessSeedByName(name: E2eFitnessSeedName): Partial<PersistedFitnessSlice> | null {
   if (name === "coach-nutrition") return coachNutritionPersistSeed();
   if (name === "workout-session") return workoutSessionPersistSeed();
   if (name === "meal-log") return mealLogPersistSeed();
   if (name === "nutrition-log") return nutritionLogPersistSeed();
   if (name === "progress") return progressPersistSeed();
+  if (name === "future-you") return futureYouPersistSeed();
   return null;
 }

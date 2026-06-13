@@ -40,6 +40,7 @@ export {
   normalizeFutureYouDraft,
   mergeFutureYouDraft,
   isFutureYouMediaCleared,
+  futureYouDraftAfterUserDelete,
   EMPTY_FUTURE_YOU_DRAFT,
 } from "./sync/futureYouDraft";
 export {
@@ -418,6 +419,197 @@ export {
   timeOfDayBucket,
   type TimeOfDay,
 } from "./coach/homeGreeting";
+export {
+  futureYouRedoAnchorIso,
+  FUTURE_YOU_REDO_INTERVAL_MS,
+  FUTURE_YOU_PAGE_NEW_CHIP_LABEL,
+  FUTURE_YOU_PAGE_NEW_CHIP_ARIA_LABEL,
+  FUTURE_YOU_PAGE_REVEAL_LEDE,
+  FUTURE_YOU_PAGE_EMPTY_LEDE,
+  FUTURE_YOU_PAGE_BLOCKED_LEDE,
+  FUTURE_YOU_PAGE_SHEET_TITLE_PHOTO,
+  FUTURE_YOU_PAGE_SHEET_TITLE_MOTIVATION,
+  FUTURE_YOU_PAGE_GENERATE_LABEL,
+  FUTURE_YOU_REPLACE_DIALOG_TITLE,
+  FUTURE_YOU_REPLACE_DIALOG_BODY,
+  FUTURE_YOU_REPLACE_DELETE_LABEL,
+  FUTURE_YOU_REPLACE_KEEP_LABEL,
+  FUTURE_YOU_REPLACE_CANCEL_LABEL,
+  msUntilFutureYouRedoEligible,
+  formatDaysUntilFutureYouRedo,
+  canRedoFutureYouTransformation,
+  shouldPromptFutureYouReplaceDialog,
+  futureYouPageLede,
+  futureYouPageRedoLede,
+  patchGenerationReadyAt,
+} from "./future-you/pageModel";
+export {
+  FUTURE_YOU_DELETE_TRIGGER_LABEL,
+  FUTURE_YOU_DELETE_CONFIRM_TITLE,
+  FUTURE_YOU_DELETE_CONFIRM_MESSAGE,
+  FUTURE_YOU_DELETE_CONFIRM_LABEL,
+  FUTURE_YOU_DELETE_FINAL_TITLE,
+  FUTURE_YOU_DELETE_FINAL_CONFIRM_LABEL,
+  FUTURE_YOU_DELETE_FINAL_BODY,
+  FUTURE_YOU_DELETE_CANCEL_LABEL,
+  FUTURE_YOU_DELETE_ERROR_MESSAGE,
+  futureYouDeleteCooldownNotice,
+} from "./future-you/deleteModel";
+export {
+  FUTURE_YOU_GALLERY_SAVE_LABEL,
+  FUTURE_YOU_GALLERY_SAVING_LABEL,
+  FUTURE_YOU_GALLERY_SAVE_SUCCESS,
+  FUTURE_YOU_GALLERY_EMPTY_TITLE,
+  FUTURE_YOU_GALLERY_TRY_CTA_LABEL,
+  FUTURE_YOU_GALLERY_COUNT_ONE,
+  FUTURE_YOU_GALLERY_TAP_HINT,
+  FUTURE_YOU_DETAIL_BACK_LABEL,
+  FUTURE_YOU_FULLSCREEN_DONE_LABEL,
+  FUTURE_YOU_DETAIL_TAP_FULLSCREEN_HINT,
+  formatFutureYouGalleryDate,
+  buildFutureYouGalleryItem,
+  shouldShowFutureYouGalleryTile,
+  type FutureYouGalleryItem,
+} from "./future-you/galleryModel";
+export {
+  getHomeFutureYouEntryMode,
+  homeFutureYouMotivationLabel,
+  homeFutureYouCardSubtitle,
+  HOME_FUTURE_YOU_CARD_TITLE,
+  HOME_FUTURE_YOU_UPLOAD_TITLE,
+  HOME_FUTURE_YOU_UPLOAD_SUBTITLE,
+  type HomeFutureYouEntryMode,
+} from "./future-you/homeEntryModel";
+export {
+  FUTURE_YOU_SUCCESS_AI_LABEL,
+  FUTURE_YOU_SUCCESS_WELCOME_PREFIX,
+  FUTURE_YOU_SUCCESS_WELCOME_BRAND,
+  FUTURE_YOU_SUCCESS_TAGLINE,
+  FUTURE_YOU_SUCCESS_CTA_LABEL,
+  formatFutureYouSuccessHeadline,
+  isFutureYouSuccessHeroVisible,
+  canAccessFutureYouSuccessScreen,
+  isFutureYouPostPayEntitled,
+} from "./future-you/successModel";
+export {
+  futureYouTimelineFromProfile,
+  splitFutureYouTimelineForPaywall,
+} from "./future-you/timeline";
+export {
+  isFutureYouJobId,
+  futureYouPollImageUrl,
+  buildFutureYouPollResponse,
+  type FutureYouPollTeaser,
+  type FutureYouPollResponse,
+  type FutureYouPollJobRow,
+} from "./future-you/status";
+export {
+  FUTURE_YOU_JOB_STATUSES,
+  FUTURE_YOU_ACTIVE_STATUSES,
+  isFutureYouJobStatus,
+  isFutureYouJobActive,
+  isFutureYouJobTerminal,
+  canTransitionFutureYouJobStatus,
+  type FutureYouJobStatus,
+  type FutureYouJobRow,
+} from "./future-you/jobs";
+export {
+  FUTURE_YOU_BUCKET,
+  futureYouUserPrefix,
+  isFutureYouPathOwnedByUser,
+} from "./future-you/storage";
+export {
+  buildFutureYouResultPath,
+  isFutureYouSourcePathForUser,
+} from "./future-you/paths";
+export {
+  FUTURE_YOU_UPLOAD_MAX_BYTES,
+  FUTURE_YOU_UPLOAD_MIME_TYPES,
+  buildFutureYouSourcePath,
+  extensionForFutureYouMime,
+  isFutureYouUploadMimeType,
+  detectFutureYouImageMimeFromBytes,
+  parseFutureYouImageDataUrl,
+  validateFutureYouUploadBytes,
+  validateFutureYouImageDataUrl,
+  type FutureYouUploadMimeType,
+  type FutureYouUploadFileExtension,
+  type ParsedFutureYouUpload,
+  type FutureYouUploadValidationError,
+  type FutureYouUploadValidationSuccess,
+  type FutureYouUploadValidationResult,
+} from "./future-you/uploadGuards";
+export {
+  isMotivationValidForProfile,
+  validateFutureYouGenerateRequest,
+  type FutureYouGenerateProfile,
+  type FutureYouGenerateRequest,
+  type FutureYouGenerateValidationError,
+  type FutureYouGenerateValidationSuccess,
+  type FutureYouGenerateValidationResult,
+} from "./future-you/generateGuards";
+export {
+  FUTURE_YOU_REPORT_CONTEXTS,
+  FUTURE_YOU_REPORT_CATEGORIES,
+  FUTURE_YOU_REPORT_MESSAGE_MAX,
+  isFutureYouReportContext,
+  isFutureYouReportCategory,
+  normalizeFutureYouReportMessage,
+  type FutureYouReportContext,
+  type FutureYouReportCategory,
+  type FutureYouReportRequest,
+} from "./future-you/reportGuards";
+export {
+  FUTURE_YOU_REPORT_TRIGGER_LABEL,
+  FUTURE_YOU_REPORT_SHEET_TITLE,
+  FUTURE_YOU_REPORT_SHEET_BODY,
+  FUTURE_YOU_REPORT_SUBMIT_LABEL,
+  FUTURE_YOU_REPORT_SUCCESS_MESSAGE,
+  FUTURE_YOU_REPORT_ERROR_MESSAGE,
+  FUTURE_YOU_REPORT_CATEGORY_OPTIONS,
+  futureYouReportCategoryLabel,
+} from "./future-you/reportModel";
+export {
+  FUTURE_YOU_MOTIVATIONS,
+  getFutureYouMotivationById,
+  getFutureYouMotivationsForPicker,
+  getFutureYouGenericMotivations,
+  getFutureYouSpecificMotivations,
+  type FutureYouMotivation,
+} from "./future-you/motivations";
+export { FUTURE_YOU_HERO_LOADING_LABEL } from "./future-you/heroCopy";
+export {
+  FUTURE_YOU_PAYWALL_CTA_TRIAL,
+  FUTURE_YOU_PAYWALL_CTA_PREPARING,
+  FUTURE_YOU_PAYWALL_CTA_DEFAULT,
+  FUTURE_YOU_PAYWALL_CTA_PLAN_ONLY,
+  ONBOARDING_PLAN_READY_CONTINUE_LABEL,
+  ONBOARDING_FUTURE_YOU_CONTINUE_LABEL,
+  isFutureYouPaywallHeroVisible,
+  isFutureYouPaywallCtaEnabled,
+  isPlanOnlyPaywallPath,
+  onboardingPlanReadyContinueLabel,
+  futureYouPaywallCtaLabel,
+  type FutureYouPaywallBillingPeriod,
+} from "./future-you/paywallModel";
+export {
+  FUTURE_YOU_GENERATION_PILL_READY_LABEL,
+  FUTURE_YOU_GENERATION_PILL_CREATING_LABEL,
+  FUTURE_YOU_READY_BANNER_LABEL,
+  FUTURE_YOU_GENERATION_PILL_ROTATE_MS,
+  FUTURE_YOU_GENERATION_POLL_INTERVAL_MS,
+  isFutureYouGenerationPillVisible,
+  shouldPollFutureYouGeneration,
+  isFutureYouReadyBannerVisible,
+  buildFutureYouGenerationPillPhrases,
+  futureYouGenerationPillCopy,
+  type FutureYouGenerationPillCopy,
+} from "./future-you/generationPillModel";
+export {
+  futureYouSilhouetteGenderKey,
+  type FutureYouSilhouetteGenderKey,
+} from "./future-you/silhouettes";
+export { futureYouRevealPlaceholderGenderKey } from "./future-you/revealPlaceholder";
 export {
   buildCoachContext,
   getHomeCoachPlan,

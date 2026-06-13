@@ -1,14 +1,15 @@
+import { isFutureYouPostPayEntitled } from "@newyouai/core";
 import type { FutureYouJobStatus, SubscriptionTier } from "@newyouai/types";
 import { useEffect, useState } from "react";
 
 import { FutureYouPollError, pollFutureYouJobStatus } from "@/lib/futureYouPollService";
-import { isFutureYouPostPayEntitled } from "@/lib/futureYouSuccessModel";
 import { futureYouPollImageUrl } from "@/lib/futureYouStatus";
 
 type Options = {
   jobId: string | undefined;
   status: FutureYouJobStatus | "idle";
   subscriptionTier: SubscriptionTier | null | undefined;
+  previewMode?: boolean;
 };
 
 function isFutureYouHeroGenerating(status: FutureYouJobStatus | "idle"): boolean {
@@ -20,15 +21,16 @@ export function useFutureYouRevealImage({
   jobId,
   status,
   subscriptionTier,
+  previewMode = false,
 }: Options): { imageUri: string | null; loading: boolean } {
-  const entitled = isFutureYouPostPayEntitled(subscriptionTier);
+  const entitled = isFutureYouPostPayEntitled(subscriptionTier, previewMode);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setImageUri(null);
 
-    if (!entitled) {
+    if (!entitled || previewMode) {
       setLoading(false);
       return;
     }
@@ -66,7 +68,7 @@ export function useFutureYouRevealImage({
     return () => {
       cancelled = true;
     };
-  }, [entitled, status, jobId]);
+  }, [entitled, previewMode, status, jobId]);
 
   return { imageUri, loading };
 }

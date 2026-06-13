@@ -159,9 +159,18 @@ export default function HomeScreen() {
 
   const activeHabits = state ? habitsForDateKey(state, activeDateKey) : [];
 
-  const openNewYouUpload = useCallback(() => {
-    router.push({ pathname: "/(tabs)/future-you", params: { openFutureYouUpload: "1" } });
-  }, []);
+  const openNewYou = useCallback(() => {
+    const mode = futureYouEntry.mode;
+    if (mode === "upload_prompt") {
+      router.push({ pathname: "/(tabs)/future-you", params: { openFutureYouUpload: "1" } });
+      return;
+    }
+    if (mode === "reveal") {
+      router.push({ pathname: "/(tabs)/future-you", params: { openFutureYouDetail: "1" } });
+      return;
+    }
+    router.push("/(tabs)/future-you");
+  }, [futureYouEntry.mode]);
 
   const patchFutureYou = useCallback(
     (patch: Parameters<typeof mergeFutureYouDraft>[1]) => {
@@ -252,7 +261,7 @@ export default function HomeScreen() {
           title={headerTitle}
           right={
             <View className="flex-row items-center gap-2">
-              {showNewYouHeaderButton ? <HomeNewYouHeaderButton onPress={openNewYouUpload} /> : null}
+              {showNewYouHeaderButton ? <HomeNewYouHeaderButton onPress={openNewYou} /> : null}
               <Pressable
                 onPress={() => router.push("/(tabs)/settings")}
                 testID="home-settings"
@@ -275,7 +284,7 @@ export default function HomeScreen() {
         ) : null}
 
         {showNewYouReminderPill ? (
-          <FutureYouSkipperReminderPill onOpen={openNewYouUpload} onDismiss={dismissNewYouReminderPill} />
+          <FutureYouSkipperReminderPill onOpen={openNewYou} onDismiss={dismissNewYouReminderPill} />
         ) : null}
 
         {isViewingToday && sundayCheckIn.available && sundayCheckIn.data ? (

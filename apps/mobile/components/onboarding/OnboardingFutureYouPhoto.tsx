@@ -2,9 +2,10 @@ import type { UserGender } from "@newyouai/types";
 import { useEffect, useRef, useState } from "react";
 import { Image, Linking, Pressable, Text, View } from "react-native";
 
+import { FutureYouLegalFooter } from "@/components/future-you/FutureYouLegalFooter";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { isFutureYouPhotoBlocked } from "@/lib/futureYouAge";
-import { FUTURE_YOU_PRIVACY_POLICY_URL } from "@/lib/futureYouLegal";
+import { FUTURE_YOU_PRIVACY_POLICY_URL, PAYWALL_TERMS_URL } from "@/lib/futureYouLegal";
 
 type Props = {
   gender: UserGender | undefined;
@@ -20,6 +21,8 @@ type Props = {
   onRetryUpload: () => void | Promise<void>;
   onClearPhoto: () => void;
   onGrantAiConsent: () => void;
+  consentTestID?: string;
+  confirmTestID?: string;
 };
 
 function PhotoPanel({
@@ -71,6 +74,8 @@ export function OnboardingFutureYouPhoto({
   onRetryUpload,
   onClearPhoto,
   onGrantAiConsent,
+  consentTestID,
+  confirmTestID,
 }: Props) {
   const { colors } = useAppTheme();
   const suppressConfirmClickRef = useRef(false);
@@ -142,6 +147,7 @@ export function OnboardingFutureYouPhoto({
           </Text>
 
           <Pressable
+            testID={consentTestID}
             onPress={() => {
               const checked = !aiConsentChecked;
               setAiConsentChecked(checked);
@@ -171,6 +177,10 @@ export function OnboardingFutureYouPhoto({
               >
                 Privacy Policy
               </Text>
+              {" · "}
+              <Text style={{ color: colors.accent }} onPress={() => void Linking.openURL(PAYWALL_TERMS_URL)}>
+                Terms
+              </Text>
             </Text>
           </Pressable>
 
@@ -187,6 +197,7 @@ export function OnboardingFutureYouPhoto({
             </Pressable>
           ) : awaitingConfirm ? (
             <Pressable
+              testID={confirmTestID}
               onPress={onConfirmClick}
               disabled={!canUpload || !confirmReady}
               className="items-center rounded-full py-4"
@@ -232,9 +243,7 @@ export function OnboardingFutureYouPhoto({
         </View>
       ) : null}
 
-      <Text className="mt-4 text-center text-xs" style={{ color: colors.textTertiary }}>
-        Illustrative preview — not medical advice. Delete anytime in Settings.
-      </Text>
+      <FutureYouLegalFooter className="mt-4" />
     </View>
   );
 }

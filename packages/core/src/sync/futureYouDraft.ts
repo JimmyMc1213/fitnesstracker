@@ -63,3 +63,12 @@ export function isFutureYouMediaCleared(draft: FutureYouDraft): boolean {
     !draft.resultStoragePath?.trim()
   );
 }
+
+/** Local draft after the user deletes Future You from the app (plan / subscription unchanged). */
+export function futureYouDraftAfterUserDelete(current: FutureYouDraft | undefined): FutureYouDraft {
+  const next: FutureYouDraft = {};
+  if (current?.onboardingGoalLocked === true) next.onboardingGoalLocked = true;
+  const readyAt = current?.generationReadyAt?.trim();
+  if (readyAt) next.generationReadyAt = readyAt;
+  return Object.keys(next).length > 0 ? next : EMPTY_FUTURE_YOU_DRAFT;
+}

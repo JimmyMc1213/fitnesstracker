@@ -16,7 +16,7 @@ type Props = {
   gender: UserGender;
 };
 
-/** Minimal onboarding generation pill — full poll UI ships in RN-9. */
+/** Onboarding generation pill with rotating motivation phrases. */
 export function FutureYouGenerationPill({ status, motivationId, goal, gender }: Props) {
   const { colors } = useAppTheme();
   const [phraseIndex, setPhraseIndex] = useState(0);

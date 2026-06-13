@@ -1,0 +1,65 @@
+# RN-9-09 Future You tab smoke — gallery empty state + mock upload flow
+# Run: EXPO_PUBLIC_E2E_FITNESS_SEED=future-you EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:future-you
+# Metro:
+#   cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=future-you EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true npx expo start --dev-client --port 8082
+#
+# Stable testIDs: tab-fab-future-you, tab-future-you, future-you-gallery, future-you-create-cta,
+# future-you-upload-photo, future-you-consent-checkbox, future-you-upload-confirm,
+# future-you-upload-generate, future-you-detail
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- runFlow: subflows/auth-sign-in-credentials.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- tapOn:
+    id: tab-fab-future-you
+- extendedWaitUntil:
+    visible:
+      id: tab-future-you
+    timeout: 10000
+- assertVisible:
+    id: future-you-gallery
+- assertVisible:
+    id: future-you-create-cta
+- tapOn:
+    id: future-you-create-cta
+- extendedWaitUntil:
+    visible:
+      id: future-you-upload-photo
+    timeout: 5000
+- tapOn:
+    id: future-you-consent-checkbox
+- tapOn:
+    text: "Choose from gallery"
+- extendedWaitUntil:
+    visible:
+      id: future-you-upload-confirm
+    timeout: 5000
+- tapOn:
+    id: future-you-upload-confirm
+- extendedWaitUntil:
+    visible:
+      id: future-you-upload-generate
+    timeout: 10000
+- tapOn:
+    text: "Healthier overall"
+- tapOn:
+    id: future-you-upload-generate
+- extendedWaitUntil:
+    visible:
+      id: future-you-detail
+    timeout: 30000
