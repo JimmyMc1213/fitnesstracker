@@ -4,7 +4,7 @@ import {
   DEFAULT_UNIT_PREFERENCES,
   localDateKey,
 } from "@newyouai/core";
-import type { PersistedFitnessSlice } from "@newyouai/types";
+import type { PersistedFitnessSlice, SundayCheckInWeekRecord } from "@newyouai/types";
 
 const DEFAULT_TARGETS = { cal: 2000, p: 180, c: 200, f: 65 };
 
@@ -132,7 +132,85 @@ export function mealLogPersistSeed(dateKey = localDateKey(new Date())): Partial<
   };
 }
 
-export type E2eFitnessSeedName = "coach-nutrition" | "workout-session" | "meal-log" | "nutrition-log";
+function dateKeyDaysAgo(days: number, from = new Date()): string {
+  const d = new Date(from);
+  d.setDate(d.getDate() - days);
+  return localDateKey(d);
+}
+
+const SUNDAY_HISTORY_RECAP_DEFAULTS = {
+  headline: "Solid week",
+  summary: "You hit most targets.",
+  weightInsight: "Trend looks good.",
+  wins: ["Full training volume."],
+  watch: ["Sleep dipped mid-week."],
+  commitments: ["Hit protein 5 days"],
+  dayFlags: "bwp.bwp",
+  weightEndLbs: 185.2,
+};
+
+const SUNDAY_HISTORY_WEEK_ONE: SundayCheckInWeekRecord = {
+  sundayKey: "2026-05-10",
+  weekStartKey: "2026-05-04",
+  weekNumber: 1,
+  workoutsCompleted: 2,
+  workoutsPlanned: 4,
+  proteinDaysHit: 3,
+  weighInsThisWeek: 4,
+  weightDeltaLbs: -0.8,
+  onTrack: false,
+  ...SUNDAY_HISTORY_RECAP_DEFAULTS,
+};
+
+const SUNDAY_HISTORY_WEEK_TWO: SundayCheckInWeekRecord = {
+  sundayKey: "2026-05-17",
+  weekStartKey: "2026-05-11",
+  weekNumber: 2,
+  workoutsCompleted: 4,
+  workoutsPlanned: 4,
+  proteinDaysHit: 6,
+  weighInsThisWeek: 6,
+  weightDeltaLbs: -1.1,
+  onTrack: true,
+  ...SUNDAY_HISTORY_RECAP_DEFAULTS,
+  headline: "Back on track",
+};
+
+/** Progress tab Maestro — one prior weigh-in, goal range, Sunday history archive. */
+export function progressPersistSeed(dateKey = localDateKey(new Date())): Partial<PersistedFitnessSlice> {
+  const base = basePersistSlice(dateKey);
+  const priorWeighInKey = dateKeyDaysAgo(7, new Date(`${dateKey}T12:00:00`));
+
+  return {
+    ...base,
+    onboardingProfile: {
+      goal: "cut",
+      heightIn: 70,
+      weightLbs: 180,
+      age: 30,
+      gender: "male",
+      activityLevel: "moderate",
+      workoutDaysPerWeek: 5,
+    },
+    progressGoal: {
+      goalWeightLowLbs: 175,
+      goalWeightHighLbs: 180,
+      progressStartWeightLbs: 190,
+    },
+    weightLog: [{ dateKey: priorWeighInKey, weightLbs: 185, loggedAtIso: new Date().toISOString() }],
+    sundayCheckInHistory: [SUNDAY_HISTORY_WEEK_ONE, SUNDAY_HISTORY_WEEK_TWO],
+    sundayReviewCompletedKey: null,
+    workoutsCompletedByDay: { [dateKey]: true },
+    nutritionItemsByDay: {
+      [dateKey]: [{ id: "e2e-progress-meal", name: "Lunch", cal: 650, p: 45, c: 55, f: 18 }],
+      [dateKeyDaysAgo(1, new Date(`${dateKey}T12:00:00`))]: [
+        { id: "e2e-progress-yday", name: "Dinner", cal: 700, p: 50, c: 60, f: 20 },
+      ],
+    },
+  };
+}
+
+export type E2eFitnessSeedName = "coach-nutrition" | "workout-session" | "meal-log" | "nutrition-log" | "progress";
 
 /**
  * Nutrition Maestro smoke — light breakfast logged + E2E prep bowl in My meals.
@@ -147,5 +225,6 @@ export function e2eFitnessSeedByName(name: E2eFitnessSeedName): Partial<Persiste
   if (name === "workout-session") return workoutSessionPersistSeed();
   if (name === "meal-log") return mealLogPersistSeed();
   if (name === "nutrition-log") return nutritionLogPersistSeed();
+  if (name === "progress") return progressPersistSeed();
   return null;
 }

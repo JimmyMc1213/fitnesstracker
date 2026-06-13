@@ -1,6 +1,6 @@
 import { Text, View, Pressable } from "react-native";
 
-import type { SundayCheckInData } from "@/lib/sundayCheckInHome";
+import type { SundayCheckInData } from "@newyouai/core";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
 import { weightUnitLabel } from "@/lib/unitLabels";
 import { useAppTheme } from "@/hooks/useAppTheme";

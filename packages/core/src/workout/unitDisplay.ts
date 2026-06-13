@@ -17,3 +17,11 @@ export function formatSetWeight(wLbs: number, unit: WeightUnit): string {
   if (!Number.isFinite(wLbs) || wLbs <= 0) return "";
   return formatWeightFromLbs(wLbs, unit, unit === "kg" ? 1 : 0);
 }
+
+export function formatWeeklyRateLbsPerWeek(lbsPerWeek: number, unit: WeightUnit): string {
+  if (unit === "kg") {
+    const kg = lbsPerWeek / LBS_PER_KG;
+    return `${kg.toFixed(2)} kg/wk`;
+  }
+  return `${lbsPerWeek.toFixed(2)} lb/wk`;
+}

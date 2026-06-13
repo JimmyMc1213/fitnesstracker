@@ -2,9 +2,38 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
-last_updated: 2026-06-12  # RN-7 sprint plan generated
+last_updated: 2026-06-12  # RN-8 sprint plan generated
 resourcing: solo-dev-ai
 
+# RN-8 SCOPE LOCKS (2026-06-12 sprint planning):
+#   - Progress core extract + weight chart tab shell: IN SCOPE (RN-8-01)
+#   - Weigh-in progress photo + Progress tab entry: IN SCOPE (RN-8-02)
+#   - Workout calendar + PR board: IN SCOPE (RN-8-03)
+#   - Avg calories + goal range + fuel updates + targets: IN SCOPE (RN-8-04)
+#   - Progress pics section + gallery: IN SCOPE (RN-8-05)
+#   - Sunday 4-step check-in flow: IN SCOPE (RN-8-06)
+#   - Sunday history + Maestro rn-progress + rn-sunday-check-in: IN SCOPE (RN-8-07)
+#   - Cloud sync / hydration restore: OUT OF SCOPE (RN-OFFLINE)
+#   - Settings goal/fuel target edit panels: OUT OF SCOPE (RN-10)
+#   - Future You upload/gallery: OUT OF SCOPE (RN-9)
+#   - Push Sunday reminders: OUT OF SCOPE (RN-PUSH)
+#   - Stretch/mobility session player: OUT OF SCOPE (RN-5 preview only)
+#   - Plan doc: sprint-rn-8-progress-plan.md
+#
+# RN-8 BMAD SWARM ALIGNMENT:
+# ==========================
+# - bmad-swarm epic-rn-8: ready (2026-06-12) — RN-8-01..07 story files created
+# - Branch: epic-rn-8/progress-check-ins
+# - Start: rn-8-01-progress-core-extract-weight-chart.md
+# - Per-story gate: npm run typecheck --workspace=@newyouai/mobile
+# - Logic gate: npm run test --workspace=@newyouai/core when packages/core touched
+# - Epic close gate: rn-progress.yaml + rn-sunday-check-in.yaml + auth-all + tab-nav + coach-nutrition + onboarding + workout-session + nutrition-log (RN-8-07)
+# - Metro for Maestro: EXPO_PUBLIC_E2E_DEV_PREVIEW_SUNDAY=true npx expo start --dev-client --port 8082
+#
+# RN-8 swarm order (execute in this sequence):
+#   RN-8-01 → RN-8-02 → RN-8-03 → RN-8-04 → RN-8-05 → RN-8-06 → RN-8-07 → retro
+#   Kickoff: /bmad-create-story RN-8-01, then /bmad-swarm epic-rn-8
+#
 # RN-7 SCOPE LOCKS (2026-06-12 sprint planning):
 #   - Nutrition core extract + tab dashboard: IN SCOPE (RN-7-01)
 #   - Log Food modal shell + four tabs: IN SCOPE (RN-7-02)
@@ -601,7 +630,51 @@ development_status:
 
   epic-rn-8:
     title: Progress & check-ins
-    status: backlog
+    status: done
+    swarm_mode: epic-rn-8
+    swarm_branch: epic-rn-8/progress-check-ins
+    plan: implementation-artifacts/sprint-rn-8-progress-plan.md
+    swarm_start: rn-8-01-progress-core-extract-weight-chart
+    swarm_ready: 2026-06-12
+    execute_order: rn-8-01 → rn-8-02 → rn-8-03 → rn-8-04 → rn-8-05 → rn-8-06 → rn-8-07
+    stories:
+      rn-8-01-progress-core-extract-weight-chart:
+        title: Progress core extract + weight chart tab shell
+        status: done
+        file: implementation-artifacts/rn-8-01-progress-core-extract-weight-chart.md
+        completed: 2026-06-12
+      rn-8-02-weigh-in-progress-photo:
+        title: Weigh-in sheet progress photo + Progress tab entry
+        status: done
+        file: implementation-artifacts/rn-8-02-weigh-in-progress-photo.md
+        completed: 2026-06-12
+      rn-8-03-workout-calendar-pr-board:
+        title: Workout calendar + personal records board
+        status: done
+        file: implementation-artifacts/rn-8-03-workout-calendar-pr-board.md
+        completed: 2026-06-12
+      rn-8-04-avg-calories-goal-targets:
+        title: Average calories + goal range + fuel updates + targets
+        status: done
+        file: implementation-artifacts/rn-8-04-avg-calories-goal-targets.md
+        completed: 2026-06-12
+      rn-8-05-progress-pics-gallery:
+        title: Progress pics section + fullscreen gallery
+        status: done
+        file: implementation-artifacts/rn-8-05-progress-pics-gallery.md
+        completed: 2026-06-12
+      rn-8-06-sunday-check-in-flow:
+        title: Sunday weekly check-in 4-step flow
+        status: done
+        file: implementation-artifacts/rn-8-06-sunday-check-in-flow.md
+      rn-8-07-sunday-history-maestro-e2e:
+        title: Sunday history + Maestro E2E + epic polish
+        status: done
+        file: implementation-artifacts/rn-8-07-sunday-history-maestro-e2e.md
+        completed: 2026-06-12
+    retrospective:
+      epic-rn-8-retrospective:
+        status: optional
 
   epic-rn-9:
     title: Future You

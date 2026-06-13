@@ -4,6 +4,9 @@ import {
   dedupeHabitTemplates,
   localDateKey,
   mergePersistedFitnessSlices,
+  normalizeProgressPics,
+  normalizeProgressPicsLock,
+  normalizeSundayCheckInHistory,
   sanitizeWorkoutTemplates,
   stripNutritionProgrammingHabits,
 } from "@newyouai/core";
@@ -24,7 +27,14 @@ function normalizePersistedSlice(raw: Partial<PersistedFitnessSlice> | null | un
     onboardingComplete: merged.onboardingComplete,
   });
 
-  return { ...merged, habitTemplates, workoutTemplates };
+  return {
+    ...merged,
+    habitTemplates,
+    workoutTemplates,
+    progressPics: normalizeProgressPics(merged.progressPics),
+    progressPicsLock: normalizeProgressPicsLock(merged.progressPicsLock),
+    sundayCheckInHistory: normalizeSundayCheckInHistory(merged.sundayCheckInHistory),
+  };
 }
 
 /** Hydrate runtime AppState from a persisted fitness slice. */

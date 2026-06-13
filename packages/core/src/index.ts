@@ -265,7 +265,12 @@ export {
   estimatedSessionLabel,
 } from "./workout/estimateSessionDuration";
 export { exerciseNoteKey } from "./workout/exerciseNoteKey";
-export { formatSetWeight, weightUnitLabel, LBS_PER_KG } from "./workout/unitDisplay";
+export {
+  formatSetWeight,
+  formatWeeklyRateLbsPerWeek,
+  weightUnitLabel,
+  LBS_PER_KG,
+} from "./workout/unitDisplay";
 export {
   findLastLoggedExerciseSets,
   autofillSetsForTemplateCount,
@@ -325,6 +330,86 @@ export { findBrowsableExercise, BROWSABLE_EXERCISES } from "./workout/exerciseLo
 export { default as exerciseLibrary, type Exercise } from "./workout/exerciseLibrary";
 export { default as exerciseExpansion } from "./workout/exerciseExpansion";
 export { EXERCISE_EQUIPMENT_LABELS, inferExerciseEquipmentLabel, type ExerciseEquipmentLabel } from "./workout/exerciseLabels";
+export {
+  deltaColorForSentiment,
+  MAINTAIN_WEIGHT_BAND_LBS,
+  WEIGHT_DELTA_CAUTION_COLOR,
+  WEIGHT_DELTA_NEG_COLOR,
+  WEIGHT_DELTA_POS_COLOR,
+  weightDeltaSentiment,
+  type WeightDeltaSentiment,
+} from "./progress/weightProgress";
+export { meanWeightInRangeOrNull } from "./progress/meanWeightInRange";
+export {
+  MIN_WEIGH_INS_FOR_FULL_RECAP,
+  SUNDAY_CHECK_IN_STEPS,
+  buildSundayCheckInData,
+  commitSundayCheckIn,
+  dismissSundayCheckIn,
+  isSundayCheckInComplete,
+  isSundayCheckInDay,
+  shouldShowSundayCheckIn,
+  sundayNoonForCurrentWeek,
+  type SundayCheckInCoachItem,
+  type SundayCheckInCommitmentOption,
+  type SundayCheckInDailyWeight,
+  type SundayCheckInData,
+  type SundayCheckInDayCell,
+  type SundayCheckInFuelUpdate,
+  type SundayCheckInMetric,
+} from "./sunday/sundayCheckIn";
+export {
+  buildSundayCheckInDayCells,
+  buildSundayCheckInHeadline,
+  buildSundayCheckInMetrics,
+  buildSundayCheckInWatchItems,
+  buildSundayCheckInWins,
+  buildSundayCommitmentOptions,
+  buildSundayFuelUpdate,
+  buildSundayWeightInsight,
+  formatRangeCaps,
+  goalPaceLabel,
+} from "./sunday/sundayCheckInCoachContent";
+export {
+  appendSundayCheckInHistory,
+  buildSundayHistoryWins,
+  buildSundayMultiWeekContext,
+  compactSundayDayFlags,
+  normalizeSundayCheckInHistory,
+  onTrackWeekStreak,
+  planStartWeightLbs,
+  priorSundayCheckInWeek,
+  weekRecordFromCheckInData,
+} from "./sunday/sundayCheckInHistory";
+export {
+  collectProgressPicGalleryItems,
+  formatProgressPicDate,
+  newProgressPicId,
+  normalizeProgressPics,
+  normalizeProgressPicsLock,
+  upsertWeighInProgressPic,
+  withProgressPicsDefaults,
+  type ProgressPicGalleryItem,
+} from "./progress/progressPics";
+export {
+  buildPersonalRecordsBoard,
+  formatPersonalRecordDate,
+  formatPersonalRecordSet,
+  formatRecordHeroParts,
+  parseExerciseNoteKey,
+  type PersonalRecordExerciseRow,
+  type PersonalRecordHistoryEntry,
+} from "./progress/personalRecordsBoard";
+export {
+  AVERAGE_CAL_WEEK_OPTIONS,
+  buildAverageCalWeekStats,
+  macroCaloriesFromTotals,
+  niceChartMaxCal,
+  weekAnchorWeeksAgo,
+  type AverageCalDay,
+  type AverageCalWeekStats,
+  type MacroCalories,
+} from "./progress/averageCalTracker";
 export { progressiveOverloadInsight } from "./coach/progressiveOverload";
 export { homePlanSubline } from "./coach/homePlanSubline";
 export {

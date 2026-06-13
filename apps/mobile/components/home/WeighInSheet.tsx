@@ -1,8 +1,9 @@
 import { buildCoachContext, getWeighInReaction, localDateKey } from "@newyouai/core";
-import { useEffect, useState } from "react";
-import { Modal, Pressable, Text, TextInput, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Alert, Image, Modal, Pressable, Text, TextInput, View } from "react-native";
 
 import { buildHabitsForDateKey, markWeighInHabitDone } from "@/lib/habits";
+import { compressImageToJpegDataUrl } from "@/lib/imageCompress";
 import { formatWeightFromLbs, isValidWeighInLbs, parseWeightToLbs } from "@/lib/unitConversions";
 import { weightUnitLabel } from "@/lib/unitLabels";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -17,6 +18,12 @@ type Props = {
   setFitnessState: (updater: (prev: AppState) => AppState) => void;
 };
 
+function permissionDeniedMessage(kind: "camera" | "gallery"): string {
+  return kind === "camera"
+    ? "Camera access is off. Enable it in Settings or choose from gallery."
+    : "Photo library access is off. Enable it in Settings or use the camera.";
+}
+
 export function WeighInSheet({
   open,
   onClose,
@@ -28,13 +35,83 @@ export function WeighInSheet({
   const { colors } = useAppTheme();
   const wUnit = unitPreferences.weightUnit;
   const [weightDraft, setWeightDraft] = useState("");
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setWeightDraft(
       existing ? formatWeightFromLbs(existing.weightLbs, wUnit, wUnit === "kg" ? 1 : 1) : "",
     );
-  }, [open, dateKey, existing?.weightLbs, wUnit]);
+    setPhotoPreview(existing?.photoDataUrl ?? null);
+    setPhotoError(null);
+  }, [open, dateKey, existing?.weightLbs, existing?.photoDataUrl, wUnit]);
+
+  // compressImageToJpegDataUrl keeps photos within local-only persist budget (see mergePersistedFitnessSlices cap).
+  const onPickImageUri = useCallback(async (uri: string) => {
+    try {
+      setPhotoError(null);
+      const url = await compressImageToJpegDataUrl(uri);
+      setPhotoPreview(url);
+    } catch {
+      setPhotoError("Could not read that photo. Try another image.");
+    }
+  }, []);
+
+  const pickFromCamera = useCallback(async () => {
+    try {
+      const ImagePicker = await import("expo-image-picker");
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        setPhotoError(permissionDeniedMessage("camera"));
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        quality: 1,
+      });
+      if (result.canceled || !result.assets[0]?.uri) return;
+      await onPickImageUri(result.assets[0].uri);
+    } catch {
+      setPhotoError(permissionDeniedMessage("camera"));
+    }
+  }, [onPickImageUri]);
+
+  const pickFromGallery = useCallback(async () => {
+    try {
+      const ImagePicker = await import("expo-image-picker");
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setPhotoError(permissionDeniedMessage("gallery"));
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        quality: 1,
+      });
+      if (result.canceled || !result.assets[0]?.uri) return;
+      await onPickImageUri(result.assets[0].uri);
+    } catch {
+      setPhotoError(permissionDeniedMessage("gallery"));
+    }
+  }, [onPickImageUri]);
+
+  function openPhotoPicker() {
+    Alert.alert("Progress photo", "Add an optional progress photo for this weigh-in.", [
+      { text: "Camera", onPress: () => void pickFromCamera() },
+      { text: "Photo library", onPress: () => void pickFromGallery() },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  }
+
+  function confirmRemovePhoto() {
+    Alert.alert("Remove photo?", "Remove the progress photo from this weigh-in?", [
+      { text: "Keep photo", style: "cancel" },
+      { text: "Remove photo", style: "destructive", onPress: () => setPhotoPreview(null) },
+    ]);
+  }
 
   function save() {
     const display = parseFloat(weightDraft);
@@ -48,6 +125,7 @@ export function WeighInSheet({
         dateKey,
         weightLbs: lbs,
         loggedAtIso,
+        photoDataUrl: photoPreview ?? undefined,
       };
       const ctx = buildCoachContext({ ...s, weightLog: withoutDay }, dateKey, new Date());
       const reaction = getWeighInReaction(ctx, draft);
@@ -64,6 +142,7 @@ export function WeighInSheet({
           : {}),
       };
       const nextLog = [...withoutDay, entry].sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+      // Weigh-in photos live on weightLog.photoDataUrl only (PWA parity). progressPics is for standalone gallery adds.
       const habitsDoneByDay = markWeighInHabitDone(s.habitsDoneByDay, dateKey);
       const todayKey = localDateKey(new Date());
       const habits =
@@ -90,7 +169,7 @@ export function WeighInSheet({
             Weigh-in
           </Text>
           <Text className="mb-3.5 text-xs leading-[1.5]" style={{ color: colors.textSecondary }}>
-            Morning scale, post-bathroom, before food. Optional progress photo ships in RN-8.
+            Morning scale, post-bathroom, before food. Optional progress photo, same stance and lighting when you can.
           </Text>
 
           <Text className="text-[10px] font-medium tracking-wider" style={{ color: colors.textTertiary }}>
@@ -111,15 +190,41 @@ export function WeighInSheet({
             }}
           />
 
-          <Pressable
-            onPress={() => {}}
-            className="mt-3 self-start rounded-[10px] border px-3.5 py-2.5"
-            style={{ borderColor: colors.border }}
-          >
-            <Text className="text-xs font-semibold" style={{ color: colors.textPrimary }}>
-              Add progress photo (coming soon)
+          <View className="mt-3 flex-row flex-wrap items-center gap-2">
+            <Pressable
+              testID="weigh-in-add-photo"
+              onPress={openPhotoPicker}
+              className="rounded-[10px] border px-3.5 py-2.5"
+              style={{ borderColor: colors.border }}
+            >
+              <Text className="text-xs font-semibold" style={{ color: colors.textPrimary }}>
+                {photoPreview ? "Change photo" : "Add progress photo"}
+              </Text>
+            </Pressable>
+            {photoPreview ? (
+              <Pressable onPress={confirmRemovePhoto}>
+                <Text className="text-[11px] font-medium" style={{ color: colors.textTertiary }}>
+                  Remove photo
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+
+          {photoError ? (
+            <Text className="mt-2 text-xs" style={{ color: "#f87171" }}>
+              {photoError}
             </Text>
-          </Pressable>
+          ) : null}
+
+          {photoPreview ? (
+            <View
+              testID="weigh-in-photo-preview"
+              className="mt-3.5 overflow-hidden rounded-xl border"
+              style={{ borderColor: colors.border, maxHeight: 220 }}
+            >
+              <Image source={{ uri: photoPreview }} style={{ width: "100%", height: 200 }} resizeMode="cover" />
+            </View>
+          ) : null}
 
           <Pressable
             onPress={save}

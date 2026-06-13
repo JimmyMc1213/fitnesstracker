@@ -7,11 +7,7 @@ import Swipeable, { SwipeDirection } from "react-native-gesture-handler/Reanimat
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { displayFoodName, formatGramsInLabel } from "@/lib/foodDisplay";
 
-const MACRO_COLORS = {
-  Protein: "#f472b6",
-  Carbs: "#60a5fa",
-  Fat: "#fbbf24",
-} as const;
+import { MACRO_COLORS } from "@/lib/macroColors";
 
 const SWIPE_DELETE_THRESHOLD = 56;
 
@@ -29,6 +25,11 @@ function formatLoggedTime(ms: number | undefined): string {
 
 function FoodLogMacroLine({ item }: { item: NutritionLoggedItem }) {
   const { colors } = useAppTheme();
+  const MACRO_LABEL_COLORS = {
+    Protein: MACRO_COLORS.protein,
+    Carbs: MACRO_COLORS.carbs,
+    Fat: MACRO_COLORS.fat,
+  } as const;
   const macros = [
     { key: "Protein" as const, letter: "P", grams: Math.round(Number(item.p) || 0) },
     { key: "Carbs" as const, letter: "C", grams: Math.round(Number(item.c) || 0) },
@@ -51,7 +52,7 @@ function FoodLogMacroLine({ item }: { item: NutritionLoggedItem }) {
                 ·
               </Text>
             ) : null}
-            <Text className="text-xs font-medium tabular-nums" style={{ color: MACRO_COLORS[macro.key] }}>
+            <Text className="text-xs font-medium tabular-nums" style={{ color: MACRO_LABEL_COLORS[macro.key] }}>
               {macro.letter} {macro.grams}g
             </Text>
           </View>

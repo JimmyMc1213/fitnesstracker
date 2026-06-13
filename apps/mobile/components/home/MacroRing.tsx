@@ -1,11 +1,10 @@
-import Animated, { useAnimatedProps } from "react-native-reanimated";
+import { useEffect, useState } from "react";
+import { runOnJS, useAnimatedReaction } from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 import { Text, View } from "react-native";
 
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { useAnimatedMacroProgress } from "@/components/home/useAnimatedMacroProgress";
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+import { macroRingTarget, useAnimatedMacroProgress } from "@/components/home/useAnimatedMacroProgress";
 
 type Props = {
   value: number;
@@ -28,16 +27,24 @@ export function MacroRing({
   const { ringPct } = useAnimatedMacroProgress(value, target, animate);
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
+  const [strokeDashoffset, setStrokeDashoffset] = useState(() => c * (1 - macroRingTarget(value, target)));
 
-  const animatedProps = useAnimatedProps(() => ({
-    strokeDashoffset: c * (1 - ringPct.value),
-  }));
+  useAnimatedReaction(
+    () => ringPct.value,
+    (pct) => {
+      runOnJS(setStrokeDashoffset)(c * (1 - pct));
+    },
+    [c],
+  );
+
+  useEffect(() => {
+    if (!animate) {
+      setStrokeDashoffset(c * (1 - macroRingTarget(value, target)));
+    }
+  }, [animate, c, value, target]);
 
   return (
-    <View
-      testID={testID}
-      style={{ width: size, height: size, position: "relative" }}
-    >
+    <View testID={testID} style={{ width: size, height: size, position: "relative" }}>
       <Svg width={size} height={size}>
         <Circle
           cx={size / 2}
@@ -47,7 +54,7 @@ export function MacroRing({
           strokeWidth={stroke}
           fill="none"
         />
-        <AnimatedCircle
+        <Circle
           cx={size / 2}
           cy={size / 2}
           r={r}
@@ -56,15 +63,12 @@ export function MacroRing({
           fill="none"
           strokeLinecap="round"
           strokeDasharray={`${c} ${c}`}
-          animatedProps={animatedProps}
+          strokeDashoffset={strokeDashoffset}
           rotation={-90}
           origin={`${size / 2}, ${size / 2}`}
         />
       </Svg>
-      <View
-        className="absolute inset-0 items-center justify-center"
-        style={{ gap: 4 }}
-      >
+      <View className="absolute inset-0 items-center justify-center" style={{ gap: 4 }}>
         <Text
           className="text-2xl font-bold tabular-nums tracking-tight"
           style={{ color: colors.textPrimary }}

@@ -2,6 +2,7 @@ import { weekdayMonStartIndex } from "@newyouai/core";
 import { Text, View } from "react-native";
 
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { MACRO_COLORS } from "@/lib/macroColors";
 import type { OnboardingPlanSnapshot } from "@/lib/onboardingPlanSnapshot";
 import { planReadyFirstCoachNote } from "@/lib/onboardingReinforcementCopy";
 import { formatWaterVolume } from "@/lib/waterIntake";
@@ -21,7 +22,13 @@ function MacroStat({
 }) {
   const { colors } = useAppTheme();
   const toneColor =
-    tone === "protein" ? colors.accent : tone === "carbs" ? "#60a5fa" : tone === "fat" ? "#fbbf24" : colors.textPrimary;
+    tone === "protein"
+      ? MACRO_COLORS.protein
+      : tone === "carbs"
+        ? MACRO_COLORS.carbs
+        : tone === "fat"
+          ? MACRO_COLORS.fat
+          : colors.textPrimary;
 
   return (
     <View className="items-center" testID={`plan-ready-macro-${label.replace(/\s+/g, "-")}`}>

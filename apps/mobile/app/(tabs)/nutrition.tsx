@@ -10,6 +10,7 @@ import { TodayFoodLogCard } from "@/components/nutrition/TodayFoodLogCard";
 import { WaterTrackerCard } from "@/components/nutrition/WaterTrackerCard";
 import { MacroBar } from "@/components/home/MacroBar";
 import { MacroRing } from "@/components/home/MacroRing";
+import { MACRO_COLORS } from "@/lib/macroColors";
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -157,9 +158,9 @@ export default function NutritionScreen() {
                   {kcalLeft.toLocaleString()} cal left
                 </Text>
               </View>
-              <MacroBar label="Protein" value={totals.p} target={targets.p} color="#f472b6" />
-              <MacroBar label="Carbs" value={totals.c} target={targets.c} color="#60a5fa" />
-              <MacroBar label="Fat" value={totals.f} target={targets.f} color="#fbbf24" />
+              <MacroBar label="Protein" value={totals.p} target={targets.p} color={MACRO_COLORS.protein} />
+              <MacroBar label="Carbs" value={totals.c} target={targets.c} color={MACRO_COLORS.carbs} />
+              <MacroBar label="Fat" value={totals.f} target={targets.f} color={MACRO_COLORS.fat} />
             </View>
           </View>
 

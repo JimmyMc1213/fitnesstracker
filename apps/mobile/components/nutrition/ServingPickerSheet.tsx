@@ -19,6 +19,7 @@ import {
   pickerServingLabel,
 } from "@/lib/nutritionPickerMeasurements";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { MACRO_COLORS } from "@/lib/macroColors";
 
 export type ServingPickerMode = "log" | "mealIngredient";
 
@@ -213,9 +214,9 @@ export function ServingPickerSheet({
         <View className="mt-2 flex-row gap-2">
           {(
             [
-              { label: "Protein", value: macros.p, color: "#f472b6" },
-              { label: "Carbs", value: macros.c, color: "#60a5fa" },
-              { label: "Fat", value: macros.f, color: "#fbbf24" },
+              { label: "Protein", value: macros.p, color: MACRO_COLORS.protein },
+              { label: "Carbs", value: macros.c, color: MACRO_COLORS.carbs },
+              { label: "Fat", value: macros.f, color: MACRO_COLORS.fat },
             ] as const
           ).map((macro) => (
             <View

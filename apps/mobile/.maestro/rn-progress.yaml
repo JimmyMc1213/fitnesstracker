@@ -1,0 +1,100 @@
+# RN-8-07 Progress tab smoke — weigh-in updates chart + goal range + Sunday history
+# Run: EXPO_PUBLIC_E2E_FITNESS_SEED=progress MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:progress
+# Metro:
+#   cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=progress npx expo start --dev-client --port 8082
+#
+# Stable testIDs: tab-bar-progress, tab-progress, progress-log-weight, weigh-in-sheet,
+# weigh-in-weight-input, weigh-in-save, progress-weight-chart, progress-goal-range,
+# progress-sunday-history, progress-sunday-history-show-previous, sunday-history-page,
+# progress-pics-section, progress-pics-gallery, progress-pics-gallery-add
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-headline
+    timeout: 60000
+- runFlow: subflows/auth-sign-in-credentials.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- tapOn:
+    id: tab-bar-progress
+- extendedWaitUntil:
+    visible:
+      id: tab-progress
+    timeout: 10000
+- assertVisible:
+    id: progress-sunday-history
+- assertVisible:
+    id: progress-goal-range
+- assertVisible:
+    id: progress-pics-section
+- tapOn:
+    id: progress-pics-section
+- extendedWaitUntil:
+    visible:
+      id: progress-pics-gallery
+    timeout: 5000
+- tapOn:
+    id: progress-pics-back
+- extendedWaitUntil:
+    visible:
+      id: tab-progress
+    timeout: 5000
+- tapOn:
+    id: progress-log-weight
+- extendedWaitUntil:
+    visible:
+      id: weigh-in-sheet
+    timeout: 5000
+- tapOn:
+    id: weigh-in-weight-input
+- inputText: "182"
+- tapOn:
+    id: weigh-in-save
+- extendedWaitUntil:
+    notVisible:
+      id: weigh-in-sheet
+    timeout: 10000
+- assertVisible:
+    text: "Update weight"
+- tapOn:
+    id: progress-log-weight
+- extendedWaitUntil:
+    visible:
+      id: weigh-in-sheet
+    timeout: 5000
+- tapOn:
+    id: weigh-in-weight-input
+- inputText: "181.5"
+- tapOn:
+    id: weigh-in-save
+- extendedWaitUntil:
+    notVisible:
+      id: weigh-in-sheet
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: progress-weight-chart
+    timeout: 10000
+- assertVisible:
+    id: progress-goal-range
+- tapOn:
+    id: progress-sunday-history-show-previous
+- extendedWaitUntil:
+    visible:
+      id: sunday-history-page
+    timeout: 5000
+- assertVisible:
+    text: "Weekly check-ins"
+- tapOn:
+    id: sunday-history-back

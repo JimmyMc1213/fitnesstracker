@@ -19,6 +19,26 @@ export function workoutsCompletedByDayFromHistory(
   return out;
 }
 
+export function getWorkoutsForDay(
+  history: CompletedWorkoutSession[] | undefined,
+  dayKey: string,
+): CompletedWorkoutSession[] {
+  return getWorkoutHistorySorted(history).filter((s) => s.dayKey === dayKey);
+}
+
+export function workoutDaysInMonth(
+  history: CompletedWorkoutSession[] | undefined,
+  year: number,
+  monthIndex: number,
+): Set<string> {
+  const prefix = `${year}-${String(monthIndex + 1).padStart(2, "0")}-`;
+  const days = new Set<string>();
+  for (const s of history ?? []) {
+    if (s.dayKey.startsWith(prefix)) days.add(s.dayKey);
+  }
+  return days;
+}
+
 export function formatWorkoutHistoryDate(dayKey: string, endedAtMs: number): string {
   const d = /^\d{4}-\d{2}-\d{2}$/.test(dayKey)
     ? new Date(`${dayKey}T12:00:00`)

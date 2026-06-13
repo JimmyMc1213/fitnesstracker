@@ -125,6 +125,7 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="(modals)" options={{ presentation: "modal", headerShown: false }} />
           <Stack.Screen name="workout" options={{ headerShown: false }} />
+          <Stack.Screen name="progress" options={{ headerShown: false }} />
         </Stack>
       </AppShellLoadingGate>
     </ThemeProvider>

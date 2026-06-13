@@ -18,6 +18,7 @@ import {
 
 import { MacroBar } from "@/components/home/MacroBar";
 import { MacroRing } from "@/components/home/MacroRing";
+import { MACRO_COLORS } from "@/lib/macroColors";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { resolveCoachTaskNavigation } from "@/lib/coachTaskActions";
 import { STRETCH_BLOCKS } from "@/lib/stretchRoutine";
@@ -180,9 +181,9 @@ function FuelSlide({
               {kcalLeft.toLocaleString()} cal left
             </Text>
           </View>
-          <MacroBar label="Protein" value={totals.p} target={targets.p} color="#f472b6" />
-          <MacroBar label="Carbs" value={totals.c} target={targets.c} color="#60a5fa" />
-          <MacroBar label="Fat" value={totals.f} target={targets.f} color="#fbbf24" />
+          <MacroBar label="Protein" value={totals.p} target={targets.p} color={MACRO_COLORS.protein} />
+          <MacroBar label="Carbs" value={totals.c} target={targets.c} color={MACRO_COLORS.carbs} />
+          <MacroBar label="Fat" value={totals.f} target={targets.f} color={MACRO_COLORS.fat} />
         </View>
       </View>
       {isToday ? (
