@@ -2,14 +2,14 @@
 name: RN-5-01 Fitness state + home shell
 epic: RN-5
 story: 01
-status: ready-for-dev
+status: done
 swarm_order: 1
 swarm_branch: epic-rn-5/home-coach
 ---
 
 # Story 5.01: Fitness state + home shell
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

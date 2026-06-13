@@ -2,14 +2,14 @@
 name: RN-5-03 Fuel carousel + macro rings
 epic: RN-5
 story: 03
-status: ready-for-dev
+status: done
 swarm_order: 3
 swarm_branch: epic-rn-5/home-coach
 ---
 
 # Story 5.03: Fuel carousel + animated macro rings
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

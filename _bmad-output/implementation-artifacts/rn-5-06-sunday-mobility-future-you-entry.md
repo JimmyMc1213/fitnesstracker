@@ -2,14 +2,14 @@
 name: RN-5-06 Sunday card + mobility + Future You entry
 epic: RN-5
 story: 06
-status: ready-for-dev
+status: done
 swarm_order: 6
 swarm_branch: epic-rn-5/home-coach
 ---
 
 # Story 5.06: Sunday card + mobility preview + Future You entry
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

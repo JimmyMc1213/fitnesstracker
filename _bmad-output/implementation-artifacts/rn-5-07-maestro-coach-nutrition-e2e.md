@@ -2,14 +2,14 @@
 name: RN-5-07 Maestro coach-nutrition E2E
 epic: RN-5
 story: 07
-status: ready-for-dev
+status: done
 swarm_order: 7
 swarm_branch: epic-rn-5/home-coach
 ---
 
 # Story 5.07: Maestro coach-nutrition + integration polish
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

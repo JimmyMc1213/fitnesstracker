@@ -2,14 +2,14 @@
 name: RN-5-02 Coach plan card + task routing
 epic: RN-5
 story: 02
-status: ready-for-dev
+status: done
 swarm_order: 2
 swarm_branch: epic-rn-5/home-coach
 ---
 
 # Story 5.02: Coach plan card + task routing
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

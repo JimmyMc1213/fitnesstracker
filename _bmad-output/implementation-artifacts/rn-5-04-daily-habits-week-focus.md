@@ -2,14 +2,14 @@
 name: RN-5-04 Daily habits + week focus
 epic: RN-5
 story: 04
-status: ready-for-dev
+status: done
 swarm_order: 4
 swarm_branch: epic-rn-5/home-coach
 ---
 
 # Story 5.04: Daily habits + week focus
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
