@@ -58,7 +58,6 @@ export function WorkoutExerciseCard({
 
   return (
     <View
-      testID={`workout-exercise-${exercise.id}`}
       className="rounded-xl border p-3.5"
       style={{ borderColor: colors.border, backgroundColor: colors.card }}
     >
@@ -89,7 +88,11 @@ export function WorkoutExerciseCard({
             Target {exercise.target} · {done}/{exercise.sets.length} sets
           </Text>
           {lastSessionHint ? (
-            <Text className="mt-1.5 text-xs font-medium leading-[1.4]" style={{ color: colors.textSecondary }}>
+            <Text
+              testID={`workout-last-session-${exercise.id}`}
+              className="mt-1.5 text-xs font-medium leading-[1.4]"
+              style={{ color: colors.textSecondary }}
+            >
               {lastSessionHint}
             </Text>
           ) : null}

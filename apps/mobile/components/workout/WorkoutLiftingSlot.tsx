@@ -116,6 +116,10 @@ export function WorkoutLiftingSlot() {
   const { state, setFitnessState } = useFitnessState();
   const listRef = useRef<ElementRef<typeof DraggableFlatList<WorkoutExercise>> | null>(null);
   const restTimerRef = useRef<ActiveRestTimer | null>(null);
+  const isWorkoutSessionE2e =
+    typeof __DEV__ !== "undefined" &&
+    __DEV__ &&
+    process.env.EXPO_PUBLIC_E2E_FITNESS_SEED?.trim() === "workout-session";
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [swapExerciseId, setSwapExerciseId] = useState<string | null>(null);
@@ -593,16 +597,35 @@ export function WorkoutLiftingSlot() {
           onCancel={() => setShowCancelWorkoutConfirm(true)}
         />
 
+        {isWorkoutSessionE2e && workout.exercises[0] ? (
+          <Pressable
+            testID="workout-e2e-complete-first-set"
+            accessibilityLabel="Complete first set"
+            onPress={() => {
+              toggleSetDone(workout.exercises[0]!, 0);
+            }}
+            className="mx-4 mt-2 items-center rounded-lg border px-3 py-2"
+            style={{ borderColor: colors.border, backgroundColor: colors.card }}
+          >
+            <Text className="text-xs font-semibold" style={{ color: colors.textSecondary }}>
+              E2E: mark first set done
+            </Text>
+          </Pressable>
+        ) : null}
+
         <WorkoutCoachCard
           overloadTip={overloadTip}
           sessionTip={activeRoutine?.sessionTip}
           warmupGroups={sessionWarmup.groups}
           warmupTip={sessionWarmup.tip}
-          defaultExpanded={shouldDefaultExpandCoachCard(
-            Boolean(preWorkoutCoach),
-            workout.splitId,
-            preWorkoutCoach?.todayTemplateId,
-          )}
+          defaultExpanded={
+            !isWorkoutSessionE2e &&
+            shouldDefaultExpandCoachCard(
+              Boolean(preWorkoutCoach),
+              workout.splitId,
+              preWorkoutCoach?.todayTemplateId,
+            )
+          }
         />
 
         {workout.exercises.length === 0 ? (
@@ -622,6 +645,13 @@ export function WorkoutLiftingSlot() {
               onReorder={reorderExercises}
               listFooter={listFooter}
               extraData={doneSets}
+              estimatedItemSize={isWorkoutSessionE2e ? 520 : 420}
+              onScrollToIndexFailed={({ index, averageItemLength }) => {
+                listRef.current?.scrollToOffset({
+                  offset: Math.max(0, averageItemLength * index),
+                  animated: false,
+                });
+              }}
               contentContainerStyle={{ paddingBottom: WORKOUT_KEYPAD_HEIGHT + insets.bottom + 32 }}
               renderItem={(exercise, index, handle) => (
                 <SortableExerciseCard

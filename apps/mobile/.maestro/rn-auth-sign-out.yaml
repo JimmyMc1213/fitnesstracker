@@ -16,23 +16,13 @@ env:
     timeout: 60000
 - tapOn:
     id: auth-sign-in-link
-- tapOn:
-    id: auth-sign-in-email
-- eraseText
-- inputText: ${TEST_EMAIL}
-- tapOn:
-    id: auth-sign-in-password
-- eraseText
-- inputText: ${TEST_PASSWORD}
-- tapOn:
-    id: auth-sign-in-title
-- tapOn:
-    id: auth-sign-in-submit
-- runFlow: subflows/dismiss-ios-password-prompt.yaml
+- runFlow: subflows/auth-sign-in-credentials.yaml
 - extendedWaitUntil:
     visible:
-      id: home-title
-    timeout: 30000
+      id: tab-home
+    timeout: 45000
+- assertVisible:
+    id: home-title
 - tapOn:
     id: home-sign-out
 - extendedWaitUntil:

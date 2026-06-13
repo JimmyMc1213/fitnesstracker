@@ -27,11 +27,11 @@ export function WorkoutCoachCard({
 
   return (
     <View
-      testID="workout-coach-card"
       className="mt-3 overflow-hidden rounded-xl border"
       style={{ borderColor: coachCard.border, backgroundColor: coachCard.background }}
     >
       <Pressable
+        testID="workout-coach-card-toggle"
         onPress={() => setOpen((v) => !v)}
         accessibilityRole="button"
         accessibilityLabel={open ? "Coach tips, tap to collapse" : "Coach tips, tap to expand"}

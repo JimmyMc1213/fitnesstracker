@@ -69,5 +69,11 @@ env:
     id: modal-close
 - extendedWaitUntil:
     visible:
-      id: tab-nutrition
+      id: tab-bar-nutrition
     timeout: 15000
+- tapOn:
+    id: tab-bar-nutrition
+- extendedWaitUntil:
+    visible:
+      id: tab-nutrition
+    timeout: 10000

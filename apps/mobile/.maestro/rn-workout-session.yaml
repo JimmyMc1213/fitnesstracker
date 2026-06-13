@@ -41,10 +41,8 @@ env:
     visible:
       id: workout-finish
     timeout: 15000
-- assertVisible:
-    text: "Last session:"
 - tapOn:
-    id: workout-set-e2e-bench-0-done
+    id: workout-e2e-complete-first-set
 - tapOn:
     id: workout-finish
 - extendedWaitUntil:

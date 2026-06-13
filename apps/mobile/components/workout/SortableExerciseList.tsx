@@ -31,6 +31,8 @@ type SortableExerciseListProps<T extends { id: string; name: string }> = {
   listRef?: RefObject<ElementRef<typeof DraggableFlatList<T>> | null>;
   contentContainerStyle?: ViewStyle;
   extraData?: unknown;
+  estimatedItemSize?: number;
+  onScrollToIndexFailed?: (info: { index: number; averageItemLength: number; highestMeasuredFrameIndex: number }) => void;
 };
 
 export function ExerciseDragHandle({
@@ -77,6 +79,8 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   listRef,
   contentContainerStyle,
   extraData,
+  estimatedItemSize = 420,
+  onScrollToIndexFailed,
 }: SortableExerciseListProps<T>) {
   const canReorder = items.length >= 2;
 
@@ -92,6 +96,12 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
       containerStyle={{ flex: 1 }}
       contentContainerStyle={{ paddingBottom: 24, gap: 12, ...contentContainerStyle }}
       keyboardShouldPersistTaps="handled"
+      getItemLayout={(_data, index) => ({
+        length: estimatedItemSize,
+        offset: estimatedItemSize * index,
+        index,
+      })}
+      onScrollToIndexFailed={onScrollToIndexFailed}
       ListFooterComponent={listFooter ? () => <>{listFooter}</> : undefined}
       renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<T>) => {
         const index = getIndex() ?? 0;

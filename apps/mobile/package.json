@@ -24,6 +24,7 @@
     "test:e2e:onboarding": "node scripts/run-onboarding-maestro.mjs",
     "test:e2e:coach-nutrition": "node scripts/run-coach-nutrition-maestro.mjs",
     "test:e2e:workout-session": "node scripts/run-workout-session-maestro.mjs",
+    "test:e2e:epic-rn6-close": "node scripts/run-epic-rn6-close.mjs",
     "lint": "echo lint-stub"
   },
   "dependencies": {
