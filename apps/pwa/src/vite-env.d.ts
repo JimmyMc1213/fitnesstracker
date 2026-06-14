@@ -15,4 +15,7 @@ interface ImportMetaEnv {
   readonly VITE_VERCEL_ENV?: string;
   /** Public privacy policy URL linked from Future You consent. */
   readonly VITE_PRIVACY_POLICY_URL?: string;
+  /** Local visual parity pass — seeds state and bypasses auth (dev only). */
+  readonly VITE_VISUAL_PARITY?: string;
+  readonly VITE_VISUAL_PARITY_SEED?: string;
 }

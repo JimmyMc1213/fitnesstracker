@@ -6,11 +6,13 @@ import {
 } from "@newyouai/core";
 import { useRouter, useSegments } from "expo-router";
 import { useEffect, useMemo } from "react";
+import { Platform } from "react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useFitnessSync } from "@/context/FitnessSyncContext";
 import { useOnboardingState } from "@/hooks/useOnboardingState";
 import { isOnboardingPreviewActive, startOnboardingPreview } from "@/lib/devPreviewOnboarding";
+import { isVisualParityMode } from "@/lib/visualParity";
 
 function buildShellRoutingInput(
   auth: Pick<
@@ -63,6 +65,13 @@ export function useAppShellGate() {
     const inModalsGroup = segments[0] === "(modals)";
 
     if (inModalsGroup) return;
+
+    if (isVisualParityMode() && Platform.OS === "web") {
+      if (inAuthGroup || inOnboardingGroup) {
+        router.replace("/(tabs)/home");
+      }
+      return;
+    }
 
     if (isOnboardingPreviewActive()) {
       if (!inOnboardingGroup) router.replace("/(onboarding)");

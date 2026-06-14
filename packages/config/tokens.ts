@@ -15,6 +15,8 @@ export const darkThemeColors = {
   textTertiary: "#555555",
   accent: "#3B82F6",
   accentText: "#ffffff",
+  buttonPrimary: "#ffffff",
+  buttonPrimaryText: "#0a0a0a",
   card: "#161616",
   cardBorder: "#2a2a2a",
 } as const;
@@ -29,6 +31,8 @@ export const lightThemeColors = {
   textTertiary: "#888888",
   accent: "#3B82F6",
   accentText: "#ffffff",
+  buttonPrimary: "#0a0a0a",
+  buttonPrimaryText: "#ffffff",
   card: "#ffffff",
   cardBorder: "#e0e0e0",
 } as const;

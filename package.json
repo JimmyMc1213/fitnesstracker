@@ -11,6 +11,7 @@
     "dev:web": "turbo run dev --filter=@newyouai/web",
     "dev:admin": "turbo run dev --filter=@newyouai/admin",
     "dev:mobile": "turbo run dev --filter=@newyouai/mobile",
+    "dev:visual-parity": "node scripts/dev-visual-parity.mjs",
     "dev:mobile:client": "npm run dev --workspace=@newyouai/mobile",
     "build": "turbo run build",
     "test": "turbo run test",

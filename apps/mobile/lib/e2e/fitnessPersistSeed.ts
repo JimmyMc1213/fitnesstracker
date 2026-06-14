@@ -23,6 +23,7 @@ function basePersistSlice(dateKey: string): Partial<PersistedFitnessSlice> {
   return createEmptyPersistedSlice({
     onboardingComplete: true,
     displayName: "Test",
+    theme: "dark",
     nutritionTargets: { ...DEFAULT_TARGETS },
     workoutTemplates: BASE_WORKOUT_TEMPLATES,
     planStartIso: "2026-05-07",

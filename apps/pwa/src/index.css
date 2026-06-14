@@ -7452,3 +7452,15 @@ input[type="number"] {
 .settings-sheet-body > .settings-detail-helper:first-child {
   margin-top: 0;
 }
+
+/* Visual parity dev — match RN Web phone frame width (see docs/visual-parity.md) */
+html[data-visual-parity="true"] {
+  background: #0a0a0a;
+}
+
+html[data-visual-parity="true"] #root {
+  max-width: 393px;
+  margin: 0 auto;
+  min-height: 100vh;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+}

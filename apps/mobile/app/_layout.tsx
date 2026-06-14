@@ -25,6 +25,7 @@ import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
 import { useOnboardingStub } from "@/hooks/useOnboardingStub";
 import { initLocalNotifications } from "@/lib/localNotifications";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
+import { isVisualParityWebFrame } from "@/lib/visualParity";
 
 export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
   return <AppShellErrorFallback onRetry={retry} />;
@@ -74,7 +75,9 @@ export default function RootLayout() {
   }, [loaded]);
 
   useEffect(() => {
-    void initLocalNotifications();
+    void initLocalNotifications().catch(() => {
+      /* expo-notifications unavailable in this dev client */
+    });
   }, []);
 
   if (!loaded) {
@@ -82,7 +85,14 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView
+      style={{
+        flex: 1,
+        ...(isVisualParityWebFrame()
+          ? { maxWidth: 393, width: "100%", alignSelf: "center", backgroundColor: "#0a0a0a" }
+          : null),
+      }}
+    >
       <ThemeShell>
         <AuthProvider>
           <FitnessProvider>

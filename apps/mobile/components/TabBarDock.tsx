@@ -4,6 +4,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useWorkoutShell } from "@/context/WorkoutShellContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import {
+  FUTURE_YOU_GOLD,
+  TABBAR_BG_DARK,
+  TABBAR_BG_LIGHT,
+  TABBAR_BORDER_DARK,
+  TABBAR_BORDER_LIGHT,
+} from "@/lib/futureYouTokens";
 
 type TabRoute = {
   key: string;
@@ -25,8 +32,6 @@ type TabBarDockProps = {
   descriptors: Record<string, TabDescriptor>;
   navigation: unknown;
 };
-
-const FUTURE_YOU_GOLD = "#c9a876";
 
 const MAIN_TABS = [
   {
@@ -67,8 +72,10 @@ export function TabBarDock({ state, descriptors, navigation: navigationProp }: T
     };
     navigate: (name: string, params?: object) => void;
   };
-  const { colors } = useAppTheme();
+  const { colors, scheme } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const tabBarBg = scheme === "dark" ? TABBAR_BG_DARK : TABBAR_BG_LIGHT;
+  const tabBarBorder = scheme === "dark" ? TABBAR_BORDER_DARK : TABBAR_BORDER_LIGHT;
 
   const futureYouRouteIndex = state.routes.findIndex((route) => route.name === "future-you");
   const isFutureYouFocused = state.index === futureYouRouteIndex;
@@ -107,8 +114,8 @@ export function TabBarDock({ state, descriptors, navigation: navigationProp }: T
             paddingHorizontal: 11,
             borderRadius: 9999,
             borderWidth: 0.5,
-            borderColor: colors.border,
-            backgroundColor: colors.card,
+            borderColor: tabBarBorder,
+            backgroundColor: tabBarBg,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 8 },
             shadowOpacity: 0.35,
@@ -189,7 +196,7 @@ export function TabBarDock({ state, descriptors, navigation: navigationProp }: T
             borderRadius: 9999,
             borderWidth: 0.5,
             borderColor: isFutureYouFocused ? "rgba(201, 168, 118, 0.55)" : "rgba(201, 168, 118, 0.38)",
-            backgroundColor: colors.card,
+            backgroundColor: tabBarBg,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 10 },
             shadowOpacity: isFutureYouFocused ? 0.42 : 0.38,

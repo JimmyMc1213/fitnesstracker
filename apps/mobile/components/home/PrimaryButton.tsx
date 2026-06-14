@@ -33,13 +33,13 @@ export function PrimaryButton({
       style={[
         {
           width: block ? "100%" : undefined,
-          backgroundColor: disabled ? colors.border : colors.accent,
+          backgroundColor: disabled ? colors.border : colors.buttonPrimary,
           opacity: disabled ? 0.7 : 1,
         },
         style,
       ]}
     >
-      <Text className="text-[15px] font-semibold" style={{ color: colors.accentText }}>
+      <Text className="text-[15px] font-semibold" style={{ color: colors.buttonPrimaryText }}>
         {children}
       </Text>
     </Pressable>

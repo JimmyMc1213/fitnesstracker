@@ -1,3 +1,5 @@
+import { loadExpoNotificationsModule } from "@/lib/loadExpoNotificationsModule";
+
 export type NotificationPermissionState = "granted" | "denied" | "undetermined" | "unsupported";
 
 type ExpoPermissionStatus = "granted" | "denied" | "undetermined";
@@ -9,23 +11,8 @@ function mapPermissionStatus(status: ExpoPermissionStatus): NotificationPermissi
   return "unsupported";
 }
 
-type NotificationsModule = typeof import("expo-notifications");
-
-let notificationsModule: NotificationsModule | null | undefined;
-
-async function loadNotificationsModule(): Promise<NotificationsModule | null> {
-  if (notificationsModule !== undefined) return notificationsModule;
-  try {
-    notificationsModule = await import("expo-notifications");
-    return notificationsModule;
-  } catch {
-    notificationsModule = null;
-    return null;
-  }
-}
-
 export async function getNotificationPermission(): Promise<NotificationPermissionState> {
-  const Notifications = await loadNotificationsModule();
+  const Notifications = await loadExpoNotificationsModule();
   if (!Notifications) return "unsupported";
   try {
     const { status } = await Notifications.getPermissionsAsync();
@@ -36,7 +23,7 @@ export async function getNotificationPermission(): Promise<NotificationPermissio
 }
 
 export async function requestNotificationPermission(): Promise<NotificationPermissionState> {
-  const Notifications = await loadNotificationsModule();
+  const Notifications = await loadExpoNotificationsModule();
   if (!Notifications) return "unsupported";
   try {
     const { status } = await Notifications.requestPermissionsAsync();

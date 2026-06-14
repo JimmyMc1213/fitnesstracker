@@ -29,6 +29,7 @@ export function HomeDailyHabitsCard({
   onToggle,
   onMobilityPress,
   onOpenWeighIn,
+  onSaveHabitTemplates,
 }: Props) {
   const { colors } = useAppTheme();
   const mobilityHabit = habits.find((h) => isMobilityHabit(h.id));
@@ -62,8 +63,18 @@ export function HomeDailyHabitsCard({
               {mobilityHabit.name}
             </Text>
             <Text className="mt-1 text-xs leading-[1.45]" style={{ color: colors.textSecondary }}>
-              {mobilityHabit.done ? "Routine complete for today" : (mobilityHabit.subtitle ?? "~15 min stretch")}
+              {mobilityHabit.done ? "Routine complete for today" : (mobilityHabit.subtitle ?? "Stretch routine ~15 min")}
             </Text>
+            {!readOnly ? (
+              <View className="mt-3 flex-row items-center gap-1.5">
+                <Text className="text-xs font-semibold" style={{ color: "#a78bfa" }}>
+                  {mobilityHabit.done ? "Open routine" : "Start routine"}
+                </Text>
+                <Text className="text-xs font-semibold" style={{ color: "#a78bfa" }}>
+                  ›
+                </Text>
+              </View>
+            ) : null}
           </Pressable>
         </View>
       ) : null}
@@ -76,9 +87,16 @@ export function HomeDailyHabitsCard({
           >
             Daily habits
           </Text>
-          <Text className="text-[11px] font-medium tabular-nums" style={{ color: colors.textTertiary }}>
-            {doneCount}/{displayHabits.length}
-          </Text>
+          <View className="flex-row items-baseline gap-2.5">
+            {onSaveHabitTemplates ? (
+              <Text className="text-xs font-semibold" style={{ color: colors.textSecondary }}>
+                Edit
+              </Text>
+            ) : null}
+            <Text className="text-xs font-medium tabular-nums" style={{ color: colors.textSecondary }}>
+              {doneCount}/{displayHabits.length}
+            </Text>
+          </View>
         </View>
 
         <View style={{ gap: 8 }}>
@@ -186,6 +204,7 @@ function habitSubtitle(habit: Habit, stepsTarget: number, progWeek: number): str
 
 function habitIconEmoji(icon: string): string {
   const map: Record<string, string> = {
+    droplet: "💧",
     drop: "💧",
     run: "👟",
     pill: "💊",

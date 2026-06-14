@@ -1,9 +1,9 @@
-import { useColorScheme as useNativeWindColorScheme } from "nativewind";
+import { useThemePreference } from "@/hooks/useThemePreference";
 
 export type ColorScheme = "light" | "dark";
 
-/** System-aware scheme for navigation chrome and legacy Colors map. */
+/** Scheme for navigation chrome — matches persisted / visual-parity theme on web. */
 export function useColorScheme(): ColorScheme {
-  const { colorScheme } = useNativeWindColorScheme();
-  return colorScheme === "light" ? "light" : "dark";
+  const { scheme } = useThemePreference();
+  return scheme;
 }

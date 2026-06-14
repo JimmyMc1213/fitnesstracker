@@ -8,27 +8,15 @@ import {
   normalizeTimeHHmm,
 } from "@newyouai/core";
 
+import { loadExpoNotificationsModule } from "@/lib/loadExpoNotificationsModule";
+
 export const WORKOUT_NOTIFICATION_ID = "fitcoach-workout";
 export const NUTRITION_NOTIFICATION_ID = "fitcoach-nutrition";
 
-type NotificationsModule = typeof import("expo-notifications");
-
-let notificationsModule: NotificationsModule | null | undefined;
 let handlerConfigured = false;
 
-async function loadNotificationsModule(): Promise<NotificationsModule | null> {
-  if (notificationsModule !== undefined) return notificationsModule;
-  try {
-    notificationsModule = await import("expo-notifications");
-    return notificationsModule;
-  } catch {
-    notificationsModule = null;
-    return null;
-  }
-}
-
 export async function initLocalNotifications(): Promise<void> {
-  const Notifications = await loadNotificationsModule();
+  const Notifications = await loadExpoNotificationsModule();
   if (!Notifications || handlerConfigured) return;
 
   Notifications.setNotificationHandler({
@@ -75,7 +63,7 @@ function isNutritionScheduleEligible(state: AppState, permissionGranted: boolean
 }
 
 export async function cancelFitcoachNotification(id: string): Promise<void> {
-  const Notifications = await loadNotificationsModule();
+  const Notifications = await loadExpoNotificationsModule();
   if (!Notifications) return;
   try {
     await Notifications.cancelScheduledNotificationAsync(id);
@@ -90,7 +78,7 @@ export async function cancelAllFitcoachReminders(): Promise<void> {
 }
 
 export async function scheduleWorkoutReminder(state: AppState, permissionGranted: boolean): Promise<void> {
-  const Notifications = await loadNotificationsModule();
+  const Notifications = await loadExpoNotificationsModule();
   if (!Notifications) return;
 
   await cancelFitcoachNotification(WORKOUT_NOTIFICATION_ID);
@@ -118,7 +106,7 @@ export async function scheduleWorkoutReminder(state: AppState, permissionGranted
 }
 
 export async function scheduleNutritionReminder(state: AppState, permissionGranted: boolean): Promise<void> {
-  const Notifications = await loadNotificationsModule();
+  const Notifications = await loadExpoNotificationsModule();
   if (!Notifications) return;
 
   await cancelFitcoachNotification(NUTRITION_NOTIFICATION_ID);

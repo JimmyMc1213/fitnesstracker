@@ -52,6 +52,7 @@ import { UpdateTemplateOrderConfirmSheet } from "./workout/UpdateTemplateOrderCo
 import { ThemeProvider } from "./ThemeContext";
 import type { AppTheme } from "./theme";
 import type { AppState, NavigateFn, ScreenProps, TabId } from "./types";
+import { isVisualParityMode } from "./visualParityBootstrap";
 
 captureOAuthReturnForSaveProgress();
 
@@ -395,7 +396,7 @@ function FitnessAppMain({
   });
 
   const shellRoutingInput = {
-    configured: fitnessSync.configured,
+    configured: isVisualParityMode() ? false : fitnessSync.configured,
     sessionResolved: fitnessSync.sessionResolved,
     sessionEmail: fitnessSync.sessionEmail,
     signInRestorePending,

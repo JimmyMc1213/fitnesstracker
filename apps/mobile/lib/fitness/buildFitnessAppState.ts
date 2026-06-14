@@ -10,18 +10,32 @@ import {
   sanitizeWorkoutTemplates,
   stripNutritionProgrammingHabits,
 } from "@newyouai/core";
-import type { AppState, PersistedFitnessSlice } from "@newyouai/types";
+import type { AppState, HabitTemplate, PersistedFitnessSlice } from "@newyouai/types";
 
 import { buildHabitsForDateKey } from "@/lib/habits";
+import { defaultHabitTemplatesFromOnboarding } from "@/lib/habitTemplates";
 import { ensureMobilityHabitTemplate } from "@/lib/mobilityHabit";
+
+function resolveHabitTemplates(
+  templates: HabitTemplate[],
+  onboardingComplete: boolean,
+  hasLegacyFitnessData: boolean,
+): HabitTemplate[] {
+  const normalized = stripNutritionProgrammingHabits(dedupeHabitTemplates(templates));
+  if (normalized.length > 0) return normalized;
+  if (hasLegacyFitnessData || onboardingComplete) return defaultHabitTemplatesFromOnboarding();
+  return [];
+}
 
 function normalizePersistedSlice(raw: Partial<PersistedFitnessSlice> | null | undefined): PersistedFitnessSlice {
   const empty = createEmptyPersistedSlice();
   if (!raw || Object.keys(raw).length === 0) return empty;
 
   const merged = mergePersistedFitnessSlices(empty, { ...empty, ...raw });
+  const hasLegacyFitnessData =
+    Object.keys(merged.workoutsCompletedByDay ?? {}).length > 0 || (merged.weightLog?.length ?? 0) > 0;
   const habitTemplates = ensureMobilityHabitTemplate(
-    stripNutritionProgrammingHabits(dedupeHabitTemplates(merged.habitTemplates)),
+    resolveHabitTemplates(merged.habitTemplates, merged.onboardingComplete, hasLegacyFitnessData),
   );
   const workoutTemplates = sanitizeWorkoutTemplates(merged.workoutTemplates, {
     onboardingComplete: merged.onboardingComplete,

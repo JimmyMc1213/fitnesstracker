@@ -64,8 +64,7 @@ export function MacroRing({
           strokeLinecap="round"
           strokeDasharray={`${c} ${c}`}
           strokeDashoffset={strokeDashoffset}
-          rotation={-90}
-          origin={`${size / 2}, ${size / 2}`}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
       <View className="absolute inset-0 items-center justify-center" style={{ gap: 4 }}>

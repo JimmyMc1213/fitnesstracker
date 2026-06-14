@@ -10,6 +10,7 @@ import {
   planWeekIndex,
 } from "@newyouai/core";
 import { router, useLocalSearchParams } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,14 +26,12 @@ import {
 } from "@/components/home/HomeWeekFocusCard";
 import { MobilityPreviewSheet } from "@/components/home/MobilityPreviewSheet";
 import { ScreenHeader } from "@/components/home/ScreenHeader";
-import { TodaysCoachPlanCard } from "@/components/home/TodaysCoachPlanCard";
 import { WeighInCoachReaction } from "@/components/home/WeighInCoachReaction";
 import { WeighInSheet } from "@/components/home/WeighInSheet";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useFutureYouEntry } from "@/hooks/useFutureYouEntry";
 import { useSundayCheckInHome } from "@/hooks/useSundayCheckInHome";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { handleCoachTaskAction } from "@/lib/coachTaskActions";
 import {
   shouldShowFutureYouSkipperReminderPill,
   shouldShowHomeNewYouHeaderButton,
@@ -47,7 +46,7 @@ import { isMobilityHabit } from "@/lib/mobilityHabit";
 import type { HabitTemplate } from "@newyouai/types";
 
 export default function HomeScreen() {
-  const { colors } = useAppTheme();
+  const { colors, scheme } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { state, hydrated, setFitnessState } = useFitnessState();
   const params = useLocalSearchParams<{ mobility?: string }>();
@@ -260,7 +259,8 @@ export default function HomeScreen() {
           eyebrow={headerEyebrow}
           title={headerTitle}
           right={
-            <View className="flex-row items-center gap-2" style={{ marginRight: 56 }}>
+            <View className="flex-row items-center gap-2">
+              {showNewYouHeaderButton ? <HomeNewYouHeaderButton onPress={openNewYou} /> : null}
               <Pressable
                 onPress={() => router.push("/(tabs)/settings")}
                 testID="home-settings"
@@ -268,9 +268,12 @@ export default function HomeScreen() {
                 className="h-9 w-9 items-center justify-center rounded-full border"
                 style={{ borderColor: colors.border }}
               >
-                <Text style={{ color: colors.textSecondary }}>⚙</Text>
+                <SymbolView
+                  name={{ ios: "gearshape", android: "settings", web: "settings" }}
+                  tintColor={colors.textSecondary}
+                  size={16}
+                />
               </Pressable>
-              {showNewYouHeaderButton ? <HomeNewYouHeaderButton onPress={openNewYou} /> : null}
             </View>
           }
         />
@@ -302,7 +305,10 @@ export default function HomeScreen() {
             onPress={() => setWeighInOpen(true)}
             accessibilityLabel="Log morning weigh-in"
             className="mt-[18px] w-full flex-row items-center gap-3.5 rounded-xl border p-4"
-            style={{ borderColor: colors.border, backgroundColor: colors.card }}
+            style={{
+              borderColor: scheme === "dark" ? "rgba(255, 255, 255, 0.14)" : colors.border,
+              backgroundColor: colors.card,
+            }}
           >
             <View
               className="h-11 w-11 items-center justify-center rounded-full"
@@ -334,15 +340,6 @@ export default function HomeScreen() {
             weekStartKey={state.weekFocusWeekStartKey}
             dateKey={dateKeyToday}
             weekNumber={weekFocusNumber}
-          />
-        ) : null}
-
-        {isViewingToday && coachPlan ? (
-          <TodaysCoachPlanCard
-            plan={coachPlan}
-            onTaskAction={(task) =>
-              handleCoachTaskAction(task, { onOpenMobilityPreview: () => setMobilityPreviewOpen(true) })
-            }
           />
         ) : null}
 

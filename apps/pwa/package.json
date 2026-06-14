@@ -6,6 +6,7 @@
   "scripts": {
     "predev": "node scripts/checkSupabaseEnv.mjs",
     "dev": "vite",
+    "dev:visual-parity": "VITE_VISUAL_PARITY=true VITE_VISUAL_PARITY_SEED=coach-nutrition vite --port 5173 --strictPort",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",

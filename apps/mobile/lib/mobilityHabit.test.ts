@@ -7,6 +7,6 @@ describe("ensureMobilityHabitTemplate", () => {
   it("appends mobility habit to onboarding defaults", () => {
     const templates = ensureMobilityHabitTemplate(defaultHabitTemplatesFromOnboarding());
     expect(templates.some((t) => t.id === MOBILITY_HABIT_ID)).toBe(true);
-    expect(templates.length).toBe(4);
+    expect(templates.length).toBe(8);
   });
 });

@@ -16,6 +16,7 @@ import {
   cancelAllFitcoachReminders,
   syncLocalNotifications,
 } from "@/lib/localNotifications";
+import { loadExpoNotificationsModule } from "@/lib/loadExpoNotificationsModule";
 import {
   getNotificationPermission,
   type NotificationPermissionState,
@@ -105,12 +106,8 @@ export function NotificationSchedulerProvider({ children }: { children: ReactNod
         const now = new Date();
         const patches = computeNotificationPatches(currentState, now, granted);
 
-        let Notifications: typeof import("expo-notifications") | null = null;
-        try {
-          Notifications = await import("expo-notifications");
-        } catch {
-          return;
-        }
+        let Notifications = await loadExpoNotificationsModule();
+        if (!Notifications) return;
 
         if (patches.workoutPayload) {
           await Notifications.scheduleNotificationAsync({
@@ -164,7 +161,8 @@ export function NotificationSchedulerProvider({ children }: { children: ReactNod
 
     void (async () => {
       try {
-        const Notifications = await import("expo-notifications");
+        const Notifications = await loadExpoNotificationsModule();
+        if (!Notifications) return;
         subscription = Notifications.addNotificationReceivedListener((notification) => {
           const tag = notification.request.content.data?.tag;
           if (tag !== "fitcoach-workout" && tag !== "fitcoach-nutrition") return;

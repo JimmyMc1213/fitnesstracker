@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Platform } from "react-native";
 
 import { readStoredTheme, writeStoredTheme } from "@/lib/themeStorage";
+import { isVisualParityMode } from "@/lib/visualParity";
 import { themeColors } from "@newyouai/config/tokens";
 
 function applyWebColorScheme(theme: AppTheme) {
@@ -22,7 +23,7 @@ export function useThemePreference() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const stored = await readStoredTheme();
+      const stored = isVisualParityMode() ? "dark" : await readStoredTheme();
       if (cancelled) return;
       if (Platform.OS === "web") {
         setWebTheme(stored);

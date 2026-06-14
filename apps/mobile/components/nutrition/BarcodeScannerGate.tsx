@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from "react-native";
 
 import { BarcodeScannerManual } from "@/components/nutrition/BarcodeScannerManual";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { isExpoCameraAvailable } from "@/lib/expoNativeModules";
 
 type Props = {
   onScan: (code: string) => void;
@@ -17,6 +18,12 @@ export function BarcodeScannerGate({ onScan, onClose }: Props) {
 
   useEffect(() => {
     let mounted = true;
+    if (!isExpoCameraAvailable()) {
+      setReady(true);
+      return () => {
+        mounted = false;
+      };
+    }
     import("@/components/nutrition/BarcodeScanner")
       .then((mod) => {
         if (!mounted) return;
