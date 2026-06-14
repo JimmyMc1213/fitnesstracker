@@ -17,6 +17,8 @@ const config: ExpoConfig = {
         "New You AI uses your camera to scan food barcodes and capture photos for your Future You transformation preview.",
       NSPhotoLibraryUsageDescription:
         "New You AI uses your photo library so you can choose a picture for your Future You preview.",
+      NSUserNotificationsUsageDescription:
+        "New You AI sends workout and nutrition reminders you choose in Settings.",
     },
   },
   android: {
@@ -65,7 +67,12 @@ const config: ExpoConfig = {
         backgroundColor: "#0a0a0a",
       },
     ],
-    "expo-notifications",
+    [
+      "expo-notifications",
+      {
+        color: "#E6F4FE",
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

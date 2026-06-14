@@ -630,6 +630,18 @@ export {
 } from "./future-you/silhouettes";
 export { futureYouRevealPlaceholderGenderKey } from "./future-you/revealPlaceholder";
 export {
+  computeNotificationPatches,
+  buildNutritionNotificationPayload,
+  buildWorkoutNotificationPayload,
+  hasNutritionLoggedForDateKey,
+  isAtOrPastHHmm,
+  shouldFireNutritionReminder,
+  shouldFireWorkoutReminder,
+  type FitcoachNotificationTag,
+  type NotificationPatchResult,
+  type NotificationPayload,
+} from "./notifications/notificationScheduler";
+export {
   buildCoachContext,
   getHomeCoachPlan,
   getPostWorkoutRecap,

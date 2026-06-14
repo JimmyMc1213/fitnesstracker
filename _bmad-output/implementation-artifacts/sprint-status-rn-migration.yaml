@@ -2,7 +2,7 @@
 
 project: fitnesstracker-rn-migration
 created: 2026-06-08
-last_updated: 2026-06-13  # RN-OFFLINE story files created (swarm-ready)
+last_updated: 2026-06-14  # RN-PUSH retro complete; visual parity branch split
 resourcing: solo-dev-ai
 
 # RN-OFFLINE SCOPE LOCKS (2026-06-13 sprint planning):
@@ -31,6 +31,34 @@ resourcing: solo-dev-ai
 # RN-OFFLINE swarm order (execute in this sequence):
 #   RN-OFFLINE-01 → RN-OFFLINE-02 → RN-OFFLINE-03 → RN-OFFLINE-04 → RN-OFFLINE-05 → retro
 #   Kickoff: /bmad-create-story RN-OFFLINE-01, then /bmad-swarm epic-rn-offline
+#
+# RN-PUSH SCOPE LOCKS (2026-06-13 sprint planning):
+#   - Scheduler core extract + Vitest port: IN SCOPE (RN-PUSH-01)
+#   - expo-notifications local schedule/cancel adapter: IN SCOPE (RN-PUSH-02)
+#   - Reschedule lifecycle + OB/settings permission wiring: IN SCOPE (RN-PUSH-03)
+#   - UAT checklist + FR-M12 trace + stale copy removal: IN SCOPE (RN-PUSH-04)
+#   - Workout + nutrition reminders only (PWA scheduler parity): IN SCOPE
+#   - Morning/weekly review scheduling: OUT OF SCOPE (UI toggles only — PWA never fires)
+#   - Future You home pill / remindersMuted OS push: OUT OF SCOPE (in-app UI only)
+#   - Server-side APNs token registry: OUT OF SCOPE (deferred spec in RN-PUSH-04)
+#   - Maestro notification permission flow: OUT OF SCOPE (UAT manual per trace matrix)
+#   - RevenueCat / App Store ship: OUT OF SCOPE (RN-STORE)
+#   - Parity matrix sign-off: OUT OF SCOPE (RN-PARITY)
+#   - Plan doc: sprint-rn-push-plan.md
+#
+# RN-PUSH BMAD SWARM ALIGNMENT:
+# =============================
+# - bmad-swarm epic-rn-push: ready (2026-06-13) — RN-PUSH-01..04 story files created
+# - Branch: epic-rn-push/local-notifications
+# - Start: rn-push-01-scheduler-core-extract-vitest.md
+# - Per-story gate: npm run typecheck --workspace=@newyouai/mobile
+# - Logic gate: npm run test --workspace=@newyouai/core when packages/core touched
+# - Epic close gate: UAT checklist + core notificationScheduler tests + full Maestro regression (no new push Maestro flow)
+# - Metro for Maestro: npx expo start --dev-client --port 8082
+#
+# RN-PUSH swarm order (execute in this sequence):
+#   RN-PUSH-01 → RN-PUSH-02 → RN-PUSH-03 → RN-PUSH-04 → retro
+#   Kickoff: /bmad-create-story RN-PUSH-01, then /bmad-swarm epic-rn-push
 #
 # RN-10 SCOPE LOCKS (2026-06-13 sprint planning):
 #   - Settings core extract + full hub shell: IN SCOPE (RN-10-01)
@@ -919,7 +947,40 @@ development_status:
 
   epic-rn-push:
     title: Push notifications
-    status: backlog
+    status: done
+    swarm_mode: epic-rn-push
+    swarm_branch: epic-rn-push/local-notifications
+    plan: implementation-artifacts/sprint-rn-push-plan.md
+    swarm_start: rn-push-01-scheduler-core-extract-vitest
+    swarm_ready: 2026-06-13
+    completed: 2026-06-13
+    execute_order: rn-push-01 → rn-push-02 → rn-push-03 → rn-push-04
+    stories:
+      rn-push-01-scheduler-core-extract-vitest:
+        title: Scheduler core extract + Vitest port
+        status: done
+        file: implementation-artifacts/rn-push-01-scheduler-core-extract-vitest.md
+        completed: 2026-06-13
+      rn-push-02-expo-local-notification-adapter:
+        title: expo-notifications local schedule/cancel adapter
+        status: done
+        file: implementation-artifacts/rn-push-02-expo-local-notification-adapter.md
+        completed: 2026-06-13
+      rn-push-03-reschedule-lifecycle-permission-wiring:
+        title: Reschedule lifecycle + permission wiring
+        status: done
+        file: implementation-artifacts/rn-push-03-reschedule-lifecycle-permission-wiring.md
+        completed: 2026-06-13
+      rn-push-04-uat-trace-polish-deferred-spec:
+        title: UAT checklist + FR-M12 trace + deferred token spec
+        status: done
+        file: implementation-artifacts/rn-push-04-uat-trace-polish-deferred-spec.md
+        completed: 2026-06-13
+    retrospective:
+      epic-rn-push-retrospective:
+        status: done
+        file: implementation-artifacts/epic-rn-push-retro-2026-06-14.md
+        completed: 2026-06-14
 
   epic-rn-store:
     title: App Store ship
