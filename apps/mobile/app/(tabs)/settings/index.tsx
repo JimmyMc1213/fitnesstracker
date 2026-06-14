@@ -13,6 +13,26 @@ import {
   SettingsProfileCard,
   SettingsRow,
 } from "@/components/settings/SettingsLayout";
+import {
+  IconBell,
+  IconDocument,
+  IconDroplet,
+  IconDumbbell,
+  IconFlag,
+  IconHabits,
+  IconLogout,
+  IconMail,
+  IconMoon,
+  IconRun,
+  IconScale,
+  IconSettings,
+  IconShield,
+  IconSpeakerphone,
+  IconSun,
+  IconSync,
+  IconToolsKitchen2,
+} from "@/components/icons/FitnessIcons";
+import { SettingsRowIcon } from "@/components/settings/SettingsRowIcon";
 import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useFitnessSync } from "@/context/FitnessSyncContext";
@@ -22,25 +42,17 @@ import { EQUIPMENT_SETUP_LABELS } from "@/lib/equipmentSetup";
 import { resetLocalAfterAccountDelete } from "@/lib/resetAfterAccountDelete";
 import type { SettingsPanelId } from "@/lib/settingsPanelRegistry";
 import {
-  SETTINGS_INSTAGRAM_URL,
   SETTINGS_PRIVACY_POLICY_URL,
   SETTINGS_SUPPORT_EMAIL,
   SETTINGS_TERMS_URL,
-  SETTINGS_TIKTOK_URL,
-  SETTINGS_X_URL,
 } from "@/lib/settingsLinks";
 import { getSupabase } from "@/lib/supabaseClient";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
 import { volumeUnitLabel, weightUnitLabel } from "@/lib/unitLabels";
 import { formatRestDuration } from "@/lib/workout/restTimerPreferences";
 
-function SettingsIconDot({ label }: { label: string }) {
-  const { colors } = useAppTheme();
-  return (
-    <Text className="text-[12px] font-bold" style={{ color: colors.textTertiary }}>
-      {label}
-    </Text>
-  );
+function rowIcon(node: ReactNode) {
+  return <SettingsRowIcon>{node}</SettingsRowIcon>;
 }
 
 function openPanel(panelId: SettingsPanelId) {
@@ -139,7 +151,7 @@ export default function SettingsHubScreen() {
 
         <SettingsHubSection title="Account">
           <SettingsRow
-            icon={<SettingsIconDot label="↻" />}
+            icon={rowIcon(<IconSync size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Sync & backup"
             trailing={accountTrailing}
             testID="settings-row-account"
@@ -149,14 +161,20 @@ export default function SettingsHubScreen() {
 
         <SettingsHubSection title="Preferences">
           <SettingsRow
-            icon={<SettingsIconDot label={theme === "dark" ? "☾" : "☀"} />}
+            icon={rowIcon(
+              theme === "dark" ? (
+                <IconMoon size={16} stroke={1.6} color={colors.textPrimary} />
+              ) : (
+                <IconSun size={16} stroke={1.6} color={colors.textPrimary} />
+              ),
+            )}
             label="Appearance"
             trailing={theme === "dark" ? "Dark" : "Light"}
             testID="settings-row-appearance"
             onPress={() => openPanel("appearance")}
           />
           <SettingsRow
-            icon={<SettingsIconDot label="⚖" />}
+            icon={rowIcon(<IconScale size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Units"
             trailing={`${weightUnitLabel(weightUnit)}, ${volumeUnitLabel(volumeUnit)}`}
             testID="settings-row-units"
@@ -166,14 +184,14 @@ export default function SettingsHubScreen() {
 
         <SettingsHubSection title="Goals & tracking">
           <SettingsRow
-            icon={<SettingsIconDot label="🍽" />}
+            icon={rowIcon(<IconToolsKitchen2 size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Fuel targets"
             trailing={`${nutritionTargets.cal} cal`}
             testID="settings-row-fuel-targets"
             onPress={() => openPanel("fuel-targets")}
           />
           <SettingsRow
-            icon={<SettingsIconDot label="💧" />}
+            icon={rowIcon(<IconDroplet size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Hydration"
             trailing={formatVolumeFromOz(state.waterDailyTargetOz, volumeUnit)}
             testID="settings-row-hydration"
@@ -181,7 +199,7 @@ export default function SettingsHubScreen() {
           />
           {state.onboardingProfile ? (
             <SettingsRow
-              icon={<SettingsIconDot label="🎯" />}
+              icon={rowIcon(<IconFlag size={16} stroke={1.6} color={colors.textPrimary} />)}
               label="Goal"
               trailing={
                 state.progressGoal
@@ -193,13 +211,13 @@ export default function SettingsHubScreen() {
             />
           ) : null}
           <SettingsRow
-            icon={<SettingsIconDot label="🔔" />}
+            icon={rowIcon(<IconBell size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Tracking reminders"
             testID="settings-row-reminders"
             onPress={() => openPanel("reminders")}
           />
           <SettingsRow
-            icon={<SettingsIconDot label="👟" />}
+            icon={rowIcon(<IconRun size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Program"
             trailing={`${state.stepsTarget.toLocaleString()} steps`}
             testID="settings-row-program"
@@ -209,14 +227,14 @@ export default function SettingsHubScreen() {
 
         <SettingsHubSection title="Training">
           <SettingsRow
-            icon={<SettingsIconDot label="⏱" />}
+            icon={rowIcon(<IconSettings size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Rest timer"
             trailing={formatRestDuration(state.restTimerDefaultSeconds)}
             testID="settings-row-rest-timer"
             onPress={() => openPanel("rest-timer")}
           />
           <SettingsRow
-            icon={<SettingsIconDot label="🏋" />}
+            icon={rowIcon(<IconDumbbell size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Equipment"
             trailing={EQUIPMENT_SETUP_LABELS[state.equipmentSetup]}
             testID="settings-row-equipment"
@@ -226,7 +244,7 @@ export default function SettingsHubScreen() {
 
         <SettingsHubSection title="Habits">
           <SettingsRow
-            icon={<SettingsIconDot label="✓" />}
+            icon={rowIcon(<IconHabits size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Daily habits checklist"
             trailing={`${state.habitTemplates.length} habits`}
             testID="settings-row-habits"
@@ -236,52 +254,50 @@ export default function SettingsHubScreen() {
 
         <SettingsHubSection title="Legal">
           <SettingsRow
-            icon={<SettingsIconDot label="📄" />}
+            icon={rowIcon(<IconDocument size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Terms of service"
             testID="settings-row-terms"
             onPress={() => void openExternalUrl(SETTINGS_TERMS_URL)}
           />
           <SettingsRow
-            icon={<SettingsIconDot label="🛡" />}
+            icon={rowIcon(<IconShield size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Privacy policy"
             testID="settings-row-privacy"
             onPress={() => void openExternalUrl(SETTINGS_PRIVACY_POLICY_URL)}
           />
           <SettingsRow
-            icon={<SettingsIconDot label="✉" />}
+            icon={rowIcon(<IconMail size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Support email"
             testID="settings-row-support-email"
             onPress={() => void openExternalUrl(`mailto:${SETTINGS_SUPPORT_EMAIL}`)}
           />
-          <SettingsComingSoonRow icon={<SettingsIconDot label="💬" />} label="Request a feature" isLast />
+          <SettingsComingSoonRow
+            icon={rowIcon(<IconSpeakerphone size={16} stroke={1.6} color={colors.textPrimary} />)}
+            label="Request a feature"
+            isLast
+          />
         </SettingsHubSection>
 
         <SettingsHubSection title="Socials">
-          <SettingsRow
-            icon={<SettingsIconDot label="IG" />}
+          <SettingsComingSoonRow
+            icon={rowIcon(<Text className="text-[10px] font-bold" style={{ color: colors.textPrimary }}>IG</Text>)}
             label="Instagram"
-            testID="settings-row-instagram"
-            onPress={() => void openExternalUrl(SETTINGS_INSTAGRAM_URL)}
           />
-          <SettingsRow
-            icon={<SettingsIconDot label="TT" />}
+          <SettingsComingSoonRow
+            icon={rowIcon(<Text className="text-[10px] font-bold" style={{ color: colors.textPrimary }}>TT</Text>)}
             label="TikTok"
-            testID="settings-row-tiktok"
-            onPress={() => void openExternalUrl(SETTINGS_TIKTOK_URL)}
           />
-          <SettingsRow
-            icon={<SettingsIconDot label="X" />}
+          <SettingsComingSoonRow
+            icon={rowIcon(<Text className="text-[10px] font-bold" style={{ color: colors.textPrimary }}>X</Text>)}
             label="X"
-            testID="settings-row-x"
             isLast
-            onPress={() => void openExternalUrl(SETTINGS_X_URL)}
           />
         </SettingsHubSection>
 
         {sessionEmail ? (
           <SettingsHubSection title="Account actions">
             <SettingsRow
-              icon={<SettingsIconDot label="↪" />}
+              icon={rowIcon(<IconLogout size={16} stroke={1.6} color={colors.textPrimary} />)}
               label="Sign out"
               trailing=""
               testID="settings-sign-out"

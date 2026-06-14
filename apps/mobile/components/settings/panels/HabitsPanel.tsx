@@ -3,6 +3,7 @@ import type { HabitTemplate } from "@newyouai/types";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
+import { habitIconComponent } from "@/lib/habitIcons";
 import { SettingsHelper } from "@/components/settings/SettingsLayout";
 import { WorkoutConfirmSheet } from "@/components/workout/WorkoutConfirmSheet";
 import { useFitnessState } from "@/context/FitnessContext";
@@ -17,16 +18,6 @@ function newHabitId(): string {
   return `h_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function habitIconEmoji(icon: string): string {
-  const map: Record<string, string> = {
-    drop: "💧",
-    run: "👟",
-    bolt: "⚡",
-    moon: "🌙",
-  };
-  return map[icon] ?? "✓";
-}
-
 function HabitIconButton({
   icon,
   selected,
@@ -37,6 +28,7 @@ function HabitIconButton({
   onPick: () => void;
 }) {
   const { colors } = useAppTheme();
+  const IconComp = habitIconComponent(icon);
 
   return (
     <Pressable
@@ -48,7 +40,11 @@ function HabitIconButton({
         backgroundColor: selected ? colors.backgroundTertiary : colors.backgroundSecondary,
       }}
     >
-      <Text className="text-sm">{habitIconEmoji(icon)}</Text>
+      <IconComp
+        size={16}
+        stroke={1.6}
+        color={selected ? colors.textPrimary : colors.textTertiary}
+      />
     </Pressable>
   );
 }

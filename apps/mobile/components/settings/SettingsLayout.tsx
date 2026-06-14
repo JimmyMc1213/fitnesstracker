@@ -46,11 +46,7 @@ export function SettingsRow({
 
   const content = (
     <>
-      {icon ? (
-        <View className="mr-3 w-5 items-center justify-center" style={{ opacity: 0.85 }}>
-          {icon}
-        </View>
-      ) : null}
+      {icon ? icon : null}
       <Text className="flex-1 text-[15px] font-medium" style={{ color: colors.textPrimary }}>
         {label}
       </Text>

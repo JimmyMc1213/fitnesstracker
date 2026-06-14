@@ -25,7 +25,7 @@ import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
 import { useOnboardingStub } from "@/hooks/useOnboardingStub";
 import { initLocalNotifications } from "@/lib/localNotifications";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
-import { isVisualParityWebFrame } from "@/lib/visualParity";
+import { isVisualParityMode, isVisualParityWebFrame } from "@/lib/visualParity";
 
 export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
   return <AppShellErrorFallback onRetry={retry} />;
@@ -33,7 +33,8 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 
 export const unstable_settings = {
   // Auth-first when Supabase is configured (AC1); tabs-first for unconfigured smoke (AC6).
-  initialRouteName: isSupabaseConfigured() ? "(auth)" : "(tabs)",
+  initialRouteName:
+    isVisualParityMode() ? "(tabs)" : isSupabaseConfigured() ? "(auth)" : "(tabs)",
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.

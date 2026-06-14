@@ -4,7 +4,107 @@ import { isMobilityHabit } from "@/lib/mobilityHabit";
 
 export const WEIGH_IN_HABIT_ID = "weigh_in";
 
+export type HabitAction = "openWeighIn";
 export type HabitType = "manual" | "action";
+
+export type HabitDefinition = {
+  id: string;
+  name: string;
+  subtitle?: string;
+  icon: string;
+  type: HabitType;
+  action?: HabitAction;
+};
+
+/** Habits available in the add sheet (excluding custom). Mirrors PWA catalog. */
+export const ADDABLE_HABITS_CATALOG: HabitDefinition[] = [
+  {
+    id: "no_alcohol",
+    name: "No alcohol",
+    subtitle: "Simple daily accountability",
+    icon: "ban",
+    type: "manual",
+  },
+  {
+    id: "cold_shower",
+    name: "Cold shower",
+    subtitle: "Recovery and mental clarity",
+    icon: "snowflake",
+    type: "manual",
+  },
+  {
+    id: "pre_workout_meal",
+    name: "Pre-workout meal",
+    subtitle: "Fuel before you train",
+    icon: "food",
+    type: "manual",
+  },
+  {
+    id: "post_workout_protein",
+    name: "Post-workout protein",
+    subtitle: "Protein within 30 min of finishing",
+    icon: "protein",
+    type: "manual",
+  },
+  {
+    id: "screen_free_bed",
+    name: "Screen-free before bed",
+    subtitle: "Better sleep, better recovery",
+    icon: "phone-off",
+    type: "manual",
+  },
+  {
+    id: "read_10_min",
+    name: "Read 10 minutes",
+    subtitle: "Compound growth over time",
+    icon: "book",
+    type: "manual",
+  },
+  {
+    id: "no_junk_food",
+    name: "No junk food",
+    subtitle: "Consistency beats perfection",
+    icon: "ban",
+    type: "manual",
+  },
+];
+
+export function normalizeHabitIcon(icon: string): string {
+  if (icon === "water" || icon === "droplet") return "drop";
+  if (icon === "sleep") return "moon";
+  if (icon === "alcohol" || icon === "no_alcohol" || icon === "glass-off") return "ban";
+  return icon;
+}
+
+export function newCustomHabitId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `custom-${crypto.randomUUID()}`;
+  return `custom_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+export function availableHabitsToAdd(
+  currentTemplates: HabitTemplate[],
+  query: string,
+): HabitDefinition[] {
+  const currentIds = new Set(currentTemplates.map((t) => t.id));
+  const q = query.trim().toLowerCase();
+  return ADDABLE_HABITS_CATALOG.filter((h) => {
+    if (currentIds.has(h.id)) return false;
+    if (!q) return true;
+    return h.name.toLowerCase().includes(q) || (h.subtitle?.toLowerCase().includes(q) ?? false);
+  });
+}
+
+export function createCustomHabitTemplate(name: string, subtitle?: string): HabitTemplate {
+  const trimmedName = name.trim().slice(0, 40);
+  const trimmedSubtitle = subtitle?.trim().slice(0, 80);
+  return {
+    id: newCustomHabitId(),
+    name: trimmedName,
+    icon: "bolt",
+    type: "manual",
+    ...(trimmedSubtitle ? { subtitle: trimmedSubtitle } : {}),
+  };
+}
 
 export function habitTypeOf(template: HabitTemplate): HabitType {
   if (template.type === "action" || template.type === "manual") return template.type;

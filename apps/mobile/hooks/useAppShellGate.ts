@@ -56,9 +56,6 @@ export function useAppShellGate() {
   }, []);
 
   useEffect(() => {
-    if (auth.configured && !auth.sessionResolved) return;
-    if (auth.configured && auth.sessionEmail && !onboardingHydrated) return;
-
     const inAuthGroup = segments[0] === "(auth)";
     const inOnboardingGroup = segments[0] === "(onboarding)";
     const inTabsGroup = segments[0] === "(tabs)";
@@ -72,6 +69,9 @@ export function useAppShellGate() {
       }
       return;
     }
+
+    if (auth.configured && !auth.sessionResolved) return;
+    if (auth.configured && auth.sessionEmail && !onboardingHydrated) return;
 
     if (isOnboardingPreviewActive()) {
       if (!inOnboardingGroup) router.replace("/(onboarding)");

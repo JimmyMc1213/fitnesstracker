@@ -10,6 +10,7 @@ import type { VolumeUnit, WaterLogEntry } from "@newyouai/types";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
+import { IconDroplet } from "@/components/icons/FitnessIcons";
 import { WorkoutConfirmSheet } from "@/components/workout/WorkoutConfirmSheet";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -133,9 +134,7 @@ export function WaterTrackerCard({
           className="h-9 w-9 items-center justify-center rounded-full"
           style={{ backgroundColor: WATER_ACCENT_SOFT }}
         >
-          <Text className="text-base" style={{ color: WATER_ACCENT }}>
-            💧
-          </Text>
+          <IconDroplet size={18} stroke={1.8} color="rgba(10,132,255,0.9)" />
         </View>
         <Text
           className="text-[11px] font-semibold uppercase tracking-widest"
