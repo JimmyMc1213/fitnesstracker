@@ -7,6 +7,7 @@ import {
 import type { PersistedFitnessSlice } from "@newyouai/types";
 
 import { FITNESS_LOCAL_STORAGE_KEY } from "./persistFitnessSlice";
+import { dismissBootSplash } from "./bootSplash";
 
 const DEFAULT_TARGETS = { cal: 2000, p: 180, c: 200, f: 65 };
 
@@ -59,6 +60,7 @@ export function applyVisualParityBootstrapIfEnabled(): void {
   localStorage.removeItem("gymmy_onboarding_draft");
   document.documentElement.dataset.visualParity = "true";
   document.documentElement.dataset.theme = "dark";
+  dismissBootSplash();
 }
 
 export function isVisualParityMode(): boolean {

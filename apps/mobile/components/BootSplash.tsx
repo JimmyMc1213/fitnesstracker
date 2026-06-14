@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Animated, StyleSheet } from "react-native";
+import { Animated, Platform, StyleSheet } from "react-native";
 
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -19,7 +19,7 @@ export function BootSplash({ onComplete }: BootSplashProps) {
       Animated.timing(opacity, {
         toValue: 0,
         duration: BOOT_SPLASH_FADE_OUT_MS,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       }).start(({ finished }) => {
         if (!finished || completedRef.current) return;
         completedRef.current = true;

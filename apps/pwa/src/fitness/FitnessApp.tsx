@@ -57,13 +57,14 @@ import { isVisualParityMode } from "./visualParityBootstrap";
 captureOAuthReturnForSaveProgress();
 
 function buildInitialState(): AppState {
+  const visualParity = isVisualParityMode();
   if (typeof localStorage !== "undefined" && !localStorage.getItem(FITNESS_LOCAL_STORAGE_KEY)) {
-    seedDefaultData();
+    if (!visualParity) seedDefaultData();
   }
   const raw = loadPersistedSlice() ?? {};
   const { slice, dirty } = migratePersistedFitnessSlice(raw);
   const merged = { ...raw, ...slice };
-  const gymmyDraft = initialOnboardingWizardDraft(null);
+  const gymmyDraft = visualParity ? null : initialOnboardingWizardDraft(null);
   if (gymmyDraft && !merged.onboardingComplete) {
     merged.onboardingDraft = gymmyDraft;
     merged.onboardingComplete = false;
@@ -395,14 +396,16 @@ function FitnessAppMain({
     forcePreview: false,
   });
 
+  const visualParity = isVisualParityMode();
+
   const shellRoutingInput = {
-    configured: isVisualParityMode() ? false : fitnessSync.configured,
-    sessionResolved: fitnessSync.sessionResolved,
-    sessionEmail: fitnessSync.sessionEmail,
-    signInRestorePending,
-    fitnessHydrated: fitnessSync.fitnessHydrated,
+    configured: visualParity ? false : fitnessSync.configured,
+    sessionResolved: visualParity ? true : fitnessSync.sessionResolved,
+    sessionEmail: visualParity ? null : fitnessSync.sessionEmail,
+    signInRestorePending: visualParity ? false : signInRestorePending,
+    fitnessHydrated: visualParity ? true : fitnessSync.fitnessHydrated,
     onboardingComplete: state.onboardingComplete,
-    skipOnboarding: skipOnboardingForSession,
+    skipOnboarding: visualParity ? true : skipOnboardingForSession,
   };
 
   const needsAuth = needsAuthForApp(shellRoutingInput);
@@ -411,8 +414,9 @@ function FitnessAppMain({
   const onboardingInProgress = !state.onboardingComplete;
 
   const needsBootSplash =
-    appShellMainView === "loading" ||
-    (fitnessSync.sessionEmail != null && !fitnessSync.fitnessHydrated && !onboardingInProgress);
+    !visualParity &&
+    (appShellMainView === "loading" ||
+      (fitnessSync.sessionEmail != null && !fitnessSync.fitnessHydrated && !onboardingInProgress));
 
   const bootSplashOverlay = bootSplashMounted ? (
     <AppSplashScreen dismiss={!needsBootSplash && minHoldElapsed} onExitComplete={() => setBootSplashMounted(false)} />

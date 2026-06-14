@@ -3,6 +3,10 @@ import type { AppTheme } from "@newyouai/types";
 export const COACH_BLUE = "#0A84FF";
 export const COACH_BLUE_LABEL = "#6EB7FF";
 
+export const MOBILITY_ACCENT = "rgba(196,181,253,0.95)";
+export const MOBILITY_BORDER = "rgba(196,181,253,0.32)";
+export const MOBILITY_BG = "rgba(196,181,253,0.07)";
+
 export function coachCardColors(theme: AppTheme) {
   if (theme === "light") {
     return {

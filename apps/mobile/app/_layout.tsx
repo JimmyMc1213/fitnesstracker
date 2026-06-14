@@ -100,7 +100,9 @@ export default function RootLayout() {
               <NotificationSchedulerProvider>
                 <View style={{ flex: 1 }}>
                   <RootLayoutNav />
-                  {bootSplashVisible ? <BootSplash onComplete={() => setBootSplashVisible(false)} /> : null}
+                  {bootSplashVisible && !isVisualParityWebFrame() ? (
+                    <BootSplash onComplete={() => setBootSplashVisible(false)} />
+                  ) : null}
                 </View>
               </NotificationSchedulerProvider>
             </FitnessSyncProvider>
@@ -115,6 +117,10 @@ function AppShellLoadingGate({ children }: { children: ReactNode }) {
   const { configured, sessionEmail } = useAuth();
   const shellInput = useAppShellRoutingInput();
   const { onboardingStubHydrated } = useOnboardingStub();
+
+  if (isVisualParityWebFrame()) {
+    return children;
+  }
 
   const awaitingOnboardingStub =
     configured && sessionEmail != null && !onboardingStubHydrated;
