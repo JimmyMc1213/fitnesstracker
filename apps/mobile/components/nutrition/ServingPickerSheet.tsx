@@ -18,6 +18,7 @@ import {
   getBaseGrams,
   pickerServingLabel,
 } from "@/lib/nutritionPickerMeasurements";
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { MACRO_COLORS } from "@/lib/macroColors";
 
@@ -61,6 +62,7 @@ export function ServingPickerSheet({
     logButtonLabel ?? (isMealIngredient ? "Add ingredient" : "Log food");
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const bottomActionPadding = useBottomActionPadding();
   const bundle = useMemo(() => buildPickerMeasurements(food, curated), [food, curated]);
   const [measurementId, setMeasurementId] = useState(bundle.measurements[0]?.id ?? "g");
   const [quantity, setQuantity] = useState("");
@@ -250,7 +252,7 @@ export function ServingPickerSheet({
         style={{
           borderTopColor: colors.border,
           backgroundColor: colors.background,
-          paddingBottom: insets.bottom + 14,
+          paddingBottom: bottomActionPadding,
         }}
       >
         <PrimaryButton

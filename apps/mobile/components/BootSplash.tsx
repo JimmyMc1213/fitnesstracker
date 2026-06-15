@@ -15,19 +15,31 @@ export function BootSplash({ onComplete }: BootSplashProps) {
   const completedRef = useRef(false);
 
   useEffect(() => {
+    const complete = () => {
+      if (completedRef.current) return;
+      completedRef.current = true;
+      onComplete();
+    };
+
     const fadeTimer = setTimeout(() => {
       Animated.timing(opacity, {
         toValue: 0,
         duration: BOOT_SPLASH_FADE_OUT_MS,
         useNativeDriver: Platform.OS !== "web",
       }).start(({ finished }) => {
-        if (!finished || completedRef.current) return;
-        completedRef.current = true;
-        onComplete();
+        if (finished) complete();
       });
     }, BOOT_SPLASH_MIN_VISIBLE_MS);
 
-    return () => clearTimeout(fadeTimer);
+    const fallbackTimer = setTimeout(
+      complete,
+      BOOT_SPLASH_MIN_VISIBLE_MS + BOOT_SPLASH_FADE_OUT_MS + 250,
+    );
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(fallbackTimer);
+    };
   }, [onComplete, opacity]);
 
   return (

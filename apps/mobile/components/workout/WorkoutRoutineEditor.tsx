@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Modal, Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useBottomActionPadding } from "@/lib/screenInsets";
+
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { DeleteExerciseConfirmSheet } from "@/components/workout/DeleteExerciseConfirmSheet";
 import { ExerciseDragHandle, SortableExerciseList } from "@/components/workout/SortableExerciseList";
@@ -240,6 +242,7 @@ export function WorkoutRoutineEditor({
 }: WorkoutRoutineEditorProps) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const bottomActionPadding = useBottomActionPadding();
 
   const [name, setName] = useState("");
   const [dayLabel, setDayLabel] = useState("");
@@ -569,7 +572,7 @@ export function WorkoutRoutineEditor({
         style={{
           borderColor: colors.border,
           backgroundColor: colors.background,
-          paddingBottom: insets.bottom + 16,
+          paddingBottom: bottomActionPadding,
         }}
       >
         <Pressable

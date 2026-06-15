@@ -31,15 +31,21 @@ export function getSupabaseSecureStoreAdapter(): SecureStoreAdapter {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const SecureStore = require("expo-secure-store") as typeof import("expo-secure-store");
 
+  // Allow reads while the device is locked (after first unlock since boot) so Supabase
+  // autoRefreshToken can access the session in the background.
+  const keychainOptions = {
+    keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
+  };
+
   cachedAdapter = {
     getItem(key: string) {
-      return SecureStore.getItemAsync(key);
+      return SecureStore.getItemAsync(key, keychainOptions);
     },
     setItem(key: string, value: string) {
-      return SecureStore.setItemAsync(key, value);
+      return SecureStore.setItemAsync(key, value, keychainOptions);
     },
     removeItem(key: string) {
-      return SecureStore.deleteItemAsync(key);
+      return SecureStore.deleteItemAsync(key, keychainOptions);
     },
   };
 

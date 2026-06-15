@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { ONBOARDING_TOTAL_STEPS, onboardingProgressStep, phaseForStep } from "@/lib/onboardingSteps";
 
@@ -46,6 +47,7 @@ export function OnboardingShell({
 }: OnboardingShellProps) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const bottomActionPadding = useBottomActionPadding();
   const { phaseLabel } = phaseForStep(step);
   const progressStep = onboardingProgressStep(step);
   const pct = Math.round(((progressStep + 1) / totalSteps) * 100);
@@ -57,7 +59,7 @@ export function OnboardingShell({
         flex: 1,
         backgroundColor: colors.background,
         paddingTop: insets.top + 8,
-        paddingBottom: insets.bottom + 16,
+        paddingBottom: bottomActionPadding,
         paddingHorizontal: 23,
       }}
     >

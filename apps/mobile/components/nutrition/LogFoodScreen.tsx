@@ -42,6 +42,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { EditUserFoodSheet } from "@/components/nutrition/EditUserFoodSheet";
 import { BarcodeScannerGate } from "@/components/nutrition/BarcodeScannerGate";
 import { LogFoodAllTab } from "@/components/nutrition/LogFoodAllTab";
@@ -93,6 +94,7 @@ type Props = {
 export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const bottomActionPadding = useBottomActionPadding();
   const { state, setFitnessState } = useFitnessState();
   const [tab, setTab] = useState<LogFoodTab>("all");
   const [pickerFood, setPickerFood] = useState<FoodSearchResult | null>(null);
@@ -705,7 +707,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
               style={{
                 borderTopColor: colors.border,
                 backgroundColor: colors.background,
-                paddingBottom: insets.bottom + 14,
+                paddingBottom: bottomActionPadding,
               }}
             >
               <PrimaryButton

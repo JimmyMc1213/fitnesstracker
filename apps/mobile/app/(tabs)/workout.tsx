@@ -1,5 +1,4 @@
 import { ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { WorkoutIdleDashboard } from "@/components/workout/WorkoutIdleDashboard";
 import { WorkoutLiftingSlot } from "@/components/workout/WorkoutLiftingSlot";
@@ -12,10 +11,11 @@ import {
   dismissTemplateOrderUpdatePrompt,
   dismissWorkoutSummary,
 } from "@newyouai/core";
+import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 
 export default function WorkoutScreen() {
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
+  const { paddingTop, paddingBottom } = useTabScreenInsets();
   const { state, hydrated, setFitnessState } = useFitnessState();
 
   const sessionPhase = state?.workout.sessionPhase ?? "idle";
@@ -27,7 +27,7 @@ export default function WorkoutScreen() {
       style={{
         flex: 1,
         backgroundColor: colors.background,
-        paddingTop: insets.top,
+        paddingTop,
       }}
     >
       {!hydrated || !state ? (
@@ -37,7 +37,7 @@ export default function WorkoutScreen() {
       ) : sessionPhase === "idle" ? (
         <ScrollView
           className="px-screen-x"
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom }}
           keyboardShouldPersistTaps="handled"
         >
           <WorkoutIdleDashboard />

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { COACH_BLUE_LABEL } from "@/lib/workoutUiTokens";
 import {
@@ -138,6 +139,7 @@ export function WorkoutStarterTemplatesSheet({
   onUseProgram,
 }: WorkoutStarterTemplatesSheetProps) {
   const { colors } = useAppTheme();
+  const bottomActionPadding = useBottomActionPadding();
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -185,8 +187,8 @@ export function WorkoutStarterTemplatesSheet({
       <Pressable className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.45)" }} onPress={handleClose}>
         <Pressable
           testID="workout-starter-templates-sheet"
-          className="max-h-[86%] rounded-t-2xl px-4 pb-8 pt-5"
-          style={{ backgroundColor: colors.card }}
+          className="max-h-[86%] rounded-t-2xl px-4 pt-5"
+          style={{ backgroundColor: colors.card, paddingBottom: bottomActionPadding }}
           onPress={(e) => e.stopPropagation()}
         >
           <Text className="text-xl font-bold tracking-tight" style={{ color: colors.textPrimary }}>

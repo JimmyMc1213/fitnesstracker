@@ -17,6 +17,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 
+import { BottomActionBar } from "@/components/BottomActionBar";
 import { CHART_PAD_LEFT, CHART_PAD_RIGHT, WeightLineChart } from "@/components/progress/WeightLineChart";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
@@ -188,7 +189,7 @@ export function SundayWeeklyCheckInFlow({ data, unitPreferences, onClose, onComp
         ) : null}
       </ScrollView>
 
-      <View className="px-screen-x pb-4 pt-2">
+      <BottomActionBar>
         <PrimaryButton
           block
           testID="sunday-check-in-continue"
@@ -208,7 +209,7 @@ export function SundayWeeklyCheckInFlow({ data, unitPreferences, onClose, onComp
             </Text>
           </Pressable>
         ) : null}
-      </View>
+      </BottomActionBar>
     </View>
   );
 }

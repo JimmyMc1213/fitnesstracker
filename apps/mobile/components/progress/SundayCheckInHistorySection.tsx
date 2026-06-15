@@ -2,8 +2,8 @@ import { coalesceSundayCheckInRecord } from "@newyouai/core";
 import type { SundayCheckInWeekRecord, UnitPreferences } from "@newyouai/types";
 import { useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { ProgressSectionLabel } from "@/components/progress/ProgressSectionLabel";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
 import { weightUnitLabel } from "@/lib/unitLabels";
@@ -172,7 +172,7 @@ function RecapDetailSheet({
   onClose: () => void;
 }) {
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
+  const bottomActionPadding = useBottomActionPadding();
   const safe = record ? coalesceSundayCheckInRecord(record) : null;
   const wUnit = unitPreferences.weightUnit;
 
@@ -182,7 +182,7 @@ function RecapDetailSheet({
         <View
           testID="sunday-history-recap-sheet"
           className="max-h-[85%] rounded-t-2xl px-4 pt-4"
-          style={{ backgroundColor: colors.card, paddingBottom: insets.bottom + 16 }}
+          style={{ backgroundColor: colors.card, paddingBottom: bottomActionPadding }}
         >
           {safe ? (
             <ScrollView showsVerticalScrollIndicator={false}>

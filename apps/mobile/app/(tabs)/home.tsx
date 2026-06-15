@@ -13,7 +13,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 
 import { FutureYouSkipperReminderPill } from "@/components/home/FutureYouSkipperReminderPill";
 import { HomeDailyHabitsCard } from "@/components/home/HomeDailyHabitsCard";
@@ -28,6 +28,7 @@ import { MobilityPreviewSheet } from "@/components/home/MobilityPreviewSheet";
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { WeighInCoachReaction } from "@/components/home/WeighInCoachReaction";
 import { WeighInSheet } from "@/components/home/WeighInSheet";
+import { IconChevR, IconPlus } from "@/components/icons/FitnessIcons";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useFutureYouEntry } from "@/hooks/useFutureYouEntry";
 import { useSundayCheckInHome } from "@/hooks/useSundayCheckInHome";
@@ -47,7 +48,7 @@ import type { HabitTemplate } from "@newyouai/types";
 
 export default function HomeScreen() {
   const { colors, scheme } = useAppTheme();
-  const insets = useSafeAreaInsets();
+  const { paddingTop, paddingBottom } = useTabScreenInsets();
   const { state, hydrated, setFitnessState } = useFitnessState();
   const params = useLocalSearchParams<{ mobility?: string }>();
 
@@ -190,7 +191,7 @@ export default function HomeScreen() {
       <View
         testID="tab-home"
         className="flex-1 items-center justify-center px-screen-x"
-        style={{ backgroundColor: colors.background, paddingTop: insets.top }}
+        style={{ backgroundColor: colors.background, paddingTop }}
       >
         <Text style={{ color: colors.textSecondary }}>Loading…</Text>
       </View>
@@ -250,9 +251,9 @@ export default function HomeScreen() {
         style={{
           flex: 1,
           backgroundColor: colors.background,
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom + 24,
+          paddingTop,
         }}
+        contentContainerStyle={{ paddingBottom }}
         keyboardShouldPersistTaps="handled"
       >
         <ScreenHeader
@@ -312,11 +313,11 @@ export default function HomeScreen() {
           >
             <View
               className="h-11 w-11 items-center justify-center rounded-full"
-              style={{ backgroundColor: colors.backgroundSecondary }}
+              style={{
+                backgroundColor: scheme === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)",
+              }}
             >
-              <Text className="text-lg" style={{ color: colors.textSecondary }}>
-                +
-              </Text>
+              <IconPlus size={18} stroke={2.5} color={colors.textSecondary} />
             </View>
             <View className="min-w-0 flex-1">
               <Text className="text-[13px] font-semibold tracking-tight" style={{ color: colors.textPrimary }}>
@@ -326,7 +327,7 @@ export default function HomeScreen() {
                 Log weight and optional progress photo
               </Text>
             </View>
-            <Text style={{ color: colors.textTertiary }}>›</Text>
+            <IconChevR size={14} color={colors.textTertiary} />
           </Pressable>
         ) : null}
 

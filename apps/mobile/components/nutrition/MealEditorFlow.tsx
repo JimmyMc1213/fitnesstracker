@@ -17,6 +17,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { FoodSearchSkeletonList } from "@/components/nutrition/FoodSearchSkeletonList";
 import { NutritionDeleteConfirmSheet } from "@/components/nutrition/NutritionDeleteConfirmSheet";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
@@ -95,6 +96,7 @@ export function MealEditorFlow({
 }: Props) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const bottomActionPadding = useBottomActionPadding();
   const [search, setSearch] = useState("");
   const [apiResults, setApiResults] = useState<FoodSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -581,7 +583,7 @@ export function MealEditorFlow({
           style={{
             borderTopColor: colors.border,
             backgroundColor: colors.background,
-            paddingBottom: insets.bottom + 14,
+            paddingBottom: bottomActionPadding,
           }}
         >
           {showAddIngredientButton ? (

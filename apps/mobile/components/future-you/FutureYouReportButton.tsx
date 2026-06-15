@@ -24,6 +24,7 @@ import {
 } from "react-native";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { submitFutureYouReport } from "@/lib/futureYouReportService";
 
@@ -37,6 +38,7 @@ type SubmitState = "idle" | "submitting" | "success" | "error";
 
 export function FutureYouReportButton({ jobId, context, previewMode = false }: Props) {
   const { colors } = useAppTheme();
+  const bottomActionPadding = useBottomActionPadding();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [category, setCategory] = useState<FutureYouReportCategory>("not_accurate");
   const [message, setMessage] = useState("");
@@ -99,8 +101,8 @@ export function FutureYouReportButton({ jobId, context, previewMode = false }: P
           <Pressable className="flex-1" onPress={closeSheet} accessibilityLabel="Close report sheet" />
           <View
             testID="future-you-report-sheet"
-            className="max-h-[85%] rounded-t-2xl px-6 pb-8 pt-6"
-            style={{ backgroundColor: colors.card }}
+            className="max-h-[85%] rounded-t-2xl px-6 pt-6"
+            style={{ backgroundColor: colors.card, paddingBottom: bottomActionPadding }}
           >
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>

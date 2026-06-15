@@ -18,7 +18,6 @@ import type { FutureYouDraft } from "@newyouai/types";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FutureYouDetailView } from "@/components/future-you/FutureYouDetailView";
 import { FutureYouFullscreenViewer } from "@/components/future-you/FutureYouFullscreenViewer";
@@ -35,6 +34,7 @@ import { useFutureYouEntry } from "@/hooks/useFutureYouEntry";
 import { useFutureYouGenerationPoll } from "@/hooks/useFutureYouGenerationPoll";
 import { useFutureYouRevealImage } from "@/hooks/useFutureYouRevealImage";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 import {
   buildFutureYouGenerateProfile,
   FutureYouGenerateError,
@@ -72,7 +72,7 @@ function futureYouUploadSnapshot(draft: FutureYouDraft): FutureYouDraft {
 
 export function FutureYouScreen() {
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
+  const { paddingTop, paddingBottom } = useTabScreenInsets();
   const { state, setFitnessState } = useFitnessState();
   const params = useLocalSearchParams<{ openFutureYouUpload?: string; openFutureYouDetail?: string }>();
   const handledOpenUploadRef = useRef(false);
@@ -650,7 +650,7 @@ export function FutureYouScreen() {
     <View testID="tab-future-you" style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         className="flex-1 px-screen-x"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 120, paddingTop: insets.top }}
+        contentContainerStyle={{ paddingBottom, paddingTop }}
         showsVerticalScrollIndicator={false}
       >
         {showHeader ? (

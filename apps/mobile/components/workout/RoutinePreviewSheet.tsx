@@ -1,5 +1,6 @@
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 
+import { BottomActionBar } from "@/components/BottomActionBar";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import type { PreWorkoutCoachBrief } from "@/lib/preWorkoutCoachBrief";
 import { COACH_BLUE_LABEL, coachCardColors } from "@/lib/workoutUiTokens";
@@ -114,7 +115,7 @@ export function RoutinePreviewSheet({
             ))}
           </ScrollView>
 
-          <View className="border-t px-4 pb-8 pt-3" style={{ borderColor: colors.border }}>
+          <BottomActionBar className="border-t px-4 pt-3" bordered borderColor={colors.border}>
             <PrimaryButton
               block
               testID={`workout-start-${template.id}`}
@@ -134,7 +135,7 @@ export function RoutinePreviewSheet({
                 </Text>
               </Pressable>
             )}
-          </View>
+          </BottomActionBar>
         </View>
       </View>
     </Modal>

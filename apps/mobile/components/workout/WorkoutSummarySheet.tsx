@@ -1,6 +1,7 @@
 import { Modal, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { BottomActionBar } from "@/components/BottomActionBar";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { formatWorkoutDuration, LBS_PER_KG } from "@newyouai/core";
@@ -146,18 +147,16 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
           </View>
         </ScrollView>
 
-        <View
+        <BottomActionBar
           className="border-t px-screen-x pt-3"
-          style={{
-            borderColor: colors.border,
-            paddingBottom: Math.max(insets.bottom, 12),
-            backgroundColor: colors.background,
-          }}
+          bordered
+          borderColor={colors.border}
+          style={{ backgroundColor: colors.background }}
         >
           <PrimaryButton block onPress={onDone}>
             Back to workouts
           </PrimaryButton>
-        </View>
+        </BottomActionBar>
       </View>
     </Modal>
   );

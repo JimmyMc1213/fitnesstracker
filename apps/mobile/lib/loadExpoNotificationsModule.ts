@@ -1,3 +1,5 @@
+import { Platform } from "react-native";
+
 import { isExpoNotificationsAvailable } from "@/lib/expoNativeModules";
 
 type NotificationsModule = typeof import("expo-notifications");
@@ -7,7 +9,7 @@ let cached: NotificationsModule | null | undefined;
 /** Lazy-load expo-notifications only when the native module is linked in this dev client. */
 export async function loadExpoNotificationsModule(): Promise<NotificationsModule | null> {
   if (cached !== undefined) return cached;
-  if (!isExpoNotificationsAvailable()) {
+  if (Platform.OS === "web" || !isExpoNotificationsAvailable()) {
     cached = null;
     return null;
   }

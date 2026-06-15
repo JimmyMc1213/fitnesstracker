@@ -3,7 +3,6 @@ import type { NutritionLoggedItem } from "@newyouai/types";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FoodAddedToast, useFoodAddedToast } from "@/components/nutrition/FoodAddedToast";
 import { TodayFoodLogCard } from "@/components/nutrition/TodayFoodLogCard";
@@ -15,12 +14,13 @@ import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { takeNutritionLogToast } from "@/lib/nutritionLogToast";
+import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 
 const PROTEIN_PRIORITY_ACCENT = "#ffc878";
 
 export default function NutritionScreen() {
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
+  const { paddingTop, paddingBottom } = useTabScreenInsets();
   const { state, setFitnessState } = useFitnessState();
   const params = useLocalSearchParams<{ openLogFood?: string }>();
   const handledOpenLogFoodRef = useRef(false);
@@ -127,7 +127,7 @@ export default function NutritionScreen() {
     <View testID="tab-nutrition" style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         className="flex-1 px-screen-x"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 120, paddingTop: insets.top }}
+        contentContainerStyle={{ paddingBottom, paddingTop }}
         showsVerticalScrollIndicator={false}
       >
         <ScreenHeader

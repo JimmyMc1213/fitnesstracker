@@ -1,5 +1,5 @@
 import { SymbolView } from "expo-symbols";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useWorkoutShell } from "@/context/WorkoutShellContext";
@@ -86,11 +86,12 @@ export function TabBarDock({ state, descriptors, navigation: navigationProp }: T
 
   return (
     <View
-      style={{
-        paddingBottom: Math.max(insets.bottom, 8),
-        paddingHorizontal: 10,
-        backgroundColor: "transparent",
-      }}
+      style={[
+        styles.dock,
+        {
+          paddingBottom: Math.max(insets.bottom, 8),
+        },
+      ]}
       pointerEvents="box-none"
     >
       <View
@@ -226,3 +227,17 @@ export function TabBarDock({ state, descriptors, navigation: navigationProp }: T
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  dock: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 10,
+    backgroundColor: "transparent",
+    zIndex: 100,
+    elevation: 100,
+    ...(Platform.OS === "ios" ? { pointerEvents: "box-none" as const } : null),
+  },
+});

@@ -6,6 +6,7 @@ import { buildHabitsForDateKey, markWeighInHabitDone } from "@/lib/habits";
 import { compressImageToJpegDataUrl } from "@/lib/imageCompress";
 import { formatWeightFromLbs, isValidWeighInLbs, parseWeightToLbs } from "@/lib/unitConversions";
 import { weightUnitLabel } from "@/lib/unitLabels";
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { AppState, UnitPreferences, WeightEntry } from "@newyouai/types";
 
@@ -33,6 +34,7 @@ export function WeighInSheet({
   setFitnessState,
 }: Props) {
   const { colors } = useAppTheme();
+  const bottomActionPadding = useBottomActionPadding();
   const wUnit = unitPreferences.weightUnit;
   const [weightDraft, setWeightDraft] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -159,8 +161,8 @@ export function WeighInSheet({
       <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
         <View
           testID="weigh-in-sheet"
-          className="rounded-t-2xl px-5 pb-8 pt-5"
-          style={{ backgroundColor: colors.card, maxHeight: "82%" }}
+          className="rounded-t-2xl px-5 pt-5"
+          style={{ backgroundColor: colors.card, maxHeight: "82%", paddingBottom: bottomActionPadding }}
         >
           <Text
             className="mb-2 text-[11px] font-semibold uppercase tracking-widest"

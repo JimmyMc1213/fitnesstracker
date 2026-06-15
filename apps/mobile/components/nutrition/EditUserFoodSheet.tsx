@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -18,6 +19,7 @@ type Props = {
 export function EditUserFoodSheet({ food, onClose, onSave }: Props) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const bottomActionPadding = useBottomActionPadding();
   const [name, setName] = useState("");
   const [cal, setCal] = useState("");
   const [p, setP] = useState("");
@@ -123,7 +125,7 @@ export function EditUserFoodSheet({ food, onClose, onSave }: Props) {
 
         <View
           className="border-t px-screen-x pt-3"
-          style={{ borderTopColor: colors.border, paddingBottom: insets.bottom + 14 }}
+          style={{ borderTopColor: colors.border, paddingBottom: bottomActionPadding }}
         >
           <PrimaryButton block testID="edit-user-food-save" onPress={save} disabled={!canSave}>
             Save changes

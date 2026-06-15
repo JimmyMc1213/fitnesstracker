@@ -13,6 +13,7 @@
     "dev:mobile": "turbo run dev --filter=@newyouai/mobile",
     "dev:visual-parity": "node scripts/dev-visual-parity.mjs",
     "dev:mobile:client": "npm run dev --workspace=@newyouai/mobile",
+    "dev:mobile:phone": "node scripts/dev-mobile-phone.mjs",
     "build": "turbo run build",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e --filter=@newyouai/pwa",

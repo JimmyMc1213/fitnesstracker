@@ -8,6 +8,7 @@ import { useState } from "react";
 import { ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -31,6 +32,7 @@ function FieldLabel({ label }: { label: string }) {
 export function ManualFoodEntryPanel({ dayLogAtCapacity, onLog }: Props) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const bottomActionPadding = useBottomActionPadding();
   const [draftName, setDraftName] = useState("");
   const [draftCal, setDraftCal] = useState("");
   const [draftP, setDraftP] = useState("");
@@ -157,7 +159,7 @@ export function ManualFoodEntryPanel({ dayLogAtCapacity, onLog }: Props) {
         style={{
           borderTopColor: colors.border,
           backgroundColor: colors.background,
-          paddingBottom: insets.bottom + 14,
+          paddingBottom: bottomActionPadding,
         }}
       >
         <PrimaryButton

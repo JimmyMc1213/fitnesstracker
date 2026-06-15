@@ -2,7 +2,6 @@ import { LBS_PER_KG, localDateKey, weightDeltaSentiment, weightUnitLabel } from 
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { WeighInSheet } from "@/components/home/WeighInSheet";
@@ -21,6 +20,7 @@ import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { deltaColorForTheme } from "@/lib/progress/weightDeltaColors";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
+import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 
 function shortChartDate(dateKey: string): string {
   return new Date(`${dateKey}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -28,7 +28,7 @@ function shortChartDate(dateKey: string): string {
 
 export default function ProgressScreen() {
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
+  const { paddingTop, paddingBottom } = useTabScreenInsets();
   const { state, setFitnessState } = useFitnessState();
   const [weighInOpen, setWeighInOpen] = useState(false);
   const [showCheckInHistoryPage, setShowCheckInHistoryPage] = useState(false);
@@ -89,7 +89,7 @@ export default function ProgressScreen() {
     <View testID="tab-progress" style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         className="flex-1 px-screen-x"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 120, paddingTop: insets.top }}
+        contentContainerStyle={{ paddingBottom, paddingTop }}
         showsVerticalScrollIndicator={false}
       >
         <ScreenHeader title="Progress" titleTestID="progress-title" />

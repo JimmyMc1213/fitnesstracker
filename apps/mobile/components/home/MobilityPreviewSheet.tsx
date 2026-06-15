@@ -1,5 +1,6 @@
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 
+import { BottomActionBar } from "@/components/BottomActionBar";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { STRETCH_BLOCKS, STRETCH_INTRO } from "@/lib/stretchRoutine";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -75,7 +76,7 @@ export function MobilityPreviewSheet({ open, onClose, onStart }: Props) {
             </Text>
           </ScrollView>
 
-          <View className="border-t px-4 pb-8 pt-3" style={{ borderColor: colors.border }}>
+          <BottomActionBar className="border-t px-4 pt-3" bordered borderColor={colors.border}>
             <PrimaryButton block onPress={onStart ?? onClose}>
               Preview complete
             </PrimaryButton>
@@ -84,7 +85,7 @@ export function MobilityPreviewSheet({ open, onClose, onStart }: Props) {
                 Close
               </Text>
             </Pressable>
-          </View>
+          </BottomActionBar>
         </View>
       </View>
     </Modal>

@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput } from "react-native";
 
 import {
   SettingsDetailCard,
@@ -8,11 +8,14 @@ import {
   SettingsHelper,
   SettingsPrimaryButton,
 } from "@/components/settings/SettingsLayout";
+import { SettingsScreenChrome } from "@/components/settings/SettingsScreenChrome";
 import { useAuth } from "@/context/AuthContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 
 export default function ChangePasswordScreen() {
   const { colors } = useAppTheme();
+  const { contentPaddingBottom } = useTabScreenInsets();
   const { changePassword } = useAuth();
   const [currentPasswordIn, setCurrentPasswordIn] = useState("");
   const [newPasswordIn, setNewPasswordIn] = useState("");
@@ -25,25 +28,16 @@ export default function ChangePasswordScreen() {
     !busy && currentPasswordIn.length > 0 && newPasswordIn.length > 0 && confirmPasswordIn.length > 0;
 
   return (
-    <ScrollView
-      className="px-screen-x"
-      style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingTop: 24, paddingBottom: 40 }}
+    <SettingsScreenChrome
+      title="Change password"
+      onBack={() => router.back()}
       testID="settings-panel-you-change-password"
     >
-      <Pressable
-        onPress={() => router.back()}
-        className="mb-4 self-start rounded-full border px-4 py-2"
-        style={{ borderColor: colors.border }}
-        testID="settings-panel-back"
+      <ScrollView
+        className="px-screen-x"
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: contentPaddingBottom }}
       >
-        <Text style={{ color: colors.textPrimary }}>Back</Text>
-      </Pressable>
-
-      <Text className="mb-4 text-[24px] font-bold" style={{ color: colors.textPrimary }}>
-        Change Password
-      </Text>
-
       <SettingsHelper>Enter your current password, then choose a new one.</SettingsHelper>
 
       <SettingsDetailCard>
@@ -151,6 +145,7 @@ export default function ChangePasswordScreen() {
           }}
         />
       </SettingsDetailCard>
-    </ScrollView>
+      </ScrollView>
+    </SettingsScreenChrome>
   );
 }

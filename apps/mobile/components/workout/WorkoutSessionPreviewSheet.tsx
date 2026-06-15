@@ -1,6 +1,6 @@
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { BottomActionBar } from "@/components/BottomActionBar";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { formatWorkoutHistoryDate } from "@/lib/workout/workoutHistory";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -28,7 +28,6 @@ export function WorkoutSessionPreviewSheet({
   onDelete,
 }: Props) {
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
   const weightUnit = unitPreferences.weightUnit;
   const totalSets = session.exercises.reduce((a, e) => a + e.sets.length, 0);
   const rawVolume = session.exercises.reduce(
@@ -45,7 +44,7 @@ export function WorkoutSessionPreviewSheet({
         <View
           testID="workout-session-preview-sheet"
           className="max-h-[82%] rounded-t-2xl"
-          style={{ backgroundColor: colors.card, paddingBottom: Math.max(insets.bottom, 12) }}
+          style={{ backgroundColor: colors.card }}
         >
           <View className="px-5 pb-0 pt-5">
             <Text
@@ -110,7 +109,7 @@ export function WorkoutSessionPreviewSheet({
             ))}
           </ScrollView>
 
-          <View className="border-t px-5 pt-3" style={{ borderColor: colors.border }}>
+          <BottomActionBar className="border-t px-5 pt-3" bordered borderColor={colors.border}>
             <PrimaryButton block onPress={onClose}>
               Close
             </PrimaryButton>
@@ -125,7 +124,7 @@ export function WorkoutSessionPreviewSheet({
                 </Text>
               </Pressable>
             ) : null}
-          </View>
+          </BottomActionBar>
         </View>
       </View>
     </Modal>

@@ -13,6 +13,7 @@ const config: ExpoConfig = {
     bundleIdentifier: "app.newyouai.mobile",
     usesAppleSignIn: true,
     infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
       NSCameraUsageDescription:
         "New You AI uses your camera to scan food barcodes and capture photos for your Future You transformation preview.",
       NSPhotoLibraryUsageDescription:

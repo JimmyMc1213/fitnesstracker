@@ -116,7 +116,7 @@ function WeekDayTracker({ cells }: { cells: SundayCheckInData["dayCells"] }) {
         return (
           <View key={cell.dateKey} className="min-w-0 flex-1 items-center gap-0.5">
             <View
-              className="aspect-square w-full max-w-[26px] items-center justify-center rounded-[7px] border"
+              className="h-[26px] w-[26px] items-center justify-center rounded-[7px] border"
               style={{
                 backgroundColor: completed ? "rgba(22, 163, 74, 0.1)" : colors.backgroundSecondary,
                 borderColor: completed ? "rgba(22, 163, 74, 0.18)" : colors.border,

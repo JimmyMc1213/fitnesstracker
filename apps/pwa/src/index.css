@@ -212,8 +212,8 @@
   --chart-bar-active: #ffffff;
   --chart-bar-label-active: rgba(255, 255, 255, 0.55);
   --chart-bar-label: rgba(255, 255, 255, 0.3);
-  --tabbar-bg: rgba(6, 6, 8, 0.68);
-  --tabbar-border: rgba(255, 255, 255, 0.05);
+  --tabbar-bg: rgba(22, 22, 22, 0.84);
+  --tabbar-border: rgba(42, 42, 42, 0.82);
   --workout-keypad-chrome: calc(248px + max(8px, env(safe-area-inset-bottom, 0px)));
   --btn-disabled-bg: rgba(255, 255, 255, 0.08);
   --btn-disabled-fg: rgba(255, 255, 255, 0.35);
@@ -395,8 +395,8 @@
   --chart-bar-active: #0a0a0a;
   --chart-bar-label-active: rgba(0, 0, 0, 0.55);
   --chart-bar-label: rgba(0, 0, 0, 0.38);
-  --tabbar-bg: rgba(255, 255, 255, 0.88);
-  --tabbar-border: rgba(0, 0, 0, 0.08);
+  --tabbar-bg: rgba(255, 255, 255, 0.92);
+  --tabbar-border: rgba(224, 224, 224, 0.9);
   --workout-keypad-chrome: calc(248px + max(8px, env(safe-area-inset-bottom, 0px)));
   --btn-disabled-bg: rgba(0, 0, 0, 0.06);
   --btn-disabled-fg: rgba(0, 0, 0, 0.35);

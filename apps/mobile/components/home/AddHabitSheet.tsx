@@ -12,6 +12,7 @@ import {
 
 import { IconSearch } from "@/components/icons/FitnessIcons";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import {
   availableHabitsToAdd,
@@ -32,6 +33,7 @@ type Props = {
 
 export function AddHabitSheet({ open, currentTemplates, onAdd, onClose }: Props) {
   const { colors } = useAppTheme();
+  const bottomActionPadding = useBottomActionPadding();
   const [query, setQuery] = useState("");
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customName, setCustomName] = useState("");
@@ -90,11 +92,12 @@ export function AddHabitSheet({ open, currentTemplates, onAdd, onClose }: Props)
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
           <Pressable
             onPress={(e) => e.stopPropagation()}
-            className="rounded-t-[20px] border px-5 pb-8 pt-5"
+            className="rounded-t-[20px] border px-5 pt-5"
             style={{
               borderColor: colors.border,
               backgroundColor: colors.card,
               maxHeight: "85%",
+              paddingBottom: bottomActionPadding,
             }}
           >
             <Text className="mb-3 text-[17px] font-bold tracking-tight" style={{ color: colors.textPrimary }}>

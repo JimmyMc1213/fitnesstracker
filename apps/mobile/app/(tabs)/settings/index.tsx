@@ -8,11 +8,7 @@ import {
 } from "@newyouai/core";
 
 import { FutureYouDeleteConfirmSheet } from "@/components/future-you/FutureYouDeleteConfirmSheet";
-import {
-  SettingsHubSection,
-  SettingsProfileCard,
-  SettingsRow,
-} from "@/components/settings/SettingsLayout";
+import { SettingsScreenChrome } from "@/components/settings/SettingsScreenChrome";
 import {
   IconBell,
   IconDocument,
@@ -49,6 +45,12 @@ import {
 import { getSupabase } from "@/lib/supabaseClient";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
 import { volumeUnitLabel, weightUnitLabel } from "@/lib/unitLabels";
+import {
+  SettingsHubSection,
+  SettingsProfileCard,
+  SettingsRow,
+} from "@/components/settings/SettingsLayout";
+import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 import { formatRestDuration } from "@/lib/workout/restTimerPreferences";
 
 function rowIcon(node: ReactNode) {
@@ -69,6 +71,7 @@ async function openExternalUrl(url: string) {
 
 export default function SettingsHubScreen() {
   const { colors, theme } = useAppTheme();
+  const { contentPaddingBottom } = useTabScreenInsets();
   const { configured, session, sessionEmail, signOut } = useAuth();
   const { lastSyncedLabel } = useFitnessSync();
   const { state, replaceFitnessState } = useFitnessState();
@@ -118,11 +121,14 @@ export default function SettingsHubScreen() {
 
   if (!state) {
     return (
-      <View
-        className="px-screen-x"
-        style={{ flex: 1, backgroundColor: colors.background, paddingTop: 24 }}
+      <SettingsScreenChrome
+        title="Settings"
+        onBack={() => router.back()}
+        backLabel="Back to home"
         testID="settings-hub"
-      />
+      >
+        <View className="flex-1 px-screen-x" />
+      </SettingsScreenChrome>
     );
   }
 
@@ -137,16 +143,17 @@ export default function SettingsHubScreen() {
 
   return (
     <>
-      <ScrollView
-        className="px-screen-x"
-        style={{ flex: 1, backgroundColor: colors.background }}
-        contentContainerStyle={{ paddingTop: 24, paddingBottom: 40 }}
+      <SettingsScreenChrome
+        title="Settings"
+        onBack={() => router.back()}
+        backLabel="Back to home"
         testID="settings-hub"
       >
-        <Text className="mb-5 text-[24px] font-bold" style={{ color: colors.textPrimary }}>
-          Settings
-        </Text>
-
+        <ScrollView
+          className="px-screen-x"
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingTop: 16, paddingBottom: contentPaddingBottom }}
+        >
         <SettingsProfileCard name={state.displayName} onPress={() => openPanel("you")} />
 
         <SettingsHubSection title="Account">
@@ -336,7 +343,8 @@ export default function SettingsHubScreen() {
             </Pressable>
           </View>
         ) : null}
-      </ScrollView>
+        </ScrollView>
+      </SettingsScreenChrome>
 
       {showSignOutConfirm ? (
         <FutureYouDeleteConfirmSheet
