@@ -3,6 +3,7 @@ import { router, Tabs } from "expo-router";
 import { AppShellErrorBoundary } from "@/components/AppShellErrorBoundary";
 import { TabBarDock } from "@/components/TabBarDock";
 import { WorkoutShellProvider } from "@/context/WorkoutShellContext";
+import { tabScreenOptions } from "@/lib/navigationMotion";
 
 export default function TabLayout() {
   return (
@@ -14,9 +15,7 @@ export default function TabLayout() {
         <TabBarDock state={props.state} descriptors={props.descriptors} navigation={props.navigation} />
       )}
       screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        sceneStyle: { flex: 1, backgroundColor: "transparent" },
+        ...tabScreenOptions,
         tabBarStyle: {
           position: "absolute",
           left: 0,

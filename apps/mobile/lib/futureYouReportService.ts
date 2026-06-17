@@ -9,7 +9,7 @@ import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 export { ApiFutureYouReportError as FutureYouReportError };
 
 function logDevReportFallback(request: FutureYouReportRequest): { reportId: string } {
-  console.warn("[future-you-report] dev fallback — report logged locally", request);
+  console.warn("[future-you-report] dev fallback, report logged locally", request);
   return { reportId: "dev-local" };
 }
 

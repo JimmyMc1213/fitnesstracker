@@ -160,7 +160,7 @@ function PlaceholderRow({
             {label}
           </Text>
           <Text className="text-sm font-bold" style={{ color: textTertiary }}>
-            —
+           , 
           </Text>
         </View>
         <Text className="mt-0.5 text-[10px] font-medium" style={{ color: textTertiary }}>

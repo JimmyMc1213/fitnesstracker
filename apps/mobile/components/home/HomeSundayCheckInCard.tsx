@@ -1,4 +1,5 @@
 import { Text, View, Pressable } from "react-native";
+import { SymbolView } from "expo-symbols";
 
 import type { SundayCheckInData } from "@newyouai/core";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
@@ -11,12 +12,13 @@ type Props = {
   completed?: boolean;
   unitPreferences: UnitPreferences;
   onReview: () => void;
+  onDismiss?: () => void;
 };
 
 const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"] as const;
 const SUCCESS_GREEN = "#16a34a";
 
-export function HomeSundayCheckInCard({ data, completed = false, unitPreferences, onReview }: Props) {
+export function HomeSundayCheckInCard({ data, completed = false, unitPreferences, onReview, onDismiss }: Props) {
   const { colors } = useAppTheme();
   const wUnit = unitPreferences.weightUnit;
   const sundayDom = new Date(`${data.sundayKey}T12:00:00`).getDate();
@@ -29,13 +31,14 @@ export function HomeSundayCheckInCard({ data, completed = false, unitPreferences
       : null;
 
   return (
-    <Pressable
-      testID="sunday-check-in-card"
-      onPress={onReview}
-      accessibilityLabel={completed ? "View Sunday check-in recap" : "Open Sunday check-in"}
-      className="mt-[18px] w-full rounded-xl border p-4"
-      style={{ borderColor: colors.border, backgroundColor: colors.card }}
-    >
+    <View className="relative mt-[18px] w-full">
+      <Pressable
+        testID="sunday-check-in-card"
+        onPress={onReview}
+        accessibilityLabel={completed ? "View Sunday check-in recap" : "Open Sunday check-in"}
+        className={`w-full rounded-xl border p-4${onDismiss ? " pr-9" : ""}`}
+        style={{ borderColor: colors.border, backgroundColor: colors.card }}
+      >
       <View className="flex-row items-start gap-3">
         <View
           className="h-10 w-10 items-center justify-center rounded-[11px] border"
@@ -50,35 +53,35 @@ export function HomeSundayCheckInCard({ data, completed = false, unitPreferences
         </View>
 
         <View className="min-w-0 flex-1">
-          <View className="flex-row items-center justify-between gap-2">
-            <View className="min-w-0 flex-1">
-              <Text
-                className="mb-1 text-[10px] font-bold uppercase tracking-widest"
-                style={{ color: colors.textTertiary }}
-              >
-                Sunday check-in
-              </Text>
-              <Text className="text-[15px] font-semibold leading-tight tracking-tight" style={{ color: colors.textPrimary }}>
-                Week {data.weekNumber} in the books
-              </Text>
-            </View>
-            {completed ? <StatusBadge label="Done" /> : data.onTrack ? <StatusBadge label="On track" /> : null}
+          <View>
+            <Text
+              className="mb-1 text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: colors.textTertiary }}
+            >
+              Sunday check-in
+            </Text>
+            <Text className="text-[15px] font-semibold leading-tight tracking-tight" style={{ color: colors.textPrimary }}>
+              Week {data.weekNumber} in the books
+            </Text>
           </View>
 
-          <Text className="mt-1.5 text-[11px] font-medium leading-[1.4]" style={{ color: colors.textSecondary }}>
-            {data.workoutsCompleted}/{data.workoutsPlanned} workouts · {data.proteinDaysHit}/7 protein
-            {weightText ? (
-              <Text
-                style={{
-                  fontWeight: "600",
-                  color: weightNegative ? SUCCESS_GREEN : weightPositive ? "#d97706" : colors.textSecondary,
-                }}
-              >
-                {" · "}
-                {weightText}
-              </Text>
-            ) : null}
-          </Text>
+          <View className="mt-1.5 flex-row items-center justify-between gap-2">
+            <Text className="min-w-0 flex-1 text-[11px] font-medium leading-[1.4]" style={{ color: colors.textSecondary }}>
+              {data.workoutsCompleted}/{data.workoutsPlanned} workouts · {data.proteinDaysHit}/7 protein
+              {weightText ? (
+                <Text
+                  style={{
+                    fontWeight: "600",
+                    color: weightNegative ? SUCCESS_GREEN : weightPositive ? "#d97706" : colors.textSecondary,
+                  }}
+                >
+                  {" · "}
+                  {weightText}
+                </Text>
+              ) : null}
+            </Text>
+            {completed ? <StatusBadge label="Done" /> : data.onTrack ? <StatusBadge label="On track" /> : null}
+          </View>
         </View>
       </View>
 
@@ -87,7 +90,18 @@ export function HomeSundayCheckInCard({ data, completed = false, unitPreferences
       <Text className="mt-2.5 text-xs font-semibold" style={{ color: colors.textTertiary }}>
         {completed ? "View recap" : "Review the week"}
       </Text>
-    </Pressable>
+      </Pressable>
+      {onDismiss ? (
+        <Pressable
+          onPress={onDismiss}
+          accessibilityLabel="Dismiss Sunday check-in"
+          testID="sunday-check-in-dismiss"
+          className="absolute right-2 top-6 h-7 w-7 items-center justify-center rounded-full"
+        >
+          <SymbolView name={{ ios: "xmark", android: "close", web: "close" }} tintColor={colors.textTertiary} size={14} />
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 

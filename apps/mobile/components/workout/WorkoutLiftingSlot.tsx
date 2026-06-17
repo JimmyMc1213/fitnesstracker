@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ElementRef } from "react";
+import { useEffect, useMemo, useRef, useState, type ElementRef } from "react";
 import { Alert, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type DraggableFlatList from "react-native-draggable-flatlist";
@@ -11,13 +11,10 @@ import { ExerciseNotesEditSheet } from "@/components/workout/ExerciseNotesEditSh
 import { ExerciseSwapSheet } from "@/components/workout/ExerciseSwapSheet";
 import { RestTimerSheet, type RestTimerPhase } from "@/components/workout/RestTimerSheet";
 import { RoutineExerciseSearchSheet } from "@/components/workout/RoutineExerciseSearchSheet";
-import {
-  ExerciseDragHandle,
-  SortableExerciseList,
-  type ExerciseDragHandleProps,
-} from "@/components/workout/SortableExerciseList";
+import { SortableExerciseList } from "@/components/workout/SortableExerciseList";
 import { WorkoutCoachCard } from "@/components/workout/WorkoutCoachCard";
 import { WorkoutExerciseCard } from "@/components/workout/WorkoutExerciseCard";
+import { WorkoutExerciseCardFlat } from "@/components/workout/WorkoutExerciseCardFlat";
 import {
   WORKOUT_KEYPAD_HEIGHT,
   WorkoutKeypadProvider,
@@ -31,6 +28,7 @@ import { defaultExerciseTarget } from "@/lib/workout/exercisePrescriptionDefault
 import { buildPreWorkoutCoachBrief, shouldDefaultExpandCoachCard } from "@/lib/preWorkoutCoachBrief";
 import { parseWorkoutTarget } from "@/lib/workout/workoutTarget";
 import { buildWorkoutWarmup } from "@/lib/workout/workoutWarmup";
+import { isUpperStrengthMondayWorkout } from "@/lib/workout/workoutNewLook";
 import {
   clampRestTimerSeconds,
   MAX_REST_TIMER_SECONDS,
@@ -62,50 +60,6 @@ type ActiveRestTimer = {
   pausedRemainingMs?: number;
 };
 
-function SortableExerciseCard({
-  exercise,
-  exerciseIndex,
-  workoutHistory,
-  unitPreferences,
-  sessionCoachNote,
-  handle,
-  onToggleSetDone,
-  onOpenActions,
-  onUpdateSetKind,
-}: {
-  exercise: WorkoutExercise;
-  exerciseIndex: number;
-  workoutHistory: CompletedWorkoutSession[] | undefined;
-  unitPreferences: UnitPreferences;
-  sessionCoachNote?: string;
-  handle: ExerciseDragHandleProps;
-  onToggleSetDone: (exercise: WorkoutExercise, setIndex: number) => boolean;
-  onOpenActions: () => void;
-  onUpdateSetKind: (exerciseId: string, setIndex: number, kind: WorkoutSetKind) => void;
-}) {
-  return (
-    <View>
-      <View className="absolute left-0 top-3 z-10">
-        <ExerciseDragHandle handle={handle} />
-      </View>
-      <View className="pl-8">
-        <WorkoutExerciseCard
-          exercise={exercise}
-          exerciseIndex={exerciseIndex}
-          workoutHistory={workoutHistory}
-          unitPreferences={unitPreferences}
-          sessionCoachNote={sessionCoachNote}
-          onToggleSetDone={(ex, idx) => {
-            void onToggleSetDone(ex, idx);
-          }}
-          onOpenActions={onOpenActions}
-          onUpdateSetKind={onUpdateSetKind}
-        />
-      </View>
-    </View>
-  );
-}
-
 function newWorkoutExerciseId(): string {
   return `e${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -134,8 +88,24 @@ export function WorkoutLiftingSlot() {
   const [showCancelWorkoutConfirm, setShowCancelWorkoutConfirm] = useState(false);
   const [restTimer, setRestTimer] = useState<ActiveRestTimer | null>(null);
   const [restSheetExerciseId, setRestSheetExerciseId] = useState<string | null>(null);
+  const [restedRestSecByExerciseId, setRestedRestSecByExerciseId] = useState<
+    Record<string, Record<number, number>>
+  >({});
 
   restTimerRef.current = restTimer;
+
+  useEffect(() => {
+    if (!restTimer || restTimer.completed || restTimer.paused) return;
+    const remainingMs = restTimer.endsAtMs - Date.now();
+    if (remainingMs <= 0) {
+      setRestTimer((current) => (current && !current.completed ? { ...current, completed: true } : current));
+      return;
+    }
+    const id = setTimeout(() => {
+      setRestTimer((current) => (current && !current.completed ? { ...current, completed: true } : current));
+    }, remainingMs);
+    return () => clearTimeout(id);
+  }, [restTimer?.exerciseId, restTimer?.endsAtMs, restTimer?.completed, restTimer?.paused]);
 
   const w = state?.workout;
   const elapsedSec = useSessionElapsedSec(w?.sessionStartedAtMs ?? null, w?.sessionPhase === "lifting");
@@ -146,6 +116,11 @@ export function WorkoutLiftingSlot() {
   const sessionWarmup = useMemo(
     () => buildWorkoutWarmup(w?.exercises ?? []),
     [w?.exercises],
+  );
+  const useNewLook = useMemo(
+    () =>
+      state && w ? isUpperStrengthMondayWorkout(w.splitId, state.workoutTemplates) : false,
+    [state, w],
   );
 
   if (!state || !w) return null;
@@ -211,8 +186,59 @@ export function WorkoutLiftingSlot() {
     setRestTimer(null);
   }
 
+  function markRestedAfterSet(exerciseId: string, afterSetIndex: number, durationSec: number) {
+    setRestedRestSecByExerciseId((prev) => {
+      const existing = prev[exerciseId] ?? {};
+      if (existing[afterSetIndex] != null) return prev;
+      return {
+        ...prev,
+        [exerciseId]: { ...existing, [afterSetIndex]: durationSec },
+      };
+    });
+  }
+
+  function unmarkRestedFromSet(exerciseId: string, fromSetIndex: number) {
+    setRestedRestSecByExerciseId((prev) => {
+      const existing = prev[exerciseId];
+      if (!existing) return prev;
+      const next: Record<number, number> = {};
+      let changed = false;
+      for (const [key, sec] of Object.entries(existing)) {
+        const idx = Number(key);
+        if (idx < fromSetIndex) next[idx] = sec;
+        else changed = true;
+      }
+      if (!changed) return prev;
+      if (Object.keys(next).length === 0) {
+        const { [exerciseId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [exerciseId]: next };
+    });
+  }
+
   function startRestTimer(exercise: WorkoutExercise, afterSetIndex: number) {
     const previous = restTimerRef.current;
+
+    function durationForCompletedGap(gapIndex: number): number {
+      if (previous?.exerciseId === exercise.id && previous.afterSetIndex === gapIndex) {
+        return previous.durationSec;
+      }
+      return restDurationForExercise(
+        exercise.name,
+        exercise.label,
+        state!.restTimerDefaultSeconds,
+        state!.restTimerSecondsByExerciseKey,
+      );
+    }
+
+    if (afterSetIndex > 0) {
+      markRestedAfterSet(exercise.id, afterSetIndex - 1, durationForCompletedGap(afterSetIndex - 1));
+    }
+    if (previous?.exerciseId === exercise.id && previous.afterSetIndex !== afterSetIndex) {
+      markRestedAfterSet(exercise.id, previous.afterSetIndex, previous.durationSec);
+    }
+
     const durationSec = restDurationForExercise(
       exercise.name,
       exercise.label,
@@ -229,7 +255,6 @@ export function WorkoutLiftingSlot() {
       afterSetIndex,
       paused: false,
     });
-    void previous;
   }
 
   function completeRestTimer() {
@@ -246,7 +271,18 @@ export function WorkoutLiftingSlot() {
   }
 
   function dismissCompletedRest() {
+    if (restTimer?.completed) {
+      markRestedAfterSet(restTimer.exerciseId, restTimer.afterSetIndex, restTimer.durationSec);
+    }
     setRestTimer(null);
+  }
+
+  function openRestSheet(exerciseId: string) {
+    if (restTimer?.exerciseId === exerciseId && restTimer.completed) {
+      dismissCompletedRest();
+      return;
+    }
+    setRestSheetExerciseId(exerciseId);
   }
 
   function toggleSetDone(
@@ -303,7 +339,45 @@ export function WorkoutLiftingSlot() {
       },
     }));
     if (restTimer?.exerciseId === exercise.id) clearRestTimer();
+    unmarkRestedFromSet(exercise.id, setIndex);
     return true;
+  }
+
+  function addSet(exerciseId: string) {
+    setFitnessState((prev) => ({
+      ...prev,
+      workout: {
+        ...prev.workout,
+        exercises: prev.workout.exercises.map((exercise) =>
+          exercise.id === exerciseId
+            ? { ...exercise, sets: [...exercise.sets, { w: 0, r: 0, done: false }] }
+            : exercise,
+        ),
+      },
+    }));
+  }
+
+  function removeSet(exerciseId: string, setIndex: number) {
+    if (restTimer?.exerciseId === exerciseId) {
+      if (restTimer.afterSetIndex === setIndex) {
+        clearRestTimer();
+      } else if (restTimer.afterSetIndex > setIndex) {
+        setRestTimer((current) =>
+          current ? { ...current, afterSetIndex: current.afterSetIndex - 1 } : null,
+        );
+      }
+    }
+    setFitnessState((prev) => ({
+      ...prev,
+      workout: {
+        ...prev.workout,
+        exercises: prev.workout.exercises.map((exercise) =>
+          exercise.id === exerciseId
+            ? { ...exercise, sets: exercise.sets.filter((_, i) => i !== setIndex) }
+            : exercise,
+        ),
+      },
+    }));
   }
 
   function updateSetKind(exerciseId: string, setIndex: number, kind: WorkoutSetKind) {
@@ -408,6 +482,11 @@ export function WorkoutLiftingSlot() {
 
   function removeExerciseFromSession(exerciseId: string) {
     if (restTimer?.exerciseId === exerciseId) clearRestTimer();
+    setRestedRestSecByExerciseId((prev) => {
+      if (!(exerciseId in prev)) return prev;
+      const { [exerciseId]: _, ...rest } = prev;
+      return rest;
+    });
     setFitnessState((prev) => {
       const { [exerciseId]: _removed, ...remainingNotes } = prev.workout.sessionCoachNotesByExerciseId ?? {};
       return {
@@ -534,6 +613,7 @@ export function WorkoutLiftingSlot() {
     setShowCancelWorkoutConfirm(false);
     clearRestTimer();
     setRestSheetExerciseId(null);
+    setRestedRestSecByExerciseId({});
   }
 
   function requestFinishWorkout() {
@@ -585,17 +665,20 @@ export function WorkoutLiftingSlot() {
         return toggleSetDone(exercise, setIndex, pendingPatch);
       }}
     >
-      <View testID="workout-lifting" className="flex-1">
-        <WorkoutSessionHeader
-          elapsedSec={elapsedSec}
-          sessionTitle={workout.sessionTitle}
-          onSessionTitleChange={updateSessionTitle}
-          startedAt={workout.startedAt}
-          splitDay={splitDay}
-          exerciseCount={workout.exercises.length}
-          onFinishWorkout={requestFinishWorkout}
-          onCancel={() => setShowCancelWorkoutConfirm(true)}
-        />
+      <View testID={useNewLook ? "workout-lifting-newlook" : "workout-lifting"} className="flex-1">
+        <View className="shrink-0">
+          <WorkoutSessionHeader
+            elapsedSec={elapsedSec}
+            sessionTitle={workout.sessionTitle}
+            onSessionTitleChange={updateSessionTitle}
+            startedAt={workout.startedAt}
+            splitDay={splitDay}
+            exerciseCount={workout.exercises.length}
+            onFinishWorkout={requestFinishWorkout}
+            onCancel={() => setShowCancelWorkoutConfirm(true)}
+            metaLayout={useNewLook ? "stacked" : "inline"}
+          />
+        </View>
 
         {isWorkoutSessionE2e && workout.exercises[0] ? (
           <Pressable
@@ -613,20 +696,24 @@ export function WorkoutLiftingSlot() {
           </Pressable>
         ) : null}
 
-        <WorkoutCoachCard
-          overloadTip={overloadTip}
-          sessionTip={activeRoutine?.sessionTip}
-          warmupGroups={sessionWarmup.groups}
-          warmupTip={sessionWarmup.tip}
-          defaultExpanded={
-            !isWorkoutSessionE2e &&
-            shouldDefaultExpandCoachCard(
-              Boolean(preWorkoutCoach),
-              workout.splitId,
-              preWorkoutCoach?.todayTemplateId,
-            )
-          }
-        />
+        {!useNewLook ? (
+          <View className="shrink-0">
+            <WorkoutCoachCard
+              overloadTip={overloadTip}
+              sessionTip={activeRoutine?.sessionTip}
+              warmupGroups={sessionWarmup.groups}
+              warmupTip={sessionWarmup.tip}
+              defaultExpanded={
+                !isWorkoutSessionE2e &&
+                shouldDefaultExpandCoachCard(
+                  Boolean(preWorkoutCoach),
+                  workout.splitId,
+                  preWorkoutCoach?.todayTemplateId,
+                )
+              }
+            />
+          </View>
+        ) : null}
 
         {workout.exercises.length === 0 ? (
           <View
@@ -638,34 +725,58 @@ export function WorkoutLiftingSlot() {
             </Text>
           </View>
         ) : (
-          <View className="mt-4 min-h-0 flex-1">
+          <View className="mt-3 min-h-0 flex-1">
             <SortableExerciseList
               listRef={listRef}
               items={workout.exercises}
               onReorder={reorderExercises}
               listFooter={listFooter}
-              extraData={doneSets}
-              estimatedItemSize={isWorkoutSessionE2e ? 520 : 420}
+              extraData={useNewLook ? [doneSets, restTimer, restedRestSecByExerciseId] : doneSets}
               onScrollToIndexFailed={({ index, averageItemLength }) => {
                 listRef.current?.scrollToOffset({
                   offset: Math.max(0, averageItemLength * index),
                   animated: false,
                 });
               }}
-              contentContainerStyle={{ paddingBottom: WORKOUT_KEYPAD_HEIGHT + insets.bottom + 32 }}
-              renderItem={(exercise, index, handle) => (
-                <SortableExerciseCard
-                  exercise={exercise}
-                  exerciseIndex={index}
-                  workoutHistory={state.workoutHistory}
-                  unitPreferences={state.unitPreferences}
-                  sessionCoachNote={workout.sessionCoachNotesByExerciseId?.[exercise.id]}
-                  handle={handle}
-                  onToggleSetDone={toggleSetDone}
-                  onOpenActions={() => setExerciseActionId(exercise.id)}
-                  onUpdateSetKind={updateSetKind}
-                />
-              )}
+              contentContainerStyle={{
+                paddingBottom: WORKOUT_KEYPAD_HEIGHT + insets.bottom + 32,
+                ...(useNewLook ? { gap: 28 } : {}),
+              }}
+              renderItem={(exercise, index, handle, ctx) =>
+                useNewLook ? (
+                  <WorkoutExerciseCardFlat
+                    exercise={exercise}
+                    workoutHistory={state.workoutHistory}
+                    unitPreferences={state.unitPreferences}
+                    handle={handle}
+                    restTimer={restTimer}
+                    restTimerDefaultSeconds={state.restTimerDefaultSeconds}
+                    restTimerSecondsByExerciseKey={state.restTimerSecondsByExerciseKey}
+                    restedRestSecByAfterSetIndex={restedRestSecByExerciseId[exercise.id] ?? {}}
+                    onToggleSetDone={toggleSetDone}
+                    onOpenActions={() => setExerciseActionId(exercise.id)}
+                    onOpenRestSheet={openRestSheet}
+                    onAddSet={addSet}
+                    onRemoveSet={removeSet}
+                    onUpdateSetKind={updateSetKind}
+                    swipeDisabled={ctx.isListDragging || handle.isDragging}
+                  />
+                ) : (
+                  <WorkoutExerciseCard
+                    exercise={exercise}
+                    exerciseIndex={index}
+                    workoutHistory={state.workoutHistory}
+                    unitPreferences={state.unitPreferences}
+                    sessionCoachNote={workout.sessionCoachNotesByExerciseId?.[exercise.id]}
+                    handle={handle}
+                    onToggleSetDone={toggleSetDone}
+                    onOpenActions={() => setExerciseActionId(exercise.id)}
+                    onRemoveSet={removeSet}
+                    onUpdateSetKind={updateSetKind}
+                    swipeDisabled={ctx.isListDragging || handle.isDragging}
+                  />
+                )
+              }
             />
           </View>
         )}
@@ -705,7 +816,7 @@ export function WorkoutLiftingSlot() {
           onEditNote={() =>
             setNotesEdit({ name: actionExercise.name, label: actionExercise.label })
           }
-          onEditRest={() => setRestSheetExerciseId(actionExercise.id)}
+          onEditRest={() => openRestSheet(actionExercise.id)}
           onReplace={() => setSwapExerciseId(actionExercise.id)}
           onRemove={() =>
             setPendingExerciseDelete({

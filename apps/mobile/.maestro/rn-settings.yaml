@@ -1,4 +1,4 @@
-# RN-10-06 settings hub smoke — requires Supabase + onboarded seed + Metro on :8082
+# RN-10-06 settings hub smoke, requires Supabase + onboarded seed + Metro on :8082
 # Run: EXPO_PUBLIC_E2E_FITNESS_SEED=coach-nutrition MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:settings
 # Metro: cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=coach-nutrition npx expo start --dev-client --port 8082
 appId: app.newyouai.mobile

@@ -1,4 +1,6 @@
-import { Modal, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+
+import { BottomSheet } from "@/components/motion";
 
 import {
   SET_KIND_LABELS,
@@ -20,14 +22,8 @@ export function SetKindPickerSheet({ open = true, selected, onSelect, onClose }:
   const { colors } = useAppTheme();
 
   return (
-    <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
-      <Pressable className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.45)" }} onPress={onClose}>
-        <Pressable
-          testID="set-kind-picker-sheet"
-          className="rounded-t-2xl px-3 pb-8 pt-3"
-          style={{ backgroundColor: colors.card }}
-          onPress={(e) => e.stopPropagation()}
-        >
+    <BottomSheet open={open} onClose={onClose} panelStyle={{ paddingHorizontal: 0, paddingBottom: 32 }}>
+      <View testID="set-kind-picker-sheet" className="rounded-t-2xl px-3 pb-8 pt-3">
           <Text
             className="mx-2 mb-2 mt-1 text-[13px] font-semibold uppercase tracking-widest"
             style={{ color: colors.textTertiary }}
@@ -76,8 +72,7 @@ export function SetKindPickerSheet({ open = true, selected, onSelect, onClose }:
               </Pressable>
             );
           })}
-        </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </BottomSheet>
   );
 }

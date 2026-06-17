@@ -30,6 +30,7 @@ import {
 import { FutureYouNewChip } from "@/components/future-you/FutureYouNewChip";
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { useFitnessState } from "@/context/FitnessContext";
+import { useWorkoutShell } from "@/context/WorkoutShellContext";
 import { useFutureYouEntry } from "@/hooks/useFutureYouEntry";
 import { useFutureYouGenerationPoll } from "@/hooks/useFutureYouGenerationPoll";
 import { useFutureYouRevealImage } from "@/hooks/useFutureYouRevealImage";
@@ -72,7 +73,7 @@ function futureYouUploadSnapshot(draft: FutureYouDraft): FutureYouDraft {
 
 export function FutureYouScreen() {
   const { colors } = useAppTheme();
-  const { paddingTop, paddingBottom } = useTabScreenInsets();
+  const { setFutureYouFlowOpen } = useWorkoutShell();
   const { state, setFitnessState } = useFitnessState();
   const params = useLocalSearchParams<{ openFutureYouUpload?: string; openFutureYouDetail?: string }>();
   const handledOpenUploadRef = useRef(false);
@@ -94,6 +95,14 @@ export function FutureYouScreen() {
   const [uploadStep, setUploadStep] = useState<FutureYouNewPicStep>("photo");
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [fullscreenImageUri, setFullscreenImageUri] = useState<string | null>(null);
+
+  const flowOpen = view === "upload" || view === "detail";
+  const { paddingTop, paddingBottom } = useTabScreenInsets({ tabBarHidden: flowOpen });
+
+  useEffect(() => {
+    setFutureYouFlowOpen(flowOpen);
+    return () => setFutureYouFlowOpen(false);
+  }, [flowOpen, setFutureYouFlowOpen]);
 
   useFocusEffect(
     useCallback(() => {

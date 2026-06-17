@@ -1,4 +1,4 @@
-# Open settings hub from home — gear is inset from top-right so it clears the Expo dev menu.
+# Open settings hub from home, gear is inset from top-right so it clears the Expo dev menu.
 appId: app.newyouai.mobile
 ---
 - tapOn:

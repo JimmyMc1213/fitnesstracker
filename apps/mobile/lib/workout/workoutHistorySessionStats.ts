@@ -91,12 +91,12 @@ export function historyExerciseRows(
       label: ex.label,
       bestDetail: formatExerciseBestSet(ex, unit),
     }))
-    .filter((row) => row.bestDetail !== "—");
+    .filter((row) => row.bestDetail !== "-");
 }
 
 function formatExerciseBestSet(ex: WorkoutExercise, unit: WeightUnit): string {
   const best = sessionBestForExercise(ex.sets);
-  if (!best || (best.w <= 0 && best.r <= 0)) return "—";
+  if (!best || (best.w <= 0 && best.r <= 0)) return "-";
   if (best.w > 0) return `${formatSetWeight(best.w, unit)} ${weightUnitLabel(unit)} × ${best.r}`;
   return `${best.r} rep${best.r === 1 ? "" : "s"}`;
 }

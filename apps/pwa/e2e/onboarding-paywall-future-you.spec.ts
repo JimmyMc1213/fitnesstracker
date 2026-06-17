@@ -112,7 +112,7 @@ test("step 21: photo path CTA reflects billing period when Future You is ready",
   await expect(page.locator(".onboarding-paywall-future-you__preparing")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Continue", exact: true })).toBeEnabled();
   await page.getByRole("radio", { name: /Monthly/i }).click();
-  await expect(page.getByRole("button", { name: "Start 14-day trial" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Unlock Future You" })).toBeEnabled();
   await page.getByRole("radio", { name: /Yearly/i }).click();
   await expect(page.getByRole("button", { name: "Continue", exact: true })).toBeEnabled();
 });

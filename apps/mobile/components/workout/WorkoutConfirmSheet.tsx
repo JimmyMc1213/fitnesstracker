@@ -1,6 +1,7 @@
-import { Modal, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import type { ReactNode } from "react";
 
+import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
@@ -37,13 +38,8 @@ export function WorkoutConfirmSheet({
   const confirmColor = confirmDestructive ? "#FF453A" : confirmPrimary ? colors.accent : colors.textPrimary;
 
   return (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={onCancel}>
-      <View className="flex-1 items-center justify-center bg-black/60 px-6">
-        <View
-          testID={sheetTestID}
-          className="w-full max-w-sm overflow-hidden rounded-2xl"
-          style={{ backgroundColor: colors.card }}
-        >
+    <CenterDialog open={open} onClose={onCancel} panelStyle={{ padding: 0, maxWidth: 384 }}>
+      <View testID={sheetTestID} className="w-full overflow-hidden rounded-2xl">
           <View className="px-7 py-7">
             <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
               {title}
@@ -68,8 +64,7 @@ export function WorkoutConfirmSheet({
               </Text>
             </Pressable>
           </View>
-        </View>
       </View>
-    </Modal>
+    </CenterDialog>
   );
 }

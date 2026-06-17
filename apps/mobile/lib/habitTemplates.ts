@@ -15,14 +15,14 @@ export function defaultHabitTemplatesFromOnboarding(): HabitTemplate[] {
     {
       id: "steps",
       name: "10,000 steps",
-      subtitle: "Weekends especially — burns fat without touching recovery",
+      subtitle: "Weekends especially burn fat without touching recovery",
       icon: "run",
       type: "manual",
     },
     {
       id: "creatine",
       name: "Take creatine (3-5g)",
-      subtitle: "Every day — including rest days",
+      subtitle: "Every day, including rest days",
       icon: "pill",
       type: "manual",
     },

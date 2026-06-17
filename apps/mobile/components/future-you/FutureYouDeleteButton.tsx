@@ -20,7 +20,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { deleteFutureYou } from "@/lib/futureYouDeleteService";
 
 type Props = {
-  /** ISO timestamp for the 2-week redo window — preserved on delete so cooldown stays active. */
+  /** ISO timestamp for the 2-week redo window, preserved on delete so cooldown stays active. */
   redoAnchorIso?: string;
   onDeleted: () => void;
 };

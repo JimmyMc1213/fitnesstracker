@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RN-7 epic-close — unit gates + Maestro smoke (nutrition-log, tab-nav, coach-nutrition).
+ * RN-7 epic-close, unit gates + Maestro smoke (nutrition-log, tab-nav, coach-nutrition).
  * Requires: JDK 17+, maestro CLI, iOS simulator + dev client, Supabase .env
  */
 import { spawn, spawnSync } from "node:child_process";

@@ -65,7 +65,7 @@ async function openExternalUrl(url: string) {
   try {
     await Linking.openURL(url);
   } catch {
-    // Best-effort — device may block unknown schemes.
+    // Best-effort, device may block unknown schemes.
   }
 }
 
@@ -115,7 +115,7 @@ export default function SettingsHubScreen() {
 
     setDeleteAccountStep(null);
     if (result.dryRun) {
-      setDeleteAccountNotice("Dry run OK — your account was not deleted.");
+      setDeleteAccountNotice("Dry run OK, your account was not deleted.");
     }
   }, [replaceFitnessState, session?.user?.id, signOut]);
 

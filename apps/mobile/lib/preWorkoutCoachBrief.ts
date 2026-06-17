@@ -38,7 +38,7 @@ export function buildPreWorkoutCoachBrief(
   };
 }
 
-/** Coach copy for a routine preview sheet — always derived from the current template snapshot. */
+/** Coach copy for a routine preview sheet, always derived from the current template snapshot. */
 export function buildRoutinePreviewCoachBrief(
   template: WorkoutRoutineTemplate,
   options?: { todayHeadline?: string; isTodayWorkout?: boolean },

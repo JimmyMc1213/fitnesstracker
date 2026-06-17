@@ -42,7 +42,7 @@ export function getSupabase(): SupabaseClient | null {
   return cached;
 }
 
-/** Clears cached client — for tests only. */
+/** Clears cached client, for tests only. */
 export function resetSupabaseClientCache(): void {
   cached = undefined;
 }

@@ -1,5 +1,6 @@
-import { Modal, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
+import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { WorkoutRoutineTemplate } from "@newyouai/types";
 
@@ -52,18 +53,8 @@ export function WorkoutRoutineActionSheet({
   const { colors } = useAppTheme();
 
   return (
-    <Modal visible={open} animationType="fade" transparent onRequestClose={onClose}>
-      <Pressable
-        className="flex-1 items-center justify-center px-6"
-        style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        onPress={onClose}
-      >
-        <Pressable
-          testID="workout-routine-action-sheet"
-          className="w-full max-w-[320px] rounded-2xl px-2 py-2"
-          style={{ backgroundColor: colors.card }}
-          onPress={(e) => e.stopPropagation()}
-        >
+    <CenterDialog open={open} onClose={onClose} panelStyle={{ padding: 0, maxWidth: 320 }}>
+      <View testID="workout-routine-action-sheet" className="w-full rounded-2xl px-2 py-2">
           <Text
             className="mx-2 mb-1 mt-1 text-[13px] font-semibold uppercase tracking-widest"
             style={{ color: colors.textTertiary }}
@@ -104,8 +95,7 @@ export function WorkoutRoutineActionSheet({
               Cancel
             </Text>
           </Pressable>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </CenterDialog>
   );
 }

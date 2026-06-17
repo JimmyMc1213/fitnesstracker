@@ -76,7 +76,7 @@ describe("handleCoachTaskAction", () => {
     push.mockClear();
   });
 
-  it("routes fuel tasks to nutrition with openLogFood param", async () => {
+  it("routes fuel tasks to the Log Food page", async () => {
     const { handleCoachTaskAction } = await import("@/lib/coachTaskActions");
     handleCoachTaskAction({
       kind: "hit_protein",
@@ -87,9 +87,6 @@ describe("handleCoachTaskAction", () => {
     });
 
     expect(push).toHaveBeenCalledTimes(1);
-    expect(push.mock.calls[0]?.[0]).toEqual({
-      pathname: "/(tabs)/nutrition",
-      params: { openLogFood: "1" },
-    });
+    expect(push.mock.calls[0]?.[0]).toBe("/log-food");
   });
 });

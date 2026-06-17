@@ -1,8 +1,10 @@
 import { clampMacroInputString, parseBoundedMacro } from "@newyouai/core";
 import type { NutritionUserFood } from "@newyouai/types";
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { FullScreenOverlay } from "@/components/motion";
 
 import { useBottomActionPadding } from "@/lib/screenInsets";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
@@ -57,10 +59,10 @@ export function EditUserFoodSheet({ food, onClose, onSave }: Props) {
   const canSave = name.trim().length > 0;
 
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <FullScreenOverlay open={food != null} motionVariant="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView
         testID="edit-user-food-sheet"
-        style={{ flex: 1, backgroundColor: colors.background }}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View
@@ -132,7 +134,7 @@ export function EditUserFoodSheet({ food, onClose, onSave }: Props) {
           </PrimaryButton>
         </View>
       </KeyboardAvoidingView>
-    </Modal>
+    </FullScreenOverlay>
   );
 }
 

@@ -1,8 +1,8 @@
 export type PaywallBillingPeriod = "yearly" | "monthly";
 
 /** NewYou tier matrix pricing (sandbox / display until StoreKit offerings wired in RN-STORE). */
-export const PAYWALL_MONTHLY_PRICE = 9.99;
-export const PAYWALL_YEARLY_PRICE = 79.99;
+export const PAYWALL_MONTHLY_PRICE = 14.99;
+export const PAYWALL_YEARLY_PRICE = 69.99;
 
 function formatUsd(amount: number): string {
   return `$${amount.toFixed(2)}`;
@@ -25,7 +25,7 @@ export const PAYWALL_PLANS = {
   monthly: {
     label: "Monthly",
     displayPerMonth: `${formatUsd(PAYWALL_MONTHLY_PRICE)}/mo`,
-    trialNote: "Includes 14-day free trial",
+    trialNote: "No trial, billed immediately",
     billingNote: `Billed at ${formatUsd(PAYWALL_MONTHLY_PRICE)}/mo.`,
   },
 } as const satisfies Record<

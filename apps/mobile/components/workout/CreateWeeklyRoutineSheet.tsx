@@ -1,5 +1,6 @@
-import { Modal, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
+import { CenterDialog } from "@/components/motion";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -46,18 +47,8 @@ export function CreateWeeklyRoutineSheet({
   const { colors } = useAppTheme();
 
   return (
-    <Modal visible={open} animationType="fade" transparent onRequestClose={onClose}>
-      <Pressable
-        className="flex-1 items-center justify-center px-6"
-        style={{ backgroundColor: "rgba(0,0,0,0.55)" }}
-        onPress={onClose}
-      >
-        <Pressable
-          testID="create-weekly-routine-sheet"
-          className="w-full max-w-[440px] rounded-2xl p-5"
-          style={{ backgroundColor: colors.card }}
-          onPress={(e) => e.stopPropagation()}
-        >
+    <CenterDialog open={open} onClose={onClose} panelStyle={{ padding: 0, maxWidth: 440 }}>
+      <View testID="create-weekly-routine-sheet" className="w-full rounded-2xl p-5">
           <Text className="text-lg font-bold tracking-tight" style={{ color: colors.textPrimary }}>
             New weekly routine
           </Text>
@@ -81,8 +72,7 @@ export function CreateWeeklyRoutineSheet({
               Cancel
             </PrimaryButton>
           </View>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </CenterDialog>
   );
 }

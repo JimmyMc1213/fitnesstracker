@@ -43,7 +43,7 @@ export function AccountPanel() {
       {!configured ? (
         <SettingsDetailCard>
           <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 20 }}>
-            Cloud sync is off — the app does not see valid Supabase env vars. Add mobile Supabase keys and restart the
+            Cloud sync is off. The app does not see valid Supabase env vars. Add mobile Supabase keys and restart the
             dev client.
           </Text>
         </SettingsDetailCard>

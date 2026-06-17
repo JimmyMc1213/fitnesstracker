@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RN-OFFLINE epic-close — unit gates + Maestro sync + regression sweep.
+ * RN-OFFLINE epic-close, unit gates + Maestro sync + regression sweep.
  */
 import { spawnSync } from "node:child_process";
 import path from "node:path";

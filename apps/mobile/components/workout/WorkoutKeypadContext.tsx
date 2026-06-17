@@ -123,6 +123,14 @@ export function WorkoutKeypadProvider({
   }, []);
 
   useEffect(() => {
+    if (!active) return;
+    const exercise = exercises.find((e) => e.id === active.exerciseId);
+    if (!exercise || active.setIndex >= exercise.sets.length) {
+      close();
+    }
+  }, [active, close, exercises]);
+
+  useEffect(() => {
     if (!active) {
       keypadWasOpenRef.current = false;
       return;

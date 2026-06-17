@@ -1,6 +1,7 @@
-import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import type { ReactNode } from "react";
 
+import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
@@ -33,18 +34,12 @@ export function FutureYouDeleteConfirmSheet({
   const { colors } = useAppTheme();
 
   return (
-    <Modal
-      visible={open}
-      transparent
-      animationType="fade"
-      onRequestClose={confirmBusy ? undefined : onCancel}
+    <CenterDialog
+      open={open}
+      onClose={confirmBusy ? undefined : onCancel}
+      panelStyle={{ padding: 0, maxWidth: 384 }}
     >
-      <View className="flex-1 items-center justify-center bg-black/60 px-6">
-        <View
-          testID={sheetTestID}
-          className="w-full max-w-sm overflow-hidden rounded-2xl"
-          style={{ backgroundColor: colors.card }}
-        >
+      <View testID={sheetTestID} className="w-full overflow-hidden rounded-2xl">
           <View className="px-7 py-7">
             <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
               {title}
@@ -85,8 +80,7 @@ export function FutureYouDeleteConfirmSheet({
               )}
             </Pressable>
           </View>
-        </View>
       </View>
-    </Modal>
+    </CenterDialog>
   );
 }

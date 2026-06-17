@@ -1,4 +1,4 @@
-# Shared steps after openLink — wait for Metro bundle, dismiss Expo dev client intro, recover from errors.
+# Shared steps after openLink, wait for Metro bundle, dismiss Expo dev client intro, recover from errors.
 appId: app.newyouai.mobile
 ---
 # Poll until auth welcome is reachable (Continue modal blocks headline until dismissed)

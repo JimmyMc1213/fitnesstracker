@@ -78,9 +78,9 @@ function tabLabel(tab: LogFoodTab): string {
     case "myFoods":
       return "My foods";
     case "myMeals":
-      return "My meals";
+      return "Meals";
     case "saved":
-      return "Favorite foods";
+      return "Saved";
     default:
       return tab;
   }
@@ -610,7 +610,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
       ) : manualOpen ? (
         <ManualFoodEntryPanel dayLogAtCapacity={dayLogAtCapacity} onLog={logManualFood} />
       ) : (
-        <>
+        <View className="flex-1">
           {showTabs ? (
             <View
               className="flex-row border-b px-screen-x"
@@ -626,11 +626,14 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
                     testID={`log-food-tab-${t}`}
                     accessibilityRole="tab"
                     accessibilityState={{ selected }}
-                    className="flex-1 items-center border-b-2 py-3"
+                    className="min-w-0 flex-1 items-center justify-center border-b-2 py-3"
                     style={{ borderBottomColor: selected ? colors.accent : "transparent" }}
                   >
                     <Text
-                      className="text-[13px] font-semibold"
+                      className="text-center text-[13px] font-semibold"
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.85}
                       style={{ color: selected ? colors.textPrimary : colors.textSecondary }}
                     >
                       {tabLabel(t)}
@@ -656,7 +659,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
           <ScrollView
             className="flex-1 px-screen-x"
             accessibilityLabel={`Log food for ${activeDateKey}`}
-            contentContainerStyle={{ flexGrow: 1, paddingVertical: 16, paddingBottom: insets.bottom + 100 }}
+            contentContainerStyle={{ flexGrow: 1, paddingTop: 20, paddingBottom: insets.bottom + 128 }}
             keyboardShouldPersistTaps="handled"
           >
             {tab === "all" ? (
@@ -703,11 +706,11 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
 
           {showBottomChrome ? (
             <View
-              className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-3"
+              className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-5"
               style={{
                 borderTopColor: colors.border,
                 backgroundColor: colors.background,
-                paddingBottom: bottomActionPadding,
+                paddingBottom: bottomActionPadding + 4,
               }}
             >
               <PrimaryButton
@@ -719,7 +722,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
               </PrimaryButton>
             </View>
           ) : null}
-        </>
+        </View>
       )}
 
       <EditUserFoodSheet

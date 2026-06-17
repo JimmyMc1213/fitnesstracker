@@ -1,5 +1,5 @@
 import exerciseLibrary, { Exercise, Equipment, Experience, MovementPattern } from './exerciseLibrary';
-// Plan builder only pulls from exerciseLibrary — browse-only exercises live in exerciseExpansion.ts.
+// Plan builder only pulls from exerciseLibrary, browse-only exercises live in exerciseExpansion.ts.
 import type { ExerciseEquipmentLabel } from './exerciseLabels';
 import { splitTemplates as splits, SessionLength, SplitType, REP_RANGES } from './splitTemplates';
 import { fitSessionVolume } from './fitSessionVolume';

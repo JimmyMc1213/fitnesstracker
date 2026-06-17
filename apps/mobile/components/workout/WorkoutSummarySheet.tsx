@@ -1,5 +1,7 @@
-import { Modal, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { FullScreenOverlay } from "@/components/motion";
 
 import { BottomActionBar } from "@/components/BottomActionBar";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
@@ -53,11 +55,11 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
       : summary.totalVolume;
 
   return (
-    <Modal visible={open} animationType="fade" presentationStyle="fullScreen" onRequestClose={onDone}>
+    <FullScreenOverlay open={open} motionVariant="fade" onRequestClose={onDone}>
       <View
         testID="workout-summary"
         className="flex-1"
-        style={{ backgroundColor: colors.background, paddingTop: insets.top }}
+        style={{ paddingTop: insets.top }}
       >
         <ScrollView
           className="flex-1 px-screen-x"
@@ -93,7 +95,7 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
             />
             <StatCard
               label="Volume"
-              value={summary.totalVolume > 0 ? displayVolume.toLocaleString() : "—"}
+              value={summary.totalVolume > 0 ? displayVolume.toLocaleString() : "-"}
               sub={summary.totalVolume > 0 ? volLabel : undefined}
             />
           </View>
@@ -158,6 +160,6 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
           </PrimaryButton>
         </BottomActionBar>
       </View>
-    </Modal>
+    </FullScreenOverlay>
   );
 }

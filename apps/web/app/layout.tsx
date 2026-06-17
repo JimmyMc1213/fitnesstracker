@@ -4,13 +4,19 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "New You AI — Personal Fitness OS",
+    default: "New You AI — See Your Future Self",
     template: "%s · New You AI",
   },
   description:
-    "Workouts, nutrition, habits, and AI-powered Future You — one app to hit your goals.",
+    "Upload a photo and see your Future You. AI-powered fitness coach with workouts, nutrition, and habits.",
   metadataBase: new URL("https://newyouai.app"),
 };
+
+const SOCIAL = {
+  instagram: "https://www.instagram.com/newyouai",
+  tiktok: "https://www.tiktok.com/@newyouai",
+  x: "https://x.com/newyouai",
+} as const;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -39,11 +45,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </header>
         <main>{children}</main>
         <footer className="mt-24 border-t border-border">
-          <div className="mx-auto flex max-w-5xl flex-wrap gap-4 px-6 py-8 text-sm text-muted">
-            <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
-            <a href="/blog">Blog</a>
-            <span className="ml-auto">© {new Date().getFullYear()} New You AI</span>
+          <div className="mx-auto max-w-5xl px-6 py-8 text-sm text-muted">
+            <div className="flex flex-wrap gap-4">
+              <a href="/privacy">Privacy</a>
+              <a href="/terms">Terms</a>
+              <a href="mailto:support@newyouai.app">support@newyouai.app</a>
+              <a href={SOCIAL.instagram} rel="noopener noreferrer" target="_blank">
+                Instagram
+              </a>
+              <a href={SOCIAL.tiktok} rel="noopener noreferrer" target="_blank">
+                TikTok
+              </a>
+              <a href={SOCIAL.x} rel="noopener noreferrer" target="_blank">
+                X
+              </a>
+            </div>
+            <p className="mt-4">© {new Date().getFullYear()} New You AI</p>
           </div>
         </footer>
       </body>

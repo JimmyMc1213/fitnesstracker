@@ -315,11 +315,11 @@ function StepBodyWeight({
   const startLabel =
     data.weightStartLbs != null
       ? `${formatWeightFromLbs(data.weightStartLbs, wUnit)} ${weightUnitLabel(wUnit)}`
-      : "—";
+      : "-";
   const endLabel =
     data.weightEndLbs != null
       ? `${formatWeightFromLbs(data.weightEndLbs, wUnit)} ${weightUnitLabel(wUnit)}`
-      : "—";
+      : "-";
 
   return (
     <>

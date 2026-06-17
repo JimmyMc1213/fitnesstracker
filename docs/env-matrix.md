@@ -123,7 +123,7 @@ Stub path: when no key is set, tapping subscribe/restore succeeds immediately so
 EXPO_PUBLIC_REVENUECAT_IOS_KEY=appl_xxxxxxxx
 ```
 
-EAS: store as project secrets alongside Supabase vars. Production App Store products ship in RN-STORE epic.
+Production App Store products: see [`revenuecat-app-store-setup.md`](revenuecat-app-store-setup.md).
 
 ```javascript
 import AsyncStorage from "@react-native-async-storage/async-storage";

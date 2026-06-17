@@ -348,7 +348,7 @@ function TrainingSlide({
             </Pressable>
           ) : isToday ? (
             <Text className="text-center text-[13px] font-medium leading-[1.45]" style={{ color: colors.textSecondary }}>
-              Focus on fuel today — {Math.round(proteinLeft)}g protein left
+              Focus on fuel today, {Math.round(proteinLeft)}g protein left
             </Text>
           ) : null}
         </View>

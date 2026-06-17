@@ -1,7 +1,9 @@
 import { LBS_PER_KG, localDateKey, weightDeltaSentiment, weightUnitLabel } from "@newyouai/core";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
+
+import { FullScreenOverlay } from "@/components/motion";
 
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { WeighInSheet } from "@/components/home/WeighInSheet";
@@ -123,7 +125,7 @@ export default function ProgressScreen() {
                 className="text-[36px] font-bold tracking-tight tabular-nums"
                 style={{ color: colors.textPrimary }}
               >
-                {chartSeries.length ? todayDisplay.toFixed(1) : "—"}
+                {chartSeries.length ? todayDisplay.toFixed(1) : "-"}
               </Text>
               <Text
                 className="text-[11px] font-medium uppercase tracking-widest"
@@ -239,9 +241,13 @@ export default function ProgressScreen() {
         setFitnessState={setFitnessState}
       />
 
-      <Modal visible={showCheckInHistoryPage} animationType="slide" onRequestClose={() => setShowCheckInHistoryPage(false)}>
+      <FullScreenOverlay
+        open={showCheckInHistoryPage}
+        motionVariant="fade"
+        onRequestClose={() => setShowCheckInHistoryPage(false)}
+      >
         <ScreenSundayCheckInHistory state={state} onBack={() => setShowCheckInHistoryPage(false)} />
-      </Modal>
+      </FullScreenOverlay>
     </View>
   );
 }

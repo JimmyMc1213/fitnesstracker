@@ -1,4 +1,4 @@
-# App boot smoke — passes with or without Supabase (RN-2 auth gate)
+# App boot smoke, passes with or without Supabase (RN-2 auth gate)
 # Run from apps/mobile: npm run test:e2e
 appId: app.newyouai.mobile
 ---

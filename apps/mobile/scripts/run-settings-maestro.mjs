@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RN-10-06 settings Maestro — provisions a disposable Supabase user, then runs settings hub smoke.
+ * RN-10-06 settings Maestro, provisions a disposable Supabase user, then runs settings hub smoke.
  * Requires: Metro on :8082 with EXPO_PUBLIC_E2E_FITNESS_SEED=coach-nutrition, iOS simulator + dev client.
  */
 import { spawnSync } from "node:child_process";
@@ -79,7 +79,7 @@ const metroProbe = spawnSync("curl", ["-sf", "-o", "/dev/null", "http://127.0.0.
 });
 if (metroProbe.status !== 0) {
   console.error(
-    "Metro is not reachable on http://127.0.0.1:8082 — start it first:\n" +
+    "Metro is not reachable on http://127.0.0.1:8082, start it first:\n" +
       "  cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=coach-nutrition EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING=true npx expo start --dev-client --port 8082 -c",
   );
   process.exit(1);
@@ -92,7 +92,7 @@ if (!waitForMetro(5000)) {
 const sb = createClient(url, key);
 const creds = await provisionTestUser(sb);
 
-console.log(`Maestro settings — test user ${creds.email}`);
+console.log(`Maestro settings, test user ${creds.email}`);
 
 const result = spawnSync(
   "maestro",

@@ -15,7 +15,7 @@ function loadPurchasesModule(): PurchasesModule | null {
   if (Platform.OS === "web" || purchasesModuleUnavailable) return null;
 
   try {
-    // Lazy require — older dev clients built before RN-4 may lack the native module.
+    // Lazy require, older dev clients built before RN-4 may lack the native module.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require("react-native-purchases") as PurchasesModule;
   } catch {

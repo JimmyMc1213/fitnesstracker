@@ -1,4 +1,4 @@
-# RN-2-05 sign-out — requires Supabase + test account
+# RN-2-05 sign-out, requires Supabase + test account
 # Run: MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... maestro test .maestro/rn-auth-sign-out.yaml
 appId: app.newyouai.mobile
 env:

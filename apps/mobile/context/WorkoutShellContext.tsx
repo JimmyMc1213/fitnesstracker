@@ -16,6 +16,8 @@ function activeTabRoute(segments: string[]): string | null {
 type WorkoutShellContextValue = {
   routineEditorOpen: boolean;
   setRoutineEditorOpen: (open: boolean) => void;
+  futureYouFlowOpen: boolean;
+  setFutureYouFlowOpen: (open: boolean) => void;
   hideTabBar: boolean;
 };
 
@@ -24,10 +26,12 @@ const WorkoutShellContext = createContext<WorkoutShellContextValue | null>(null)
 export function WorkoutShellProvider({ children }: { children: ReactNode }) {
   const { state } = useFitnessState();
   const [routineEditorOpen, setRoutineEditorOpen] = useState(false);
+  const [futureYouFlowOpen, setFutureYouFlowOpen] = useState(false);
   const segments = useSegments();
   const onWorkoutTab = activeTabRoute(segments) === "workout";
 
   const hideTabBar =
+    futureYouFlowOpen ||
     (onWorkoutTab && state?.workout.sessionPhase === "lifting") ||
     (onWorkoutTab && routineEditorOpen);
 
@@ -35,9 +39,11 @@ export function WorkoutShellProvider({ children }: { children: ReactNode }) {
     () => ({
       routineEditorOpen,
       setRoutineEditorOpen,
+      futureYouFlowOpen,
+      setFutureYouFlowOpen,
       hideTabBar,
     }),
-    [routineEditorOpen, hideTabBar, onWorkoutTab],
+    [routineEditorOpen, futureYouFlowOpen, hideTabBar, onWorkoutTab],
   );
 
   return <WorkoutShellContext.Provider value={value}>{children}</WorkoutShellContext.Provider>;

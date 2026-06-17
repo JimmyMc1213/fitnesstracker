@@ -1,5 +1,6 @@
-import { Modal, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
+import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 export function OnboardingMacroEditConfirmSheet({
@@ -14,12 +15,8 @@ export function OnboardingMacroEditConfirmSheet({
   const { colors } = useAppTheme();
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <View className="flex-1 items-center justify-center bg-black/60 px-6">
-        <View
-          className="w-full max-w-sm overflow-hidden rounded-2xl"
-          style={{ backgroundColor: colors.card }}
-        >
+    <CenterDialog open={visible} onClose={onCancel} panelStyle={{ padding: 0, maxWidth: 384 }}>
+      <View className="w-full overflow-hidden rounded-2xl">
           <View className="px-7 py-7">
             <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
               Update fuel targets?
@@ -40,8 +37,7 @@ export function OnboardingMacroEditConfirmSheet({
               </Text>
             </Pressable>
           </View>
-        </View>
       </View>
-    </Modal>
+    </CenterDialog>
   );
 }

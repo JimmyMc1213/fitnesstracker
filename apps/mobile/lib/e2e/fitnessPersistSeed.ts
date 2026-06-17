@@ -177,7 +177,7 @@ const SUNDAY_HISTORY_WEEK_TWO: SundayCheckInWeekRecord = {
   headline: "Back on track",
 };
 
-/** Progress tab Maestro — one prior weigh-in, goal range, Sunday history archive. */
+/** Progress tab Maestro, one prior weigh-in, goal range, Sunday history archive. */
 export function progressPersistSeed(dateKey = localDateKey(new Date())): Partial<PersistedFitnessSlice> {
   const base = basePersistSlice(dateKey);
   const priorWeighInKey = dateKeyDaysAgo(7, new Date(`${dateKey}T12:00:00`));
@@ -220,14 +220,14 @@ export type E2eFitnessSeedName =
   | "future-you";
 
 /**
- * Nutrition Maestro smoke — light breakfast logged + E2E prep bowl in My meals.
+ * Nutrition Maestro smoke, light breakfast logged + E2E prep bowl in My meals.
  * Port of PWA `fuelQuickLogPersistSeed` + `mealLogPersistSeed` with p:180 targets.
  */
 export function nutritionLogPersistSeed(dateKey = localDateKey(new Date())): Partial<PersistedFitnessSlice> {
   return mealLogPersistSeed(dateKey);
 }
 
-/** Future You Maestro — onboarding complete, pro tier, empty gallery (upload smoke). */
+/** Future You Maestro, onboarding complete, pro tier, empty gallery (upload smoke). */
 export function futureYouPersistSeed(dateKey = localDateKey(new Date())): Partial<PersistedFitnessSlice> {
   return basePersistSlice(dateKey);
 }

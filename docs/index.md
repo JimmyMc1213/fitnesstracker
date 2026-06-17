@@ -29,7 +29,13 @@
 - [Setup](setup.md) — monorepo dev environment
 - [Env matrix](env-matrix.md) — environment variables per app
 - [Vercel](vercel.md) — web/PWA/admin deploy
-- [EAS iOS](eas-ios.md) — Expo placeholder (Phase H)
+- [Launch infra checklist](launch-infra-checklist.md) — email, socials, App Store, RevenueCat before public launch
+- [Phase 1 Jimmy actions](launch-phase-1-jimmy.md) — 2-hour owner checklist
+- [RevenueCat + App Store setup](revenuecat-app-store-setup.md) — IAP product IDs and sandbox test
+- [RN device smoke test](rn-device-smoke-test.md) — launch gate on your iPhone
+- [Launch outreach kit](launch-outreach-kit.md) — strangers, not F&F
+- [Admin handoff (Dad)](admin-dashboard-handoff-dad.md)
+- [EAS iOS](eas-ios.md) — Expo dev client and TestFlight builds
 
 ### BMAD planning artifacts
 

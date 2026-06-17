@@ -1,4 +1,4 @@
-# RN-2-02 email sign-up — requires Supabase + disposable test account
+# RN-2-02 email sign-up, requires Supabase + disposable test account
 # Run: MAESTRO_TEST_SIGNUP_NAME=... MAESTRO_TEST_SIGNUP_EMAIL=... MAESTRO_TEST_SIGNUP_PASSWORD=... \
 #      maestro test .maestro/rn-auth-sign-up.yaml
 appId: app.newyouai.mobile

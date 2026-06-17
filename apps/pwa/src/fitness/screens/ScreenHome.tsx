@@ -227,8 +227,8 @@ export function ScreenHome({
               className="tap"
               onClick={() => navigate("settings")}
               style={{
-                width: 36,
-                height: 36,
+                width: 44,
+                height: 44,
                 borderRadius: 999,
                 border: "0.5px solid var(--border)",
                 display: "grid",
@@ -237,7 +237,7 @@ export function ScreenHome({
               }}
               aria-label="Settings"
             >
-              <IconSettings size={16} />
+              <IconSettings size={20} />
             </button>
           </div>
         }
@@ -267,12 +267,13 @@ export function ScreenHome({
         <FutureYouSkipperReminderPill onOpen={openNewYouUpload} onDismiss={dismissNewYouReminderPill} />
       ) : null}
 
-      {isViewingToday && sundayCheckIn?.available && sundayCheckIn.data ? (
+      {isViewingToday && sundayCheckIn?.showCard && sundayCheckIn.data ? (
         <HomeSundayCheckInCard
           data={sundayCheckIn.data}
           completed={sundayCheckIn.completed}
           unitPreferences={state.unitPreferences}
           onReview={sundayCheckIn.onOpenFlow}
+          onDismiss={sundayCheckIn.onDismiss}
         />
       ) : null}
 

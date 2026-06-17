@@ -1,4 +1,4 @@
-# RN-OFFLINE-05 sync sign-in — requires Supabase + test account (Option B: pre-seeded test user)
+# RN-OFFLINE-05 sync sign-in, requires Supabase + test account (Option B: pre-seeded test user)
 # Run: MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:sync
 appId: app.newyouai.mobile
 env:

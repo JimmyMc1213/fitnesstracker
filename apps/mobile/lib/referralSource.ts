@@ -1,6 +1,6 @@
 import type { ReferralSource } from "@newyouai/types";
 
-/** Fitness-first ordering — matches PWA referralSource.ts */
+/** Fitness-first ordering, matches PWA referralSource.ts */
 export const REFERRAL_SOURCES: ReferralSource[] = [
   "friend",
   "instagram",

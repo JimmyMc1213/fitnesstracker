@@ -549,9 +549,11 @@ function FitnessAppMain({
                     activeTab === "home"
                       ? {
                           available: sundayWeeklyCheckIn.available,
+                          showCard: sundayWeeklyCheckIn.showCard,
                           completed: sundayWeeklyCheckIn.completed,
                           data: sundayWeeklyCheckIn.data,
                           onOpenFlow: sundayWeeklyCheckIn.openFlow,
+                          onDismiss: sundayWeeklyCheckIn.dismiss,
                         }
                       : undefined
                   }
@@ -583,7 +585,9 @@ function FitnessAppMain({
                       </motion.div>
                       <motion.span
                         className="tlabel"
-                        animate={{ color: active ? "var(--text)" : "var(--tertiary)" }}
+                        animate={{
+                          color: active ? "var(--tab-active-fg)" : "var(--tab-inactive-fg)",
+                        }}
                         transition={{ duration: 0.22, ease: "easeOut" }}
                       >
                         {t.label}

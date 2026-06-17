@@ -21,7 +21,7 @@ export function FutureYouGenerationUnlockSheet({ open, onClose }: Props) {
       </h2>
       <p className="future-you-unlock-sheet__body">
         We&apos;re creating a personalized preview from your photo while you finish setup. You&apos;ll unlock the
-        full image when you start your trial on the last step.
+        full image when you subscribe on the last step.
       </p>
       <button type="button" className="tap onboarding-continue onboarding-continue--blue" onClick={onClose}>
         Got it

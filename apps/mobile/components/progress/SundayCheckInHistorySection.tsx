@@ -1,7 +1,9 @@
 import { coalesceSundayCheckInRecord } from "@newyouai/core";
 import type { SundayCheckInWeekRecord, UnitPreferences } from "@newyouai/types";
 import { useMemo, useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
+
+import { BottomSheet } from "@/components/motion";
 
 import { useBottomActionPadding } from "@/lib/screenInsets";
 import { ProgressSectionLabel } from "@/components/progress/ProgressSectionLabel";
@@ -177,13 +179,12 @@ function RecapDetailSheet({
   const wUnit = unitPreferences.weightUnit;
 
   return (
-    <Modal visible={safe != null} animationType="slide" transparent onRequestClose={onClose}>
-      <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-        <View
-          testID="sunday-history-recap-sheet"
-          className="max-h-[85%] rounded-t-2xl px-4 pt-4"
-          style={{ backgroundColor: colors.card, paddingBottom: bottomActionPadding }}
-        >
+    <BottomSheet
+      open={safe != null}
+      onClose={onClose}
+      panelStyle={{ paddingHorizontal: 0, paddingBottom: bottomActionPadding, maxHeight: "85%" }}
+    >
+      <View testID="sunday-history-recap-sheet" className="max-h-[85%] rounded-t-2xl px-4 pt-4">
           {safe ? (
             <ScrollView showsVerticalScrollIndicator={false}>
               <View className="mb-4 flex-row items-start justify-between gap-3">
@@ -272,9 +273,8 @@ function RecapDetailSheet({
               ) : null}
             </ScrollView>
           ) : null}
-        </View>
       </View>
-    </Modal>
+    </BottomSheet>
   );
 }
 
@@ -284,7 +284,7 @@ function StatGrid({ record, unitPreferences }: { record: SundayCheckInWeekRecord
   const weightText =
     record.weightDeltaLbs != null
       ? `${record.weightDeltaLbs > 0 ? "+" : ""}${formatWeightFromLbs(record.weightDeltaLbs, wUnit)} ${weightUnitLabel(wUnit)}`
-      : "—";
+      : "-";
 
   const items = [
     { label: "Workouts", value: `${record.workoutsCompleted}/${record.workoutsPlanned}` },

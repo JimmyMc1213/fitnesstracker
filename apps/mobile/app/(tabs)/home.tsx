@@ -1,5 +1,6 @@
 import {
   buildCoachContext,
+  dismissSundayCheckIn,
   effectiveNutritionTotalsForDateKey,
   formatDateKeyEyebrow,
   getHomeCoachPlan,
@@ -266,13 +267,13 @@ export default function HomeScreen() {
                 onPress={() => router.push("/(tabs)/settings")}
                 testID="home-settings"
                 accessibilityLabel="Settings"
-                className="h-9 w-9 items-center justify-center rounded-full border"
+                className="h-11 w-11 items-center justify-center rounded-full border"
                 style={{ borderColor: colors.border }}
               >
                 <SymbolView
                   name={{ ios: "gearshape", android: "settings", web: "settings" }}
                   tintColor={colors.textSecondary}
-                  size={16}
+                  size={20}
                 />
               </Pressable>
             </View>
@@ -291,12 +292,17 @@ export default function HomeScreen() {
           <FutureYouSkipperReminderPill onOpen={openNewYou} onDismiss={dismissNewYouReminderPill} />
         ) : null}
 
-        {isViewingToday && sundayCheckIn.available && sundayCheckIn.data ? (
+        {isViewingToday && sundayCheckIn.showCard && sundayCheckIn.data ? (
           <HomeSundayCheckInCard
             data={sundayCheckIn.data}
             completed={sundayCheckIn.completed}
             unitPreferences={state.unitPreferences}
             onReview={() => router.push("/(modals)/sunday-check-in")}
+            onDismiss={() =>
+              setFitnessState((prev) =>
+                prev ? dismissSundayCheckIn(prev, new Date(), sundayCheckIn.previewSunday) : prev,
+              )
+            }
           />
         ) : null}
 

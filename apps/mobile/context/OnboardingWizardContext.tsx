@@ -28,6 +28,8 @@ import {
   type ReactNode,
 } from "react";
 
+import type { NavDirection } from "@/components/motion";
+
 import { DEFAULT_WIZARD_UNIT_PREFERENCES, FRESH_ONBOARDING_PROFILE } from "@/lib/onboardingDefaults";
 import { ONBOARDING_NOTIFICATION_DEFAULTS } from "@/lib/notificationPreferences";
 import {
@@ -61,6 +63,7 @@ type OnboardingWizardContextValue = {
   draftTheme?: AppTheme;
   futureYou?: FutureYouDraft;
   patchFutureYou: (patch: Partial<FutureYouDraft>) => void;
+  navDirection: NavDirection;
   goNext: () => void;
   goBack: () => void;
   goToStep: (next: number, overrides?: Partial<OnboardingDraftInput>) => void;
@@ -118,6 +121,7 @@ const INITIAL_STATE = {
 
 export function OnboardingWizardProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
+  const [navDirection, setNavDirection] = useState<NavDirection>("forward");
   const [wizardState, setWizardState] = useState(INITIAL_STATE);
 
   useEffect(() => {
@@ -172,6 +176,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
 
   const goToStep = useCallback(
     (next: number, overrides?: Partial<OnboardingDraftInput>) => {
+      setNavDirection(next > wizardState.stepIndex ? "forward" : "back");
       applyState((prev) => {
         const mergedFutureYou = overrides?.futureYou ?? prev.futureYou;
         const clamped = clampWizardStep(next);
@@ -196,7 +201,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
         };
       });
     },
-    [applyState],
+    [applyState, wizardState.stepIndex],
   );
 
   const mergeOverrides = useCallback(
@@ -219,6 +224,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
   );
 
   const goNext = useCallback(() => {
+    setNavDirection("forward");
     applyState((prev) => {
       if (prev.stepIndex === 15) {
         if (!prev.experienceLevel || !prev.equipmentSetup || !prev.sessionLength) return prev;
@@ -256,6 +262,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
   }, [applyState, mergeOverrides]);
 
   const goBack = useCallback(() => {
+    setNavDirection("back");
     applyState((prev) => {
       const prevStep = resolveWizardBackStep(prev.stepIndex, prev.profile, prev.futureYou);
       if (prevStep == null) return prev;
@@ -349,6 +356,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
   const value = useMemo<OnboardingWizardContextValue>(
     () => ({
       hydrated,
+      navDirection,
       ...wizardState,
       goNext,
       goBack,
@@ -366,6 +374,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
     }),
     [
       hydrated,
+      navDirection,
       wizardState,
       goNext,
       goBack,

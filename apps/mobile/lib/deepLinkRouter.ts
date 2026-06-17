@@ -81,7 +81,7 @@ export function resolveDeepLink(url: string): DeepLinkAction {
   }
 
   if (isDevEnvironment) {
-    console.warn(`[deepLinkRouter] Unknown path "${path}" — falling back to home`);
+    console.warn(`[deepLinkRouter] Unknown path "${path}", falling back to home`);
   }
 
   return { type: "fallback" };

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RN-10 epic-close — unit gates + Maestro smoke (settings + regressions).
+ * RN-10 epic-close, unit gates + Maestro smoke (settings + regressions).
  */
 import { spawnSync } from "node:child_process";
 import path from "node:path";

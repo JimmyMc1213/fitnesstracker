@@ -2,14 +2,12 @@ import { MAX_NUTRITION_ITEMS_PER_DAY } from "@newyouai/core";
 import type { NutritionLoggedItem } from "@newyouai/types";
 import { useRef } from "react";
 import { Pressable, Text, View } from "react-native";
-import Swipeable, { SwipeDirection } from "react-native-gesture-handler/ReanimatedSwipeable";
 
+import { SwipeToDelete } from "@/components/SwipeToDelete";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { displayFoodName, formatGramsInLabel } from "@/lib/foodDisplay";
 
 import { MACRO_COLORS } from "@/lib/macroColors";
-
-const SWIPE_DELETE_THRESHOLD = 56;
 
 type Props = {
   items: NutritionLoggedItem[];
@@ -66,55 +64,31 @@ type SwipeableFoodLogRowProps = {
   item: NutritionLoggedItem;
   onEdit: (item: NutritionLoggedItem) => void;
   onRemove: () => void;
+  showDivider: boolean;
 };
 
-function SwipeableFoodLogRow({ item, onEdit, onRemove }: SwipeableFoodLogRowProps) {
+function SwipeableFoodLogRow({ item, onEdit, onRemove, showDivider }: SwipeableFoodLogRowProps) {
   const { colors } = useAppTheme();
-  const removedRef = useRef(false);
   const displayName = displayFoodName(item.name, item.source);
   const servingLabel = item.servingLabel?.trim();
 
-  function handleRemove() {
-    if (removedRef.current) return;
-    removedRef.current = true;
-    onRemove();
-  }
-
-  function renderRightActions() {
-    return (
-      <Pressable
-        onPress={handleRemove}
-        testID={`today-food-log-delete-${item.id}`}
-        accessibilityRole="button"
-        accessibilityLabel={`Delete ${displayName}`}
-        className="w-[72px] items-center justify-center"
-        style={{ backgroundColor: "rgba(255, 85, 85, 0.18)" }}
-      >
-        <Text style={{ color: "#FF6961", fontSize: 18 }} accessibilityElementsHidden>
-          🗑
-        </Text>
-      </Pressable>
-    );
-  }
-
   return (
     <View
-      className="overflow-hidden rounded-2xl border"
-      style={{ borderColor: colors.border, backgroundColor: colors.card }}
+      className="overflow-hidden"
+      style={{
+        paddingBottom: showDivider ? 12 : 0,
+        borderBottomWidth: showDivider ? 1 : 0,
+        borderBottomColor: colors.border,
+      }}
     >
-      <Swipeable
-        renderRightActions={renderRightActions}
-        overshootRight={false}
-        friction={2}
-        rightThreshold={SWIPE_DELETE_THRESHOLD}
-        onSwipeableOpen={(direction) => {
-          if (direction === SwipeDirection.LEFT) handleRemove();
-        }}
+      <SwipeToDelete
+        deleteLabel={`Delete ${displayName}`}
+        onDelete={onRemove}
+        testID={`today-food-log-delete-${item.id}`}
       >
         <Pressable
           onPress={() => onEdit(item)}
-          className="px-4 py-3.5"
-          style={{ backgroundColor: colors.card }}
+          className="py-1"
           accessibilityRole="button"
           accessibilityLabel={`Edit ${displayName}`}
           testID={`today-food-log-edit-${item.id}`}
@@ -142,7 +116,7 @@ function SwipeableFoodLogRow({ item, onEdit, onRemove }: SwipeableFoodLogRowProp
           </View>
           <FoodLogMacroLine item={item} />
         </Pressable>
-      </Swipeable>
+      </SwipeToDelete>
     </View>
   );
 }
@@ -178,11 +152,7 @@ export function TodayFoodLogCard({ items, onRemove, onEdit, onLogFood }: Props) 
       </Text>
 
       {sorted.length === 0 ? (
-        <View
-          testID="today-food-log-empty"
-          className="rounded-2xl border px-4 py-[18px]"
-          style={{ borderColor: colors.border, backgroundColor: colors.card }}
-        >
+        <View testID="today-food-log-empty">
           <Text className="text-sm leading-6" style={{ color: colors.textSecondary }}>
             No food logged yet today.
           </Text>
@@ -191,8 +161,7 @@ export function TodayFoodLogCard({ items, onRemove, onEdit, onLogFood }: Props) 
               onPress={onLogFood}
               testID="today-food-log-empty-cta"
               accessibilityRole="button"
-              className="mt-3 self-start rounded-full border px-4 py-2"
-              style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
+              className="mt-2 self-start"
             >
               <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
                 Log food
@@ -201,13 +170,14 @@ export function TodayFoodLogCard({ items, onRemove, onEdit, onLogFood }: Props) 
           ) : null}
         </View>
       ) : (
-        <View className="gap-2">
-          {sorted.map((item) => (
+        <View className="gap-3">
+          {sorted.map((item, idx) => (
             <SwipeableFoodLogRow
               key={item.id}
               item={item}
               onEdit={onEdit}
               onRemove={() => handleRemove(item.id)}
+              showDivider={idx < sorted.length - 1}
             />
           ))}
           {atDailyCap ? (

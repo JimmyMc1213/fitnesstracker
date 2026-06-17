@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RN-9-09 Future You Maestro — provisions a disposable Supabase user, then runs Future You smoke.
+ * RN-9-09 Future You Maestro, provisions a disposable Supabase user, then runs Future You smoke.
  * Requires: Metro on :8082 with EXPO_PUBLIC_E2E_FITNESS_SEED=future-you and
  * EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true, iOS simulator + dev client.
  */
@@ -78,7 +78,7 @@ const metroProbe = spawnSync("curl", ["-sf", "-o", "/dev/null", "http://127.0.0.
 });
 if (metroProbe.status !== 0) {
   console.error(
-    "Metro is not reachable on http://127.0.0.1:8082 — start it first:\n" +
+    "Metro is not reachable on http://127.0.0.1:8082, start it first:\n" +
       "  cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=future-you EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true npx expo start --dev-client --port 8082",
   );
   process.exit(1);
@@ -87,7 +87,7 @@ if (metroProbe.status !== 0) {
 const sb = createClient(url, key);
 const creds = await provisionTestUser(sb);
 
-console.log(`Maestro future-you — test user ${creds.email}`);
+console.log(`Maestro future-you, test user ${creds.email}`);
 
 const result = spawnSync(
   "maestro",

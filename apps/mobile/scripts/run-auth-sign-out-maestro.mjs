@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RN-2-05 / RN-10 sign-out Maestro — provisions a disposable Supabase user, then runs sign-out flow.
+ * RN-2-05 / RN-10 sign-out Maestro, provisions a disposable Supabase user, then runs sign-out flow.
  */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -78,7 +78,7 @@ const metroProbe = spawnSync("curl", ["-sf", "-o", "/dev/null", "http://127.0.0.
 });
 if (metroProbe.status !== 0) {
   console.error(
-    "Metro is not reachable on http://127.0.0.1:8082 — start it first:\n" +
+    "Metro is not reachable on http://127.0.0.1:8082, start it first:\n" +
       "  cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=coach-nutrition EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING=true npx expo start --dev-client --port 8082",
   );
   process.exit(1);
@@ -91,7 +91,7 @@ if (!waitForMetro(5000)) {
 const sb = createClient(url, key);
 const creds = await provisionTestUser(sb);
 
-console.log(`Maestro sign-out — test user ${creds.email}`);
+console.log(`Maestro sign-out, test user ${creds.email}`);
 
 const result = spawnSync(
   "maestro",

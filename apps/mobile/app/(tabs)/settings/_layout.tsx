@@ -1,5 +1,7 @@
 import { Stack } from "expo-router";
 
+import { defaultStackScreenOptions } from "@/lib/navigationMotion";
+
 export default function SettingsLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return <Stack screenOptions={defaultStackScreenOptions} />;
 }

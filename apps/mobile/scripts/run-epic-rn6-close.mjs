@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RN-6 epic-close Maestro sweep — runs unit gates + E2E flows sequentially.
+ * RN-6 epic-close Maestro sweep, runs unit gates + E2E flows sequentially.
  * Requires: JAVA_HOME (openjdk@17), maestro CLI, iOS simulator + dev client, Supabase .env
  */
 import { spawn, spawnSync } from "node:child_process";

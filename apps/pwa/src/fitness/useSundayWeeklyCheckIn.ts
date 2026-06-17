@@ -4,9 +4,11 @@ import {
   buildSundayCheckInData,
   clearDevPreviewSundayUrl,
   commitSundayCheckIn,
+  dismissSundayCheckIn,
   DEV_PREVIEW_SUNDAY_EVENT,
   isDevPreviewSundayUrl,
   shouldShowSundayCheckIn,
+  shouldShowSundayCheckInCard,
   sundayNoonForCurrentWeek,
   type DevPreviewSundayEventDetail,
   type SundayCheckInData,
@@ -24,7 +26,9 @@ export function useSundayWeeklyCheckIn(
   openFlow: () => void;
   closeFlow: () => void;
   complete: (commitments: WeekFocusCommitment[]) => void;
+  dismiss: () => void;
   completed: boolean;
+  showCard: boolean;
 } {
   const [clock, setClock] = useState(() => new Date());
   const [devPreviewSunday, setDevPreviewSunday] = useState(
@@ -60,6 +64,7 @@ export function useSundayWeeklyCheckIn(
   }, [state, reviewClock, available]);
 
   const completed = data != null && state.sundayReviewCompletedKey === data.sundayKey;
+  const showCard = data != null && shouldShowSundayCheckInCard(state, data, clock, previewSundayUi);
 
   useEffect(() => {
     if (!available) setFlowOpen(false);
@@ -80,5 +85,9 @@ export function useSundayWeeklyCheckIn(
     [data, setState],
   );
 
-  return { available, data, flowOpen, openFlow, closeFlow, complete, completed };
+  const dismiss = useCallback(() => {
+    setState((s) => dismissSundayCheckIn(s, clock, previewSundayUi));
+  }, [clock, previewSundayUi, setState]);
+
+  return { available, data, flowOpen, openFlow, closeFlow, complete, dismiss, completed, showCard };
 }

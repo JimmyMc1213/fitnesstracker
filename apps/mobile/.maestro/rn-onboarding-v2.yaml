@@ -1,4 +1,4 @@
-# RN-4 onboarding v2 — maintain path through paywall stub to Home
+# RN-4 onboarding v2, maintain path through paywall stub to Home
 # Requires EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING=false dev client build
 # Run: MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:onboarding
 appId: app.newyouai.mobile

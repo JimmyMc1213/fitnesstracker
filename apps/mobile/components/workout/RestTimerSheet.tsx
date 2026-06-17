@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { AppState, Modal, Pressable, Text, View } from "react-native";
+import { AppState, Pressable, Text, View } from "react-native";
 
+import { CenterDialog } from "@/components/motion";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { RestTimerDurationPicker } from "@/components/workout/RestTimerDurationPicker";
 import {
@@ -113,14 +114,8 @@ export function RestTimerSheet({
   }
 
   return (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable className="flex-1 items-center justify-center bg-black/60 px-6" onPress={onClose}>
-        <Pressable
-          testID="workout-rest-timer"
-          className="w-full max-w-md rounded-2xl p-5"
-          style={{ backgroundColor: colors.card }}
-          onPress={(e) => e.stopPropagation()}
-        >
+    <CenterDialog open={open} onClose={onClose} panelStyle={{ padding: 0, maxWidth: 448 }}>
+      <View testID="workout-rest-timer" className="w-full rounded-2xl p-5">
           <Text
             className="mb-1 text-[13px] font-semibold uppercase tracking-widest"
             style={{ color: colors.textTertiary }}
@@ -160,7 +155,7 @@ export function RestTimerSheet({
 
           {isComplete ? (
             <Text className="mb-4 text-center text-[13px] font-medium leading-[1.45]" style={{ color: colors.textSecondary }}>
-              Rest is done — tap Done to continue.
+              Rest is done. Tap Done to continue.
             </Text>
           ) : null}
 
@@ -223,8 +218,7 @@ export function RestTimerSheet({
           <PrimaryButton block onPress={handlePrimary}>
             {isComplete ? "Done" : isRunning ? "Skip rest" : "Close"}
           </PrimaryButton>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </CenterDialog>
   );
 }

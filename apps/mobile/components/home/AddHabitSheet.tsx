@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -9,6 +8,8 @@ import {
   TextInput,
   View,
 } from "react-native";
+
+import { BottomSheet } from "@/components/motion";
 
 import { IconSearch } from "@/components/icons/FitnessIcons";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
@@ -84,22 +85,20 @@ export function AddHabitSheet({ open, currentTemplates, onAdd, onClose }: Props)
     onClose();
   }
 
-  if (!open) return null;
-
   return (
-    <Modal visible={open} animationType="slide" transparent onRequestClose={handleClose}>
-      <Pressable className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.45)" }} onPress={handleClose}>
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-          <Pressable
-            onPress={(e) => e.stopPropagation()}
-            className="rounded-t-[20px] border px-5 pt-5"
-            style={{
-              borderColor: colors.border,
-              backgroundColor: colors.card,
-              maxHeight: "85%",
-              paddingBottom: bottomActionPadding,
-            }}
-          >
+    <BottomSheet
+      open={open}
+      onClose={handleClose}
+      panelStyle={{ paddingHorizontal: 0, paddingBottom: bottomActionPadding, maxHeight: "85%" }}
+    >
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <View
+          className="rounded-t-[20px] border px-5 pt-5"
+          style={{
+            borderColor: colors.border,
+            maxHeight: "85%",
+          }}
+        >
             <Text className="mb-3 text-[17px] font-bold tracking-tight" style={{ color: colors.textPrimary }}>
               Add habit
             </Text>
@@ -246,9 +245,8 @@ export function AddHabitSheet({ open, currentTemplates, onAdd, onClose }: Props)
                 </Pressable>
               </View>
             )}
-          </Pressable>
-        </KeyboardAvoidingView>
-      </Pressable>
-    </Modal>
+        </View>
+      </KeyboardAvoidingView>
+    </BottomSheet>
   );
 }

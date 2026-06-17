@@ -9,7 +9,7 @@ describe("paywallPlans", () => {
     expect(PAYWALL_PLANS.yearly.trialNote).toBe("No trial, billed immediately");
     expect(PAYWALL_PLANS.yearly.billingNote).toBe("Billed at $69.99/yr.");
     expect(PAYWALL_PLANS.monthly.displayPerMonth).toBe("$14.99/mo");
-    expect(PAYWALL_PLANS.monthly.trialNote).toBe("Includes 14-day free trial");
+    expect(PAYWALL_PLANS.monthly.trialNote).toBe("No trial, billed immediately");
     expect(PAYWALL_PLANS.monthly.billingNote).toBe("Billed at $14.99/mo.");
   });
 });

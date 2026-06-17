@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 
 import { borderRadius, spacing } from "@newyouai/config/tokens";
 
-/** Shared auth / welcome layout — StyleSheet so screens render correctly without NativeWind. */
+/** Shared auth / welcome layout, StyleSheet so screens render correctly without NativeWind. */
 export const authLayout = StyleSheet.create({
   screen: {
     flex: 1,

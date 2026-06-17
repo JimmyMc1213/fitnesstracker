@@ -14,6 +14,9 @@ import { useOnboardingState } from "@/hooks/useOnboardingState";
 import { isOnboardingPreviewActive, startOnboardingPreview } from "@/lib/devPreviewOnboarding";
 import { isVisualParityMode } from "@/lib/visualParity";
 
+/** Root stack screens outside `(tabs)` that should not trigger shell redirect to home. */
+const APP_STACK_ROUTES_OUTSIDE_TABS = new Set(["log-food", "workout", "progress"]);
+
 function buildShellRoutingInput(
   auth: Pick<
     ReturnType<typeof useAuth>,
@@ -60,8 +63,9 @@ export function useAppShellGate() {
     const inOnboardingGroup = segments[0] === "(onboarding)";
     const inTabsGroup = segments[0] === "(tabs)";
     const inModalsGroup = segments[0] === "(modals)";
+    const inAppStackRoute = APP_STACK_ROUTES_OUTSIDE_TABS.has(segments[0] ?? "");
 
-    if (inModalsGroup) return;
+    if (inModalsGroup || inAppStackRoute) return;
 
     if (isVisualParityMode() && Platform.OS === "web") {
       if (inAuthGroup || inOnboardingGroup) {

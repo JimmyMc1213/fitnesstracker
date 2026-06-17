@@ -8,7 +8,7 @@ export type ExerciseProgressionKind =
   | "reps_only"
   | "none";
 
-/** Onboarding template build — full lookup ships with workout domain (RN-6). */
+/** Onboarding template build, full lookup ships with workout domain (RN-6). */
 export function resolveExerciseId(_name: string, _label?: string): string | undefined {
   return undefined;
 }

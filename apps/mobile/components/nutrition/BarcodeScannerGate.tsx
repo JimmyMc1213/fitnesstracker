@@ -30,7 +30,7 @@ export function BarcodeScannerGate({ onScan, onClose }: Props) {
         setCameraScanner(() => mod.BarcodeScanner);
       })
       .catch(() => {
-        /* expo-camera not linked — manual fallback */
+        /* expo-camera not linked, manual fallback */
       })
       .finally(() => {
         if (mounted) setReady(true);
