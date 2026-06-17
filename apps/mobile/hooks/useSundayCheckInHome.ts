@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   buildSundayCheckInData,
   shouldShowSundayCheckIn,
+  shouldShowSundayCheckInCard,
   sundayNoonForCurrentWeek,
   type SundayCheckInData,
 } from "@newyouai/core";
@@ -33,9 +34,12 @@ export function useSundayCheckInHome(state: AppState | null) {
   }, [state, reviewClock, available]);
 
   const completed = data != null && state?.sundayReviewCompletedKey === data.sundayKey;
+  const showCard =
+    data != null && state != null && shouldShowSundayCheckInCard(state, data, clock, previewSunday);
 
   return {
     available: available && data != null,
+    showCard,
     data,
     completed,
     previewSunday,

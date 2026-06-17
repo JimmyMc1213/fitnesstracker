@@ -153,7 +153,7 @@ export function WorkoutCalendarCard({ state }: Props) {
 
         {workoutDays.size === 0 ? (
           <Text className="mt-3.5 text-center text-[11px]" style={{ color: colors.textTertiary }}>
-            No workouts yet — finish a session in Workout to light up your calendar
+            No workouts yet. Finish a session in Workout to light up your calendar
           </Text>
         ) : (
           <Text className="mt-3.5 text-[11px]" style={{ color: colors.textTertiary }}>

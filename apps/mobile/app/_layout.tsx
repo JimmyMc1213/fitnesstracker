@@ -23,6 +23,11 @@ import { NotificationSchedulerProvider } from "@/context/NotificationSchedulerCo
 import { useAppShellGate, useAppShellRoutingInput } from "@/hooks/useAppShellGate";
 import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
 import { useOnboardingStub } from "@/hooks/useOnboardingStub";
+import {
+  defaultStackScreenOptions,
+  modalStackScreenOptions,
+  pushStackScreenOptions,
+} from "@/lib/navigationMotion";
 import { initLocalNotifications } from "@/lib/localNotifications";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import { isVisualParityMode, isVisualParityWebFrame } from "@/lib/visualParity";
@@ -147,13 +152,14 @@ function RootLayoutNav() {
     <ThemeProvider value={navigationTheme(colorScheme)}>
       <AppShellLoadingGate>
         <DeepLinkListener />
-        <Stack screenOptions={{ headerShown: false }}>
+        <Stack screenOptions={defaultStackScreenOptions}>
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(onboarding)" />
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="(modals)" options={{ presentation: "modal", headerShown: false }} />
-          <Stack.Screen name="workout" options={{ headerShown: false }} />
-          <Stack.Screen name="progress" options={{ headerShown: false }} />
+          <Stack.Screen name="(modals)" options={modalStackScreenOptions} />
+          <Stack.Screen name="log-food" options={pushStackScreenOptions} />
+          <Stack.Screen name="workout" options={pushStackScreenOptions} />
+          <Stack.Screen name="progress" options={pushStackScreenOptions} />
         </Stack>
       </AppShellLoadingGate>
     </ThemeProvider>

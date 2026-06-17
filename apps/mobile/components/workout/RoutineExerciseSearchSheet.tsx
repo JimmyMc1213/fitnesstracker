@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+
+import { BottomSheet } from "@/components/motion";
 
 import {
   ExerciseSearchResultRow,
@@ -56,14 +58,8 @@ export function RoutineExerciseSearchSheet({
   }
 
   return (
-    <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
-      <Pressable className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.45)" }} onPress={onClose}>
-        <Pressable
-          testID="routine-exercise-search-sheet"
-          className="max-h-[82%] rounded-t-2xl px-5 pb-8 pt-5"
-          style={{ backgroundColor: colors.card }}
-          onPress={(e) => e.stopPropagation()}
-        >
+    <BottomSheet open={open} onClose={onClose} panelStyle={{ paddingHorizontal: 0, paddingBottom: 32, maxHeight: "82%" }}>
+      <View testID="routine-exercise-search-sheet" className="max-h-[82%] rounded-t-2xl px-5 pb-8 pt-5">
           <Text className="text-lg font-bold tracking-tight" style={{ color: colors.textPrimary }}>
             {title}
           </Text>
@@ -120,8 +116,7 @@ export function RoutineExerciseSearchSheet({
               {closeLabel}
             </Text>
           </Pressable>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </BottomSheet>
   );
 }

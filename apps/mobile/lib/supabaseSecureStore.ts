@@ -9,7 +9,7 @@ type SecureStoreAdapter = {
 
 let cachedAdapter: SecureStoreAdapter | undefined;
 
-/** Session storage for Supabase auth — SecureStore on native, AsyncStorage on web. */
+/** Session storage for Supabase auth, SecureStore on native, AsyncStorage on web. */
 export function getSupabaseSecureStoreAdapter(): SecureStoreAdapter {
   if (cachedAdapter) return cachedAdapter;
 

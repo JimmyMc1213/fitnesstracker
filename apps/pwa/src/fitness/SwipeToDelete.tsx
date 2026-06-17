@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent, type PointerEvent, type ReactNode } from "react";
-
-import { IconTrash } from "./icons";
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 
 const REVEAL_WIDTH = 72;
 const SWIPE_START_PX = 10;
@@ -187,11 +185,6 @@ export function SwipeToDelete({
     settleOffset(offsetRef.current);
   }
 
-  function handleDeleteClick(e: MouseEvent<HTMLButtonElement>) {
-    e.stopPropagation();
-    commitDelete();
-  }
-
   return (
     <div
       style={{
@@ -201,52 +194,18 @@ export function SwipeToDelete({
         touchAction: "pan-y",
       }}
     >
-      {releaseToDelete ? (
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "grid",
-            placeItems: "center",
-            justifyItems: "end",
-            paddingRight: (REVEAL_WIDTH - 20) / 2,
-            borderRadius,
-            background: "rgba(255, 85, 85, 0.18)",
-            color: "#FF6961",
-            opacity: revealed ? 1 : 0,
-            transition: "opacity 0.18s ease",
-            pointerEvents: "none",
-          }}
-        >
-          <IconTrash size={20} stroke={1.75} />
-        </div>
-      ) : (
-        <button
-          type="button"
-          aria-label={deleteLabel}
-          onClick={handleDeleteClick}
-          tabIndex={revealed ? 0 : -1}
-          disabled={disabled}
-          style={{
-            position: "absolute",
-            inset: "0 0 0 auto",
-            width: REVEAL_WIDTH,
-            display: "grid",
-            placeItems: "center",
-            border: "none",
-            borderRadius,
-            background: "rgba(255, 85, 85, 0.18)",
-            color: "#FF6961",
-            cursor: disabled ? "default" : "pointer",
-            opacity: revealed ? 1 : 0,
-            pointerEvents: revealed && !disabled ? "auto" : "none",
-            transition: "opacity 0.18s ease",
-          }}
-        >
-          <IconTrash size={20} stroke={1.75} />
-        </button>
-      )}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius,
+          background: "rgba(255, 85, 85, 0.18)",
+          opacity: revealed ? 1 : 0,
+          transition: "opacity 0.18s ease",
+          pointerEvents: "none",
+        }}
+      />
 
       <div
         ref={contentRef}

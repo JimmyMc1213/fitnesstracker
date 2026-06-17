@@ -14,7 +14,6 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -22,6 +21,8 @@ import {
   TextInput,
   View,
 } from "react-native";
+
+import { BottomSheet } from "@/components/motion";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { useBottomActionPadding } from "@/lib/screenInsets";
@@ -93,16 +94,15 @@ export function FutureYouReportButton({ jobId, context, previewMode = false }: P
         </Text>
       </Pressable>
 
-      <Modal visible={sheetOpen} transparent animationType="fade" onRequestClose={closeSheet}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          className="flex-1 justify-end bg-black/60"
-        >
-          <Pressable className="flex-1" onPress={closeSheet} accessibilityLabel="Close report sheet" />
+      <BottomSheet
+        open={sheetOpen}
+        onClose={closeSheet}
+        panelStyle={{ paddingHorizontal: 0, paddingBottom: bottomActionPadding, maxHeight: "85%" }}
+      >
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
           <View
             testID="future-you-report-sheet"
             className="max-h-[85%] rounded-t-2xl px-6 pt-6"
-            style={{ backgroundColor: colors.card, paddingBottom: bottomActionPadding }}
           >
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
@@ -199,7 +199,7 @@ export function FutureYouReportButton({ jobId, context, previewMode = false }: P
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
-      </Modal>
+      </BottomSheet>
     </>
   );
 }

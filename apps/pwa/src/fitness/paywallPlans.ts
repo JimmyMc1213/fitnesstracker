@@ -24,7 +24,7 @@ export const PAYWALL_PLANS = {
   monthly: {
     label: "Monthly",
     displayPerMonth: `${formatUsd(PAYWALL_MONTHLY_PRICE)}/mo`,
-    trialNote: "Includes 14-day free trial",
+    trialNote: "No trial, billed immediately",
     billingNote: `Billed at ${formatUsd(PAYWALL_MONTHLY_PRICE)}/mo.`,
   },
 } as const satisfies Record<

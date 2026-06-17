@@ -4,7 +4,7 @@ import type { FutureYouJobStatus } from "./jobs";
 
 export type FutureYouPaywallBillingPeriod = "monthly" | "yearly";
 
-export const FUTURE_YOU_PAYWALL_CTA_TRIAL = "Start 14-day trial";
+export const FUTURE_YOU_PAYWALL_CTA_TRIAL = "Unlock Future You";
 export const FUTURE_YOU_PAYWALL_CTA_PREPARING = "Preparing your Future You…";
 export const FUTURE_YOU_PAYWALL_CTA_DEFAULT = "Continue";
 export const FUTURE_YOU_PAYWALL_CTA_PLAN_ONLY = "Start My Journey";

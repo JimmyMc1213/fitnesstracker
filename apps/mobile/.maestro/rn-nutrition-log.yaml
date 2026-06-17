@@ -1,4 +1,4 @@
-# RN-7-09 nutrition log smoke — manual add, search, my meals, recent re-log
+# RN-7-09 nutrition log smoke, manual add, search, my meals, recent re-log
 # Run: EXPO_PUBLIC_E2E_FITNESS_SEED=nutrition-log EXPO_PUBLIC_E2E_MOCK_FOOD_SEARCH=true MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:nutrition-log
 # Metro:
 #   cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=nutrition-log EXPO_PUBLIC_E2E_MOCK_FOOD_SEARCH=true npx expo start --dev-client --port 8082
@@ -12,7 +12,7 @@ env:
   TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
   TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
 ---
-# Flow 1 — Manual add + swipe delete
+# Flow 1, Manual add + swipe delete
 - launchApp:
     clearState: true
     clearKeychain: true
@@ -73,7 +73,7 @@ env:
 - assertVisible:
     text: "E2E shake"
 ---
-# Flow 2 — Search → serving → log
+# Flow 2, Search → serving → log
 - launchApp:
     clearState: true
     clearKeychain: true
@@ -120,7 +120,7 @@ env:
 - assertVisible:
     text: "51 / 180g"
 ---
-# Flow 3 — My meals one-tap log
+# Flow 3, My meals one-tap log
 - launchApp:
     clearState: true
     clearKeychain: true
@@ -162,7 +162,7 @@ env:
 - assertVisible:
     text: "E2E prep bowl"
 ---
-# Flow 4 — Recently logged re-log
+# Flow 4, Recently logged re-log
 - launchApp:
     clearState: true
     clearKeychain: true

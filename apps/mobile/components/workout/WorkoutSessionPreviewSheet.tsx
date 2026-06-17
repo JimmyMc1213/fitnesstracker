@@ -1,4 +1,6 @@
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
+
+import { BottomSheet } from "@/components/motion";
 
 import { BottomActionBar } from "@/components/BottomActionBar";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
@@ -39,13 +41,8 @@ export function WorkoutSessionPreviewSheet({
   const volLabel = weightUnit === "kg" ? "kg·reps" : "lb·reps";
 
   return (
-    <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
-      <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-        <View
-          testID="workout-session-preview-sheet"
-          className="max-h-[82%] rounded-t-2xl"
-          style={{ backgroundColor: colors.card }}
-        >
+    <BottomSheet open={open} onClose={onClose} panelStyle={{ paddingHorizontal: 0, maxHeight: "82%" }}>
+      <View testID="workout-session-preview-sheet" className="max-h-[82%] rounded-t-2xl">
           <View className="px-5 pb-0 pt-5">
             <Text
               className="mb-1 text-[10px] font-semibold uppercase tracking-widest"
@@ -125,8 +122,7 @@ export function WorkoutSessionPreviewSheet({
               </Pressable>
             ) : null}
           </BottomActionBar>
-        </View>
       </View>
-    </Modal>
+    </BottomSheet>
   );
 }

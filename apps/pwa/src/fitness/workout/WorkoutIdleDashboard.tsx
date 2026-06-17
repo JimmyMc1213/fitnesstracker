@@ -26,13 +26,13 @@ function WorkoutHeaderActions({
         className="tap"
         onClick={onBrowseTemplates}
         style={{
-          height: 32,
-          padding: "0 10px",
+          height: 40,
+          padding: "0 14px",
           borderRadius: 10,
           border: "0.5px solid var(--border)",
           background: "var(--surface-3)",
           color: "#6EB7FF",
-          fontSize: 12,
+          fontSize: 14,
           fontWeight: 600,
           letterSpacing: "-0.01em",
           flexShrink: 0,
@@ -53,8 +53,8 @@ function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       aria-label="Workout history"
       style={{
-        width: 40,
-        height: 40,
+        width: 48,
+        height: 48,
         borderRadius: 10,
         border: "0.5px solid var(--border)",
         background: "var(--surface-3)",
@@ -65,7 +65,7 @@ function HistoryHeaderButton({ onClick }: { onClick: () => void }) {
         flexShrink: 0,
       }}
     >
-      <IconClock size={20} stroke={1.75} />
+      <IconClock size={24} stroke={1.75} />
     </button>
   );
 }

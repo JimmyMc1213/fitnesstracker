@@ -1,6 +1,8 @@
 import { buildCoachContext, getWeighInReaction, localDateKey } from "@newyouai/core";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Image, Modal, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, Text, TextInput, View } from "react-native";
+
+import { BottomSheet } from "@/components/motion";
 
 import { buildHabitsForDateKey, markWeighInHabitDone } from "@/lib/habits";
 import { compressImageToJpegDataUrl } from "@/lib/imageCompress";
@@ -157,13 +159,12 @@ export function WeighInSheet({
   }
 
   return (
-    <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
-      <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-        <View
-          testID="weigh-in-sheet"
-          className="rounded-t-2xl px-5 pt-5"
-          style={{ backgroundColor: colors.card, maxHeight: "82%", paddingBottom: bottomActionPadding }}
-        >
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      panelStyle={{ paddingHorizontal: 0, paddingBottom: bottomActionPadding, maxHeight: "82%" }}
+    >
+      <View testID="weigh-in-sheet" className="rounded-t-2xl px-5 pt-5">
           <Text
             className="mb-2 text-[11px] font-semibold uppercase tracking-widest"
             style={{ color: colors.textTertiary }}
@@ -244,8 +245,7 @@ export function WeighInSheet({
               Cancel
             </Text>
           </Pressable>
-        </View>
       </View>
-    </Modal>
+    </BottomSheet>
   );
 }

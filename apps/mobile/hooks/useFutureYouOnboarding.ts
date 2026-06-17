@@ -25,8 +25,8 @@ type WizardNav = {
 
 function permissionDeniedMessage(kind: "camera" | "gallery"): string {
   return kind === "camera" ?
-      "Camera access is off. Enable it in Settings or choose from gallery — or skip for now."
-    : "Photo library access is off. Enable it in Settings or use the camera — or skip for now.";
+      "Camera access is off. Enable it in Settings or choose from gallery, or skip for now."
+    : "Photo library access is off. Enable it in Settings or use the camera, or skip for now.";
 }
 
 export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, profile }: WizardNav) {

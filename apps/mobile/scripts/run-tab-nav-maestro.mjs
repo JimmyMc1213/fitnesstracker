@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RN-3 tab navigation Maestro — provisions a disposable Supabase user, then runs tab-nav flow.
+ * RN-3 tab navigation Maestro, provisions a disposable Supabase user, then runs tab-nav flow.
  * Requires: Metro on :8082, iOS simulator + dev client, JAVA_HOME (openjdk@17), maestro CLI.
  */
 import { spawnSync } from "node:child_process";
@@ -77,7 +77,7 @@ const metroProbe = spawnSync("curl", ["-sf", "-o", "/dev/null", "http://127.0.0.
 });
 if (metroProbe.status !== 0) {
   console.error(
-    "Metro is not reachable on http://127.0.0.1:8082 — start it first:\n" +
+    "Metro is not reachable on http://127.0.0.1:8082, start it first:\n" +
       "  cd apps/mobile && npx expo start --dev-client --port 8082",
   );
   process.exit(1);
@@ -86,7 +86,7 @@ if (metroProbe.status !== 0) {
 const sb = createClient(url, key);
 const creds = await provisionTestUser(sb);
 
-console.log(`Maestro tab-nav — test user ${creds.email}`);
+console.log(`Maestro tab-nav, test user ${creds.email}`);
 
 const result = spawnSync(
   "maestro",

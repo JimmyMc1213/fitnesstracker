@@ -1,7 +1,6 @@
 import { router } from "expo-router";
 import { useRef, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScrollView, Text, View, Pressable } from "react-native";
 
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { ReplaceActiveWorkoutConfirmSheet } from "@/components/workout/ReplaceActiveWorkoutConfirmSheet";
@@ -27,11 +26,12 @@ import {
   replaceTemplateFromHistory,
   startWorkoutFromHistory,
 } from "@/lib/workout/workoutHistoryActions";
+import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 import type { CompletedWorkoutSession } from "@newyouai/types";
 
 export default function WorkoutHistoryScreen() {
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
+  const { paddingTop, paddingBottom } = useTabScreenInsets({ tabBarHidden: true });
   const { state, hydrated, setFitnessState } = useFitnessState();
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -48,7 +48,7 @@ export default function WorkoutHistoryScreen() {
       <View
         testID="workout-history-screen"
         className="flex-1 items-center justify-center"
-        style={{ backgroundColor: colors.background }}
+        style={{ backgroundColor: colors.background, paddingTop }}
       >
         <Text style={{ color: colors.textSecondary }}>Loading…</Text>
       </View>
@@ -137,12 +137,23 @@ export default function WorkoutHistoryScreen() {
         testID="workout-history-screen"
         className="flex-1 px-screen-x"
         contentContainerStyle={{
-          paddingTop: 8,
-          paddingBottom: insets.bottom + 24,
+          paddingBottom,
           flexGrow: 1,
         }}
-        style={{ backgroundColor: colors.background }}
+        style={{ flex: 1, backgroundColor: colors.background, paddingTop }}
       >
+        <Pressable
+          testID="workout-history-back"
+          accessibilityRole="button"
+          accessibilityLabel="Back to workout"
+          onPress={() => router.back()}
+          className="-ml-2 mb-1 p-2"
+        >
+          <Text className="text-[15px] font-semibold" style={{ color: colors.accent }}>
+            ← Back
+          </Text>
+        </Pressable>
+
         <ScreenHeader eyebrow="TRAINING" title="Workout history" titleTestID="workout-history-title" />
 
         <Text className="mb-4 mt-1 text-[13px] font-medium" style={{ color: colors.textTertiary }}>

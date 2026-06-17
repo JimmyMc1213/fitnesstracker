@@ -1,4 +1,4 @@
-# RN-8-07 Progress tab smoke — weigh-in updates chart + goal range + Sunday history
+# RN-8-07 Progress tab smoke, weigh-in updates chart + goal range + Sunday history
 # Run: EXPO_PUBLIC_E2E_FITNESS_SEED=progress MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:progress
 # Metro:
 #   cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=progress npx expo start --dev-client --port 8082

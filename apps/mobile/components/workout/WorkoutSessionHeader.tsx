@@ -3,12 +3,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { useAppTheme } from "@/hooks/useAppTheme";
-
-function formatElapsed(totalSec: number): string {
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
-}
+import { formatWorkoutDuration, weekdayFullName } from "@newyouai/core";
 
 type Props = {
   elapsedSec: number;
@@ -19,6 +14,8 @@ type Props = {
   exerciseCount: number;
   onFinishWorkout: () => void;
   onCancel?: () => void;
+  /** Stacked metadata lines for flat workout pilot. */
+  metaLayout?: "inline" | "stacked";
 };
 
 export function WorkoutSessionHeader({
@@ -30,8 +27,12 @@ export function WorkoutSessionHeader({
   exerciseCount,
   onFinishWorkout,
   onCancel,
+  metaLayout = "inline",
 }: Props) {
   const { colors } = useAppTheme();
+  const stackedMeta = metaLayout === "stacked";
+  const exerciseLabel = `${exerciseCount} exercise${exerciseCount === 1 ? "" : "s"}`;
+  const splitDayLabel = splitDay?.trim() ? weekdayFullName(splitDay.trim()) : undefined;
 
   return (
     <View testID="workout-session-header" className="pt-2">
@@ -44,7 +45,7 @@ export function WorkoutSessionHeader({
             className="text-xl font-bold tabular-nums tracking-tight"
             style={{ color: colors.textPrimary }}
           >
-            {formatElapsed(elapsedSec)}
+            {formatWorkoutDuration(elapsedSec)}
           </Text>
         </View>
         <View className="flex-row items-center gap-2">
@@ -70,14 +71,30 @@ export function WorkoutSessionHeader({
         onChangeText={onSessionTitleChange}
         placeholder="Workout name"
         placeholderTextColor={colors.textTertiary}
-        className="mt-1.5 w-full py-1.5 text-xl font-bold tracking-tight"
+        className={`mt-1.5 w-full py-1.5 font-bold tracking-tight ${stackedMeta ? "text-[26px]" : "text-xl"}`}
         style={{ color: colors.textPrimary }}
       />
 
-      <Text className="mb-2.5 mt-1 text-xs font-medium" style={{ color: colors.textTertiary }}>
-        Started {startedAt}
-        {splitDay ? ` · ${splitDay}` : ""} · {exerciseCount} exercise{exerciseCount === 1 ? "" : "s"}
-      </Text>
+      {stackedMeta ? (
+        <View className="mb-2.5 mt-1.5 gap-1">
+          <Text className="text-sm font-medium" style={{ color: colors.textTertiary }}>
+            Started {startedAt}
+          </Text>
+          {splitDayLabel ? (
+            <Text className="text-sm font-medium" style={{ color: colors.textTertiary }}>
+              {splitDayLabel}
+            </Text>
+          ) : null}
+          <Text className="text-sm font-medium" style={{ color: colors.textTertiary }}>
+            {exerciseLabel}
+          </Text>
+        </View>
+      ) : (
+        <Text className="mb-2.5 mt-1 text-xs font-medium" style={{ color: colors.textTertiary }}>
+          Started {startedAt}
+          {splitDayLabel ? ` · ${splitDayLabel}` : ""} · {exerciseLabel}
+        </Text>
+      )}
     </View>
   );
 }

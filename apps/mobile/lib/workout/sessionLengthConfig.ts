@@ -1,7 +1,7 @@
 import type { SessionLength, TrainingSessionDuration } from "@newyouai/types";
 import { sessionLengthFromDuration } from "./workoutSplitByDays";
 
-/** Target session duration (seconds) — midpoint of each onboarding bucket. */
+/** Target session duration (seconds), midpoint of each onboarding bucket. */
 export const SESSION_TARGET_SECONDS: Record<SessionLength, number> = {
   under_30: 25 * 60,
   "30_45": 37.5 * 60,

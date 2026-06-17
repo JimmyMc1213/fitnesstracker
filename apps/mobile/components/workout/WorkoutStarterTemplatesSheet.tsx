@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+
+import { BottomSheet } from "@/components/motion";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { useBottomActionPadding } from "@/lib/screenInsets";
@@ -183,14 +185,12 @@ export function WorkoutStarterTemplatesSheet({
   }
 
   return (
-    <Modal visible={open} animationType="slide" transparent onRequestClose={handleClose}>
-      <Pressable className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.45)" }} onPress={handleClose}>
-        <Pressable
-          testID="workout-starter-templates-sheet"
-          className="max-h-[86%] rounded-t-2xl px-4 pt-5"
-          style={{ backgroundColor: colors.card, paddingBottom: bottomActionPadding }}
-          onPress={(e) => e.stopPropagation()}
-        >
+    <BottomSheet
+      open={open}
+      onClose={handleClose}
+      panelStyle={{ paddingHorizontal: 0, paddingBottom: bottomActionPadding, maxHeight: "86%" }}
+    >
+      <View testID="workout-starter-templates-sheet" className="max-h-[86%] rounded-t-2xl px-4 pt-5">
           <Text className="text-xl font-bold tracking-tight" style={{ color: colors.textPrimary }}>
             Workout templates
           </Text>
@@ -243,8 +243,7 @@ export function WorkoutStarterTemplatesSheet({
               ))
             )}
           </ScrollView>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </BottomSheet>
   );
 }

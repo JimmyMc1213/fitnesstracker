@@ -41,6 +41,7 @@ export function RoutinePreviewSheet({
     <BottomSheet
       open={open}
       onClose={onClose}
+      placement="bottom"
       zIndex={1000}
       ariaLabelledBy="routine-preview-title"
       panelStyle={{

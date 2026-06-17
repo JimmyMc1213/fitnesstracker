@@ -4,8 +4,10 @@ import { minimalAppState } from "../coach/testFixtures/appStateFixtures";
 import {
   buildSundayCheckInData,
   commitSundayCheckIn,
+  dismissSundayCheckIn,
   isSundayCheckInDay,
   shouldShowSundayCheckIn,
+  shouldShowSundayCheckInCard,
   sundayNoonForCurrentWeek,
 } from "./sundayCheckIn";
 
@@ -60,5 +62,19 @@ describe("sundayCheckIn", () => {
     expect(next.weekFocusCommitments).toHaveLength(1);
     expect(next.weekFocusWeekStartKey).toBe(data.weekStartKey);
     expect(next.sundayCheckInHistory).toHaveLength(1);
+    expect(shouldShowSundayCheckInCard(next, data, sunday)).toBe(true);
+  });
+
+  it("dismissSundayCheckIn hides the home card without history", () => {
+    const sunday = new Date("2026-06-14T12:00:00");
+    const state = minimalAppState({ onboardingComplete: true });
+    const data = buildSundayCheckInData(state, sunday);
+    expect(data).not.toBeNull();
+    if (!data) return;
+
+    expect(shouldShowSundayCheckInCard(state, data, sunday)).toBe(true);
+    const dismissed = dismissSundayCheckIn(state, sunday);
+    expect(dismissed.sundayReviewCompletedKey).toBe(data.sundayKey);
+    expect(shouldShowSundayCheckInCard(dismissed, data, sunday)).toBe(false);
   });
 });

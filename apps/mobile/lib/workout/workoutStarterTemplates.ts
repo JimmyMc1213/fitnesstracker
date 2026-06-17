@@ -271,7 +271,7 @@ export const WORKOUT_STARTER_TEMPLATES: WorkoutStarterTemplate[] = [
   {
     id: "bodyweight-full",
     name: "Bodyweight full body",
-    description: "No equipment — push, pull, legs, and core.",
+    description: "No equipment: push, pull, legs, and core.",
     category: "bodyweight",
     days: [
       {
@@ -329,7 +329,7 @@ export const WORKOUT_STARTER_TEMPLATES: WorkoutStarterTemplate[] = [
   {
     id: "bodyweight-legs",
     name: "Bodyweight legs",
-    description: "Squats, lunges, and glute work — no barbell needed.",
+    description: "Squats, lunges, and glute work without a barbell.",
     category: "bodyweight",
     days: [
       {
@@ -368,7 +368,7 @@ export const WORKOUT_STARTER_TEMPLATES: WorkoutStarterTemplate[] = [
   {
     id: "program-ppl",
     name: "Push / Pull / Legs",
-    description: "Classic 3-day split — three sessions per week.",
+    description: "Classic 3-day split, three sessions per week.",
     category: "programs",
     days: [
       {
@@ -502,7 +502,7 @@ export const WORKOUT_STARTER_TEMPLATES: WorkoutStarterTemplate[] = [
   {
     id: "program-bro-split",
     name: "5-day bro split",
-    description: "One muscle group per session — classic bodybuilding split.",
+    description: "One muscle group per session, classic bodybuilding split.",
     category: "programs",
     days: [
       {
@@ -566,7 +566,7 @@ export const WORKOUT_STARTER_TEMPLATES: WorkoutStarterTemplate[] = [
   {
     id: "program-full-body-ab",
     name: "Full body A / B",
-    description: "Two alternating full-body days — great for 2–4 sessions per week.",
+    description: "Two alternating full-body days, great for 2–4 sessions per week.",
     category: "programs",
     days: [
       {
@@ -594,7 +594,7 @@ export const WORKOUT_STARTER_TEMPLATES: WorkoutStarterTemplate[] = [
   {
     id: "strength-5x5",
     name: "StrongLifts 5×5",
-    description: "Alternating A/B — squat, bench, row and squat, overhead press, deadlift.",
+    description: "Alternating A/B, squat, bench, row and squat, overhead press, deadlift.",
     category: "strength",
     days: [
       {
@@ -620,7 +620,7 @@ export const WORKOUT_STARTER_TEMPLATES: WorkoutStarterTemplate[] = [
   {
     id: "strength-starting-strength",
     name: "Starting Strength",
-    description: "Novice linear progression — squat, press, deadlift focus.",
+    description: "Novice linear progression, squat, press, deadlift focus.",
     category: "strength",
     days: [
       {

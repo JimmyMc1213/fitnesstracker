@@ -1,10 +1,13 @@
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+
+import { BottomSheet } from "@/components/motion";
 
 import { BottomActionBar } from "@/components/BottomActionBar";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import type { PreWorkoutCoachBrief } from "@/lib/preWorkoutCoachBrief";
 import { COACH_BLUE_LABEL, coachCardColors } from "@/lib/workoutUiTokens";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { weekdayFullName } from "@newyouai/core";
 import type { WorkoutRoutineTemplate } from "@newyouai/types";
 
 type Props = {
@@ -15,6 +18,8 @@ type Props = {
   onOpenMenu: () => void;
   onStart: () => void;
 };
+
+const SHEET_MAX_HEIGHT = Math.round(Dimensions.get("window").height * 0.78);
 
 export function RoutinePreviewSheet({
   open,
@@ -27,23 +32,30 @@ export function RoutinePreviewSheet({
   const { colors, theme } = useAppTheme();
   const coachCard = coachCardColors(theme);
   const totalSets = template.exercises.reduce((a, e) => a + e.sets.length, 0);
+  const dayLabel = template.dayLabel.trim();
+  const dayDisplay = dayLabel ? weekdayFullName(dayLabel) : "Workout";
 
   return (
-    <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
-      <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-        <View
-          testID="routine-preview-sheet"
-          className="max-h-[78%] rounded-t-2xl"
-          style={{ backgroundColor: colors.card }}
-        >
-          <View className="px-4 pb-2 pt-4">
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      placement="bottom"
+      panelStyle={{
+        paddingHorizontal: 0,
+        height: SHEET_MAX_HEIGHT,
+        maxHeight: SHEET_MAX_HEIGHT,
+        overflow: "hidden",
+      }}
+    >
+      <View testID="routine-preview-sheet" style={styles.sheetBody}>
+          <View style={styles.header} className="px-4 pb-2 pt-4">
             <View className="flex-row items-start justify-between gap-3">
               <View className="min-w-0 flex-1">
                 <Text
-                  className="mb-1 text-[10px] font-semibold uppercase tracking-widest"
+                  className="mb-1 text-[10px] font-semibold tracking-widest"
                   style={{ color: colors.textTertiary }}
                 >
-                  {template.dayLabel.trim() || "Workout"}
+                  {dayDisplay}
                 </Text>
                 <Text className="text-xl font-bold tracking-tight" style={{ color: colors.textPrimary }}>
                   {template.name}
@@ -92,7 +104,11 @@ export function RoutinePreviewSheet({
             ) : null}
           </View>
 
-          <ScrollView className="px-4" contentContainerStyle={{ paddingBottom: 16 }}>
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator
+          >
             {template.exercises.map((ex, i) => (
               <View
                 key={ex.id}
@@ -115,7 +131,12 @@ export function RoutinePreviewSheet({
             ))}
           </ScrollView>
 
-          <BottomActionBar className="border-t px-4 pt-3" bordered borderColor={colors.border}>
+          <BottomActionBar
+            className="border-t px-4 pt-3"
+            style={styles.footer}
+            bordered
+            borderColor={colors.border}
+          >
             <PrimaryButton
               block
               testID={`workout-start-${template.id}`}
@@ -136,8 +157,30 @@ export function RoutinePreviewSheet({
               </Pressable>
             )}
           </BottomActionBar>
-        </View>
       </View>
-    </Modal>
+    </BottomSheet>
   );
 }
+
+const styles = StyleSheet.create({
+  sheetBody: {
+    flex: 1,
+    flexDirection: "column",
+    overflow: "hidden",
+  },
+  header: {
+    flexShrink: 0,
+  },
+  scroll: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minHeight: 0,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  footer: {
+    flexShrink: 0,
+  },
+});

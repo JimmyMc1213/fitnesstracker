@@ -38,7 +38,7 @@ function PhotoPanel({
 
   return (
     <View
-      className="aspect-[3/4] flex-1 items-center justify-center overflow-hidden rounded-2xl border"
+      className="aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-2xl border"
       style={{
         borderColor: colors.border,
         backgroundColor: variant === "after" ? `${colors.accent}18` : colors.card,
@@ -110,22 +110,31 @@ export function OnboardingFutureYouPhoto({
 
   return (
     <View>
-      <View className="relative">
-        <View className={`flex-row items-center gap-2${blocked ? " opacity-40" : ""}`}>
-          <View className="flex-1">
+      <View className="relative pb-9">
+        <View className={`flex-row items-center gap-2.5${blocked ? " opacity-40" : ""}`}>
+          <View className="relative flex-1">
             <PhotoPanel uri={photoPreview} placeholderLabel="You" />
-            {hasPhoto && !uploading && !blocked ? (
-              <Pressable onPress={onClearPhoto} disabled={!canUpload} className="mt-2 items-center py-1">
-                <Text className="text-sm" style={{ color: colors.accent }}>
-                  Remove photo
-                </Text>
-              </Pressable>
-            ) : (
-              <View className="mt-2 h-7" />
-            )}
+            <View
+              className="absolute left-0 right-0 top-full mt-2 min-h-7 items-center justify-center"
+              pointerEvents="box-none"
+            >
+              {hasPhoto && !uploading && !blocked ? (
+                <Pressable onPress={onClearPhoto} disabled={!canUpload} className="py-1">
+                  <Text className="text-sm" style={{ color: colors.accent }}>
+                    Remove photo
+                  </Text>
+                </Pressable>
+              ) : (
+                <View className="h-7" />
+              )}
+            </View>
           </View>
-          <Text style={{ color: colors.textTertiary }}>→</Text>
-          <PhotoPanel placeholderLabel={afterLabel} variant="after" />
+          <Text className="text-base" style={{ color: colors.textTertiary }}>
+            →
+          </Text>
+          <View className="flex-1">
+            <PhotoPanel placeholderLabel={afterLabel} variant="after" />
+          </View>
         </View>
 
         {blocked ? (
@@ -143,7 +152,7 @@ export function OnboardingFutureYouPhoto({
       {!blocked ? (
         <View className="mt-5">
           <Text className="mb-3 text-center text-sm" style={{ color: colors.textSecondary }}>
-            Your photo is only used to create your Future You — never shared or sold.
+            Your photo is only used to create your Future You, never shared or sold.
           </Text>
 
           <Pressable

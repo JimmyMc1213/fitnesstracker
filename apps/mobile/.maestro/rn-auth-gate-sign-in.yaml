@@ -1,4 +1,4 @@
-# RN-2-01 auth gate sign-in — requires Supabase + test account
+# RN-2-01 auth gate sign-in, requires Supabase + test account
 # Run: MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... maestro test .maestro/rn-auth-gate-sign-in.yaml
 appId: app.newyouai.mobile
 env:

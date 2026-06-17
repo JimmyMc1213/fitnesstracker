@@ -1,4 +1,4 @@
-# RN-4 draft resume — calendar step after kill + relaunch
+# RN-4 draft resume, calendar step after kill + relaunch
 appId: app.newyouai.mobile
 env:
   TEST_EMAIL: ${MAESTRO_TEST_EMAIL}

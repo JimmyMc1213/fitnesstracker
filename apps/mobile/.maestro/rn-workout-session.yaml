@@ -1,4 +1,4 @@
-# RN-6-11 workout session smoke — start → log set → finish → summary
+# RN-6-11 workout session smoke, start → log set → finish → summary
 # Run: EXPO_PUBLIC_E2E_FITNESS_SEED=workout-session MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:workout-session
 # Metro must be started with the same seed:
 #   cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=workout-session npx expo start --dev-client --port 8082

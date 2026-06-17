@@ -106,9 +106,11 @@ export type ScreenProps = {
   /** Sunday weekly check-in card + flow (Home only). */
   sundayCheckIn?: {
     available: boolean;
+    showCard: boolean;
     completed: boolean;
     data: import("./sundayCheckIn").SundayCheckInData | null;
     onOpenFlow: () => void;
+    onDismiss: () => void;
   };
 };
 

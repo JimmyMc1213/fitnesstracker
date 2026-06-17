@@ -1,4 +1,4 @@
-import { IconCheck, IconChevR } from "./icons";
+import { IconCheck, IconChevR, IconX } from "./icons";
 import { formatWeightFromLbs, weightUnitLabel } from "./unitPreferences";
 import type { SundayCheckInData } from "./sundayCheckIn";
 import type { UnitPreferences } from "./types";
@@ -8,12 +8,13 @@ type Props = {
   completed?: boolean;
   unitPreferences: UnitPreferences;
   onReview: () => void;
+  onDismiss?: () => void;
 };
 
 const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"] as const;
 const SUCCESS_GREEN = "#16a34a";
 
-export function HomeSundayCheckInCard({ data, completed = false, unitPreferences, onReview }: Props) {
+export function HomeSundayCheckInCard({ data, completed = false, unitPreferences, onReview, onDismiss }: Props) {
   const wUnit = unitPreferences.weightUnit;
   const sundayDom = new Date(`${data.sundayKey}T12:00:00`).getDate();
 
@@ -25,20 +26,21 @@ export function HomeSundayCheckInCard({ data, completed = false, unitPreferences
       : null;
 
   return (
-    <button
-      type="button"
-      className="tap card home-sunday-check-in-card"
-      onClick={onReview}
-      aria-label={completed ? "View Sunday check-in recap" : "Open Sunday check-in"}
-      style={{
-        marginTop: 18,
-        padding: 16,
-        width: "100%",
-        textAlign: "left",
-        borderColor: "var(--border)",
-        background: "var(--bg-secondary)",
-      }}
-    >
+    <div className="home-sunday-check-in-card-slot" style={{ position: "relative", marginTop: 18, width: "100%" }}>
+      <button
+        type="button"
+        className="tap card home-sunday-check-in-card"
+        onClick={onReview}
+        aria-label={completed ? "View Sunday check-in recap" : "Open Sunday check-in"}
+        style={{
+          padding: 16,
+          paddingRight: onDismiss ? 36 : 16,
+          width: "100%",
+          textAlign: "left",
+          borderColor: "var(--border)",
+          background: "var(--bg-secondary)",
+        }}
+      >
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
         <div
           style={{
@@ -63,62 +65,64 @@ export function HomeSundayCheckInCard({ data, completed = false, unitPreferences
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="between" style={{ alignItems: "center", gap: 8 }}>
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "var(--text-ghost)",
-                  marginBottom: 4,
-                }}
-              >
-                Sunday check-in
-              </div>
-              <div
-                style={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  letterSpacing: "-0.01em",
-                  lineHeight: 1.25,
-                  color: "var(--text-primary)",
-                }}
-              >
-                Week {data.weekNumber} in the books
-              </div>
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "var(--text-ghost)",
+                marginBottom: 4,
+              }}
+            >
+              Sunday check-in
             </div>
+            <div
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                letterSpacing: "-0.01em",
+                lineHeight: 1.25,
+                color: "var(--text-primary)",
+              }}
+            >
+              Week {data.weekNumber} in the books
+            </div>
+          </div>
+
+          <div className="between" style={{ alignItems: "center", gap: 8, marginTop: 6 }}>
+            <p
+              style={{
+                margin: 0,
+                flex: 1,
+                minWidth: 0,
+                fontSize: 11,
+                fontWeight: 500,
+                lineHeight: 1.4,
+                color: "var(--text-secondary)",
+              }}
+            >
+              {data.workoutsCompleted}/{data.workoutsPlanned} workouts · {data.proteinDaysHit}/7 protein
+              {weightText ? (
+                <>
+                  {" · "}
+                  <span
+                    style={{
+                      color: weightNegative ? SUCCESS_GREEN : weightPositive ? "#d97706" : "var(--text-secondary)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {weightText}
+                  </span>
+                </>
+              ) : null}
+            </p>
             <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
               {completed ? <CompleteBadge /> : data.onTrack ? <OnTrackBadge /> : null}
               <IconChevR size={14} style={{ color: "var(--text-tertiary)" }} aria-hidden />
             </div>
           </div>
-
-          <p
-            style={{
-              margin: "6px 0 0",
-              fontSize: 11,
-              fontWeight: 500,
-              lineHeight: 1.4,
-              color: "var(--text-secondary)",
-            }}
-          >
-            {data.workoutsCompleted}/{data.workoutsPlanned} workouts · {data.proteinDaysHit}/7 protein
-            {weightText ? (
-              <>
-                {" · "}
-                <span
-                  style={{
-                    color: weightNegative ? SUCCESS_GREEN : weightPositive ? "#d97706" : "var(--text-secondary)",
-                    fontWeight: 600,
-                  }}
-                >
-                  {weightText}
-                </span>
-              </>
-            ) : null}
-          </p>
         </div>
       </div>
 
@@ -134,7 +138,34 @@ export function HomeSundayCheckInCard({ data, completed = false, unitPreferences
       >
         {completed ? "View recap" : "Review the week"}
       </div>
-    </button>
+      </button>
+      {onDismiss ? (
+        <button
+          type="button"
+          className="tap home-sunday-check-in-card__dismiss"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDismiss();
+          }}
+          aria-label="Dismiss Sunday check-in"
+          style={{
+            position: "absolute",
+            top: 22,
+            right: 8,
+            width: 28,
+            height: 28,
+            borderRadius: 999,
+            border: "none",
+            display: "grid",
+            placeItems: "center",
+            color: "var(--text-tertiary)",
+            background: "transparent",
+          }}
+        >
+          <IconX size={14} stroke={2.25} />
+        </button>
+      ) : null}
+    </div>
   );
 }
 

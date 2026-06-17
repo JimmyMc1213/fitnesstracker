@@ -1,4 +1,4 @@
-/** Equipment / variant tags for custom exercises — keeps labels consistent across workouts. */
+/** Equipment / variant tags for custom exercises, keeps labels consistent across workouts. */
 export const EXERCISE_EQUIPMENT_LABELS = [
   "Barbell",
   "Dumbbell",

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RN-8 epic-close — unit gates + Maestro smoke (progress, sunday-check-in, RN-3..7 regressions).
+ * RN-8 epic-close, unit gates + Maestro smoke (progress, sunday-check-in, RN-3..7 regressions).
  * Requires: JDK 17+, maestro CLI, iOS simulator + dev client, Supabase .env
  */
 import { spawn, spawnSync } from "node:child_process";

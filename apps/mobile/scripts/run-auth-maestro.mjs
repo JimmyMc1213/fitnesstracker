@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Epic RN-2 auth Maestro sweep — provisions a disposable Supabase user, then runs all auth flows.
+ * Epic RN-2 auth Maestro sweep, provisions a disposable Supabase user, then runs all auth flows.
  * Requires: Metro on :8082, iOS simulator + dev client, JAVA_HOME (openjdk@17), maestro CLI.
  */
 import { spawnSync } from "node:child_process";
@@ -96,14 +96,14 @@ const signUpOnly = {
   name: "Maestro RN2 SignUp",
 };
 
-console.log(`Maestro auth sweep — sign-in user ${creds.email}, sign-up user ${signUpOnly.email}`);
+console.log(`Maestro auth sweep, sign-in user ${creds.email}, sign-up user ${signUpOnly.email}`);
 
 const metroProbe = spawnSync("curl", ["-sf", "-o", "/dev/null", "http://127.0.0.1:8082"], {
   stdio: "ignore",
 });
 if (metroProbe.status !== 0) {
   console.error(
-    "Metro is not reachable on http://127.0.0.1:8082 — start it first:\n" +
+    "Metro is not reachable on http://127.0.0.1:8082, start it first:\n" +
       "  cd apps/mobile && npx expo start --dev-client --port 8082",
   );
   process.exit(1);

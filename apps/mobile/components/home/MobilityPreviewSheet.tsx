@@ -1,4 +1,6 @@
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
+
+import { BottomSheet } from "@/components/motion";
 
 import { BottomActionBar } from "@/components/BottomActionBar";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
@@ -16,13 +18,8 @@ export function MobilityPreviewSheet({ open, onClose, onStart }: Props) {
   const totalMoves = STRETCH_BLOCKS.length;
 
   return (
-    <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
-      <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-        <View
-          testID="mobility-preview-sheet"
-          className="max-h-[78%] rounded-t-2xl"
-          style={{ backgroundColor: colors.card }}
-        >
+    <BottomSheet open={open} onClose={onClose} panelStyle={{ paddingHorizontal: 0, maxHeight: "78%" }}>
+      <View testID="mobility-preview-sheet" className="max-h-[78%] rounded-t-2xl">
           <View className="px-4 pb-2 pt-4">
             <Text
               className="mb-1 text-[10px] font-semibold uppercase tracking-widest"
@@ -86,8 +83,7 @@ export function MobilityPreviewSheet({ open, onClose, onStart }: Props) {
               </Text>
             </Pressable>
           </BottomActionBar>
-        </View>
       </View>
-    </Modal>
+    </BottomSheet>
   );
 }

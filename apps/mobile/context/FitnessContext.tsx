@@ -30,7 +30,7 @@ function e2eSeedFromEnv(): Partial<PersistedFitnessSlice> | null {
 type FitnessContextValue = {
   state: AppState | null;
   hydrated: boolean;
-  /** Increments whenever fitness state is persisted — drives cloud sync debounce. */
+  /** Increments whenever fitness state is persisted, drives cloud sync debounce. */
   syncRevision: number;
   setFitnessState: (updater: AppState | ((prev: AppState) => AppState)) => void;
   replaceFitnessState: (next: AppState) => void;

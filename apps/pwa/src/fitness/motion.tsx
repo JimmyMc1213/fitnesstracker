@@ -185,15 +185,14 @@ export const confirmCenterDialogPanelStyle: CSSProperties = {
   border: CONFIRM_MODAL_BORDER,
 };
 
-/** Bottom-sheet confirmation chrome. */
+/** Bottom-sheet confirmation chrome (legacy name — panels are centered). */
 export const confirmBottomSheetPanelStyle: CSSProperties = {
   ...bottomSheetPanelTheme,
   width: "100%",
   maxWidth: 440,
   padding: 24,
-  borderRadius: "20px 20px 0 0",
+  borderRadius: 20,
   border: CONFIRM_MODAL_BORDER,
-  borderBottom: "none",
 };
 
 export const confirmSheetTitleStyle: CSSProperties = {
@@ -409,6 +408,8 @@ export function useKeyboardAwareSheetSizing() {
 type BottomSheetProps = {
   open: boolean;
   onClose?: () => void;
+  /** Centered modal by default; use `bottom` for the pre-workout routine preview. */
+  placement?: "center" | "bottom";
   zIndex?: number;
   ariaLabelledBy?: string;
   ariaLabel?: string;
@@ -421,6 +422,7 @@ type BottomSheetProps = {
 export function BottomSheet({
   open,
   onClose,
+  placement = "center",
   zIndex = 1000,
   ariaLabelledBy,
   ariaLabel,
@@ -432,67 +434,93 @@ export function BottomSheet({
   const reduceMotion = useReducedMotion();
   const { keyboardBottom } = useKeyboardViewport();
 
-  function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onClose?.();
-  }
+  if (placement === "bottom") {
+    function onBackdropMouseDown(e: MouseEvent<HTMLDivElement>) {
+      if (e.target === e.currentTarget) onClose?.();
+    }
 
-  const panelVariants = sheetPanelVariants(!!reduceMotion);
-  const backdropVariants = reduceMotion ? REDUCED_VARIANTS : BACKDROP_VARIANTS;
-  const backdropTransition = reduceMotion ? REDUCED_TRANSITION : BACKDROP_TRANSITION;
+    const panelVariants = sheetPanelVariants(!!reduceMotion);
+    const backdropVariants = reduceMotion ? REDUCED_VARIANTS : BACKDROP_VARIANTS;
+    const backdropTransition = reduceMotion ? REDUCED_TRANSITION : BACKDROP_TRANSITION;
 
-  const overlay = (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          key="bottom-sheet"
-          role="presentation"
-          onMouseDown={onBackdropMouseDown}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          variants={backdropVariants}
-          transition={backdropTransition}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex,
-            background: "var(--sheet-backdrop)",
-            backdropFilter: "blur(6px)",
-            WebkitBackdropFilter: "blur(6px)",
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            padding: `12px 12px calc(16px + env(safe-area-inset-bottom, 0px) + ${keyboardBottom}px)`,
-            ...backdropStyle,
-          }}
-        >
+    const overlay = (
+      <AnimatePresence>
+        {open ? (
           <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={ariaLabelledBy}
-            aria-label={ariaLabel}
-            className={`card ${panelClassName}`.trim()}
-            style={{
-              ...bottomSheetPanelTheme,
-              width: "100%",
-              borderRadius: "20px 20px 0 0",
-              ...panelStyle,
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
+            key="bottom-sheet"
+            role="presentation"
+            onMouseDown={onBackdropMouseDown}
             initial="initial"
             animate="animate"
             exit="exit"
-            variants={panelVariants}
+            variants={backdropVariants}
+            transition={backdropTransition}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex,
+              background: "var(--sheet-backdrop)",
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
+              display: "flex",
+              alignItems: "flex-end",
+              justifyContent: "center",
+              padding: `12px 12px calc(16px + env(safe-area-inset-bottom, 0px) + ${keyboardBottom}px)`,
+              ...backdropStyle,
+            }}
           >
-            {children}
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={ariaLabelledBy}
+              aria-label={ariaLabel}
+              className={`card ${panelClassName}`.trim()}
+              style={{
+                ...bottomSheetPanelTheme,
+                width: "100%",
+                borderRadius: "20px 20px 0 0",
+                ...panelStyle,
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={panelVariants}
+            >
+              {children}
+            </motion.div>
           </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
-  );
+        ) : null}
+      </AnimatePresence>
+    );
 
-  if (typeof document === "undefined") return overlay;
-  return createPortal(overlay, document.body);
+    if (typeof document === "undefined") return overlay;
+    return createPortal(overlay, document.body);
+  }
+
+  const content = panelClassName ? <div className={panelClassName}>{children}</div> : children;
+
+  return (
+    <CenterDialog
+      open={open}
+      onClose={onClose}
+      zIndex={zIndex}
+      ariaLabelledBy={ariaLabelledBy}
+      ariaLabel={ariaLabel}
+      keyboardAware
+      backdropStyle={backdropStyle}
+      panelStyle={{
+        ...bottomSheetPanelTheme,
+        width: "100%",
+        maxWidth: 440,
+        maxHeight: "min(85vh, 640px)",
+        borderRadius: 20,
+        ...panelStyle,
+      }}
+    >
+      {content}
+    </CenterDialog>
+  );
 }
 
 const fadeOverlayVariants = (reduceMotion: boolean): Variants =>

@@ -4,6 +4,7 @@ import { OnboardingFutureYouHeroImage } from "./OnboardingFutureYouHeroImage";
 import { paywallRevealDelaySec } from "./onboardingPaywallReveal";
 import { splitFutureYouTimelineForPaywall } from "./futureYouTimeline";
 import { useFutureYouPaywallImage } from "./useFutureYouPaywallImage";
+import { PAYWALL_YEARLY_PRICE } from "./paywallPlans";
 import type { FutureYouJobStatus } from "./futureYouJobs";
 import type { UserGender } from "./types";
 
@@ -101,7 +102,7 @@ export function OnboardingPaywallFutureYouPoster({
           {ctaLabel}
         </button>
         <p className="onboarding-paywall__pricing onboarding-paywall__pricing--poster">
-          Just $79.99 per year ($6.67/mo)
+          Just ${PAYWALL_YEARLY_PRICE.toFixed(2)} per year (${(PAYWALL_YEARLY_PRICE / 12).toFixed(2)}/mo)
         </p>
       </div>
     </div>

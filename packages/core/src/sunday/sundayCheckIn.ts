@@ -344,9 +344,30 @@ export function shouldShowSundayCheckIn(
   return isSundayCheckInDay(now, previewSunday);
 }
 
-export function dismissSundayCheckIn(state: AppState, now = new Date()): AppState {
-  if (now.getDay() !== 0) return state;
-  const sundayKey = sundayKeyFromDate(now);
+export function hasSundayCheckInHistoryForKey(state: AppState, sundayKey: string): boolean {
+  return (state.sundayCheckInHistory ?? []).some((record) => record.sundayKey === sundayKey);
+}
+
+/** Home card hides when dismissed (completed without history); stays after full commit. */
+export function shouldShowSundayCheckInCard(
+  state: AppState,
+  data: SundayCheckInData | null,
+  now: Date,
+  previewSunday = false,
+): boolean {
+  if (!data || !shouldShowSundayCheckIn(state, now, previewSunday)) return false;
+  if (state.sundayReviewCompletedKey !== data.sundayKey) return true;
+  return hasSundayCheckInHistoryForKey(state, data.sundayKey);
+}
+
+export function dismissSundayCheckIn(
+  state: AppState,
+  now = new Date(),
+  previewSunday = false,
+): AppState {
+  const effectiveNow = previewSunday ? sundayNoonForCurrentWeek(now) : now;
+  if (!previewSunday && effectiveNow.getDay() !== 0) return state;
+  const sundayKey = sundayKeyFromDate(effectiveNow);
   return { ...state, sundayReviewCompletedKey: sundayKey };
 }
 

@@ -17,7 +17,7 @@ export function HomeNewYouHeaderButton({ onPress }: Props) {
       onPress={onPress}
       testID="home-newyou-header-button"
       accessibilityLabel={FUTURE_YOU_HOME_HEADER_ARIA}
-      className="h-9 items-center justify-center rounded-full border px-3"
+      className="h-11 items-center justify-center rounded-full border px-4"
       style={{
         borderColor: FUTURE_YOU_GOLD,
         backgroundColor: FUTURE_YOU_CALLOUT_BG,
@@ -28,7 +28,7 @@ export function HomeNewYouHeaderButton({ onPress }: Props) {
         elevation: 4,
       }}
     >
-      <Text className="text-[13px] font-bold tracking-tight" style={{ color: FUTURE_YOU_GOLD_MID }}>
+      <Text className="text-[15px] font-bold tracking-tight" style={{ color: FUTURE_YOU_GOLD_MID }}>
         {FUTURE_YOU_HOME_HEADER_LABEL}
       </Text>
     </Pressable>

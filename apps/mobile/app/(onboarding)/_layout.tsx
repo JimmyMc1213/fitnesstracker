@@ -3,6 +3,7 @@ import { useEffect } from "react";
 
 import { OnboardingWizardProvider } from "@/context/OnboardingWizardContext";
 import { configureRevenueCat } from "@/lib/revenueCat";
+import { defaultStackScreenOptions } from "@/lib/navigationMotion";
 
 export default function OnboardingLayout() {
   useEffect(() => {
@@ -11,7 +12,7 @@ export default function OnboardingLayout() {
 
   return (
     <OnboardingWizardProvider>
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack screenOptions={defaultStackScreenOptions} />
     </OnboardingWizardProvider>
   );
 }

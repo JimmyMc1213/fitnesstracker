@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Modal, Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
+import { CenterDialog } from "@/components/motion";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { SaveWorkoutConfirmSheet } from "@/components/workout/SaveWorkoutConfirmSheet";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -43,14 +44,8 @@ export function RenameRoutineSheet({ open = true, template, onSave, onClose }: P
 
   return (
     <>
-      <Modal visible={open && !confirmOpen} transparent animationType="fade" onRequestClose={onClose}>
-        <Pressable className="flex-1 items-center justify-center bg-black/60 px-6" onPress={onClose}>
-          <Pressable
-            testID="rename-routine-sheet"
-            className="w-full max-w-sm rounded-2xl p-6"
-            style={{ backgroundColor: colors.card }}
-            onPress={(e) => e.stopPropagation()}
-          >
+      <CenterDialog open={open && !confirmOpen} onClose={onClose} panelStyle={{ padding: 0, maxWidth: 384 }}>
+        <View testID="rename-routine-sheet" className="w-full rounded-2xl p-6">
             <Text className="text-lg font-bold tracking-tight" style={{ color: colors.textPrimary }}>
               Rename workout
             </Text>
@@ -79,9 +74,8 @@ export function RenameRoutineSheet({ open = true, template, onSave, onClose }: P
                 Cancel
               </Text>
             </Pressable>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        </View>
+      </CenterDialog>
       {confirmOpen ? (
         <SaveWorkoutConfirmSheet
           title="Rename workout?"

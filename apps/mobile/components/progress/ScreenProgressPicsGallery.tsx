@@ -8,8 +8,10 @@ import {
 import type { AppState } from "@newyouai/types";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useMemo, useState } from "react";
-import { Alert, Image, Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { FullScreenOverlay } from "@/components/motion";
 
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { ProgressPicsDeleteConfirmSheet } from "@/components/progress/ProgressPicsDeleteConfirmSheet";
@@ -136,7 +138,7 @@ export function ScreenProgressPicsGallery({ state, setFitnessState, onBack }: Pr
   function openUnlockStub() {
     Alert.alert(
       "Unlock gallery",
-      "Enter your PIN to view progress photos. Full PIN unlock ships in a follow-up — set your lock from the web app for now.",
+      "Enter your PIN to view progress photos. Full PIN unlock ships in a follow-up. Set your lock from the web app for now.",
     );
   }
 
@@ -310,12 +312,15 @@ export function ScreenProgressPicsGallery({ state, setFitnessState, onBack }: Pr
         </View>
       </ScrollView>
 
-      <Modal visible={viewerItem != null && showGallery} animationType="fade" onRequestClose={() => setViewerItem(null)}>
+      <FullScreenOverlay
+        open={viewerItem != null && showGallery}
+        motionVariant="fade"
+        onRequestClose={() => setViewerItem(null)}
+      >
         {viewerItem ? (
           <View
             className="flex-1"
             style={{
-              backgroundColor: colors.background,
               paddingTop: insets.top + 12,
               paddingBottom: insets.bottom + 24,
               paddingHorizontal: 16,
@@ -391,7 +396,7 @@ export function ScreenProgressPicsGallery({ state, setFitnessState, onBack }: Pr
             ) : null}
           </View>
         ) : null}
-      </Modal>
+      </FullScreenOverlay>
 
       <ProgressPicsDeleteConfirmSheet
         open={deleteTarget != null}

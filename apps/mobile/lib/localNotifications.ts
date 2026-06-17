@@ -68,7 +68,7 @@ export async function cancelFitcoachNotification(id: string): Promise<void> {
   try {
     await Notifications.cancelScheduledNotificationAsync(id);
   } catch {
-    // Unsupported environments (e.g. web) — no-op
+    // Unsupported environments (e.g. web), no-op
   }
 }
 

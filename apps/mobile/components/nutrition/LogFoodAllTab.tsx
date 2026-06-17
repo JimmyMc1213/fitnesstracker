@@ -101,13 +101,9 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
 
   const filteredCurated = useMemo(() => filterCuratedFoods(search), [search]);
 
-  const filteredRecent = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q || q.length >= FOOD_SEARCH_MIN_QUERY_LEN) return recentlyLogged;
-    return recentlyLogged.filter((it) => (it.name || "").toLowerCase().includes(q));
-  }, [recentlyLogged, search]);
-
-  const searchActive = search.trim().length >= FOOD_SEARCH_MIN_QUERY_LEN;
+  const searchTrimmed = search.trim();
+  const searchActive = searchTrimmed.length >= FOOD_SEARCH_MIN_QUERY_LEN;
+  const searchTypingHint = searchTrimmed.length > 0 && !searchActive;
 
   useEffect(() => {
     const q = search.trim();
@@ -162,30 +158,47 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
   }
 
   return (
-    <>
-      <TextInput
-        value={search}
-        onChangeText={setSearch}
-        testID="log-food-search-input"
-        accessibilityLabel="Search foods"
-        placeholder="Search foods (e.g. chicken breast)"
-        placeholderTextColor={colors.textTertiary}
-        autoCorrect={false}
-        autoCapitalize="none"
-        returnKeyType="search"
-        className="rounded-xl border px-3 py-3 text-[15px]"
-        style={{
-          borderColor: colors.border,
-          backgroundColor: colors.card,
-          color: colors.textPrimary,
-        }}
-      />
+    <View>
+      <View className="mb-6">
+        <Text
+          className="mb-2.5 text-[11px] font-semibold uppercase tracking-widest"
+          style={{ color: colors.textTertiary }}
+        >
+          Search foods
+        </Text>
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          testID="log-food-search-input"
+          accessibilityLabel="Search foods"
+          placeholder="Chicken breast, Greek yogurt…"
+          placeholderTextColor={colors.textTertiary}
+          autoCorrect={false}
+          autoCapitalize="none"
+          returnKeyType="search"
+          className="rounded-xl border px-3.5 py-3.5 text-[15px] leading-5"
+          style={{
+            borderColor: colors.border,
+            backgroundColor: colors.card,
+            color: colors.textPrimary,
+          }}
+        />
+        {searchTypingHint ? (
+          <Text className="mt-2.5 text-xs leading-5" style={{ color: colors.textTertiary }}>
+            Keep typing to search the food database.
+          </Text>
+        ) : !searchActive ? (
+          <Text className="mt-2.5 text-xs leading-5" style={{ color: colors.textTertiary }}>
+            Or pick from your recent foods below.
+          </Text>
+        ) : null}
+      </View>
 
       {searchActive ? (
         <>
           {searchLoading ? <FoodSearchSkeletonList /> : null}
           {!searchLoading && searchError ? (
-            <View className="mt-1">
+            <View>
               <Text className="text-sm leading-5" style={{ color: "#ffb4b4" }}>
                 {searchError}
               </Text>
@@ -197,8 +210,8 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
             </View>
           ) : null}
           {!searchLoading && !searchError && filteredCurated.length === 0 && apiResults.length === 0 ? (
-            <Text className="mt-2 text-sm leading-5" style={{ color: colors.textSecondary }}>
-              No results. Try a different search or use Manual Add.
+            <Text className="text-sm leading-5" style={{ color: colors.textSecondary }}>
+              No results found. Try another search or use Manual Add.
             </Text>
           ) : null}
           {!searchLoading && !searchError && filteredCurated.length > 0 ? (
@@ -242,17 +255,17 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
       ) : (
         <>
           <SectionHeader title="Recently logged" />
-          {filteredRecent.length === 0 ? (
-            <Text className="mt-1 text-sm leading-5" style={{ color: colors.textSecondary }}>
-              Nothing logged recently. Search above or use Manual Add.
+          {recentlyLogged.length === 0 ? (
+            <Text className="text-sm leading-5" style={{ color: colors.textSecondary }}>
+              No recent foods yet.
             </Text>
           ) : (
             <FoodListCard>
-              {filteredRecent.map((item, idx) => (
+              {recentlyLogged.map((item, idx) => (
                 <View
                   key={`${item.id}-${item.name}`}
                   className="flex-row items-center gap-2"
-                  style={{ borderBottomWidth: idx === filteredRecent.length - 1 ? 0 : 1, borderBottomColor: colors.border }}
+                  style={{ borderBottomWidth: idx === recentlyLogged.length - 1 ? 0 : 1, borderBottomColor: colors.border }}
                 >
                   <Pressable
                     onPress={() => openRecentItem(item)}
@@ -293,6 +306,6 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
           )}
         </>
       )}
-    </>
+    </View>
   );
 }

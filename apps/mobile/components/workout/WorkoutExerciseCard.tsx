@@ -2,8 +2,10 @@ import { Pressable, Text, View } from "react-native";
 import { useState } from "react";
 
 import { SetKindPickerSheet } from "@/components/workout/SetKindPickerSheet";
+import { SwipeableWorkoutSetRow } from "@/components/workout/SwipeableWorkoutSetRow";
 import { WorkoutSetField } from "@/components/workout/WorkoutSetField";
 import { useWorkoutKeypad } from "@/components/workout/WorkoutKeypadContext";
+import { ExerciseDragHandle, type ExerciseDragHandleProps } from "@/components/workout/SortableExerciseList";
 import { setFieldSecondColumnLabel } from "@/lib/workout/exercisePrescriptionDefaults";
 import { formatLastSessionHint } from "@/lib/workout/formatLastSessionHint";
 import { setColumnLabel, setKindColors } from "@/lib/workout/workoutSetKind";
@@ -23,9 +25,12 @@ type Props = {
   workoutHistory: CompletedWorkoutSession[] | undefined;
   unitPreferences: UnitPreferences;
   sessionCoachNote?: string;
+  handle?: ExerciseDragHandleProps;
   onToggleSetDone: (exercise: WorkoutExercise, setIndex: number) => void;
   onOpenActions?: () => void;
+  onRemoveSet?: (exerciseId: string, setIndex: number) => void;
   onUpdateSetKind?: (exerciseId: string, setIndex: number, kind: WorkoutSetKind) => void;
+  swipeDisabled?: boolean;
 };
 
 export function WorkoutExerciseCard({
@@ -34,9 +39,12 @@ export function WorkoutExerciseCard({
   workoutHistory,
   unitPreferences,
   sessionCoachNote,
+  handle,
   onToggleSetDone,
   onOpenActions,
+  onRemoveSet,
   onUpdateSetKind,
+  swipeDisabled,
 }: Props) {
   const { colors } = useAppTheme();
   const keypad = useWorkoutKeypad();
@@ -62,6 +70,7 @@ export function WorkoutExerciseCard({
       style={{ borderColor: colors.border, backgroundColor: colors.card }}
     >
       <View className="mb-3 flex-row items-start gap-2">
+        {handle ? <ExerciseDragHandle handle={handle} tapSize={36} /> : null}
         <View className="min-w-0 flex-1">
           <View className="flex-row flex-wrap items-center gap-2">
             <Text className="text-[11px] font-medium tabular-nums" style={{ color: colors.textTertiary }}>
@@ -144,13 +153,19 @@ export function WorkoutExerciseCard({
           const repsActive = keypad.isActive({ exerciseId: exercise.id, setIndex: si, field: "reps" });
 
           return (
-            <View
+            <SwipeableWorkoutSetRow
               key={`${exercise.id}-set-${si}`}
-              className="flex-row items-center gap-1.5 rounded-lg px-1 py-1"
-              style={{
-                backgroundColor: st.done ? `${colors.accent}14` : "transparent",
-              }}
+              deleteLabel={`Delete set ${si + 1}`}
+              disabled={swipeDisabled || !onRemoveSet}
+              testID={`workout-set-${exercise.id}-${si}-delete`}
+              onRemove={() => onRemoveSet?.(exercise.id, si)}
             >
+              <View
+                className="flex-row items-center gap-1.5 rounded-lg px-1 py-1"
+                style={{
+                  backgroundColor: st.done ? `${colors.accent}14` : colors.card,
+                }}
+              >
               <Pressable
                 onPress={() => onUpdateSetKind && setSetKindPickerIndex(si)}
                 accessibilityLabel={`Set ${si + 1} type`}
@@ -225,7 +240,8 @@ export function WorkoutExerciseCard({
                   ✓
                 </Text>
               </Pressable>
-            </View>
+              </View>
+            </SwipeableWorkoutSetRow>
           );
         })}
       </View>

@@ -1,4 +1,4 @@
-# RN-2-01 auth gate — requires Supabase env in dev client build
+# RN-2-01 auth gate, requires Supabase env in dev client build
 # Run from apps/mobile with EXPO_PUBLIC_SUPABASE_* set (see .env.example)
 # Optional sign-in: MAESTRO_TEST_EMAIL + MAESTRO_TEST_PASSWORD env vars
 appId: app.newyouai.mobile

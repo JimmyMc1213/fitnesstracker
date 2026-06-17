@@ -1,6 +1,8 @@
 import { FUTURE_YOU_FULLSCREEN_DONE_LABEL } from "@newyouai/core";
-import { Image, Modal, Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { FullScreenOverlay } from "@/components/motion";
 
 type Props = {
   open: boolean;
@@ -13,18 +15,15 @@ export function FutureYouFullscreenViewer({ open, imageUri, onClose }: Props) {
   const visible = open && Boolean(imageUri);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      presentationStyle="fullScreen"
+    <FullScreenOverlay
+      open={visible}
+      motionVariant="fade"
+      edgeToEdge
       onRequestClose={onClose}
+      style={{ backgroundColor: "#000" }}
     >
       {imageUri ? (
-        <View
-          testID="future-you-fullscreen-viewer"
-          className="flex-1"
-          style={{ backgroundColor: "#000" }}
-        >
+        <View testID="future-you-fullscreen-viewer" className="flex-1">
           <View
             className="flex-row items-center px-4 pb-2"
             style={{ paddingTop: insets.top + 12 }}
@@ -54,6 +53,6 @@ export function FutureYouFullscreenViewer({ open, imageUri, onClose }: Props) {
           </View>
         </View>
       ) : null}
-    </Modal>
+    </FullScreenOverlay>
   );
 }

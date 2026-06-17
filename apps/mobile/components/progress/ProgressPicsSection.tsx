@@ -11,7 +11,7 @@ type Props = {
   onOpenGallery: () => void;
 };
 
-/** Tappable entry on Progress — opens the full gallery screen. */
+/** Tappable entry on Progress, opens the full gallery screen. */
 export function ProgressPicsSection({ state, onOpenGallery }: Props) {
   const { colors } = useAppTheme();
   const isLocked = Boolean(state.progressPicsLock);

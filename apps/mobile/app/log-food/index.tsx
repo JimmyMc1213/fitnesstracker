@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { LogFoodScreen } from "@/components/nutrition/LogFoodScreen";
 import { useFitnessState } from "@/context/FitnessContext";
 
-export default function LogFoodModalScreen() {
+export default function LogFoodPage() {
   const { editItemId, dateKey } = useLocalSearchParams<{
     editItemId?: string;
     dateKey?: string;

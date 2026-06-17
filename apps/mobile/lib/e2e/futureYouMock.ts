@@ -4,7 +4,7 @@ import type {
   FutureYouUploadResult,
 } from "@newyouai/api-client";
 
-/** Dev/E2E only — set EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true on Metro to bypass camera + Edge Functions. */
+/** Dev/E2E only, set EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true on Metro to bypass camera + Edge Functions. */
 export function isE2eMockFutureYouEnabled(): boolean {
   return __DEV__ && process.env.EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU === "true";
 }

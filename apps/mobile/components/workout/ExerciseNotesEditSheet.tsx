@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Modal, Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
+
+import { BottomSheet } from "@/components/motion";
 
 import { WorkoutConfirmSheet } from "@/components/workout/WorkoutConfirmSheet";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -48,14 +50,12 @@ export function ExerciseNotesEditSheet({
 
   return (
     <>
-      <Modal visible={open && !confirmDeleteOpen} animationType="slide" transparent onRequestClose={onClose}>
-        <Pressable className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.45)" }} onPress={onClose}>
-          <Pressable
-            testID="exercise-notes-edit-sheet"
-            className="rounded-t-2xl px-5 pb-8 pt-5"
-            style={{ backgroundColor: colors.card }}
-            onPress={(e) => e.stopPropagation()}
-          >
+      <BottomSheet
+        open={open && !confirmDeleteOpen}
+        onClose={onClose}
+        panelStyle={{ paddingHorizontal: 0, paddingBottom: 32 }}
+      >
+        <View testID="exercise-notes-edit-sheet" className="rounded-t-2xl px-5 pb-8 pt-5">
             <Text className="text-lg font-bold tracking-tight" style={{ color: colors.textPrimary }}>
               Exercise note
             </Text>
@@ -63,7 +63,7 @@ export function ExerciseNotesEditSheet({
               {exerciseName}
             </Text>
             <Text className="mt-2 text-xs leading-[1.45]" style={{ color: colors.textTertiary }}>
-              Saved to this exercise everywhere it appears — seat height, form cues, machine settings, etc.
+              Saved to this exercise everywhere it appears: seat height, form cues, machine settings, etc.
             </Text>
             <TextInput
               value={draft}
@@ -116,9 +116,8 @@ export function ExerciseNotesEditSheet({
                 </Text>
               </Pressable>
             ) : null}
-          </Pressable>
-        </Pressable>
-      </Modal>
+        </View>
+      </BottomSheet>
       {confirmDeleteOpen ? (
         <WorkoutConfirmSheet
           title="Delete note?"

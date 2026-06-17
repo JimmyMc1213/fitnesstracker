@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RN-4 onboarding Maestro sweep — requires dev client built with
+ * RN-4 onboarding Maestro sweep, requires dev client built with
  * EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING=false so new sign-ins land on the wizard.
  */
 import { spawnSync } from "node:child_process";

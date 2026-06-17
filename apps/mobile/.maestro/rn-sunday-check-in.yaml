@@ -1,4 +1,4 @@
-# RN-8-07 Sunday check-in smoke — Home card → modal → lock in → completed card
+# RN-8-07 Sunday check-in smoke, Home card → modal → lock in → completed card
 # Run: EXPO_PUBLIC_E2E_FITNESS_SEED=progress EXPO_PUBLIC_E2E_DEV_PREVIEW_SUNDAY=true MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:sunday-check-in
 # Metro:
 #   cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=progress EXPO_PUBLIC_E2E_DEV_PREVIEW_SUNDAY=true npx expo start --dev-client --port 8082

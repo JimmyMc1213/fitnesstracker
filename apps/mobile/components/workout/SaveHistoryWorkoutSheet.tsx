@@ -1,5 +1,6 @@
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
+import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { WorkoutRoutineTemplate } from "@newyouai/types";
 
@@ -48,14 +49,8 @@ export function SaveHistoryWorkoutSheet({
   const { colors } = useAppTheme();
 
   return (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable className="flex-1 items-center justify-center bg-black/60 px-6" onPress={onClose}>
-        <Pressable
-          testID="save-history-workout-sheet"
-          className="max-h-[78%] w-full max-w-sm rounded-2xl px-3 py-4"
-          style={{ backgroundColor: colors.card }}
-          onPress={(e) => e.stopPropagation()}
-        >
+    <CenterDialog open={open} onClose={onClose} panelStyle={{ padding: 0, maxWidth: 384 }}>
+      <View testID="save-history-workout-sheet" className="max-h-[78%] w-full rounded-2xl px-3 py-4">
           <Text
             className="mx-2 mb-2 mt-1 text-[13px] font-semibold uppercase tracking-widest"
             style={{ color: colors.textTertiary }}
@@ -93,8 +88,7 @@ export function SaveHistoryWorkoutSheet({
               </ScrollView>
             </>
           ) : null}
-        </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </CenterDialog>
   );
 }

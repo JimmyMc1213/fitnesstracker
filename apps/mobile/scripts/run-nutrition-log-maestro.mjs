@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RN-7-09 nutrition-log Maestro — provisions a disposable Supabase user, then runs nutrition smoke.
+ * RN-7-09 nutrition-log Maestro, provisions a disposable Supabase user, then runs nutrition smoke.
  * Requires: Metro on :8082 with EXPO_PUBLIC_E2E_FITNESS_SEED=nutrition-log and
  * EXPO_PUBLIC_E2E_MOCK_FOOD_SEARCH=true, iOS simulator + dev client.
  */
@@ -78,7 +78,7 @@ const metroProbe = spawnSync("curl", ["-sf", "-o", "/dev/null", "http://127.0.0.
 });
 if (metroProbe.status !== 0) {
   console.error(
-    "Metro is not reachable on http://127.0.0.1:8082 — start it first:\n" +
+    "Metro is not reachable on http://127.0.0.1:8082, start it first:\n" +
       "  cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=nutrition-log EXPO_PUBLIC_E2E_MOCK_FOOD_SEARCH=true npx expo start --dev-client --port 8082",
   );
   process.exit(1);
@@ -87,7 +87,7 @@ if (metroProbe.status !== 0) {
 const sb = createClient(url, key);
 const creds = await provisionTestUser(sb);
 
-console.log(`Maestro nutrition-log — test user ${creds.email}`);
+console.log(`Maestro nutrition-log, test user ${creds.email}`);
 
 const result = spawnSync(
   "maestro",

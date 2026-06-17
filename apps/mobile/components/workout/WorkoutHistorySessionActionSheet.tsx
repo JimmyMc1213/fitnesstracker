@@ -1,5 +1,6 @@
-import { Modal, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
+import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
@@ -47,14 +48,8 @@ export function WorkoutHistorySessionActionSheet({
   const { colors } = useAppTheme();
 
   return (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable className="flex-1 items-center justify-center bg-black/60 px-6" onPress={onClose}>
-        <Pressable
-          testID="workout-history-session-action-sheet"
-          className="w-full max-w-xs rounded-2xl px-3 py-4"
-          style={{ backgroundColor: colors.card }}
-          onPress={(e) => e.stopPropagation()}
-        >
+    <CenterDialog open={open} onClose={onClose} panelStyle={{ padding: 0, maxWidth: 320 }}>
+      <View testID="workout-history-session-action-sheet" className="w-full rounded-2xl px-3 py-4">
           <Text
             className="mx-2 mb-2 mt-1 text-[13px] font-semibold uppercase tracking-widest"
             style={{ color: colors.textTertiary }}
@@ -89,8 +84,7 @@ export function WorkoutHistorySessionActionSheet({
               onClose();
             }}
           />
-        </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </CenterDialog>
   );
 }

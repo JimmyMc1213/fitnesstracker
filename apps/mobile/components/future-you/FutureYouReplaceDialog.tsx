@@ -5,8 +5,9 @@ import {
   FUTURE_YOU_REPLACE_DIALOG_TITLE,
   FUTURE_YOU_REPLACE_KEEP_LABEL,
 } from "@newyouai/core";
-import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
+import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
@@ -27,18 +28,15 @@ export function FutureYouReplaceDialog({
   const { colors } = useAppTheme();
 
   return (
-    <Modal
-      visible={open}
-      transparent
-      animationType="fade"
-      onRequestClose={busy ? undefined : onCancel}
+    <CenterDialog
+      open={open}
+      onClose={busy ? undefined : onCancel}
+      panelStyle={{ padding: 0, maxWidth: 384 }}
     >
-      <View className="flex-1 items-center justify-center bg-black/60 px-6">
-        <View
-          testID="future-you-replace-dialog"
-          className="w-full max-w-sm overflow-hidden rounded-2xl px-7 py-7"
-          style={{ backgroundColor: colors.card }}
-        >
+      <View
+        testID="future-you-replace-dialog"
+        className="w-full overflow-hidden rounded-2xl px-7 py-7"
+      >
           <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
             {FUTURE_YOU_REPLACE_DIALOG_TITLE}
           </Text>
@@ -85,8 +83,7 @@ export function FutureYouReplaceDialog({
               </Text>
             </Pressable>
           </View>
-        </View>
       </View>
-    </Modal>
+    </CenterDialog>
   );
 }

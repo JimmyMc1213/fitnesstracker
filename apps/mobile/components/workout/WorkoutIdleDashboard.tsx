@@ -50,10 +50,10 @@ function WorkoutHeaderActions({
       <Pressable
         onPress={onBrowseTemplates}
         testID="workout-templates-button"
-        className="h-8 items-center justify-center rounded-[10px] border px-2.5"
+        className="h-10 items-center justify-center rounded-[10px] border px-3.5"
         style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
       >
-        <Text className="text-xs font-semibold tracking-tight" style={{ color: COACH_BLUE_LABEL }}>
+        <Text className="text-sm font-semibold tracking-tight" style={{ color: COACH_BLUE_LABEL }}>
           Templates
         </Text>
       </Pressable>
@@ -61,10 +61,10 @@ function WorkoutHeaderActions({
         onPress={onShowHistory}
         testID="workout-history-button"
         accessibilityLabel="Workout history"
-        className="h-10 w-10 items-center justify-center rounded-[10px] border"
+        className="h-12 w-12 items-center justify-center rounded-[10px] border"
         style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
       >
-        <Text style={{ color: colors.textPrimary, fontSize: 18 }}>⏱</Text>
+        <Text style={{ color: colors.textPrimary, fontSize: 22 }}>⏱</Text>
       </Pressable>
     </View>
   );

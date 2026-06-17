@@ -7,7 +7,9 @@ import type {
   WorkoutRoutineTemplate,
 } from "@newyouai/types";
 import { useMemo, useRef, useState } from "react";
-import { Modal, View } from "react-native";
+import { View } from "react-native";
+
+import { FullScreenOverlay } from "@/components/motion";
 
 import { EquipmentSetupPicker } from "@/components/onboarding/EquipmentSetupPicker";
 import { ExperienceLevelPicker } from "@/components/onboarding/ExperienceLevelPicker";
@@ -338,8 +340,8 @@ export function WeeklyRoutineBuilderFlow({
   );
 
   return (
-    <Modal visible={open} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
+    <FullScreenOverlay open={open} motionVariant="fade" onRequestClose={onClose}>
       <View className="flex-1">{shell}</View>
-    </Modal>
+    </FullScreenOverlay>
   );
 }

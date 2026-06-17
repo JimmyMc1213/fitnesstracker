@@ -1,4 +1,4 @@
-# RN-3-01 tab navigation — requires Supabase + test account + Metro on :8082
+# RN-3-01 tab navigation, requires Supabase + test account + Metro on :8082
 # Run: MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:tab-nav
 appId: app.newyouai.mobile
 env:

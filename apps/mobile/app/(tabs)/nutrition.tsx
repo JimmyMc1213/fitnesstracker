@@ -1,8 +1,8 @@
 import { effectiveNutritionTotalsForDateKey, formatDateKeyEyebrow, localDateKey, appendNutritionLoggedItem, removeNutritionLoggedItem, appendWaterLogEntry, removeWaterLogEntry } from "@newyouai/core";
 import type { NutritionLoggedItem } from "@newyouai/types";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { ScrollView, Text, View } from "react-native";
 
 import { FoodAddedToast, useFoodAddedToast } from "@/components/nutrition/FoodAddedToast";
 import { TodayFoodLogCard } from "@/components/nutrition/TodayFoodLogCard";
@@ -22,8 +22,6 @@ export default function NutritionScreen() {
   const { colors } = useAppTheme();
   const { paddingTop, paddingBottom } = useTabScreenInsets();
   const { state, setFitnessState } = useFitnessState();
-  const params = useLocalSearchParams<{ openLogFood?: string }>();
-  const handledOpenLogFoodRef = useRef(false);
   const foodAddedToast = useFoodAddedToast();
   const deleteToast = useFoodAddedToast();
   const pendingToastRef = useRef<{ itemId: string; dateKey: string } | null>(null);
@@ -53,16 +51,6 @@ export default function NutritionScreen() {
   }, [state, todayKey]);
   const kcalLeft = Math.max(0, targets.cal - totals.cal);
   const proteinLeft = Math.max(0, targets.p - totals.p);
-
-  useEffect(() => {
-    if (params.openLogFood !== "1") {
-      handledOpenLogFoodRef.current = false;
-      return;
-    }
-    if (handledOpenLogFoodRef.current) return;
-    handledOpenLogFoodRef.current = true;
-    router.push("/(modals)/log-food");
-  }, [params.openLogFood]);
 
   useFocusEffect(
     useCallback(() => {
@@ -100,12 +88,12 @@ export default function NutritionScreen() {
   }
 
   function openLogFood() {
-    router.push("/(modals)/log-food");
+    router.push("/log-food");
   }
 
   function handleEditFood(item: NutritionLoggedItem) {
     router.push({
-      pathname: "/(modals)/log-food",
+      pathname: "/log-food",
       params: { editItemId: item.id, dateKey: todayKey },
     });
   }
@@ -178,13 +166,6 @@ export default function NutritionScreen() {
           ) : null}
         </View>
 
-        <TodayFoodLogCard
-          items={todayFoodItems}
-          onRemove={handleRemoveFood}
-          onEdit={handleEditFood}
-          onLogFood={openLogFood}
-        />
-
         {state ? (
           <WaterTrackerCard
             dateKey={todayKey}
@@ -198,6 +179,13 @@ export default function NutritionScreen() {
             }
           />
         ) : null}
+
+        <TodayFoodLogCard
+          items={todayFoodItems}
+          onRemove={handleRemoveFood}
+          onEdit={handleEditFood}
+          onLogFood={openLogFood}
+        />
       </ScrollView>
 
       <View
@@ -211,19 +199,6 @@ export default function NutritionScreen() {
           undoTestID={toastUndoTestId}
           onUndo={handleUndoToast}
         />
-        <View className="items-center">
-          <Pressable
-            className="min-w-[220px] items-center rounded-full border px-6 py-3"
-            style={{ borderColor: colors.border, backgroundColor: colors.card }}
-            onPress={openLogFood}
-            testID="open-log-food"
-            accessibilityLabel="Log food"
-          >
-            <Text className="text-base font-semibold" style={{ color: colors.textPrimary }}>
-              Log food
-            </Text>
-          </Pressable>
-        </View>
       </View>
     </View>
   );

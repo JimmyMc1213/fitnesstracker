@@ -1,4 +1,4 @@
-# RN-4 calendar — 3-day minimum validation
+# RN-4 calendar, 3-day minimum validation
 appId: app.newyouai.mobile
 env:
   TEST_EMAIL: ${MAESTRO_TEST_EMAIL}

@@ -1,12 +1,7 @@
 import { SessionCancelButton } from "../SessionCancelButton";
 import { PrimaryButton } from "../shared";
+import { formatWorkoutDuration } from "@newyouai/core";
 import { METADATA_SIZE, TITLE_SIZE } from "../workoutUiTokens";
-
-function formatElapsed(totalSec: number): string {
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
-}
 
 export function WorkoutSessionHeader({
   elapsedSec,
@@ -42,7 +37,7 @@ export function WorkoutSessionHeader({
               letterSpacing: "-0.02em",
             }}
           >
-            {formatElapsed(elapsedSec)}
+            {formatWorkoutDuration(elapsedSec)}
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>

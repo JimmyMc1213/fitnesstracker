@@ -432,7 +432,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['full_gym', 'home_gym', 'dumbbells_only'],
     experience: ['beginner', 'intermediate', 'advanced'],
     substitutes: ['dumbbell_row', 'machine_row'],
-    coachNote: 'Chest on incline bench — removes lower back from equation'
+    coachNote: 'Chest on incline bench, removes lower back from equation'
   },
 
   // ─── VERTICAL PULL ─────────────────────────────────────────────────
@@ -482,7 +482,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['full_gym'],
     experience: ['beginner', 'intermediate', 'advanced'],
     substitutes: ['lat_pulldown', 'chinup'],
-    coachNote: 'Neutral grip, elbows drive to hips — more bicep involvement'
+    coachNote: 'Neutral grip, elbows drive to hips, more bicep involvement'
   },
   {
     id: 'cable_pulldown',
@@ -640,7 +640,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['full_gym'],
     experience: ['beginner', 'intermediate', 'advanced'],
     substitutes: ['hack_squat', 'leg_press'],
-    coachNote: 'Full extension, pause and squeeze at top — quad isolation'
+    coachNote: 'Full extension, pause and squeeze at top, quad isolation'
   },
 
   // ─── HINGE PATTERN ─────────────────────────────────────────────────
@@ -762,7 +762,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['full_gym'],
     experience: ['beginner', 'intermediate', 'advanced'],
     substitutes: ['hip_thrust', 'glute_bridge'],
-    coachNote: 'Ankle attachment, kick straight back — squeeze at top'
+    coachNote: 'Ankle attachment, kick straight back, squeeze at top'
   },
   {
     id: 'abduction_machine',
@@ -774,7 +774,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['full_gym'],
     experience: ['beginner', 'intermediate', 'advanced'],
     substitutes: ['cable_kickback', 'glute_bridge'],
-    coachNote: 'Push knees out against pads — outer glute and hip'
+    coachNote: 'Push knees out against pads, outer glute and hip'
   },
 
   // ─── LEG PRESS ─────────────────────────────────────────────────────
@@ -800,7 +800,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['full_gym'],
     experience: ['intermediate', 'advanced'],
     substitutes: ['leg_press', 'bulgarian_split_squat'],
-    coachNote: 'One leg at a time — identifies and fixes imbalances'
+    coachNote: 'One leg at a time, identifies and fixes imbalances'
   },
 
   // ─── LEG CURL ──────────────────────────────────────────────────────
@@ -986,7 +986,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['full_gym'],
     experience: ['beginner', 'intermediate', 'advanced'],
     substitutes: ['barbell_curl', 'ez_bar_curl'],
-    coachNote: 'Pad supports upper arm — eliminates cheating'
+    coachNote: 'Pad supports upper arm, eliminates cheating'
   },
   {
     id: 'concentration_curl',
@@ -998,7 +998,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['full_gym', 'home_gym', 'dumbbells_only'],
     experience: ['beginner', 'intermediate', 'advanced'],
     substitutes: ['dumbbell_curl', 'cable_curl'],
-    coachNote: 'Elbow on inner thigh — peak contraction focus'
+    coachNote: 'Elbow on inner thigh, peak contraction focus'
   },
   {
     id: 'chin_up_bicep',
@@ -1060,7 +1060,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['full_gym'],
     experience: ['beginner', 'intermediate', 'advanced'],
     substitutes: ['overhead_tricep_extension', 'skull_crusher'],
-    coachNote: 'Rope attachment overhead — long head stretch'
+    coachNote: 'Rope attachment overhead, long head stretch'
   },
   {
     id: 'tricep_dips',
@@ -1120,7 +1120,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['bodyweight', 'home_gym', 'full_gym', 'dumbbells_only'],
     experience: ['beginner', 'intermediate'],
     substitutes: ['tricep_dips', 'diamond_pushup'],
-    coachNote: 'Hands on bench behind you — beginner friendly dip'
+    coachNote: 'Hands on bench behind you, beginner friendly dip'
   },
 
   // ─── CORE ──────────────────────────────────────────────────────────
@@ -1218,7 +1218,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['bodyweight', 'home_gym', 'full_gym', 'dumbbells_only'],
     experience: ['beginner', 'intermediate'],
     substitutes: ['russian_twist', 'cable_crunch'],
-    coachNote: 'Slow and controlled — opposite elbow to knee'
+    coachNote: 'Slow and controlled, opposite elbow to knee'
   },
   {
     id: 'side_plank',
@@ -1230,7 +1230,7 @@ export const exerciseLibrary: Exercise[] = [
     equipment: ['bodyweight', 'home_gym', 'full_gym', 'dumbbells_only'],
     experience: ['beginner', 'intermediate', 'advanced'],
     substitutes: ['plank', 'pallof_press'],
-    coachNote: 'Hips up, straight line — targets obliques'
+    coachNote: 'Hips up, straight line, targets obliques'
   },
   {
     id: 'pallof_press',

@@ -1,8 +1,10 @@
 import { weekdayFullName } from "@newyouai/core";
 import type { CustomExerciseTemplate, EquipmentSetup, WorkoutExercise, WorkoutRoutineTemplate } from "@newyouai/types";
 import { useEffect, useState } from "react";
-import { Modal, Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { FullScreenOverlay } from "@/components/motion";
 
 import { useBottomActionPadding } from "@/lib/screenInsets";
 
@@ -651,8 +653,8 @@ export function WorkoutRoutineEditor({
   }
 
   return (
-    <Modal visible={open} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
+    <FullScreenOverlay open={open} motionVariant="fade" onRequestClose={onClose}>
       {body}
-    </Modal>
+    </FullScreenOverlay>
   );
 }

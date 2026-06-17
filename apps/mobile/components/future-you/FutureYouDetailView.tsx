@@ -86,7 +86,7 @@ export function FutureYouDetailView({
           style={{ backgroundColor: colors.accent, minHeight: 52 }}
         >
           <Text className="text-base font-semibold" style={{ color: colors.background }}>
-            {FUTURE_YOU_GALLERY_SAVE_LABEL} — Coming soon
+            {FUTURE_YOU_GALLERY_SAVE_LABEL} (coming soon)
           </Text>
         </Pressable>
         <FutureYouReportButton jobId={jobId} context="home" />

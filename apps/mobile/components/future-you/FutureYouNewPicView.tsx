@@ -74,26 +74,35 @@ export function FutureYouNewPicView({
     : FUTURE_YOU_PAGE_GENERATE_LABEL;
 
   return (
-    <View testID="future-you-upload-photo" className="mt-[18px] gap-4">
-      <View className="flex-row items-center justify-between">
-        {step === "motivation" ?
-          <Pressable accessibilityRole="button" onPress={onBackToPhoto} className="py-1">
-            <Text className="text-base font-semibold" style={{ color: colors.accent }}>
-              Back
-            </Text>
-          </Pressable>
-        : <Pressable accessibilityRole="button" onPress={onClose} className="py-1">
-            <Text className="text-base font-semibold" style={{ color: colors.accent }}>
-              ← {FUTURE_YOU_DETAIL_BACK_LABEL}
-            </Text>
-          </Pressable>
-        }
-        <Text className="text-lg font-semibold" style={{ color: colors.textPrimary }}>
+    <View testID="future-you-upload-photo" className="mt-1">
+      <View
+        className="flex-row items-center gap-2 border-b px-4 pb-2 pt-3"
+        style={{ borderColor: colors.border }}
+      >
+        <View className="min-w-[4.5rem]">
+          {step === "motivation" ?
+            <Pressable accessibilityRole="button" onPress={onBackToPhoto} className="py-1.5">
+              <Text className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                Back
+              </Text>
+            </Pressable>
+          : <Pressable accessibilityRole="button" onPress={onClose} className="py-1.5">
+              <Text className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                ← {FUTURE_YOU_DETAIL_BACK_LABEL}
+              </Text>
+            </Pressable>
+          }
+        </View>
+        <Text
+          className="min-w-0 flex-1 text-center text-base font-bold tracking-tight"
+          style={{ color: colors.textPrimary }}
+        >
           {title}
         </Text>
-        <View className="w-16" />
+        <View className="min-w-[4.5rem]" />
       </View>
 
+      <View className="gap-4 pt-3">
       {step === "photo" ?
         <OnboardingFutureYouPhoto
           gender={gender}
@@ -144,6 +153,7 @@ export function FutureYouNewPicView({
           </PrimaryButton>
         </View>
       }
+      </View>
     </View>
   );
 }

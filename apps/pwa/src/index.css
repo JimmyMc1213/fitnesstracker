@@ -52,7 +52,7 @@
   --macro-fat: #6db88a;
   --macro-hydration: #5a9ae8;
   /* Tab bar layout — theme-agnostic (surface colors live in data-theme blocks). */
-  --tabbar-float-offset: 16px;
+  --tabbar-float-offset: 4px;
   --tabbar-pill-height: 66px;
   --tabbar-dock-gap: 12px;
   --tabbar-future-you-lift: 10px;
@@ -212,8 +212,12 @@
   --chart-bar-active: #ffffff;
   --chart-bar-label-active: rgba(255, 255, 255, 0.55);
   --chart-bar-label: rgba(255, 255, 255, 0.3);
-  --tabbar-bg: rgba(22, 22, 22, 0.84);
-  --tabbar-border: rgba(42, 42, 42, 0.82);
+  --tabbar-bg: rgba(52, 52, 58, 0.88);
+  --tabbar-border: rgba(74, 74, 82, 0.82);
+  --tab-inactive-fg: rgba(255, 255, 255, 0.62);
+  --tab-active-fg: #ffffff;
+  --tab-active-bg: rgba(255, 255, 255, 0.14);
+  --tab-active-border: rgba(255, 255, 255, 0.1);
   --workout-keypad-chrome: calc(248px + max(8px, env(safe-area-inset-bottom, 0px)));
   --btn-disabled-bg: rgba(255, 255, 255, 0.08);
   --btn-disabled-fg: rgba(255, 255, 255, 0.35);
@@ -395,8 +399,12 @@
   --chart-bar-active: #0a0a0a;
   --chart-bar-label-active: rgba(0, 0, 0, 0.55);
   --chart-bar-label: rgba(0, 0, 0, 0.38);
-  --tabbar-bg: rgba(255, 255, 255, 0.92);
-  --tabbar-border: rgba(224, 224, 224, 0.9);
+  --tabbar-bg: rgba(220, 220, 226, 0.88);
+  --tabbar-border: rgba(196, 196, 204, 0.82);
+  --tab-inactive-fg: rgba(0, 0, 0, 0.52);
+  --tab-active-fg: #0a0a0a;
+  --tab-active-bg: rgba(255, 255, 255, 0.88);
+  --tab-active-border: rgba(0, 0, 0, 0.06);
   --workout-keypad-chrome: calc(248px + max(8px, env(safe-area-inset-bottom, 0px)));
   --btn-disabled-bg: rgba(0, 0, 0, 0.06);
   --btn-disabled-fg: rgba(0, 0, 0, 0.35);
@@ -1119,9 +1127,9 @@ textarea {
   flex: 1 1 auto;
   min-width: 0;
   padding: 9px 11px;
-  background: var(--tabbar-bg);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  background-color: var(--tabbar-bg);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
   border: 0.5px solid var(--tabbar-border);
   border-radius: 9999px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
@@ -1146,9 +1154,9 @@ textarea {
   margin-bottom: var(--tabbar-future-you-lift);
   border: 0.5px solid rgba(201, 168, 118, 0.38);
   border-radius: 9999px;
-  background: var(--tabbar-bg);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  background-color: var(--tabbar-bg);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
   box-shadow:
     0 10px 28px rgba(0, 0, 0, 0.38),
     0 0 0 1px rgba(201, 168, 118, 0.08);
@@ -1188,24 +1196,46 @@ textarea {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 7px 0;
+  padding: 7px 4px;
   min-height: 48px;
   justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: 9999px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .tab svg {
   display: block;
-  color: var(--tertiary);
+  color: var(--tab-inactive-fg);
+  transition: color 0.2s ease;
+}
+
+.tab[aria-current="true"] {
+  background-color: var(--tab-active-bg);
+  box-shadow: inset 0 0 0 0.5px var(--tab-active-border);
 }
 
 .tab[aria-current="true"] svg {
-  color: var(--text);
+  color: var(--tab-active-fg);
 }
 
 .tab .tlabel {
   font-size: 11px;
   letter-spacing: 0;
   font-weight: 500;
+  color: var(--tab-inactive-fg);
+  transition: color 0.2s ease;
+}
+
+.tab[aria-current="true"] .tlabel {
+  font-weight: 600;
+  color: var(--tab-active-fg);
 }
 
 ::selection {
@@ -3659,13 +3689,13 @@ input[type="number"] {
 }
 
 .home-newyou-header-btn {
-  height: 36px;
-  padding: 0 12px;
+  height: 44px;
+  padding: 0 16px;
   border-radius: 9999px;
   border: 1px solid var(--fy-callout-border-ready);
   background: var(--fy-callout-bg);
   color: var(--fy-callout-fg);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.02em;
   box-shadow:

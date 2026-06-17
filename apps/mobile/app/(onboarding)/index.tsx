@@ -546,7 +546,7 @@ export default function OnboardingWizardScreen() {
       <OnboardingShell
         step={stepIndex}
         title="What's your why?"
-        subtitle="Pick one focus — we'll personalize your Future You while you finish onboarding."
+        subtitle="Pick one focus, we'll personalize your Future You while you finish onboarding."
         onBack={goBack}
         onContinue={() => void futureYouFlow.continueFutureYouMotivation()}
         continueDisabled={!futureYou?.motivationId || futureYouFlow.generating}
