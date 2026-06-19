@@ -1,7 +1,9 @@
 import { weekdayMonStartIndex } from "@newyouai/core";
 import { Text, View } from "react-native";
 
+import { TypewriterText } from "@/components/motion/TypewriterText";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { MACRO_COLORS } from "@/lib/macroColors";
 import type { OnboardingPlanSnapshot } from "@/lib/onboardingPlanSnapshot";
 import { planReadyFirstCoachNote } from "@/lib/onboardingReinforcementCopy";
@@ -35,7 +37,7 @@ function MacroStat({
       <Text className="text-2xl font-bold" style={{ color: toneColor }}>
         {value.toLocaleString()}
       </Text>
-      <Text className="mt-0.5 text-xs uppercase tracking-wide" style={{ color: colors.textSecondary }}>
+      <Text className="mt-0.5 text-xs" style={{ color: colors.textSecondary }}>
         {label}
       </Text>
     </View>
@@ -44,6 +46,7 @@ function MacroStat({
 
 export function OnboardingPlanReady({ planSnapshot }: Props) {
   const { colors } = useAppTheme();
+  const { ob } = useOnboardingTheme();
   const { macros, profile, templates, waterDailyTargetOz, stepsTarget, volumeUnit, timeline } = planSnapshot;
   const weekTemplates = [...templates].sort(
     (a, b) => weekdayMonStartIndex(a.dayLabel) - weekdayMonStartIndex(b.dayLabel),
@@ -108,12 +111,14 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
       <View className="h-px" style={{ backgroundColor: colors.border }} />
 
       <View>
-        <Text className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.textTertiary }}>
+        <Text className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: ob.coachBlueLabel }}>
           Coach
         </Text>
-        <Text className="text-sm leading-6" style={{ color: colors.textSecondary }}>
-          {coachNote}
-        </Text>
+        <TypewriterText
+          text={coachNote}
+          className="text-sm leading-6"
+          style={{ color: colors.textSecondary }}
+        />
       </View>
     </View>
   );

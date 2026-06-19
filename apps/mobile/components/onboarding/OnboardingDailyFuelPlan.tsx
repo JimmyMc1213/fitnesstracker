@@ -1,84 +1,32 @@
 import type { MacroTotals } from "@newyouai/types";
-import { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { EditableNumber } from "@/components/onboarding/EditableNumber";
+import { GradientCard } from "@/components/ui/GradientCard";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { clampMacroValue } from "@/lib/macroLimits";
 
 type MacroKey = "cal" | "p" | "c" | "f";
+type TagTone = "protein" | "carbs" | "fat";
+
+const MACRO_TAG_COLORS: Record<TagTone, string> = {
+  protein: "#c9a876",
+  carbs: "#e85d5d",
+  fat: "#6db88a",
+};
 
 const MACRO_ROWS: {
   key: MacroKey;
   label: string;
   unit: string;
   tag: string;
+  tagTone: TagTone;
+  priority?: boolean;
 }[] = [
-  { key: "p", label: "Protein", unit: "g", tag: "#1 priority" },
-  { key: "c", label: "Carbs", unit: "g", tag: "Your fuel" },
-  { key: "f", label: "Fats", unit: "g", tag: "Hormone balance" },
+  { key: "p", label: "Protein", unit: "g", tag: "#1 priority", tagTone: "protein", priority: true },
+  { key: "c", label: "Carbs", unit: "g", tag: "Your fuel", tagTone: "carbs" },
+  { key: "f", label: "Fats", unit: "g", tag: "Hormone balance", tagTone: "fat" },
 ];
-
-function MacroValueField({
-  macroKey,
-  label,
-  value,
-  unit,
-  onChange,
-  large = false,
-}: {
-  macroKey: MacroKey;
-  label: string;
-  value: number;
-  unit: string;
-  onChange: (next: number) => void;
-  large?: boolean;
-}) {
-  const { colors } = useAppTheme();
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(value));
-
-  useEffect(() => {
-    if (!editing) setDraft(String(value));
-  }, [value, editing]);
-
-  function commitDraft() {
-    const n = parseInt(draft, 10);
-    if (Number.isFinite(n) && n >= 0) onChange(clampMacroValue(macroKey, n));
-    else setDraft(String(value));
-    setEditing(false);
-  }
-
-  if (editing) {
-    return (
-      <TextInput
-        value={draft}
-        onChangeText={setDraft}
-        onBlur={commitDraft}
-        keyboardType="number-pad"
-        autoFocus
-        className={large ? "text-4xl font-bold" : "text-lg font-semibold"}
-        style={{ color: colors.textPrimary, minWidth: 80 }}
-      />
-    );
-  }
-
-  return (
-    <Pressable onPress={() => setEditing(true)} accessibilityLabel={`Edit ${label}`}>
-      <Text
-        className={large ? "text-4xl font-bold" : "text-lg font-semibold"}
-        style={{ color: colors.textPrimary }}
-      >
-        {value}
-        {unit ? (
-          <Text className={large ? "text-xl" : "text-sm"} style={{ color: colors.textSecondary }}>
-            {" "}
-            {unit}
-          </Text>
-        ) : null}
-      </Text>
-    </Pressable>
-  );
-}
 
 type Props = {
   macros: MacroTotals;
@@ -88,7 +36,7 @@ type Props = {
 };
 
 export function OnboardingDailyFuelPlan({ macros, computedMacros, onChangeMacros, onReset }: Props) {
-  const { colors } = useAppTheme();
+  const { colors, ob } = useOnboardingTheme();
   const macrosEdited =
     macros.cal !== computedMacros.cal ||
     macros.p !== computedMacros.p ||
@@ -97,54 +45,60 @@ export function OnboardingDailyFuelPlan({ macros, computedMacros, onChangeMacros
 
   return (
     <View className="gap-4">
-      <View
-        className="rounded-2xl border p-4"
-        style={{ borderColor: colors.border, backgroundColor: colors.card }}
-      >
-        <Text className="mb-2 text-sm" style={{ color: colors.textSecondary }}>
+      <GradientCard>
+        <Text className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.textSecondary }}>
           Daily calories
         </Text>
-        <MacroValueField
-          macroKey="cal"
+        <EditableNumber
+          variant="hero"
           label="Calories"
           value={macros.cal}
           unit="cal"
-          large
+          sanitize={(n) => clampMacroValue("cal", n)}
           onChange={(cal) => onChangeMacros({ ...macros, cal })}
         />
-      </View>
+      </GradientCard>
 
-      <View
-        className="rounded-2xl border p-4"
-        style={{ borderColor: colors.border, backgroundColor: colors.card }}
-      >
-        <Text className="mb-3 text-sm font-semibold" style={{ color: colors.textSecondary }}>
+      <GradientCard>
+        <Text className="mb-3 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.textSecondary }}>
           Macro split
         </Text>
         {MACRO_ROWS.map((row) => (
-          <View key={row.key} className="mb-3 flex-row items-center justify-between">
+          <View
+            key={row.key}
+            className="mb-3 flex-row items-center justify-between"
+            style={{ borderLeftWidth: 2, borderLeftColor: MACRO_TAG_COLORS[row.tagTone], paddingLeft: 10 }}
+          >
             <View>
               <Text className="text-base font-medium" style={{ color: colors.textPrimary }}>
                 {row.label}
               </Text>
-              <Text className="text-xs" style={{ color: colors.accent }}>
+              <Text
+                className="font-semibold uppercase"
+                style={{
+                  color: MACRO_TAG_COLORS[row.tagTone],
+                  fontSize: row.tagTone === "protein" ? 11 : 10,
+                  letterSpacing: 0.04 * (row.tagTone === "protein" ? 11 : 10),
+                }}
+              >
                 {row.tag}
               </Text>
             </View>
-            <MacroValueField
-              macroKey={row.key}
+            <EditableNumber
+              variant="row"
               label={row.label}
               value={macros[row.key]}
               unit={row.unit}
+              sanitize={(n) => clampMacroValue(row.key, n)}
               onChange={(next) => onChangeMacros({ ...macros, [row.key]: next })}
             />
           </View>
         ))}
-      </View>
+      </GradientCard>
 
       {macrosEdited ? (
         <Pressable onPress={onReset}>
-          <Text className="text-center text-sm font-medium" style={{ color: colors.accent }}>
+          <Text className="text-center text-sm font-medium" style={{ color: ob.ghostFg }}>
             Reset to calculated values
           </Text>
         </Pressable>

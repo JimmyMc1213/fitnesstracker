@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text } from "react-native";
 
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import {
   ONBOARDING_CONTINUE_HEIGHT,
@@ -30,12 +31,15 @@ export function OnboardingContinueButton({
   const hasBorder = tone === "dark" && !disabled;
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       disabled={disabled}
       testID={testID}
-      className="items-center justify-center rounded-full px-6"
       style={{
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 999,
+        paddingHorizontal: 24,
         minHeight: ONBOARDING_CONTINUE_HEIGHT,
         backgroundColor: continueStyle.backgroundColor,
         borderWidth: hasBorder ? 1 : 0,
@@ -45,7 +49,7 @@ export function OnboardingContinueButton({
       <Text className="text-base font-semibold tracking-tight" style={{ color: continueStyle.color }}>
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -62,14 +66,18 @@ export function OnboardingGhostFooterAction({
 }) {
   const { ob } = useOnboardingTheme();
   return (
-    <Pressable onPress={onPress} testID={testID} className={`items-center${compact ? " py-1" : " py-2"}`}>
+    <PressableScale
+      onPress={onPress}
+      testID={testID}
+      style={{ alignItems: "center", paddingVertical: compact ? 4 : 8 }}
+    >
       <Text
         className={compact ? "text-[13px] font-medium" : "text-base font-medium"}
         style={{ color: ob.ghostFg }}
       >
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -90,16 +98,20 @@ export function OnboardingPillPressable({
   const pill = onboardingPillColors(ob, selected);
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       testID={testID}
-      className={`items-center justify-center rounded-full border px-4 py-3.5${
-        layout === "inline" ? " flex-1" : ""
-      }`}
       style={{
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 999,
+        borderWidth: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
         minHeight: ONBOARDING_PILL_MIN_HEIGHT,
         borderColor: pill.borderColor,
         backgroundColor: pill.backgroundColor,
+        ...(layout === "inline" ? { flex: 1 } : null),
       }}
     >
       {typeof children === "string" || typeof children === "number" ? (
@@ -109,6 +121,6 @@ export function OnboardingPillPressable({
       ) : (
         children
       )}
-    </Pressable>
+    </PressableScale>
   );
 }

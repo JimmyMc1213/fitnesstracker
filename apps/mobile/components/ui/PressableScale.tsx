@@ -1,0 +1,68 @@
+import { type ReactNode } from "react";
+import {
+  Pressable,
+  type GestureResponderEvent,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+
+import { useReducedMotion } from "@/components/motion/useReducedMotion";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+const PRESS_DURATION = 150;
+
+type Props = Omit<PressableProps, "style"> & {
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+  /** Scale at full press. Matches PWA `.tap:active` (0.985). */
+  activeScale?: number;
+  /** Opacity at full press. Matches PWA `.tap:active` (0.7). */
+  activeOpacity?: number;
+};
+
+/** Shared button wrapper with PWA-matching press feedback (scale + opacity, reduced-motion aware). */
+export function PressableScale({
+  children,
+  style,
+  disabled,
+  onPressIn,
+  onPressOut,
+  activeScale = 0.985,
+  activeOpacity = 0.7,
+  ...rest
+}: Props) {
+  const reduceMotion = useReducedMotion();
+  const progress = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: 1 - (1 - activeScale) * progress.value }],
+    opacity: 1 - (1 - activeOpacity) * progress.value,
+  }));
+
+  function handlePressIn(event: GestureResponderEvent) {
+    if (!reduceMotion && !disabled) {
+      progress.value = withTiming(1, { duration: PRESS_DURATION });
+    }
+    onPressIn?.(event);
+  }
+
+  function handlePressOut(event: GestureResponderEvent) {
+    progress.value = withTiming(0, { duration: PRESS_DURATION });
+    onPressOut?.(event);
+  }
+
+  return (
+    <AnimatedPressable
+      {...rest}
+      disabled={disabled}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[style, reduceMotion ? null : animatedStyle]}
+    >
+      {children}
+    </AnimatedPressable>
+  );
+}

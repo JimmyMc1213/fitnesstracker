@@ -1,5 +1,6 @@
-import { Pressable, Text, type StyleProp, type ViewStyle } from "react-native";
+import { Text, type StyleProp, type ViewStyle } from "react-native";
 
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
@@ -24,14 +25,19 @@ export function PrimaryButton({
   const { colors } = useAppTheme();
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       disabled={disabled}
       testID={testID}
       accessibilityLabel={accessibilityLabel ?? children}
-      className="min-h-[44px] items-center justify-center rounded-xl px-4 py-3"
       style={[
         {
+          minHeight: 44,
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: 12,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
           width: block ? "100%" : undefined,
           backgroundColor: disabled ? colors.border : colors.buttonPrimary,
           opacity: disabled ? 0.7 : 1,
@@ -42,6 +48,6 @@ export function PrimaryButton({
       <Text className="text-[15px] font-semibold" style={{ color: colors.buttonPrimaryText }}>
         {children}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }

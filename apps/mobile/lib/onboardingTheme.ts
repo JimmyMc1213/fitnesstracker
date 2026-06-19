@@ -1,5 +1,15 @@
 import type { AppTheme } from "@newyouai/types";
 
+export type GradientStop = { color: string; offset: number };
+
+export type CardShadow = {
+  color: string;
+  offset: { width: number; height: number };
+  opacity: number;
+  radius: number;
+  elevation: number;
+};
+
 /** PWA onboarding CSS vars (`--ob-*`) mirrored for React Native. */
 export type OnboardingThemeTokens = {
   headline: string;
@@ -33,7 +43,30 @@ export type OnboardingThemeTokens = {
   ghostFg: string;
   welcomeCtaBg: string;
   welcomeCtaFg: string;
+  /** `--ob-gradient-card-bg` (168deg linear gradient stops). */
+  gradientCardStops: GradientStop[];
+  /** `--ob-gradient-card-shadow` outer drop shadow. */
+  gradientCardShadow: CardShadow;
+  /** Inset top hairline approximation for the gradient card. */
+  cardTopHighlight: string;
+  /** `--border` rendered at 0.5px for cards. */
+  cardBorder: string;
+  /** `--faint` resting background for inline number pills. */
+  inputFaint: string;
+  /** `--ob-input-bg` activated input background. */
+  inputBg: string;
+  /** `--ob-input-border` activated input border. */
+  inputBorder: string;
+  /** `--macro-protein` / `--macro-carbs` / `--macro-fat`. */
+  macroProtein: string;
+  macroCarbs: string;
+  macroFat: string;
+  /** `--coach-blue-label`. */
+  coachBlueLabel: string;
 };
+
+/** 168deg gradient ≈ near-vertical top→bottom; approximated as straight vertical for RN SVG. */
+export const GRADIENT_CARD_ANGLE_DEG = 168;
 
 const darkOnboardingTheme: OnboardingThemeTokens = {
   headline: "#ffffff",
@@ -67,6 +100,27 @@ const darkOnboardingTheme: OnboardingThemeTokens = {
   ghostFg: "rgba(255, 255, 255, 0.42)",
   welcomeCtaBg: "#ffffff",
   welcomeCtaFg: "#0a0a0a",
+  gradientCardStops: [
+    { color: "rgba(255, 255, 255, 0.04)", offset: 0 },
+    { color: "#161616", offset: 0.38 },
+    { color: "rgba(8, 8, 12, 0.94)", offset: 1 },
+  ],
+  gradientCardShadow: {
+    color: "#000000",
+    offset: { width: 0, height: 10 },
+    opacity: 0.28,
+    radius: 24,
+    elevation: 8,
+  },
+  cardTopHighlight: "rgba(255, 255, 255, 0.035)",
+  cardBorder: "#2a2a2a",
+  inputFaint: "rgba(255, 255, 255, 0.08)",
+  inputBg: "transparent",
+  inputBorder: "rgba(255, 255, 255, 0.14)",
+  macroProtein: "#c9a876",
+  macroCarbs: "#e85d5d",
+  macroFat: "#6db88a",
+  coachBlueLabel: "rgba(10, 132, 255, 0.75)",
 };
 
 const lightOnboardingTheme: OnboardingThemeTokens = {
@@ -101,6 +155,27 @@ const lightOnboardingTheme: OnboardingThemeTokens = {
   ghostFg: "#8e8e93",
   welcomeCtaBg: "#000000",
   welcomeCtaFg: "#ffffff",
+  gradientCardStops: [
+    { color: "#ffffff", offset: 0 },
+    { color: "#f5f5f7", offset: 0.42 },
+    { color: "#e8e8ed", offset: 1 },
+  ],
+  gradientCardShadow: {
+    color: "#000000",
+    offset: { width: 0, height: 10 },
+    opacity: 0.06,
+    radius: 20,
+    elevation: 4,
+  },
+  cardTopHighlight: "rgba(255, 255, 255, 0.92)",
+  cardBorder: "#e0e0e0",
+  inputFaint: "rgba(0, 0, 0, 0.06)",
+  inputBg: "#f2f2f7",
+  inputBorder: "#e5e5ea",
+  macroProtein: "#c9a876",
+  macroCarbs: "#e85d5d",
+  macroFat: "#6db88a",
+  coachBlueLabel: "rgba(10, 132, 255, 0.75)",
 };
 
 export function onboardingThemeFor(scheme: AppTheme): OnboardingThemeTokens {

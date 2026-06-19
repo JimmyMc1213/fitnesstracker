@@ -82,12 +82,12 @@ function PhotoPanel({
       {uri ? (
         <Image
           source={{ uri }}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           resizeMode="cover"
           accessibilityIgnoresInvertColors
         />
       ) : silhouetteSource ? (
-        <View style={[StyleSheet.absoluteFillObject, { justifyContent: "flex-end" }]}>
+        <View style={[StyleSheet.absoluteFill, { justifyContent: "flex-end" }]}>
           <Image
             source={silhouetteSource}
             style={{ width: "100%", height: "92%" }}
