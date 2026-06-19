@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "vixxo-bmad-swarm": {
+      "source": "vixxo-copilot/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vixxo-bmad-swarm/SKILL.md",
+      "computedHash": "802cbd418b89ac6f6d21f57177fbb3db43afa8d23bbbae2a4d15928d09c0178a"
+    }
+  }
+}
