@@ -4,7 +4,6 @@ import {
   FUTURE_YOU_PAYWALL_CTA_DEFAULT,
   FUTURE_YOU_PAYWALL_CTA_PLAN_ONLY,
   FUTURE_YOU_PAYWALL_CTA_PREPARING,
-  FUTURE_YOU_PAYWALL_CTA_TRIAL,
   ONBOARDING_FUTURE_YOU_CONTINUE_LABEL,
   ONBOARDING_PLAN_READY_CONTINUE_LABEL,
   futureYouPaywallCtaLabel,
@@ -54,12 +53,12 @@ describe("futureYouPaywallModel", () => {
     );
     expect(
       futureYouPaywallCtaLabel({ ...activeJob, generationStatus: "ready" }, "ready", false, "monthly"),
-    ).toBe(FUTURE_YOU_PAYWALL_CTA_TRIAL);
+    ).toBe(FUTURE_YOU_PAYWALL_CTA_DEFAULT);
     expect(futureYouPaywallCtaLabel({ photoSkipped: true }, "idle", false)).toBe(
       FUTURE_YOU_PAYWALL_CTA_PLAN_ONLY,
     );
     expect(futureYouPaywallCtaLabel({ photoSkipped: true }, "idle", false, "monthly")).toBe(
-      FUTURE_YOU_PAYWALL_CTA_TRIAL,
+      FUTURE_YOU_PAYWALL_CTA_DEFAULT,
     );
   });
 

@@ -1,7 +1,11 @@
 import type { WeightUnit } from "@newyouai/types";
 import { useEffect, useRef, useState } from "react";
-import { Text, TextInput, View } from "react-native";
 
+import {
+  acceptsOnboardingWeightText,
+  OnboardingFieldGroup,
+  OnboardingInputField,
+} from "@/components/onboarding/OnboardingInputField";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { LBS_PER_KG, lbsFromWeightInputText } from "@/lib/unitConversions";
 
@@ -42,28 +46,24 @@ export function OnboardingWeightInput({
   }
 
   return (
-    <View className="gap-2">
-      <Text className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textTertiary }}>
-        Weight ({unit})
-      </Text>
-      <TextInput
+    <OnboardingFieldGroup label={`Weight (${unit})`} labelColor={colors.textTertiary}>
+      <OnboardingInputField
         testID="onboarding-weight-input"
+        shellStyle={{
+          borderColor: colors.border,
+          backgroundColor: colors.card,
+        }}
+        inputStyle={{ color: colors.textPrimary }}
         value={text}
         onChangeText={(raw) => {
-          if (raw !== "" && !/^\d*\.?\d*$/.test(raw)) return;
+          if (!acceptsOnboardingWeightText(raw)) return;
           commitText(raw);
         }}
         keyboardType="decimal-pad"
         placeholder="0"
         placeholderTextColor={colors.textTertiary}
-        className="rounded-2xl border px-4 py-3.5 text-base"
-        style={{
-          borderColor: colors.border,
-          backgroundColor: colors.card,
-          color: colors.textPrimary,
-        }}
         accessibilityLabel="Body weight"
       />
-    </View>
+    </OnboardingFieldGroup>
   );
 }

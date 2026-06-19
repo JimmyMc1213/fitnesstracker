@@ -53,7 +53,7 @@ export function normalizeGoalOnSelect(
   return {
     ...profile,
     goal,
-    goalWeightLbs: defaultGoalWeightLbs(goal, profile.weightLbs),
-    pace: profile.pace ?? "balanced",
+    goalWeightLbs: undefined,
+    pace: undefined,
   };
 }

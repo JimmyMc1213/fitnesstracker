@@ -1,5 +1,18 @@
+/**
+ * Drop-in Reanimated motion layer. Matches PWA motion.tsx:
+ *
+ *   fade   → opacity 0→1 + y 6→0 in 180ms  (tabs)
+ *   stack  → x 100%→0 / -28%→0 in 250ms    (onboarding, wizard flows)
+ */
+
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import Animated, {
   Easing,
   runOnJS,
@@ -16,6 +29,8 @@ import {
 } from "./tokens";
 import { useReducedMotion } from "./useReducedMotion";
 
+export type { NavDirection };
+
 type ScreenTransitionProps = {
   activeKey: string;
   variant?: "fade" | "stack";
@@ -29,25 +44,50 @@ type LayerRecord = {
   content: ReactNode;
   direction: NavDirection;
   phase: "enter" | "exit";
+  generation: number;
 };
 
-function resolveLayerContent(
-  children: ReactNode | ((layerKey: string) => ReactNode),
-  layerKey: string,
+function resolveContent(
+  children: ReactNode | ((key: string) => ReactNode),
+  key: string,
 ): ReactNode {
-  return typeof children === "function" ? children(layerKey) : children;
+  return typeof children === "function" ? children(key) : children;
+}
+
+/** Active enter layers use live children; exit layers resolve by their own key. */
+function resolveLayerContent(
+  layer: LayerRecord,
+  activeKey: string,
+  children: ReactNode | ((key: string) => ReactNode),
+): ReactNode {
+  if (typeof children === "function") {
+    return children(layer.key);
+  }
+  if (layer.phase === "enter" && layer.key === activeKey) {
+    return children;
+  }
+  return layer.content;
+}
+
+function safeTimeout(cb: () => void, ms: number) {
+  const id = setTimeout(cb, ms);
+  return () => clearTimeout(id);
 }
 
 function FadeLayer({
   layer,
+  content,
   style,
   onFinished,
 }: {
   layer: LayerRecord;
+  content: ReactNode;
   style?: StyleProp<ViewStyle>;
   onFinished?: () => void;
 }) {
   const reduceMotion = useReducedMotion();
+  const duration = reduceMotion ? 1 : 180;
+
   const opacity = useSharedValue(layer.phase === "enter" ? (reduceMotion ? 1 : 0) : 1);
   const translateY = useSharedValue(layer.phase === "enter" ? (reduceMotion ? 0 : 6) : 0);
 
@@ -57,29 +97,21 @@ function FadeLayer({
       return;
     }
 
+    const easing = Easing.bezier(...TAB_PAGE_EASING);
+
     if (layer.phase === "enter") {
-      opacity.value = withTiming(1, {
-        duration: MOTION_DURATIONS.tab,
-        easing: Easing.bezier(...TAB_PAGE_EASING),
-      });
-      translateY.value = withTiming(0, {
-        duration: MOTION_DURATIONS.tab,
-        easing: Easing.bezier(...TAB_PAGE_EASING),
-      });
+      opacity.value = withTiming(1, { duration, easing });
+      translateY.value = withTiming(0, { duration, easing });
       return;
     }
 
-    opacity.value = withTiming(0, {
-      duration: MOTION_DURATIONS.tab,
-      easing: Easing.bezier(...TAB_PAGE_EASING),
-    });
-    translateY.value = withTiming(-6, {
-      duration: MOTION_DURATIONS.tab,
-      easing: Easing.bezier(...TAB_PAGE_EASING),
-    }, (finished) => {
+    opacity.value = withTiming(0, { duration, easing });
+    translateY.value = withTiming(-6, { duration, easing }, (finished) => {
       if (finished && onFinished) runOnJS(onFinished)();
     });
-  }, [layer.key, layer.phase, onFinished, opacity, reduceMotion, translateY]);
+
+    return safeTimeout(() => onFinished?.(), duration + 80);
+  }, [layer.key, layer.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -87,65 +119,81 @@ function FadeLayer({
   }));
 
   return (
-    <Animated.View style={[styles.layer, style, animatedStyle]} pointerEvents={layer.phase === "exit" ? "none" : "auto"}>
-      {layer.content}
+    <Animated.View
+      style={[styles.layer, style, animatedStyle]}
+      pointerEvents={layer.phase === "exit" ? "none" : "auto"}
+    >
+      {content}
     </Animated.View>
   );
 }
 
 function StackLayer({
   layer,
+  content,
   style,
   onFinished,
 }: {
   layer: LayerRecord;
+  content: ReactNode;
   style?: StyleProp<ViewStyle>;
   onFinished?: () => void;
 }) {
   const reduceMotion = useReducedMotion();
-  const [width, setWidth] = useState(0);
-  const translateX = useSharedValue(0);
-  const zIndex = useSharedValue(layer.direction === "forward" ? 2 : 1);
+  const { width } = useWindowDimensions();
+
+  // Compute starting position at mount so frame 0 is already correct — no snap/flash.
+  // layer props are stable for this component's lifetime (generation counter ensures unique mounts).
+  const initialX = reduceMotion
+    ? 0
+    : layer.phase === "enter"
+      ? layer.direction === "forward"
+        ? width
+        : -width * 0.28
+      : 0;
+
+  // forward: entering=2/exiting=1 (new screen slides over old)
+  // back:    entering=1/exiting=2 (old screen slides away over new)
+  const layerZIndex =
+    layer.direction === "forward"
+      ? layer.phase === "enter" ? 2 : 1
+      : layer.phase === "enter" ? 1 : 2;
+
+  const translateX = useSharedValue(initialX);
 
   useEffect(() => {
-    if (reduceMotion || width === 0) {
-      onFinished?.();
+    if (reduceMotion) {
+      if (layer.phase === "exit") onFinished?.();
       return;
     }
+
+    const duration = MOTION_DURATIONS.onboarding;
+    // cubicBezier(0.42,0,0.58,1) = CSS ease-in-out, matches PWA "easeInOut"
+    const easing = Easing.bezier(0.42, 0, 0.58, 1);
 
     if (layer.phase === "enter") {
-      const enterFrom = layer.direction === "forward" ? width : -width * 0.28;
-      translateX.value = enterFrom;
-      zIndex.value = layer.direction === "forward" ? 2 : 1;
-      translateX.value = withTiming(0, {
-        duration: MOTION_DURATIONS.onboarding,
-        easing: Easing.inOut(Easing.ease),
-      });
+      translateX.value = withTiming(0, { duration, easing });
       return;
     }
 
-    zIndex.value = layer.direction === "forward" ? 1 : 2;
-    const exitTo = layer.direction === "forward" ? -width * 0.28 : width;
-    translateX.value = withTiming(exitTo, {
-      duration: MOTION_DURATIONS.onboarding,
-      easing: Easing.inOut(Easing.ease),
-    }, (finished) => {
+    const to = layer.direction === "forward" ? -width * 0.28 : width;
+    translateX.value = withTiming(to, { duration, easing }, (finished) => {
       if (finished && onFinished) runOnJS(onFinished)();
     });
-  }, [layer.direction, layer.key, layer.phase, onFinished, reduceMotion, translateX, width, zIndex]);
+
+    return safeTimeout(() => onFinished?.(), duration + 80);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
-    zIndex: zIndex.value,
   }));
 
   return (
     <Animated.View
-      style={[styles.stackLayer, style, animatedStyle]}
+      style={[styles.stackLayer, { zIndex: layerZIndex }, style, animatedStyle]}
       pointerEvents={layer.phase === "exit" ? "none" : "auto"}
-      onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
     >
-      {layer.content}
+      {content}
     </Animated.View>
   );
 }
@@ -160,32 +208,32 @@ export function ScreenTransition({
   const contentRef = useRef(children);
   contentRef.current = children;
   const pendingEnterRef = useRef<LayerRecord | null>(null);
+  const generationRef = useRef(0);
 
   const [layers, setLayers] = useState<LayerRecord[]>(() => [
     {
       key: activeKey,
-      content: resolveLayerContent(children, activeKey),
+      content: resolveContent(children, activeKey),
       direction: "forward",
       phase: "enter",
+      generation: 0,
     },
   ]);
 
   useEffect(() => {
     setLayers((prev) => {
-      const current = prev.find((layer) => layer.phase === "enter");
+      const current = prev.find((l) => l.phase === "enter");
+
       if (current?.key === activeKey) {
-        return prev.map((layer) =>
-          layer.phase === "enter" && layer.key === activeKey
-            ? { ...layer, content: resolveLayerContent(contentRef.current, activeKey) }
-            : layer,
-        );
+        return [{ ...current, content: resolveContent(contentRef.current, activeKey) }];
       }
 
       const nextEnter: LayerRecord = {
         key: activeKey,
-        content: resolveLayerContent(contentRef.current, activeKey),
+        content: resolveContent(contentRef.current, activeKey),
         direction,
         phase: "enter",
+        generation: ++generationRef.current,
       };
 
       if (!current) {
@@ -193,6 +241,9 @@ export function ScreenTransition({
         return [nextEnter];
       }
 
+      // current.content is kept live while the layer is the active enter layer (see
+      // the early-return branch above). Spreading it here freezes the old step's UI
+      // so the exit animation shows the right screen, not the new step's content.
       const exiting: LayerRecord = { ...current, phase: "exit", direction };
 
       if (variant === "fade") {
@@ -205,9 +256,11 @@ export function ScreenTransition({
     });
   }, [activeKey, direction, variant]);
 
-  const handleExitFinished = (key: string) => {
+  const handleExitFinished = (key: string, generation: number) => {
     setLayers((prev) => {
-      const next = prev.filter((layer) => layer.key !== key);
+      const next = prev.filter(
+        (l) => !(l.key === key && l.generation === generation && l.phase === "exit"),
+      );
       const pending = pendingEnterRef.current;
       if (pending && next.length === 0) {
         pendingEnterRef.current = null;
@@ -217,24 +270,50 @@ export function ScreenTransition({
     });
   };
 
-  return (
-    <View style={[variant === "stack" ? styles.stackContainer : styles.container, style]}>
-      {layers.map((layer) => {
-        const onFinished = layer.phase === "exit" ? () => handleExitFinished(layer.key) : undefined;
-        const layerStyle = variant === "stack" ? StyleSheet.absoluteFill : undefined;
+  const isStack = variant === "stack";
 
-        if (variant === "stack") {
-          return <StackLayer key={`${layer.phase}-${layer.key}`} layer={layer} style={layerStyle} onFinished={onFinished} />;
+  return (
+    <View style={[isStack ? styles.stackContainer : styles.container, style]}>
+      {layers.map((layer) => {
+        const onFinished =
+          layer.phase === "exit"
+            ? () => handleExitFinished(layer.key, layer.generation)
+            : undefined;
+        const content = resolveLayerContent(layer, activeKey, contentRef.current);
+
+        if (isStack) {
+          return (
+            <StackLayer
+              key={`${layer.phase}-${layer.key}-${layer.generation}`}
+              layer={layer}
+              content={content}
+              style={StyleSheet.absoluteFill}
+              onFinished={onFinished}
+            />
+          );
         }
 
-        return <FadeLayer key={`${layer.phase}-${layer.key}`} layer={layer} style={layerStyle} onFinished={onFinished} />;
+        return (
+          <FadeLayer
+            key={`${layer.phase}-${layer.key}-${layer.generation}`}
+            layer={layer}
+            content={content}
+            onFinished={onFinished}
+          />
+        );
       })}
     </View>
   );
 }
 
 /** Subtle page-layer enter for in-screen content swaps (matches PWA `.page-transition`). */
-export function PageTransition({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+export function PageTransition({
+  children,
+  style,
+}: {
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) {
   const reduceMotion = useReducedMotion();
   const opacity = useSharedValue(reduceMotion ? 1 : 0);
   const translateY = useSharedValue(reduceMotion ? 0 : 8);
@@ -245,23 +324,61 @@ export function PageTransition({ children, style }: { children: ReactNode; style
       translateY.value = 0;
       return;
     }
-
-    opacity.value = withTiming(1, {
-      duration: 240,
-      easing: Easing.bezier(...PAGE_LAYER_EASING),
-    });
-    translateY.value = withTiming(0, {
-      duration: 240,
-      easing: Easing.bezier(...PAGE_LAYER_EASING),
-    });
-  }, [opacity, reduceMotion, translateY]);
+    const easing = Easing.bezier(...PAGE_LAYER_EASING);
+    opacity.value = withTiming(1, { duration: 240, easing });
+    translateY.value = withTiming(0, { duration: 240, easing });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [{ translateY: translateY.value }],
   }));
 
-  return <Animated.View style={[styles.layer, style, animatedStyle]}>{children}</Animated.View>;
+  return (
+    <Animated.View style={[styles.layer, style, animatedStyle]}>
+      {children}
+    </Animated.View>
+  );
+}
+
+/** Staggered reveal inside onboarding stack layers (matches PWA headline/helper). */
+export function OnboardingContentReveal({
+  children,
+  delay = 70,
+  style,
+}: {
+  children: ReactNode;
+  delay?: number;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const reduceMotion = useReducedMotion();
+  const opacity = useSharedValue(reduceMotion ? 1 : 0);
+  const translateY = useSharedValue(reduceMotion ? 0 : 10);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      opacity.value = 1;
+      translateY.value = 0;
+      return;
+    }
+    const easing = Easing.bezier(...PAGE_LAYER_EASING);
+    const id = setTimeout(() => {
+      opacity.value = withTiming(1, { duration: 420, easing });
+      translateY.value = withTiming(0, { duration: 420, easing });
+    }, delay);
+    return () => clearTimeout(id);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View style={[style, animatedStyle]}>
+      {children}
+    </Animated.View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -287,5 +404,3 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
 });
-
-export type { NavDirection };

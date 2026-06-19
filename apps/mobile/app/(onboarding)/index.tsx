@@ -8,9 +8,8 @@ import {
   ONBOARDING_STEP_FUTURE_YOU_SUCCESS,
 } from "@newyouai/core";
 import type { UserGender } from "@newyouai/types";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
-
 import { DateOfBirthPicker } from "@/components/onboarding/DateOfBirthPicker";
 import { FutureYouReadyBanner } from "@/components/onboarding/FutureYouReadyBanner";
 import { NotificationPreferencesPicker } from "@/components/onboarding/NotificationPreferencesPicker";
@@ -25,12 +24,14 @@ import { OnboardingGoalWeightReinforcement } from "@/components/onboarding/Onboa
 import { OnboardingHeightInput } from "@/components/onboarding/OnboardingHeightInput";
 import { OnboardingShell } from "@/components/onboarding/OnboardingShell";
 import { OnboardingWeightInput } from "@/components/onboarding/OnboardingWeightInput";
+import { WeightRulerPicker } from "@/components/onboarding/WeightRulerPicker";
 import { PacePicker } from "@/components/onboarding/PacePicker";
 import { PrimaryGoalPicker } from "@/components/onboarding/PrimaryGoalPicker";
 import { OnboardingPillStack, OnboardingSegment } from "@/components/onboarding/OnboardingSegment";
 import { OnboardingStepPlaceholder } from "@/components/onboarding/OnboardingStepPlaceholder";
 import { OnboardingThemePicker } from "@/components/onboarding/OnboardingThemePicker";
 import { OnboardingWelcomeScreen } from "@/components/onboarding/OnboardingWelcomeScreen";
+import { ScreenTransition } from "@/components/motion/ScreenTransition";
 import { EquipmentSetupPicker } from "@/components/onboarding/EquipmentSetupPicker";
 import { ExperienceLevelPicker } from "@/components/onboarding/ExperienceLevelPicker";
 import { OnboardingIconOptionPicker } from "@/components/onboarding/OnboardingIconOptionPicker";
@@ -52,6 +53,7 @@ import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
 import { finishOnboarding } from "@/lib/finishOnboarding";
 import { canAccessFutureYouSuccessScreen } from "@/lib/futureYouSuccessModel";
 import { useOnboardingWizard } from "@/hooks/useOnboardingWizard";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { ACTIVITY_LEVELS, activityLevelLabel } from "@/lib/activityLevel";
 import { isFutureYouPhotoBlocked } from "@/lib/futureYouAge";
@@ -73,6 +75,7 @@ import {
   isGoalWeightValid,
   normalizeGoalOnSelect,
 } from "@/lib/goalWeight";
+import { isUnitPreferencesComplete } from "@/lib/onboardingDefaults";
 import {
   goalWeightReinforcementParts,
   goalWeightReinforcementSubtext,
@@ -109,9 +112,11 @@ function genderLabel(gender: UserGender): string {
 
 export default function OnboardingWizardScreen() {
   const { colors, theme, setTheme } = useAppTheme();
+  const { ob } = useOnboardingTheme();
   const {
     hydrated,
     stepIndex,
+    navDirection,
     profile,
     unitPreferences,
     draftTheme,
@@ -199,8 +204,15 @@ export default function OnboardingWizardScreen() {
   useEffect(() => {
     if (stepIndex !== 9) {
       setGoalWeightReinforcement(false);
+      return;
     }
-  }, [stepIndex]);
+    if (profile.goal === "maintain") return;
+    if (profile.goalWeightLbs != null) return;
+    setProfile((p) => ({
+      ...p,
+      goalWeightLbs: defaultGoalWeightLbs(p.goal as "cut" | "bulk", p.weightLbs),
+    }));
+  }, [stepIndex, profile.goal, profile.goalWeightLbs, profile.weightLbs, setProfile]);
 
   useEffect(() => {
     if (stepIndex !== ONBOARDING_STEP_FUTURE_YOU_SUCCESS) return;
@@ -219,32 +231,34 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 0) {
+  function renderOnboardingStep(forStep: number = stepIndex): ReactNode {
+  if (forStep === 0) {
     return <OnboardingWelcomeScreen onGetStarted={goNext} />;
   }
 
-  if (stepIndex === 1) {
+  if (forStep === 1) {
     return (
       <OnboardingThemePicker
-        step={stepIndex}
-        value={activeTheme}
+        step={forStep}
+        value={draftTheme ?? theme}
         onChange={(nextTheme) => {
           setDraftTheme(nextTheme);
           setTheme(nextTheme);
         }}
         onBack={goBack}
         onContinue={() => {
-          setTheme(activeTheme);
-          goToStep(2, { theme: activeTheme });
+          const selected = draftTheme ?? theme;
+          setTheme(selected);
+          goToStep(2, { theme: selected });
         }}
       />
     );
   }
 
-  if (stepIndex === 2) {
+  if (forStep === 2) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="What's your gender?"
         subtitle="This will be used to calibrate your custom plan."
         onBack={goBack}
@@ -256,6 +270,7 @@ export default function OnboardingWizardScreen() {
           {GENDERS.map((g) => (
             <OnboardingSegment
               key={g}
+              testID={`onboarding-gender-${g}`}
               selected={profile.gender === g}
               onPress={() => setProfile((p) => ({ ...p, gender: g }))}
             >
@@ -267,10 +282,10 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 3) {
+  if (forStep === 3) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="When were you born?"
         subtitle="This will be used to calibrate your custom plan."
         onBack={goBack}
@@ -291,10 +306,10 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 4) {
+  if (forStep === 4) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="Where did you hear about us?"
         onBack={goBack}
         onContinue={goNext}
@@ -309,14 +324,15 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 5) {
+  if (forStep === 5) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="Choose your units"
         subtitle="Weight, height, and volume display across the app."
         onBack={goBack}
         onContinue={goNext}
+        continueDisabled={!isUnitPreferencesComplete(unitPreferences)}
         testID="onboarding-step-5"
       >
         <UnitPreferencePicker value={unitPreferences} onChange={setUnitPreferences} />
@@ -324,13 +340,15 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 6) {
+  if (forStep === 6) {
     const hUnit = unitPreferences.heightUnit;
     const heightStepValid = isValidOnboardingHeightIn(profile.heightIn);
 
+    if (!hUnit) return null;
+
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="How tall are you?"
         onBack={goBack}
         onContinue={goNext}
@@ -357,16 +375,18 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 7) {
+  if (forStep === 7) {
     const wUnit = unitPreferences.weightUnit;
     const currentWeightLbs = isValidWeighInLbs(profile.weightLbs)
       ? profile.weightLbs
       : DEFAULT_ONBOARDING_CURRENT_WEIGHT_LBS;
     const weightStepValid = isValidWeighInLbs(profile.weightLbs);
 
+    if (!wUnit) return null;
+
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="What's your current weight?"
         subtitle="Enter your weight in your preferred unit."
         onBack={goBack}
@@ -389,10 +409,10 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 8) {
+  if (forStep === 8) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="What's your primary goal?"
         subtitle="NewYou adjusts calories and coaching for your goal."
         onBack={goBack}
@@ -408,7 +428,7 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 9 && profile.goal && profile.goal !== "maintain") {
+  if (forStep === 9 && profile.goal && profile.goal !== "maintain") {
     const wUnit = unitPreferences.weightUnit;
     const goal = profile.goal;
     const { minLbs, maxLbs } = goalWeightRangeLbs(goal, profile.weightLbs);
@@ -417,12 +437,14 @@ export default function OnboardingWizardScreen() {
       minLbs,
       maxLbs,
     );
-    const reinforcement = goalWeightReinforcementParts(profile, wUnit);
+    const reinforcement = goalWeightReinforcementParts(profile, wUnit ?? "lbs");
     const goalWeightValid = isGoalWeightValid(profile, profile.weightLbs);
+
+    if (!wUnit) return null;
 
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title={goalWeightReinforcement ? "" : "What is your desired weight?"}
         hideTitle={goalWeightReinforcement}
         contentCentered={goalWeightReinforcement}
@@ -449,46 +471,30 @@ export default function OnboardingWizardScreen() {
             headline={
               <Text>
                 {reinforcement.verb}{" "}
-                <Text style={{ color: colors.accent }}>{reinforcement.delta}</Text>
+                <Text style={{ color: ob.gold }}>{reinforcement.delta}</Text>
                 {reinforcement.tail}
               </Text>
             }
             subtext={goalWeightReinforcementSubtext()}
           />
         ) : (
-          <View
-            className="rounded-2xl border p-4"
-            style={{ borderColor: colors.border, backgroundColor: colors.card }}
-          >
-            <Text className="mb-3 text-sm" style={{ color: colors.textSecondary }}>
-              {goalWeightDirectionLabel(goal)}
-            </Text>
-            <OnboardingWeightInput
-              unit={wUnit}
-              weightLbs={valueLbs}
-              resetKey={`${goal}-${wUnit}`}
-              onWeightChange={(goalWeightLbs) =>
-                setProfile((p) => ({
-                  ...p,
-                  goalWeightLbs: clampGoalWeightLbs(goalWeightLbs, minLbs, maxLbs),
-                }))
-              }
-            />
-            {!goalWeightValid ? (
-              <Text className="mt-2.5 text-sm" style={{ color: "#f87171" }}>
-                Pick a goal weight at least 3 lb from your current weight
-              </Text>
-            ) : null}
-          </View>
+          <WeightRulerPicker
+            valueLbs={valueLbs}
+            minLbs={minLbs}
+            maxLbs={maxLbs}
+            unit={wUnit}
+            directionLabel={goalWeightDirectionLabel(goal)}
+            onChange={(goalWeightLbs) => setProfile((p) => ({ ...p, goalWeightLbs }))}
+          />
         )}
       </OnboardingShell>
     );
   }
 
-  if (stepIndex === ONBOARDING_STEP_PACE) {
+  if (forStep === ONBOARDING_STEP_PACE) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="How fast do you want to get there?"
         subtitle="Honest answer. We'll set the plan in the real world."
         onBack={goBack}
@@ -504,19 +510,21 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === ONBOARDING_STEP_FUTURE_YOU_PHOTO) {
+  if (forStep === ONBOARDING_STEP_FUTURE_YOU_PHOTO) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title={
           <Text className="text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
-            See your <Text style={{ color: colors.accent }}>Future You</Text>
+            See your <Text style={{ color: ob.gold }}>New You</Text>
           </Text>
         }
         subtitle="Upload a photo to see what you could look like and get a personalized plan to help you get there."
         onBack={goBack}
         onContinue={goNext}
         hideContinue
+        compactFooter
+        contentFill
         footerGhostAction={{ label: "Skip for now", onPress: futureYouFlow.skipFutureYouPhoto }}
         testID="onboarding-step-100"
       >
@@ -539,12 +547,12 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION) {
+  if (forStep === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION) {
     const gender = profile.gender ?? "other";
 
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="What's your why?"
         subtitle="Pick one focus, we'll personalize your Future You while you finish onboarding."
         onBack={goBack}
@@ -568,12 +576,12 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === ONBOARDING_STEP_ACTIVITY) {
+  if (forStep === ONBOARDING_STEP_ACTIVITY) {
     const showBackToPhoto = canRevisitFutureYouPhoto(futureYou);
 
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="How active are you outside the gym?"
         subtitle="Helps us size your daily fuel targets."
         onBack={showBackToPhoto ? goBack : undefined}
@@ -597,10 +605,10 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 12) {
+  if (forStep === 12) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="What's your training experience?"
         subtitle="Rep ranges and starting weights in your templates."
         onBack={goBack}
@@ -614,10 +622,10 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 13) {
+  if (forStep === 13) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="What equipment do you have?"
         subtitle="Exercises will match what you can perform."
         onBack={goBack}
@@ -631,10 +639,10 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 14) {
+  if (forStep === 14) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="How long do you want to train?"
         subtitle="We'll size your workouts to fit your session."
         onBack={goBack}
@@ -658,10 +666,10 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 15) {
+  if (forStep === 15) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="Which days can you train?"
         subtitle="Pick the days that work for your week."
         onBack={goBack}
@@ -683,12 +691,12 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 16) {
+  if (forStep === 16) {
     const templates = draftTemplates ?? [];
 
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="Here's your training plan"
         subtitle="NewYou built this from your schedule and experience. Looks good?"
         onBack={goBack}
@@ -704,12 +712,12 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 17) {
+  if (forStep === 17) {
     const templates = draftTemplates ?? [];
 
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="Review your workouts"
         subtitle="Swap exercises or adjust sets before you continue."
         onBack={() => goToStep(16)}
@@ -723,7 +731,7 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 18) {
+  if (forStep === 18) {
     const restrictionOptions = DIETARY_RESTRICTIONS.map((id) => ({
       id,
       label: dietaryRestrictionLabel(id),
@@ -732,7 +740,7 @@ export default function OnboardingWizardScreen() {
 
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="Any foods you avoid?"
         subtitle="We'll keep your nutrition suggestions on track"
         contentCentered
@@ -757,7 +765,7 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 20) {
+  if (forStep === 20) {
     return (
       <OnboardingPlanBuilding
         onComplete={() => {
@@ -768,13 +776,13 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 21) {
+  if (forStep === 21) {
     const pollStatus = futureYou?.generationStatus ?? "idle";
 
     return (
       <>
         <OnboardingShell
-          step={stepIndex}
+          step={forStep}
           title="Your fuel targets"
           subtitle="NewYou calculated these from your stats and goal. Tap any number to adjust."
           onBack={goBack}
@@ -811,10 +819,10 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 22) {
+  if (forStep === 22) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title=""
         hideTitle
         contentCentered
@@ -827,8 +835,8 @@ export default function OnboardingWizardScreen() {
         <OnboardingGoalWeightReinforcement
           headline={
             <Text>
-              <Text style={{ color: colors.accent }}>Protein</Text> is your{" "}
-              <Text style={{ color: colors.accent }}>#1</Text> priority
+              <Text style={{ color: ob.gold }}>Protein</Text> is your{" "}
+              <Text style={{ color: ob.gold }}>#1</Text> priority
             </Text>
           }
           subtext={`Hit ${activeMacros.p}g daily. Consistent protein protects muscle.`}
@@ -837,12 +845,12 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 23) {
+  if (forStep === 23) {
     const templates = draftTemplates ?? [];
 
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="Here's your training plan"
         subtitle="NewYou built this from your schedule and experience. Looks good?"
         onBack={goBack}
@@ -857,10 +865,10 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 24) {
+  if (forStep === 24) {
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title=""
         hideTitle
         contentCentered
@@ -874,7 +882,7 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 25) {
+  if (forStep === 25) {
     const remindersEnabled = anyNotificationEnabled(notificationPrefs);
 
     function skipReminders() {
@@ -891,12 +899,13 @@ export default function OnboardingWizardScreen() {
 
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="Stay on track"
         subtitle="NewYou works best when it knows your schedule. Totally optional, change anytime"
         onBack={goBack}
         onContinue={remindersEnabled ? continueFromReminders : skipReminders}
         continueLabel={remindersEnabled ? "Set up notifications" : "Skip for now"}
+        continueTone="dark"
         footerGhostAction={remindersEnabled ? { label: "Skip for now", onPress: skipReminders } : undefined}
         generationPill={generationPill}
         testID="onboarding-step-25"
@@ -910,7 +919,7 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 26) {
+  if (forStep === 26) {
     const name = displayName.trim() || "Friend";
     const templates = draftTemplates ?? [];
     const pollStatus = futureYou?.generationStatus ?? "idle";
@@ -921,17 +930,18 @@ export default function OnboardingWizardScreen() {
       macros: activeMacros,
       profile,
       templates,
-      volumeUnit: unitPreferences.volumeUnit,
+      volumeUnit: isUnitPreferencesComplete(unitPreferences) ? unitPreferences.volumeUnit : "oz",
     });
 
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title={`${name}, your plan is ready`}
         subtitle="Everything is set. Your coach is ready when you are."
         onBack={goBack}
         onContinue={() => goToStep(ONBOARDING_STEP_PAYWALL)}
         continueLabel={onboardingPlanReadyContinueLabel(futureYou, futureYouBlocked)}
+        continueTone="gold"
         testID="onboarding-step-26"
       >
         {showFutureYouReadyBanner ? <FutureYouReadyBanner /> : null}
@@ -940,7 +950,7 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === ONBOARDING_STEP_PAYWALL) {
+  if (forStep === ONBOARDING_STEP_PAYWALL) {
     const name = displayName.trim() || "Friend";
     const templates = draftTemplates ?? [];
     const pollStatus = futureYou?.generationStatus ?? "idle";
@@ -950,7 +960,7 @@ export default function OnboardingWizardScreen() {
       macros: activeMacros,
       profile,
       templates,
-      volumeUnit: unitPreferences.volumeUnit,
+      volumeUnit: isUnitPreferencesComplete(unitPreferences) ? unitPreferences.volumeUnit : "oz",
     });
 
     return (
@@ -965,7 +975,7 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === ONBOARDING_STEP_FUTURE_YOU_SUCCESS && subscriptionTier === "pro") {
+  if (forStep === ONBOARDING_STEP_FUTURE_YOU_SUCCESS && subscriptionTier === "pro") {
     const name = displayName.trim() || "Friend";
     const templates = draftTemplates ?? [];
     const pollStatus = futureYou?.generationStatus ?? "idle";
@@ -975,7 +985,7 @@ export default function OnboardingWizardScreen() {
       macros: activeMacros,
       profile,
       templates,
-      volumeUnit: unitPreferences.volumeUnit,
+      volumeUnit: isUnitPreferencesComplete(unitPreferences) ? unitPreferences.volumeUnit : "oz",
     });
     const activeTheme = draftTheme ?? theme;
 
@@ -984,7 +994,8 @@ export default function OnboardingWizardScreen() {
         !experienceLevel ||
         !equipmentSetup ||
         !sessionLength ||
-        !draftTemplates?.length
+        !draftTemplates?.length ||
+        !isUnitPreferencesComplete(unitPreferences)
       ) {
         return;
       }
@@ -1025,7 +1036,7 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (stepIndex === 19) {
+  if (forStep === 19) {
     const styleOptions = TRAINING_STYLES.map((id) => ({
       id,
       label: trainingStyleLabel(id),
@@ -1034,7 +1045,7 @@ export default function OnboardingWizardScreen() {
 
     return (
       <OnboardingShell
-        step={stepIndex}
+        step={forStep}
         title="How do you train best?"
         subtitle="Your coach will match your style from day one"
         contentCentered
@@ -1055,13 +1066,24 @@ export default function OnboardingWizardScreen() {
 
   return (
     <OnboardingShell
-      step={stepIndex}
+      step={forStep}
       title="Onboarding"
-      onBack={stepIndex > 0 ? goBack : undefined}
+      onBack={forStep > 0 ? goBack : undefined}
       onContinue={goNext}
       generationPill={generationPill}
     >
-      <OnboardingStepPlaceholder step={stepIndex} goal={profile.goal} />
+      <OnboardingStepPlaceholder step={forStep} goal={profile.goal} />
     </OnboardingShell>
+  );
+  }
+
+  return (
+    <ScreenTransition
+      activeKey={String(stepIndex)}
+      variant="stack"
+      direction={navDirection}
+    >
+      {(key) => renderOnboardingStep(Number(key))}
+    </ScreenTransition>
   );
 }

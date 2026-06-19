@@ -1,8 +1,59 @@
 import type { ReferralSource } from "@newyouai/types";
-import { Pressable, Text, View } from "react-native";
+import type { ImageSourcePropType } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
-import { useAppTheme } from "@/hooks/useAppTheme";
-import { REFERRAL_SOURCES, referralSourceEmoji, referralSourceLabel } from "@/lib/referralSource";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
+import {
+  ONBOARDING_OPTION_GAP,
+  ONBOARDING_OPTION_ICON_GAP,
+  ONBOARDING_OPTION_MIN_HEIGHT,
+  onboardingOptionColors,
+} from "@/lib/onboardingTheme";
+import { REFERRAL_SOURCES, referralSourceLabel } from "@/lib/referralSource";
+
+const BRAND_ICON_IMAGES: Partial<Record<ReferralSource, ImageSourcePropType>> = {
+  instagram: require("@/assets/brand-icons/instagram.png"),
+  tiktok: require("@/assets/brand-icons/tiktok.png"),
+  youtube: require("@/assets/brand-icons/youtube.png"),
+  reddit: require("@/assets/brand-icons/reddit.png"),
+  google: require("@/assets/brand-icons/google.png"),
+  facebook: require("@/assets/brand-icons/facebook.png"),
+  app_store: require("@/assets/brand-icons/appstore.png"),
+  x: require("@/assets/brand-icons/x.png"),
+};
+
+const EMOJI_ICONS: Partial<Record<ReferralSource, string>> = {
+  friend: "👥",
+  other: "💬",
+};
+
+const ICON_SIZE = 32;
+
+function ReferralSourceIcon({ source }: { source: ReferralSource }) {
+  const image = BRAND_ICON_IMAGES[source];
+  if (image) {
+    return (
+      <Image
+        source={image}
+        style={{ width: ICON_SIZE, height: ICON_SIZE }}
+        resizeMode="contain"
+      />
+    );
+  }
+
+  return (
+    <View
+      style={{
+        width: ICON_SIZE,
+        height: ICON_SIZE,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Text style={{ fontSize: 22, lineHeight: 24 }}>{EMOJI_ICONS[source] ?? "💬"}</Text>
+    </View>
+  );
+}
 
 export function ReferralSourcePicker({
   value,
@@ -11,29 +62,42 @@ export function ReferralSourcePicker({
   value?: ReferralSource;
   onChange: (source: ReferralSource) => void;
 }) {
-  const { colors } = useAppTheme();
+  const { ob } = useOnboardingTheme();
 
   return (
-    <View className="gap-2">
+    <View style={{ gap: ONBOARDING_OPTION_GAP }}>
       {REFERRAL_SOURCES.map((source) => {
         const selected = value === source;
+        const option = onboardingOptionColors(ob, selected);
         return (
-          <Pressable
+          <TouchableOpacity
             key={source}
+            activeOpacity={0.75}
             onPress={() => onChange(source)}
+            testID={`onboarding-referral-${source}`}
             accessibilityRole="button"
             accessibilityState={{ selected }}
-            className="flex-row items-center gap-3 rounded-2xl border px-4 py-3.5"
             style={{
-              borderColor: selected ? colors.accent : colors.border,
-              backgroundColor: selected ? `${colors.accent}22` : colors.card,
+              minHeight: ONBOARDING_OPTION_MIN_HEIGHT,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: ONBOARDING_OPTION_ICON_GAP,
+              borderRadius: 9999,
+              borderWidth: 1.5,
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              borderColor: option.borderColor,
+              backgroundColor: option.backgroundColor,
             }}
           >
-            <Text className="text-xl">{referralSourceEmoji(source)}</Text>
-            <Text className="flex-1 text-base font-medium" style={{ color: colors.textPrimary }}>
+            <ReferralSourceIcon source={source} />
+            <Text
+              className={`flex-1 text-base ${selected ? "font-semibold" : "font-medium"}`}
+              style={{ color: option.color }}
+            >
               {referralSourceLabel(source)}
             </Text>
-          </Pressable>
+          </TouchableOpacity>
         );
       })}
     </View>

@@ -14,6 +14,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import { TabScreenFade } from "@/components/motion/TabScreenFade";
 import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 
 import { FutureYouSkipperReminderPill } from "@/components/home/FutureYouSkipperReminderPill";
@@ -245,7 +246,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <>
+    <TabScreenFade>
       <ScrollView
         testID="tab-home"
         className="px-screen-x"
@@ -393,6 +394,6 @@ export default function HomeScreen() {
         open={mobilityPreviewOpen}
         onClose={() => setMobilityPreviewOpen(false)}
       />
-    </>
+    </TabScreenFade>
   );
 }

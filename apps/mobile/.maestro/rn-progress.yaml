@@ -19,7 +19,7 @@ env:
 - runFlow: subflows/dev-client-connect.yaml
 - extendedWaitUntil:
     visible:
-      id: auth-welcome-headline
+      id: auth-welcome-screen
     timeout: 60000
 - runFlow: subflows/auth-sign-in-credentials.yaml
 - extendedWaitUntil:

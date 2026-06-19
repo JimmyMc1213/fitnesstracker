@@ -8,6 +8,8 @@ appId: app.newyouai.mobile
       id: onboarding-step-1
     timeout: 10000
 - tapOn:
+    text: "Dark"
+- tapOn:
     id: onboarding-continue
 # Gender
 - extendedWaitUntil:
@@ -18,11 +20,15 @@ appId: app.newyouai.mobile
     text: "Male"
 - tapOn:
     id: onboarding-continue
-# DOB (default seeded)
+# DOB (scroll wheel to confirm)
 - extendedWaitUntil:
     visible:
       id: onboarding-step-3
     timeout: 10000
+- swipe:
+    start: "50%,55%"
+    end: "50%,35%"
+    duration: 400
 - tapOn:
     id: onboarding-continue
 # Referral
@@ -39,6 +45,12 @@ appId: app.newyouai.mobile
     visible:
       id: onboarding-step-5
     timeout: 10000
+- tapOn:
+    text: "lbs"
+- tapOn:
+    text: "ft + in"
+- tapOn:
+    text: "oz"
 - tapOn:
     id: onboarding-continue
 # Height

@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from "react-native";
 
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
+import { onboardingPillColors, ONBOARDING_PILL_MIN_HEIGHT } from "@/lib/onboardingTheme";
 
 type Option<T extends string> = {
   id: T;
@@ -19,7 +20,7 @@ export function OnboardingIconOptionPicker<T extends string>({
   onToggle: (id: T) => void;
   multi?: boolean;
 }) {
-  const { colors } = useAppTheme();
+  const { ob } = useOnboardingTheme();
 
   function isSelected(id: T): boolean {
     if (multi) {
@@ -32,20 +33,21 @@ export function OnboardingIconOptionPicker<T extends string>({
     <View className="gap-2">
       {options.map(({ id, label, emoji }) => {
         const on = isSelected(id);
+        const pill = onboardingPillColors(ob, on);
         return (
           <Pressable
             key={id}
             onPress={() => onToggle(id)}
             accessibilityRole="button"
             accessibilityState={{ selected: on }}
-            className="flex-row items-center gap-3 rounded-2xl border px-4 py-3.5"
+            className="min-h-[56px] flex-row items-center gap-3 rounded-full border px-4 py-3.5"
             style={{
-              borderColor: on ? colors.accent : colors.border,
-              backgroundColor: on ? `${colors.accent}22` : colors.card,
+              borderColor: pill.borderColor,
+              backgroundColor: pill.backgroundColor,
             }}
           >
             <Text className="text-xl">{emoji}</Text>
-            <Text className="flex-1 text-base font-medium" style={{ color: colors.textPrimary }}>
+            <Text className="flex-1 text-base font-medium" style={{ color: pill.color }}>
               {label}
             </Text>
           </Pressable>

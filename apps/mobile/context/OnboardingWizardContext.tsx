@@ -30,7 +30,7 @@ import {
 
 import type { NavDirection } from "@/components/motion";
 
-import { DEFAULT_WIZARD_UNIT_PREFERENCES, FRESH_ONBOARDING_PROFILE } from "@/lib/onboardingDefaults";
+import { EMPTY_WIZARD_UNIT_PREFERENCES, FRESH_ONBOARDING_PROFILE, freshWizardStateAtStep } from "@/lib/onboardingDefaults";
 import { ONBOARDING_NOTIFICATION_DEFAULTS } from "@/lib/notificationPreferences";
 import {
   buildOnboardingDraft,
@@ -38,6 +38,7 @@ import {
   persistOnboardingDraft,
   type OnboardingDraftInput,
 } from "@/lib/onboardingStorage";
+import { readStoredTheme } from "@/lib/themeStorage";
 import {
   canNavigateWizardToStep,
   clampWizardStep,
@@ -52,7 +53,7 @@ type OnboardingWizardContextValue = {
   stepIndex: number;
   displayName: string;
   profile: OnboardingProfile;
-  unitPreferences: UnitPreferences;
+  unitPreferences: Partial<UnitPreferences>;
   experienceLevel?: ExperienceLevel;
   equipmentSetup?: EquipmentSetup;
   sessionLength?: SessionLength;
@@ -68,7 +69,7 @@ type OnboardingWizardContextValue = {
   goBack: () => void;
   goToStep: (next: number, overrides?: Partial<OnboardingDraftInput>) => void;
   setProfile: (updater: OnboardingProfile | ((prev: OnboardingProfile) => OnboardingProfile)) => void;
-  setUnitPreferences: (next: UnitPreferences) => void;
+  setUnitPreferences: (next: Partial<UnitPreferences>) => void;
   setDraftTheme: (theme: AppTheme) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setEquipmentSetup: (setup: EquipmentSetup) => void;
@@ -107,7 +108,7 @@ const INITIAL_STATE = {
   stepIndex: 0,
   displayName: "",
   profile: { ...FRESH_ONBOARDING_PROFILE },
-  unitPreferences: { ...DEFAULT_WIZARD_UNIT_PREFERENCES },
+  unitPreferences: { ...EMPTY_WIZARD_UNIT_PREFERENCES },
   experienceLevel: undefined as ExperienceLevel | undefined,
   equipmentSetup: undefined as EquipmentSetup | undefined,
   sessionLength: undefined as SessionLength | undefined,
@@ -128,10 +129,19 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
     let cancelled = false;
 
     void (async () => {
-      const draft = await loadRestorableOnboardingDraft();
+      const [draft, storedTheme] = await Promise.all([
+        loadRestorableOnboardingDraft(),
+        readStoredTheme(),
+      ]);
       if (cancelled) return;
       if (draft) {
-        setWizardState(stateFromDraft(draft));
+        const fromDraft = stateFromDraft(draft);
+        setWizardState({
+          ...fromDraft,
+          draftTheme: fromDraft.draftTheme ?? storedTheme,
+        });
+      } else {
+        setWizardState({ ...INITIAL_STATE, draftTheme: storedTheme });
       }
       setHydrated(true);
     })();
@@ -146,7 +156,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
       const draft = buildOnboardingDraft({
         stepIndex: nextState.stepIndex,
         displayName: nextState.displayName,
-        unitPreferences: nextState.unitPreferences,
+        unitPreferences: nextState.unitPreferences as UnitPreferences,
         experienceLevel: nextState.experienceLevel,
         equipmentSetup: nextState.equipmentSetup,
         profile: nextState.profile,
@@ -226,6 +236,13 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
   const goNext = useCallback(() => {
     setNavDirection("forward");
     applyState((prev) => {
+      if (prev.stepIndex === 0) {
+        return {
+          ...freshWizardStateAtStep(1),
+          draftTheme: prev.draftTheme,
+        };
+      }
+
       if (prev.stepIndex === 15) {
         if (!prev.experienceLevel || !prev.equipmentSetup || !prev.sessionLength) return prev;
         if (!isTrainingScheduleValid(prev.profile)) return prev;
@@ -285,8 +302,8 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
   );
 
   const setUnitPreferences = useCallback(
-    (next: UnitPreferences) => {
-      applyState((prev) => ({ ...prev, unitPreferences: { ...next } }));
+    (next: Partial<UnitPreferences>) => {
+      applyState((prev) => ({ ...prev, unitPreferences: { ...prev.unitPreferences, ...next } }));
     },
     [applyState],
   );

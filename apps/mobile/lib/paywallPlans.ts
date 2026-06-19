@@ -19,13 +19,13 @@ export const PAYWALL_PLANS = {
   yearly: {
     label: "Yearly",
     displayPerMonth: `${formatUsd(PAYWALL_YEARLY_PRICE / 12)}/mo`,
-    trialNote: "No trial, billed immediately",
+    trialNote: "",
     billingNote: `Billed at ${formatUsd(PAYWALL_YEARLY_PRICE)}/yr.`,
   },
   monthly: {
     label: "Monthly",
     displayPerMonth: `${formatUsd(PAYWALL_MONTHLY_PRICE)}/mo`,
-    trialNote: "No trial, billed immediately",
+    trialNote: "",
     billingNote: `Billed at ${formatUsd(PAYWALL_MONTHLY_PRICE)}/mo.`,
   },
 } as const satisfies Record<

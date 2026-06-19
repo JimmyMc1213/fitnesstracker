@@ -1,7 +1,12 @@
 import type { HeightDisplayUnit } from "@newyouai/types";
 import { useEffect, useRef, useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { View } from "react-native";
 
+import {
+  OnboardingFieldGroup,
+  OnboardingInputField,
+  onboardingInputStyles,
+} from "@/components/onboarding/OnboardingInputField";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { cmFromInches, inchesFromCm } from "@/lib/unitConversions";
 
@@ -66,19 +71,18 @@ export function OnboardingHeightInput({
     onHeightChangeRef.current(ft * 12 + inch);
   }, [unit, feetText, inchesText, cmText]);
 
-  const inputStyle = {
+  const shellStyle = {
     borderColor: colors.border,
     backgroundColor: colors.card,
-    color: colors.textPrimary,
   };
+  const inputStyle = { color: colors.textPrimary };
 
   if (unit === "cm") {
     return (
-      <View className="gap-2">
-        <Text className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textTertiary }}>
-          Height (cm)
-        </Text>
-        <TextInput
+      <OnboardingFieldGroup label="Height (cm)" labelColor={colors.textTertiary}>
+        <OnboardingInputField
+          shellStyle={shellStyle}
+          inputStyle={inputStyle}
           value={cmText}
           onChangeText={(raw) => {
             if (raw !== "" && !/^\d*\.?\d*$/.test(raw)) return;
@@ -87,54 +91,48 @@ export function OnboardingHeightInput({
           keyboardType="decimal-pad"
           placeholder="0"
           placeholderTextColor={colors.textTertiary}
-          className="rounded-2xl border px-4 py-3.5 text-base"
-          style={inputStyle}
           accessibilityLabel="Height in centimeters"
         />
-      </View>
+      </OnboardingFieldGroup>
     );
   }
 
   return (
-    <View className="flex-row gap-3">
-      <View className="flex-1 gap-2">
-        <Text className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textTertiary }}>
-          Ft
-        </Text>
-        <TextInput
+    <View style={onboardingInputStyles.row}>
+      <OnboardingFieldGroup label="Ft" labelColor={colors.textTertiary}>
+        <OnboardingInputField
           testID="onboarding-height-feet"
+          shellStyle={shellStyle}
+          inputStyle={inputStyle}
           value={feetText}
           onChangeText={(raw) => {
-            if (raw !== "" && !/^\d+$/.test(raw)) return;
+            if (raw !== "" && (!/^\d+$/.test(raw) || raw.length > 1)) return;
             setFeetText(raw);
           }}
           keyboardType="number-pad"
+          maxLength={1}
           placeholder="0"
           placeholderTextColor={colors.textTertiary}
-          className="rounded-2xl border px-4 py-3.5 text-base"
-          style={inputStyle}
           accessibilityLabel="Height feet"
         />
-      </View>
-      <View className="flex-1 gap-2">
-        <Text className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textTertiary }}>
-          In
-        </Text>
-        <TextInput
+      </OnboardingFieldGroup>
+      <OnboardingFieldGroup label="In" labelColor={colors.textTertiary}>
+        <OnboardingInputField
           testID="onboarding-height-inches"
+          shellStyle={shellStyle}
+          inputStyle={inputStyle}
           value={inchesText}
           onChangeText={(raw) => {
-            if (raw !== "" && !/^\d+$/.test(raw)) return;
+            if (raw !== "" && (!/^\d+$/.test(raw) || raw.length > 2)) return;
             setInchesText(raw);
           }}
           keyboardType="number-pad"
+          maxLength={2}
           placeholder="0"
           placeholderTextColor={colors.textTertiary}
-          className="rounded-2xl border px-4 py-3.5 text-base"
-          style={inputStyle}
           accessibilityLabel="Height inches"
         />
-      </View>
+      </OnboardingFieldGroup>
     </View>
   );
 }

@@ -46,8 +46,10 @@ export function BootSplash({ onComplete }: BootSplashProps) {
     <Animated.View
       accessibilityLabel="Loading NewYou"
       accessibilityRole="progressbar"
-      pointerEvents="none"
-      style={[StyleSheet.absoluteFill, { opacity, zIndex: 50, backgroundColor: colors.background }]}
+      style={[
+        StyleSheet.absoluteFill,
+        { opacity, zIndex: 50, backgroundColor: colors.background, pointerEvents: "none" },
+      ]}
       className="items-center justify-center"
       testID="boot-splash"
     >

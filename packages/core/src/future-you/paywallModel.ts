@@ -58,7 +58,7 @@ export function futureYouPaywallCtaLabel(
     return FUTURE_YOU_PAYWALL_CTA_PREPARING;
   }
   if (billingPeriod === "monthly") {
-    return FUTURE_YOU_PAYWALL_CTA_TRIAL;
+    return FUTURE_YOU_PAYWALL_CTA_DEFAULT;
   }
   if (isPlanOnlyPaywallPath(futureYou, photoBlocked)) {
     return FUTURE_YOU_PAYWALL_CTA_PLAN_ONLY;

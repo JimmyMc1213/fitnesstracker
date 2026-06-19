@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 
 const BUILD_DURATION_MS = 3500;
 
@@ -35,6 +36,7 @@ function progressFromElapsed(elapsedMs: number): number {
 
 export function OnboardingPlanBuilding({ onComplete }: { onComplete: () => void }) {
   const { colors } = useAppTheme();
+  const { ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
@@ -71,7 +73,7 @@ export function OnboardingPlanBuilding({ onComplete }: { onComplete: () => void 
         paddingHorizontal: 23,
       }}
     >
-      <Text className="text-center text-5xl font-bold" style={{ color: colors.accent }}>
+      <Text className="text-center text-5xl font-bold" style={{ color: ob.gold }}>
         {progress}%
       </Text>
       <Text className="mt-4 text-center text-2xl font-bold" style={{ color: colors.textPrimary }}>
@@ -79,10 +81,10 @@ export function OnboardingPlanBuilding({ onComplete }: { onComplete: () => void 
       </Text>
 
       <View className="mt-6">
-        <View className="h-2 overflow-hidden rounded-full" style={{ backgroundColor: colors.border }}>
+        <View className="h-2.5 overflow-hidden rounded-full" style={{ backgroundColor: ob.progressTrack }}>
           <View
             className="h-full rounded-full"
-            style={{ width: `${progress}%`, backgroundColor: colors.accent }}
+            style={{ width: `${progress}%`, backgroundColor: ob.gold }}
           />
         </View>
         <Text className="mt-3 text-center text-sm" style={{ color: colors.textSecondary }}>
@@ -103,12 +105,12 @@ export function OnboardingPlanBuilding({ onComplete }: { onComplete: () => void 
             <View key={item.id} className="mb-2 flex-row items-center justify-between">
               <Text
                 className="text-sm"
-                style={{ color: done ? colors.accent : colors.textSecondary }}
+                style={{ color: done ? ob.gold : colors.textSecondary }}
               >
                 {item.label}
               </Text>
               {done ? (
-                <Text className="text-sm" style={{ color: colors.accent }}>
+                <Text className="text-sm" style={{ color: ob.gold }}>
                   ✓
                 </Text>
               ) : null}

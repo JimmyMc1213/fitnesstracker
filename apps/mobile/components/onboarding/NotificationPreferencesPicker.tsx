@@ -2,6 +2,10 @@ import { normalizeTimeHHmm } from "@newyouai/core";
 import type { NotificationPreferences } from "@newyouai/types";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
 
+import {
+  OnboardingFieldGroup,
+  OnboardingInputField,
+} from "@/components/onboarding/OnboardingInputField";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { NotificationPermissionState } from "@/lib/notificationPermission";
 import { permissionStatusLabel, requestNotificationPermission } from "@/lib/notificationPermission";
@@ -109,24 +113,22 @@ function OnboardingNotificationRow({
       </View>
       {enabled ? (
         <View className="mt-3">
-          <Text className="mb-1 text-xs font-medium uppercase tracking-wide" style={{ color: colors.textTertiary }}>
-            Reminder time
-          </Text>
-          <TextInput
-            value={time}
-            onChangeText={(next) => onTimeChange(normalizeTimeHHmm(next, defaultTime))}
-            placeholder={defaultTime}
-            placeholderTextColor={colors.textTertiary}
-            keyboardType="numbers-and-punctuation"
-            className="rounded-xl border px-3 py-2.5 text-base"
-            style={{
-              borderColor: colors.border,
-              backgroundColor: colors.background,
-              color: colors.textPrimary,
-            }}
-            accessibilityLabel={`${label} time`}
-            testID={`notification-time-${row.timeKey}`}
-          />
+          <OnboardingFieldGroup label="Reminder time" labelColor={colors.textTertiary}>
+            <OnboardingInputField
+              shellStyle={{
+                borderColor: colors.border,
+                backgroundColor: colors.background,
+              }}
+              inputStyle={{ color: colors.textPrimary }}
+              value={time}
+              onChangeText={(next) => onTimeChange(normalizeTimeHHmm(next, defaultTime))}
+              placeholder={defaultTime}
+              placeholderTextColor={colors.textTertiary}
+              keyboardType="numbers-and-punctuation"
+              accessibilityLabel={`${label} time`}
+              testID={`notification-time-${row.timeKey}`}
+            />
+          </OnboardingFieldGroup>
         </View>
       ) : null}
     </View>

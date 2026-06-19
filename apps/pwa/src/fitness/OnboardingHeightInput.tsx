@@ -98,9 +98,10 @@ export function OnboardingHeightInput({
           placeholder="0"
           onChange={(e) => {
             const raw = e.target.value;
-            if (raw !== "" && !/^\d+$/.test(raw)) return;
+            if (raw !== "" && (!/^\d+$/.test(raw) || raw.length > 1)) return;
             setFeetText(raw);
           }}
+          maxLength={1}
         />
       </label>
       <label className="onboarding-field-group">
@@ -114,9 +115,10 @@ export function OnboardingHeightInput({
           placeholder="0"
           onChange={(e) => {
             const raw = e.target.value;
-            if (raw !== "" && !/^\d+$/.test(raw)) return;
+            if (raw !== "" && (!/^\d+$/.test(raw) || raw.length > 2)) return;
             setInchesText(raw);
           }}
+          maxLength={2}
         />
       </label>
     </div>

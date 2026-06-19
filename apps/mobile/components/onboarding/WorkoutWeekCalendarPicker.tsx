@@ -2,6 +2,8 @@ import type { OnboardingProfile } from "@newyouai/types";
 import { Pressable, Text, View } from "react-native";
 
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
+import { onboardingPillColors } from "@/lib/onboardingTheme";
 import {
   GENERATED_TRAINING_DAY_LIMITS,
   isValidTrainingWeekdaySelection,
@@ -30,6 +32,7 @@ export function WorkoutWeekCalendarPicker({
   selectionLimits?: TrainingWeekdaySelectionLimits;
 }) {
   const { colors } = useAppTheme();
+  const { ob } = useOnboardingTheme();
   const selected = profile.trainingWeekdays ?? [];
   const valid = isValidTrainingWeekdaySelection(selected, selectionLimits);
 
@@ -46,6 +49,7 @@ export function WorkoutWeekCalendarPicker({
       >
         {TRAINING_WEEKDAY_ORDER.map((day) => {
           const on = selected.includes(day);
+          const pill = onboardingPillColors(ob, on);
           return (
             <Pressable
               key={day}
@@ -56,11 +60,11 @@ export function WorkoutWeekCalendarPicker({
               onPress={() => applyWeekdays(toggleTrainingWeekday(selected, day, selectionLimits))}
               className="h-11 w-11 items-center justify-center rounded-full border"
               style={{
-                borderColor: on ? colors.accent : colors.border,
-                backgroundColor: on ? `${colors.accent}22` : colors.card,
+                borderColor: pill.borderColor,
+                backgroundColor: pill.backgroundColor,
               }}
             >
-              <Text className="text-sm font-semibold" style={{ color: on ? colors.accent : colors.textPrimary }}>
+              <Text className="text-sm font-semibold" style={{ color: pill.color }}>
                 {TRAINING_WEEKDAY_SHORT[day]}
               </Text>
             </Pressable>
@@ -80,7 +84,7 @@ export function WorkoutWeekCalendarPicker({
 
       {showPickForMe ? (
         <Pressable onPress={() => applyWeekdays(pickTrainingWeekdaysForMe(selected))} className="mt-3 items-center py-2">
-          <Text className="text-base font-medium" style={{ color: colors.accent }}>
+          <Text className="text-base font-medium" style={{ color: ob.ghostFg }}>
             Pick for me
           </Text>
         </Pressable>

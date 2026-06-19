@@ -2,7 +2,7 @@ appId: app.newyouai.mobile
 ---
 - extendedWaitUntil:
     visible:
-      id: auth-welcome-headline
+      id: auth-welcome-screen
     timeout: 60000
 - runFlow: auth-sign-in-credentials.yaml
 - extendedWaitUntil:

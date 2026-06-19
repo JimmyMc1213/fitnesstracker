@@ -14,15 +14,38 @@ function BrandIcon({ color }: { color: string }) {
   );
 }
 
-export function NewYouSplashMark() {
+export type NewYouSplashMarkProps = {
+  /** Icon-only mark without the wordmark. */
+  iconOnly?: boolean;
+  /** Override logo tile background (e.g. brand gold). */
+  logoBackgroundColor?: string;
+  /** Override icon color inside the logo tile. */
+  logoIconColor?: string;
+};
+
+export function NewYouSplashMark({
+  iconOnly = false,
+  logoBackgroundColor,
+  logoIconColor,
+}: NewYouSplashMarkProps = {}) {
   const { colors } = useAppTheme();
+  const tileBg = logoBackgroundColor ?? colors.accent;
+  const iconColor = logoIconColor ?? colors.accentText;
 
   return (
     <View style={styles.root} testID="splash-mark">
-      <View style={[styles.logoBox, { backgroundColor: colors.accent }]}>
-        <BrandIcon color={colors.accentText} />
+      <View
+        style={[
+          styles.logoBox,
+          iconOnly ? styles.logoBoxIconOnly : null,
+          { backgroundColor: tileBg },
+        ]}
+      >
+        <BrandIcon color={iconColor} />
       </View>
-      <Text style={[styles.wordmark, { color: colors.textPrimary }]}>NewYou</Text>
+      {iconOnly ? null : (
+        <Text style={[styles.wordmark, { color: colors.textPrimary }]}>NewYou</Text>
+      )}
     </View>
   );
 }
@@ -38,6 +61,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 16,
+  },
+  logoBoxIconOnly: {
+    marginBottom: 0,
   },
   wordmark: {
     fontSize: 28,

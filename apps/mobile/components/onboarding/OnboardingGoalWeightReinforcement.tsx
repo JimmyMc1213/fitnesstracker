@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 
 export function OnboardingGoalWeightReinforcement({
   headline,
@@ -10,14 +10,20 @@ export function OnboardingGoalWeightReinforcement({
   headline: ReactNode;
   subtext: string;
 }) {
-  const { colors } = useAppTheme();
+  const { ob } = useOnboardingTheme();
 
   return (
-    <View className="flex-1 items-center justify-center px-2">
-      <Text className="text-center text-[26px] font-bold leading-snug" style={{ color: colors.textPrimary }}>
+    <View className="min-h-[420px] flex-1 items-center justify-center px-2 py-6">
+      <Text
+        className="max-w-[320px] text-center text-[30px] font-bold leading-tight tracking-tight"
+        style={{ color: ob.headline }}
+      >
         {headline}
       </Text>
-      <Text className="mt-4 text-center text-base leading-relaxed" style={{ color: colors.textSecondary }}>
+      <Text
+        className="mt-5 max-w-[296px] text-center text-[15px] leading-[1.55]"
+        style={{ color: ob.helper }}
+      >
         {subtext}
       </Text>
     </View>

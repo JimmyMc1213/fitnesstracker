@@ -1,0 +1,12 @@
+# From hero landing: tap Get Started when the phone preview is still visible.
+appId: app.newyouai.mobile
+---
+- runFlow:
+    when:
+      visible:
+        id: welcome-phone-preview
+    commands:
+      - tapOn:
+          id: auth-get-started-button
+      - waitForAnimationToEnd:
+          timeout: 2000

@@ -2,29 +2,50 @@ import { useMemo } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { onboardingThemeFor } from "@/lib/onboardingTheme";
 
-function usePreviewSize() {
+type WelcomePhonePreviewProps = {
+  /** Large centered hero for welcome landing screens. */
+  size?: "default" | "hero";
+  /** Brand gold accent instead of theme blue. */
+  useBrandGold?: boolean;
+};
+
+function usePreviewSize(size: "default" | "hero") {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   return useMemo(() => {
+    if (size === "hero") {
+      // Reserve space for logo, copy, CTA, and safe-area padding so the button stays on screen.
+      const reservedVertical = 340;
+      const maxHeight = Math.max(180, screenHeight - reservedVertical);
+      const height = Math.min(Math.round(screenHeight * 0.36), maxHeight);
+      const width = height * (9 / 16);
+      return { width, height };
+    }
+
     const widthCap = Math.min(176, Math.round(screenWidth * 0.46));
     const heightCap = Math.round(screenHeight * 0.18);
     const height = Math.min(widthCap * (16 / 9), heightCap);
     const width = height * (9 / 16);
 
     return { width, height };
-  }, [screenHeight, screenWidth]);
+  }, [screenHeight, screenWidth, size]);
 }
 
-export function WelcomePhonePreview() {
-  const { colors } = useAppTheme();
-  const { width, height } = usePreviewSize();
+export function WelcomePhonePreview({ size = "default", useBrandGold = false }: WelcomePhonePreviewProps) {
+  const { colors, scheme } = useAppTheme();
+  const ob = onboardingThemeFor(scheme);
+  const accent = useBrandGold ? ob.gold : colors.accent;
+  const accentOn = useBrandGold ? ob.goldOn : colors.accentText;
+  const { width, height } = usePreviewSize(size);
 
   return (
     <View
       accessibilityElementsHidden
       style={[
         styles.frame,
+        size === "hero" ? styles.frameHero : null,
         {
           width,
           height,
@@ -35,14 +56,14 @@ export function WelcomePhonePreview() {
       testID="welcome-phone-preview"
     >
       <View style={[styles.statusBar, { backgroundColor: colors.backgroundSecondary }]}>
-        <View style={[styles.statusDot, { backgroundColor: colors.accent }]} />
+        <View style={[styles.statusDot, { backgroundColor: accent }]} />
         <View style={[styles.statusPill, { backgroundColor: colors.backgroundTertiary }]} />
       </View>
 
       <View style={styles.content}>
-        <View style={[styles.heroCard, { backgroundColor: colors.accent }]}>
-          <View style={[styles.heroLineWide, { backgroundColor: colors.accentText, opacity: 0.9 }]} />
-          <View style={[styles.heroLineMid, { backgroundColor: colors.accentText, opacity: 0.65 }]} />
+        <View style={[styles.heroCard, size === "hero" ? styles.heroCardLarge : null, { backgroundColor: accent }]}>
+          <View style={[styles.heroLineWide, { backgroundColor: accentOn, opacity: 0.9 }]} />
+          <View style={[styles.heroLineMid, { backgroundColor: accentOn, opacity: 0.65 }]} />
         </View>
 
         <View style={styles.metricRow}>
@@ -55,7 +76,7 @@ export function WelcomePhonePreview() {
                 <View
                   style={[
                     styles.metricFill,
-                    { width: `${fill * 100}%`, backgroundColor: index === 2 ? colors.accent : colors.textSecondary },
+                    { width: `${fill * 100}%`, backgroundColor: index === 2 ? accent : colors.textSecondary },
                   ]}
                 />
               </View>
@@ -82,6 +103,10 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1.5,
     flexShrink: 0,
+  },
+  frameHero: {
+    borderRadius: 28,
+    borderWidth: 1.5,
   },
   statusBar: {
     flexDirection: "row",
@@ -111,6 +136,12 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingHorizontal: 10,
     paddingVertical: 12,
+  },
+  heroCardLarge: {
+    borderRadius: 12,
+    gap: 7,
+    paddingHorizontal: 14,
+    paddingVertical: 16,
   },
   heroLineWide: {
     height: 5,

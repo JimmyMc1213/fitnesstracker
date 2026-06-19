@@ -9,8 +9,8 @@ export function UnitPreferencePicker({
   value,
   onChange,
 }: {
-  value: UnitPreferences;
-  onChange: (next: UnitPreferences) => void;
+  value: Partial<UnitPreferences>;
+  onChange: (next: Partial<UnitPreferences>) => void;
 }) {
   const { colors } = useAppTheme();
 

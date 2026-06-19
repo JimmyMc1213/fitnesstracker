@@ -19,7 +19,7 @@ export const authLayout = StyleSheet.create({
   heroRow: {
     alignItems: "center",
     flexShrink: 0,
-    marginTop: 12,
+    marginTop: 16,
   },
   copyBlock: {
     flexShrink: 0,
@@ -107,6 +107,18 @@ export const authLayout = StyleSheet.create({
     minHeight: "100%",
     paddingTop: 4,
     paddingBottom: 12,
+  },
+  authEntryLanding: {
+    flexGrow: 1,
+    minHeight: "100%",
+    paddingTop: 8,
+    paddingBottom: 12,
+    gap: 8,
+  },
+  authEntryLogo: {
+    alignItems: "center",
+    paddingTop: 8,
+    paddingBottom: 4,
   },
   input: {
     borderRadius: borderRadius.pill,

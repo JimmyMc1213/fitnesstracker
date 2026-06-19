@@ -1,4 +1,5 @@
 /** PWA Future You / onboarding gold tokens (apps/pwa/src/index.css). */
+export const FUTURE_YOU_PANEL_BG = "#f0f0f0";
 export const FUTURE_YOU_GOLD = "#c9a876";
 export const FUTURE_YOU_GOLD_MID = "#d4b88a";
 export const FUTURE_YOU_CALLOUT_BG = "#14110c";

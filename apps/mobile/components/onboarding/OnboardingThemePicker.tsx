@@ -1,8 +1,16 @@
 import type { AppTheme } from "@newyouai/types";
+import { useEffect, useState, type ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
+import { IconMoon, IconSun } from "@/components/icons/FitnessIcons";
 import { OnboardingShell } from "@/components/onboarding/OnboardingShell";
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 
 type Props = {
   step: number;
@@ -12,40 +20,77 @@ type Props = {
   onContinue: () => void;
 };
 
-function ThemeOption({
+const TRACK_PADDING = 5;
+const SWITCH_MAX_WIDTH = 320;
+const SWITCH_MIN_HEIGHT = 72;
+
+/** PWA `--ob-theme-switch-track-*` — follows the current page theme, not the pending selection. */
+function themeSwitchTrackTokens(pageIsLight: boolean) {
+  if (pageIsLight) {
+    return { trackBg: "#e5e5ea", trackBorder: "#c7c7cc" };
+  }
+  return { trackBg: "#26262c", trackBorder: "rgba(255, 255, 255, 0.22)" };
+}
+
+function SwitchOption({
   label,
-  hint,
-  selected,
+  icon,
+  active,
+  activeColor,
+  inactiveColor,
   onPress,
 }: {
   label: string;
-  hint: string;
-  selected: boolean;
+  icon: ReactNode;
+  active: boolean;
+  activeColor: string;
+  inactiveColor: string;
   onPress: () => void;
 }) {
-  const { colors } = useAppTheme();
-
   return (
     <Pressable
       onPress={onPress}
-      className="flex-1 items-center rounded-2xl border px-4 py-5"
-      style={{
-        borderColor: selected ? colors.accent : colors.border,
-        backgroundColor: selected ? `${colors.accent}22` : colors.card,
-      }}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      className="z-10 min-h-[62px] flex-1 items-center justify-center gap-1.5 py-2.5"
     >
-      <Text className="text-lg font-semibold" style={{ color: selected ? colors.accent : colors.textPrimary }}>
+      <View style={{ opacity: active ? 1 : 0.72 }}>{icon}</View>
+      <Text
+        className="text-[15px] font-semibold tracking-tight"
+        style={{ color: active ? activeColor : inactiveColor }}
+      >
         {label}
-      </Text>
-      <Text className="mt-1 text-sm" style={{ color: colors.textSecondary }}>
-        {hint}
       </Text>
     </Pressable>
   );
 }
 
 export function OnboardingThemePicker({ step, value, onChange, onBack, onContinue }: Props) {
-  const isLight = value === "light";
+  const { scheme, ob } = useOnboardingTheme();
+  const pageIsLight = scheme === "light";
+  const track = themeSwitchTrackTokens(pageIsLight);
+  const selectedIsLight = value === "light";
+  const [trackWidth, setTrackWidth] = useState(0);
+  const thumbOffset = useSharedValue(selectedIsLight ? 0 : 1);
+
+  useEffect(() => {
+    thumbOffset.value = withTiming(selectedIsLight ? 0 : 1, {
+      duration: 380,
+      easing: Easing.bezier(0.22, 1, 0.36, 1),
+    });
+  }, [selectedIsLight, thumbOffset]);
+
+  const thumbStyle = useAnimatedStyle(() => {
+    const innerWidth = Math.max(0, trackWidth - TRACK_PADDING * 2);
+    const thumbWidth = innerWidth / 2;
+    return {
+      transform: [{ translateX: thumbOffset.value * thumbWidth }],
+    };
+  }, [trackWidth]);
+
+  function selectTheme(next: AppTheme) {
+    if (next !== value) onChange(next);
+  }
 
   return (
     <OnboardingShell
@@ -57,21 +102,80 @@ export function OnboardingThemePicker({ step, value, onChange, onBack, onContinu
       hideProgress
       testID="onboarding-step-1"
     >
-      <View className="flex-1 justify-center">
-        <View className="flex-row gap-3">
-          <ThemeOption
-            label="Light"
-            hint="Clean and bright"
-            selected={isLight}
-            onPress={() => onChange("light")}
-          />
-          <ThemeOption
-            label="Dark"
-            hint="Easy on the eyes"
-            selected={!isLight}
-            onPress={() => onChange("dark")}
-          />
+      <View className="items-center justify-center px-1 py-8">
+        <View
+          className="w-full"
+          style={{ maxWidth: SWITCH_MAX_WIDTH }}
+          onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
+        >
+          <View
+            accessibilityRole="switch"
+            accessibilityState={{ checked: selectedIsLight }}
+            accessibilityLabel={`Theme: ${selectedIsLight ? "Light" : "Dark"}`}
+            className="relative overflow-hidden rounded-full border-[1.5px]"
+            style={{
+              minHeight: SWITCH_MIN_HEIGHT,
+              padding: TRACK_PADDING,
+              borderColor: track.trackBorder,
+              backgroundColor: track.trackBg,
+            }}
+          >
+            {trackWidth > 0 ? (
+              <Animated.View
+                pointerEvents="none"
+                className="absolute rounded-full"
+                style={[
+                  {
+                    top: TRACK_PADDING,
+                    left: TRACK_PADDING,
+                    width: (trackWidth - TRACK_PADDING * 2) / 2,
+                    height: SWITCH_MIN_HEIGHT - TRACK_PADDING * 2,
+                    backgroundColor: ob.pillSelectedBg,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.14,
+                    shadowRadius: 14,
+                    elevation: 4,
+                  },
+                  thumbStyle,
+                ]}
+              />
+            ) : null}
+            <View className="flex-row">
+              <SwitchOption
+                label="Light"
+                icon={
+                  <IconSun
+                    size={22}
+                    stroke={1.6}
+                    color={selectedIsLight ? ob.pillSelectedFg : ob.pillFg}
+                  />
+                }
+                active={selectedIsLight}
+                activeColor={ob.pillSelectedFg}
+                inactiveColor={ob.pillFg}
+                onPress={() => selectTheme("light")}
+              />
+              <SwitchOption
+                label="Dark"
+                icon={
+                  <IconMoon
+                    size={22}
+                    stroke={1.6}
+                    color={!selectedIsLight ? ob.pillSelectedFg : ob.pillFg}
+                  />
+                }
+                active={!selectedIsLight}
+                activeColor={ob.pillSelectedFg}
+                inactiveColor={ob.pillFg}
+                onPress={() => selectTheme("dark")}
+              />
+            </View>
+          </View>
         </View>
+        <Text className="mt-4 text-center text-[11px] font-bold tracking-wide" style={{ color: ob.helper }}>
+          {selectedIsLight ? "Clean and bright" : "Easy on the eyes"}
+        </Text>
       </View>
     </OnboardingShell>
   );

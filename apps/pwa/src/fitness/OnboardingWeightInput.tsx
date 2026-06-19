@@ -13,6 +13,12 @@ function textFromWeightLbs(weightLbs: number, unit: WeightUnit): string {
   return formatDecimal(display);
 }
 
+function acceptsOnboardingWeightText(raw: string): boolean {
+  if (raw === "") return true;
+  if (!/^\d*\.?\d*$/.test(raw)) return false;
+  return raw.replace(/\D/g, "").length <= 3;
+}
+
 export function OnboardingWeightInput({
   unit,
   weightLbs,
@@ -51,7 +57,7 @@ export function OnboardingWeightInput({
         placeholder="0"
         onChange={(e) => {
           const raw = e.target.value;
-          if (raw !== "" && !/^\d*\.?\d*$/.test(raw)) return;
+          if (!acceptsOnboardingWeightText(raw)) return;
           commitText(raw);
         }}
       />

@@ -1,12 +1,12 @@
 # Shared steps after openLink, wait for Metro bundle, dismiss Expo dev client intro, recover from errors.
 appId: app.newyouai.mobile
 ---
-# Poll until auth welcome is reachable (Continue modal blocks headline until dismissed)
+# Poll until auth welcome is reachable (Continue modal blocks the screen until dismissed)
 - repeat:
     times: 40
     while:
       notVisible:
-        id: auth-welcome-headline
+        id: auth-welcome-screen
     commands:
       - tapOn:
           text: Continue

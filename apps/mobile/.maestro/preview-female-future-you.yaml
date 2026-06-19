@@ -1,0 +1,15 @@
+appId: app.newyouai.mobile
+---
+- launchApp
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-preview-onboarding
+    timeout: 30000
+- tapOn:
+    id: auth-preview-onboarding
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-100
+    timeout: 15000

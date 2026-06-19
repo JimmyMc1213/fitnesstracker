@@ -1,6 +1,12 @@
 export { closeAfterMotion } from "./closeAfterMotion";
 export { BottomSheet, CenterDialog, CONFIRM_DESTRUCTIVE_COLOR, FullScreenOverlay } from "./overlays";
-export { PageTransition, ScreenTransition, type NavDirection } from "./ScreenTransition";
+export {
+  OnboardingContentReveal,
+  PageTransition,
+  ScreenTransition,
+  type NavDirection,
+} from "./ScreenTransition";
+export { TabScreenFade } from "./TabScreenFade";
 export {
   MOTION_DURATIONS,
   type NavDirection as MotionNavDirection,

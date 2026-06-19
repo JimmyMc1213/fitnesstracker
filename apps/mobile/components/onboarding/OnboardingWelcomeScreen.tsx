@@ -1,18 +1,28 @@
 import { Pressable, ScrollView, Text, View } from "react-native";
+import { DevSettings } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
 import { WelcomePhonePreview } from "@/components/WelcomePhonePreview";
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { authLayout } from "@/lib/authLayoutStyles";
+import { isOnboardingDevToolsEnabled, resetOnboardingProgress } from "@/lib/onboardingDevTools";
 
 type OnboardingWelcomeScreenProps = {
   onGetStarted: () => void;
 };
 
 export function OnboardingWelcomeScreen({ onGetStarted }: OnboardingWelcomeScreenProps) {
-  const { colors } = useAppTheme();
+  const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
+  const showDevTools = isOnboardingDevToolsEnabled();
+
+  const onStartFresh = () => {
+    void (async () => {
+      await resetOnboardingProgress();
+      DevSettings.reload();
+    })();
+  };
 
   return (
     <View
@@ -34,11 +44,11 @@ export function OnboardingWelcomeScreen({ onGetStarted }: OnboardingWelcomeScree
         showsVerticalScrollIndicator={false}
       >
         <View style={authLayout.brandRow}>
-          <NewYouSplashMark />
+          <NewYouSplashMark logoBackgroundColor={ob.gold} logoIconColor={ob.goldOn} />
         </View>
 
         <View style={authLayout.heroRow}>
-          <WelcomePhonePreview />
+          <WelcomePhonePreview size="hero" useBrandGold />
         </View>
 
         <View style={authLayout.copyBlock}>
@@ -54,12 +64,22 @@ export function OnboardingWelcomeScreen({ onGetStarted }: OnboardingWelcomeScree
           <Pressable
             onPress={onGetStarted}
             testID="onboarding-continue"
-            style={[authLayout.primaryButton, { backgroundColor: colors.accent }]}
+            style={[authLayout.primaryButton, { backgroundColor: ob.gold }]}
           >
-            <Text style={[authLayout.primaryButtonText, { color: colors.accentText }]}>
+            <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
               Get Started
             </Text>
           </Pressable>
+          {showDevTools ? (
+            <Pressable onPress={onStartFresh} testID="onboarding-start-fresh" className="mt-3 py-2">
+              <Text className="text-center text-sm" style={{ color: colors.textTertiary }}>
+                Start fresh (dev)
+                {process.env.EXPO_PUBLIC_BUNDLE_MARKER ?
+                  ` · ${process.env.EXPO_PUBLIC_BUNDLE_MARKER}`
+                : ""}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </ScrollView>
     </View>

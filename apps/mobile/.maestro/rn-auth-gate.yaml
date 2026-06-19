@@ -10,10 +10,11 @@ appId: app.newyouai.mobile
 - runFlow: subflows/dev-client-connect.yaml
 - extendedWaitUntil:
     visible:
-      id: auth-welcome-headline
+      id: auth-welcome-screen
     timeout: 60000
 - assertNotVisible:
     id: home-title
+- runFlow: subflows/auth-enter-from-welcome.yaml
 - tapOn:
     id: auth-sign-in-link
 - assertVisible:
@@ -23,7 +24,7 @@ appId: app.newyouai.mobile
 - tapOn:
     id: auth-sign-in-back
 - tapOn:
-    id: auth-get-started-button
+    id: auth-continue-sign-up
 - assertVisible:
     id: auth-sign-up-title
 - assertVisible:

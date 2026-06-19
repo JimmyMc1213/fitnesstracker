@@ -3,13 +3,13 @@ import type { ComponentType, ReactNode, SVGProps } from "react";
 import type { ReferralSource } from "./referralSource";
 
 import appStoreIconSrc from "../assets/brand-icons/appstore.png";
-import FacebookIcon from "../assets/brand-icons/facebook.svg";
-import GoogleIcon from "../assets/brand-icons/google.svg";
-import InstagramIcon from "../assets/brand-icons/instagram.svg";
-import RedditIcon from "../assets/brand-icons/reddit.svg";
-import TikTokIcon from "../assets/brand-icons/tiktok.svg";
+import facebookIconSrc from "../assets/brand-icons/facebook.png";
+import googleIconSrc from "../assets/brand-icons/google.png";
+import instagramIconSrc from "../assets/brand-icons/instagram.png";
+import redditIconSrc from "../assets/brand-icons/reddit.png";
+import tiktokIconSrc from "../assets/brand-icons/tiktok.png";
 import XIcon from "../assets/brand-icons/x.svg";
-import YouTubeIcon from "../assets/brand-icons/youtube.svg";
+import youtubeIconSrc from "../assets/brand-icons/youtube.png";
 
 type BrandIconComponent = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -18,16 +18,16 @@ function brandIcon(component: unknown): BrandIconComponent {
 }
 
 const BRAND_ICONS: Partial<Record<ReferralSource, BrandIconComponent>> = {
-  instagram: brandIcon(InstagramIcon),
-  tiktok: brandIcon(TikTokIcon),
-  youtube: brandIcon(YouTubeIcon),
-  reddit: brandIcon(RedditIcon),
-  google: brandIcon(GoogleIcon),
-  facebook: brandIcon(FacebookIcon),
   x: brandIcon(XIcon),
 };
 
 const BRAND_ICON_IMAGES: Partial<Record<ReferralSource, string>> = {
+  instagram: instagramIconSrc,
+  tiktok: tiktokIconSrc,
+  youtube: youtubeIconSrc,
+  reddit: redditIconSrc,
+  google: googleIconSrc,
+  facebook: facebookIconSrc,
   app_store: appStoreIconSrc,
 };
 

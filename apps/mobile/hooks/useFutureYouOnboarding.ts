@@ -9,6 +9,10 @@ import { useCallback, useState } from "react";
 
 import { compressImageToJpegDataUrl } from "@/lib/imageCompress";
 import {
+  E2E_MOCK_FUTURE_YOU_JPEG_DATA_URL,
+  isE2eMockFutureYouEnabled,
+} from "@/lib/e2e/futureYouMock";
+import {
   buildFutureYouGenerateProfile,
   FutureYouGenerateError,
   startFutureYouGeneration,
@@ -77,6 +81,18 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
   );
 
   const pickFromCamera = useCallback(async () => {
+    if (isE2eMockFutureYouEnabled()) {
+      setUploadError(null);
+      setPhotoPreview(E2E_MOCK_FUTURE_YOU_JPEG_DATA_URL);
+      const consentAt = futureYou?.photoAiConsentAt ?? new Date().toISOString();
+      patchFutureYou({
+        photoSkipped: false,
+        photoUploaded: false,
+        photoStoragePath: undefined,
+        photoAiConsentAt: consentAt,
+      });
+      return;
+    }
     try {
       const ImagePicker = await import("expo-image-picker");
       const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -94,9 +110,21 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
     } catch {
       setUploadError(permissionDeniedMessage("camera"));
     }
-  }, [onPickImageUri]);
+  }, [futureYou?.photoAiConsentAt, patchFutureYou]);
 
   const pickFromGallery = useCallback(async () => {
+    if (isE2eMockFutureYouEnabled()) {
+      setUploadError(null);
+      setPhotoPreview(E2E_MOCK_FUTURE_YOU_JPEG_DATA_URL);
+      const consentAt = futureYou?.photoAiConsentAt ?? new Date().toISOString();
+      patchFutureYou({
+        photoSkipped: false,
+        photoUploaded: false,
+        photoStoragePath: undefined,
+        photoAiConsentAt: consentAt,
+      });
+      return;
+    }
     try {
       const ImagePicker = await import("expo-image-picker");
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();

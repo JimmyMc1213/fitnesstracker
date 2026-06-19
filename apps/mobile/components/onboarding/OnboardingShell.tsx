@@ -1,9 +1,16 @@
 import type { ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useBottomActionPadding } from "@/lib/screenInsets";
-import { useAppTheme } from "@/hooks/useAppTheme";
+import {
+  OnboardingContinueButton,
+  OnboardingGhostFooterAction,
+} from "@/components/onboarding/OnboardingContinueButton";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
+import {
+  ONBOARDING_PADDING_X,
+  type OnboardingContinueTone,
+} from "@/lib/onboardingTheme";
 import { ONBOARDING_TOTAL_STEPS, onboardingProgressStep, phaseForStep } from "@/lib/onboardingSteps";
 
 type OnboardingShellProps = {
@@ -16,13 +23,18 @@ type OnboardingShellProps = {
   onContinue: () => void;
   continueDisabled?: boolean;
   continueLabel?: string;
+  continueTone?: OnboardingContinueTone;
   hideProgress?: boolean;
   hideFooter?: boolean;
   hideContinue?: boolean;
+  /** Tighter footer spacing when only a ghost action is shown (e.g. Future You photo skip). */
+  compactFooter?: boolean;
   footerGhostAction?: { label: string; onPress: () => void };
   generationPill?: ReactNode;
   hideTitle?: boolean;
   contentCentered?: boolean;
+  /** Fill remaining height without scrolling (e.g. Future You photo step). */
+  contentFill?: boolean;
   testID?: string;
 };
 
@@ -36,18 +48,20 @@ export function OnboardingShell({
   onContinue,
   continueDisabled = false,
   continueLabel = "Continue",
+  continueTone = "default",
   hideProgress = false,
   hideFooter = false,
   hideContinue = false,
+  compactFooter = false,
   footerGhostAction,
   generationPill,
   hideTitle = false,
   contentCentered = false,
+  contentFill = false,
   testID = "onboarding-wizard",
 }: OnboardingShellProps) {
-  const { colors } = useAppTheme();
+  const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
-  const bottomActionPadding = useBottomActionPadding();
   const { phaseLabel } = phaseForStep(step);
   const progressStep = onboardingProgressStep(step);
   const pct = Math.round(((progressStep + 1) / totalSteps) * 100);
@@ -59,8 +73,7 @@ export function OnboardingShell({
         flex: 1,
         backgroundColor: colors.background,
         paddingTop: insets.top + 8,
-        paddingBottom: bottomActionPadding,
-        paddingHorizontal: 23,
+        paddingHorizontal: ONBOARDING_PADDING_X,
       }}
     >
       {onBack ? (
@@ -69,20 +82,23 @@ export function OnboardingShell({
           accessibilityRole="button"
           accessibilityLabel="Back"
           testID="onboarding-back"
-          className="mb-4 h-10 w-10 items-center justify-center"
+          className="mb-1 h-10 w-10 items-center justify-center"
         >
           <Text className="text-2xl" style={{ color: colors.textPrimary }}>
             ‹
           </Text>
         </Pressable>
       ) : (
-        <View className="mb-4 h-10" />
+        <View className="mb-1 h-10" />
       )}
 
       {!hideProgress ? (
         <View className="mb-5">
           {phaseLabel ? (
-            <Text className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.textTertiary }}>
+            <Text
+              className="mb-2.5 text-right text-[11px] font-semibold"
+              style={{ color: ob.stepMeta }}
+            >
               {phaseLabel}
             </Text>
           ) : null}
@@ -90,64 +106,88 @@ export function OnboardingShell({
             accessibilityRole="progressbar"
             accessibilityValue={{ min: 1, max: totalSteps, now: progressStep + 1 }}
             className="h-1.5 overflow-hidden rounded-full"
-            style={{ backgroundColor: colors.border }}
+            style={{ backgroundColor: ob.progressTrack }}
           >
-            <View className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: colors.accent }} />
+            <View className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: ob.progressFill }} />
           </View>
         </View>
       ) : null}
 
+      {generationPill}
+
       {!hideTitle ? (
         typeof title === "string" ? (
-          <Text className="text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
+          <Text
+            className="text-[28px] font-bold leading-tight tracking-tight"
+            style={{ color: ob.headline }}
+          >
             {title}
           </Text>
         ) : (
-          <View className="text-[28px] font-bold leading-tight">{title}</View>
+          <View>{title}</View>
         )
       ) : null}
       {subtitle ? (
-        <Text className="mt-2 text-base" style={{ color: colors.textSecondary }}>
+        <Text
+          className="mt-3 text-[11px] font-bold leading-normal tracking-wide"
+          style={{ color: ob.helper }}
+        >
           {subtitle}
         </Text>
       ) : null}
 
-      <View
-        className={`min-h-0 flex-1 ${contentCentered ? "mt-0 justify-center" : "mt-6"}`}
-      >
-        {children}
-      </View>
-
-      {generationPill}
+      {contentFill ? (
+        <View
+          style={{
+            flex: 1,
+            marginTop: compactFooter ? 12 : 24,
+            minHeight: 0,
+          }}
+        >
+          {children}
+        </View>
+      ) : (
+        <ScrollView
+          style={{ flex: 1, marginTop: contentCentered ? 0 : compactFooter ? 12 : 24 }}
+          contentContainerStyle={[
+            { flexGrow: 1, paddingBottom: compactFooter ? 4 : 12 },
+            contentCentered ? { justifyContent: "center" } : null,
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {children}
+        </ScrollView>
+      )}
 
       {!hideFooter ? (
-        <View className="mt-4 gap-2">
+        <View
+          style={{
+            flexShrink: 0,
+            marginHorizontal: -ONBOARDING_PADDING_X,
+            paddingHorizontal: ONBOARDING_PADDING_X,
+            paddingTop: compactFooter ? 6 : 16,
+            paddingBottom: compactFooter ? Math.max(insets.bottom, 8) : Math.max(insets.bottom + 8, 20),
+            borderTopWidth: compactFooter ? 0 : StyleSheet.hairlineWidth,
+            borderTopColor: ob.progressTrack,
+            backgroundColor: colors.background,
+            gap: compactFooter ? 4 : 8,
+          }}
+        >
           {!hideContinue ? (
-            <Pressable
+            <OnboardingContinueButton
+              label={continueLabel}
               onPress={onContinue}
               disabled={continueDisabled}
-              testID="onboarding-continue"
-              className="items-center rounded-full py-4"
-              style={{
-                backgroundColor: continueDisabled ? colors.border : colors.accent,
-                opacity: continueDisabled ? 0.6 : 1,
-              }}
-            >
-              <Text className="text-base font-semibold" style={{ color: colors.accentText }}>
-                {continueLabel}
-              </Text>
-            </Pressable>
+              tone={continueTone}
+            />
           ) : null}
           {footerGhostAction ? (
-            <Pressable
+            <OnboardingGhostFooterAction
+              label={footerGhostAction.label}
               onPress={footerGhostAction.onPress}
-              testID="onboarding-skip"
-              className="items-center py-2"
-            >
-              <Text className="text-base font-medium" style={{ color: colors.textSecondary }}>
-                {footerGhostAction.label}
-              </Text>
-            </Pressable>
+              compact={compactFooter}
+            />
           ) : null}
         </View>
       ) : null}

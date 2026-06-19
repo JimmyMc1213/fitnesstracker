@@ -1,32 +1,30 @@
-type StackScreenOptions = {
-  headerShown?: boolean;
-  animation?:
-    | "default"
-    | "fade"
-    | "fade_from_bottom"
-    | "flip"
-    | "simple_push"
-    | "slide_from_bottom"
-    | "slide_from_right"
-    | "none";
-  presentation?: "card" | "modal" | "transparentModal";
-};
+/**
+ * All native stack/tab animation is set to "none" — Reanimated (ScreenTransition)
+ * owns 100% of the motion. Never let the native layer and our layer fight each other.
+ */
 
-/** Default stack — no fade flash on group switches. */
-export const defaultStackScreenOptions: StackScreenOptions = {
+/** Root stack + onboarding stack: invisible cut, ScreenTransition does the work. */
+export const defaultStackScreenOptions = {
   headerShown: false,
+  animation: "none" as const,
 };
 
-export const pushStackScreenOptions: StackScreenOptions = {
+/**
+ * Push routes (log-food, workout, progress) — native slide_from_right.
+ * These screens don't use ScreenTransition; the native animation IS the transition.
+ */
+export const pushStackScreenOptions = {
   headerShown: false,
-  animation: "slide_from_right",
+  animation: "slide_from_right" as const,
 };
 
-export const modalStackScreenOptions: StackScreenOptions = {
+/** Modals — native sheet presentation. */
+export const modalStackScreenOptions = {
   headerShown: false,
-  presentation: "modal",
+  presentation: "modal" as const,
 };
 
+/** Tabs — no native animation, TabScreenFade handles fade on each tab screen. */
 export const tabScreenOptions = {
   headerShown: false,
   tabBarShowLabel: false,
