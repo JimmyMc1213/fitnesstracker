@@ -195,7 +195,8 @@ export function SwipeToDelete({
       }}
     >
       <div
-        aria-hidden
+        aria-label={deleteLabel}
+        aria-hidden={!revealed}
         style={{
           position: "absolute",
           inset: 0,
