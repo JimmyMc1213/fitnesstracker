@@ -58,7 +58,7 @@ export function CreateWeeklyRoutineSheet({
           <View className="mt-4 gap-2.5">
             <OptionCard
               title="Generate for me"
-              description="Answer a few training questions and Gymmy will build your split, exercises, and schedule."
+              description="Answer a few training questions and NewYou will build your split, exercises, and schedule."
               onPress={onGenerate}
             />
             <OptionCard

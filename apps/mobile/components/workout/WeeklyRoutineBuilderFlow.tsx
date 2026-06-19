@@ -311,7 +311,7 @@ export function WeeklyRoutineBuilderFlow({
           step={step}
           totalSteps={totalSteps}
           title="Here's your training plan"
-          subtitle="Gymmy built this from your schedule and experience. Looks good?"
+          subtitle="NewYou built this from your schedule and experience. Looks good?"
           onBack={goBack}
           onContinue={goNext}
           continueLabel="Use this routine"

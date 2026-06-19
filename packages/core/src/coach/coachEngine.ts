@@ -464,7 +464,7 @@ export const BARRIER_COACH_COPY: Record<OnboardingBarrier, string> = {
   life_busy:
     "Short sessions still count. Getting here on a busy day is worth more than a perfect session on an easy day.",
   no_results:
-    "Progressive overload is why results happen. Every session Gymmy tracks your progress and tells you exactly how to push further than last week.",
+    "Progressive overload is why results happen. Every session NewYou tracks your progress and tells you exactly how to push further than last week.",
 };
 
 export function getPrimaryBarrierCoachNote(barriers: OnboardingBarrier[] | undefined): string | null {
