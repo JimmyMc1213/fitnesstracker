@@ -4,7 +4,6 @@ import {
   Image,
   Linking,
   Platform,
-  Pressable,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -14,6 +13,7 @@ import {
 } from "react-native";
 
 import { FutureYouLegalFooter } from "@/components/future-you/FutureYouLegalFooter";
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { isFutureYouPhotoBlocked } from "@/lib/futureYouAge";
@@ -185,11 +185,11 @@ export function OnboardingFutureYouPhoto({
                 pointerEvents="box-none"
               >
                 {hasPhoto && !uploading && !blocked ? (
-                  <Pressable onPress={onClearPhoto} disabled={!canUpload} className="py-1">
+                  <PressableScale onPress={onClearPhoto} disabled={!canUpload} style={{ paddingVertical: 4 }}>
                     <Text className="text-sm font-medium" style={{ color: ob.gold }}>
                       Remove photo
                     </Text>
-                  </Pressable>
+                  </PressableScale>
                 ) : (
                   <View className="h-7" />
                 )}
@@ -222,7 +222,7 @@ export function OnboardingFutureYouPhoto({
             Your photo is only used to create your Future You, never shared or sold.
           </Text>
 
-          <Pressable
+          <PressableScale
             testID={consentTestID}
             onPress={() => {
               const checked = !aiConsentChecked;
@@ -230,7 +230,7 @@ export function OnboardingFutureYouPhoto({
               if (checked) onGrantAiConsent();
             }}
             disabled={uploading}
-            className="mb-4 flex-row items-start gap-3"
+            style={{ marginBottom: 16, flexDirection: "row", alignItems: "flex-start", gap: 12 }}
           >
             <View
               className="mt-0.5 h-5 w-5 items-center justify-center rounded border"
@@ -258,26 +258,32 @@ export function OnboardingFutureYouPhoto({
                 Terms
               </Text>
             </Text>
-          </Pressable>
+            </PressableScale>
 
           {canRetry ? (
-            <Pressable
+            <PressableScale
               onPress={() => void onRetryUpload()}
               disabled={!canUpload}
-              className="items-center rounded-full py-4"
-              style={{ backgroundColor: canUpload ? ob.gold : colors.border }}
+              style={{
+                alignItems: "center",
+                borderRadius: 9999,
+                paddingVertical: 16,
+                backgroundColor: canUpload ? ob.gold : colors.border,
+              }}
             >
               <Text className="text-base font-semibold" style={{ color: ob.goldOn }}>
                 Try again
               </Text>
-            </Pressable>
+            </PressableScale>
           ) : awaitingConfirm ? (
-            <Pressable
+            <PressableScale
               testID={confirmTestID}
               onPress={onConfirmClick}
               disabled={!canUpload || !confirmReady}
-              className="items-center rounded-full py-4"
               style={{
+                alignItems: "center",
+                borderRadius: 9999,
+                paddingVertical: 16,
                 backgroundColor: canUpload && confirmReady ? ob.gold : colors.border,
                 opacity: canUpload && confirmReady ? 1 : 0.6,
               }}
@@ -285,29 +291,38 @@ export function OnboardingFutureYouPhoto({
               <Text className="text-base font-semibold" style={{ color: ob.goldOn }}>
                 Use this photo →
               </Text>
-            </Pressable>
+            </PressableScale>
           ) : (
             <View className="gap-2">
-              <Pressable
+              <PressableScale
                 onPress={() => void onPickFromCamera()}
                 disabled={!canUpload}
-                className="items-center rounded-full py-4"
-                style={{ backgroundColor: canUpload ? ob.gold : colors.border }}
+                style={{
+                  alignItems: "center",
+                  borderRadius: 9999,
+                  paddingVertical: 16,
+                  backgroundColor: canUpload ? ob.gold : colors.border,
+                }}
               >
                 <Text className="text-base font-semibold" style={{ color: ob.goldOn }}>
                   {uploading ? "Uploading…" : "Take a photo"}
                 </Text>
-              </Pressable>
-              <Pressable
+              </PressableScale>
+              <PressableScale
                 onPress={() => void onPickFromGallery()}
                 disabled={!canUpload}
-                className="items-center rounded-full border py-4"
-                style={{ borderColor: colors.border }}
+                style={{
+                  alignItems: "center",
+                  borderRadius: 9999,
+                  borderWidth: 1,
+                  paddingVertical: 16,
+                  borderColor: colors.border,
+                }}
               >
                 <Text className="text-base font-semibold" style={{ color: colors.textPrimary }}>
                   Choose from gallery
                 </Text>
-              </Pressable>
+              </PressableScale>
             </View>
           )}
 

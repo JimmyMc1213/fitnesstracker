@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { GradientCard } from "@/components/ui/GradientCard";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 
@@ -92,10 +93,7 @@ export function OnboardingPlanBuilding({ onComplete }: { onComplete: () => void 
         </Text>
       </View>
 
-      <View
-        className="mt-8 rounded-2xl border p-4"
-        style={{ borderColor: colors.border, backgroundColor: colors.card }}
-      >
+      <GradientCard style={{ marginTop: 32 }}>
         <Text className="mb-3 text-sm font-semibold" style={{ color: colors.textSecondary }}>
           Your personalized program
         </Text>
@@ -117,7 +115,7 @@ export function OnboardingPlanBuilding({ onComplete }: { onComplete: () => void 
             </View>
           );
         })}
-      </View>
+      </GradientCard>
     </View>
   );
 }

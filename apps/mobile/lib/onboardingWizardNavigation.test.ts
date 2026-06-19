@@ -6,6 +6,7 @@ import {
 import { describe, expect, it } from "vitest";
 
 import {
+  canNavigateWizardToStep,
   resolveWizardBackStep,
   resolveWizardNextStep,
 } from "./onboardingWizardNavigation";
@@ -63,6 +64,18 @@ describe("resolveWizardBackStep", () => {
       undefined,
     );
     expect(prev).toBe(ONBOARDING_STEP_PACE);
+  });
+
+  it("allows wizard back navigation from Future You photo to pace", () => {
+    const prev = resolveWizardBackStep(
+      ONBOARDING_STEP_FUTURE_YOU_PHOTO,
+      { ...baseProfile, goal: "cut" },
+      undefined,
+    );
+    expect(prev).toBe(ONBOARDING_STEP_PACE);
+    expect(
+      canNavigateWizardToStep(ONBOARDING_STEP_FUTURE_YOU_PHOTO, prev!, undefined),
+    ).toBe(true);
   });
 
   it("skips optional template edit when backing from step 18", () => {

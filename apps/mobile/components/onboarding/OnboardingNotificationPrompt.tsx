@@ -1,16 +1,19 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { PressableScale } from "@/components/ui/PressableScale";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 
 type Props = {
   /** Faux Allow / Don't Allow taps. Caller advances to reminder picker. */
   onChoice: () => void | Promise<void>;
 };
 
-/** Cal-style pre-prompt; taps advance to notification preferences (OS permission deferred to RN-PUSH). */
+const DIALOG_HAIRLINE = "rgba(0, 0, 0, 0.12)";
+
+/** Cal-style pre-prompt mimicking the iOS system permission dialog; taps advance to notification preferences. */
 export function OnboardingNotificationPrompt({ onChoice }: Props) {
-  const { colors } = useAppTheme();
+  const { ob } = useOnboardingTheme();
   const [pending, setPending] = useState(false);
 
   async function handleTap() {
@@ -24,50 +27,94 @@ export function OnboardingNotificationPrompt({ onChoice }: Props) {
   }
 
   return (
-    <View testID="onboarding-notification-prompt" className="items-center">
-      <Text className="mb-8 text-center text-2xl font-bold leading-tight" style={{ color: colors.textPrimary }}>
-        Reach your goals with notifications
-      </Text>
-
-      <View
-        className="w-full max-w-sm overflow-hidden rounded-2xl"
-        style={{ backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }}
-      >
-        <View className="px-5 py-6">
-          <Text className="text-center text-base" style={{ color: colors.textPrimary }}>
-            NewYou would like to send you Notifications
-          </Text>
-        </View>
-        <View className="flex-row border-t" style={{ borderColor: colors.border }}>
-          <Pressable
-            onPress={() => void handleTap()}
-            disabled={pending}
-            className="flex-1 items-center py-3.5"
-            style={{ opacity: pending ? 0.6 : 1 }}
-            testID="onboarding-notification-decline"
-          >
-            <Text className="text-base" style={{ color: colors.textSecondary }}>
-              Don&apos;t Allow
-            </Text>
-          </Pressable>
-          <View className="w-px" style={{ backgroundColor: colors.border }} />
-          <Pressable
-            onPress={() => void handleTap()}
-            disabled={pending}
-            className="flex-1 items-center py-3.5"
-            style={{ opacity: pending ? 0.6 : 1 }}
-            testID="onboarding-notification-allow"
-          >
-            <Text className="text-base font-semibold" style={{ color: colors.accent }}>
-              Allow
-            </Text>
-          </Pressable>
-        </View>
+    <View testID="onboarding-notification-prompt" style={{ flex: 1, width: "100%" }}>
+      <View style={{ position: "absolute", top: 56, left: 0, right: 0, alignItems: "center" }}>
+        <Text
+          className="text-center font-bold"
+          style={{
+            maxWidth: 320,
+            fontSize: 32,
+            lineHeight: 36,
+            letterSpacing: -0.6,
+            color: ob.headline,
+          }}
+        >
+          Reach your goals with notifications
+        </Text>
       </View>
 
-      <Text className="mt-3 text-center text-xs" style={{ color: colors.textTertiary }}>
-        Tap Allow or Don&apos;t Allow to continue setup
-      </Text>
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <View
+          style={{
+            width: "100%",
+            maxWidth: 300,
+            marginBottom: 96,
+            borderRadius: 14,
+            backgroundColor: "rgba(255, 255, 255, 0.96)",
+            overflow: "hidden",
+            opacity: pending ? 0.92 : 1,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 18 },
+            shadowOpacity: 0.3,
+            shadowRadius: 24,
+            elevation: 12,
+          }}
+        >
+          <Text
+            style={{
+              paddingTop: 22,
+              paddingHorizontal: 20,
+              paddingBottom: 18,
+              fontSize: 16,
+              fontWeight: "600",
+              lineHeight: 22,
+              textAlign: "center",
+              color: "#111",
+            }}
+          >
+            NewYou would like to send you Notifications
+          </Text>
+
+          <View style={{ flexDirection: "row", borderTopWidth: 0.5, borderTopColor: DIALOG_HAIRLINE }}>
+            <PressableScale
+              onPress={() => void handleTap()}
+              disabled={pending}
+              accessibilityRole="button"
+              accessibilityLabel="Don't Allow"
+              testID="onboarding-notification-decline"
+              style={{
+                flex: 1,
+                minHeight: 48,
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: 12,
+                backgroundColor: "rgba(0, 0, 0, 0.06)",
+                borderRightWidth: 0.5,
+                borderRightColor: DIALOG_HAIRLINE,
+              }}
+            >
+              <Text style={{ fontSize: 15, fontWeight: "600", color: "#111" }}>Don&apos;t Allow</Text>
+            </PressableScale>
+            <PressableScale
+              onPress={() => void handleTap()}
+              disabled={pending}
+              accessibilityRole="button"
+              accessibilityLabel="Allow"
+              testID="onboarding-notification-allow"
+              style={{
+                flex: 1,
+                minHeight: 48,
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: 12,
+                backgroundColor: "#111",
+              }}
+            >
+              <Text style={{ fontSize: 15, fontWeight: "600", color: "#fff" }}>Allow</Text>
+            </PressableScale>
+          </View>
+        </View>
+      </View>
     </View>
   );
 }

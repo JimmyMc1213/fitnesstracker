@@ -34,14 +34,14 @@ function MotivationSection({
 
   return (
     <View className="mb-5">
-      <Text className="mb-2 text-sm font-semibold" style={{ color: colors.textSecondary }}>
+      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.textSecondary }}>
         {label}
       </Text>
-      <View className="flex-row flex-wrap gap-2">
+      <View className="gap-3">
         {motivations.map((motivation) => (
           <OnboardingSegment
             key={motivation.id}
-            layout="inline"
+            layout="stack"
             selected={selectedId === motivation.id}
             onPress={() => onSelect(motivation.id, motivation.isGeneric)}
           >

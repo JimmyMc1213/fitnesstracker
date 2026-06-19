@@ -1,5 +1,6 @@
 import { Text, View } from "react-native";
 
+import { GradientCard } from "@/components/ui/GradientCard";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { stepTitleForPlaceholder } from "@/lib/onboardingWizardNavigation";
 
@@ -13,17 +14,17 @@ export function OnboardingStepPlaceholder({ step, goal }: OnboardingStepPlacehol
   const title = stepTitleForPlaceholder(step, goal);
 
   return (
-    <View
-      className="flex-1 items-center justify-center rounded-2xl border px-4 py-8"
-      style={{ borderColor: colors.border, backgroundColor: colors.card }}
-      testID={`onboarding-step-${step}`}
-    >
-      <Text className="text-lg font-semibold" style={{ color: colors.textPrimary }}>
-        {title}
-      </Text>
-      <Text className="mt-2 text-center text-sm" style={{ color: colors.textSecondary }}>
-        Screen content ships in RN-4-02+.
-      </Text>
+    <View style={{ flex: 1 }} testID={`onboarding-step-${step}`}>
+      <GradientCard
+        style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 16, paddingVertical: 32 }}
+      >
+        <Text className="text-lg font-semibold" style={{ color: colors.textPrimary }}>
+          {title}
+        </Text>
+        <Text className="mt-2 text-center text-sm" style={{ color: colors.textSecondary }}>
+          Screen content ships in RN-4-02+.
+        </Text>
+      </GradientCard>
     </View>
   );
 }

@@ -68,6 +68,8 @@ export function resolveOnboardingStepOnRestore(
 
 /** Block navigation into goal-edit screens from step 11 onward. */
 export function isOnboardingGoalEditNavigationBlocked(fromStep: number, toStep: number): boolean {
+  // Future You steps (100/101) sit after pace but before activity — back is allowed.
+  if (isFutureYouOnboardingStep(fromStep) && isOnboardingGoalEditStep(toStep)) return false;
   return isOnboardingPastGoalEditZone(fromStep) && isOnboardingGoalEditStep(toStep);
 }
 

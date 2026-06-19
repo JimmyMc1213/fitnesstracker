@@ -16,6 +16,7 @@ type Props = {
   /** Corner radius. Defaults to 16 to match PWA. */
   radius?: number;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 };
 
 /**
@@ -35,7 +36,7 @@ function angleToCoords(deg: number) {
 }
 
 /** Shared card with the PWA's subtle gradient depth, hairline border, and soft shadow. */
-export function GradientCard({ children, padding, spacious, accentColor, radius = 16, style }: Props) {
+export function GradientCard({ children, padding, spacious, accentColor, radius = 16, style, testID }: Props) {
   const { ob } = useOnboardingTheme();
   const pad = padding ?? (spacious ? 20 : 16);
   const stops = ob.gradientCardStops;
@@ -47,6 +48,7 @@ export function GradientCard({ children, padding, spacious, accentColor, radius 
 
   return (
     <View
+      testID={testID}
       style={[
         {
           borderRadius: radius,

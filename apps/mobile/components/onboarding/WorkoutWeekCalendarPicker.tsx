@@ -1,6 +1,7 @@
 import type { OnboardingProfile } from "@newyouai/types";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { onboardingPillColors } from "@/lib/onboardingTheme";
@@ -45,21 +46,27 @@ export function WorkoutWeekCalendarPicker({
       <View
         accessibilityRole="radiogroup"
         accessibilityLabel="Training days of the week"
-        className="flex-row flex-wrap justify-between gap-2"
+        style={{ flexDirection: "row", justifyContent: "space-between", gap: 4 }}
       >
         {TRAINING_WEEKDAY_ORDER.map((day) => {
           const on = selected.includes(day);
           const pill = onboardingPillColors(ob, on);
           return (
-            <Pressable
+            <PressableScale
               key={day}
               testID={`onboarding-calendar-day-${day}`}
               accessibilityRole="button"
               accessibilityState={{ selected: on }}
               accessibilityLabel={`${day}${on ? ", selected" : ""}`}
               onPress={() => applyWeekdays(toggleTrainingWeekday(selected, day, selectionLimits))}
-              className="h-11 w-11 items-center justify-center rounded-full border"
+              activeScale={0.9}
               style={{
+                flex: 1,
+                aspectRatio: 1,
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 9999,
+                borderWidth: 1,
                 borderColor: pill.borderColor,
                 backgroundColor: pill.backgroundColor,
               }}
@@ -67,7 +74,7 @@ export function WorkoutWeekCalendarPicker({
               <Text className="text-sm font-semibold" style={{ color: pill.color }}>
                 {TRAINING_WEEKDAY_SHORT[day]}
               </Text>
-            </Pressable>
+            </PressableScale>
           );
         })}
       </View>
@@ -83,11 +90,11 @@ export function WorkoutWeekCalendarPicker({
       </Text>
 
       {showPickForMe ? (
-        <Pressable onPress={() => applyWeekdays(pickTrainingWeekdaysForMe(selected))} className="mt-3 items-center py-2">
+        <PressableScale onPress={() => applyWeekdays(pickTrainingWeekdaysForMe(selected))} style={{ marginTop: 12, alignItems: "center", paddingVertical: 8 }}>
           <Text className="text-base font-medium" style={{ color: ob.ghostFg }}>
             Pick for me
           </Text>
-        </Pressable>
+        </PressableScale>
       ) : null}
     </View>
   );

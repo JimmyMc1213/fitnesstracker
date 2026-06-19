@@ -1,8 +1,9 @@
 import type { FutureYouJobStatus, NutritionGoal, UserGender } from "@newyouai/types";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { PressableScale } from "@/components/ui/PressableScale";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import {
   buildFutureYouGenerationPillPhrases,
   FUTURE_YOU_GENERATION_PILL_ROTATE_MS,
@@ -18,7 +19,7 @@ type Props = {
 
 /** Onboarding generation pill with rotating motivation phrases. */
 export function FutureYouGenerationPill({ status, motivationId, goal, gender }: Props) {
-  const { colors } = useAppTheme();
+  const { ob } = useOnboardingTheme();
   const [phraseIndex, setPhraseIndex] = useState(0);
 
   const phrases = useMemo(
@@ -38,23 +39,33 @@ export function FutureYouGenerationPill({ status, motivationId, goal, gender }: 
   }, [isReady, phrases.length]);
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLiveRegion="polite"
-      className="mb-3 flex-row items-center gap-2 rounded-full border px-4 py-2.5"
-      style={{ borderColor: colors.border, backgroundColor: colors.card }}
+      style={{
+        marginBottom: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        borderRadius: 9999,
+        borderWidth: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderColor: "rgba(201, 168, 118, 0.42)",
+        backgroundColor: "#161410",
+      }}
     >
-      {!isReady ? <ActivityIndicator size="small" color={colors.accent} /> : null}
+      {!isReady ? <ActivityIndicator size="small" color={ob.goldMid} /> : null}
       <View className="min-w-0 flex-1">
-        <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
+        <Text className="text-sm font-semibold" style={{ color: ob.gold }}>
           {copy.headline}
         </Text>
         {copy.subline ? (
-          <Text className="text-xs" style={{ color: colors.textSecondary }}>
+          <Text className="text-xs" style={{ color: "rgba(212, 184, 138, 0.78)" }}>
             {copy.subline}
           </Text>
         ) : null}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }

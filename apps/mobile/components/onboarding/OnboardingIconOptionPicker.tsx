@@ -1,5 +1,6 @@
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { onboardingPillColors, ONBOARDING_PILL_MIN_HEIGHT } from "@/lib/onboardingTheme";
 
@@ -35,13 +36,21 @@ export function OnboardingIconOptionPicker<T extends string>({
         const on = isSelected(id);
         const pill = onboardingPillColors(ob, on);
         return (
-          <Pressable
+          <PressableScale
             key={id}
             onPress={() => onToggle(id)}
             accessibilityRole="button"
             accessibilityState={{ selected: on }}
-            className="min-h-[56px] flex-row items-center gap-3 rounded-full border px-4 py-3.5"
+            activeScale={0.97}
             style={{
+              minHeight: 56,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              borderRadius: 9999,
+              borderWidth: 1,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
               borderColor: pill.borderColor,
               backgroundColor: pill.backgroundColor,
             }}
@@ -50,7 +59,7 @@ export function OnboardingIconOptionPicker<T extends string>({
             <Text className="flex-1 text-base font-medium" style={{ color: pill.color }}>
               {label}
             </Text>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </View>

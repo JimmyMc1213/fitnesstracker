@@ -1,6 +1,6 @@
 import type { AppTheme } from "@newyouai/types";
 import { useEffect, useState, type ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -10,6 +10,7 @@ import Animated, {
 
 import { IconMoon, IconSun } from "@/components/icons/FitnessIcons";
 import { OnboardingShell } from "@/components/onboarding/OnboardingShell";
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 
 type Props = {
@@ -48,11 +49,11 @@ function SwitchOption({
   onPress: () => void;
 }) {
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
-      className="z-10 min-h-[62px] flex-1 items-center justify-center gap-1.5 py-2.5"
+      style={{ zIndex: 10, minHeight: 62, flex: 1, alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10 }}
     >
       <View style={{ opacity: active ? 1 : 0.72 }}>{icon}</View>
       <Text
@@ -61,7 +62,7 @@ function SwitchOption({
       >
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 

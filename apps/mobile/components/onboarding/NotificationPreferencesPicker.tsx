@@ -1,11 +1,13 @@
 import { normalizeTimeHHmm } from "@newyouai/core";
 import type { NotificationPreferences } from "@newyouai/types";
-import { Pressable, Switch, Text, TextInput, View } from "react-native";
+import { Switch, Text, TextInput, View } from "react-native";
 
 import {
   OnboardingFieldGroup,
   OnboardingInputField,
 } from "@/components/onboarding/OnboardingInputField";
+import { GradientCard } from "@/components/ui/GradientCard";
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { NotificationPermissionState } from "@/lib/notificationPermission";
 import { permissionStatusLabel, requestNotificationPermission } from "@/lib/notificationPermission";
@@ -91,8 +93,7 @@ function OnboardingNotificationRow({
 
   return (
     <View
-      className="rounded-2xl border p-4"
-      style={{ borderColor: colors.border, backgroundColor: colors.card }}
+      className="p-4"
       testID={`notification-row-${row.enabledKey}`}
     >
       <View className="flex-row items-center gap-3">
@@ -152,47 +153,45 @@ function SettingsNotificationRow({
   const defaultTime = DEFAULT_NOTIFICATION_PREFERENCES[row.timeKey];
 
   return (
-    <View
-      className="rounded-2xl border p-4"
-      style={{ borderColor: colors.border, backgroundColor: colors.card, gap: 10 }}
-      testID={`notification-row-${row.enabledKey}`}
-    >
-      <View className="flex-row items-center gap-3">
-        <View className="min-w-0 flex-1">
-          <Text className="text-[14px] font-semibold" style={{ color: colors.textPrimary }}>
-            {row.label}
-          </Text>
-          <Text className="mt-0.5 text-xs" style={{ color: colors.textTertiary }}>
-            {row.settingsHintPrefix} · default {formatNotificationTimeDisplay(defaultTime)}
-          </Text>
+    <View testID={`notification-row-${row.enabledKey}`}>
+      <GradientCard>
+        <View className="flex-row items-center gap-3">
+          <View className="min-w-0 flex-1">
+            <Text className="text-[14px] font-semibold" style={{ color: colors.textPrimary }}>
+              {row.label}
+            </Text>
+            <Text className="mt-0.5 text-xs" style={{ color: colors.textTertiary }}>
+              {row.settingsHintPrefix} · default {formatNotificationTimeDisplay(defaultTime)}
+            </Text>
+          </View>
+          <Switch
+            value={enabled}
+            onValueChange={onToggle}
+            trackColor={{ false: colors.border, true: colors.accent }}
+            accessibilityLabel={enabled ? `${row.label} on` : `${row.label} off`}
+          />
         </View>
-        <Switch
-          value={enabled}
-          onValueChange={onToggle}
-          trackColor={{ false: colors.border, true: colors.accent }}
-          accessibilityLabel={enabled ? `${row.label} on` : `${row.label} off`}
-        />
-      </View>
-      <View>
-        <Text className="mb-1 text-xs" style={{ color: colors.textTertiary }}>Reminder time</Text>
-        <TextInput
-          value={time}
-          onChangeText={(next) => onTimeChange(normalizeTimeHHmm(next, defaultTime))}
-          editable={enabled}
-          placeholder={defaultTime}
-          placeholderTextColor={colors.textTertiary}
-          keyboardType="numbers-and-punctuation"
-          className="rounded-[10px] border px-3 py-2.5 text-base"
-          style={{
-            borderColor: colors.border,
-            backgroundColor: colors.backgroundSecondary,
-            color: colors.textPrimary,
-            opacity: enabled ? 1 : 0.45,
-          }}
-          accessibilityLabel={row.timeAriaLabel}
-          testID={`notification-time-${row.timeKey}`}
-        />
-      </View>
+        <View style={{ marginTop: 10 }}>
+          <Text className="mb-1 text-xs" style={{ color: colors.textTertiary }}>Reminder time</Text>
+          <TextInput
+            value={time}
+            onChangeText={(next) => onTimeChange(normalizeTimeHHmm(next, defaultTime))}
+            editable={enabled}
+            placeholder={defaultTime}
+            placeholderTextColor={colors.textTertiary}
+            keyboardType="numbers-and-punctuation"
+            className="rounded-[10px] border px-3 py-2.5 text-base"
+            style={{
+              borderColor: colors.border,
+              backgroundColor: colors.backgroundSecondary,
+              color: colors.textPrimary,
+              opacity: enabled ? 1 : 0.45,
+            }}
+            accessibilityLabel={row.timeAriaLabel}
+            testID={`notification-time-${row.timeKey}`}
+          />
+        </View>
+      </GradientCard>
     </View>
   );
 }
@@ -223,20 +222,21 @@ export function NotificationPreferencesPicker({
 
   if (variant === "onboarding") {
     return (
-      <View testID="notification-preferences-picker" className="gap-3">
-        {REMINDER_ROWS.map((row) => (
-          <OnboardingNotificationRow
-            key={row.enabledKey}
-            row={row}
-            enabled={value[row.enabledKey]}
-            time={value[row.timeKey]}
-            onToggle={() => patch({ [row.enabledKey]: !value[row.enabledKey] })}
-            onTimeChange={(next) => patch({ [row.timeKey]: next })}
-          />
-        ))}
-        <Text className="text-center text-xs leading-5" style={{ color: colors.textTertiary }}>
-          Reminders appear as notifications on this device when enabled. Change times anytime in Settings → Reminders.
-        </Text>
+      <View testID="notification-preferences-picker">
+        <GradientCard padding={0}>
+          {REMINDER_ROWS.map((row, index) => (
+            <View key={row.enabledKey}>
+              {index > 0 ? <View className="h-px mx-4" style={{ backgroundColor: colors.border }} /> : null}
+              <OnboardingNotificationRow
+                row={row}
+                enabled={value[row.enabledKey]}
+                time={value[row.timeKey]}
+                onToggle={() => patch({ [row.enabledKey]: !value[row.enabledKey] })}
+                onTimeChange={(next) => patch({ [row.timeKey]: next })}
+              />
+            </View>
+          ))}
+        </GradientCard>
       </View>
     );
   }
@@ -265,19 +265,26 @@ export function NotificationPreferencesPicker({
       ) : null}
 
       {showPermissionHint && permission != null && !permissionGranted && permission !== "unsupported" ? (
-        <Pressable
+        <PressableScale
           testID="notification-request-permission"
           onPress={async () => {
             const next = await requestNotificationPermission();
             onPermissionChange?.(next);
           }}
-          className="self-start rounded-[10px] border px-3.5 py-2.5"
-          style={{ borderColor: colors.border, backgroundColor: colors.backgroundTertiary }}
+          style={{
+            alignSelf: "flex-start",
+            borderRadius: 10,
+            borderWidth: 1,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            borderColor: colors.border,
+            backgroundColor: colors.backgroundTertiary,
+          }}
         >
           <Text className="text-[13px] font-semibold" style={{ color: colors.textPrimary }}>
             Enable notifications
           </Text>
-        </Pressable>
+        </PressableScale>
       ) : null}
 
       <Text className="text-xs leading-5" style={{ color: colors.textTertiary }}>

@@ -90,62 +90,43 @@ export function WeightRulerPicker({
     (index: number, animated = false) => {
       if (!scrollRef.current || viewportWidth <= 0) return;
       const clamped = Math.min(tickCount - 1, Math.max(0, index));
-      const target = sidePad + clamped * TICK_WIDTH - viewportWidth / 2;
+      const target = clamped * TICK_WIDTH;
       syncingRef.current = true;
       scrollRef.current.scrollTo({ x: Math.max(0, target), animated });
       scrollLeftRef.current = Math.max(0, target);
-      const releaseSync = () => {
+      requestAnimationFrame(() => {
         syncingRef.current = false;
-      };
-      if (animated) {
-        setTimeout(releaseSync, 280);
-      } else {
-        requestAnimationFrame(releaseSync);
-      }
+      });
     },
-    [sidePad, tickCount, viewportWidth],
-  );
-
-  const updateFromOffset = useCallback(
-    (offsetX: number) => {
-      if (syncingRef.current || viewportWidth <= 0) return;
-      const center = offsetX + viewportWidth / 2;
-      const rawIndex = Math.round((center - sidePad) / TICK_WIDTH);
-      const nextLbs = clampLbs(lbsForIndex(rawIndex, minLbs, unit), minLbs, maxLbs);
-      if (Math.abs(nextLbs - valueLbs) > 0.01) onChange(nextLbs);
-    },
-    [viewportWidth, sidePad, minLbs, maxLbs, unit, valueLbs, onChange],
-  );
-
-  const snapFromOffset = useCallback(
-    (offsetX: number) => {
-      if (viewportWidth <= 0) return;
-      const center = offsetX + viewportWidth / 2;
-      const index = Math.round((center - sidePad) / TICK_WIDTH);
-      scrollToIndex(index, true);
-      updateFromOffset(offsetX);
-    },
-    [viewportWidth, sidePad, scrollToIndex, updateFromOffset],
+    [tickCount, viewportWidth],
   );
 
   useEffect(() => {
     if (viewportWidth <= 0) return;
     const idx = indexForLbs(valueLbs, minLbs, unit);
-    const currentIdx = Math.round((scrollLeftRef.current + viewportWidth / 2 - sidePad) / TICK_WIDTH);
+    const currentIdx = Math.round(scrollLeftRef.current / TICK_WIDTH);
     if (currentIdx !== idx) scrollToIndex(idx);
-  }, [valueLbs, minLbs, maxLbs, unit, viewportWidth, sidePad, scrollToIndex]);
+  }, [valueLbs, minLbs, maxLbs, unit, viewportWidth, scrollToIndex]);
 
   function onStageLayout(event: LayoutChangeEvent) {
     setViewportWidth(event.nativeEvent.layout.width);
   }
 
   function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-    scrollLeftRef.current = event.nativeEvent.contentOffset.x;
-    updateFromOffset(event.nativeEvent.contentOffset.x);
+    const offsetX = event.nativeEvent.contentOffset.x;
+    scrollLeftRef.current = offsetX;
+    if (syncingRef.current) return;
+    const rawIndex = Math.round(offsetX / TICK_WIDTH);
+    const nextLbs = clampLbs(lbsForIndex(rawIndex, minLbs, unit), minLbs, maxLbs);
+    if (Math.abs(nextLbs - valueLbs) > 0.01) onChange(nextLbs);
   }
 
   function onScrollEnd(event: NativeSyntheticEvent<NativeScrollEvent>) {
-    snapFromOffset(event.nativeEvent.contentOffset.x);
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const rawIndex = Math.round(offsetX / TICK_WIDTH);
+    const clamped = Math.min(tickCount - 1, Math.max(0, rawIndex));
+    const nextLbs = clampLbs(lbsForIndex(clamped, minLbs, unit), minLbs, maxLbs);
+    if (Math.abs(nextLbs - valueLbs) > 0.01) onChange(nextLbs);
   }
 
   return (
@@ -174,10 +155,12 @@ export function WeightRulerPicker({
           showsHorizontalScrollIndicator={false}
           scrollEventThrottle={16}
           decelerationRate="fast"
+          snapToInterval={TICK_WIDTH}
+          snapToAlignment="start"
           onScroll={onScroll}
           onMomentumScrollEnd={onScrollEnd}
           onScrollEndDrag={onScrollEnd}
-          contentContainerStyle={{ paddingHorizontal: sidePad }}
+          contentContainerStyle={{ paddingHorizontal: sidePad, paddingTop: 8, paddingBottom: 12 }}
         >
           <View style={[styles.track, { width: trackWidth }]}>
             {Array.from({ length: tickCount }, (_, index) => (
@@ -226,7 +209,7 @@ const styles = StyleSheet.create({
   },
   indicator: {
     position: "absolute",
-    top: 8,
+    top: 0,
     left: "50%",
     zIndex: 2,
     width: 2,
@@ -236,7 +219,7 @@ const styles = StyleSheet.create({
   },
   fadeRight: {
     position: "absolute",
-    top: 8,
+    top: 0,
     left: "50%",
     zIndex: 1,
     width: "52%",
@@ -249,7 +232,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     height: TRACK_HEIGHT,
-    paddingVertical: 8,
   },
   tickWrap: {
     height: TRACK_HEIGHT,

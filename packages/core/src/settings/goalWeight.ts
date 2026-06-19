@@ -1,4 +1,8 @@
+const CUT_WEIGHT_FLOOR_LBS = 110;
+
 export function defaultGoalWeightLbs(goal: "cut" | "bulk", currentLbs: number): number {
-  if (goal === "cut") return Math.max(currentLbs - 80, Math.min(currentLbs - 5, currentLbs - 15));
-  return Math.min(currentLbs + 50, Math.max(currentLbs + 3, currentLbs + 15));
+  const minLbs = goal === "cut" ? Math.max(CUT_WEIGHT_FLOOR_LBS, currentLbs - 80) : currentLbs + 3;
+  const maxLbs = goal === "cut" ? currentLbs - 5 : currentLbs + 50;
+  const target = goal === "cut" ? currentLbs - 10 : currentLbs + 10;
+  return Math.min(maxLbs, Math.max(minLbs, target));
 }

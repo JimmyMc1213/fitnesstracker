@@ -1,6 +1,8 @@
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { CenterDialog } from "@/components/motion";
+import { GradientCard } from "@/components/ui/GradientCard";
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 export function OnboardingMacroEditConfirmSheet({
@@ -16,7 +18,7 @@ export function OnboardingMacroEditConfirmSheet({
 
   return (
     <CenterDialog open={visible} onClose={onCancel} panelStyle={{ padding: 0, maxWidth: 384 }}>
-      <View className="w-full overflow-hidden rounded-2xl">
+      <GradientCard padding={0} style={{ width: "100%" }}>
           <View className="px-7 py-7">
             <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
               Update fuel targets?
@@ -26,18 +28,18 @@ export function OnboardingMacroEditConfirmSheet({
             </Text>
           </View>
           <View className="flex-row border-t" style={{ borderColor: colors.border }}>
-            <Pressable onPress={onCancel} className="flex-1 items-center py-3.5">
+            <PressableScale onPress={onCancel} style={{ flex: 1, alignItems: "center", paddingVertical: 14 }}>
               <Text className="text-[15px] font-semibold" style={{ color: "#ff6b6b" }}>
                 Cancel
               </Text>
-            </Pressable>
-            <Pressable onPress={onConfirm} className="flex-1 items-center py-3.5">
+            </PressableScale>
+            <PressableScale onPress={onConfirm} style={{ flex: 1, alignItems: "center", paddingVertical: 14 }}>
               <Text className="text-[15px] font-semibold" style={{ color: colors.accent }}>
                 Continue
               </Text>
-            </Pressable>
+            </PressableScale>
           </View>
-      </View>
+      </GradientCard>
     </CenterDialog>
   );
 }

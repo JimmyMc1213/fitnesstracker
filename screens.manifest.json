@@ -1,0 +1,406 @@
+{
+  "_comment": "UI reconciliation manifest — post-'See New You' onboarding screens only (steps 101+). PWA is source of truth; only RN code is changed.",
+  "noCounterpart": [
+    {
+      "id": "schedule-reinforcement",
+      "platform": "pwa",
+      "pwaStep": 16,
+      "title": "Training schedule reinforcement",
+      "reason": "PWA shows a 'You chose X days!' reinforcement card at step 16; RN skips this and jumps straight to the training plan split reveal."
+    },
+    {
+      "id": "barriers-survey",
+      "platform": "pwa",
+      "pwaStep": 17,
+      "title": "What's held you back before?",
+      "reason": "PWA has a barriers survey at step 17; RN removed this screen from the flow."
+    },
+    {
+      "id": "training-plan-with-edit",
+      "platform": "rn",
+      "rnStep": 16,
+      "title": "Here's your training plan (with Edit ghost action)",
+      "reason": "RN surfaces the training plan at step 16 (post-calendar) with an Edit ghost; PWA only shows the training plan at step 23."
+    },
+    {
+      "id": "template-review",
+      "platform": "rn",
+      "rnStep": 17,
+      "title": "Review your workouts",
+      "reason": "RN provides an in-onboarding template editor at step 17; PWA has no equivalent."
+    }
+  ],
+  "screens": [
+    {
+      "id": "whats-your-why",
+      "title": "What's your why?",
+      "pwaStep": 101,
+      "rnStep": 101,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": {
+          "stepIndex": 101,
+          "futureYou": {
+            "photoSkipped": false,
+            "photoUploaded": true,
+            "photoStoragePath": "e2e/mock/source.jpg",
+            "onboardingGoalLocked": true,
+            "photoAiConsentAt": "2026-06-18T12:00:00.000Z"
+          }
+        },
+        "waitFor": "What's your why?"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:101, futureYou.photoUploaded:true, futureYou.photoStoragePath:'e2e/mock/source.jpg'; kill/relaunch app; wait 3s."
+      },
+      "outputDir": ".ui-reconcile/whats-your-why/"
+    },
+    {
+      "id": "activity-level",
+      "title": "How active are you outside the gym?",
+      "pwaStep": 11,
+      "rnStep": 11,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": {
+          "stepIndex": 11,
+          "futureYou": {
+            "photoSkipped": false,
+            "photoUploaded": true,
+            "photoStoragePath": "e2e/mock/source.jpg",
+            "motivationId": "look_confident",
+            "motivationIsGeneric": false,
+            "generationJobId": "mock-job-id",
+            "generationStatus": "generating",
+            "onboardingGoalLocked": true,
+            "photoAiConsentAt": "2026-06-18T12:00:00.000Z"
+          }
+        },
+        "waitFor": "How active are you outside the gym?"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:11, futureYou populated with motivationId and generationStatus:'generating'; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/activity-level/"
+    },
+    {
+      "id": "training-experience",
+      "title": "What's your training experience?",
+      "pwaStep": 12,
+      "rnStep": 12,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": { "stepIndex": 12 },
+        "waitFor": "What's your training experience?"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:12; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/training-experience/"
+    },
+    {
+      "id": "equipment",
+      "title": "What equipment do you have?",
+      "pwaStep": 13,
+      "rnStep": 13,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": { "stepIndex": 13 },
+        "waitFor": "What equipment do you have?"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:13; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/equipment/"
+    },
+    {
+      "id": "session-length",
+      "title": "How long do you want to train?",
+      "pwaStep": 14,
+      "rnStep": 14,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": { "stepIndex": 14 },
+        "waitFor": "How long do you want to train?"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:14; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/session-length/"
+    },
+    {
+      "id": "training-days",
+      "title": "Which days can you train?",
+      "pwaStep": 15,
+      "rnStep": 15,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": { "stepIndex": 15 },
+        "waitFor": "Which days can you train?"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:15; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/training-days/"
+    },
+    {
+      "id": "dietary-restrictions",
+      "title": "Any foods you avoid?",
+      "pwaStep": 18,
+      "rnStep": 18,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": {
+          "stepIndex": 18,
+          "experienceLevel": "intermediate",
+          "equipmentSetup": "full_gym",
+          "sessionLength": "60_90"
+        },
+        "waitFor": "Any foods you avoid?"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:18, experienceLevel:'intermediate', equipmentSetup:'full_gym', sessionLength:'60_90'; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/dietary-restrictions/"
+    },
+    {
+      "id": "training-style",
+      "title": "How do you train best?",
+      "pwaStep": 19,
+      "rnStep": 19,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": {
+          "stepIndex": 19,
+          "experienceLevel": "intermediate",
+          "equipmentSetup": "full_gym",
+          "sessionLength": "60_90"
+        },
+        "waitFor": "How do you train best?"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:19; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/training-style/"
+    },
+    {
+      "id": "plan-building",
+      "title": "Building your plan…",
+      "pwaStep": 20,
+      "rnStep": 20,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": {
+          "stepIndex": 20,
+          "experienceLevel": "intermediate",
+          "equipmentSetup": "full_gym",
+          "sessionLength": "60_90"
+        },
+        "waitFor": "building"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:20; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/plan-building/"
+    },
+    {
+      "id": "fuel-targets",
+      "title": "Your fuel targets",
+      "pwaStep": 21,
+      "rnStep": 21,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": {
+          "stepIndex": 21,
+          "experienceLevel": "intermediate",
+          "equipmentSetup": "full_gym",
+          "sessionLength": "60_90",
+          "macros": { "cal": 2200, "p": 175, "c": 225, "f": 65 }
+        },
+        "waitFor": "Your fuel targets"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:21 and macros; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/fuel-targets/"
+    },
+    {
+      "id": "protein-reinforcement",
+      "title": "Protein is your #1 priority",
+      "pwaStep": 22,
+      "rnStep": 22,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": {
+          "stepIndex": 22,
+          "macros": { "cal": 2200, "p": 175, "c": 225, "f": 65 }
+        },
+        "waitFor": "Protein"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:22 and macros; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/protein-reinforcement/"
+    },
+    {
+      "id": "training-plan",
+      "title": "Here's your training plan",
+      "pwaStep": 23,
+      "rnStep": 23,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": {
+          "stepIndex": 23,
+          "draftTemplates": [
+            { "id": "mon-upper", "dayLabel": "Mon", "name": "Upper strength", "focus": "Push focus", "exercises": [] },
+            { "id": "wed-lower", "dayLabel": "Wed", "name": "Lower strength", "focus": "Leg focus", "exercises": [] },
+            { "id": "fri-upper", "dayLabel": "Fri", "name": "Upper hypertrophy", "focus": "Volume", "exercises": [] }
+          ]
+        },
+        "waitFor": "Here's your training plan"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:23 and draftTemplates; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/training-plan/"
+    },
+    {
+      "id": "notification-prompt",
+      "title": "Notification permission prompt",
+      "pwaStep": 24,
+      "rnStep": 24,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": { "stepIndex": 24 },
+        "waitFor": "Reach your goals with notifications"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:24; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/notification-prompt/"
+    },
+    {
+      "id": "stay-on-track",
+      "title": "Stay on track",
+      "pwaStep": 25,
+      "rnStep": 25,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": { "stepIndex": 25 },
+        "waitFor": "Stay on track"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:25; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/stay-on-track/"
+    },
+    {
+      "id": "plan-ready",
+      "title": "Your plan is ready",
+      "pwaStep": 26,
+      "rnStep": 26,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": {
+          "stepIndex": 26,
+          "displayName": "Alex",
+          "macros": { "cal": 2200, "p": 175, "c": 225, "f": 65 },
+          "draftTemplates": [
+            { "id": "mon-upper", "dayLabel": "Mon", "name": "Upper strength", "focus": "Push focus", "exercises": [] },
+            { "id": "wed-lower", "dayLabel": "Wed", "name": "Lower strength", "focus": "Leg focus", "exercises": [] },
+            { "id": "fri-upper", "dayLabel": "Fri", "name": "Upper hypertrophy", "focus": "Volume", "exercises": [] }
+          ],
+          "futureYou": {
+            "photoUploaded": true,
+            "photoStoragePath": "e2e/mock/source.jpg",
+            "motivationId": "look_confident",
+            "generationStatus": "generating",
+            "onboardingGoalLocked": true
+          }
+        },
+        "waitFor": "your plan is ready"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:26, displayName:'Alex', macros and draftTemplates; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/plan-ready/"
+    },
+    {
+      "id": "paywall",
+      "title": "Paywall",
+      "pwaStep": 27,
+      "rnStep": 27,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": {
+          "stepIndex": 27,
+          "displayName": "Alex",
+          "macros": { "cal": 2200, "p": 175, "c": 225, "f": 65 },
+          "draftTemplates": [
+            { "id": "mon-upper", "dayLabel": "Mon", "name": "Upper strength", "focus": "Push focus", "exercises": [] },
+            { "id": "wed-lower", "dayLabel": "Wed", "name": "Lower strength", "focus": "Leg focus", "exercises": [] }
+          ],
+          "futureYou": {
+            "photoUploaded": true,
+            "photoStoragePath": "e2e/mock/source.jpg",
+            "motivationId": "look_confident",
+            "generationStatus": "generating",
+            "onboardingGoalLocked": true
+          }
+        },
+        "waitFor": "pro"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:27 and futureYou; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/paywall/"
+    },
+    {
+      "id": "future-you-success",
+      "title": "Future You Success",
+      "pwaStep": 28,
+      "rnStep": 28,
+      "pwaCapture": {
+        "method": "playwright",
+        "seed": {
+          "stepIndex": 28,
+          "subscriptionTier": "pro",
+          "displayName": "Alex",
+          "macros": { "cal": 2200, "p": 175, "c": 225, "f": 65 },
+          "draftTemplates": [
+            { "id": "mon-upper", "dayLabel": "Mon", "name": "Upper strength", "focus": "Push focus", "exercises": [] }
+          ],
+          "futureYou": {
+            "photoUploaded": true,
+            "photoStoragePath": "e2e/mock/source.jpg",
+            "motivationId": "look_confident",
+            "generationStatus": "generating",
+            "onboardingGoalLocked": true
+          }
+        },
+        "waitFor": "You're ready"
+      },
+      "rnCapture": {
+        "method": "simctl",
+        "navigationSteps": "Inject draft with stepIndex:28, subscriptionTier:'pro', futureYou with generationStatus:'generating'; kill/relaunch app."
+      },
+      "outputDir": ".ui-reconcile/future-you-success/"
+    }
+  ]
+}

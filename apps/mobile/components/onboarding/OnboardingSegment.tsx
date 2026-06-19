@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, View } from "react-native";
 
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { onboardingPillColors, ONBOARDING_PILL_MIN_HEIGHT } from "@/lib/onboardingTheme";
 
@@ -21,10 +22,10 @@ export function OnboardingSegment({
   const pill = onboardingPillColors(ob, selected);
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.75}
+    <PressableScale
       onPress={onPress}
       testID={testID}
+      activeScale={0.97}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       style={{
@@ -33,8 +34,8 @@ export function OnboardingSegment({
         borderRadius: 9999,
         paddingHorizontal: 16,
         paddingVertical: 14,
-        alignItems: "center",
-        justifyContent: "center",
+        alignItems: layout === "inline" ? "center" : "flex-start",
+        justifyContent: layout === "inline" ? "center" : "flex-start",
         borderColor: pill.borderColor,
         backgroundColor: pill.backgroundColor,
         ...(layout === "inline" ? { flex: 1 } : null),
@@ -47,7 +48,7 @@ export function OnboardingSegment({
       ) : (
         children
       )}
-    </TouchableOpacity>
+    </PressableScale>
   );
 }
 

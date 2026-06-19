@@ -1,19 +1,25 @@
 import { useState } from "react";
-import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { FutureYouDraft, FutureYouJobStatus } from "@newyouai/types";
 
+import { OnboardingContentReveal } from "@/components/motion";
 import { OnboardingPaywallFutureYouHero } from "@/components/onboarding/OnboardingPaywallFutureYouHero";
 import { OnboardingPaywallPlanPicker } from "@/components/onboarding/OnboardingPaywallPlanPicker";
 import { OnboardingPaywallPlanSummary } from "@/components/onboarding/OnboardingPaywallPlanSummary";
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { PressableScale } from "@/components/ui/PressableScale";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { FUTURE_YOU_PRIVACY_POLICY_URL, PAYWALL_TERMS_URL } from "@/lib/futureYouLegal";
 import {
   futureYouPaywallCtaLabel,
   isFutureYouPaywallCtaEnabled,
   isFutureYouPaywallHeroVisible,
 } from "@/lib/futureYouPaywallModel";
+import {
+  paywallFooterStartStep,
+  paywallRevealDelayMs,
+} from "@/lib/onboardingPaywallReveal";
 import type { OnboardingPlanSnapshot } from "@/lib/onboardingPlanSnapshot";
 import type { PaywallBillingPeriod } from "@/lib/paywallPlans";
 import { purchaseProSubscription, restorePurchases } from "@/lib/revenueCat";
@@ -35,7 +41,7 @@ export function OnboardingPaywall({
   generationStatus,
   photoBlocked,
 }: Props) {
-  const { colors } = useAppTheme();
+  const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
   const [billingPeriod, setBillingPeriod] = useState<PaywallBillingPeriod>("yearly");
   const [purchasing, setPurchasing] = useState(false);
@@ -44,6 +50,7 @@ export function OnboardingPaywall({
   const heroVisible = isFutureYouPaywallHeroVisible(futureYou, photoBlocked);
   const ctaEnabled = isFutureYouPaywallCtaEnabled(futureYou, generationStatus, photoBlocked) && !purchasing;
   const ctaLabel = futureYouPaywallCtaLabel(futureYou, generationStatus, photoBlocked, billingPeriod);
+  const footerStartStep = paywallFooterStartStep(heroVisible);
 
   async function handlePurchase() {
     if (!ctaEnabled) return;
@@ -82,80 +89,93 @@ export function OnboardingPaywall({
         paddingHorizontal: 23,
       }}
     >
-      <Pressable
+      <PressableScale
         onPress={onBack}
         accessibilityRole="button"
         accessibilityLabel="Back"
         testID="onboarding-back"
-        className="mb-4 h-10 w-10 items-center justify-center"
+        style={{ marginBottom: 16, height: 40, width: 40, alignItems: "center", justifyContent: "center" }}
       >
         <Text className="text-2xl" style={{ color: colors.textPrimary }}>
           ‹
         </Text>
-      </Pressable>
+      </PressableScale>
 
       <ScrollView className="flex-1" contentContainerStyle={{ gap: 20, paddingBottom: 16 }}>
-        <Text className="text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
-          {heroVisible ? (
-            <>
-              Unlock <Text style={{ color: colors.accent }}>NewYouAI</Text> to see what you can look like.
-            </>
-          ) : (
-            <>
-              Unlock <Text style={{ color: colors.accent }}>NewYouAI</Text> to reach your goals faster.
-            </>
-          )}
-        </Text>
+        <OnboardingContentReveal delay={paywallRevealDelayMs(0)}>
+          <Text className="text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
+            {heroVisible ? (
+              <>
+                Unlock <Text style={{ color: ob.gold }}>NewYouAI</Text> to see what you can look like.
+              </>
+            ) : (
+              <>
+                Unlock <Text style={{ color: ob.gold }}>NewYouAI</Text> to reach your goals faster.
+              </>
+            )}
+          </Text>
+        </OnboardingContentReveal>
 
         {heroVisible ? (
           <OnboardingPaywallFutureYouHero
             timeline={planSnapshot.timeline}
             jobId={futureYou?.generationJobId}
             status={generationStatus}
+            gender={planSnapshot.profile.gender}
           />
         ) : (
-          <OnboardingPaywallPlanSummary planSnapshot={planSnapshot} />
+          <OnboardingContentReveal delay={paywallRevealDelayMs(1)}>
+            <OnboardingPaywallPlanSummary planSnapshot={planSnapshot} />
+          </OnboardingContentReveal>
         )}
       </ScrollView>
 
       <View className="gap-3">
-        <OnboardingPaywallPlanPicker value={billingPeriod} onChange={setBillingPeriod} />
-        <Pressable
-          onPress={() => void handlePurchase()}
-          disabled={!ctaEnabled}
-          testID="onboarding-paywall-cta"
-          className="items-center rounded-full py-4"
-          style={{
-            backgroundColor: ctaEnabled ? colors.accent : colors.border,
-            opacity: ctaEnabled ? 1 : 0.6,
-          }}
-        >
-          <Text className="text-base font-semibold" style={{ color: colors.accentText }}>
-            {purchasing ? "Processing…" : ctaLabel}
-          </Text>
-        </Pressable>
+        <OnboardingContentReveal delay={paywallRevealDelayMs(footerStartStep)}>
+          <OnboardingPaywallPlanPicker value={billingPeriod} onChange={setBillingPeriod} />
+        </OnboardingContentReveal>
+        <OnboardingContentReveal delay={paywallRevealDelayMs(footerStartStep + 1)}>
+          <PressableScale
+            onPress={() => void handlePurchase()}
+            disabled={!ctaEnabled}
+            testID="onboarding-paywall-cta"
+            style={{
+              alignItems: "center",
+              borderRadius: 9999,
+              paddingVertical: 16,
+              backgroundColor: ctaEnabled ? ob.gold : colors.border,
+              opacity: ctaEnabled ? 1 : 0.6,
+            }}
+          >
+            <Text className="text-base font-semibold" style={{ color: ctaEnabled ? ob.goldOn : colors.textSecondary }}>
+              {purchasing ? "Processing…" : ctaLabel}
+            </Text>
+          </PressableScale>
+        </OnboardingContentReveal>
         {error ? (
           <Text className="text-center text-sm" style={{ color: "#f87171" }}>
             {error}
           </Text>
         ) : null}
-        <View className="flex-row flex-wrap justify-center gap-x-4 gap-y-1">
-          <Pressable onPress={() => void handleRestore()} testID="onboarding-paywall-restore">
-            <Text className="text-sm underline" style={{ color: colors.textSecondary }}>
-              Restore Purchases
-            </Text>
-          </Pressable>
-          <Pressable onPress={() => void Linking.openURL(PAYWALL_TERMS_URL)}>
-            <Text className="text-sm underline" style={{ color: colors.textSecondary }}>
-              Terms
-            </Text>
-          </Pressable>
-          <Pressable onPress={() => void Linking.openURL(FUTURE_YOU_PRIVACY_POLICY_URL)}>
-            <Text className="text-sm underline" style={{ color: colors.textSecondary }}>
-              Privacy
-            </Text>
-          </Pressable>
-        </View>
+        <OnboardingContentReveal delay={paywallRevealDelayMs(footerStartStep + 2)}>
+          <View className="flex-row flex-wrap justify-center gap-x-4 gap-y-1">
+            <PressableScale onPress={() => void handleRestore()} testID="onboarding-paywall-restore">
+              <Text className="text-sm underline" style={{ color: colors.textSecondary }}>
+                Restore Purchases
+              </Text>
+            </PressableScale>
+            <PressableScale onPress={() => void Linking.openURL(PAYWALL_TERMS_URL)}>
+              <Text className="text-sm underline" style={{ color: colors.textSecondary }}>
+                Terms
+              </Text>
+            </PressableScale>
+            <PressableScale onPress={() => void Linking.openURL(FUTURE_YOU_PRIVACY_POLICY_URL)}>
+              <Text className="text-sm underline" style={{ color: colors.textSecondary }}>
+                Privacy
+              </Text>
+            </PressableScale>
+          </View>
+        </OnboardingContentReveal>
       </View>
     </View>
   );

@@ -2,6 +2,7 @@ import type { HeightDisplayUnit, UnitPreferences, VolumeUnit, WeightUnit } from 
 import { Text, View } from "react-native";
 
 import { OnboardingPillRow, OnboardingSegment } from "@/components/onboarding/OnboardingSegment";
+import { GradientCard } from "@/components/ui/GradientCard";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { heightUnitLabel, volumeUnitLabel, weightUnitLabel } from "@/lib/unitLabels";
 
@@ -19,10 +20,7 @@ export function UnitPreferencePicker({
   const setVolume = (volumeUnit: VolumeUnit) => onChange({ ...value, volumeUnit });
 
   return (
-    <View
-      className="gap-5 rounded-2xl border p-4"
-      style={{ borderColor: colors.border, backgroundColor: colors.card }}
-    >
+    <GradientCard style={{ gap: 20 }}>
       <View className="gap-2">
         <Text className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textTertiary }}>
           Weight
@@ -59,6 +57,6 @@ export function UnitPreferencePicker({
           ))}
         </OnboardingPillRow>
       </View>
-    </View>
+    </GradientCard>
   );
 }

@@ -34,7 +34,7 @@ function MacroStat({
       <Text className="text-xl font-bold" style={{ color: toneColor }}>
         {value.toLocaleString()}
       </Text>
-      <Text className="text-xs uppercase" style={{ color: colors.textSecondary }}>
+      <Text className="text-xs" style={{ color: colors.textSecondary }}>
         {label}
       </Text>
     </View>

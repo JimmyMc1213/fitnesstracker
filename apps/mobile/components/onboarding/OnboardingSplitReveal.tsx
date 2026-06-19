@@ -2,6 +2,7 @@ import { weekdayFullName } from "@newyouai/core";
 import type { WorkoutRoutineTemplate } from "@newyouai/types";
 import { Text, View } from "react-native";
 
+import { GradientCard } from "@/components/ui/GradientCard";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 const PREVIEW_EXERCISE_COUNT = 4;
@@ -16,10 +17,8 @@ export function OnboardingSplitReveal({ templates }: { templates: WorkoutRoutine
         const remaining = routine.exercises.length - preview.length;
 
         return (
-          <View
+          <GradientCard
             key={routine.id}
-            className="rounded-2xl border p-4"
-            style={{ borderColor: colors.border, backgroundColor: colors.card }}
             testID={`onboarding-split-card-${routine.dayLabel}`}
           >
             <Text className="text-base font-bold" style={{ color: colors.textPrimary }}>
@@ -44,7 +43,7 @@ export function OnboardingSplitReveal({ templates }: { templates: WorkoutRoutine
                 +{remaining} more
               </Text>
             ) : null}
-          </View>
+          </GradientCard>
         );
       })}
     </View>

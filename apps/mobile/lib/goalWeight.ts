@@ -10,16 +10,19 @@ export const GOAL_PACE_OPTIONS: { value: GoalPace; label: string; hint?: string 
   },
 ];
 
+const CUT_WEIGHT_FLOOR_LBS = 110;
+
 export function goalWeightRangeLbs(goal: "cut" | "bulk", currentLbs: number): { minLbs: number; maxLbs: number } {
   if (goal === "cut") {
-    return { minLbs: currentLbs - 80, maxLbs: currentLbs - 5 };
+    return { minLbs: Math.max(CUT_WEIGHT_FLOOR_LBS, currentLbs - 80), maxLbs: currentLbs - 5 };
   }
   return { minLbs: currentLbs + 3, maxLbs: currentLbs + 50 };
 }
 
 export function defaultGoalWeightLbs(goal: "cut" | "bulk", currentLbs: number): number {
-  if (goal === "cut") return Math.max(currentLbs - 80, Math.min(currentLbs - 5, currentLbs - 15));
-  return Math.min(currentLbs + 50, Math.max(currentLbs + 3, currentLbs + 15));
+  const { minLbs, maxLbs } = goalWeightRangeLbs(goal, currentLbs);
+  const target = goal === "cut" ? currentLbs - 10 : currentLbs + 10;
+  return Math.min(maxLbs, Math.max(minLbs, target));
 }
 
 export function clampGoalWeightLbs(valueLbs: number, minLbs: number, maxLbs: number): number {
@@ -32,7 +35,7 @@ export function isGoalWeightValid(profile: OnboardingProfile, currentWeightLbs: 
   if (target == null || !Number.isFinite(target)) return false;
   const w = currentWeightLbs;
   if (Math.abs(target - w) < 3) return false;
-  if (profile.goal === "cut") return target >= w - 80 && target <= w - 5;
+  if (profile.goal === "cut") return target >= Math.max(CUT_WEIGHT_FLOOR_LBS, w - 80) && target <= w - 5;
   if (profile.goal === "bulk") return target >= w + 3 && target <= w + 50;
   return false;
 }

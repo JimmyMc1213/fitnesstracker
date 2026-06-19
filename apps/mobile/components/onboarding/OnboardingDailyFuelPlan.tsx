@@ -1,8 +1,9 @@
 import type { MacroTotals } from "@newyouai/types";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { EditableNumber } from "@/components/onboarding/EditableNumber";
 import { GradientCard } from "@/components/ui/GradientCard";
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { clampMacroValue } from "@/lib/macroLimits";
 
@@ -97,11 +98,11 @@ export function OnboardingDailyFuelPlan({ macros, computedMacros, onChangeMacros
       </GradientCard>
 
       {macrosEdited ? (
-        <Pressable onPress={onReset}>
+        <PressableScale onPress={onReset}>
           <Text className="text-center text-sm font-medium" style={{ color: ob.ghostFg }}>
             Reset to calculated values
           </Text>
-        </Pressable>
+        </PressableScale>
       ) : null}
     </View>
   );

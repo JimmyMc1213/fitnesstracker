@@ -182,14 +182,17 @@ export function WeightRulerPicker({
   );
 }
 
+const CUT_WEIGHT_FLOOR_LBS = 110;
+
 export function goalWeightRangeLbs(goal: "cut" | "bulk", currentLbs: number): { minLbs: number; maxLbs: number } {
   if (goal === "cut") {
-    return { minLbs: currentLbs - 80, maxLbs: currentLbs - 5 };
+    return { minLbs: Math.max(CUT_WEIGHT_FLOOR_LBS, currentLbs - 80), maxLbs: currentLbs - 5 };
   }
   return { minLbs: currentLbs + 3, maxLbs: currentLbs + 50 };
 }
 
 export function defaultGoalWeightLbs(goal: "cut" | "bulk", currentLbs: number): number {
-  if (goal === "cut") return Math.max(currentLbs - 80, Math.min(currentLbs - 5, currentLbs - 15));
-  return Math.min(currentLbs + 50, Math.max(currentLbs + 3, currentLbs + 15));
+  const { minLbs, maxLbs } = goalWeightRangeLbs(goal, currentLbs);
+  const target = goal === "cut" ? currentLbs - 10 : currentLbs + 10;
+  return Math.min(maxLbs, Math.max(minLbs, target));
 }

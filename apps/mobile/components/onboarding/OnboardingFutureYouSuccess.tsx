@@ -7,11 +7,13 @@ import {
   formatFutureYouSuccessHeadline,
   isFutureYouSuccessHeroVisible,
 } from "@/lib/futureYouSuccessModel";
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { OnboardingPaywallPlanSummary } from "@/components/onboarding/OnboardingPaywallPlanSummary";
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { GradientCard } from "@/components/ui/GradientCard";
+import { PressableScale } from "@/components/ui/PressableScale";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { useFutureYouRevealImage } from "@/hooks/useFutureYouRevealImage";
 import type { FutureYouDraft, FutureYouJobStatus, SubscriptionTier } from "@newyouai/types";
 
@@ -36,7 +38,7 @@ export function OnboardingFutureYouSuccess({
   onContinue,
   continuing = false,
 }: Props) {
-  const { colors } = useAppTheme();
+  const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
   const heroVisible = isFutureYouSuccessHeroVisible(futureYou, photoBlocked);
   const { imageUri, loading } = useFutureYouRevealImage({
@@ -64,27 +66,26 @@ export function OnboardingFutureYouSuccess({
               {FUTURE_YOU_SUCCESS_WELCOME_PREFIX}
               <Text style={{ color: colors.accent }}>{FUTURE_YOU_SUCCESS_WELCOME_BRAND}</Text>
             </Text>
-            <View
-              className="h-56 items-center justify-center overflow-hidden rounded-2xl"
-              style={{ backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }}
-            >
-              {preparing ? (
-                <Text className="text-center text-sm" style={{ color: colors.textSecondary }}>
-                  Loading your Future You…
-                </Text>
-              ) : imageUri ? (
-                <Image
-                  source={{ uri: imageUri }}
-                  style={{ width: "100%", height: "100%" }}
-                  resizeMode="cover"
-                  accessibilityIgnoresInvertColors
-                />
-              ) : (
-                <Text className="text-center text-sm" style={{ color: colors.textSecondary }}>
-                  Your Future You
-                </Text>
-              )}
-            </View>
+            <GradientCard padding={0} style={{ height: 224, width: "100%" }}>
+              <View style={{ height: 224, width: "100%", alignItems: "center", justifyContent: "center" }}>
+                {preparing ? (
+                  <Text className="text-center text-sm" style={{ color: colors.textSecondary }}>
+                    Loading your Future You…
+                  </Text>
+                ) : imageUri ? (
+                  <Image
+                    source={{ uri: imageUri }}
+                    style={{ width: "100%", height: "100%" }}
+                    resizeMode="cover"
+                    accessibilityIgnoresInvertColors
+                  />
+                ) : (
+                  <Text className="text-center text-sm" style={{ color: colors.textSecondary }}>
+                    Your Future You
+                  </Text>
+                )}
+              </View>
+            </GradientCard>
             <Text className="text-center text-xs" style={{ color: colors.textTertiary }}>
               AI generated · Illustrative preview
             </Text>
@@ -93,9 +94,9 @@ export function OnboardingFutureYouSuccess({
           <>
             <View
               className="mx-auto h-16 w-16 items-center justify-center rounded-full"
-              style={{ backgroundColor: colors.accent }}
+              style={{ backgroundColor: "rgba(201, 168, 118, 0.12)", borderWidth: 1.5, borderColor: ob.gold }}
             >
-              <Text className="text-3xl font-bold" style={{ color: colors.accentText }}>
+              <Text className="text-3xl font-bold" style={{ color: ob.gold }}>
                 ✓
               </Text>
             </View>
@@ -106,24 +107,29 @@ export function OnboardingFutureYouSuccess({
               {FUTURE_YOU_SUCCESS_TAGLINE}
             </Text>
             <OnboardingPaywallPlanSummary planSnapshot={planSnapshot} />
+            <Text className="text-center text-sm font-medium" style={{ color: ob.gold }}>
+              Welcome to NewYouAI
+            </Text>
           </>
         )}
       </View>
 
-      <Pressable
+      <PressableScale
         onPress={onContinue}
         disabled={continuing || preparing}
         testID="onboarding-future-you-success-continue"
-        className="items-center rounded-full py-4"
         style={{
-          backgroundColor: continuing || preparing ? colors.border : colors.accent,
+          alignItems: "center",
+          borderRadius: 9999,
+          paddingVertical: 16,
+          backgroundColor: continuing || preparing ? colors.border : ob.gold,
           opacity: continuing || preparing ? 0.6 : 1,
         }}
       >
-        <Text className="text-base font-semibold" style={{ color: colors.accentText }}>
+        <Text className="text-base font-semibold" style={{ color: continuing || preparing ? colors.textSecondary : ob.goldOn }}>
           {continuing ? "Starting…" : FUTURE_YOU_SUCCESS_CTA_LABEL}
         </Text>
-      </Pressable>
+      </PressableScale>
     </View>
   );
 }

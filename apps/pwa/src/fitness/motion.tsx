@@ -59,6 +59,7 @@ const onboardingStackVariants: Variants = {
     x: direction === "forward" ? "-28%" : "100%",
     zIndex: direction === "forward" ? 1 : 2,
     opacity: 1,
+    pointerEvents: "none",
   }),
 };
 
@@ -140,7 +141,12 @@ function FrozenPanel({
   children: ReactNode | ((layerKey: string) => ReactNode);
 }) {
   const layerKeyRef = useRef(layerKey);
-  return <>{typeof children === "function" ? children(layerKeyRef.current) : children}</>;
+
+  if (typeof children !== "function") {
+    return <>{children}</>;
+  }
+
+  return <>{children(layerKeyRef.current)}</>;
 }
 
 function StackLayerPresence({

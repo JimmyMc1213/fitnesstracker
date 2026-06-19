@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   OnboardingContinueButton,
   OnboardingGhostFooterAction,
 } from "@/components/onboarding/OnboardingContinueButton";
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import {
   ONBOARDING_PADDING_X,
@@ -17,7 +18,11 @@ type OnboardingShellProps = {
   step: number;
   totalSteps?: number;
   title: ReactNode;
+  /** Override the default headline className (e.g. smaller plan-ready headline). */
+  headlineClassName?: string;
   subtitle?: string;
+  /** Override the default subtitle className (e.g. larger regular plan-ready helper). */
+  subtitleClassName?: string;
   children: ReactNode;
   onBack?: () => void;
   onContinue: () => void;
@@ -42,7 +47,9 @@ export function OnboardingShell({
   step,
   totalSteps = ONBOARDING_TOTAL_STEPS,
   title,
+  headlineClassName,
   subtitle,
+  subtitleClassName,
   children,
   onBack,
   onContinue,
@@ -77,17 +84,17 @@ export function OnboardingShell({
       }}
     >
       {onBack ? (
-        <Pressable
+        <PressableScale
           onPress={onBack}
           accessibilityRole="button"
           accessibilityLabel="Back"
           testID="onboarding-back"
-          className="mb-1 h-10 w-10 items-center justify-center"
+          style={{ marginBottom: 4, height: 40, width: 40, alignItems: "center", justifyContent: "center" }}
         >
           <Text className="text-2xl" style={{ color: colors.textPrimary }}>
             ‹
           </Text>
-        </Pressable>
+        </PressableScale>
       ) : (
         <View className="mb-1 h-10" />
       )}
@@ -118,7 +125,7 @@ export function OnboardingShell({
       {!hideTitle ? (
         typeof title === "string" ? (
           <Text
-            className="text-[28px] font-bold leading-tight tracking-tight"
+            className={headlineClassName ?? "text-[28px] font-bold leading-tight tracking-tight"}
             style={{ color: ob.headline }}
           >
             {title}
@@ -129,7 +136,7 @@ export function OnboardingShell({
       ) : null}
       {subtitle ? (
         <Text
-          className="mt-3 text-[11px] font-bold leading-normal tracking-wide"
+          className={subtitleClassName ?? "mt-3 text-[11px] font-bold leading-normal tracking-wide"}
           style={{ color: ob.helper }}
         >
           {subtitle}

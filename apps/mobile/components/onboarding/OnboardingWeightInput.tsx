@@ -60,8 +60,6 @@ export function OnboardingWeightInput({
           commitText(raw);
         }}
         keyboardType="decimal-pad"
-        placeholder="0"
-        placeholderTextColor={colors.textTertiary}
         accessibilityLabel="Body weight"
       />
     </OnboardingFieldGroup>

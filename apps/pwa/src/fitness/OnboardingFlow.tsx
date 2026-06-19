@@ -424,11 +424,18 @@ export function OnboardingFlow({
     });
   }, [step]);
 
+  const prevStepRef = useRef(step);
   useEffect(() => {
-    if (step !== 9) {
+    const prevStep = prevStepRef.current;
+    prevStepRef.current = step;
+
+    if (step === 9 && prevStep > 9) {
       setGoalWeightReinforcement(false);
-      return;
     }
+  }, [step]);
+
+  useEffect(() => {
+    if (step !== 9) return;
     if (isMaintainGoal(profile.goal)) return;
     if (profile.goalWeightLbs != null) return;
     setProfile((p) => ({
@@ -1062,7 +1069,7 @@ export function OnboardingFlow({
           maxLbs={450}
           unit={wUnit}
           directionLabel="Current weight"
-          onChange={(weightLbs) => setProfile((p) => ({ ...p, weightLbs }))}
+          onChange={(weightLbs) => setProfile((p) => ({ ...p, weightLbs, goalWeightLbs: undefined }))}
         />
       </OnboardingShell>
     );

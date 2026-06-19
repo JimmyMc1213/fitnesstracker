@@ -8,7 +8,7 @@ import {
   ONBOARDING_STEP_FUTURE_YOU_SUCCESS,
 } from "@newyouai/core";
 import type { UserGender } from "@newyouai/types";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { DateOfBirthPicker } from "@/components/onboarding/DateOfBirthPicker";
 import { FutureYouReadyBanner } from "@/components/onboarding/FutureYouReadyBanner";
@@ -42,6 +42,7 @@ import { OnboardingPlanBuilding } from "@/components/onboarding/OnboardingPlanBu
 import { OnboardingTemplateReview } from "@/components/onboarding/OnboardingTemplateReview";
 import { ReferralSourcePicker } from "@/components/onboarding/ReferralSourcePicker";
 import { UnitPreferencePicker } from "@/components/onboarding/UnitPreferencePicker";
+import { GradientCard } from "@/components/ui/GradientCard";
 import {
   isTrainingScheduleValid,
   WorkoutWeekCalendarPicker,
@@ -96,11 +97,7 @@ import {
   isMacrosValid,
   nutritionCalcInputFromOnboardingProfile,
 } from "@/lib/nutritionCalculator";
-import {
-  DEFAULT_ONBOARDING_CURRENT_WEIGHT_LBS,
-  isValidOnboardingHeightIn,
-  isValidWeighInLbs,
-} from "@/lib/unitConversions";
+import { isValidOnboardingHeightIn, isValidWeighInLbs } from "@/lib/unitConversions";
 
 const GENDERS: UserGender[] = ["male", "female", "other"];
 
@@ -201,11 +198,18 @@ export default function OnboardingWizardScreen() {
   const activeTheme = draftTheme ?? theme;
   const dobValid = isValidOnboardingDateOfBirth(profile.dateOfBirth);
 
+  const prevStepIndexRef = useRef(stepIndex);
   useEffect(() => {
-    if (stepIndex !== 9) {
+    const prevStep = prevStepIndexRef.current;
+    prevStepIndexRef.current = stepIndex;
+
+    if (stepIndex === 9 && prevStep > 9) {
       setGoalWeightReinforcement(false);
-      return;
     }
+  }, [stepIndex]);
+
+  useEffect(() => {
+    if (stepIndex !== 9) return;
     if (profile.goal === "maintain") return;
     if (profile.goalWeightLbs != null) return;
     setProfile((p) => ({
@@ -355,10 +359,7 @@ export default function OnboardingWizardScreen() {
         continueDisabled={!heightStepValid}
         testID="onboarding-step-6"
       >
-        <View
-          className="rounded-2xl border p-4"
-          style={{ borderColor: colors.border, backgroundColor: colors.card }}
-        >
+        <GradientCard padding={16}>
           <OnboardingHeightInput
             unit={hUnit}
             heightIn={profile.heightIn}
@@ -370,16 +371,13 @@ export default function OnboardingWizardScreen() {
               Enter a height between 4&apos;0&quot; and 8&apos;0&quot;
             </Text>
           ) : null}
-        </View>
+        </GradientCard>
       </OnboardingShell>
     );
   }
 
   if (forStep === 7) {
     const wUnit = unitPreferences.weightUnit;
-    const currentWeightLbs = isValidWeighInLbs(profile.weightLbs)
-      ? profile.weightLbs
-      : DEFAULT_ONBOARDING_CURRENT_WEIGHT_LBS;
     const weightStepValid = isValidWeighInLbs(profile.weightLbs);
 
     if (!wUnit) return null;
@@ -394,17 +392,14 @@ export default function OnboardingWizardScreen() {
         continueDisabled={!weightStepValid}
         testID="onboarding-step-7"
       >
-        <View
-          className="rounded-2xl border p-4"
-          style={{ borderColor: colors.border, backgroundColor: colors.card }}
-        >
+        <GradientCard padding={16}>
           <OnboardingWeightInput
             unit={wUnit}
-            weightLbs={currentWeightLbs}
+            weightLbs={profile.weightLbs}
             resetKey={wUnit}
-            onWeightChange={(weightLbs) => setProfile((p) => ({ ...p, weightLbs }))}
+            onWeightChange={(weightLbs) => setProfile((p) => ({ ...p, weightLbs, goalWeightLbs: undefined }))}
           />
-        </View>
+        </GradientCard>
       </OnboardingShell>
     );
   }
@@ -678,15 +673,12 @@ export default function OnboardingWizardScreen() {
         generationPill={generationPill}
         testID="onboarding-step-15"
       >
-        <View
-          className="rounded-2xl border p-4"
-          style={{ borderColor: colors.border, backgroundColor: colors.card }}
-        >
+        <GradientCard padding={16}>
           <WorkoutWeekCalendarPicker
             profile={profile}
             onChange={(next) => setProfile((p) => ({ ...p, ...next }))}
           />
-        </View>
+        </GradientCard>
       </OnboardingShell>
     );
   }
@@ -872,6 +864,7 @@ export default function OnboardingWizardScreen() {
         title=""
         hideTitle
         contentCentered
+        generationPill={generationPill}
         onBack={goBack}
         onContinue={() => goToStep(25)}
         hideFooter
@@ -937,11 +930,14 @@ export default function OnboardingWizardScreen() {
       <OnboardingShell
         step={forStep}
         title={`${name}, your plan is ready`}
+        headlineClassName="text-[26px] font-bold leading-tight tracking-tight"
         subtitle="Everything is set. Your coach is ready when you are."
+        subtitleClassName="mt-1 text-sm font-normal leading-snug"
         onBack={goBack}
         onContinue={() => goToStep(ONBOARDING_STEP_PAYWALL)}
         continueLabel={onboardingPlanReadyContinueLabel(futureYou, futureYouBlocked)}
         continueTone="gold"
+        compactFooter
         testID="onboarding-step-26"
       >
         {showFutureYouReadyBanner ? <FutureYouReadyBanner /> : null}

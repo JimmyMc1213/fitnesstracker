@@ -1,7 +1,8 @@
 import type { ReferralSource } from "@newyouai/types";
 import type { ImageSourcePropType } from "react-native";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, Text, View } from "react-native";
 
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import {
   ONBOARDING_OPTION_GAP,
@@ -70,11 +71,11 @@ export function ReferralSourcePicker({
         const selected = value === source;
         const option = onboardingOptionColors(ob, selected);
         return (
-          <TouchableOpacity
+          <PressableScale
             key={source}
-            activeOpacity={0.75}
             onPress={() => onChange(source)}
             testID={`onboarding-referral-${source}`}
+            activeScale={0.97}
             accessibilityRole="button"
             accessibilityState={{ selected }}
             style={{
@@ -97,7 +98,7 @@ export function ReferralSourcePicker({
             >
               {referralSourceLabel(source)}
             </Text>
-          </TouchableOpacity>
+          </PressableScale>
         );
       })}
     </View>

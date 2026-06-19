@@ -54,16 +54,19 @@ function resolveContent(
   return typeof children === "function" ? children(key) : children;
 }
 
-/** Active enter layers use live children; exit layers resolve by their own key. */
+/** Active enter layers use live children; exit layers keep the content captured at transition time. */
 function resolveLayerContent(
   layer: LayerRecord,
   activeKey: string,
   children: ReactNode | ((key: string) => ReactNode),
 ): ReactNode {
+  if (layer.phase === "exit") {
+    return layer.content;
+  }
   if (typeof children === "function") {
     return children(layer.key);
   }
-  if (layer.phase === "enter" && layer.key === activeKey) {
+  if (layer.key === activeKey) {
     return children;
   }
   return layer.content;

@@ -35,7 +35,7 @@ export function isGoalWeightValid(profile: OnboardingProfile, currentWeightLbs: 
   if (target == null || !Number.isFinite(target)) return false;
   const w = currentWeightLbs;
   if (Math.abs(target - w) < 3) return false;
-  if (profile.goal === "cut") return target >= w - 80 && target <= w - 5;
+  if (profile.goal === "cut") return target >= Math.max(110, w - 80) && target <= w - 5;
   if (profile.goal === "bulk") return target >= w + 3 && target <= w + 50;
   return false;
 }

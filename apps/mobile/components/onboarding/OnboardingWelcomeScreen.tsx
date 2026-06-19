@@ -1,9 +1,10 @@
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { DevSettings } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
 import { WelcomePhonePreview } from "@/components/WelcomePhonePreview";
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { authLayout } from "@/lib/authLayoutStyles";
 import { isOnboardingDevToolsEnabled, resetOnboardingProgress } from "@/lib/onboardingDevTools";
@@ -61,7 +62,7 @@ export function OnboardingWelcomeScreen({ onGetStarted }: OnboardingWelcomeScree
         </View>
 
         <View style={[authLayout.actions, { marginTop: "auto" as const, paddingTop: 16 }]}>
-          <Pressable
+          <PressableScale
             onPress={onGetStarted}
             testID="onboarding-continue"
             style={[authLayout.primaryButton, { backgroundColor: ob.gold }]}
@@ -69,16 +70,16 @@ export function OnboardingWelcomeScreen({ onGetStarted }: OnboardingWelcomeScree
             <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
               Get Started
             </Text>
-          </Pressable>
+          </PressableScale>
           {showDevTools ? (
-            <Pressable onPress={onStartFresh} testID="onboarding-start-fresh" className="mt-3 py-2">
+            <PressableScale onPress={onStartFresh} testID="onboarding-start-fresh" style={{ marginTop: 12, paddingVertical: 8 }}>
               <Text className="text-center text-sm" style={{ color: colors.textTertiary }}>
                 Start fresh (dev)
                 {process.env.EXPO_PUBLIC_BUNDLE_MARKER ?
                   ` · ${process.env.EXPO_PUBLIC_BUNDLE_MARKER}`
                 : ""}
               </Text>
-            </Pressable>
+            </PressableScale>
           ) : null}
         </View>
       </ScrollView>

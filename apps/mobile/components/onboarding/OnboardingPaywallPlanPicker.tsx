@@ -1,8 +1,8 @@
 import { PAYWALL_PLANS, PAYWALL_YEARLY_BADGE, type PaywallBillingPeriod } from "@/lib/paywallPlans";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
+import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
-import { onboardingPillColors } from "@/lib/onboardingTheme";
 
 type Props = {
   value: PaywallBillingPeriod;
@@ -21,19 +21,22 @@ function PlanCard({
   const { colors, ob } = useOnboardingTheme();
   const plan = PAYWALL_PLANS[period];
   const isYearly = period === "yearly";
-  const pill = onboardingPillColors(ob, selected);
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onSelect}
       accessibilityRole="radio"
       accessibilityState={{ selected }}
       testID={`paywall-plan-${period}`}
-      className="relative flex-1 rounded-2xl border p-4"
+      activeScale={0.97}
       style={{
-        borderColor: pill.borderColor,
-        backgroundColor: pill.backgroundColor,
-        borderWidth: selected ? 2 : 1,
+        position: "relative",
+        flex: 1,
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: selected ? 2 : 1.5,
+        borderColor: selected ? ob.gold : "rgba(255, 255, 255, 0.14)",
+        backgroundColor: "rgba(255, 255, 255, 0.04)",
       }}
     >
       {isYearly ? (
@@ -46,7 +49,21 @@ function PlanCard({
           </Text>
         </View>
       ) : null}
-      <Text className="text-base font-semibold" style={{ color: colors.textPrimary }}>
+      <View
+        className="absolute right-2 top-2 h-5 w-5 items-center justify-center rounded-full"
+        style={{
+          borderWidth: 2,
+          borderColor: selected ? ob.gold : "rgba(255, 255, 255, 0.28)",
+          backgroundColor: selected ? ob.gold : "transparent",
+        }}
+      >
+        {selected ? (
+          <Text className="text-[10px] font-bold" style={{ color: ob.goldOn }}>
+            ✓
+          </Text>
+        ) : null}
+      </View>
+      <Text className="text-base font-bold" style={{ color: colors.textPrimary }}>
         {plan.label}
       </Text>
       <Text className="mt-1 text-lg font-bold" style={{ color: colors.textPrimary }}>
@@ -60,7 +77,7 @@ function PlanCard({
       <Text className="mt-0.5 text-xs" style={{ color: colors.textTertiary }}>
         {plan.billingNote}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 

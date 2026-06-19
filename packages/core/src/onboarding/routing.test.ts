@@ -86,6 +86,13 @@ describe("onboardingRouting", () => {
     expect(isOnboardingGoalEditNavigationBlocked(15, 14)).toBe(false);
   });
 
+  it("allows back from Future You photo to goal-edit steps", () => {
+    expect(
+      isOnboardingGoalEditNavigationBlocked(ONBOARDING_STEP_FUTURE_YOU_PHOTO, ONBOARDING_STEP_PACE),
+    ).toBe(false);
+    expect(isOnboardingGoalEditNavigationBlocked(ONBOARDING_STEP_FUTURE_YOU_PHOTO, 8)).toBe(false);
+  });
+
   it("allows skippers to navigate to photo steps but not goal-edit screens", () => {
     const skipped = { photoSkipped: true as const };
     expect(isOnboardingIntoGoalLockNavigationBlocked(15, ONBOARDING_STEP_FUTURE_YOU_PHOTO, skipped)).toBe(false);
