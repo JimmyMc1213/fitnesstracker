@@ -1,7 +1,7 @@
 import { FUTURE_YOU_HERO_LOADING_LABEL } from "@newyouai/core";
 import type { FutureYouJobStatus, UserGender } from "@newyouai/types";
 import { ActivityIndicator, Image, Text, useWindowDimensions, View } from "react-native";
-import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, FeGaussianBlur, Filter, Text as SvgText } from "react-native-svg";
 
 import { OnboardingContentReveal } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -22,37 +22,39 @@ type Props = {
 const GOLD_RING = "rgba(201, 168, 118, 0.75)";
 
 /**
- * Static gold halo behind the hero box (PWA `__stage` radial glow, pulse omitted).
- * Alpha must come from `stopOpacity` — react-native-svg ignores the alpha channel
- * of an rgba() `stopColor`, which otherwise renders the gradient as a solid block.
+ * Teaser timeline number, heavily blurred via an SVG Gaussian filter so the value
+ * is illegible (the actual number is the paywall tease). A generous canvas + filter
+ * region keeps the blur from being clipped at higher blur radii.
  */
-function HeroGlow({
-  width,
-  height,
-  offsetX,
-  offsetY,
+function BlurredTimelineValue({
+  value,
+  color,
+  fontSize,
 }: {
-  width: number;
-  height: number;
-  offsetX: number;
-  offsetY: number;
+  value: string;
+  color: string;
+  fontSize: number;
 }) {
+  const width = Math.max(fontSize, value.length * fontSize * 0.7) + 40;
+  const height = fontSize * 2.4;
   return (
-    <Svg
-      pointerEvents="none"
-      width={width}
-      height={height}
-      style={{ position: "absolute", left: offsetX, top: offsetY }}
-    >
+    <Svg width={width} height={height} accessibilityElementsHidden>
       <Defs>
-        <RadialGradient id="paywall-fy-glow" cx="50%" cy="50%" rx="50%" ry="50%">
-          <Stop offset="0%" stopColor="#e8cc96" stopOpacity={0.55} />
-          <Stop offset="35%" stopColor="#d4b88a" stopOpacity={0.32} />
-          <Stop offset="60%" stopColor="#c9a876" stopOpacity={0.13} />
-          <Stop offset="100%" stopColor="#c9a876" stopOpacity={0} />
-        </RadialGradient>
+        <Filter id="paywall-fy-timeline-blur" x="-150%" y="-150%" width="400%" height="400%">
+          <FeGaussianBlur stdDeviation="7" />
+        </Filter>
       </Defs>
-      <Rect x={0} y={0} width={width} height={height} fill="url(#paywall-fy-glow)" />
+      <SvgText
+        x={width / 2}
+        y={height / 2 + fontSize * 0.34}
+        fontSize={fontSize}
+        fontWeight="bold"
+        fill={color}
+        textAnchor="middle"
+        filter="url(#paywall-fy-timeline-blur)"
+      >
+        {value}
+      </SvgText>
     </Svg>
   );
 }
@@ -70,83 +72,81 @@ export function OnboardingPaywallFutureYouHero({ timeline, jobId, status, gender
   const silhouetteSource = futureYouSilhouettesForGender(gender)?.after ?? null;
   const teaserSource = imageUri ? { uri: imageUri } : silhouetteSource;
 
-  const boxWidth = Math.min(212, screenWidth * 0.56);
+  const boxWidth = Math.min(228, screenWidth * 0.58);
   const boxHeight = (boxWidth * 4) / 3;
-  const glowWidth = boxWidth * 1.65;
-  const glowHeight = boxHeight * 1.4;
-  const glowOffsetX = -(glowWidth - boxWidth) / 2;
-  const glowOffsetY = -(glowHeight - boxHeight) / 2;
+  const taglineFontSize = 22;
 
   return (
     <View testID="onboarding-paywall-future-you-hero" className="items-center gap-4">
       <OnboardingContentReveal delay={paywallRevealDelayMs(1)} style={{ alignItems: "center" }}>
-        <Text className="text-center text-lg font-semibold" style={{ color: colors.textPrimary }}>
+        <Text className="text-center text-[22px] font-bold" style={{ color: colors.textPrimary }}>
           <Text style={{ color: ob.gold }}>Future You</Text> is ready
         </Text>
       </OnboardingContentReveal>
 
       <OnboardingContentReveal
         delay={paywallRevealDelayMs(2)}
-        style={{ alignItems: "center", justifyContent: "center", paddingVertical: 14 }}
+        style={{ alignItems: "center", justifyContent: "center", paddingVertical: 12 }}
       >
-        <View style={{ width: boxWidth, height: boxHeight, alignItems: "center", justifyContent: "center" }}>
-          <HeroGlow
-            width={glowWidth}
-            height={glowHeight}
-            offsetX={glowOffsetX}
-            offsetY={glowOffsetY}
-          />
-          <View
-            accessibilityState={{ busy: preparing }}
-            style={{
-              width: boxWidth,
-              height: boxHeight,
-              borderRadius: 20,
-              overflow: "hidden",
-              borderWidth: 1,
-              borderColor: GOLD_RING,
-              backgroundColor: colors.border,
-              shadowColor: "#c9a876",
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.45,
-              shadowRadius: 18,
-              elevation: 8,
-            }}
-          >
-            {teaserSource ? (
-              <Image
-                source={teaserSource}
-                style={{ width: "100%", height: "100%" }}
-                resizeMode="cover"
-                blurRadius={imageUri ? 18 : 12}
-                accessibilityIgnoresInvertColors
-              />
-            ) : (
-              <View className="h-full w-full" style={{ backgroundColor: colors.border }} />
-            )}
-            {preparing ? (
-              <View
-                className="absolute inset-0 items-center justify-center gap-3 px-4"
-                style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
-              >
-                <ActivityIndicator color={ob.gold} />
-                <Text className="text-center text-sm font-semibold text-white">
-                  {FUTURE_YOU_HERO_LOADING_LABEL}
-                </Text>
-              </View>
-            ) : null}
-          </View>
+        <View
+          accessibilityState={{ busy: preparing }}
+          style={{
+            width: boxWidth,
+            height: boxHeight,
+            borderRadius: 22,
+            overflow: "hidden",
+            borderWidth: 1,
+            borderColor: GOLD_RING,
+            backgroundColor: colors.border,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.18,
+            shadowRadius: 16,
+            elevation: 6,
+          }}
+        >
+          {teaserSource ? (
+            <Image
+              source={teaserSource}
+              style={{ width: "100%", height: "100%" }}
+              resizeMode="cover"
+              blurRadius={imageUri ? 18 : 12}
+              accessibilityIgnoresInvertColors
+            />
+          ) : (
+            <View className="h-full w-full" style={{ backgroundColor: colors.border }} />
+          )}
+          {preparing ? (
+            <View
+              className="absolute inset-0 items-center justify-center gap-3 px-4"
+              style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+            >
+              <ActivityIndicator color={ob.gold} />
+              <Text className="text-center text-sm font-semibold text-white">
+                {FUTURE_YOU_HERO_LOADING_LABEL}
+              </Text>
+            </View>
+          ) : null}
         </View>
       </OnboardingContentReveal>
 
       <OnboardingContentReveal delay={paywallRevealDelayMs(3)} style={{ alignItems: "center" }}>
-        <Text className="text-center text-lg font-bold" style={{ color: colors.textPrimary }}>
-          You in{" "}
-          <Text className="font-bold" style={{ color: ob.gold }}>
-            {timelineValue}
+        <View
+          className="flex-row items-center justify-center"
+          accessibilityLabel={`You in ${timeline}`}
+        >
+          <Text className="text-[22px] font-bold" style={{ color: colors.textPrimary }}>
+            You in{" "}
+          </Text>
+          <BlurredTimelineValue
+            value={timelineValue}
+            color={colors.textPrimary}
+            fontSize={taglineFontSize}
+          />
+          <Text className="text-[22px] font-bold" style={{ color: colors.textPrimary }}>
             {timelineUnit}
           </Text>
-        </Text>
+        </View>
       </OnboardingContentReveal>
     </View>
   );

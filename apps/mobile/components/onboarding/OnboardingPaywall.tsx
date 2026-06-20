@@ -84,22 +84,34 @@ export function OnboardingPaywall({
       style={{
         flex: 1,
         backgroundColor: colors.background,
-        paddingTop: insets.top + 8,
-        paddingHorizontal: 23,
       }}
     >
+      {/* Dev-only back affordance. Tucked into the corner at low opacity so it stays
+          tappable for development without affecting the paywall composition. */}
       <PressableScale
         onPress={onBack}
         accessibilityRole="button"
         accessibilityLabel="Back"
         testID="onboarding-back"
-        style={{ marginBottom: 16, height: 40, width: 40, alignItems: "center", justifyContent: "center" }}
+        hitSlop={12}
+        style={{
+          position: "absolute",
+          top: insets.top - 2,
+          left: 4,
+          height: 30,
+          width: 30,
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: 0.18,
+          zIndex: 20,
+        }}
       >
-        <Text className="text-3xl" style={{ color: colors.textPrimary }}>
+        <Text className="text-2xl" style={{ color: colors.textPrimary }}>
           ‹
         </Text>
       </PressableScale>
 
+      <View style={{ flex: 1, paddingTop: insets.top + 40, paddingHorizontal: 23 }}>
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ gap: 20, flexGrow: 1 }}
@@ -189,6 +201,7 @@ export function OnboardingPaywall({
             </PressableScale>
           </View>
         </OnboardingContentReveal>
+      </View>
       </View>
     </View>
   );
