@@ -45,6 +45,17 @@ function planReadyCoachDelayMs(weekRowCount: number): number {
   );
 }
 
+/** Scale workout row type so fewer days read larger and fill the week column. */
+function weekWorkoutTypography(dayCount: number) {
+  if (dayCount <= 3) {
+    return { dayFontSize: 14, nameFontSize: 17, dayMinWidth: 34, nameLineHeight: 22 };
+  }
+  if (dayCount === 4) {
+    return { dayFontSize: 13, nameFontSize: 15, dayMinWidth: 32, nameLineHeight: 20 };
+  }
+  return { dayFontSize: 12, nameFontSize: 14, dayMinWidth: 30, nameLineHeight: 18 };
+}
+
 type Props = {
   planSnapshot: OnboardingPlanSnapshot;
 };
@@ -93,6 +104,7 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
   );
   const coachNote = planReadyFirstCoachNote(profile);
   const coachNoteColor = scheme === "light" ? "rgba(0, 0, 0, 0.78)" : "rgba(255, 255, 255, 0.72)";
+  const workoutType = weekWorkoutTypography(weekTemplates.length);
 
   const weekLabelDelay = planReadyWeekLabelDelayMs();
   const coachDelay = planReadyCoachDelayMs(weekTemplates.length);
@@ -104,7 +116,7 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
   return (
     <View testID="onboarding-plan-ready" className="gap-3">
       <View className="gap-2">
-        <Text className="text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
+        <Text className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
           Daily fuel
         </Text>
         <View className="flex-row gap-1.5">
@@ -114,7 +126,7 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
           <MacroStat value={macros.f} label="g fat" tone="fat" delay={planReadyMacroDelayMs(3)} />
         </View>
         <OnboardingContentReveal delay={planReadyMacroDelayMs(3) + 350}>
-          <Text className="text-center text-[13px] font-medium" style={{ color: colors.textTertiary }}>
+          <Text className="text-center text-sm font-medium" style={{ color: colors.textTertiary }}>
             Goal timeline · {timeline}
           </Text>
         </OnboardingContentReveal>
@@ -122,24 +134,35 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
 
       <View className="h-px" style={{ backgroundColor: colors.border }} />
 
-      <View className="flex-row items-start">
+      <View className="flex-row items-stretch">
         <View className="flex-1 gap-2">
           <OnboardingContentReveal delay={weekLabelDelay}>
-            <Text className="text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
+            <Text className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
               Your week
             </Text>
           </OnboardingContentReveal>
-          <View className="gap-1.5">
+          <View style={{ flex: 1, justifyContent: "space-between" }}>
             {weekTemplates.map((routine, index) => (
               <OnboardingContentReveal key={routine.id} delay={planReadyWeekSequenceDelayMs(index)}>
                 <View className="flex-row items-baseline gap-2.5">
                   <Text
-                    className="text-xs font-medium"
-                    style={{ color: colors.textTertiary, minWidth: 30 }}
+                    className="font-medium"
+                    style={{
+                      color: colors.textTertiary,
+                      minWidth: workoutType.dayMinWidth,
+                      fontSize: workoutType.dayFontSize,
+                    }}
                   >
                     {routine.dayLabel}
                   </Text>
-                  <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
+                  <Text
+                    className="flex-1 font-semibold"
+                    style={{
+                      color: colors.textPrimary,
+                      fontSize: workoutType.nameFontSize,
+                      lineHeight: workoutType.nameLineHeight,
+                    }}
+                  >
                     {routine.name}
                   </Text>
                 </View>
@@ -150,7 +173,7 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
         <View className="flex-1 gap-3.5 pt-[19px] pl-8">
           <View className="gap-1">
             <OnboardingContentReveal delay={hydrationLabelDelay}>
-              <Text className="text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
+              <Text className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
                 Hydration
               </Text>
             </OnboardingContentReveal>
@@ -162,7 +185,7 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
           </View>
           <View className="gap-1">
             <OnboardingContentReveal delay={stepsLabelDelay}>
-              <Text className="text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
+              <Text className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
                 Steps
               </Text>
             </OnboardingContentReveal>
@@ -179,15 +202,16 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
 
       <View className="gap-2.5">
         <OnboardingContentReveal delay={coachDelay + 120}>
-          <Text className="text-base font-semibold" style={{ color: ob.coachBlueLabel }}>
+          <Text className="text-[17px] font-semibold" style={{ color: ob.coachBlueLabel }}>
             Coach
           </Text>
         </OnboardingContentReveal>
         <TypewriterText
           text={coachNote}
           startDelayMs={coachDelay + 720}
-          className="text-[13px] font-medium"
-          style={{ color: coachNoteColor, lineHeight: 19 }}
+          speed={22}
+          className="text-[15px] font-medium"
+          style={{ color: coachNoteColor, lineHeight: 22 }}
         />
       </View>
     </View>

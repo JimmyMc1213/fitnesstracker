@@ -1010,9 +1010,9 @@ export default function OnboardingWizardScreen() {
       <OnboardingShell
         step={forStep}
         title={`${name}, your plan is ready`}
-        headlineClassName="text-[26px] font-bold leading-tight tracking-tight"
+        headlineClassName="text-[28px] font-bold leading-tight tracking-tight"
         subtitle="Everything is set. Your coach is ready when you are."
-        subtitleClassName="mt-1 text-sm font-normal leading-snug"
+        subtitleClassName="mt-1 text-[16px] font-normal leading-snug"
         onBack={goBack}
         onContinue={() => goToStep(ONBOARDING_STEP_PAYWALL)}
         continueLabel={onboardingPlanReadyContinueLabel(futureYou, futureYouBlocked)}
