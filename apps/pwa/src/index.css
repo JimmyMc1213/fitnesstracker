@@ -1549,6 +1549,55 @@ input[type="number"] {
   }
 }
 
+/* Post-purchase welcome splash — always black + gold */
+.purchase-welcome-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #060608;
+  color: #ffffff;
+  padding: env(safe-area-inset-top, 0px) 24px env(safe-area-inset-bottom, 0px);
+  opacity: 1;
+  animation: appSplashScreenIn 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.purchase-welcome-splash--out {
+  animation: none;
+  pointer-events: none;
+}
+
+.purchase-welcome-splash__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.purchase-welcome-splash__mark .gymmy-splash-mark__wordmark {
+  display: none;
+}
+
+.purchase-welcome-splash__mark .gymmy-splash-mark__logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #c9a876;
+  color: #14110c;
+}
+
+.purchase-welcome-splash__headline {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: #c9a876;
+  text-align: center;
+}
+
 .onboarding-welcome {
   position: relative;
   flex: 1;

@@ -12,7 +12,6 @@ import {
 import { ActivityIndicator, Image, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ConfettiBurst } from "@/components/motion";
 import { FutureYouReportButton } from "@/components/future-you/FutureYouReportButton";
 import { OnboardingPaywallPlanSummary } from "@/components/onboarding/OnboardingPaywallPlanSummary";
 import { PressableScale } from "@/components/ui/PressableScale";
@@ -225,8 +224,6 @@ export function OnboardingFutureYouSuccess({
           </Text>
         </PressableScale>
       </View>
-
-      <ConfettiBurst />
     </View>
   );
 }

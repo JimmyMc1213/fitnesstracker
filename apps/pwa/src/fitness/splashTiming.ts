@@ -7,6 +7,10 @@ export const WELCOME_SPLASH_FADE_OUT_MS = 880;
 export const WELCOME_LANDING_FADE_IN_MS = 880;
 export const SPLASH_MARK_FADE_IN_MS = 880;
 
+/** Post-purchase welcome splash before Future You unlock reveal. */
+export const PURCHASE_WELCOME_SPLASH_MIN_VISIBLE_MS = 1800;
+export const PURCHASE_WELCOME_SPLASH_FADE_OUT_MS = 600;
+
 declare global {
   interface Window {
     __gymmyBootAt?: number;

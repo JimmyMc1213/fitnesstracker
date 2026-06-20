@@ -45,8 +45,8 @@ import { useTheme } from "./ThemeContext";
 import { readStoredTheme, type AppTheme } from "./theme";
 import { OnboardingFutureYouMotivation } from "./OnboardingFutureYouMotivation";
 import { OnboardingFutureYouPhoto } from "./OnboardingFutureYouPhoto";
-import { fireFutureYouSuccessConfetti } from "./confetti";
 import { OnboardingPaywall } from "./OnboardingPaywall";
+import { OnboardingPurchaseWelcomeSplash } from "./OnboardingPurchaseWelcomeSplash";
 import { onboardingPlanReadyContinueLabel } from "./futureYouPaywallModel";
 import { OnboardingFutureYouSuccess } from "./OnboardingFutureYouSuccess";
 import { canAccessFutureYouSuccessScreen, isFutureYouSuccessHeroVisible } from "./futureYouSuccessModel";
@@ -308,6 +308,7 @@ export function OnboardingFlow({
   const [pendingSubscriptionTier, setPendingSubscriptionTier] = useState<SubscriptionTier | null>(() =>
     restored?.subscriptionTier === "pro" ? "pro" : null,
   );
+  const [showPurchaseWelcomeSplash, setShowPurchaseWelcomeSplash] = useState(false);
   const [futureYouPhotoPreview, setFutureYouPhotoPreview] = useState<string | null>(null);
   const [futureYouUploading, setFutureYouUploading] = useState(false);
   const [futureYouUploadError, setFutureYouUploadError] = useState<string | null>(null);
@@ -887,21 +888,9 @@ export function OnboardingFlow({
 
   function handlePaywallSubscribe(tier: SubscriptionTier) {
     setPendingSubscriptionTier(tier);
+    setShowPurchaseWelcomeSplash(true);
     goToStep(ONBOARDING_STEP_FUTURE_YOU_SUCCESS, { subscriptionTier: tier });
   }
-
-  useEffect(() => {
-    if (step !== ONBOARDING_STEP_FUTURE_YOU_SUCCESS || pendingSubscriptionTier !== "pro") return;
-    if (!isFutureYouSuccessHeroVisible(futureYou, futureYouBlocked)) return;
-    let stop: (() => void) | undefined;
-    const id = window.setTimeout(() => {
-      stop = fireFutureYouSuccessConfetti(4000);
-    }, 280);
-    return () => {
-      window.clearTimeout(id);
-      stop?.();
-    };
-  }, [step, pendingSubscriptionTier, futureYou, futureYouBlocked]);
 
   useEffect(() => {
     if (step !== ONBOARDING_STEP_FUTURE_YOU_SUCCESS || previewMode) return;
@@ -1604,15 +1593,20 @@ export function OnboardingFlow({
   if (!screen) return null;
 
   return (
-    <FutureYouGenerationPillProvider pill={generationPill}>
-      <ScreenTransition
-        activeKey={onboardingScreenKey(step, goalWeightReinforcement)}
-        variant="stack"
-        direction={navDirection}
-        style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}
-      >
-        {screen}
-      </ScreenTransition>
-    </FutureYouGenerationPillProvider>
+    <>
+      <FutureYouGenerationPillProvider pill={generationPill}>
+        <ScreenTransition
+          activeKey={onboardingScreenKey(step, goalWeightReinforcement)}
+          variant="stack"
+          direction={navDirection}
+          style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}
+        >
+          {screen}
+        </ScreenTransition>
+      </FutureYouGenerationPillProvider>
+      {showPurchaseWelcomeSplash ? (
+        <OnboardingPurchaseWelcomeSplash onComplete={() => setShowPurchaseWelcomeSplash(false)} />
+      ) : null}
+    </>
   );
 }

@@ -1,6 +1,3 @@
-import { useEffect } from "react";
-
-import { firePlanOnlySuccessConfetti } from "./confetti";
 import { OnboardingFutureYouSuccessHero } from "./OnboardingFutureYouSuccessHero";
 import { OnboardingFutureYouSuccessPlanCard } from "./OnboardingFutureYouSuccessPlanCard";
 import type { OnboardingPlanSnapshot } from "./onboardingPlanSnapshot";
@@ -52,18 +49,6 @@ export function OnboardingFutureYouSuccess({
     subscriptionTier,
     previewMode,
   });
-
-  useEffect(() => {
-    if (heroVisible) return;
-    let stop: (() => void) | undefined;
-    const id = window.setTimeout(() => {
-      stop = firePlanOnlySuccessConfetti(3400);
-    }, 180);
-    return () => {
-      window.clearTimeout(id);
-      stop?.();
-    };
-  }, [heroVisible]);
 
   if (!heroVisible) {
     return (

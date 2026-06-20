@@ -16,6 +16,7 @@ import { NotificationPreferencesPicker } from "@/components/onboarding/Notificat
 import { OnboardingNotificationPrompt } from "@/components/onboarding/OnboardingNotificationPrompt";
 import { OnboardingFutureYouSuccess } from "@/components/onboarding/OnboardingFutureYouSuccess";
 import { OnboardingPaywall } from "@/components/onboarding/OnboardingPaywall";
+import { OnboardingPurchaseWelcomeSplash } from "@/components/onboarding/OnboardingPurchaseWelcomeSplash";
 import { OnboardingPlanReady } from "@/components/onboarding/OnboardingPlanReady";
 import { FutureYouGenerationPill } from "@/components/onboarding/FutureYouGenerationPill";
 import { OnboardingFutureYouMotivation } from "@/components/onboarding/OnboardingFutureYouMotivation";
@@ -150,6 +151,7 @@ export default function OnboardingWizardScreen() {
 
   const { setOnboardingComplete } = useOnboardingState();
   const [finishingOnboarding, setFinishingOnboarding] = useState(false);
+  const [showPurchaseWelcomeSplash, setShowPurchaseWelcomeSplash] = useState(false);
 
   const futureYouFlow = useFutureYouOnboarding({
     goToStep,
@@ -1046,7 +1048,10 @@ export default function OnboardingWizardScreen() {
         generationStatus={pollStatus}
         photoBlocked={futureYouBlocked}
         onBack={goBack}
-        onSelectTier={() => goToStep(ONBOARDING_STEP_FUTURE_YOU_SUCCESS, { subscriptionTier: "pro" })}
+        onSelectTier={() => {
+          setShowPurchaseWelcomeSplash(true);
+          goToStep(ONBOARDING_STEP_FUTURE_YOU_SUCCESS, { subscriptionTier: "pro" });
+        }}
       />
     );
   }
@@ -1154,18 +1159,23 @@ export default function OnboardingWizardScreen() {
   }
 
   return (
-    <ScreenTransition
-      activeKey={onboardingScreenKey(stepIndex, {
-        goalWeightReinforcement,
-        scheduleReinforcement,
-      })}
-      variant="stack"
-      direction={transitionDirection}
-    >
-      {(key) => {
-        const parsed = parseOnboardingScreenKey(key);
-        return renderOnboardingStep(parsed.step, parsed);
-      }}
-    </ScreenTransition>
+    <View style={{ flex: 1 }}>
+      <ScreenTransition
+        activeKey={onboardingScreenKey(stepIndex, {
+          goalWeightReinforcement,
+          scheduleReinforcement,
+        })}
+        variant="stack"
+        direction={transitionDirection}
+      >
+        {(key) => {
+          const parsed = parseOnboardingScreenKey(key);
+          return renderOnboardingStep(parsed.step, parsed);
+        }}
+      </ScreenTransition>
+      {showPurchaseWelcomeSplash ? (
+        <OnboardingPurchaseWelcomeSplash onComplete={() => setShowPurchaseWelcomeSplash(false)} />
+      ) : null}
+    </View>
   );
 }

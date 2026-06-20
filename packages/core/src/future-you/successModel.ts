@@ -10,6 +10,19 @@ export const FUTURE_YOU_SUCCESS_WELCOME_BRAND = "NewYouAI";
 export const FUTURE_YOU_SUCCESS_TAGLINE = "Your new chapter starts today.";
 export const FUTURE_YOU_SUCCESS_CTA_LABEL = "Start My Journey";
 
+/** Post-purchase welcome splash — always black + gold regardless of app theme. */
+export const PURCHASE_WELCOME_HEADLINE = "Welcome to New You";
+
+export const PURCHASE_WELCOME_SPLASH_THEME = {
+  background: "#060608",
+  gold: "#c9a876",
+  goldOn: "#14110c",
+  textPrimary: "#ffffff",
+  textSecondary: "rgba(255, 255, 255, 0.55)",
+  textTertiary: "rgba(255, 255, 255, 0.34)",
+  border: "rgba(255, 255, 255, 0.14)",
+} as const;
+
 export function formatFutureYouSuccessHeadline(displayName: string): string {
   const name = displayName.trim() || "Friend";
   return `You're ready, ${name}.`;
