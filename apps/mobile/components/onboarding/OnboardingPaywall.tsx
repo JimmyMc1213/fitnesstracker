@@ -96,7 +96,7 @@ export function OnboardingPaywall({
         testID="onboarding-back"
         style={{ marginBottom: 16, height: 40, width: 40, alignItems: "center", justifyContent: "center" }}
       >
-        <Text className="text-2xl" style={{ color: colors.textPrimary }}>
+        <Text className="text-3xl" style={{ color: colors.textPrimary }}>
           ‹
         </Text>
       </PressableScale>
