@@ -244,10 +244,16 @@ export function ScreenTransition({
         return [nextEnter];
       }
 
-      // current.content is kept live while the layer is the active enter layer (see
-      // the early-return branch above). Spreading it here freezes the old step's UI
-      // so the exit animation shows the right screen, not the new step's content.
-      const exiting: LayerRecord = { ...current, phase: "exit", direction };
+      // Capture fresh content from contentRef at the moment of transition so the
+      // exit animation shows whatever the user last selected — not a stale snapshot
+      // from when the layer was first created.  (contentRef.current is updated
+      // synchronously every render, so it always reflects the latest state.)
+      const exiting: LayerRecord = {
+        ...current,
+        content: resolveContent(contentRef.current, current.key),
+        phase: "exit",
+        direction,
+      };
 
       if (variant === "fade") {
         pendingEnterRef.current = nextEnter;
