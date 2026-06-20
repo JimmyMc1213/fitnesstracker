@@ -34,17 +34,17 @@ function PlanCard({
         flex: 1,
         borderRadius: 16,
         padding: 16,
-        borderWidth: selected ? 2 : 1.5,
-        borderColor: selected ? ob.gold : "rgba(255, 255, 255, 0.14)",
+        borderWidth: 2,
+        borderColor: selected ? ob.gold : colors.border,
         backgroundColor: "rgba(255, 255, 255, 0.04)",
       }}
     >
       {isYearly ? (
         <View
-          className="absolute -top-2.5 self-center rounded-full px-2 py-0.5"
-          style={{ backgroundColor: ob.gold }}
+          className="absolute rounded-full px-2.5 py-0.5"
+          style={{ top: -10, left: 8, backgroundColor: ob.gold }}
         >
-          <Text className="text-[10px] font-bold uppercase" style={{ color: ob.goldOn }}>
+          <Text className="text-[11px] font-bold uppercase" style={{ color: ob.goldOn }}>
             {PAYWALL_YEARLY_BADGE}
           </Text>
         </View>
@@ -63,18 +63,20 @@ function PlanCard({
           </Text>
         ) : null}
       </View>
-      <Text className="text-base font-bold" style={{ color: colors.textPrimary }}>
+      <Text className="text-lg font-bold leading-tight" style={{ color: colors.textPrimary }}>
         {plan.label}
       </Text>
-      <Text className="mt-1 text-lg font-bold" style={{ color: colors.textPrimary }}>
+      <Text className="mt-1 text-xl font-bold leading-tight" style={{ color: colors.textPrimary }}>
         {plan.displayPerMonth}
       </Text>
-      {plan.trialNote ? (
-        <Text className="mt-1 text-xs" style={{ color: colors.textSecondary }}>
-          {plan.trialNote}
-        </Text>
-      ) : null}
-      <Text className="mt-0.5 text-xs" style={{ color: colors.textTertiary }}>
+      <Text
+        className="mt-1 text-[10px] leading-tight"
+        style={{ color: colors.textSecondary }}
+        numberOfLines={1}
+      >
+        {plan.trialNote}
+      </Text>
+      <Text className="mt-0.5 text-[11px] leading-tight" style={{ color: colors.textTertiary }}>
         {plan.billingNote}
       </Text>
     </PressableScale>

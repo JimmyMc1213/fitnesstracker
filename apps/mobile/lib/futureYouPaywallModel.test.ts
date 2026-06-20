@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  FUTURE_YOU_PAYWALL_CTA_PREPARING,
+  PAYWALL_CTA_START_MY_JOURNEY,
+  PAYWALL_CTA_UNLOCK_NEWYOU,
+  futureYouPaywallCtaLabel,
   isFutureYouPaywallCtaEnabled,
   isFutureYouPaywallHeroVisible,
   isPlanOnlyPaywallPath,
@@ -27,5 +31,23 @@ describe("futureYouPaywallModel", () => {
   it("uses plan-only path when hero hidden", () => {
     expect(isPlanOnlyPaywallPath({ photoSkipped: true }, false)).toBe(true);
     expect(isPlanOnlyPaywallPath(activeJob, false)).toBe(false);
+  });
+
+  it("labels paywall CTA for Future You vs plan-only paths", () => {
+    expect(
+      futureYouPaywallCtaLabel(
+        { ...activeJob, generationStatus: "generating" },
+        "generating",
+        false,
+      ),
+    ).toBe(FUTURE_YOU_PAYWALL_CTA_PREPARING);
+    expect(futureYouPaywallCtaLabel(activeJob, "ready", false)).toBe(PAYWALL_CTA_UNLOCK_NEWYOU);
+    expect(futureYouPaywallCtaLabel(activeJob, "ready", false, "monthly")).toBe(PAYWALL_CTA_UNLOCK_NEWYOU);
+    expect(futureYouPaywallCtaLabel({ photoSkipped: true }, "idle", false)).toBe(
+      PAYWALL_CTA_START_MY_JOURNEY,
+    );
+    expect(futureYouPaywallCtaLabel({ photoSkipped: true }, "idle", false, "monthly")).toBe(
+      PAYWALL_CTA_START_MY_JOURNEY,
+    );
   });
 });

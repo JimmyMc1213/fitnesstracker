@@ -85,7 +85,6 @@ export function OnboardingPaywall({
         flex: 1,
         backgroundColor: colors.background,
         paddingTop: insets.top + 8,
-        paddingBottom: insets.bottom + 16,
         paddingHorizontal: 23,
       }}
     >
@@ -101,9 +100,14 @@ export function OnboardingPaywall({
         </Text>
       </PressableScale>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ gap: 20, paddingBottom: 16 }}>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ gap: 20, flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <OnboardingContentReveal delay={paywallRevealDelayMs(0)}>
-          <Text className="text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
+          <Text className="text-center text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
             {heroVisible ? (
               <>
                 Unlock <Text style={{ color: ob.gold }}>NewYouAI</Text> to see what you can look like.
@@ -130,35 +134,44 @@ export function OnboardingPaywall({
         )}
       </ScrollView>
 
-      <View className="gap-3">
-        <OnboardingContentReveal delay={paywallRevealDelayMs(footerStartStep)}>
-          <OnboardingPaywallPlanPicker value={billingPeriod} onChange={setBillingPeriod} />
-        </OnboardingContentReveal>
-        <OnboardingContentReveal delay={paywallRevealDelayMs(footerStartStep + 1)}>
-          <PressableScale
-            onPress={() => void handlePurchase()}
-            disabled={!ctaEnabled}
-            testID="onboarding-paywall-cta"
-            style={{
-              alignItems: "center",
-              borderRadius: 9999,
-              paddingVertical: 16,
-              backgroundColor: ctaEnabled ? ob.gold : colors.border,
-              opacity: ctaEnabled ? 1 : 0.6,
-            }}
-          >
-            <Text className="text-base font-semibold" style={{ color: ctaEnabled ? ob.goldOn : colors.textSecondary }}>
-              {purchasing ? "Processing…" : ctaLabel}
+      <View style={{ marginTop: "auto", flexShrink: 0, width: "100%" }}>
+        <View className="gap-3">
+          <OnboardingContentReveal delay={paywallRevealDelayMs(footerStartStep)}>
+            <OnboardingPaywallPlanPicker value={billingPeriod} onChange={setBillingPeriod} />
+          </OnboardingContentReveal>
+          <OnboardingContentReveal delay={paywallRevealDelayMs(footerStartStep + 1)}>
+            <PressableScale
+              onPress={() => void handlePurchase()}
+              disabled={!ctaEnabled}
+              testID="onboarding-paywall-cta"
+              style={{
+                alignItems: "center",
+                borderRadius: 9999,
+                paddingVertical: 16,
+                backgroundColor: ctaEnabled ? ob.gold : colors.border,
+                opacity: ctaEnabled ? 1 : 0.6,
+              }}
+            >
+              <Text
+                className="text-[17px] font-bold leading-5 tracking-tight"
+                style={{ color: ctaEnabled ? ob.goldOn : colors.textSecondary }}
+              >
+                {purchasing ? "Processing…" : ctaLabel}
+              </Text>
+            </PressableScale>
+          </OnboardingContentReveal>
+          {error ? (
+            <Text className="text-center text-sm" style={{ color: "#f87171" }}>
+              {error}
             </Text>
-          </PressableScale>
-        </OnboardingContentReveal>
-        {error ? (
-          <Text className="text-center text-sm" style={{ color: "#f87171" }}>
-            {error}
-          </Text>
-        ) : null}
+          ) : null}
+        </View>
+
         <OnboardingContentReveal delay={paywallRevealDelayMs(footerStartStep + 2)}>
-          <View className="flex-row flex-wrap justify-center gap-x-4 gap-y-1">
+          <View
+            className="flex-row flex-wrap justify-center gap-x-4 gap-y-1"
+            style={{ paddingTop: 12, paddingBottom: Math.max(insets.bottom, 8) }}
+          >
             <PressableScale onPress={() => void handleRestore()} testID="onboarding-paywall-restore">
               <Text className="text-sm underline" style={{ color: colors.textSecondary }}>
                 Restore Purchases
