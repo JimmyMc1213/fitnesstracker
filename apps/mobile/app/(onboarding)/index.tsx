@@ -24,7 +24,6 @@ import { OnboardingFutureYouPhoto } from "@/components/onboarding/OnboardingFutu
 import { OnboardingGoalWeightReinforcement } from "@/components/onboarding/OnboardingGoalWeightReinforcement";
 import { OnboardingHeightInput } from "@/components/onboarding/OnboardingHeightInput";
 import { OnboardingShell } from "@/components/onboarding/OnboardingShell";
-import { OnboardingWeightInput } from "@/components/onboarding/OnboardingWeightInput";
 import { WeightRulerPicker } from "@/components/onboarding/WeightRulerPicker";
 import { PacePicker } from "@/components/onboarding/PacePicker";
 import { PrimaryGoalPicker } from "@/components/onboarding/PrimaryGoalPicker";
@@ -105,7 +104,11 @@ import {
   parseOnboardingScreenKey,
   type OnboardingScreenLayerFlags,
 } from "@/lib/onboardingScreenKey";
-import { isValidOnboardingHeightIn, isValidWeighInLbs } from "@/lib/unitConversions";
+import {
+  DEFAULT_ONBOARDING_CURRENT_WEIGHT_LBS,
+  isValidOnboardingHeightIn,
+  isValidWeighInLbs,
+} from "@/lib/unitConversions";
 
 const GENDERS: UserGender[] = ["male", "female", "other"];
 
@@ -410,6 +413,9 @@ export default function OnboardingWizardScreen() {
   if (forStep === 7) {
     const wUnit = unitPreferences.weightUnit;
     const weightStepValid = isValidWeighInLbs(profile.weightLbs);
+    const currentWeightLbs = isValidWeighInLbs(profile.weightLbs)
+      ? profile.weightLbs
+      : DEFAULT_ONBOARDING_CURRENT_WEIGHT_LBS;
 
     if (!wUnit) return null;
 
@@ -417,21 +423,21 @@ export default function OnboardingWizardScreen() {
       <OnboardingShell
         step={forStep}
         title="What's your current weight?"
-        subtitle="Enter your weight in your preferred unit."
+        subtitle="Slide the ruler to set your weight."
         scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!weightStepValid}
         testID="onboarding-step-7"
       >
-        <GradientCard padding={16}>
-          <OnboardingWeightInput
-            unit={wUnit}
-            weightLbs={profile.weightLbs}
-            resetKey={wUnit}
-            onWeightChange={(weightLbs) => setProfile((p) => ({ ...p, weightLbs, goalWeightLbs: undefined }))}
-          />
-        </GradientCard>
+        <WeightRulerPicker
+          valueLbs={currentWeightLbs}
+          minLbs={70}
+          maxLbs={450}
+          unit={wUnit}
+          directionLabel="Current weight"
+          onChange={(weightLbs) => setProfile((p) => ({ ...p, weightLbs, goalWeightLbs: undefined }))}
+        />
       </OnboardingShell>
     );
   }

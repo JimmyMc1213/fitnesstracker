@@ -71,6 +71,7 @@ export function WeightRulerPicker({
   const scrollRef = useRef<ScrollView>(null);
   const scrollLeftRef = useRef(0);
   const syncingRef = useRef(false);
+  const interactingRef = useRef(false);
   const [viewportWidth, setViewportWidth] = useState(0);
   const { ob, scheme, colors } = useOnboardingTheme();
   const ruler = rulerColors(scheme);
@@ -81,9 +82,27 @@ export function WeightRulerPicker({
     return Math.max(2, count);
   }, [maxLbs, minLbs, unit]);
 
-  const sidePad = Math.max(0, viewportWidth / 2);
+  const sidePad = Math.max(0, viewportWidth / 2 - TICK_WIDTH / 2);
   const trackWidth = tickCount * TICK_WIDTH;
   const displayValue = formatWeightFromLbs(valueLbs, unit, 1);
+
+  const ticks = useMemo(
+    () =>
+      Array.from({ length: tickCount }, (_, index) => (
+        <View key={index} style={[styles.tickWrap, { width: TICK_WIDTH }]}>
+          <View
+            style={[
+              styles.tick,
+              {
+                height: tickHeight(index, majorEvery),
+                backgroundColor: ruler.tick,
+              },
+            ]}
+          />
+        </View>
+      )),
+    [tickCount, majorEvery, ruler.tick],
+  );
   const unitLabel = weightUnitLabel(unit);
 
   const scrollToIndex = useCallback(
@@ -103,6 +122,7 @@ export function WeightRulerPicker({
 
   useEffect(() => {
     if (viewportWidth <= 0) return;
+    if (interactingRef.current) return;
     const idx = indexForLbs(valueLbs, minLbs, unit);
     const currentIdx = Math.round(scrollLeftRef.current / TICK_WIDTH);
     if (currentIdx !== idx) scrollToIndex(idx);
@@ -112,10 +132,15 @@ export function WeightRulerPicker({
     setViewportWidth(event.nativeEvent.layout.width);
   }
 
+  function onScrollBeginDrag() {
+    interactingRef.current = true;
+  }
+
   function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
     const offsetX = event.nativeEvent.contentOffset.x;
     scrollLeftRef.current = offsetX;
     if (syncingRef.current) return;
+    interactingRef.current = true;
     const rawIndex = Math.round(offsetX / TICK_WIDTH);
     const nextLbs = clampLbs(lbsForIndex(rawIndex, minLbs, unit), minLbs, maxLbs);
     if (Math.abs(nextLbs - valueLbs) > 0.01) onChange(nextLbs);
@@ -126,6 +151,7 @@ export function WeightRulerPicker({
     const rawIndex = Math.round(offsetX / TICK_WIDTH);
     const clamped = Math.min(tickCount - 1, Math.max(0, rawIndex));
     const nextLbs = clampLbs(lbsForIndex(clamped, minLbs, unit), minLbs, maxLbs);
+    interactingRef.current = false;
     if (Math.abs(nextLbs - valueLbs) > 0.01) onChange(nextLbs);
   }
 
@@ -157,26 +183,13 @@ export function WeightRulerPicker({
           decelerationRate="fast"
           snapToInterval={TICK_WIDTH}
           snapToAlignment="start"
+          onScrollBeginDrag={onScrollBeginDrag}
           onScroll={onScroll}
           onMomentumScrollEnd={onScrollEnd}
           onScrollEndDrag={onScrollEnd}
           contentContainerStyle={{ paddingHorizontal: sidePad, paddingTop: 8, paddingBottom: 12 }}
         >
-          <View style={[styles.track, { width: trackWidth }]}>
-            {Array.from({ length: tickCount }, (_, index) => (
-              <View key={index} style={[styles.tickWrap, { width: TICK_WIDTH }]}>
-                <View
-                  style={[
-                    styles.tick,
-                    {
-                      height: tickHeight(index, majorEvery),
-                      backgroundColor: ruler.tick,
-                    },
-                  ]}
-                />
-              </View>
-            ))}
-          </View>
+          <View style={[styles.track, { width: trackWidth }]}>{ticks}</View>
         </ScrollView>
       </View>
     </View>
