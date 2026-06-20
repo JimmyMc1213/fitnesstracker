@@ -1,7 +1,7 @@
 import { defaultTrainingWeekdays, normalizeDayLabel } from "@newyouai/core";
 import type { WorkoutDaysPerWeek, WorkoutRoutineTemplate } from "@newyouai/types";
 
-export const TRAINING_WEEKDAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+export const TRAINING_WEEKDAY_ORDER = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
 export type TrainingWeekday = (typeof TRAINING_WEEKDAY_ORDER)[number];
 
