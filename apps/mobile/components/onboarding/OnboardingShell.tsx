@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -99,7 +99,7 @@ export function OnboardingShell({
           testID="onboarding-back"
           style={{ marginBottom: 4, height: 40, width: 40, alignItems: "center", justifyContent: "center" }}
         >
-          <Text className="text-2xl" style={{ color: colors.textPrimary }}>
+          <Text className="text-3xl" style={{ color: colors.textPrimary }}>
             ‹
           </Text>
         </PressableScale>
@@ -184,8 +184,6 @@ export function OnboardingShell({
             paddingHorizontal: ONBOARDING_PADDING_X,
             paddingTop: compactFooter ? 6 : 16,
             paddingBottom: compactFooter ? Math.max(insets.bottom, 8) : Math.max(insets.bottom + 8, 20),
-            borderTopWidth: compactFooter ? 0 : StyleSheet.hairlineWidth,
-            borderTopColor: ob.progressTrack,
             backgroundColor: colors.background,
             gap: compactFooter ? 4 : 8,
           }}

@@ -231,7 +231,7 @@ export function onboardingOptionColors(ob: OnboardingThemeTokens, selected: bool
 }
 
 export const ONBOARDING_PADDING_X = 23;
-export const ONBOARDING_CONTINUE_HEIGHT = 52;
+export const ONBOARDING_CONTINUE_HEIGHT = 54;
 export const ONBOARDING_PILL_MIN_HEIGHT = 52;
 /** PWA `--ob-option-min-height` for referral / survey option lists. */
 export const ONBOARDING_OPTION_MIN_HEIGHT = 56;

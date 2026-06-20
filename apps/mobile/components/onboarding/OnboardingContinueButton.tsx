@@ -46,7 +46,7 @@ export function OnboardingContinueButton({
         borderColor: continueStyle.borderColor,
       }}
     >
-      <Text className="text-base font-semibold tracking-tight" style={{ color: continueStyle.color }}>
+      <Text className="text-lg font-semibold tracking-tight" style={{ color: continueStyle.color }}>
         {label}
       </Text>
     </PressableScale>

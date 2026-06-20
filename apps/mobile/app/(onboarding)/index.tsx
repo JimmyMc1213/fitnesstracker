@@ -731,7 +731,11 @@ export default function OnboardingWizardScreen() {
             headline={
               <Text>
                 {scheduleReinforcementCopy.verb}{" "}
-                <Text style={{ color: ob.gold }}>{scheduleReinforcementCopy.accent}</Text>
+                <Text style={{ color: ob.gold }}>
+                  {scheduleReinforcementCopy.accentBeforeWeek}
+                  {"\n"}
+                  {scheduleReinforcementCopy.accentWeek}
+                </Text>
                 {scheduleReinforcementCopy.tail}
               </Text>
             }

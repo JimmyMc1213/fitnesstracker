@@ -31,11 +31,12 @@ export function goalWeightReinforcementSubtext(): string {
 
 export function trainingScheduleReinforcementParts(
   workoutDays: number,
-): { verb: string; accent: string; tail: string } {
-  const days = `${workoutDays} day${workoutDays === 1 ? "" : "s"} a week`;
+): { verb: string; accentBeforeWeek: string; accentWeek: string; tail: string } {
+  const daysPrefix = `${workoutDays} day${workoutDays === 1 ? "" : "s"} a`;
   return {
     verb: "Training",
-    accent: days,
+    accentBeforeWeek: daysPrefix,
+    accentWeek: "week",
     tail: " is a perfect fit. We'll tailor every workout around you and your schedule.",
   };
 }
