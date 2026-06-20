@@ -1,4 +1,5 @@
 export { closeAfterMotion } from "./closeAfterMotion";
+export { ConfettiBurst } from "./ConfettiBurst";
 export { BottomSheet, CenterDialog, CONFIRM_DESTRUCTIVE_COLOR, FullScreenOverlay } from "./overlays";
 export {
   OnboardingContentReveal,
