@@ -827,7 +827,7 @@ export default function OnboardingWizardScreen() {
         <OnboardingGoalWeightReinforcement
           headline={
             <Text>
-              <Text style={{ color: ob.gold }}>Protein</Text> is your{" "}
+              <Text style={{ color: ob.gold }}>Protein</Text> is your{"\n"}
               <Text style={{ color: ob.gold }}>#1</Text> priority
             </Text>
           }

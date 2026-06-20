@@ -1479,7 +1479,8 @@ export function OnboardingFlow({
         <OnboardingGoalWeightReinforcement
           headline={
             <>
-              <span className="onboarding-goal-weight-accent">Protein</span> is your{" "}
+              <span className="onboarding-goal-weight-accent">Protein</span> is your
+              <br />
               <span className="onboarding-goal-weight-accent">#1</span> priority
             </>
           }
