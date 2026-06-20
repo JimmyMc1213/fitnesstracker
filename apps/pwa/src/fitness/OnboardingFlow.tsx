@@ -49,7 +49,7 @@ import { OnboardingPaywall } from "./OnboardingPaywall";
 import { OnboardingPurchaseWelcomeSplash } from "./OnboardingPurchaseWelcomeSplash";
 import { onboardingPlanReadyContinueLabel } from "./futureYouPaywallModel";
 import { OnboardingFutureYouSuccess } from "./OnboardingFutureYouSuccess";
-import { canAccessFutureYouSuccessScreen, isFutureYouSuccessHeroVisible } from "./futureYouSuccessModel";
+import { canAccessFutureYouSuccessScreen } from "./futureYouSuccessModel";
 import { mergeFutureYouDraft, canRevisitFutureYouPhoto } from "./futureYouDraft";
 import { isFutureYouPhotoBlocked } from "./futureYouAge";
 import {
