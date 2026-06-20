@@ -31,7 +31,7 @@ import { OnboardingPillStack, OnboardingSegment } from "@/components/onboarding/
 import { OnboardingStepPlaceholder } from "@/components/onboarding/OnboardingStepPlaceholder";
 import { OnboardingThemePicker } from "@/components/onboarding/OnboardingThemePicker";
 import { OnboardingWelcomeScreen } from "@/components/onboarding/OnboardingWelcomeScreen";
-import { ScreenTransition } from "@/components/motion/ScreenTransition";
+import { ScreenTransition, type NavDirection } from "@/components/motion/ScreenTransition";
 import { EquipmentSetupPicker } from "@/components/onboarding/EquipmentSetupPicker";
 import { ExperienceLevelPicker } from "@/components/onboarding/ExperienceLevelPicker";
 import { OnboardingIconOptionPicker } from "@/components/onboarding/OnboardingIconOptionPicker";
@@ -80,6 +80,8 @@ import { isUnitPreferencesComplete } from "@/lib/onboardingDefaults";
 import {
   goalWeightReinforcementParts,
   goalWeightReinforcementSubtext,
+  trainingScheduleReinforcementParts,
+  trainingScheduleReinforcementSubtext,
 } from "@/lib/onboardingReinforcementCopy";
 import {
   DIETARY_RESTRICTIONS,
@@ -97,6 +99,11 @@ import {
   isMacrosValid,
   nutritionCalcInputFromOnboardingProfile,
 } from "@/lib/nutritionCalculator";
+import {
+  onboardingScreenKey,
+  parseOnboardingScreenKey,
+  type OnboardingScreenLayerFlags,
+} from "@/lib/onboardingScreenKey";
 import { isValidOnboardingHeightIn, isValidWeighInLbs } from "@/lib/unitConversions";
 
 const GENDERS: UserGender[] = ["male", "female", "other"];
@@ -152,6 +159,8 @@ export default function OnboardingWizardScreen() {
   });
 
   const [goalWeightReinforcement, setGoalWeightReinforcement] = useState(false);
+  const [scheduleReinforcement, setScheduleReinforcement] = useState(false);
+  const [transitionDirection, setTransitionDirection] = useState<NavDirection>("forward");
   const [macroContinueConfirmOpen, setMacroContinueConfirmOpen] = useState(false);
   const dobAge = profile.dateOfBirth ? ageFromDateOfBirth(profile.dateOfBirth) : null;
 
@@ -200,11 +209,18 @@ export default function OnboardingWizardScreen() {
 
   const prevStepIndexRef = useRef(stepIndex);
   useEffect(() => {
+    setTransitionDirection(navDirection);
+  }, [navDirection]);
+
+  useEffect(() => {
     const prevStep = prevStepIndexRef.current;
     prevStepIndexRef.current = stepIndex;
 
     if (stepIndex === 9 && prevStep > 9) {
       setGoalWeightReinforcement(false);
+    }
+    if (stepIndex === 15 && prevStep > 15) {
+      setScheduleReinforcement(false);
     }
   }, [stepIndex]);
 
@@ -235,7 +251,7 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  function renderOnboardingStep(forStep: number = stepIndex): ReactNode {
+  function renderOnboardingStep(forStep: number, layerFlags: OnboardingScreenLayerFlags): ReactNode {
   if (forStep === 0) {
     return <OnboardingWelcomeScreen onGetStarted={goNext} />;
   }
@@ -433,6 +449,7 @@ export default function OnboardingWizardScreen() {
       maxLbs,
     );
     const reinforcement = goalWeightReinforcementParts(profile, wUnit ?? "lbs");
+    const showGoalWeightReinforcement = layerFlags.goalWeightReinforcement;
     const goalWeightValid = isGoalWeightValid(profile, profile.weightLbs);
 
     if (!wUnit) return null;
@@ -440,28 +457,30 @@ export default function OnboardingWizardScreen() {
     return (
       <OnboardingShell
         step={forStep}
-        title={goalWeightReinforcement ? "" : "What is your desired weight?"}
-        hideTitle={goalWeightReinforcement}
-        contentCentered={goalWeightReinforcement}
+        title={showGoalWeightReinforcement ? "" : "What is your desired weight?"}
+        hideTitle={showGoalWeightReinforcement}
+        contentCentered={showGoalWeightReinforcement}
         onBack={() => {
-          if (goalWeightReinforcement) {
+          if (showGoalWeightReinforcement) {
+            setTransitionDirection("back");
             setGoalWeightReinforcement(false);
             return;
           }
           goBack();
         }}
         onContinue={() => {
-          if (!goalWeightReinforcement) {
+          if (!showGoalWeightReinforcement) {
             if (!goalWeightValid) return;
+            setTransitionDirection("forward");
             setGoalWeightReinforcement(true);
             return;
           }
           goNext();
         }}
-        continueDisabled={!goalWeightReinforcement && !goalWeightValid}
-        testID="onboarding-step-9"
+        continueDisabled={!showGoalWeightReinforcement && !goalWeightValid}
+        testID={showGoalWeightReinforcement ? "onboarding-step-9-reinforcement" : "onboarding-step-9"}
       >
-        {goalWeightReinforcement ? (
+        {showGoalWeightReinforcement ? (
           <OnboardingGoalWeightReinforcement
             headline={
               <Text>
@@ -662,23 +681,58 @@ export default function OnboardingWizardScreen() {
   }
 
   if (forStep === 15) {
+    const workoutDays =
+      profile.workoutDaysPerWeek ?? profile.trainingWeekdays?.length ?? 0;
+    const scheduleReinforcementCopy = trainingScheduleReinforcementParts(workoutDays);
+    const showScheduleReinforcement = layerFlags.scheduleReinforcement;
+
     return (
       <OnboardingShell
         step={forStep}
-        title="Which days can you train?"
-        subtitle="Pick the days that work for your week."
-        onBack={goBack}
-        onContinue={goNext}
-        continueDisabled={!isTrainingScheduleValid(profile)}
+        title={showScheduleReinforcement ? "" : "Which days can you train?"}
+        hideTitle={showScheduleReinforcement}
+        subtitle={showScheduleReinforcement ? undefined : "Pick the days that work for your week."}
+        contentCentered={showScheduleReinforcement}
+        onBack={() => {
+          if (showScheduleReinforcement) {
+            setTransitionDirection("back");
+            setScheduleReinforcement(false);
+            return;
+          }
+          goBack();
+        }}
+        onContinue={() => {
+          if (!showScheduleReinforcement) {
+            if (!isTrainingScheduleValid(profile)) return;
+            setTransitionDirection("forward");
+            setScheduleReinforcement(true);
+            return;
+          }
+          goNext();
+        }}
+        continueDisabled={!showScheduleReinforcement && !isTrainingScheduleValid(profile)}
         generationPill={generationPill}
-        testID="onboarding-step-15"
+        testID={showScheduleReinforcement ? "onboarding-step-15-reinforcement" : "onboarding-step-15"}
       >
-        <GradientCard padding={16}>
-          <WorkoutWeekCalendarPicker
-            profile={profile}
-            onChange={(next) => setProfile((p) => ({ ...p, ...next }))}
+        {showScheduleReinforcement ? (
+          <OnboardingGoalWeightReinforcement
+            headline={
+              <Text>
+                {scheduleReinforcementCopy.verb}{" "}
+                <Text style={{ color: ob.gold }}>{scheduleReinforcementCopy.accent}</Text>
+                {scheduleReinforcementCopy.tail}
+              </Text>
+            }
+            subtext={trainingScheduleReinforcementSubtext()}
           />
-        </GradientCard>
+        ) : (
+          <GradientCard padding={16}>
+            <WorkoutWeekCalendarPicker
+              profile={profile}
+              onChange={(next) => setProfile((p) => ({ ...p, ...next }))}
+            />
+          </GradientCard>
+        )}
       </OnboardingShell>
     );
   }
@@ -1075,11 +1129,17 @@ export default function OnboardingWizardScreen() {
 
   return (
     <ScreenTransition
-      activeKey={String(stepIndex)}
+      activeKey={onboardingScreenKey(stepIndex, {
+        goalWeightReinforcement,
+        scheduleReinforcement,
+      })}
       variant="stack"
-      direction={navDirection}
+      direction={transitionDirection}
     >
-      {(key) => renderOnboardingStep(Number(key))}
+      {(key) => {
+        const parsed = parseOnboardingScreenKey(key);
+        return renderOnboardingStep(parsed.step, parsed);
+      }}
     </ScreenTransition>
   );
 }

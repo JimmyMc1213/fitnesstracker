@@ -4,6 +4,13 @@ appId: app.newyouai.mobile
     text: "Pick for me"
 - tapOn:
     id: onboarding-continue
+# Schedule reinforcement
+- extendedWaitUntil:
+    visible:
+      id: onboarding-step-15-reinforcement
+    timeout: 10000
+- tapOn:
+    id: onboarding-continue
 # Split reveal
 - extendedWaitUntil:
     visible:

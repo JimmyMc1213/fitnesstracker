@@ -29,6 +29,21 @@ export function goalWeightReinforcementSubtext(): string {
   return "Most NewYou members say the change feels obvious within a few weeks, and it's built to last.";
 }
 
+export function trainingScheduleReinforcementParts(
+  workoutDays: number,
+): { verb: string; accent: string; tail: string } {
+  const days = `${workoutDays} day${workoutDays === 1 ? "" : "s"} a week`;
+  return {
+    verb: "Training",
+    accent: days,
+    tail: " is a perfect fit. We'll tailor every workout around you and your schedule.",
+  };
+}
+
+export function trainingScheduleReinforcementSubtext(): string {
+  return "Your plan adapts to the days you picked, built for your real life, not a rigid template.";
+}
+
 /** First coach note on the plan-ready screen: what the coach does and how it supports the user's goal. */
 export function planReadyFirstCoachNote(profile: OnboardingProfile): string {
   if (profile.goal === "cut") {
