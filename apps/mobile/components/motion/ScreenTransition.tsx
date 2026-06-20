@@ -145,15 +145,11 @@ function StackLayer({
   const reduceMotion = useReducedMotion();
   const { width } = useWindowDimensions();
 
-  // Compute starting position at mount so frame 0 is already correct — no snap/flash.
-  // layer props are stable for this component's lifetime (generation counter ensures unique mounts).
-  const initialX = reduceMotion
-    ? 0
-    : layer.phase === "enter"
-      ? layer.direction === "forward"
-        ? width
-        : -width * 0.28
-      : 0;
+  // Off-screen start position for a freshly mounted entering layer (frame 0 is
+  // already correct — no snap/flash). Only used at mount; later transitions
+  // animate from wherever the layer currently sits so interruptions stay smooth.
+  const offscreenEnterX = layer.direction === "forward" ? width : -width * 0.28;
+  const initialX = reduceMotion ? 0 : layer.phase === "enter" ? offscreenEnterX : 0;
 
   // forward: entering=2/exiting=1 (new screen slides over old)
   // back:    entering=1/exiting=2 (old screen slides away over new)
@@ -164,8 +160,13 @@ function StackLayer({
 
   const translateX = useSharedValue(initialX);
 
+  // Re-run whenever phase or direction changes (e.g. an entering screen is
+  // interrupted and demoted to exit, or a still-exiting screen is revived to
+  // enter). Reanimated animates from the value's *current* position, so a
+  // reversal continues from mid-slide instead of snapping to a start frame.
   useEffect(() => {
     if (reduceMotion) {
+      translateX.value = 0;
       if (layer.phase === "exit") onFinished?.();
       return;
     }
@@ -185,7 +186,7 @@ function StackLayer({
     });
 
     return safeTimeout(() => onFinished?.(), duration + 80);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [layer.phase, layer.direction]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
@@ -228,40 +229,88 @@ export function ScreenTransition({
       const current = prev.find((l) => l.phase === "enter");
 
       if (current?.key === activeKey) {
-        return [{ ...current, content: resolveContent(contentRef.current, activeKey) }];
+        // Same screen — just refresh its live content, keep any in-flight exits.
+        return prev.map((l) =>
+          l === current
+            ? { ...l, content: resolveContent(contentRef.current, activeKey) }
+            : l,
+        );
       }
-
-      const nextEnter: LayerRecord = {
-        key: activeKey,
-        content: resolveContent(contentRef.current, activeKey),
-        direction,
-        phase: "enter",
-        generation: ++generationRef.current,
-      };
-
-      if (!current) {
-        pendingEnterRef.current = null;
-        return [nextEnter];
-      }
-
-      // Capture fresh content from contentRef at the moment of transition so the
-      // exit animation shows whatever the user last selected — not a stale snapshot
-      // from when the layer was first created.  (contentRef.current is updated
-      // synchronously every render, so it always reflects the latest state.)
-      const exiting: LayerRecord = {
-        ...current,
-        content: resolveContent(contentRef.current, current.key),
-        phase: "exit",
-        direction,
-      };
 
       if (variant === "fade") {
+        const nextEnter: LayerRecord = {
+          key: activeKey,
+          content: resolveContent(contentRef.current, activeKey),
+          direction,
+          phase: "enter",
+          generation: ++generationRef.current,
+        };
+
+        if (!current) {
+          pendingEnterRef.current = null;
+          return [nextEnter];
+        }
+
+        // Capture fresh content from contentRef at the moment of transition so the
+        // exit animation shows whatever the user last selected — not a stale snapshot
+        // from when the layer was first created.  (contentRef.current is updated
+        // synchronously every render, so it always reflects the latest state.)
+        const exiting: LayerRecord = {
+          ...current,
+          content: resolveContent(contentRef.current, current.key),
+          phase: "exit",
+          direction,
+        };
+
         pendingEnterRef.current = nextEnter;
         return [exiting];
       }
 
+      // ── Stack: interruption-safe cross-slide ──────────────────────────────
+      // Demote the current entering layer to exit WITHOUT changing its identity
+      // (stable React key) so it animates out from its current position instead
+      // of remounting and snapping. Any older exit layers are preserved so they
+      // can finish sliding away rather than popping out abruptly.
       pendingEnterRef.current = null;
-      return [exiting, nextEnter];
+
+      let next = prev.map((l) =>
+        l.phase === "enter"
+          ? {
+              ...l,
+              phase: "exit" as const,
+              direction,
+              content: resolveContent(contentRef.current, l.key),
+            }
+          : l,
+      );
+
+      // If the target screen is one that's still sliding away, revive that exact
+      // layer so it reverses smoothly from where it is — no new mount, no snap.
+      const revivable = next.find((l) => l.key === activeKey && l.phase === "exit");
+      if (revivable) {
+        return next.map((l) =>
+          l === revivable
+            ? {
+                ...l,
+                phase: "enter" as const,
+                direction,
+                content: resolveContent(contentRef.current, activeKey),
+              }
+            : l,
+        );
+      }
+
+      next = [
+        ...next,
+        {
+          key: activeKey,
+          content: resolveContent(contentRef.current, activeKey),
+          direction,
+          phase: "enter",
+          generation: ++generationRef.current,
+        },
+      ];
+      return next;
     });
   }, [activeKey, direction, variant]);
 
@@ -291,9 +340,11 @@ export function ScreenTransition({
         const content = resolveLayerContent(layer, activeKey, contentRef.current);
 
         if (isStack) {
+          // Stable key (generation only) — a phase flip (enter↔exit) must NOT
+          // remount the layer, or its slide position would snap to a start frame.
           return (
             <StackLayer
-              key={`${layer.phase}-${layer.key}-${layer.generation}`}
+              key={`stack-${layer.generation}`}
               layer={layer}
               content={content}
               style={StyleSheet.absoluteFill}

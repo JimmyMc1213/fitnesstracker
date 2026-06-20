@@ -208,9 +208,18 @@ export default function OnboardingWizardScreen() {
   const dobValid = isValidOnboardingDateOfBirth(profile.dateOfBirth);
 
   const prevStepIndexRef = useRef(stepIndex);
-  useEffect(() => {
+
+  // Keep the slide direction in lock-step with navigation. We sync during render
+  // (not in an effect) so `transitionDirection` is already correct on the SAME
+  // render the active screen changes — an effect lags one render behind and makes
+  // the transition play the previous navigation's direction (e.g. a back press
+  // animating forward). Reinforcement sub-steps set their own direction directly;
+  // those are preserved here because navDirection doesn't change for flag toggles.
+  const [prevNavDirection, setPrevNavDirection] = useState<NavDirection>(navDirection);
+  if (navDirection !== prevNavDirection) {
+    setPrevNavDirection(navDirection);
     setTransitionDirection(navDirection);
-  }, [navDirection]);
+  }
 
   useEffect(() => {
     const prevStep = prevStepIndexRef.current;
