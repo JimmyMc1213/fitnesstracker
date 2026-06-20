@@ -7,7 +7,7 @@ import {
   EXPERIENCE_LEVEL_LABELS,
   EXPERIENCE_LEVEL_OPTIONS,
 } from "@/lib/experienceLevel";
-import { onboardingPillColors } from "@/lib/onboardingTheme";
+import { onboardingPillColors, onboardingPillSubtextColor } from "@/lib/onboardingTheme";
 
 import { OnboardingPillStack, OnboardingSegment } from "./OnboardingSegment";
 
@@ -25,7 +25,7 @@ export function ExperienceLevelPicker({
       {EXPERIENCE_LEVEL_OPTIONS.map((level) => {
         const selected = value === level;
         const pill = onboardingPillColors(ob, selected);
-        const subtitleColor = selected ? "rgba(6, 6, 8, 0.60)" : "rgba(255, 255, 255, 0.50)";
+        const subtitleColor = onboardingPillSubtextColor(ob, selected);
         return (
           <OnboardingSegment key={level} selected={selected} onPress={() => onChange(level)}>
             <View className="w-full items-start gap-1">

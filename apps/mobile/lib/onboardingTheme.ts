@@ -14,6 +14,10 @@ export type CardShadow = {
 export type OnboardingThemeTokens = {
   headline: string;
   helper: string;
+  /** Secondary copy on pills, option lists, and inline hints (`--ob-muted-fg`). */
+  mutedFg: string;
+  /** Description line on a selected onboarding pill. */
+  pillSelectedSubtext: string;
   stepMeta: string;
   progressTrack: string;
   progressFill: string;
@@ -70,7 +74,9 @@ export const GRADIENT_CARD_ANGLE_DEG = 168;
 
 const darkOnboardingTheme: OnboardingThemeTokens = {
   headline: "#ffffff",
-  helper: "#555555",
+  helper: "rgba(255, 255, 255, 0.55)",
+  mutedFg: "rgba(255, 255, 255, 0.55)",
+  pillSelectedSubtext: "rgba(6, 6, 8, 0.72)",
   stepMeta: "rgba(255, 255, 255, 0.34)",
   progressTrack: "rgba(255, 255, 255, 0.1)",
   progressFill: "#ffffff",
@@ -125,7 +131,9 @@ const darkOnboardingTheme: OnboardingThemeTokens = {
 
 const lightOnboardingTheme: OnboardingThemeTokens = {
   headline: "#000000",
-  helper: "#8e8e93",
+  helper: "#636366",
+  mutedFg: "#636366",
+  pillSelectedSubtext: "rgba(255, 255, 255, 0.72)",
   stepMeta: "#8e8e93",
   progressTrack: "#e5e5ea",
   progressFill: "#000000",
@@ -207,6 +215,10 @@ export function onboardingPillColors(ob: OnboardingThemeTokens, selected: boolea
     backgroundColor: selected ? ob.pillSelectedBg : ob.pillBg,
     color: selected ? ob.pillSelectedFg : ob.pillFg,
   };
+}
+
+export function onboardingPillSubtextColor(ob: OnboardingThemeTokens, selected: boolean) {
+  return selected ? ob.pillSelectedSubtext : ob.mutedFg;
 }
 
 /** Survey / referral list options — PWA `--ob-option-*` tokens. */

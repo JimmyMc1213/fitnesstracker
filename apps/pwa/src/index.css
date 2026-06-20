@@ -91,7 +91,7 @@
   --border-strong: rgba(255, 255, 255, 0.14);
   --faint: rgba(255, 255, 255, 0.08);
   --ob-headline: #ffffff;
-  --ob-helper: #555555;
+  --ob-helper: rgba(255, 255, 255, 0.55);
   --ob-step-meta: rgba(255, 255, 255, 0.34);
   --ob-progress-track: rgba(255, 255, 255, 0.1);
   --ob-progress-fill: #ffffff;
@@ -275,7 +275,7 @@
   --border-strong: rgba(0, 0, 0, 0.12);
   --faint: rgba(0, 0, 0, 0.06);
   --ob-headline: #000000;
-  --ob-helper: #8e8e93;
+  --ob-helper: #636366;
   --ob-step-meta: #8e8e93;
   --ob-progress-track: #e5e5ea;
   --ob-progress-fill: #000000;
@@ -309,7 +309,7 @@
   --ob-card-bg: #f2f2f7;
   --ob-card-border: transparent;
   --ob-body-fg: #000000;
-  --ob-muted-fg: #8e8e93;
+  --ob-muted-fg: #636366;
   --ob-ruler-indicator: #000000;
   --ob-ruler-tick: rgba(0, 0, 0, 0.18);
   --ob-spinner-track: #e5e5ea;

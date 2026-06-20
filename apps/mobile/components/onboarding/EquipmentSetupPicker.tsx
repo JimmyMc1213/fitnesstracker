@@ -7,7 +7,7 @@ import {
   EQUIPMENT_SETUP_LABELS,
   EQUIPMENT_SETUP_OPTIONS,
 } from "@/lib/equipmentSetup";
-import { onboardingPillColors } from "@/lib/onboardingTheme";
+import { onboardingPillColors, onboardingPillSubtextColor } from "@/lib/onboardingTheme";
 
 import { OnboardingPillStack, OnboardingSegment } from "./OnboardingSegment";
 
@@ -25,7 +25,7 @@ export function EquipmentSetupPicker({
       {EQUIPMENT_SETUP_OPTIONS.map((setup) => {
         const selected = value === setup;
         const pill = onboardingPillColors(ob, selected);
-        const subtitleColor = selected ? "rgba(6, 6, 8, 0.60)" : "rgba(255, 255, 255, 0.50)";
+        const subtitleColor = onboardingPillSubtextColor(ob, selected);
         return (
           <OnboardingSegment key={setup} selected={selected} onPress={() => onChange(setup)}>
             <View className="w-full items-start gap-1">
