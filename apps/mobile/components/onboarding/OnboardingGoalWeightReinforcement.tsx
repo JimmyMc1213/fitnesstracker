@@ -13,7 +13,7 @@ export function OnboardingGoalWeightReinforcement({
   const { ob } = useOnboardingTheme();
 
   return (
-    <View className="min-h-[420px] flex-1 items-center justify-center px-2 py-6">
+    <View className="flex-1 items-center justify-center px-2 py-6">
       <Text
         className="max-w-[320px] text-center text-[30px] font-bold leading-tight tracking-tight"
         style={{ color: ob.headline }}

@@ -281,6 +281,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="What's your gender?"
         subtitle="This will be used to calibrate your custom plan."
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!profile.gender}
@@ -308,6 +309,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="When were you born?"
         subtitle="This will be used to calibrate your custom plan."
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!dobValid}
@@ -350,6 +352,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="Choose your units"
         subtitle="Weight, height, and volume display across the app."
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!isUnitPreferencesComplete(unitPreferences)}
@@ -370,6 +373,7 @@ export default function OnboardingWizardScreen() {
       <OnboardingShell
         step={forStep}
         title="How tall are you?"
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!heightStepValid}
@@ -403,6 +407,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="What's your current weight?"
         subtitle="Enter your weight in your preferred unit."
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!weightStepValid}
@@ -426,6 +431,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="What's your primary goal?"
         subtitle="NewYou adjusts calories and coaching for your goal."
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!profile.goal}
@@ -511,6 +517,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="How fast do you want to get there?"
         subtitle="Honest answer. We'll set the plan in the real world."
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!profile.pace}
@@ -598,6 +605,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="How active are you outside the gym?"
         subtitle="Helps us size your daily fuel targets."
+        scrollEnabled={false}
         onBack={showBackToPhoto ? goBack : undefined}
         onContinue={goNext}
         continueDisabled={!profile.activityLevel}
@@ -625,6 +633,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="What's your training experience?"
         subtitle="Rep ranges and starting weights in your templates."
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!experienceLevel}
@@ -642,6 +651,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="What equipment do you have?"
         subtitle="Exercises will match what you can perform."
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!equipmentSetup}
@@ -659,6 +669,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="How long do you want to train?"
         subtitle="We'll size your workouts to fit your session."
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!sessionLength}
@@ -693,6 +704,7 @@ export default function OnboardingWizardScreen() {
         hideTitle={showScheduleReinforcement}
         subtitle={showScheduleReinforcement ? undefined : "Pick the days that work for your week."}
         contentCentered={showScheduleReinforcement}
+        scrollEnabled={false}
         onBack={() => {
           if (showScheduleReinforcement) {
             setTransitionDirection("back");
@@ -790,6 +802,7 @@ export default function OnboardingWizardScreen() {
         title="Any foods you avoid?"
         subtitle="We'll keep your nutrition suggestions on track"
         contentCentered
+        scrollEnabled
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!profile.dietaryRestrictions?.length}

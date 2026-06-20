@@ -40,6 +40,11 @@ type OnboardingShellProps = {
   contentCentered?: boolean;
   /** Fill remaining height without scrolling (e.g. Future You photo step). */
   contentFill?: boolean;
+  /**
+   * When false, content uses a fixed flex layout instead of ScrollView.
+   * Defaults to false when contentCentered is true.
+   */
+  scrollEnabled?: boolean;
   testID?: string;
 };
 
@@ -65,6 +70,7 @@ export function OnboardingShell({
   hideTitle = false,
   contentCentered = false,
   contentFill = false,
+  scrollEnabled: scrollEnabledProp,
   testID = "onboarding-wizard",
 }: OnboardingShellProps) {
   const { colors, ob } = useOnboardingTheme();
@@ -72,6 +78,8 @@ export function OnboardingShell({
   const { phaseLabel } = phaseForStep(step);
   const progressStep = onboardingProgressStep(step);
   const pct = Math.round(((progressStep + 1) / totalSteps) * 100);
+  const scrollEnabled = scrollEnabledProp ?? !contentCentered;
+  const useStaticContent = contentFill || !scrollEnabled;
 
   return (
     <View
@@ -143,12 +151,13 @@ export function OnboardingShell({
         </Text>
       ) : null}
 
-      {contentFill ? (
+      {useStaticContent ? (
         <View
           style={{
             flex: 1,
-            marginTop: compactFooter ? 12 : 24,
+            marginTop: contentCentered ? 0 : compactFooter ? 12 : 24,
             minHeight: 0,
+            ...(contentCentered ? { justifyContent: "center" as const } : null),
           }}
         >
           {children}

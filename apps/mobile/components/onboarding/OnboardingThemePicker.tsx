@@ -98,6 +98,7 @@ export function OnboardingThemePicker({ step, value, onChange, onBack, onContinu
       step={step}
       title="Choose your look"
       subtitle="You can change this anytime in Settings"
+      scrollEnabled={false}
       onBack={onBack}
       onContinue={onContinue}
       hideProgress
