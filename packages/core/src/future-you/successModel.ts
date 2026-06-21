@@ -3,7 +3,7 @@ import type { FutureYouDraft, SubscriptionTier } from "@newyouai/types";
 import type { FutureYouJobStatus } from "./jobs";
 
 export const FUTURE_YOU_SUCCESS_AI_LABEL =
-  "AI generated · Illustrative preview — not medical advice";
+  "AI generated · Illustrative preview, not medical advice";
 
 export const FUTURE_YOU_SUCCESS_WELCOME_PREFIX = "Welcome to ";
 export const FUTURE_YOU_SUCCESS_WELCOME_BRAND = "NewYouAI";

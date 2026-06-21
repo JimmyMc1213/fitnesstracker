@@ -67,6 +67,10 @@ export type OnboardingThemeTokens = {
   macroFat: string;
   /** `--coach-blue-label`. */
   coachBlueLabel: string;
+  /** `--ob-paywall-fy-reveal-hint-fg` on the blurred Future You teaser. */
+  paywallRevealHintFg: string;
+  /** Text shadow color for the paywall reveal hint. */
+  paywallRevealHintShadow: string;
 };
 
 /** 168deg gradient ≈ near-vertical top→bottom; approximated as straight vertical for RN SVG. */
@@ -127,6 +131,8 @@ const darkOnboardingTheme: OnboardingThemeTokens = {
   macroCarbs: "#e85d5d",
   macroFat: "#6db88a",
   coachBlueLabel: "rgba(10, 132, 255, 0.75)",
+  paywallRevealHintFg: "rgba(220, 220, 226, 0.94)",
+  paywallRevealHintShadow: "rgba(0, 0, 0, 0.58)",
 };
 
 const lightOnboardingTheme: OnboardingThemeTokens = {
@@ -137,7 +143,7 @@ const lightOnboardingTheme: OnboardingThemeTokens = {
   stepMeta: "#8e8e93",
   progressTrack: "#e5e5ea",
   progressFill: "#000000",
-  pillBg: "#f2f2f7",
+  pillBg: "#e5e5ea",
   pillBorder: "transparent",
   pillFg: "#000000",
   pillSelectedBg: "#000000",
@@ -184,6 +190,8 @@ const lightOnboardingTheme: OnboardingThemeTokens = {
   macroCarbs: "#e85d5d",
   macroFat: "#6db88a",
   coachBlueLabel: "rgba(10, 132, 255, 0.75)",
+  paywallRevealHintFg: "rgba(36, 36, 40, 0.84)",
+  paywallRevealHintShadow: "rgba(255, 255, 255, 0.75)",
 };
 
 export function onboardingThemeFor(scheme: AppTheme): OnboardingThemeTokens {

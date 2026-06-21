@@ -171,6 +171,8 @@
   --ob-paywall-fy-placeholder: linear-gradient(145deg, #1a1a1e 0%, #242428 55%, #18181c 100%);
   --ob-paywall-fy-preparing: rgba(0, 0, 0, 0.4);
   --ob-paywall-fy-blur-tint: rgba(0, 0, 0, 0.12);
+  --ob-paywall-fy-reveal-hint-fg: rgba(220, 220, 226, 0.94);
+  --ob-paywall-fy-reveal-hint-shadow: 0 1px 4px rgba(0, 0, 0, 0.58);
   --ob-paywall-plan-bg: rgba(255, 255, 255, 0.04);
   --ob-paywall-plan-border: rgba(255, 255, 255, 0.14);
   --ob-paywall-plan-check-border: rgba(255, 255, 255, 0.28);
@@ -279,7 +281,7 @@
   --ob-step-meta: #8e8e93;
   --ob-progress-track: #e5e5ea;
   --ob-progress-fill: #000000;
-  --ob-pill-bg: #f2f2f7;
+  --ob-pill-bg: #e5e5ea;
   --ob-pill-border: transparent;
   --ob-pill-fg: #000000;
   --ob-pill-selected-bg: #000000;
@@ -353,6 +355,8 @@
   --ob-paywall-fy-placeholder: linear-gradient(145deg, #d8d8d8 0%, #ececec 55%, #d4d4d4 100%);
   --ob-paywall-fy-preparing: rgba(255, 255, 255, 0.35);
   --ob-paywall-fy-blur-tint: rgba(255, 255, 255, 0.08);
+  --ob-paywall-fy-reveal-hint-fg: rgba(36, 36, 40, 0.84);
+  --ob-paywall-fy-reveal-hint-shadow: 0 1px 3px rgba(255, 255, 255, 0.75);
   --ob-paywall-plan-bg: #ffffff;
   --ob-paywall-plan-border: rgba(0, 0, 0, 0.12);
   --ob-paywall-plan-check-border: rgba(0, 0, 0, 0.18);
@@ -2569,8 +2573,8 @@ input[type="number"] {
   line-height: 1.35;
   letter-spacing: 0.01em;
   text-align: center;
-  color: rgba(255, 255, 255, 0.88);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  color: var(--ob-paywall-fy-reveal-hint-fg);
+  text-shadow: var(--ob-paywall-fy-reveal-hint-shadow);
   pointer-events: none;
 }
 

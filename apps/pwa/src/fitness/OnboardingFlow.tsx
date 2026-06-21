@@ -1341,7 +1341,6 @@ export function OnboardingFlow({
         step={step}
         title="What's held you back before?"
         subtitle="Be honest. Gymmy is built around your answer"
-        contentClassName="onboarding-shell__content--centered"
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!profile.barriers?.length}
@@ -1405,7 +1404,6 @@ export function OnboardingFlow({
         step={step}
         title="How do you train best?"
         subtitle="Your coach will match your style from day one"
-        contentClassName="onboarding-shell__content--centered"
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!profile.trainingStyle}

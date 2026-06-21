@@ -158,13 +158,14 @@ export function OnboardingPaywallFutureYouHero({
 
           <Text
             pointerEvents="none"
-            className="absolute z-[2] px-3 text-center text-[10px] font-medium text-white/90"
+            className="absolute z-[2] px-3 text-center text-[10px] font-medium"
             style={{
               bottom: 10,
               left: 0,
               right: 0,
+              color: ob.paywallRevealHintFg,
               letterSpacing: 0.1,
-              textShadowColor: "rgba(0,0,0,0.45)",
+              textShadowColor: ob.paywallRevealHintShadow,
               textShadowOffset: { width: 0, height: 1 },
               textShadowRadius: 4,
             }}

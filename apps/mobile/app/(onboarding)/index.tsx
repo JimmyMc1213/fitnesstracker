@@ -794,7 +794,6 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="What's held you back before?"
         subtitle="Be honest. NewYou is built around your answer"
-        contentCentered
         scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
@@ -1177,7 +1176,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="How do you train best?"
         subtitle="Your coach will match your style from day one"
-        contentCentered
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!profile.trainingStyle}
