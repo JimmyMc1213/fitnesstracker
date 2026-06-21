@@ -76,13 +76,6 @@ export function NewYouUnlockSplash({ headline = "New You", onFinish }: Props) {
     const { w: W, h: H } = size;
     const CX = W / 2;
     const CY = H * 0.4;
-    const SCALE = 0.78;
-    const RAY_LEN = Math.min(W, H) * 0.34;
-
-    const rays = Array.from({ length: RAY_COUNT }, (_, i) => {
-      const a = ((Math.PI * 2) / RAY_COUNT) * i - Math.PI / 2;
-      return { x2: CX + Math.cos(a) * RAY_LEN, y2: CY + Math.sin(a) * RAY_LEN };
-    });
 
     const glow = root.querySelector<SVGCircleElement>("[data-unlock-glow]");
     const raysGroup = root.querySelector<SVGGElement>("[data-unlock-rays]");
