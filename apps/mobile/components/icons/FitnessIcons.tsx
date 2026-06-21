@@ -64,6 +64,16 @@ export function IconMinus({ size = 20, stroke = 1.5, color = "currentColor" }: I
   );
 }
 
+export function IconLock({ size = 20, stroke = 1.5, color = "currentColor" }: IconProps) {
+  return (
+    <SvgIcon size={size} stroke={stroke} color={color}>
+      <Path d="M5 13a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6" />
+      <Path d="M11 16a1 1 0 1 0 2 0 1 1 0 0 0-2 0" />
+      <Path d="M8 11V7a4 4 0 1 1 8 0v4" />
+    </SvgIcon>
+  );
+}
+
 export function IconGrip({ size = 20, stroke = 1.5, color = "currentColor" }: IconProps) {
   return (
     <SvgIcon size={size} stroke={stroke} color={color}>
@@ -97,7 +107,7 @@ export function IconDroplet({ size = 20, stroke = 1.5, color = "currentColor" }:
 export function IconMoon({ size = 20, stroke = 1.5, color = "currentColor" }: IconProps) {
   return (
     <SvgIcon size={size} stroke={stroke} color={color}>
-      <Path d="M20 14a8 8 0 1 1-10-10 7 7 0 0 0 10 10z" />
+      <Path d="M20 14a8 8 0 1 1-10-10 7 7 0 0 0 10 10z" fill="none" />
     </SvgIcon>
   );
 }
@@ -105,8 +115,8 @@ export function IconMoon({ size = 20, stroke = 1.5, color = "currentColor" }: Ic
 export function IconSun({ size = 20, stroke = 1.5, color = "currentColor" }: IconProps) {
   return (
     <SvgIcon size={size} stroke={stroke} color={color}>
-      <Circle cx="12" cy="12" r="4" />
-      <Path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+      <Circle cx="12" cy="12" r="4" fill="none" />
+      <Path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" fill="none" />
     </SvgIcon>
   );
 }

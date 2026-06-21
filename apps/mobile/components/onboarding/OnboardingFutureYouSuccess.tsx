@@ -17,9 +17,12 @@ import { OnboardingPaywallPlanSummary } from "@/components/onboarding/Onboarding
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { useFutureYouRevealImage } from "@/hooks/useFutureYouRevealImage";
+import {
+  futureYouGoalLabel,
+  futureYouWeightDeltaLabel,
+} from "@/lib/futureYouGoalSummary";
 import { futureYouSilhouettesForGender } from "@/lib/futureYouSilhouettes";
-import { splitFutureYouTimelineForPaywall } from "@/lib/futureYouTimeline";
-import type { FutureYouDraft, FutureYouJobStatus, SubscriptionTier } from "@newyouai/types";
+import type { FutureYouDraft, FutureYouJobStatus, SubscriptionTier, WeightUnit } from "@newyouai/types";
 
 type Props = {
   planSnapshot: OnboardingPlanSnapshot;
@@ -28,6 +31,7 @@ type Props = {
   photoBlocked: boolean;
   subscriptionTier: SubscriptionTier;
   displayName: string;
+  weightUnit: WeightUnit;
   onContinue: () => void;
   onBack?: () => void;
   continuing?: boolean;
@@ -44,6 +48,7 @@ export function OnboardingFutureYouSuccess({
   photoBlocked,
   subscriptionTier,
   displayName,
+  weightUnit,
   onContinue,
   onBack,
   continuing = false,
@@ -61,13 +66,12 @@ export function OnboardingFutureYouSuccess({
   });
   const preparing = heroVisible && (generationStatus !== "ready" || loading);
 
-  const { value: timelineValue, unit: timelineUnit } = splitFutureYouTimelineForPaywall(
-    planSnapshot.timeline,
-  );
+  const goalLabel = futureYouGoalLabel(planSnapshot.profile.goal);
+  const weightDeltaLabel = futureYouWeightDeltaLabel(planSnapshot.profile, weightUnit);
   const silhouetteSource = futureYouSilhouettesForGender(planSnapshot.profile.gender)?.after ?? null;
   const heroSource = imageUri ? { uri: imageUri } : silhouetteSource;
 
-  const boxWidth = Math.min(265, screenWidth * 0.68);
+  const boxWidth = Math.min(295, screenWidth * 0.75);
   const boxHeight = (boxWidth * 4) / 3;
 
   const ctaDisabled = continuing || preparing;
@@ -97,17 +101,33 @@ export function OnboardingFutureYouSuccess({
         </PressableScale>
       ) : null}
 
-      <View className="flex-1 justify-center" style={{ gap: heroVisible ? 16 : 20 }}>
+      <View
+        className="flex-1"
+        style={
+          heroVisible
+            ? { gap: 12, justifyContent: "flex-start", paddingTop: 4 }
+            : { gap: 20, justifyContent: "center" }
+        }
+      >
         {heroVisible ? (
           <>
-            <Text
-              className="text-center text-[28px] font-bold"
-              style={{ color: colors.textPrimary, letterSpacing: -0.5 }}
-            >
-              Meet your <Text style={{ color: ob.gold }}>Future You</Text>
-            </Text>
+            <View className="items-center" style={{ gap: 4 }}>
+              <Text
+                className="text-center text-[34px] font-bold"
+                style={{ color: ob.gold, letterSpacing: -0.5 }}
+              >
+                Future You
+              </Text>
+              <Text
+                className="text-center text-xl font-medium"
+                style={{ color: colors.textSecondary }}
+                accessibilityLabel={`You in ${planSnapshot.timeline}`}
+              >
+                You in {planSnapshot.timeline}
+              </Text>
+            </View>
 
-            <View className="items-center" style={{ paddingVertical: 8 }}>
+            <View className="items-center" style={{ paddingVertical: 4 }}>
               <View
                 accessibilityState={{ busy: preparing }}
                 style={{
@@ -149,14 +169,16 @@ export function OnboardingFutureYouSuccess({
               </View>
             </View>
 
-            <Text
-              className="text-center text-xl font-bold"
-              style={{ color: colors.textPrimary }}
-              accessibilityLabel={`You in ${planSnapshot.timeline}`}
-            >
-              You in {timelineValue}
-              {timelineUnit}
-            </Text>
+            <View className="items-center" style={{ gap: 4 }}>
+              <Text className="text-center text-xl font-semibold" style={{ color: ob.gold }}>
+                Goal - {goalLabel}
+              </Text>
+              {weightDeltaLabel ? (
+                <Text className="text-center text-lg font-semibold" style={{ color: colors.textPrimary }}>
+                  {weightDeltaLabel}
+                </Text>
+              ) : null}
+            </View>
 
             <View style={{ gap: 2 }}>
               <Text className="text-center text-xs" style={{ color: colors.textTertiary }}>

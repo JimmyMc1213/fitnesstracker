@@ -11,22 +11,16 @@ import {
   type FutureYouReportContext,
 } from "@newyouai/core";
 import { useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+
+import { CenterDialog } from "@/components/motion";
+import { OnboardingContinueButton } from "@/components/onboarding/OnboardingContinueButton";
+import { PressableScale } from "@/components/ui/PressableScale";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-
-import { BottomSheet } from "@/components/motion";
-
-import { PrimaryButton } from "@/components/home/PrimaryButton";
-import { useBottomActionPadding } from "@/lib/screenInsets";
-import { useAppTheme } from "@/hooks/useAppTheme";
+  ONBOARDING_OPTION_GAP,
+  onboardingOptionColors,
+} from "@/lib/onboardingTheme";
 import { submitFutureYouReport } from "@/lib/futureYouReportService";
 
 type Props = {
@@ -37,9 +31,14 @@ type Props = {
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
+const REPORT_DIALOG_PANEL = {
+  padding: 0,
+  maxWidth: 360,
+  maxHeight: "85%" as const,
+};
+
 export function FutureYouReportButton({ jobId, context, previewMode = false }: Props) {
-  const { colors } = useAppTheme();
-  const bottomActionPadding = useBottomActionPadding();
+  const { colors, ob } = useOnboardingTheme();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [category, setCategory] = useState<FutureYouReportCategory>("not_accurate");
   const [message, setMessage] = useState("");
@@ -87,119 +86,155 @@ export function FutureYouReportButton({ jobId, context, previewMode = false }: P
           resetForm();
           setSheetOpen(true);
         }}
-        className="items-center py-2"
+        className="items-center py-1"
       >
-        <Text className="text-sm font-semibold" style={{ color: colors.textSecondary }}>
+        <Text
+          className="text-xs font-medium"
+          style={{
+            color: ob.mutedFg,
+            textDecorationLine: "underline",
+            textDecorationColor: ob.mutedFg,
+          }}
+        >
           {FUTURE_YOU_REPORT_TRIGGER_LABEL}
         </Text>
       </Pressable>
 
-      <BottomSheet
-        open={sheetOpen}
-        onClose={closeSheet}
-        panelStyle={{ paddingHorizontal: 0, paddingBottom: bottomActionPadding, maxHeight: "85%" }}
-      >
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-          <View
-            testID="future-you-report-sheet"
-            className="max-h-[85%] rounded-t-2xl px-6 pt-6"
-          >
-            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-              <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
-                {FUTURE_YOU_REPORT_SHEET_TITLE}
+      <CenterDialog open={sheetOpen} onClose={closeSheet} panelStyle={REPORT_DIALOG_PANEL}>
+        <ScrollView
+          testID="future-you-report-sheet"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 20 }}
+        >
+          <Text className="text-lg font-bold tracking-tight" style={{ color: colors.textPrimary }}>
+            {FUTURE_YOU_REPORT_SHEET_TITLE}
+          </Text>
+
+          {submitState === "success" ?
+            <>
+              <Text
+                className="mt-3 text-sm leading-[1.45]"
+                style={{ color: colors.textSecondary }}
+                accessibilityRole="text"
+              >
+                {FUTURE_YOU_REPORT_SUCCESS_MESSAGE}
+              </Text>
+              <View className="mt-5">
+                <OnboardingContinueButton label="Done" onPress={closeSheet} />
+              </View>
+            </>
+          : <>
+              <Text className="mt-3 text-sm leading-[1.45]" style={{ color: colors.textSecondary }}>
+                {FUTURE_YOU_REPORT_SHEET_BODY}
               </Text>
 
-              {submitState === "success" ?
-                <>
-                  <Text
-                    className="mt-3 text-sm leading-5"
-                    style={{ color: colors.textSecondary }}
-                    accessibilityRole="text"
-                  >
-                    {FUTURE_YOU_REPORT_SUCCESS_MESSAGE}
-                  </Text>
-                  <View className="mt-6">
-                    <PrimaryButton block onPress={closeSheet}>
-                      Done
-                    </PrimaryButton>
-                  </View>
-                </>
-              : <>
-                  <Text className="mt-3 text-sm leading-5" style={{ color: colors.textSecondary }}>
-                    {FUTURE_YOU_REPORT_SHEET_BODY}
-                  </Text>
-
-                  <Text className="mb-2 mt-5 text-sm font-semibold" style={{ color: colors.textPrimary }}>
-                    What went wrong?
-                  </Text>
-                  {FUTURE_YOU_REPORT_CATEGORY_OPTIONS.map((option) => (
-                    <Pressable
+              <Text className="mb-1 mt-4 text-[13px] font-semibold" style={{ color: colors.textPrimary }}>
+                What went wrong?
+              </Text>
+              <View style={{ gap: ONBOARDING_OPTION_GAP, marginBottom: 16 }}>
+                {FUTURE_YOU_REPORT_CATEGORY_OPTIONS.map((option) => {
+                  const selected = category === option.id;
+                  const optionColors = onboardingOptionColors(ob, selected);
+                  return (
+                    <PressableScale
                       key={option.id}
                       accessibilityRole="radio"
-                      accessibilityState={{ checked: category === option.id }}
+                      accessibilityState={{ checked: selected }}
                       onPress={() => setCategory(option.id)}
-                      className="mb-2 flex-row items-center gap-3 rounded-xl border px-3 py-3"
+                      activeScale={0.98}
                       style={{
-                        borderColor: category === option.id ? colors.accent : colors.border,
-                        backgroundColor: category === option.id ? `${colors.accent}12` : "transparent",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                        borderRadius: 12,
+                        borderWidth: 1.5,
+                        paddingHorizontal: 12,
+                        paddingVertical: 12,
+                        borderColor: optionColors.borderColor,
+                        backgroundColor: optionColors.backgroundColor,
                       }}
                     >
                       <View
-                        className="h-5 w-5 items-center justify-center rounded-full border"
-                        style={{ borderColor: category === option.id ? colors.accent : colors.border }}
+                        style={{
+                          height: 20,
+                          width: 20,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: 999,
+                          borderWidth: 2,
+                          borderColor: selected ? optionColors.color : ob.optionBorder,
+                        }}
                       >
-                        {category === option.id ?
-                          <View className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colors.accent }} />
+                        {selected ?
+                          <View
+                            style={{
+                              height: 10,
+                              width: 10,
+                              borderRadius: 999,
+                              backgroundColor: optionColors.color,
+                            }}
+                          />
                         : null}
                       </View>
-                      <Text className="flex-1 text-sm" style={{ color: colors.textPrimary }}>
+                      <Text
+                        className={`flex-1 text-sm leading-[1.4] ${selected ? "font-semibold" : "font-medium"}`}
+                        style={{ color: optionColors.color }}
+                      >
                         {option.label}
                       </Text>
-                    </Pressable>
-                  ))}
+                    </PressableScale>
+                  );
+                })}
+              </View>
 
-                  <Text className="mb-2 mt-4 text-sm font-semibold" style={{ color: colors.textPrimary }}>
-                    Details (optional)
-                  </Text>
-                  <TextInput
-                    value={message}
-                    onChangeText={setMessage}
-                    placeholder="Anything else we should know?"
-                    placeholderTextColor={colors.textTertiary}
-                    multiline
-                    maxLength={FUTURE_YOU_REPORT_MESSAGE_MAX}
-                    className="min-h-[88px] rounded-xl border px-3 py-3 text-sm"
-                    style={{
-                      borderColor: colors.border,
-                      color: colors.textPrimary,
-                      textAlignVertical: "top",
-                    }}
-                  />
+              <Text className="mb-1.5 text-[13px] font-semibold" style={{ color: colors.textPrimary }}>
+                Details (optional)
+              </Text>
+              <TextInput
+                testID="future-you-report-message"
+                value={message}
+                onChangeText={setMessage}
+                placeholder="Anything else we should know?"
+                placeholderTextColor={ob.mutedFg}
+                multiline
+                editable={submitState !== "submitting"}
+                maxLength={FUTURE_YOU_REPORT_MESSAGE_MAX}
+                style={{
+                  minHeight: 88,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  paddingHorizontal: 12,
+                  paddingVertical: 10,
+                  fontSize: 14,
+                  lineHeight: 20,
+                  borderColor: ob.inputBorder,
+                  backgroundColor: ob.optionBg,
+                  color: colors.textPrimary,
+                  textAlignVertical: "top",
+                }}
+              />
 
-                  {submitState === "error" && errorMessage ?
-                    <Text className="mt-3 text-sm" style={{ color: "#FF453A" }} accessibilityRole="alert">
-                      {errorMessage}
-                    </Text>
-                  : null}
+              {submitState === "error" && errorMessage ?
+                <Text className="mt-3 text-[13px] leading-[1.45]" style={{ color: "#dc2626" }} accessibilityRole="alert">
+                  {errorMessage}
+                </Text>
+              : null}
 
-                  <View className="mt-6">
-                    <PrimaryButton
-                      block
-                      disabled={submitState === "submitting"}
-                      onPress={() => void onSubmit()}
-                    >
-                      {submitState === "submitting" ? "Sending…" : FUTURE_YOU_REPORT_SUBMIT_LABEL}
-                    </PrimaryButton>
-                    {submitState === "submitting" ?
-                      <ActivityIndicator className="mt-3" color={colors.accent} />
-                    : null}
-                  </View>
-                </>
-              }
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </BottomSheet>
+              <View className="mt-5">
+                <OnboardingContinueButton
+                  label={submitState === "submitting" ? "Sending…" : FUTURE_YOU_REPORT_SUBMIT_LABEL}
+                  disabled={submitState === "submitting"}
+                  onPress={() => void onSubmit()}
+                />
+                {submitState === "submitting" ?
+                  <ActivityIndicator className="mt-3" color={colors.textPrimary} />
+                : null}
+              </View>
+            </>
+          }
+        </ScrollView>
+      </CenterDialog>
     </>
   );
 }

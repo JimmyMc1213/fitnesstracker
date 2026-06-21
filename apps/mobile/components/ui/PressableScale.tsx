@@ -36,10 +36,12 @@ export function PressableScale({
 }: Props) {
   const reduceMotion = useReducedMotion();
   const progress = useSharedValue(0);
+  const scaleDelta = 1 - activeScale;
+  const opacityDelta = 1 - activeOpacity;
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 - (1 - activeScale) * progress.value }],
-    opacity: 1 - (1 - activeOpacity) * progress.value,
+    transform: [{ scale: 1 - scaleDelta * progress.value }],
+    opacity: 1 - opacityDelta * progress.value,
   }));
 
   function handlePressIn(event: GestureResponderEvent) {

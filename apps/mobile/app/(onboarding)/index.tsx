@@ -85,9 +85,13 @@ import {
 } from "@/lib/onboardingReinforcementCopy";
 import {
   DIETARY_RESTRICTIONS,
+  ONBOARDING_BARRIERS,
+  barrierEmoji,
+  barrierLabel,
   dietaryRestrictionEmoji,
   dietaryRestrictionLabel,
   toggleDietaryRestriction,
+  toggleSurveySelection,
   TRAINING_STYLES,
   trainingStyleEmoji,
   trainingStyleLabel,
@@ -165,6 +169,7 @@ export default function OnboardingWizardScreen() {
 
   const [goalWeightReinforcement, setGoalWeightReinforcement] = useState(false);
   const [scheduleReinforcement, setScheduleReinforcement] = useState(false);
+  const [templateReview, setTemplateReview] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<NavDirection>("forward");
   const [macroContinueConfirmOpen, setMacroContinueConfirmOpen] = useState(false);
   const dobAge = profile.dateOfBirth ? ageFromDateOfBirth(profile.dateOfBirth) : null;
@@ -236,6 +241,9 @@ export default function OnboardingWizardScreen() {
     if (stepIndex === 15 && prevStep > 15) {
       setScheduleReinforcement(false);
     }
+    if (stepIndex === 23 && prevStep > 23) {
+      setTemplateReview(false);
+    }
   }, [stepIndex]);
 
   useEffect(() => {
@@ -256,6 +264,11 @@ export default function OnboardingWizardScreen() {
       goToStep(ONBOARDING_STEP_PAYWALL, { subscriptionTier: null });
     }
   }, [stepIndex, futureYou, dobAge, subscriptionTier, goToStep]);
+
+  useEffect(() => {
+    if (!hydrated || activeTheme === theme) return;
+    setTheme(activeTheme);
+  }, [hydrated, activeTheme, theme, setTheme]);
 
   if (!hydrated) {
     return (
@@ -553,11 +566,10 @@ export default function OnboardingWizardScreen() {
       <OnboardingShell
         step={forStep}
         title={
-          <Text className="text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
+          <Text className="text-[36px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
             See your <Text style={{ color: ob.gold }}>New You</Text>
           </Text>
         }
-        subtitle="Upload a photo to see what you could look like and get a personalized plan to help you get there."
         onBack={goBack}
         onContinue={goNext}
         hideContinue
@@ -770,42 +782,37 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (forStep === 16) {
-    const templates = draftTemplates ?? [];
+  if (forStep === 17) {
+    const barrierOptions = ONBOARDING_BARRIERS.map((id) => ({
+      id,
+      label: barrierLabel(id),
+      emoji: barrierEmoji(id),
+    }));
 
     return (
       <OnboardingShell
         step={forStep}
-        title="Here's your training plan"
-        subtitle="NewYou built this from your schedule and experience. Looks good?"
+        title="What's held you back before?"
+        subtitle="Be honest. NewYou is built around your answer"
+        contentCentered
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
-        continueDisabled={templates.length === 0}
-        continueLabel="Let's go"
-        footerGhostAction={{ label: "Edit", onPress: () => goToStep(17) }}
-        generationPill={generationPill}
-        testID="onboarding-step-16"
-      >
-        <OnboardingSplitReveal templates={templates} />
-      </OnboardingShell>
-    );
-  }
-
-  if (forStep === 17) {
-    const templates = draftTemplates ?? [];
-
-    return (
-      <OnboardingShell
-        step={forStep}
-        title="Review your workouts"
-        subtitle="Swap exercises or adjust sets before you continue."
-        onBack={() => goToStep(16)}
-        onContinue={() => goToStep(18)}
-        continueDisabled={templates.length === 0}
+        continueDisabled={!profile.barriers?.length}
         generationPill={generationPill}
         testID="onboarding-step-17"
       >
-        <OnboardingTemplateReview templates={templates} onChange={setDraftTemplates} />
+        <OnboardingIconOptionPicker
+          options={barrierOptions}
+          selected={profile.barriers}
+          multi
+          onToggle={(id) =>
+            setProfile((p) => ({
+              ...p,
+              barriers: toggleSurveySelection(p.barriers, id),
+            }))
+          }
+        />
       </OnboardingShell>
     );
   }
@@ -823,7 +830,7 @@ export default function OnboardingWizardScreen() {
         title="Any foods you avoid?"
         subtitle="We'll keep your nutrition suggestions on track"
         contentCentered
-        scrollEnabled
+        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!profile.dietaryRestrictions?.length}
@@ -925,6 +932,31 @@ export default function OnboardingWizardScreen() {
     );
   }
 
+  if (forStep === 23 && layerFlags.templateReview) {
+    const templates = draftTemplates ?? [];
+
+    return (
+      <OnboardingShell
+        step={forStep}
+        title="Review your workouts"
+        subtitle="Swap exercises or adjust sets before you continue."
+        onBack={() => {
+          setTransitionDirection("back");
+          setTemplateReview(false);
+        }}
+        onContinue={() => {
+          setTransitionDirection("forward");
+          setTemplateReview(false);
+        }}
+        continueDisabled={templates.length === 0}
+        generationPill={generationPill}
+        testID="onboarding-step-23-template-review"
+      >
+        <OnboardingTemplateReview templates={templates} onChange={setDraftTemplates} />
+      </OnboardingShell>
+    );
+  }
+
   if (forStep === 23) {
     const templates = draftTemplates ?? [];
 
@@ -937,6 +969,13 @@ export default function OnboardingWizardScreen() {
         onContinue={goNext}
         continueDisabled={templates.length === 0}
         continueLabel="Let's go"
+        footerGhostAction={{
+          label: "Edit",
+          onPress: () => {
+            setTransitionDirection("forward");
+            setTemplateReview(true);
+          },
+        }}
         generationPill={generationPill}
         testID="onboarding-step-23"
       >
@@ -1053,6 +1092,7 @@ export default function OnboardingWizardScreen() {
         futureYou={futureYou}
         generationStatus={pollStatus}
         photoBlocked={futureYouBlocked}
+        weightUnit={unitPreferences.weightUnit ?? "lbs"}
         onBack={goBack}
         onSelectTier={() => {
           setShowPurchaseWelcomeSplash(true);
@@ -1117,7 +1157,9 @@ export default function OnboardingWizardScreen() {
         photoBlocked={futureYouBlocked}
         subscriptionTier="pro"
         displayName={name}
+        weightUnit={unitPreferences.weightUnit ?? "lbs"}
         onContinue={() => void handleFinishOnboarding()}
+        onBack={goBack}
         continuing={finishingOnboarding}
       />
     );
@@ -1170,6 +1212,7 @@ export default function OnboardingWizardScreen() {
         activeKey={onboardingScreenKey(stepIndex, {
           goalWeightReinforcement,
           scheduleReinforcement,
+          templateReview,
         })}
         variant="stack"
         direction={transitionDirection}

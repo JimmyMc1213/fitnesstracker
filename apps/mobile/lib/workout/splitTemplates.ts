@@ -28,8 +28,8 @@ const VOLUME: Record<SessionLength, number> = {
 // Rep ranges by experience
 export const REP_RANGES: Record<Experience, { sets: number; repsLow: number; repsHigh: number }> = {
   beginner:     { sets: 3, repsLow: 12, repsHigh: 15 },
-  intermediate: { sets: 4, repsLow: 8,  repsHigh: 12 },
-  advanced:     { sets: 4, repsLow: 4,  repsHigh: 8  }
+  intermediate: { sets: 3, repsLow: 8,  repsHigh: 12 },
+  advanced:     { sets: 3, repsLow: 4,  repsHigh: 8  }
 };
 
 // Set counts by session length
@@ -38,7 +38,7 @@ export const SET_COUNT: Record<SessionLength, number> = {
   '30_45':  3,
   '45_60':  3,
   '60_90':  4,
-  '90_plus': 5
+  '90_plus': 4
 };
 
 export const splitTemplates: SplitTemplate[] = [

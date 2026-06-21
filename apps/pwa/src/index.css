@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,500&family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
   --bg: #0a0a0a;
@@ -91,7 +91,7 @@
   --border-strong: rgba(255, 255, 255, 0.14);
   --faint: rgba(255, 255, 255, 0.08);
   --ob-headline: #ffffff;
-  --ob-helper: rgba(255, 255, 255, 0.55);
+  --ob-helper: #555555;
   --ob-step-meta: rgba(255, 255, 255, 0.34);
   --ob-progress-track: rgba(255, 255, 255, 0.1);
   --ob-progress-fill: #ffffff;
@@ -275,7 +275,7 @@
   --border-strong: rgba(0, 0, 0, 0.12);
   --faint: rgba(0, 0, 0, 0.06);
   --ob-headline: #000000;
-  --ob-helper: #636366;
+  --ob-helper: #8e8e93;
   --ob-step-meta: #8e8e93;
   --ob-progress-track: #e5e5ea;
   --ob-progress-fill: #000000;
@@ -309,7 +309,7 @@
   --ob-card-bg: #f2f2f7;
   --ob-card-border: transparent;
   --ob-body-fg: #000000;
-  --ob-muted-fg: #636366;
+  --ob-muted-fg: #8e8e93;
   --ob-ruler-indicator: #000000;
   --ob-ruler-tick: rgba(0, 0, 0, 0.18);
   --ob-spinner-track: #e5e5ea;
@@ -1549,51 +1549,78 @@ input[type="number"] {
   }
 }
 
-/* Post-purchase welcome splash — always black + gold */
+/* Post-purchase welcome splash — Aurora unlock animation */
 .purchase-welcome-splash {
   position: fixed;
   inset: 0;
   z-index: 10001;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #060608;
-  color: #ffffff;
-  padding: env(safe-area-inset-top, 0px) 24px env(safe-area-inset-bottom, 0px);
   opacity: 1;
-  animation: appSplashScreenIn 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.purchase-welcome-splash--out {
-  animation: none;
   pointer-events: none;
 }
 
-.purchase-welcome-splash__content {
+.purchase-welcome-splash--out {
+  pointer-events: none;
+}
+
+.new-you-unlock-splash {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #08070a;
+  overflow: hidden;
+}
+
+.new-you-unlock-splash__svg {
+  display: block;
+}
+
+.new-you-unlock-splash__copy {
+  position: absolute;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  padding: 0 28px;
+  opacity: 0;
 }
 
-.purchase-welcome-splash__mark .gymmy-splash-mark__wordmark {
-  display: none;
+.new-you-unlock-splash__kicker-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
 }
 
-.purchase-welcome-splash__mark .gymmy-splash-mark__logo {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
+.new-you-unlock-splash__kicker-line {
+  width: 18px;
+  height: 1px;
   background: #c9a876;
-  color: #14110c;
+  opacity: 0.6;
+  margin: 0 9px;
 }
 
-.purchase-welcome-splash__headline {
+.new-you-unlock-splash__kicker {
+  font-size: 10.5px;
+  letter-spacing: 0.34em;
+  color: #c9a876;
+  font-weight: 600;
+}
+
+.new-you-unlock-splash__welcome {
   margin: 0;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 25px;
+  color: #d8cfbd;
+  line-height: 1.04;
+}
+
+.new-you-unlock-splash__headline {
+  margin: 2px 0 0;
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 11vw, 62px);
+  font-weight: 600;
+  line-height: 1.03;
   color: #c9a876;
   text-align: center;
 }
@@ -2506,6 +2533,45 @@ input[type="number"] {
   backdrop-filter: blur(18px) saturate(120%);
   -webkit-backdrop-filter: blur(18px) saturate(120%);
   background: var(--ob-paywall-fy-blur-tint);
+}
+
+.onboarding-paywall-future-you__lock-pill {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px 5px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.onboarding-paywall-future-you__reveal-hint {
+  position: absolute;
+  right: 0;
+  bottom: 10px;
+  left: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 0 12px;
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
 }
 
 .onboarding-paywall-future-you--inline .onboarding-paywall-future-you__preparing {

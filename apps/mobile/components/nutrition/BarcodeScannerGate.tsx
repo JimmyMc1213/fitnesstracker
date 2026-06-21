@@ -24,10 +24,10 @@ export function BarcodeScannerGate({ onScan, onClose }: Props) {
         mounted = false;
       };
     }
-    import("@/components/nutrition/BarcodeScanner")
+    import("@/components/nutrition/BarcodeScannerCamera")
       .then((mod) => {
         if (!mounted) return;
-        setCameraScanner(() => mod.BarcodeScanner);
+        setCameraScanner(() => mod.BarcodeScannerCamera);
       })
       .catch(() => {
         /* expo-camera not linked, manual fallback */

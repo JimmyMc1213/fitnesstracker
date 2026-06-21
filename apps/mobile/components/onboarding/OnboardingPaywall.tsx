@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Linking, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { FutureYouDraft, FutureYouJobStatus } from "@newyouai/types";
+import type { FutureYouDraft, FutureYouJobStatus, WeightUnit } from "@newyouai/types";
 
 import { OnboardingContentReveal } from "@/components/motion";
 import { OnboardingPaywallFutureYouHero } from "@/components/onboarding/OnboardingPaywallFutureYouHero";
@@ -31,6 +31,7 @@ type Props = {
   futureYou: FutureYouDraft | undefined;
   generationStatus: FutureYouJobStatus | "idle";
   photoBlocked: boolean;
+  weightUnit: WeightUnit;
 };
 
 export function OnboardingPaywall({
@@ -40,6 +41,7 @@ export function OnboardingPaywall({
   futureYou,
   generationStatus,
   photoBlocked,
+  weightUnit,
 }: Props) {
   const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
@@ -111,30 +113,26 @@ export function OnboardingPaywall({
         </Text>
       </PressableScale>
 
-      <View style={{ flex: 1, paddingTop: insets.top + 40, paddingHorizontal: 23 }}>
+      <View style={{ flex: 1, paddingTop: insets.top + (heroVisible ? 24 : 40), paddingHorizontal: 23 }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ gap: 20, flexGrow: 1 }}
+        contentContainerStyle={{ gap: heroVisible ? 14 : 20, flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <OnboardingContentReveal delay={paywallRevealDelayMs(0)}>
-          <Text className="text-center text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
-            {heroVisible ? (
-              <>
-                Unlock <Text style={{ color: ob.gold }}>NewYouAI</Text> to see what you can look like.
-              </>
-            ) : (
-              <>
-                Unlock <Text style={{ color: ob.gold }}>NewYouAI</Text> to reach your goals faster.
-              </>
-            )}
-          </Text>
-        </OnboardingContentReveal>
+        {!heroVisible ? (
+          <OnboardingContentReveal delay={paywallRevealDelayMs(0)}>
+            <Text className="text-center text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
+              Unlock <Text style={{ color: ob.gold }}>NewYouAI</Text> to reach your goals faster.
+            </Text>
+          </OnboardingContentReveal>
+        ) : null}
 
         {heroVisible ? (
           <OnboardingPaywallFutureYouHero
             timeline={planSnapshot.timeline}
+            profile={planSnapshot.profile}
+            weightUnit={weightUnit}
             jobId={futureYou?.generationJobId}
             status={generationStatus}
             gender={planSnapshot.profile.gender}

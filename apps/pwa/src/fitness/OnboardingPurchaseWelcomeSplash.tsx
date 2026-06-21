@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { firePlanOnlySuccessConfetti } from "./confetti";
-import { GymmySplashMark } from "./GymmySplashMark";
+import { NewYouUnlockSplash } from "./NewYouUnlockSplash";
 import { PURCHASE_WELCOME_HEADLINE } from "./futureYouSuccessModel";
-import {
-  PURCHASE_WELCOME_SPLASH_FADE_OUT_MS,
-  PURCHASE_WELCOME_SPLASH_MIN_VISIBLE_MS,
-} from "./splashTiming";
+import { PURCHASE_WELCOME_SPLASH_FADE_OUT_MS } from "./splashTiming";
+
+const UNLOCK_ANIMATION_MS = 2700 + 160;
 
 type Props = {
   onComplete: () => void;
@@ -20,46 +18,39 @@ export function OnboardingPurchaseWelcomeSplash({ onComplete }: Props) {
   const finishedRef = useRef(false);
   onCompleteRef.current = onComplete;
 
-  useEffect(() => {
-    let stopConfetti: (() => void) | undefined;
-    const confettiTimer = window.setTimeout(() => {
-      stopConfetti = firePlanOnlySuccessConfetti(PURCHASE_WELCOME_SPLASH_MIN_VISIBLE_MS + 1200);
-    }, 120);
+  const finish = useCallback(() => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    setMounted(false);
+    onCompleteRef.current();
+  }, []);
 
-    const fadeTimer = window.setTimeout(() => {
-      const el = divRef.current;
-      if (!el) return;
-      el.style.transition = `opacity ${PURCHASE_WELCOME_SPLASH_FADE_OUT_MS}ms ease-out`;
-      el.style.opacity = "0";
-      setExiting(true);
-    }, PURCHASE_WELCOME_SPLASH_MIN_VISIBLE_MS);
-
-    return () => {
-      window.clearTimeout(confettiTimer);
-      window.clearTimeout(fadeTimer);
-      stopConfetti?.();
-    };
+  const handleAnimationFinish = useCallback(() => {
+    const el = divRef.current;
+    if (!el) return;
+    el.style.transition = `opacity ${PURCHASE_WELCOME_SPLASH_FADE_OUT_MS}ms ease-out`;
+    el.style.opacity = "0";
+    setExiting(true);
   }, []);
 
   useEffect(() => {
     if (!exiting) return;
 
-    const finish = () => {
-      if (finishedRef.current) return;
-      finishedRef.current = true;
-      setMounted(false);
-      onCompleteRef.current();
-    };
-
     const id = window.setTimeout(finish, PURCHASE_WELCOME_SPLASH_FADE_OUT_MS);
     return () => window.clearTimeout(id);
-  }, [exiting]);
+  }, [exiting, finish]);
+
+  useEffect(() => {
+    const fallback = window.setTimeout(
+      finish,
+      UNLOCK_ANIMATION_MS + PURCHASE_WELCOME_SPLASH_FADE_OUT_MS + 250,
+    );
+    return () => window.clearTimeout(fallback);
+  }, [finish]);
 
   const handleTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
     if (event.propertyName !== "opacity" || !exiting || finishedRef.current) return;
-    finishedRef.current = true;
-    setMounted(false);
-    onCompleteRef.current();
+    finish();
   };
 
   if (!mounted) return null;
@@ -73,10 +64,7 @@ export function OnboardingPurchaseWelcomeSplash({ onComplete }: Props) {
       aria-hidden={exiting}
       onTransitionEnd={handleTransitionEnd}
     >
-      <div className="purchase-welcome-splash__content">
-        <GymmySplashMark className="purchase-welcome-splash__mark" />
-        <p className="purchase-welcome-splash__headline">{PURCHASE_WELCOME_HEADLINE}</p>
-      </div>
+      <NewYouUnlockSplash onFinish={handleAnimationFinish} />
     </div>
   );
 }

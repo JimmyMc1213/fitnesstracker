@@ -34,9 +34,9 @@ describe("resolveWizardNextStep", () => {
     expect(pace?.overrides?.futureYou?.onboardingGoalLocked).toBe(true);
   });
 
-  it("skips optional template review from split reveal", () => {
+  it("advances stale split reveal step to barriers survey", () => {
     const result = resolveWizardNextStep(16, { ...baseProfile, goal: "maintain" }, undefined);
-    expect(result?.next).toBe(18);
+    expect(result?.next).toBe(17);
   });
 
   it("blocks pace continue without a pace selection", () => {
@@ -78,11 +78,11 @@ describe("resolveWizardBackStep", () => {
     ).toBe(true);
   });
 
-  it("skips optional template edit when backing from step 18", () => {
-    expect(resolveWizardBackStep(18, { ...baseProfile, goal: "cut" }, undefined)).toBe(16);
+  it("returns to barriers when backing from dietary restrictions", () => {
+    expect(resolveWizardBackStep(18, { ...baseProfile, goal: "cut" }, undefined)).toBe(17);
   });
 
-  it("returns to split reveal when backing from template review", () => {
-    expect(resolveWizardBackStep(17, { ...baseProfile, goal: "cut" }, undefined)).toBe(16);
+  it("returns to training schedule when backing from barriers survey", () => {
+    expect(resolveWizardBackStep(17, { ...baseProfile, goal: "cut" }, undefined)).toBe(15);
   });
 });

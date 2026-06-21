@@ -11,7 +11,7 @@ import Animated, {
 import { IconMoon, IconSun } from "@/components/icons/FitnessIcons";
 import { OnboardingShell } from "@/components/onboarding/OnboardingShell";
 import { PressableScale } from "@/components/ui/PressableScale";
-import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
+import { onboardingThemeFor } from "@/lib/onboardingTheme";
 
 type Props = {
   step: number;
@@ -25,7 +25,7 @@ const TRACK_PADDING = 5;
 const SWITCH_MAX_WIDTH = 320;
 const SWITCH_MIN_HEIGHT = 72;
 
-/** PWA `--ob-theme-switch-track-*` — follows the current page theme, not the pending selection. */
+/** PWA `--ob-theme-switch-track-*` — follows the selected preview theme. */
 function themeSwitchTrackTokens(pageIsLight: boolean) {
   if (pageIsLight) {
     return { trackBg: "#e5e5ea", trackBorder: "#c7c7cc" };
@@ -67,8 +67,9 @@ function SwitchOption({
 }
 
 export function OnboardingThemePicker({ step, value, onChange, onBack, onContinue }: Props) {
-  const { scheme, ob } = useOnboardingTheme();
-  const pageIsLight = scheme === "light";
+  // Match PWA: switch track, thumb, and icon colors follow the selected preview theme.
+  const ob = onboardingThemeFor(value);
+  const pageIsLight = value === "light";
   const track = themeSwitchTrackTokens(pageIsLight);
   const selectedIsLight = value === "light";
   const [trackWidth, setTrackWidth] = useState(0);
@@ -128,6 +129,7 @@ export function OnboardingThemePicker({ step, value, onChange, onBack, onContinu
                 className="absolute rounded-full"
                 style={[
                   {
+                    zIndex: 1,
                     top: TRACK_PADDING,
                     left: TRACK_PADDING,
                     width: (trackWidth - TRACK_PADDING * 2) / 2,
@@ -143,19 +145,19 @@ export function OnboardingThemePicker({ step, value, onChange, onBack, onContinu
                 ]}
               />
             ) : null}
-            <View className="flex-row">
+            <View className="flex-row" style={{ zIndex: 2 }}>
               <SwitchOption
                 label="Light"
                 icon={
                   <IconSun
                     size={22}
                     stroke={1.6}
-                    color={selectedIsLight ? ob.pillSelectedFg : ob.pillFg}
+                    color={selectedIsLight ? ob.pillSelectedFg : ob.mutedFg}
                   />
                 }
                 active={selectedIsLight}
                 activeColor={ob.pillSelectedFg}
-                inactiveColor={ob.pillFg}
+                inactiveColor={ob.mutedFg}
                 onPress={() => selectTheme("light")}
               />
               <SwitchOption
@@ -164,12 +166,12 @@ export function OnboardingThemePicker({ step, value, onChange, onBack, onContinu
                   <IconMoon
                     size={22}
                     stroke={1.6}
-                    color={!selectedIsLight ? ob.pillSelectedFg : ob.pillFg}
+                    color={!selectedIsLight ? ob.pillSelectedFg : ob.mutedFg}
                   />
                 }
                 active={!selectedIsLight}
                 activeColor={ob.pillSelectedFg}
-                inactiveColor={ob.pillFg}
+                inactiveColor={ob.mutedFg}
                 onPress={() => selectTheme("dark")}
               />
             </View>

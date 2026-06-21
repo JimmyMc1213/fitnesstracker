@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { useFitnessSync } from "@/context/FitnessSyncContext";
 import {
   readOnboardingComplete,
   writeOnboardingComplete,
@@ -25,8 +26,8 @@ function resolveDefaultOnboardingComplete(): boolean {
 }
 
 export function useOnboardingState() {
+  const { fitnessHydrated } = useFitnessSync();
   const [onboardingComplete, setOnboardingCompleteState] = useState(resolveDefaultOnboardingComplete);
-  // Optimistic true so Maestro auth flows are not blocked while AsyncStorage reads.
   const [hydrated, setHydrated] = useState(true);
 
   useEffect(() => {
@@ -37,9 +38,9 @@ export function useOnboardingState() {
       try {
         const stored = await readOnboardingComplete();
         if (cancelled) return;
-        if (skipOnboarding && !stored) {
-          await writeOnboardingComplete(true);
-          setOnboardingCompleteState(true);
+        if (stored === null) {
+          await writeOnboardingComplete(skipOnboarding);
+          setOnboardingCompleteState(skipOnboarding);
         } else {
           setOnboardingCompleteState(stored);
         }
@@ -52,6 +53,21 @@ export function useOnboardingState() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!fitnessHydrated) return;
+
+    let cancelled = false;
+    void (async () => {
+      const stored = await readOnboardingComplete();
+      if (cancelled || stored === null) return;
+      setOnboardingCompleteState(stored);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fitnessHydrated]);
 
   const setOnboardingComplete = useCallback(async (value: boolean) => {
     setOnboardingCompleteState(value);

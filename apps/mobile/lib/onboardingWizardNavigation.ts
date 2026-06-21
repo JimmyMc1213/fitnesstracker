@@ -67,7 +67,7 @@ export function resolveWizardNextStep(
   if (step === ONBOARDING_STEP_FUTURE_YOU_PHOTO) return null;
   if (step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION) return null;
 
-  if (step === 16) return { next: 18 };
+  if (step === 16) return { next: 17 };
 
   if (step === 21) return { next: 22 };
   if (step === 22) return { next: 23 };
@@ -100,8 +100,8 @@ export function resolveWizardBackStep(
     return backStepFromFutureYouPhoto(profile.goal);
   }
 
-  if (step === 18) return 16;
-  if (step === 17) return 16;
+  if (step === 18) return 17;
+  if (step === 17) return 15;
   if (step === 21) return 19;
   if (step === 23) return 22;
   if (step === 22) return 21;

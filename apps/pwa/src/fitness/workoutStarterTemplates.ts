@@ -593,25 +593,25 @@ export const WORKOUT_STARTER_TEMPLATES: WorkoutStarterTemplate[] = [
   },
   {
     id: "strength-5x5",
-    name: "StrongLifts 5×5",
-    description: "Alternating A/B — squat, bench, row and squat, overhead press, deadlift.",
+    name: "StrongLifts-style 4×5",
+    description: "Alternating A/B linear progression — squat, bench, row and squat, overhead press, deadlift.",
     category: "strength",
     days: [
       {
         name: "Workout A",
         focus: "Squat, bench, row",
         exercises: [
-          ex("Barbell back squat", { label: "Barbell", setCount: 5, target: "5 × 5" }),
-          ex("Barbell bench press", { label: "Barbell", setCount: 5, target: "5 × 5" }),
-          ex("Barbell bent-over row", { label: "Barbell", setCount: 5, target: "5 × 5" }),
+          ex("Barbell back squat", { label: "Barbell", setCount: 4, target: "4 × 5" }),
+          ex("Barbell bench press", { label: "Barbell", setCount: 4, target: "4 × 5" }),
+          ex("Barbell bent-over row", { label: "Barbell", setCount: 4, target: "4 × 5" }),
         ],
       },
       {
         name: "Workout B",
         focus: "Squat, overhead press, deadlift",
         exercises: [
-          ex("Barbell back squat", { label: "Barbell", setCount: 5, target: "5 × 5" }),
-          ex("Barbell overhead press", { label: "Barbell", setCount: 5, target: "5 × 5" }),
+          ex("Barbell back squat", { label: "Barbell", setCount: 4, target: "4 × 5" }),
+          ex("Barbell overhead press", { label: "Barbell", setCount: 4, target: "4 × 5" }),
           ex("Barbell deadlift", { label: "Barbell", setCount: 1, target: "1 × 5" }),
         ],
       },

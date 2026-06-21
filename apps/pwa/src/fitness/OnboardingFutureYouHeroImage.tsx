@@ -1,3 +1,4 @@
+import { IconLock } from "./icons";
 import { FUTURE_YOU_HERO_LOADING_LABEL } from "./futureYouHeroCopy";
 
 type Props = {
@@ -19,6 +20,17 @@ export function OnboardingFutureYouHeroImage({ imageSrc, preparing, blur = true 
       : <div className="onboarding-paywall-future-you__placeholder" aria-hidden />}
       {blur && imageSrc ?
         <div className="onboarding-paywall-future-you__blur-overlay" aria-hidden />
+      : null}
+      {blur ?
+        <>
+          <div className="onboarding-paywall-future-you__lock-pill" aria-hidden>
+            <IconLock size={11} stroke={2} />
+            <span>Locked</span>
+          </div>
+          <p className="onboarding-paywall-future-you__reveal-hint" aria-hidden>
+            Subscribe to reveal your transformation
+          </p>
+        </>
       : null}
       {preparing ?
         <div className="onboarding-paywall-future-you__preparing">

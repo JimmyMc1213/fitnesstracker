@@ -129,7 +129,7 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                           <input
                             type="number"
                             min={1}
-                            max={6}
+                            max={4}
                             aria-label={`Set count for ${row.name}`}
                             value={row.sets.length}
                             onChange={(e) => {

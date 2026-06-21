@@ -30,6 +30,8 @@ import {
 
 import type { NavDirection } from "@/components/motion";
 
+import { useFitnessState } from "@/context/FitnessContext";
+import { useFitnessSync } from "@/context/FitnessSyncContext";
 import { EMPTY_WIZARD_UNIT_PREFERENCES, FRESH_ONBOARDING_PROFILE, freshWizardStateAtStep } from "@/lib/onboardingDefaults";
 import { ONBOARDING_NOTIFICATION_DEFAULTS } from "@/lib/notificationPreferences";
 import {
@@ -121,27 +123,36 @@ const INITIAL_STATE = {
 };
 
 export function OnboardingWizardProvider({ children }: { children: ReactNode }) {
+  const { state: fitnessState } = useFitnessState();
+  const { fitnessHydrated } = useFitnessSync();
   const [hydrated, setHydrated] = useState(false);
   const [navDirection, setNavDirection] = useState<NavDirection>("forward");
   const [wizardState, setWizardState] = useState(INITIAL_STATE);
 
   useEffect(() => {
+    if (!fitnessHydrated) return;
+
     let cancelled = false;
 
     void (async () => {
       const [draft, storedTheme] = await Promise.all([
-        loadRestorableOnboardingDraft(),
+        loadRestorableOnboardingDraft(fitnessState?.onboardingDraft ?? null),
         readStoredTheme(),
       ]);
       if (cancelled) return;
       if (draft) {
         const fromDraft = stateFromDraft(draft);
-        setWizardState({
-          ...fromDraft,
-          draftTheme: fromDraft.draftTheme ?? storedTheme,
+        setWizardState((prev) => {
+          if (prev.stepIndex > 0 && fromDraft.stepIndex <= prev.stepIndex) return prev;
+          return {
+            ...fromDraft,
+            draftTheme: fromDraft.draftTheme ?? storedTheme,
+          };
         });
       } else {
-        setWizardState({ ...INITIAL_STATE, draftTheme: storedTheme });
+        setWizardState((prev) =>
+          prev.stepIndex > 0 ? prev : { ...INITIAL_STATE, draftTheme: storedTheme },
+        );
       }
       setHydrated(true);
     })();
@@ -149,7 +160,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fitnessHydrated, fitnessState?.onboardingDraft]);
 
   const persistDraft = useCallback(
     async (nextState: typeof INITIAL_STATE) => {
@@ -252,7 +263,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
           prev.equipmentSetup,
           prev.sessionLength,
         );
-        const next = clampWizardStep(16);
+        const next = clampWizardStep(17);
         if (!canNavigateWizardToStep(prev.stepIndex, next, prev.futureYou)) return prev;
         return {
           ...mergeOverrides(prev, {

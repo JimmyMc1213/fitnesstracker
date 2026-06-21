@@ -8,7 +8,7 @@ import {
 import { useCallback, useState } from "react";
 import {
   Dimensions,
-  FlatList,
+  ScrollView,
   Pressable,
   Text,
   View,
@@ -114,18 +114,19 @@ export function HomeDashboardCarousel({
 
   return (
     <View className="mt-[18px]">
-      <FlatList
-        data={slides}
+      <ScrollView
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        keyExtractor={(_, i) => String(i)}
-        renderItem={({ item }) => (
-          <View style={{ width: slideWidth, paddingHorizontal: 2 }}>{item}</View>
-        )}
-      />
+      >
+        {slides.map((slide, index) => (
+          <View key={index} style={{ width: slideWidth, paddingHorizontal: 2 }}>
+            {slide}
+          </View>
+        ))}
+      </ScrollView>
 
       <View className="mt-3.5 flex-row items-center justify-center gap-1.5">
         {Array.from({ length: SLIDE_COUNT }, (_, i) => (

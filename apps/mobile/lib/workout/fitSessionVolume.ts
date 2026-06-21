@@ -15,7 +15,7 @@ export type SessionVolumeFit = {
 };
 
 const MIN_SETS = 2;
-const MAX_SETS = 5;
+const MAX_SETS = 4;
 
 export function fitSessionVolume(
   maxExercises: number,

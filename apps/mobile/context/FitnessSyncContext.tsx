@@ -25,6 +25,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
 import { createAsyncStorageAdapter } from "@/lib/createAsyncStorageAdapter";
+import { syncOnboardingStorageFromFitnessSlice } from "@/lib/onboardingStorage";
 import { buildFitnessAppState } from "@/lib/fitness/buildFitnessAppState";
 import { createSupabaseSyncClient } from "@/lib/fitness/createSupabaseSyncClient";
 import { migratePersistedFitnessSlice } from "@/lib/fitness/migratePersistedFitnessSlice";
@@ -108,6 +109,7 @@ export function FitnessSyncProvider({ children }: { children: ReactNode }) {
       const persisted = persistSliceWithMigration(mergedSlice);
       await saveSyncMeta(storageAdapter, meta);
       await savePersistedSlice(storageAdapter, FITNESS_LOCAL_STORAGE_KEY, persisted);
+      await syncOnboardingStorageFromFitnessSlice(persisted);
       replaceFitnessState(buildFitnessAppState(persisted));
     },
     [replaceFitnessState],

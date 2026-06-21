@@ -11,11 +11,13 @@ appId: app.newyouai.mobile
     timeout: 10000
 - tapOn:
     id: onboarding-continue
-# Split reveal
+# Barriers survey (skips early split reveal)
 - extendedWaitUntil:
     visible:
-      id: onboarding-step-16
+      id: onboarding-step-17
     timeout: 10000
+- tapOn:
+    text: "No structure or clear plan"
 - tapOn:
     id: onboarding-continue
 # Dietary restrictions

@@ -7,12 +7,9 @@ import {
   safeJsonParse,
   type OnboardingDraftInput,
 } from "@newyouai/core";
-import type { OnboardingDraft } from "@newyouai/types";
+import type { OnboardingDraft, PersistedFitnessSlice } from "@newyouai/types";
 
-import {
-  DEFAULT_ONBOARDING_COMPLETE,
-  ONBOARDING_COMPLETE_STORAGE_KEY,
-} from "@/lib/onboardingStub";
+import { ONBOARDING_COMPLETE_STORAGE_KEY } from "@/lib/onboardingStub";
 
 export const ONBOARDING_DRAFT_STORAGE_KEY = "newyou_onboarding_draft";
 const LEGACY_ONBOARDING_DRAFT_KEY = "gymmy_onboarding_draft";
@@ -21,15 +18,16 @@ export function isRestorableOnboardingDraft(draft: OnboardingDraft | null | unde
   return draft != null && draft.version === ONBOARDING_DRAFT_VERSION && draft.stepIndex >= 0;
 }
 
-export async function readOnboardingComplete(): Promise<boolean> {
+/** `null` = no value stored yet (simulator reset / fresh install). */
+export async function readOnboardingComplete(): Promise<boolean | null> {
   try {
     const stored = await AsyncStorage.getItem(ONBOARDING_COMPLETE_STORAGE_KEY);
     if (stored === "true") return true;
     if (stored === "false") return false;
+    return null;
   } catch {
-    // fall through to default
+    return null;
   }
-  return DEFAULT_ONBOARDING_COMPLETE;
 }
 
 export async function writeOnboardingComplete(value: boolean): Promise<void> {
@@ -91,6 +89,23 @@ export async function persistOnboardingDraft(draft: OnboardingDraft): Promise<vo
 
 export async function clearOnboardingDraftStorage(): Promise<void> {
   await AsyncStorage.multiRemove([ONBOARDING_DRAFT_STORAGE_KEY, LEGACY_ONBOARDING_DRAFT_KEY]);
+}
+
+/** Keep dedicated onboarding storage aligned after cloud fitness sync. */
+export async function syncOnboardingStorageFromFitnessSlice(
+  slice: Pick<PersistedFitnessSlice, "onboardingComplete" | "onboardingDraft">,
+): Promise<void> {
+  if (slice.onboardingComplete === true) {
+    await writeOnboardingComplete(true);
+    await clearOnboardingDraftStorage();
+    return;
+  }
+
+  await writeOnboardingComplete(false);
+  const draft = normalizeOnboardingDraft(slice.onboardingDraft);
+  if (isRestorableOnboardingDraft(draft)) {
+    await writeOnboardingDraft(draft);
+  }
 }
 
 export { buildOnboardingDraft, type OnboardingDraftInput };

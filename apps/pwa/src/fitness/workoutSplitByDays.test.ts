@@ -39,4 +39,18 @@ describe("buildWorkoutTemplatesForDays", () => {
     const long = buildWorkoutTemplatesForDays(4, "intermediate", "full_gym", undefined, "90_plus");
     expect(short[0]?.exercises.length).toBeLessThan(long[0]?.exercises.length ?? 0);
   });
+
+  it("never assigns more than 4 sets per exercise", () => {
+    const sessionLengths = ["under_30", "30_45", "45_60", "60_90", "90_plus"] as const;
+    for (const length of sessionLengths) {
+      for (const level of ["beginner", "intermediate", "advanced"] as const) {
+        const templates = buildWorkoutTemplatesForDays(4, level, "full_gym", undefined, length);
+        for (const template of templates) {
+          for (const exercise of template.exercises) {
+            expect(exercise.sets.length).toBeLessThanOrEqual(4);
+          }
+        }
+      }
+    }
+  });
 });

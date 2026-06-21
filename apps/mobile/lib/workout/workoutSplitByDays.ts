@@ -11,47 +11,17 @@ import type {
   WorkoutExercise,
   WorkoutRoutineTemplate,
 } from "@newyouai/types";
+import {
+  sessionDurationFromSessionLength,
+  sessionLengthFromDuration,
+} from "./sessionLengthConfig";
 import { defaultTrainingWeekdaysForProfile, normalizeTrainingWeekdays } from "./workoutWeekCalendar";
+
+export { sessionDurationFromSessionLength, sessionLengthFromDuration };
 
 export function equipmentSetupToEngine(setup: EquipmentSetup): Equipment {
   if (setup === "bodyweight_only") return "bodyweight";
   return setup;
-}
-
-export function sessionLengthFromDuration(raw?: TrainingSessionDuration | SessionLength): SessionLength {
-  switch (raw) {
-    case "under_30":
-    case "30_or_less":
-      return "under_30";
-    case "30_45":
-    case "30_to_45":
-      return "30_45";
-    case "45_60":
-    case "45_to_60":
-      return "45_60";
-    case "60_90":
-    case "60_to_90":
-      return "60_90";
-    case "90_plus":
-      return "90_plus";
-    default:
-      return "45_60";
-  }
-}
-
-export function sessionDurationFromSessionLength(length: SessionLength): TrainingSessionDuration {
-  switch (length) {
-    case "under_30":
-      return "30_or_less";
-    case "30_45":
-      return "30_to_45";
-    case "45_60":
-      return "45_to_60";
-    case "60_90":
-      return "60_to_90";
-    case "90_plus":
-      return "90_plus";
-  }
 }
 
 function templateId(session: WorkoutSession, idx: number): string {

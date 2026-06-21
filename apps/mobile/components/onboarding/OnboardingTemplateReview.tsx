@@ -110,7 +110,7 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                         label="Sets"
                         variant="row"
                         onChange={(n) => patchExercise(routine.id, row.id, { setCount: n })}
-                        sanitize={(n) => Math.max(1, Math.min(10, n))}
+                        sanitize={(n) => Math.max(1, Math.min(4, n))}
                       />
                       <PressableScale
                         onPress={() => setSwapTarget({ routineId: routine.id, exerciseId: row.id })}

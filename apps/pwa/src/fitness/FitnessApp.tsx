@@ -24,11 +24,9 @@ import { ScreenSettings } from "./screens/ScreenSettings";
 import { ScreenWorkout } from "./screens/ScreenWorkout";
 import { dismissWorkoutSummary, applyTemplateOrderUpdate, dismissTemplateOrderUpdatePrompt } from "./finishWorkout";
 import { MOTION_DURATIONS, ScreenTransition, useLockVisualViewportScroll } from "./motion";
-import { DevOnboardingToolbar } from "./DevOnboardingToolbar";
 import {
   clearDevPreviewOnboardingUrl,
   isDevPreviewOnboardingEnabled,
-  isDevToolbarVisible,
   isOnboardingPreviewToolsActive,
 } from "./devPreviewOnboarding";
 import { AppSplashScreen } from "./AppSplashScreen";
@@ -81,29 +79,22 @@ function OnboardingGate({
   children,
   onSignIn,
   onLeavePreview,
-  hideDevToolbar = false,
 }: {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   children: ReactNode;
   onSignIn?: () => void;
   onLeavePreview?: () => void;
-  hideDevToolbar?: boolean;
 }) {
   const sync = useFitnessSync();
   const previewToolsActive = isOnboardingPreviewToolsActive();
   const [previewOnboardingDismissed, setPreviewOnboardingDismissed] = useState(false);
-  const [previewOnboardingRequested, setPreviewOnboardingRequested] = useState(false);
   const devPreviewEnabled = previewToolsActive && isDevPreviewOnboardingEnabled();
-  const forcePreview =
-    previewToolsActive &&
-    !previewOnboardingDismissed &&
-    (devPreviewEnabled || previewOnboardingRequested);
+  const forcePreview = previewToolsActive && !previewOnboardingDismissed && devPreviewEnabled;
 
   function dismissPreviewOnboarding() {
     if (!previewToolsActive) return;
     setPreviewOnboardingDismissed(true);
-    setPreviewOnboardingRequested(false);
     clearDevPreviewOnboardingUrl();
     clearOnboardingDraftStorage();
     onLeavePreview?.();
@@ -120,11 +111,6 @@ function OnboardingGate({
       savePersistedSlice(sliceFromAppState(next));
       return next;
     });
-  }
-
-  function openPreviewOnboarding() {
-    setPreviewOnboardingDismissed(false);
-    setPreviewOnboardingRequested(true);
   }
 
   const restorableDraft = initialOnboardingWizardDraft(state.onboardingDraft);
@@ -155,13 +141,6 @@ function OnboardingGate({
       ) : (
         children
       )}
-      {isDevToolbarVisible() && !hideDevToolbar ? (
-        <DevOnboardingToolbar
-          onboardingOpen={showOnboarding}
-          onOpenOnboarding={openPreviewOnboarding}
-          onCloseOnboarding={dismissPreviewOnboarding}
-        />
-      ) : null}
     </>
   );
 }
@@ -494,7 +473,6 @@ function FitnessAppMain({
           state={state}
           setState={setState}
           onSignIn={() => void switchAccount()}
-          hideDevToolbar={routineEditorOpen}
         >
           <div
             className={`app-tab-shell${hideTabBar ? " app-tab-shell--no-chrome" : ""}`}

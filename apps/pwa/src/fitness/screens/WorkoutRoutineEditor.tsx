@@ -267,7 +267,7 @@ function SetCountStepper({
   onChange: (next: number) => void;
   disabled?: boolean;
 }) {
-  const n = Math.min(Math.max(count, 1), 12);
+  const n = Math.min(Math.max(count, 1), 4);
 
   return (
     <div
@@ -304,7 +304,7 @@ function SetCountStepper({
       <button
         type="button"
         className="tap"
-        disabled={disabled || n >= 12}
+        disabled={disabled || n >= 4}
         aria-label="Increase sets"
         onClick={() => onChange(n + 1)}
         style={{
@@ -314,7 +314,7 @@ function SetCountStepper({
           placeItems: "center",
           border: "none",
           background: "transparent",
-          color: n >= 12 ? "var(--text-whisper)" : "var(--text-primary)",
+          color: n >= 4 ? "var(--text-whisper)" : "var(--text-primary)",
         }}
       >
         <IconPlus size={16} stroke={2} />

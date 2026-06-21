@@ -141,7 +141,7 @@ function SetCountStepper({
   disabled?: boolean;
 }) {
   const { colors } = useAppTheme();
-  const n = Math.min(Math.max(count, 1), 12);
+  const n = Math.min(Math.max(count, 1), 4);
 
   return (
     <View
@@ -152,7 +152,7 @@ function SetCountStepper({
       <Text className="text-[15px] font-semibold tabular-nums" style={{ color: colors.textPrimary }}>
         {n}
       </Text>
-      <StepperButton label="+" disabled={disabled || n >= 12} onPress={() => onChange(n + 1)} />
+      <StepperButton label="+" disabled={disabled || n >= 4} onPress={() => onChange(n + 1)} />
     </View>
   );
 }

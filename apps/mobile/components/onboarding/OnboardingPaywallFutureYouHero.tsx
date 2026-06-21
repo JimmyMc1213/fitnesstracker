@@ -1,18 +1,25 @@
 import { FUTURE_YOU_HERO_LOADING_LABEL } from "@newyouai/core";
-import type { FutureYouJobStatus, UserGender } from "@newyouai/types";
+import type { FutureYouJobStatus, OnboardingProfile, UserGender, WeightUnit } from "@newyouai/types";
 import { ActivityIndicator, Image, Text, useWindowDimensions, View } from "react-native";
 import Svg, { Defs, FeGaussianBlur, Filter, Text as SvgText } from "react-native-svg";
 
+import { IconLock } from "@/components/icons/FitnessIcons";
 import { OnboardingContentReveal } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { useFutureYouPaywallImage } from "@/hooks/useFutureYouPaywallImage";
+import {
+  futureYouGoalLabel,
+  futureYouWeightDeltaLabel,
+} from "@/lib/futureYouGoalSummary";
 import { futureYouSilhouettesForGender } from "@/lib/futureYouSilhouettes";
 import { splitFutureYouTimelineForPaywall } from "@/lib/futureYouTimeline";
 import { paywallRevealDelayMs } from "@/lib/onboardingPaywallReveal";
 
 type Props = {
   timeline: string;
+  profile: OnboardingProfile;
+  weightUnit: WeightUnit;
   jobId: string | undefined;
   status: FutureYouJobStatus | "idle";
   gender: UserGender | undefined;
@@ -21,11 +28,6 @@ type Props = {
 /** Gold ring color = `--ob-gold` (#c9a876) at 0.75, matching PWA `__image-wrap`. */
 const GOLD_RING = "rgba(201, 168, 118, 0.75)";
 
-/**
- * Teaser timeline number, heavily blurred via an SVG Gaussian filter so the value
- * is illegible (the actual number is the paywall tease). A generous canvas + filter
- * region keeps the blur from being clipped at higher blur radii.
- */
 function BlurredTimelineValue({
   value,
   color,
@@ -48,7 +50,7 @@ function BlurredTimelineValue({
         x={width / 2}
         y={height / 2 + fontSize * 0.34}
         fontSize={fontSize}
-        fontWeight="bold"
+        fontWeight="600"
         fill={color}
         textAnchor="middle"
         filter="url(#paywall-fy-timeline-blur)"
@@ -60,33 +62,59 @@ function BlurredTimelineValue({
 }
 
 /** Blurred Future You hero teaser on paywall. */
-export function OnboardingPaywallFutureYouHero({ timeline, jobId, status, gender }: Props) {
+export function OnboardingPaywallFutureYouHero({
+  timeline,
+  profile,
+  weightUnit,
+  jobId,
+  status,
+  gender,
+}: Props) {
   const { colors } = useAppTheme();
   const { ob } = useOnboardingTheme();
   const { width: screenWidth } = useWindowDimensions();
   const { imageUri, loading } = useFutureYouPaywallImage({ jobId, status });
   const preparing = status !== "ready" || loading;
+
+  const goalLabel = futureYouGoalLabel(profile.goal);
+  const weightDeltaLabel = futureYouWeightDeltaLabel(profile, weightUnit);
   const { value: timelineValue, unit: timelineUnit } = splitFutureYouTimelineForPaywall(timeline);
+  const timelineFontSize = 20;
 
   // Blurred gendered silhouette stands in until the real Future You photo lands.
   const silhouetteSource = futureYouSilhouettesForGender(gender)?.after ?? null;
   const teaserSource = imageUri ? { uri: imageUri } : silhouetteSource;
 
-  const boxWidth = Math.min(228, screenWidth * 0.58);
+  const boxWidth = Math.min(275, screenWidth * 0.72);
   const boxHeight = (boxWidth * 4) / 3;
-  const taglineFontSize = 22;
 
   return (
-    <View testID="onboarding-paywall-future-you-hero" className="items-center gap-4">
-      <OnboardingContentReveal delay={paywallRevealDelayMs(1)} style={{ alignItems: "center" }}>
-        <Text className="text-center text-[22px] font-bold" style={{ color: colors.textPrimary }}>
-          <Text style={{ color: ob.gold }}>Future You</Text> is ready
+    <View testID="onboarding-paywall-future-you-hero" className="items-center gap-3">
+      <OnboardingContentReveal delay={paywallRevealDelayMs(1)} style={{ alignItems: "center", gap: 4 }}>
+        <Text className="text-center text-[34px] font-bold" style={{ color: ob.gold, letterSpacing: -0.5 }}>
+          Future You
         </Text>
+        <View
+          className="flex-row items-center justify-center"
+          accessibilityLabel={`You in ${timeline}`}
+        >
+          <Text className="text-xl font-medium" style={{ color: colors.textSecondary }}>
+            You in{" "}
+          </Text>
+          <BlurredTimelineValue
+            value={timelineValue}
+            color={colors.textSecondary}
+            fontSize={timelineFontSize}
+          />
+          <Text className="text-xl font-medium" style={{ color: colors.textSecondary }}>
+            {timelineUnit}
+          </Text>
+        </View>
       </OnboardingContentReveal>
 
       <OnboardingContentReveal
         delay={paywallRevealDelayMs(2)}
-        style={{ alignItems: "center", justifyContent: "center", paddingVertical: 12 }}
+        style={{ alignItems: "center", justifyContent: "center", paddingVertical: 4 }}
       >
         <View
           accessibilityState={{ busy: preparing }}
@@ -116,9 +144,37 @@ export function OnboardingPaywallFutureYouHero({ timeline, jobId, status, gender
           ) : (
             <View className="h-full w-full" style={{ backgroundColor: colors.border }} />
           )}
+
+          <View
+            pointerEvents="none"
+            className="absolute z-[2] flex-row items-center gap-1 rounded-full px-2 py-1.5"
+            style={{ top: 16, left: 16, backgroundColor: "rgba(0,0,0,0.55)" }}
+          >
+            <IconLock size={11} stroke={2} color="#ffffff" />
+            <Text className="text-[11px] font-semibold text-white" style={{ letterSpacing: 0.2 }}>
+              Locked
+            </Text>
+          </View>
+
+          <Text
+            pointerEvents="none"
+            className="absolute z-[2] px-3 text-center text-[10px] font-medium text-white/90"
+            style={{
+              bottom: 10,
+              left: 0,
+              right: 0,
+              letterSpacing: 0.1,
+              textShadowColor: "rgba(0,0,0,0.45)",
+              textShadowOffset: { width: 0, height: 1 },
+              textShadowRadius: 4,
+            }}
+          >
+            Subscribe to reveal your transformation
+          </Text>
+
           {preparing ? (
             <View
-              className="absolute inset-0 items-center justify-center gap-3 px-4"
+              className="absolute inset-0 z-[3] items-center justify-center gap-3 px-4"
               style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
             >
               <ActivityIndicator color={ob.gold} />
@@ -130,23 +186,15 @@ export function OnboardingPaywallFutureYouHero({ timeline, jobId, status, gender
         </View>
       </OnboardingContentReveal>
 
-      <OnboardingContentReveal delay={paywallRevealDelayMs(3)} style={{ alignItems: "center" }}>
-        <View
-          className="flex-row items-center justify-center"
-          accessibilityLabel={`You in ${timeline}`}
-        >
-          <Text className="text-[22px] font-bold" style={{ color: colors.textPrimary }}>
-            You in{" "}
+      <OnboardingContentReveal delay={paywallRevealDelayMs(3)} style={{ alignItems: "center", gap: 4 }}>
+        <Text className="text-center text-xl font-semibold" style={{ color: ob.gold }}>
+          Goal - {goalLabel}
+        </Text>
+        {weightDeltaLabel ? (
+          <Text className="text-center text-lg font-semibold" style={{ color: colors.textPrimary }}>
+            {weightDeltaLabel}
           </Text>
-          <BlurredTimelineValue
-            value={timelineValue}
-            color={colors.textPrimary}
-            fontSize={taglineFontSize}
-          />
-          <Text className="text-[22px] font-bold" style={{ color: colors.textPrimary }}>
-            {timelineUnit}
-          </Text>
-        </View>
+        ) : null}
       </OnboardingContentReveal>
     </View>
   );

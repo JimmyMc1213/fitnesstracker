@@ -48,7 +48,7 @@ type WheelItemProps = {
 
 function WheelItem({ label, index, translateY, selected, colors }: WheelItemProps) {
   const animatedStyle = useAnimatedStyle(() => {
-    const itemY = index * ITEM_HEIGHT + translateY.get() + CENTER_OFFSET;
+    const itemY = index * ITEM_HEIGHT + translateY.value + CENTER_OFFSET;
     const opacity = interpolate(
       itemY,
       [0, CENTER_OFFSET * 0.55, CENTER_OFFSET, CENTER_OFFSET * 1.45, WHEEL_HEIGHT],
@@ -90,16 +90,21 @@ type WheelColumnProps = {
 function WheelColumn({ items, selectedIndex, onSelect, flex, colors, highlightSelection }: WheelColumnProps) {
   const translateY = useSharedValue(-selectedIndex * ITEM_HEIGHT);
   const dragStart = useSharedValue(0);
+  const itemCount = useSharedValue(items.length);
+  const itemCountRef = useRef(items.length);
   const selectedRef = useRef(selectedIndex);
   const onSelectRef = useRef(onSelect);
-  const countRef = useRef(items.length);
 
   selectedRef.current = selectedIndex;
   onSelectRef.current = onSelect;
-  countRef.current = items.length;
+
+  useEffect(() => {
+    itemCount.value = items.length;
+    itemCountRef.current = items.length;
+  }, [itemCount, items.length]);
 
   const snapToIndex = useCallback((index: number) => {
-    const clamped = Math.max(0, Math.min(index, countRef.current - 1));
+    const clamped = Math.max(0, Math.min(index, itemCountRef.current - 1));
     if (clamped !== selectedRef.current) {
       onSelectRef.current(clamped);
     }
@@ -115,13 +120,13 @@ function WheelColumn({ items, selectedIndex, onSelect, flex, colors, highlightSe
     })
     .onUpdate((event) => {
       const next = dragStart.value + event.translationY;
-      const minY = -(countRef.current - 1) * ITEM_HEIGHT;
+      const minY = -(itemCount.value - 1) * ITEM_HEIGHT;
       translateY.value = Math.max(minY, Math.min(0, next));
     })
     .onEnd((event) => {
       const projected = translateY.value + event.velocityY * 0.08;
       const index = Math.round(-projected / ITEM_HEIGHT);
-      const clamped = Math.max(0, Math.min(countRef.current - 1, index));
+      const clamped = Math.max(0, Math.min(itemCount.value - 1, index));
       translateY.value = withSpring(-clamped * ITEM_HEIGHT, SPRING);
       runOnJS(snapToIndex)(clamped);
     });

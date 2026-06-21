@@ -65,10 +65,10 @@ function ConfettiPiece({ config }: { config: PieceConfig }) {
   const animatedStyle = useAnimatedStyle(() => {
     const translateY = config.startY + progress.value * config.fallDistance;
     const translateX = progress.value * config.driftX;
-    const rotate = config.rotateFrom + progress.value * (config.rotateTo - config.rotateFrom);
+    const rotateZ = `${config.rotateFrom + progress.value * (config.rotateTo - config.rotateFrom)}deg`;
     return {
       opacity: opacity.value,
-      transform: [{ translateX }, { translateY }, { rotate: `${rotate}deg` }],
+      transform: [{ translateX }, { translateY }, { rotateZ }],
     };
   });
 
