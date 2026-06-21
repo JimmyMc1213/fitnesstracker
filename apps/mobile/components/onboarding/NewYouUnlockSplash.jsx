@@ -49,6 +49,8 @@ export default function NewYouUnlockSplash({
   goldDeep = "#9c8050",
   headline = "New You",
   onFinish,
+  /** When false, hold at progress 0 (dark backdrop only) until the confirming layer clears. */
+  active = true,
 }) {
   const { width: W, height: H } = useWindowDimensions();
   const CX = W / 2;
@@ -87,6 +89,11 @@ export default function NewYouUnlockSplash({
   );
 
   useEffect(() => {
+    if (!active) {
+      setProgress(0);
+      return undefined;
+    }
+
     let raf = 0;
     const start = Date.now() + START_DELAY;
 
@@ -105,7 +112,7 @@ export default function NewYouUnlockSplash({
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [active]);
 
   const glowRadius = lerp(
     [0, 0.05, 0.5, 0.66, 1],

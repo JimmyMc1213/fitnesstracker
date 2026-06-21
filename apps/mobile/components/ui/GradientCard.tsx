@@ -35,6 +35,17 @@ function angleToCoords(deg: number) {
   };
 }
 
+/** RN SVG ignores alpha in `stopColor="rgba(...)"` — split into rgb + stopOpacity. */
+function parseGradientStop(color: string): { stopColor: string; stopOpacity?: number } {
+  const match = color.match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i);
+  if (!match) return { stopColor: color };
+
+  const [, r, g, b, a] = match;
+  const opacity = a != null ? Number(a) : 1;
+  if (opacity >= 1) return { stopColor: `rgb(${r}, ${g}, ${b})` };
+  return { stopColor: `rgb(${r}, ${g}, ${b})`, stopOpacity: opacity };
+}
+
 /** Shared card with the PWA's subtle gradient depth, hairline border, and soft shadow. */
 export function GradientCard({ children, padding, spacious, accentColor, radius = 16, style, testID }: Props) {
   const { ob } = useOnboardingTheme();
@@ -66,9 +77,17 @@ export function GradientCard({ children, padding, spacious, accentColor, radius 
         <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
           <Defs>
             <LinearGradient id={gradientId} x1={coords.x1} y1={coords.y1} x2={coords.x2} y2={coords.y2}>
-              {stops.map((stop, index) => (
-                <Stop key={index} offset={stop.offset} stopColor={stop.color} />
-              ))}
+              {stops.map((stop, index) => {
+                const { stopColor, stopOpacity } = parseGradientStop(stop.color);
+                return (
+                  <Stop
+                    key={index}
+                    offset={stop.offset}
+                    stopColor={stopColor}
+                    stopOpacity={stopOpacity}
+                  />
+                );
+              })}
             </LinearGradient>
           </Defs>
           <Rect x={0} y={0} width="100%" height="100%" fill={`url(#${gradientId})`} />

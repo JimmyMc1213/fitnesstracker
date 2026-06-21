@@ -25,7 +25,9 @@ import type { PaywallBillingPeriod } from "@/lib/paywallPlans";
 import { purchaseProSubscription, restorePurchases } from "@/lib/revenueCat";
 
 type Props = {
-  onSelectTier: (tier: "pro") => void;
+  onPurchaseStart: () => void;
+  onPurchaseSuccess: (tier: "pro") => void;
+  onPurchaseError: (error: string) => void;
   onBack: () => void;
   planSnapshot: OnboardingPlanSnapshot;
   futureYou: FutureYouDraft | undefined;
@@ -35,7 +37,9 @@ type Props = {
 };
 
 export function OnboardingPaywall({
-  onSelectTier,
+  onPurchaseStart,
+  onPurchaseSuccess,
+  onPurchaseError,
   onBack,
   planSnapshot,
   futureYou,
@@ -58,26 +62,30 @@ export function OnboardingPaywall({
     if (!ctaEnabled) return;
     setPurchasing(true);
     setError(null);
+    onPurchaseStart();
     const result = await purchaseProSubscription(billingPeriod);
     setPurchasing(false);
     if (!result.ok) {
       setError(result.error);
+      onPurchaseError(result.error);
       return;
     }
-    onSelectTier("pro");
+    onPurchaseSuccess("pro");
   }
 
   async function handleRestore() {
-    if (!ctaEnabled) return;
+    if (purchasing) return;
     setPurchasing(true);
     setError(null);
+    onPurchaseStart();
     const result = await restorePurchases();
     setPurchasing(false);
     if (!result.ok) {
       setError(result.error);
+      onPurchaseError(result.error);
       return;
     }
-    onSelectTier("pro");
+    onPurchaseSuccess("pro");
   }
 
   return (

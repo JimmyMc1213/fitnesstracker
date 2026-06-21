@@ -81,7 +81,7 @@ type OnboardingWizardContextValue = {
   setNotificationPrefs: (prefs: NotificationPreferences) => void;
 };
 
-const OnboardingWizardContext = createContext<OnboardingWizardContextValue | null>(null);
+export const OnboardingWizardContext = createContext<OnboardingWizardContextValue | null>(null);
 
 function stateFromDraft(draft: OnboardingDraft) {
   const profile = { ...draft.profile };

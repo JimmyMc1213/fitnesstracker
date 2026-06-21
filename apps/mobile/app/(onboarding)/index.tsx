@@ -159,6 +159,7 @@ export default function OnboardingWizardScreen() {
   const { setOnboardingComplete } = useOnboardingState();
   const [finishingOnboarding, setFinishingOnboarding] = useState(false);
   const [showPurchaseWelcomeSplash, setShowPurchaseWelcomeSplash] = useState(false);
+  const [purchaseComplete, setPurchaseComplete] = useState(false);
 
   const futureYouFlow = useFutureYouOnboarding({
     goToStep,
@@ -1093,9 +1094,17 @@ export default function OnboardingWizardScreen() {
         photoBlocked={futureYouBlocked}
         weightUnit={unitPreferences.weightUnit ?? "lbs"}
         onBack={goBack}
-        onSelectTier={() => {
+        onPurchaseStart={() => {
+          setPurchaseComplete(false);
           setShowPurchaseWelcomeSplash(true);
+        }}
+        onPurchaseSuccess={() => {
+          setPurchaseComplete(true);
           goToStep(ONBOARDING_STEP_FUTURE_YOU_SUCCESS, { subscriptionTier: "pro" });
+        }}
+        onPurchaseError={() => {
+          setShowPurchaseWelcomeSplash(false);
+          setPurchaseComplete(false);
         }}
       />
     );
@@ -1222,7 +1231,13 @@ export default function OnboardingWizardScreen() {
         }}
       </ScreenTransition>
       {showPurchaseWelcomeSplash ? (
-        <OnboardingPurchaseWelcomeSplash onComplete={() => setShowPurchaseWelcomeSplash(false)} />
+        <OnboardingPurchaseWelcomeSplash
+          purchaseComplete={purchaseComplete}
+          onComplete={() => {
+            setShowPurchaseWelcomeSplash(false);
+            setPurchaseComplete(false);
+          }}
+        />
       ) : null}
     </View>
   );

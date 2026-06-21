@@ -110,10 +110,11 @@ const darkOnboardingTheme: OnboardingThemeTokens = {
   ghostFg: "rgba(255, 255, 255, 0.42)",
   welcomeCtaBg: "#ffffff",
   welcomeCtaFg: "#0a0a0a",
+  /** Solid stops — PWA uses rgba sheen; RN SVG needs opaque composited tones. */
   gradientCardStops: [
-    { color: "rgba(255, 255, 255, 0.04)", offset: 0 },
+    { color: "#1c1c20", offset: 0 },
     { color: "#161616", offset: 0.38 },
-    { color: "rgba(8, 8, 12, 0.94)", offset: 1 },
+    { color: "#0a0a0c", offset: 1 },
   ],
   gradientCardShadow: {
     color: "#000000",
