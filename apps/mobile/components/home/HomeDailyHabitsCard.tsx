@@ -14,7 +14,7 @@ import { ExerciseDragHandle, SortableExerciseList } from "@/components/workout/S
 import { isMobilityHabit } from "@/lib/mobilityHabit";
 import { isActionHabit, isWeighInActionHabit } from "@/lib/habits";
 import { habitIconComponent } from "@/lib/habitIcons";
-import { MOBILITY_ACCENT, MOBILITY_BG, MOBILITY_BORDER } from "@/lib/workoutUiTokens";
+import { mobilityColors } from "@/lib/workoutUiTokens";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { Habit, HabitTemplate } from "@newyouai/types";
 
@@ -142,6 +142,8 @@ export function HomeDailyHabitsCard({
                 <SortableExerciseList
                   items={editDraft}
                   onReorder={setEditDraft}
+                  nestedInScrollView
+                  contentContainerStyle={{ gap: 8, paddingBottom: 0 }}
                   renderItem={(item, _index, handle) => {
                     const habit = editHabits.find((h) => h.id === item.id) ?? { ...item, done: false };
                     const removing = removingIds.has(item.id);
@@ -215,7 +217,8 @@ function MobilityRoutineCard({
   readOnly: boolean;
   onPress?: () => void;
 }) {
-  const { colors } = useAppTheme();
+  const { colors, theme } = useAppTheme();
+  const mobility = mobilityColors(theme);
   const subtitle = habit.done
     ? "Routine complete for today"
     : habit.subtitle?.trim() || "~15 min stretch · complete all moves";
@@ -228,8 +231,8 @@ function MobilityRoutineCard({
       accessibilityLabel={habit.done ? "Open mobility routine" : "Start mobility routine"}
       className="rounded-xl border p-4"
       style={{
-        borderColor: habit.done ? "rgba(196,181,253,0.42)" : MOBILITY_BORDER,
-        backgroundColor: MOBILITY_BG,
+        borderColor: habit.done ? mobility.borderDone : mobility.border,
+        backgroundColor: mobility.bg,
         opacity: readOnly ? 0.72 : 1,
       }}
     >
@@ -237,21 +240,21 @@ function MobilityRoutineCard({
         <View
           className="h-10 w-10 items-center justify-center rounded-xl border"
           style={{
-            borderColor: "rgba(196,181,253,0.22)",
-            backgroundColor: habit.done ? "rgba(196,181,253,0.18)" : "rgba(196,181,253,0.12)",
+            borderColor: mobility.iconBorder,
+            backgroundColor: habit.done ? mobility.iconBgDone : mobility.iconBg,
           }}
         >
-          <IconMobilityRunner size={22} color={MOBILITY_ACCENT} />
+          <IconMobilityRunner size={22} color={mobility.accent} />
         </View>
         <View className="min-w-0 flex-1">
           <View className="mb-1.5 flex-row flex-wrap items-center gap-2">
-            <Text className="text-[10px] font-bold uppercase tracking-widest" style={{ color: MOBILITY_ACCENT }}>
+            <Text className="text-[10px] font-bold uppercase tracking-widest" style={{ color: mobility.accent }}>
               Guided routine
             </Text>
             {habit.done ? (
               <View
                 className="rounded-full border px-1.5 py-0.5"
-                style={{ borderColor: colors.border, backgroundColor: "rgba(255,255,255,0.06)" }}
+                style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
               >
                 <Text className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: colors.textSecondary }}>
                   Done
@@ -267,10 +270,10 @@ function MobilityRoutineCard({
           </Text>
           {!readOnly ? (
             <View className="mt-3 flex-row items-center gap-1.5">
-              <Text className="text-xs font-semibold" style={{ color: MOBILITY_ACCENT }}>
+              <Text className="text-xs font-semibold" style={{ color: mobility.accent }}>
                 {habit.done ? "Open routine" : "Start routine"}
               </Text>
-              <IconChevR size={14} stroke={2.2} color={MOBILITY_ACCENT} />
+              <IconChevR size={14} stroke={2.2} color={mobility.accent} />
             </View>
           ) : null}
         </View>

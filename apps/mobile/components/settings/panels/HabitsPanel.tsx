@@ -5,6 +5,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 
 import { habitIconComponent } from "@/lib/habitIcons";
 import { SettingsHelper } from "@/components/settings/SettingsLayout";
+import { GradientCard } from "@/components/ui/GradientCard";
 import { WorkoutConfirmSheet } from "@/components/workout/WorkoutConfirmSheet";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -65,12 +66,9 @@ export function HabitsPanel() {
 
       <View className="gap-2.5">
         {state.habitTemplates.map((h) => (
-          <View
-            key={h.id}
-            className="rounded-xl border p-3.5"
-            style={{ borderColor: colors.border, backgroundColor: colors.card, gap: 10 }}
-          >
-            <TextInput
+          <GradientCard key={h.id} padding={14}>
+            <View style={{ gap: 10 }}>
+              <TextInput
               value={h.name}
               onChangeText={(value) => {
                 const name = sanitizeUserText(value);
@@ -92,8 +90,8 @@ export function HabitsPanel() {
                 backgroundColor: colors.backgroundSecondary,
                 color: colors.textPrimary,
               }}
-            />
-            <View className="flex-row flex-wrap items-center gap-2">
+              />
+              <View className="flex-row flex-wrap items-center gap-2">
               <Text
                 className="mr-1 text-[10px] font-medium uppercase tracking-widest"
                 style={{ color: colors.textTertiary }}
@@ -125,8 +123,9 @@ export function HabitsPanel() {
               >
                 <Text className="text-[12px] font-semibold" style={{ color: "#f87171" }}>Remove</Text>
               </Pressable>
+              </View>
             </View>
-          </View>
+          </GradientCard>
         ))}
 
         <Pressable

@@ -359,10 +359,12 @@ export default function HomeScreen() {
           coachCtx={coachCtx}
           coachPlan={coachPlan}
           state={state}
+          newYou={futureYouEntry.mode === "reveal"}
           onLogFuel={() => router.push("/(tabs)/nutrition")}
           onStartWorkout={() => router.push("/(tabs)/workout")}
           onReviewWorkout={() => router.push("/(tabs)/workout")}
           onOpenMobilityPreview={() => setMobilityPreviewOpen(true)}
+          onOpenNewYou={openNewYou}
         />
 
         <HomeDailyHabitsCard

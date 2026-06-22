@@ -4,6 +4,7 @@ import { FutureYouReportButton } from "@/components/future-you/FutureYouReportBu
 import { OnboardingFutureYouSuccessHero } from "@/components/onboarding/OnboardingFutureYouSuccessHero";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { futureYouRevealPlaceholderSource } from "@/lib/futureYouRevealPlaceholder";
+import { FUTURE_YOU_CALLOUT_BG, FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
 import {
   FUTURE_YOU_DETAIL_BACK_LABEL,
   FUTURE_YOU_GALLERY_SAVE_LABEL,
@@ -40,7 +41,7 @@ export function FutureYouDetailView({
   const canFullscreen = Boolean(item.imageSrc && !item.loading);
 
   return (
-    <View testID="future-you-detail" className="mt-[18px] gap-4">
+    <View testID="future-you-detail" className="flex-1 pt-[18px]">
       <View className="flex-row items-center justify-between">
         <Pressable
           testID="future-you-detail-back"
@@ -48,7 +49,7 @@ export function FutureYouDetailView({
           onPress={onBack}
           className="py-1"
         >
-          <Text className="text-base font-semibold" style={{ color: colors.accent }}>
+          <Text className="text-base font-semibold" style={{ color: FUTURE_YOU_GOLD }}>
             ← {FUTURE_YOU_DETAIL_BACK_LABEL}
           </Text>
         </Pressable>
@@ -58,39 +59,42 @@ export function FutureYouDetailView({
         />
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ disabled: !canFullscreen }}
-        disabled={!canFullscreen}
-        onPress={() => {
-          if (canFullscreen) onOpenFullscreen();
-        }}
-      >
-        <OnboardingFutureYouSuccessHero
-          timeline={timeline}
-          imageUri={item.imageSrc}
-          placeholderSource={placeholderSource}
-          loading={item.loading}
-        />
-      </Pressable>
+      <View className="flex-1 justify-center pt-6">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !canFullscreen }}
+          disabled={!canFullscreen}
+          onPress={() => {
+            if (canFullscreen) onOpenFullscreen();
+          }}
+        >
+          <OnboardingFutureYouSuccessHero
+            imageHeight={340}
+            accentColor={FUTURE_YOU_GOLD}
+            timeline={timeline}
+            imageUri={item.imageSrc}
+            placeholderSource={placeholderSource}
+            loading={item.loading}
+          />
+        </Pressable>
+      </View>
 
-      <Text className="text-center text-xs" style={{ color: colors.textTertiary }}>
-        {FUTURE_YOU_SUCCESS_AI_LABEL}
-      </Text>
-
-      <View className="gap-2">
+      <View className="gap-2 pb-1">
+        <Text className="text-center text-xs" style={{ color: colors.textTertiary }}>
+          {FUTURE_YOU_SUCCESS_AI_LABEL}
+        </Text>
         <Pressable
           accessibilityRole="button"
           disabled
-          className="items-center rounded-full px-6 py-3.5 opacity-50"
-          style={{ backgroundColor: colors.accent, minHeight: 52 }}
+          className="items-center rounded-full px-6 py-3.5 opacity-60"
+          style={{ backgroundColor: FUTURE_YOU_GOLD, minHeight: 52 }}
         >
-          <Text className="text-base font-semibold" style={{ color: colors.background }}>
+          <Text className="text-base font-semibold" style={{ color: FUTURE_YOU_CALLOUT_BG }}>
             {FUTURE_YOU_GALLERY_SAVE_LABEL} (coming soon)
           </Text>
         </Pressable>
         <FutureYouReportButton jobId={jobId} context="home" />
-        <FutureYouLegalFooter className="mt-2" />
+        <FutureYouLegalFooter className="mt-2" accentColor={FUTURE_YOU_GOLD} />
       </View>
     </View>
   );

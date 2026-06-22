@@ -1,4 +1,10 @@
+import { planWeekIndex } from "@newyouai/core";
 import type { GoalPace, OnboardingProfile } from "@newyouai/types";
+
+import { futureYouTimelineMonths } from "@/lib/futureYouGoalSummary";
+
+/** Average weeks per month, used to convert the coarse timeline into weeks. */
+const WEEKS_PER_MONTH = 4.345;
 
 /** Rough lbs/week from calorie deficit/surplus (3500 kcal ≈ 1 lb). */
 const PACE_LBS_PER_WEEK: Record<GoalPace, number> = {
@@ -39,6 +45,21 @@ function formatFutureYouTimelineWeeks(weeks: number): string {
   if (months <= 12) return `${months} months`;
   const years = Math.round(months / 12);
   return years === 1 ? "1 year" : `${years} years`;
+}
+
+/**
+ * Current week and total program weeks toward the user's Future You goal.
+ * Week is 1-based from `planStartIso` and clamped to the timeline length.
+ */
+export function futureYouWeekProgress(
+  profile: Pick<OnboardingProfile, "goal" | "pace" | "weightLbs" | "goalWeightLbs">,
+  planStartIso: string,
+  now = new Date(),
+): { week: number; totalWeeks: number } {
+  const timeline = futureYouTimelineFromProfile(profile);
+  const totalWeeks = Math.max(1, Math.round(futureYouTimelineMonths(timeline) * WEEKS_PER_MONTH));
+  const week = Math.min(planWeekIndex(now, planStartIso), totalWeeks);
+  return { week, totalWeeks };
 }
 
 /** Split timeline for paywall hero blur effect (numeric value + unit suffix). */

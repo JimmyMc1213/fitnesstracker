@@ -38,28 +38,3 @@ export function referralSourceLabel(source: ReferralSource): string {
       return "Other";
   }
 }
-
-export function referralSourceEmoji(source: ReferralSource): string {
-  switch (source) {
-    case "friend":
-      return "👥";
-    case "instagram":
-      return "📸";
-    case "tiktok":
-      return "🎵";
-    case "youtube":
-      return "▶️";
-    case "reddit":
-      return "🔴";
-    case "google":
-      return "🔍";
-    case "app_store":
-      return "🍎";
-    case "facebook":
-      return "📘";
-    case "x":
-      return "𝕏";
-    case "other":
-      return "💬";
-  }
-}

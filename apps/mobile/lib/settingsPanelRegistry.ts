@@ -27,7 +27,7 @@ export const PANEL_TITLES: Record<SettingsPanelId, string> = {
   "rest-timer": "Rest timer",
   equipment: "Equipment",
   habits: "Habits checklist",
-  program: "Program",
+  program: "Steps",
 };
 
 export function isSettingsPanelId(value: string): value is SettingsPanelId {

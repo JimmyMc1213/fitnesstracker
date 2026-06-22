@@ -1,44 +1,65 @@
-import { Text, TextInput } from "react-native";
+import { useEffect, useState } from "react";
+import { Text } from "react-native";
 
 import {
   SettingsDetailCard,
-  SettingsFieldLabel,
+  SettingsFormField,
+  SettingsTextField,
 } from "@/components/settings/SettingsLayout";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
+function clampStepsTarget(n: number) {
+  return Math.min(100_000, Math.max(1000, n));
+}
+
 export function ProgramPanel() {
   const { colors } = useAppTheme();
   const { state, setFitnessState } = useFitnessState();
+  const [stepsIn, setStepsIn] = useState("");
+
+  useEffect(() => {
+    if (!state) return;
+    setStepsIn(String(state.stepsTarget));
+  }, [state?.stepsTarget]);
 
   if (!state) return null;
 
+  function commitStepsTarget(raw: string) {
+    const n = parseInt(raw, 10);
+    const val = clampStepsTarget(Number.isFinite(n) ? n : state!.stepsTarget);
+    setStepsIn(String(val));
+    setFitnessState((prev) => ({
+      ...prev,
+      stepsTarget: val,
+    }));
+  }
+
   return (
     <SettingsDetailCard>
-      <SettingsFieldLabel>Steps goal</SettingsFieldLabel>
-      <TextInput
-        testID="settings-program-steps-target"
-        value={String(state.stepsTarget)}
-        onChangeText={(raw) => {
-          const n = parseInt(raw, 10);
-          if (!Number.isFinite(n)) return;
-          const stepsTarget = Math.min(100_000, Math.max(1000, n));
-          setFitnessState((prev) => ({
-            ...prev,
-            stepsTarget,
-          }));
-        }}
-        keyboardType="number-pad"
-        inputMode="numeric"
-        className="mt-2 rounded-xl border px-3 py-2.5 text-base tabular-nums"
-        style={{
-          borderColor: colors.border,
-          backgroundColor: colors.backgroundSecondary,
-          color: colors.textPrimary,
-        }}
-        accessibilityLabel="Daily steps goal"
-      />
-      <Text className="mt-2 text-xs" style={{ color: colors.textTertiary }}>
+      <SettingsFormField label="Steps goal">
+        <SettingsTextField
+          testID="settings-program-steps-target"
+          value={stepsIn}
+          onChangeText={(raw) => {
+            const digits = raw.replace(/[^\d]/g, "");
+            setStepsIn(digits);
+            if (digits === "") return;
+            const n = parseInt(digits, 10);
+            if (!Number.isFinite(n)) return;
+            setFitnessState((prev) => ({
+              ...prev,
+              stepsTarget: clampStepsTarget(n),
+            }));
+          }}
+          onBlur={() => commitStepsTarget(stepsIn)}
+          keyboardType="number-pad"
+          inputMode="numeric"
+          className="rounded-[12px] border px-3.5 py-3 text-[15px] tabular-nums"
+          accessibilityLabel="Daily steps goal"
+        />
+      </SettingsFormField>
+      <Text className="text-[12px] font-medium leading-[1.45]" style={{ color: colors.textTertiary }}>
         Shown on Home daily habits when a habit uses the runner icon.
       </Text>
     </SettingsDetailCard>

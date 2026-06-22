@@ -31,18 +31,20 @@ const MACRO_ROWS: {
 
 type Props = {
   macros: MacroTotals;
-  computedMacros: MacroTotals;
+  computedMacros?: MacroTotals;
   onChangeMacros: (next: MacroTotals) => void;
-  onReset: () => void;
+  onReset?: () => void;
 };
 
 export function OnboardingDailyFuelPlan({ macros, computedMacros, onChangeMacros, onReset }: Props) {
   const { colors, ob } = useOnboardingTheme();
   const macrosEdited =
-    macros.cal !== computedMacros.cal ||
-    macros.p !== computedMacros.p ||
-    macros.c !== computedMacros.c ||
-    macros.f !== computedMacros.f;
+    computedMacros != null &&
+    onReset != null &&
+    (macros.cal !== computedMacros.cal ||
+      macros.p !== computedMacros.p ||
+      macros.c !== computedMacros.c ||
+      macros.f !== computedMacros.f);
 
   return (
     <View className="gap-4">

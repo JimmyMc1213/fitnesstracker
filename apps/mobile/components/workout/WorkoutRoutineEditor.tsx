@@ -1,5 +1,6 @@
 import { weekdayFullName } from "@newyouai/core";
 import type { CustomExerciseTemplate, EquipmentSetup, WorkoutExercise, WorkoutRoutineTemplate } from "@newyouai/types";
+import { IconTrash } from "@tabler/icons-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -514,7 +515,7 @@ export function WorkoutRoutineEditor({
                         }
                         className="h-9 w-9 items-center justify-center"
                       >
-                        <Text style={{ color: "#FF6961", fontSize: 16 }}>🗑</Text>
+                        <IconTrash size={16} color="#FF6961" strokeWidth={2} />
                       </Pressable>
                     </View>
                   </View>

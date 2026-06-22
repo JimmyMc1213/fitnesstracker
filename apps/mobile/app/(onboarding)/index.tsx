@@ -8,6 +8,7 @@ import {
   ONBOARDING_STEP_FUTURE_YOU_SUCCESS,
 } from "@newyouai/core";
 import type { UserGender } from "@newyouai/types";
+import { router } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { DateOfBirthPicker } from "@/components/onboarding/DateOfBirthPicker";
@@ -50,6 +51,7 @@ import {
 import { useFutureYouGenerationPoll } from "@/hooks/useFutureYouGenerationPoll";
 import { useFutureYouOnboarding } from "@/hooks/useFutureYouOnboarding";
 import { useOnboardingState } from "@/hooks/useOnboardingState";
+import { useFitnessState } from "@/context/FitnessContext";
 import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
 import { finishOnboarding } from "@/lib/finishOnboarding";
 import { canAccessFutureYouSuccessScreen } from "@/lib/futureYouSuccessModel";
@@ -86,14 +88,14 @@ import {
 import {
   DIETARY_RESTRICTIONS,
   ONBOARDING_BARRIERS,
-  barrierEmoji,
+  barrierIcon,
   barrierLabel,
-  dietaryRestrictionEmoji,
+  dietaryRestrictionIcon,
   dietaryRestrictionLabel,
   toggleDietaryRestriction,
   toggleSurveySelection,
   TRAINING_STYLES,
-  trainingStyleEmoji,
+  trainingStyleIcon,
   trainingStyleLabel,
 } from "@/lib/onboardingMotivationSurvey";
 import { shouldConfirmMacroEditOnContinue } from "@/lib/onboardingMacroEdit";
@@ -157,6 +159,7 @@ export default function OnboardingWizardScreen() {
   } = useOnboardingWizard();
 
   const { setOnboardingComplete } = useOnboardingState();
+  const { replaceFitnessState } = useFitnessState();
   const [finishingOnboarding, setFinishingOnboarding] = useState(false);
   const [showPurchaseWelcomeSplash, setShowPurchaseWelcomeSplash] = useState(false);
   const [purchaseComplete, setPurchaseComplete] = useState(false);
@@ -787,7 +790,7 @@ export default function OnboardingWizardScreen() {
     const barrierOptions = ONBOARDING_BARRIERS.map((id) => ({
       id,
       label: barrierLabel(id),
-      emoji: barrierEmoji(id),
+      icon: barrierIcon(id),
     }));
 
     return (
@@ -821,7 +824,7 @@ export default function OnboardingWizardScreen() {
     const restrictionOptions = DIETARY_RESTRICTIONS.map((id) => ({
       id,
       label: dietaryRestrictionLabel(id),
-      emoji: dietaryRestrictionEmoji(id),
+      icon: dietaryRestrictionIcon(id),
     }));
 
     return (
@@ -1136,7 +1139,7 @@ export default function OnboardingWizardScreen() {
       }
       setFinishingOnboarding(true);
       try {
-        await finishOnboarding({
+        const nextState = await finishOnboarding({
           displayName: name,
           profile,
           unitPreferences,
@@ -1150,8 +1153,10 @@ export default function OnboardingWizardScreen() {
           theme: activeTheme,
           futureYou,
         });
+        replaceFitnessState(nextState);
         await setOnboardingComplete(true);
         stopOnboardingPreview();
+        router.replace("/(tabs)/home");
       } finally {
         setFinishingOnboarding(false);
       }
@@ -1177,7 +1182,7 @@ export default function OnboardingWizardScreen() {
     const styleOptions = TRAINING_STYLES.map((id) => ({
       id,
       label: trainingStyleLabel(id),
-      emoji: trainingStyleEmoji(id),
+      icon: trainingStyleIcon(id),
     }));
 
     return (

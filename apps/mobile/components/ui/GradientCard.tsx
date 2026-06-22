@@ -15,6 +15,8 @@ type Props = {
   accentColor?: string;
   /** Corner radius. Defaults to 16 to match PWA. */
   radius?: number;
+  /** Stretch the inner layers so children can fill the card height (use with a flex outer style). */
+  fill?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 };
@@ -47,7 +49,7 @@ function parseGradientStop(color: string): { stopColor: string; stopOpacity?: nu
 }
 
 /** Shared card with the PWA's subtle gradient depth, hairline border, and soft shadow. */
-export function GradientCard({ children, padding, spacious, accentColor, radius = 16, style, testID }: Props) {
+export function GradientCard({ children, padding, spacious, accentColor, radius = 16, fill = false, style, testID }: Props) {
   const { ob } = useOnboardingTheme();
   const pad = padding ?? (spacious ? 20 : 16);
   const stops = ob.gradientCardStops;
@@ -73,7 +75,7 @@ export function GradientCard({ children, padding, spacious, accentColor, radius 
         style,
       ]}
     >
-      <View style={[styles.clip, { borderRadius: radius, borderColor: ob.cardBorder }]}>
+      <View style={[styles.clip, fill && styles.fill, { borderRadius: radius, borderColor: ob.cardBorder }]}>
         <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
           <Defs>
             <LinearGradient id={gradientId} x1={coords.x1} y1={coords.y1} x2={coords.x2} y2={coords.y2}>
@@ -94,11 +96,12 @@ export function GradientCard({ children, padding, spacious, accentColor, radius 
         </Svg>
         <View style={[styles.topHighlight, { backgroundColor: ob.cardTopHighlight }]} pointerEvents="none" />
         <View
-          style={
+          style={[
             accentColor
               ? { padding: pad, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: accentColor }
-              : { padding: pad }
-          }
+              : { padding: pad },
+            fill && styles.fill,
+          ]}
         >
           {children}
         </View>
@@ -111,6 +114,9 @@ const styles = StyleSheet.create({
   clip: {
     overflow: "hidden",
     borderWidth: 0.5,
+  },
+  fill: {
+    flex: 1,
   },
   topHighlight: {
     position: "absolute",

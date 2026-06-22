@@ -63,19 +63,15 @@ export function WorkoutHistorySessionCard({
       </View>
 
       <Pressable onPress={onOpen} className="px-3.5 pb-2.5">
-        <View className="flex-row flex-wrap gap-3">
-          <Text className="text-xs font-semibold" style={{ color: colors.textTertiary }}>
-            ⏱ {formatWorkoutDuration(session.durationSec)}
-          </Text>
-          <Text className="text-xs font-semibold" style={{ color: colors.textTertiary }}>
-            🏋 {formatSessionVolume(volume, weightUnit)}
-          </Text>
-          {prCount > 0 ? (
-            <Text className="text-xs font-semibold" style={{ color: colors.textTertiary }}>
-              🏆 {prCount} PR{prCount === 1 ? "" : "s"}
-            </Text>
-          ) : null}
-        </View>
+        <Text className="text-xs font-semibold tabular-nums" style={{ color: colors.textTertiary }}>
+          {[
+            formatWorkoutDuration(session.durationSec),
+            formatSessionVolume(volume, weightUnit),
+            prCount > 0 ? `${prCount} PR${prCount === 1 ? "" : "s"}` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </Text>
       </Pressable>
 
       {rows.length > 0 ? (

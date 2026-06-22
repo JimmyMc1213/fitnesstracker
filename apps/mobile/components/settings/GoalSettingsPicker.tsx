@@ -11,12 +11,10 @@ import { Text, View } from "react-native";
 import { OnboardingWeightInput } from "@/components/onboarding/OnboardingWeightInput";
 import { OnboardingPillStack, OnboardingSegment } from "@/components/onboarding/OnboardingSegment";
 import { PacePicker } from "@/components/onboarding/PacePicker";
-import { SettingsDetailCard, SettingsFieldLabel } from "@/components/settings/SettingsLayout";
+import { SettingsFieldLabel } from "@/components/settings/SettingsLayout";
+import { GradientCard } from "@/components/ui/GradientCard";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import {
-  goalWeightDirectionLabel,
-  goalWeightRangeLbs,
-} from "@/lib/goalWeight";
+import { goalWeightDirectionLabel, goalWeightRangeLbs } from "@/lib/goalWeight";
 
 export function GoalSettingsPicker({
   profile,
@@ -33,25 +31,23 @@ export function GoalSettingsPicker({
   const goal = profile.goal ?? "maintain";
 
   return (
-    <View style={{ gap: 20 }}>
-      <View>
+    <View style={{ gap: 24 }}>
+      <View style={{ gap: 12 }}>
         <SettingsFieldLabel>Primary goal</SettingsFieldLabel>
-        <View className="mt-2">
-          <OnboardingPillStack>
-            {NUTRITION_GOALS.map((g) => (
-              <OnboardingSegment key={g} selected={goal === g} onPress={() => onChange({ goal: g })}>
-                {nutritionGoalSettingsLabel(g)}
-              </OnboardingSegment>
-            ))}
-          </OnboardingPillStack>
-        </View>
+        <OnboardingPillStack>
+          {NUTRITION_GOALS.map((g) => (
+            <OnboardingSegment key={g} selected={goal === g} onPress={() => onChange({ goal: g })}>
+              {nutritionGoalSettingsLabel(g)}
+            </OnboardingSegment>
+          ))}
+        </OnboardingPillStack>
       </View>
 
       {goal !== "maintain" ? (
         <>
-          <View>
+          <View style={{ gap: 12 }}>
             <SettingsFieldLabel>Desired weight</SettingsFieldLabel>
-            <SettingsDetailCard>
+            <GradientCard spacious>
               {(() => {
                 const typedGoal = goal as "cut" | "bulk";
                 const { minLbs, maxLbs } = goalWeightRangeLbs(typedGoal, currentWeightLbs);
@@ -61,8 +57,8 @@ export function GoalSettingsPicker({
                   maxLbs,
                 );
                 return (
-                  <>
-                    <Text className="mb-3 text-sm" style={{ color: colors.textSecondary }}>
+                  <View style={{ gap: 14 }}>
+                    <Text className="text-sm" style={{ color: colors.textSecondary }}>
                       {goalWeightDirectionLabel(goal)}
                     </Text>
                     <OnboardingWeightInput
@@ -71,22 +67,20 @@ export function GoalSettingsPicker({
                       resetKey={`${goal}-${weightUnit}-${currentWeightLbs}`}
                       onWeightChange={(goalWeightLbs) => onChange({ goalWeightLbs })}
                     />
-                  </>
+                  </View>
                 );
               })()}
-            </SettingsDetailCard>
+            </GradientCard>
             {!isGoalWeightValid(profile, currentWeightLbs) ? (
-              <Text className="mt-2 text-[13px]" style={{ color: "#f87171" }}>
+              <Text className="text-[13px]" style={{ color: "#f87171" }}>
                 Pick a target at least 3 lb from your current weight.
               </Text>
             ) : null}
           </View>
 
-          <View>
+          <View style={{ gap: 12 }}>
             <SettingsFieldLabel>Pace</SettingsFieldLabel>
-            <View className="mt-2">
-              <PacePicker value={profile.pace} onChange={(pace) => onChange({ pace })} />
-            </View>
+            <PacePicker value={profile.pace} onChange={(pace) => onChange({ pace })} />
           </View>
         </>
       ) : null}

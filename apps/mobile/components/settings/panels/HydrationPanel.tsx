@@ -1,26 +1,27 @@
 import {
   formatVolumeFromOz,
   formatWaterPreset,
+  formatWaterVolume,
   formatWaterVolumeAlt,
   normalizeWaterDailyTargetOz,
   parseVolumeToOz,
   waterTargetPresets,
 } from "@newyouai/core";
 import { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View, type TextStyle } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
-import {
-  SettingsDetailCard,
-  SettingsFieldLabel,
-  SettingsHelper,
-} from "@/components/settings/SettingsLayout";
+import { IconDroplet } from "@/components/icons/FitnessIcons";
+import { OnboardingFieldGroup } from "@/components/onboarding/OnboardingInputField";
+import { SettingsHelper } from "@/components/settings/SettingsLayout";
+import { GradientCard } from "@/components/ui/GradientCard";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { MACRO_COLORS } from "@/lib/macroColors";
 import { volumeUnitLabel } from "@/lib/unitLabels";
 
-const PRESET_SELECTED_BORDER = "rgba(120,200,255,0.55)";
-const PRESET_SELECTED_BG = "rgba(120,200,255,0.12)";
-const PRESET_SELECTED_COLOR = "#78c8ff";
+const HYDRATION_ACCENT = MACRO_COLORS.hydration;
+const HYDRATION_ACCENT_SOFT = "rgba(90,154,232,0.16)";
+const HYDRATION_ACCENT_BORDER = "rgba(90,154,232,0.42)";
 
 export function HydrationPanel() {
   const { colors } = useAppTheme();
@@ -46,84 +47,113 @@ export function HydrationPanel() {
     }));
   }
 
-  const inputStyle: TextStyle = {
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    color: colors.textPrimary,
-    fontSize: 15,
-    fontVariant: ["tabular-nums"],
-  };
-
   return (
     <>
       <SettingsHelper>
         Daily water intake target on the Nutrition tab. Display follows your volume unit in Preferences.
       </SettingsHelper>
-      <SettingsDetailCard>
-        <View className="mb-3.5 flex-row flex-wrap" style={{ gap: 8 }}>
-          {waterTargetPresets(volumeUnit).map((preset) => {
-            const presetOz =
-              volumeUnit === "L"
-                ? normalizeWaterDailyTargetOz(parseVolumeToOz(preset, "L"))
-                : preset;
-            const selected = state.waterDailyTargetOz === presetOz;
-            return (
-              <Pressable
-                key={preset}
-                testID={`settings-hydration-preset-${preset}`}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                onPress={() => commitWaterTarget(String(preset))}
-                className="rounded-[10px] px-3.5 py-2.5"
-                style={{
-                  borderWidth: 0.5,
-                  borderColor: selected ? PRESET_SELECTED_BORDER : colors.border,
-                  backgroundColor: selected ? PRESET_SELECTED_BG : colors.backgroundSecondary,
-                }}
-              >
-                <Text
-                  className="text-[13px] font-semibold"
-                  style={{ color: selected ? PRESET_SELECTED_COLOR : colors.textSecondary }}
-                >
-                  {formatWaterPreset(preset, volumeUnit)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
 
-        <SettingsFieldLabel>Custom target ({volumeUnitLabel(volumeUnit)})</SettingsFieldLabel>
-        <TextInput
-          testID="settings-hydration-custom"
-          value={waterTargetIn}
-          onChangeText={(v) => {
-            setWaterTargetIn(v);
-            if (v === "" || v === "-") return;
-            const n = volumeUnit === "L" ? parseFloat(v) : parseInt(v, 10);
-            if (!Number.isFinite(n)) return;
-            const ozRaw = volumeUnit === "L" ? parseVolumeToOz(n, "L") : n;
-            if (ozRaw >= 16 && ozRaw <= 256) {
-              setFitnessState((prev) => ({
-                ...prev,
-                waterDailyTargetOz: Math.round(ozRaw),
-              }));
-            }
-          }}
-          onBlur={() => commitWaterTarget(waterTargetIn)}
-          keyboardType="decimal-pad"
-          placeholder="0"
-          placeholderTextColor={colors.textTertiary}
-          accessibilityLabel={`Daily water target in ${volumeUnitLabel(volumeUnit)}`}
-          style={inputStyle}
-        />
-        <Text className="mt-2 text-[12px] font-medium" style={{ color: colors.textSecondary }}>
-          {formatWaterVolumeAlt(state.waterDailyTargetOz, volumeUnit)}
-        </Text>
-      </SettingsDetailCard>
+      <View className="gap-4">
+        <GradientCard accentColor={HYDRATION_ACCENT} testID="settings-hydration-hero">
+          <View className="mb-3 flex-row items-center gap-2.5">
+            <View
+              className="h-9 w-9 items-center justify-center rounded-full"
+              style={{ backgroundColor: HYDRATION_ACCENT_SOFT }}
+            >
+              <IconDroplet size={18} stroke={1.8} color={HYDRATION_ACCENT} />
+            </View>
+            <Text
+              className="text-[11px] font-semibold uppercase tracking-widest"
+              style={{ color: colors.textTertiary }}
+            >
+              Daily hydration
+            </Text>
+          </View>
+          <Text className="text-[32px] font-bold tabular-nums" style={{ color: HYDRATION_ACCENT }}>
+            {formatWaterVolume(state.waterDailyTargetOz, volumeUnit)}
+          </Text>
+          <Text className="mt-1 text-sm font-medium" style={{ color: colors.textSecondary }}>
+            {formatWaterVolumeAlt(state.waterDailyTargetOz, volumeUnit)}
+          </Text>
+        </GradientCard>
+
+        <GradientCard testID="settings-hydration-targets">
+          <Text
+            className="mb-3 text-xs font-semibold uppercase tracking-wide"
+            style={{ color: colors.textSecondary }}
+          >
+            Quick presets
+          </Text>
+          <View className="mb-4 flex-row flex-wrap" style={{ gap: 8 }}>
+            {waterTargetPresets(volumeUnit).map((preset) => {
+              const presetOz =
+                volumeUnit === "L"
+                  ? normalizeWaterDailyTargetOz(parseVolumeToOz(preset, "L"))
+                  : preset;
+              const selected = state.waterDailyTargetOz === presetOz;
+              return (
+                <Pressable
+                  key={preset}
+                  testID={`settings-hydration-preset-${preset}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  onPress={() => commitWaterTarget(String(preset))}
+                  className="rounded-[10px] px-3.5 py-2.5"
+                  style={{
+                    borderWidth: 0.5,
+                    borderColor: selected ? HYDRATION_ACCENT_BORDER : colors.border,
+                    backgroundColor: selected ? HYDRATION_ACCENT_SOFT : colors.backgroundSecondary,
+                  }}
+                >
+                  <Text
+                    className="text-[13px] font-semibold tabular-nums"
+                    style={{ color: selected ? HYDRATION_ACCENT : colors.textSecondary }}
+                  >
+                    {formatWaterPreset(preset, volumeUnit)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <OnboardingFieldGroup
+            label={`Custom target (${volumeUnitLabel(volumeUnit)})`}
+            labelColor={colors.textTertiary}
+          >
+            <TextInput
+              testID="settings-hydration-custom"
+              value={waterTargetIn}
+              onChangeText={(v) => {
+                setWaterTargetIn(v);
+                if (v === "" || v === "-") return;
+                const n = volumeUnit === "L" ? parseFloat(v) : parseInt(v, 10);
+                if (!Number.isFinite(n)) return;
+                const ozRaw = volumeUnit === "L" ? parseVolumeToOz(n, "L") : n;
+                if (ozRaw >= 16 && ozRaw <= 256) {
+                  setFitnessState((prev) => ({
+                    ...prev,
+                    waterDailyTargetOz: Math.round(ozRaw),
+                  }));
+                }
+              }}
+              onBlur={() => commitWaterTarget(waterTargetIn)}
+              keyboardType="decimal-pad"
+              placeholder="0"
+              placeholderTextColor={colors.textTertiary}
+              accessibilityLabel={`Daily water target in ${volumeUnitLabel(volumeUnit)}`}
+              className="rounded-[10px] border px-3 py-2.5 text-base tabular-nums"
+              style={{
+                borderColor: colors.border,
+                backgroundColor: colors.backgroundSecondary,
+                color: colors.textPrimary,
+              }}
+            />
+          </OnboardingFieldGroup>
+          <Text className="mt-2 text-[12px] font-medium" style={{ color: colors.textTertiary }}>
+            16–256 oz range · shown on your Nutrition tab
+          </Text>
+        </GradientCard>
+      </View>
     </>
   );
 }

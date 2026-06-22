@@ -77,7 +77,7 @@ export function useAppShellGate() {
     if (auth.configured && !auth.sessionResolved) return;
     if (auth.configured && auth.sessionEmail && !onboardingHydrated) return;
 
-    if (isOnboardingPreviewActive()) {
+    if (isOnboardingPreviewActive() && !onboardingComplete) {
       if (!inOnboardingGroup) router.replace("/(onboarding)");
       return;
     }
@@ -106,7 +106,16 @@ export function useAppShellGate() {
     if (inAuthGroup || inOnboardingGroup || (mainView === "app" && !inTabsGroup)) {
       router.replace("/(tabs)/home");
     }
-  }, [auth.configured, auth.sessionResolved, auth.sessionEmail, onboardingHydrated, segments, router, shellInput]);
+  }, [
+    auth.configured,
+    auth.sessionResolved,
+    auth.sessionEmail,
+    onboardingComplete,
+    onboardingHydrated,
+    segments,
+    router,
+    shellInput,
+  ]);
 }
 
 export function useAppShellRoutingInput(): AppShellRoutingInput {

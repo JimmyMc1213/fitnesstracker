@@ -20,8 +20,8 @@ export function AppearancePanel() {
                 onPress={() => setTheme(option)}
                 className="flex-1 items-center rounded-xl border px-4 py-3"
                 style={{
-                  borderColor: active ? colors.accent : colors.border,
-                  backgroundColor: active ? `${colors.accent}22` : colors.backgroundSecondary,
+                  borderColor: active ? colors.textPrimary : colors.border,
+                  backgroundColor: active ? colors.backgroundTertiary : colors.backgroundSecondary,
                 }}
               >
                 <Text className="text-[14px] font-bold" style={{ color: colors.textPrimary }}>

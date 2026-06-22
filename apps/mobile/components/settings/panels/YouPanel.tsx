@@ -1,18 +1,21 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 
 import {
-  SettingsDetailCard,
-  SettingsFieldLabel,
+  SettingsFormField,
+  SettingsFormMessage,
   SettingsHelper,
   SettingsHubSection,
   SettingsPrimaryButton,
+  SettingsProfileHeader,
   SettingsRow,
+  SettingsSecondaryButton,
+  SettingsTextField,
 } from "@/components/settings/SettingsLayout";
+import { GradientCard } from "@/components/ui/GradientCard";
 import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
-import { useAppTheme } from "@/hooks/useAppTheme";
 import { connectedAuthProviders } from "@/lib/accountAuth";
 import { sanitizeUserText } from "@/lib/userText";
 
@@ -24,7 +27,6 @@ function providerLabel(provider: string): string {
 }
 
 export function YouPanel() {
-  const { colors } = useAppTheme();
   const { sessionEmail, session, updateEmail } = useAuth();
   const { state, setFitnessState } = useFitnessState();
   const [emailEditing, setEmailEditing] = useState(false);
@@ -45,76 +47,60 @@ export function YouPanel() {
   };
 
   return (
-    <View>
+    <View className="gap-4">
       <SettingsHelper>Your first name appears in the home greeting.</SettingsHelper>
-      <SettingsDetailCard>
-        <SettingsFieldLabel>First name</SettingsFieldLabel>
-        <TextInput
-          testID="settings-you-display-name"
-          value={state.displayName}
-          onChangeText={(value) =>
-            setFitnessState((prev) => ({
-              ...prev,
-              displayName: sanitizeUserText(value),
-            }))
-          }
-          placeholder="Your name"
-          autoCapitalize="words"
-          placeholderTextColor={colors.textTertiary}
-          style={{
-            marginTop: 8,
-            borderWidth: 1,
-            borderColor: colors.border,
-            borderRadius: 12,
-            paddingHorizontal: 14,
-            paddingVertical: 12,
-            color: colors.textPrimary,
-            fontSize: 15,
-          }}
-        />
-      </SettingsDetailCard>
+
+      <GradientCard spacious testID="settings-you-profile">
+        <SettingsProfileHeader name={state.displayName} email={sessionEmail} />
+
+        <View style={{ gap: 16, marginTop: 20 }}>
+          <SettingsFormField label="First name">
+            <SettingsTextField
+              testID="settings-you-display-name"
+              value={state.displayName}
+              onChangeText={(value) =>
+                setFitnessState((prev) => ({
+                  ...prev,
+                  displayName: sanitizeUserText(value),
+                }))
+              }
+              placeholder="Your name"
+              autoCapitalize="words"
+            />
+          </SettingsFormField>
+        </View>
+      </GradientCard>
 
       {sessionEmail ? (
         <>
           <SettingsHubSection title="Personal info">
             {emailEditing ? (
-              <View className="px-4 py-3" style={{ gap: 12 }}>
-                <SettingsFieldLabel>Email</SettingsFieldLabel>
-                <TextInput
-                  testID="settings-you-email-input"
-                  value={emailIn}
-                  onChangeText={(value) => {
-                    setEmailIn(value);
-                    setEmailError(null);
-                    setEmailSuccess(false);
-                  }}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  placeholderTextColor={colors.textTertiary}
-                  style={{
-                    marginTop: 8,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    borderRadius: 12,
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    color: colors.textPrimary,
-                    fontSize: 15,
-                  }}
-                />
-                {emailError ? (
-                  <Text style={{ color: "#f87171", fontSize: 13 }}>{emailError}</Text>
-                ) : null}
+              <View className="px-4 py-4" style={{ gap: 14 }}>
+                <SettingsFormField label="Email">
+                  <SettingsTextField
+                    testID="settings-you-email-input"
+                    value={emailIn}
+                    onChangeText={(value) => {
+                      setEmailIn(value);
+                      setEmailError(null);
+                      setEmailSuccess(false);
+                    }}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                  />
+                </SettingsFormField>
+                {emailError ? <SettingsFormMessage tone="error">{emailError}</SettingsFormMessage> : null}
                 {emailSuccess ? (
-                  <Text style={{ color: "#78c8ff", fontSize: 13, lineHeight: 18 }}>
+                  <SettingsFormMessage tone="success">
                     A confirmation link has been sent to your new email. It won&apos;t update until you confirm.
-                  </Text>
+                  </SettingsFormMessage>
                 ) : null}
-                <View className="flex-row flex-wrap" style={{ gap: 10 }}>
+                <View className="flex-row" style={{ gap: 10 }}>
                   <SettingsPrimaryButton
                     label="Save"
+                    expand
                     disabled={emailBusy || !emailIn.includes("@")}
                     onPress={async () => {
                       setEmailBusy(true);
@@ -129,13 +115,12 @@ export function YouPanel() {
                       setEmailSuccess(true);
                     }}
                   />
-                  <SettingsPrimaryButton label="Cancel" disabled={emailBusy} onPress={resetEmailEdit} />
+                  <SettingsSecondaryButton label="Cancel" disabled={emailBusy} onPress={resetEmailEdit} />
                 </View>
               </View>
             ) : (
               <>
                 <SettingsRow
-                  icon={<Text style={{ color: colors.textTertiary }}>✉</Text>}
                   label="Email"
                   trailing={sessionEmail}
                   testID="settings-you-email-row"
@@ -147,7 +132,6 @@ export function YouPanel() {
                   }}
                 />
                 <SettingsRow
-                  icon={<Text style={{ color: colors.textTertiary }}>🛡</Text>}
                   label="Change password"
                   testID="settings-you-change-password-row"
                   isLast

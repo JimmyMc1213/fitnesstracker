@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TAB_BAR_FLOAT_OFFSET } from "@/lib/futureYouTokens";
 
 /** Matches PWA `--tabbar-pill-height`. */
-export const TAB_BAR_PILL_HEIGHT = 66;
+export const TAB_BAR_PILL_HEIGHT = 60;
 
 /** Matches PWA `--tabbar-scroll-extra`. */
 export const TAB_BAR_SCROLL_EXTRA = 28;

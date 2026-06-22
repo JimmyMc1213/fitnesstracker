@@ -16,6 +16,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BottomActionBar } from "@/components/BottomActionBar";
 import { CHART_PAD_LEFT, CHART_PAD_RIGHT, WeightLineChart } from "@/components/progress/WeightLineChart";
@@ -227,18 +228,39 @@ function FlowHeader({
   showBack: boolean;
   colors: ReturnType<typeof useAppTheme>["colors"];
 }) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View className="px-screen-x pb-3 pt-6">
-      <View className="mb-3.5 flex-row items-center justify-between">
+    <View className="relative px-screen-x pb-3">
+      {!showBack ? (
         <Pressable
-          onPress={showBack ? onBack : onClose}
-          testID={showBack ? "sunday-check-in-back" : "modal-close"}
-          accessibilityLabel={showBack ? "Back" : "Close check-in"}
-          className="h-9 w-9 items-center justify-center rounded-full border"
-          style={{ borderColor: colors.border, backgroundColor: colors.card }}
+          onPress={onClose}
+          testID="modal-close"
+          accessibilityLabel="Close check-in"
+          className="absolute right-0 z-10 h-9 w-9 items-center justify-center rounded-full border"
+          style={{
+            top: insets.top + 6,
+            borderColor: colors.border,
+            backgroundColor: colors.card,
+          }}
         >
-          <Text style={{ color: colors.textSecondary }}>{showBack ? "‹" : "✕"}</Text>
+          <Text style={{ color: colors.textSecondary }}>✕</Text>
         </Pressable>
+      ) : null}
+      <View className="mb-3.5 flex-row items-center justify-between" style={{ paddingTop: insets.top + 6 }}>
+        {showBack ? (
+          <Pressable
+            onPress={onBack}
+            testID="sunday-check-in-back"
+            accessibilityLabel="Back"
+            className="h-9 w-9 items-center justify-center rounded-full border"
+            style={{ borderColor: colors.border, backgroundColor: colors.card }}
+          >
+            <Text style={{ color: colors.textSecondary }}>‹</Text>
+          </Pressable>
+        ) : (
+          <View className="h-9 w-9" />
+        )}
         <Text className="text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
           Sunday check-in
         </Text>

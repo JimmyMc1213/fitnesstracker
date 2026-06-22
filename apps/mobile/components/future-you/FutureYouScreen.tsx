@@ -659,7 +659,7 @@ export function FutureYouScreen() {
     <View testID="tab-future-you" style={{ flex: 1, backgroundColor: "transparent" }}>
       <ScrollView
         className="flex-1 px-screen-x"
-        contentContainerStyle={{ paddingBottom, paddingTop }}
+        contentContainerStyle={{ paddingBottom, paddingTop, flexGrow: view === "detail" ? 1 : undefined }}
         showsVerticalScrollIndicator={false}
       >
         {showHeader ? (

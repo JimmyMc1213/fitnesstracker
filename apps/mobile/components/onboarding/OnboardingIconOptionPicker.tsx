@@ -3,11 +3,12 @@ import { Text, View } from "react-native";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { onboardingPillColors, ONBOARDING_PILL_MIN_HEIGHT } from "@/lib/onboardingTheme";
+import type { TablerIcon } from "@/lib/tablerIcon";
 
 type Option<T extends string> = {
   id: T;
   label: string;
-  emoji: string;
+  icon: TablerIcon;
 };
 
 export function OnboardingIconOptionPicker<T extends string>({
@@ -32,7 +33,7 @@ export function OnboardingIconOptionPicker<T extends string>({
 
   return (
     <View className="gap-2">
-      {options.map(({ id, label, emoji }) => {
+      {options.map(({ id, label, icon: Icon }) => {
         const on = isSelected(id);
         const pill = onboardingPillColors(ob, on);
         return (
@@ -55,7 +56,7 @@ export function OnboardingIconOptionPicker<T extends string>({
               backgroundColor: pill.backgroundColor,
             }}
           >
-            <Text className="text-xl">{emoji}</Text>
+            <Icon size={22} color={pill.color} strokeWidth={2} />
             <Text className="flex-1 text-base font-medium" style={{ color: pill.color }}>
               {label}
             </Text>

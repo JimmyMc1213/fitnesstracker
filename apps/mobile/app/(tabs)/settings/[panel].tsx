@@ -16,6 +16,7 @@ import { SettingsPanelPlaceholder } from "@/components/settings/panels/SettingsP
 import { UnitsPanel } from "@/components/settings/panels/UnitsPanel";
 import { YouPanel } from "@/components/settings/panels/YouPanel";
 import { SettingsScreenChrome } from "@/components/settings/SettingsScreenChrome";
+import { TabScreenFade } from "@/components/motion/TabScreenFade";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { isSettingsPanelId, PANEL_TITLES } from "@/lib/settingsPanelRegistry";
 import { useTabScreenInsets } from "@/lib/tabScreenInsets";
@@ -39,6 +40,7 @@ export default function SettingsPanelScreen() {
   };
 
   return (
+    <TabScreenFade>
     <SettingsScreenChrome
       title={title}
       onBack={handleBack}
@@ -53,7 +55,7 @@ export default function SettingsPanelScreen() {
             testID="settings-goal-save"
             accessibilityLabel="Save goal changes"
           >
-            <Text className="text-[15px] font-semibold" style={{ color: colors.accent }}>
+            <Text className="text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
               Save
             </Text>
           </Pressable>
@@ -64,6 +66,7 @@ export default function SettingsPanelScreen() {
       <ScrollView
         className="px-screen-x"
         style={{ flex: 1 }}
+        nestedScrollEnabled={panelId === "reminders"}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: contentPaddingBottom }}
       >
       {valid && panelId === "you" ? (
@@ -130,5 +133,6 @@ export default function SettingsPanelScreen() {
       )}
       </ScrollView>
     </SettingsScreenChrome>
+    </TabScreenFade>
   );
 }

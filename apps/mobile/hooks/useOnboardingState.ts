@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { useFitnessState } from "@/context/FitnessContext";
 import { useFitnessSync } from "@/context/FitnessSyncContext";
 import {
   readOnboardingComplete,
@@ -11,7 +12,7 @@ import {
 } from "@/lib/onboardingStub";
 import { e2eFitnessSeedByName, type E2eFitnessSeedName } from "@/lib/e2e/fitnessPersistSeed";
 
-/** When unset, Maestro auth flows default to tabs (onboarding skipped). Set `false` to exercise the wizard. */
+/** When unset, new users go through onboarding. Maestro sets EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING=true. */
 function resolveDefaultOnboardingComplete(): boolean {
   if (typeof __DEV__ !== "undefined" && __DEV__) {
     const seedName = process.env.EXPO_PUBLIC_E2E_FITNESS_SEED?.trim();
@@ -22,11 +23,13 @@ function resolveDefaultOnboardingComplete(): boolean {
   }
   const flag = process.env.EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING?.trim().toLowerCase();
   if (flag === "false") return false;
+  if (flag === "true") return true;
   return DEFAULT_ONBOARDING_COMPLETE;
 }
 
 export function useOnboardingState() {
   const { fitnessHydrated } = useFitnessSync();
+  const { state: fitnessState, hydrated: fitnessLocalHydrated } = useFitnessState();
   const [onboardingComplete, setOnboardingCompleteState] = useState(resolveDefaultOnboardingComplete);
   const [hydrated, setHydrated] = useState(true);
 
@@ -68,6 +71,12 @@ export function useOnboardingState() {
       cancelled = true;
     };
   }, [fitnessHydrated]);
+
+  useEffect(() => {
+    if (!fitnessLocalHydrated || !fitnessState?.onboardingComplete) return;
+    setOnboardingCompleteState(true);
+    void writeOnboardingComplete(true);
+  }, [fitnessLocalHydrated, fitnessState?.onboardingComplete]);
 
   const setOnboardingComplete = useCallback(async (value: boolean) => {
     setOnboardingCompleteState(value);

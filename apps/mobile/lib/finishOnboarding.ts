@@ -5,6 +5,7 @@ import {
   savePersistedSlice,
 } from "@newyouai/core";
 import type {
+  AppState,
   AppTheme,
   EquipmentSetup,
   ExperienceLevel,
@@ -20,6 +21,7 @@ import type {
 } from "@newyouai/types";
 
 import { defaultHabitTemplatesFromOnboarding } from "@/lib/habitTemplates";
+import { buildFitnessAppState } from "@/lib/fitness/buildFitnessAppState";
 import { ensureMobilityHabitTemplate } from "@/lib/mobilityHabit";
 import { localDateKey, completeOnboardingProfile, progressGoalFromOnboarding, ageFromDateOfBirth } from "@/lib/onboardingProfile";
 import { clearOnboardingDraftStorage } from "@/lib/onboardingStorage";
@@ -49,8 +51,8 @@ export type FinishOnboardingInput = {
   futureYou?: FutureYouDraft;
 };
 
-/** Persist fitness slice locally, clear draft, mark onboarding complete. */
-export async function finishOnboarding(input: FinishOnboardingInput): Promise<void> {
+/** Persist fitness slice locally, clear draft, mark onboarding complete. Returns hydrated app state. */
+export async function finishOnboarding(input: FinishOnboardingInput): Promise<AppState> {
   const age =
     input.profile.dateOfBirth
       ? (ageFromDateOfBirth(input.profile.dateOfBirth) ?? input.profile.age)
@@ -101,4 +103,5 @@ export async function finishOnboarding(input: FinishOnboardingInput): Promise<vo
 
   await savePersistedSlice(storageAdapter, FITNESS_LOCAL_STORAGE_KEY, slice as PersistedFitnessSlice);
   await clearOnboardingDraftStorage();
+  return buildFitnessAppState(slice as PersistedFitnessSlice);
 }

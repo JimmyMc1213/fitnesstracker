@@ -120,11 +120,12 @@ export function CenterDialog({ open, onClose, panelStyle, backdropStyle, childre
 
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.dialogRoot}>
+      <View style={styles.dialogRoot} pointerEvents="box-none">
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button">
           <View style={[styles.backdrop, backdropStyle]} />
         </Pressable>
         <View
+          pointerEvents="box-none"
           style={[
             styles.dialogPanel,
             {
@@ -170,6 +171,7 @@ const styles = StyleSheet.create({
     maxHeight: "85%",
     flexDirection: "column",
     overflow: "hidden",
+    zIndex: 2,
   },
   sheetAsDialogPanel: {
     width: "100%",
@@ -188,5 +190,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 0.5,
     padding: 28,
+    zIndex: 2,
   },
 });

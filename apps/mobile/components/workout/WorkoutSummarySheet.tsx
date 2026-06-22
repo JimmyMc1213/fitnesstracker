@@ -1,3 +1,4 @@
+import { IconConfetti } from "@tabler/icons-react-native";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -66,9 +67,9 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
           contentContainerStyle={{ paddingBottom: 24 }}
         >
           <View className="items-center pb-2 pt-7">
-            <Text style={{ fontSize: 48, lineHeight: 1, marginBottom: 12 }} accessibilityElementsHidden>
-              🎉
-            </Text>
+            <View style={{ marginBottom: 12 }} accessibilityElementsHidden>
+              <IconConfetti size={48} color={colors.accent} strokeWidth={1.75} />
+            </View>
             <Text
               className="text-[11px] font-semibold uppercase tracking-widest"
               style={{ color: colors.textTertiary }}

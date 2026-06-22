@@ -1,7 +1,9 @@
+import { IconBolt, IconBook, IconTrash } from "@tabler/icons-react-native";
 import { Pressable, Text, View } from "react-native";
 
 import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import type { TablerIcon } from "@/lib/tablerIcon";
 
 type Props = {
   open?: boolean;
@@ -14,13 +16,13 @@ type Props = {
 
 function ActionRow({
   label,
-  icon,
+  icon: Icon,
   destructive,
   testID,
   onPress,
 }: {
   label: string;
-  icon: string;
+  icon: TablerIcon;
   destructive?: boolean;
   testID?: string;
   onPress: () => void;
@@ -29,7 +31,7 @@ function ActionRow({
 
   return (
     <Pressable testID={testID} onPress={onPress} className="flex-row items-center gap-3 rounded-xl px-3.5 py-3.5">
-      <Text style={{ color: destructive ? "#FF453A" : colors.accent, fontSize: 16 }}>{icon}</Text>
+      <Icon size={18} color={destructive ? "#FF453A" : colors.accent} strokeWidth={2} />
       <Text className="text-[15px] font-semibold" style={{ color: destructive ? "#FF453A" : colors.textPrimary }}>
         {label}
       </Text>
@@ -59,7 +61,7 @@ export function WorkoutHistorySessionActionSheet({
           <ActionRow
             testID="workout-history-action-start"
             label="Start workout"
-            icon="⚡"
+            icon={IconBolt}
             onPress={() => {
               onStart();
               onClose();
@@ -68,7 +70,7 @@ export function WorkoutHistorySessionActionSheet({
           <ActionRow
             testID="workout-history-action-save"
             label="Save workout"
-            icon="📖"
+            icon={IconBook}
             onPress={() => {
               onSave();
               onClose();
@@ -77,7 +79,7 @@ export function WorkoutHistorySessionActionSheet({
           <ActionRow
             testID="workout-history-action-delete"
             label="Delete workout"
-            icon="🗑"
+            icon={IconTrash}
             destructive
             onPress={() => {
               onDelete();

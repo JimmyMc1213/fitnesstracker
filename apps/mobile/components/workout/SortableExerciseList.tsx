@@ -60,6 +60,8 @@ type SortableExerciseListProps<T extends { id: string; name: string }> = {
   listRef?: RefObject<ElementRef<typeof DraggableFlatList<T>> | null>;
   contentContainerStyle?: ViewStyle;
   extraData?: unknown;
+  /** Disable list scrolling so the list can live inside a parent ScrollView without VirtualizedList warnings. */
+  nestedInScrollView?: boolean;
   onScrollToIndexFailed?: (info: { index: number; averageItemLength: number; highestMeasuredFrameIndex: number }) => void;
 };
 
@@ -246,6 +248,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   listRef,
   contentContainerStyle,
   extraData,
+  nestedInScrollView = false,
   onScrollToIndexFailed,
 }: SortableExerciseListProps<T>) {
   const canReorder = items.length >= 2;
@@ -313,7 +316,9 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
           },
         );
       }}
-      containerStyle={{ flex: 1 }}
+      scrollEnabled={!nestedInScrollView}
+      nestedScrollEnabled={nestedInScrollView}
+      containerStyle={nestedInScrollView ? undefined : { flex: 1 }}
       contentContainerStyle={{
         paddingBottom: 24,
         ...contentContainerStyle,

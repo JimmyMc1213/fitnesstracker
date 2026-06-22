@@ -13,6 +13,29 @@ export const MOBILITY_ACCENT = "rgba(196,181,253,0.95)";
 export const MOBILITY_BORDER = "rgba(196,181,253,0.32)";
 export const MOBILITY_BG = "rgba(196,181,253,0.07)";
 
+export function mobilityColors(theme: AppTheme) {
+  if (theme === "light") {
+    return {
+      accent: "#6D28D9",
+      border: "rgba(109, 40, 217, 0.32)",
+      bg: "rgba(109, 40, 217, 0.08)",
+      borderDone: "rgba(109, 40, 217, 0.42)",
+      iconBorder: "rgba(109, 40, 217, 0.22)",
+      iconBg: "rgba(109, 40, 217, 0.10)",
+      iconBgDone: "rgba(109, 40, 217, 0.16)",
+    };
+  }
+  return {
+    accent: "rgba(196,181,253,0.95)",
+    border: "rgba(196,181,253,0.32)",
+    bg: "rgba(196,181,253,0.07)",
+    borderDone: "rgba(196,181,253,0.42)",
+    iconBorder: "rgba(196,181,253,0.22)",
+    iconBg: "rgba(196,181,253,0.12)",
+    iconBgDone: "rgba(196,181,253,0.18)",
+  };
+}
+
 export function coachCardColors(theme: AppTheme) {
   if (theme === "light") {
     return {

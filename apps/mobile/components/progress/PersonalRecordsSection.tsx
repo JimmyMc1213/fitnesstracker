@@ -6,6 +6,7 @@ import {
   type PersonalRecordHistoryEntry,
 } from "@newyouai/core";
 import type { AppState, WeightUnit } from "@newyouai/types";
+import { IconTrophy } from "@tabler/icons-react-native";
 import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -57,7 +58,7 @@ export function PersonalRecordsSection({ state }: Props) {
             </Text>
           ) : null}
         </View>
-        <Text style={{ fontSize: 18 }}>🏆</Text>
+        <IconTrophy size={18} color={PR_GOLD} strokeWidth={2} />
       </View>
 
       {isEmpty

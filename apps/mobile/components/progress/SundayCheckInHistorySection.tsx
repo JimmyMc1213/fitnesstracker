@@ -1,7 +1,10 @@
 import { coalesceSundayCheckInRecord } from "@newyouai/core";
 import type { SundayCheckInWeekRecord, UnitPreferences } from "@newyouai/types";
+import { IconAlertTriangle, IconCircleCheck } from "@tabler/icons-react-native";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+
+import type { TablerIcon } from "@/lib/tablerIcon";
 
 import { BottomSheet } from "@/components/motion";
 
@@ -238,11 +241,11 @@ function RecapDetailSheet({
               ) : null}
 
               {safe.wins.length > 0 ? (
-                <RecapBulletSection title="Wins" emoji="✅" items={safe.wins} tone="success" />
+                <RecapBulletSection title="Wins" icon={IconCircleCheck} items={safe.wins} tone="success" />
               ) : null}
 
               {safe.watch.length > 0 ? (
-                <RecapBulletSection title="Worth watching" emoji="🚨" items={safe.watch} tone="warning" />
+                <RecapBulletSection title="Worth watching" icon={IconAlertTriangle} items={safe.watch} tone="warning" />
               ) : null}
 
               {safe.commitments.length > 0 ? (
@@ -315,12 +318,12 @@ function StatGrid({ record, unitPreferences }: { record: SundayCheckInWeekRecord
 
 function RecapBulletSection({
   title,
-  emoji,
+  icon: Icon,
   items,
   tone,
 }: {
   title: string;
-  emoji: string;
+  icon: TablerIcon;
   items: string[];
   tone: "success" | "warning";
 }) {
@@ -330,7 +333,7 @@ function RecapBulletSection({
   return (
     <View className="mt-4">
       <View className="mb-2 flex-row items-center gap-2">
-        <Text>{emoji}</Text>
+        <Icon size={16} color={dot} strokeWidth={2} />
         <Text className="text-sm font-bold" style={{ color: colors.textPrimary }}>
           {title}
         </Text>

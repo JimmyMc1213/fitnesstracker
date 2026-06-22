@@ -96,7 +96,7 @@ export function HomeSundayCheckInCard({ data, completed = false, unitPreferences
           onPress={onDismiss}
           accessibilityLabel="Dismiss Sunday check-in"
           testID="sunday-check-in-dismiss"
-          className="absolute right-2 top-6 h-7 w-7 items-center justify-center rounded-full"
+          className="absolute right-2 top-2 h-7 w-7 items-center justify-center rounded-full"
         >
           <SymbolView name={{ ios: "xmark", android: "close", web: "close" }} tintColor={colors.textTertiary} size={14} />
         </Pressable>

@@ -8,7 +8,6 @@ import {
   MIN_REST_TIMER_SECONDS,
   REST_TIMER_PRESETS,
 } from "@/lib/workout/restTimerPreferences";
-import { COACH_BLUE } from "@/lib/workoutUiTokens";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
@@ -43,13 +42,13 @@ export function RestTimerDurationPicker({ value, onChange, variant = "settings" 
               onPress={() => onChange(sec)}
               className="min-w-[64px] flex-1 items-center rounded-[10px] border px-2 py-2.5"
               style={{
-                borderColor: selected ? COACH_BLUE : colors.border,
-                backgroundColor: selected ? "rgba(10,132,255,0.12)" : colors.backgroundSecondary,
+                borderColor: selected ? colors.textPrimary : colors.border,
+                backgroundColor: selected ? colors.backgroundTertiary : colors.backgroundSecondary,
               }}
             >
               <Text
                 className="text-[13px] font-semibold tabular-nums"
-                style={{ color: selected ? COACH_BLUE : colors.textSecondary }}
+                style={{ color: selected ? colors.textPrimary : colors.textSecondary }}
               >
                 {sec}s
               </Text>

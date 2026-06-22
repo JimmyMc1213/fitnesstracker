@@ -1,17 +1,29 @@
 import type { HeightDisplayUnit, UnitPreferences, VolumeUnit, WeightUnit } from "@newyouai/types";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
+import { OnboardingFieldGroup } from "@/components/onboarding/OnboardingInputField";
 import { OnboardingPillRow, OnboardingSegment } from "@/components/onboarding/OnboardingSegment";
+import { SettingsDetailCard } from "@/components/settings/SettingsLayout";
 import { GradientCard } from "@/components/ui/GradientCard";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { heightUnitLabel, volumeUnitLabel, weightUnitLabel } from "@/lib/unitLabels";
 
+type UnitSection<T extends string> = {
+  label: string;
+  options: readonly T[];
+  selected: T | undefined;
+  onSelect: (unit: T) => void;
+  optionLabel: (unit: T) => string;
+};
+
 export function UnitPreferencePicker({
   value,
   onChange,
+  variant = "onboarding",
 }: {
   value: Partial<UnitPreferences>;
   onChange: (next: Partial<UnitPreferences>) => void;
+  variant?: "onboarding" | "settings";
 }) {
   const { colors } = useAppTheme();
 
@@ -19,44 +31,54 @@ export function UnitPreferencePicker({
   const setHeight = (heightUnit: HeightDisplayUnit) => onChange({ ...value, heightUnit });
   const setVolume = (volumeUnit: VolumeUnit) => onChange({ ...value, volumeUnit });
 
-  return (
-    <GradientCard style={{ gap: 20 }}>
-      <View className="gap-2">
-        <Text className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textTertiary }}>
-          Weight
-        </Text>
-        <OnboardingPillRow>
-          {(["lbs", "kg"] as const).map((u) => (
-            <OnboardingSegment key={u} layout="inline" selected={value.weightUnit === u} onPress={() => setWeight(u)}>
-              {weightUnitLabel(u)}
-            </OnboardingSegment>
-          ))}
-        </OnboardingPillRow>
-      </View>
-      <View className="gap-2">
-        <Text className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textTertiary }}>
-          Height
-        </Text>
-        <OnboardingPillRow>
-          {(["ft_in", "cm"] as const).map((u) => (
-            <OnboardingSegment key={u} layout="inline" selected={value.heightUnit === u} onPress={() => setHeight(u)}>
-              {heightUnitLabel(u)}
-            </OnboardingSegment>
-          ))}
-        </OnboardingPillRow>
-      </View>
-      <View className="gap-2">
-        <Text className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textTertiary }}>
-          Volume
-        </Text>
-        <OnboardingPillRow>
-          {(["oz", "L"] as const).map((u) => (
-            <OnboardingSegment key={u} layout="inline" selected={value.volumeUnit === u} onPress={() => setVolume(u)}>
-              {volumeUnitLabel(u)}
-            </OnboardingSegment>
-          ))}
-        </OnboardingPillRow>
-      </View>
-    </GradientCard>
+  const sections: UnitSection<string>[] = [
+    {
+      label: "Weight",
+      options: ["lbs", "kg"],
+      selected: value.weightUnit,
+      onSelect: (unit) => setWeight(unit as WeightUnit),
+      optionLabel: (unit) => weightUnitLabel(unit as WeightUnit),
+    },
+    {
+      label: "Height",
+      options: ["ft_in", "cm"],
+      selected: value.heightUnit,
+      onSelect: (unit) => setHeight(unit as HeightDisplayUnit),
+      optionLabel: (unit) => heightUnitLabel(unit as HeightDisplayUnit),
+    },
+    {
+      label: "Volume",
+      options: ["oz", "L"],
+      selected: value.volumeUnit,
+      onSelect: (unit) => setVolume(unit as VolumeUnit),
+      optionLabel: (unit) => volumeUnitLabel(unit as VolumeUnit),
+    },
+  ];
+
+  const fieldStack = (
+    <View style={{ gap: 20 }}>
+      {sections.map((section) => (
+        <OnboardingFieldGroup key={section.label} label={section.label} labelColor={colors.textTertiary}>
+          <OnboardingPillRow>
+            {section.options.map((unit) => (
+              <OnboardingSegment
+                key={unit}
+                layout="inline"
+                selected={section.selected === unit}
+                onPress={() => section.onSelect(unit)}
+              >
+                {section.optionLabel(unit)}
+              </OnboardingSegment>
+            ))}
+          </OnboardingPillRow>
+        </OnboardingFieldGroup>
+      ))}
+    </View>
   );
+
+  if (variant === "settings") {
+    return <SettingsDetailCard>{fieldStack}</SettingsDetailCard>;
+  }
+
+  return <GradientCard>{fieldStack}</GradientCard>;
 }

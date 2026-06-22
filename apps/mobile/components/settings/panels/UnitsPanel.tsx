@@ -1,4 +1,5 @@
 import { normalizeUnitPreferences } from "@newyouai/core";
+import { View } from "react-native";
 
 import { UnitPreferencePicker } from "@/components/onboarding/UnitPreferencePicker";
 import { SettingsHelper } from "@/components/settings/SettingsLayout";
@@ -10,9 +11,10 @@ export function UnitsPanel() {
   if (!state) return null;
 
   return (
-    <>
+    <View>
       <SettingsHelper>Weight, height, and volume units apply across Progress, Workout, and Nutrition.</SettingsHelper>
       <UnitPreferencePicker
+        variant="settings"
         value={state.unitPreferences}
         onChange={(next) =>
           setFitnessState((prev) => ({
@@ -22,6 +24,6 @@ export function UnitsPanel() {
           }))
         }
       />
-    </>
+    </View>
   );
 }

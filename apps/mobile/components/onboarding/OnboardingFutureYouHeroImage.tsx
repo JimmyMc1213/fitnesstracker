@@ -11,6 +11,10 @@ type Props = {
   preparing: boolean;
   /** Blurred paywall teaser; omit on post-pay success hero. */
   blur?: boolean;
+  /** Grow to fill available vertical space instead of the fixed height. */
+  fill?: boolean;
+  /** Fixed frame height when not filling. Defaults to 224. */
+  imageHeight?: number;
 };
 
 export function OnboardingFutureYouHeroImage({
@@ -18,14 +22,19 @@ export function OnboardingFutureYouHeroImage({
   placeholderSource,
   preparing,
   blur = true,
+  fill = false,
+  imageHeight = 224,
 }: Props) {
   const { colors } = useAppTheme();
   const source = imageUri ? { uri: imageUri } : placeholderSource;
+  const frameStyle = fill
+    ? { flex: 1, width: "100%" as const }
+    : { height: imageHeight, width: "100%" as const };
 
   return (
-    <GradientCard padding={0} style={{ height: 224, width: "100%" }}>
+    <GradientCard padding={0} fill={fill} style={frameStyle}>
       <View
-        style={{ height: 224, width: "100%", alignItems: "center", justifyContent: "center" }}
+        style={{ ...frameStyle, alignItems: "center", justifyContent: "center" }}
         accessibilityState={{ busy: preparing }}
       >
         {source ? (

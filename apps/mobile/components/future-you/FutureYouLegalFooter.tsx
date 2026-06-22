@@ -7,10 +7,13 @@ type Props = {
   className?: string;
   /** PWA onboarding legal line (9px). */
   compact?: boolean;
+  /** Override the link color (defaults to the theme accent). */
+  accentColor?: string;
 };
 
-export function FutureYouLegalFooter({ className, compact = false }: Props) {
+export function FutureYouLegalFooter({ className, compact = false, accentColor }: Props) {
   const { colors } = useAppTheme();
+  const linkColor = accentColor ?? colors.accent;
 
   return (
     <View className={className}>
@@ -19,11 +22,11 @@ export function FutureYouLegalFooter({ className, compact = false }: Props) {
         style={{ color: colors.textTertiary }}
       >
         Illustrative preview, not medical advice. Delete anytime in Settings.{" "}
-        <Text style={{ color: colors.accent }} onPress={() => void Linking.openURL(FUTURE_YOU_PRIVACY_POLICY_URL)}>
+        <Text style={{ color: linkColor }} onPress={() => void Linking.openURL(FUTURE_YOU_PRIVACY_POLICY_URL)}>
           Privacy Policy
         </Text>
         {" · "}
-        <Text style={{ color: colors.accent }} onPress={() => void Linking.openURL(PAYWALL_TERMS_URL)}>
+        <Text style={{ color: linkColor }} onPress={() => void Linking.openURL(PAYWALL_TERMS_URL)}>
           Terms
         </Text>
       </Text>

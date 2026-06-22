@@ -3,5 +3,12 @@ import { Stack } from "expo-router";
 import { defaultStackScreenOptions } from "@/lib/navigationMotion";
 
 export default function SettingsLayout() {
-  return <Stack screenOptions={defaultStackScreenOptions} />;
+  return (
+    <Stack
+      screenOptions={{
+        ...defaultStackScreenOptions,
+        contentStyle: { backgroundColor: "transparent" },
+      }}
+    />
+  );
 }

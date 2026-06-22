@@ -1,8 +1,26 @@
+import {
+  IconBarbell,
+  IconBowlSpoon,
+  IconCircleCheck,
+  IconClipboardList,
+  IconClock,
+  IconFish,
+  IconFlame,
+  IconMeat,
+  IconMilk,
+  IconPlant2,
+  IconSalad,
+  IconScale,
+  IconTrendingUp,
+  IconWheat,
+} from "@tabler/icons-react-native";
 import type {
   DietaryRestriction,
   OnboardingBarrier,
   TrainingStyle,
 } from "@newyouai/types";
+
+import type { TablerIcon } from "@/lib/tablerIcon";
 
 export const ONBOARDING_BARRIERS: OnboardingBarrier[] = [
   "falling_off",
@@ -95,49 +113,49 @@ export function toggleDietaryRestriction(
     : [...withoutNone, item];
 }
 
-export function barrierEmoji(barrier: OnboardingBarrier): string {
+export function barrierIcon(barrier: OnboardingBarrier): TablerIcon {
   switch (barrier) {
     case "falling_off":
-      return "🔥";
+      return IconFlame;
     case "eating":
-      return "🍽️";
+      return IconBowlSpoon;
     case "no_plan":
-      return "📋";
+      return IconClipboardList;
     case "life_busy":
-      return "⏰";
+      return IconClock;
     case "no_results":
-      return "📈";
+      return IconTrendingUp;
   }
 }
 
-export function dietaryRestrictionEmoji(restriction: DietaryRestriction): string {
+export function dietaryRestrictionIcon(restriction: DietaryRestriction): TablerIcon {
   switch (restriction) {
     case "no_restrictions":
-      return "✅";
+      return IconCircleCheck;
     case "no_red_meat":
-      return "🥩";
+      return IconMeat;
     case "pescatarian":
-      return "🐟";
+      return IconFish;
     case "vegetarian":
-      return "🥦";
+      return IconSalad;
     case "vegan":
-      return "🌱";
+      return IconPlant2;
     case "dairy_free":
-      return "🥛";
+      return IconMilk;
     case "gluten_free":
-      return "🌾";
+      return IconWheat;
   }
 }
 
-export function trainingStyleEmoji(style: TrainingStyle): string {
+export function trainingStyleIcon(style: TrainingStyle): TablerIcon {
   switch (style) {
     case "directive":
-      return "📋";
+      return IconClipboardList;
     case "flexible":
-      return "⚖️";
+      return IconScale;
     case "accountable":
-      return "💪";
+      return IconBarbell;
     case "beginner_guided":
-      return "🌱";
+      return IconPlant2;
   }
 }

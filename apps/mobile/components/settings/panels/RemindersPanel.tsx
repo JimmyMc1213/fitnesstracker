@@ -1,4 +1,5 @@
 import { localDateKey, mergeFutureYouDraft } from "@newyouai/core";
+import { IconSparkles } from "@tabler/icons-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { Switch, Text, View } from "react-native";
 
@@ -54,7 +55,7 @@ export function RemindersPanel() {
         <SettingsHubSection title="NewYou">
           <View className="flex-row items-center px-4 py-3.5">
             <View className="mr-3 w-5 items-center justify-center">
-              <Text style={{ color: colors.textTertiary }}>✨</Text>
+              <IconSparkles size={16} color={colors.textTertiary} strokeWidth={2} />
             </View>
             <View className="min-w-0 flex-1">
               <Text className="text-[15px] font-medium" style={{ color: colors.textPrimary }}>
@@ -73,7 +74,7 @@ export function RemindersPanel() {
                   futureYou: mergeFutureYouDraft(prev.futureYou, { remindersMuted: !enabled }),
                 }))
               }
-              trackColor={{ false: colors.border, true: colors.accent }}
+              trackColor={{ false: colors.border, true: colors.textPrimary }}
               accessibilityLabel={newYouRemindersEnabled ? "NewYou reminders on" : "NewYou reminders off"}
             />
           </View>

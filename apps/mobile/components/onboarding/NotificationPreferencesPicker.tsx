@@ -1,14 +1,12 @@
-import { normalizeTimeHHmm } from "@newyouai/core";
 import type { NotificationPreferences } from "@newyouai/types";
-import { Switch, Text, TextInput, View } from "react-native";
+import { useState } from "react";
+import { Switch, Text, View } from "react-native";
 
-import {
-  OnboardingFieldGroup,
-  OnboardingInputField,
-} from "@/components/onboarding/OnboardingInputField";
+import { TimeWheelPicker } from "@/components/onboarding/TimeWheelPicker";
 import { GradientCard } from "@/components/ui/GradientCard";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import type { NotificationPermissionState } from "@/lib/notificationPermission";
 import { permissionStatusLabel, requestNotificationPermission } from "@/lib/notificationPermission";
 import {
@@ -74,22 +72,55 @@ const REMINDER_ROWS: ReminderRowConfig[] = [
   },
 ];
 
+function InlineTimeDial({
+  time,
+  onTimeChange,
+  fadeColor,
+  testID,
+}: {
+  time: string;
+  onTimeChange: (next: string) => void;
+  fadeColor: string;
+  testID?: string;
+}) {
+  return (
+    <View
+      testID={testID}
+      onStartShouldSetResponder={() => true}
+      onMoveShouldSetResponder={() => true}
+      style={{ marginTop: 4, marginHorizontal: -4 }}
+    >
+      <TimeWheelPicker
+        appearance="inline"
+        fadeColor={fadeColor}
+        value={time}
+        onChange={onTimeChange}
+      />
+    </View>
+  );
+}
+
 function OnboardingNotificationRow({
   row,
   enabled,
   time,
+  expanded,
   onToggle,
+  onExpandToggle,
   onTimeChange,
+  wheelFadeColor,
 }: {
   row: ReminderRowConfig;
   enabled: boolean;
   time: string;
+  expanded: boolean;
   onToggle: () => void;
+  onExpandToggle: () => void;
   onTimeChange: (next: string) => void;
+  wheelFadeColor: string;
 }) {
   const { colors } = useAppTheme();
   const label = row.onboardingLabel ?? row.label;
-  const defaultTime = DEFAULT_NOTIFICATION_PREFERENCES[row.timeKey];
 
   return (
     <View
@@ -114,22 +145,45 @@ function OnboardingNotificationRow({
       </View>
       {enabled ? (
         <View className="mt-3">
-          <OnboardingFieldGroup label="Reminder time" labelColor={colors.textTertiary}>
-            <OnboardingInputField
-              shellStyle={{
-                borderColor: colors.border,
-                backgroundColor: colors.background,
-              }}
-              inputStyle={{ color: colors.textPrimary }}
-              value={time}
-              onChangeText={(next) => onTimeChange(normalizeTimeHHmm(next, defaultTime))}
-              placeholder={defaultTime}
-              placeholderTextColor={colors.textTertiary}
-              keyboardType="numbers-and-punctuation"
-              accessibilityLabel={`${label} time`}
-              testID={`notification-time-${row.timeKey}`}
+          <PressableScale
+            onPress={onExpandToggle}
+            accessibilityRole="button"
+            accessibilityLabel={row.timeAriaLabel}
+            accessibilityState={{ expanded }}
+            testID={`notification-time-${row.timeKey}`}
+            style={{
+              minHeight: 44,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              borderRadius: 10,
+              borderWidth: expanded ? 0 : 1,
+              borderColor: colors.border,
+              backgroundColor: expanded ? "transparent" : colors.background,
+              paddingHorizontal: expanded ? 0 : 12,
+              paddingVertical: 8,
+            }}
+          >
+            <Text className="text-[11px] font-medium uppercase tracking-widest" style={{ color: colors.textTertiary }}>
+              Reminder time
+            </Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className="text-[17px] font-medium tabular-nums" style={{ color: colors.textPrimary }}>
+                {formatNotificationTimeDisplay(time)}
+              </Text>
+              <Text className="text-[13px]" style={{ color: colors.textTertiary }}>
+                {expanded ? "▴" : "▾"}
+              </Text>
+            </View>
+          </PressableScale>
+          {expanded ? (
+            <InlineTimeDial
+              time={time}
+              onTimeChange={onTimeChange}
+              fadeColor={wheelFadeColor}
+              testID={`notification-time-dial-${row.timeKey}`}
             />
-          </OnboardingFieldGroup>
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -140,14 +194,20 @@ function SettingsNotificationRow({
   row,
   enabled,
   time,
+  expanded,
   onToggle,
+  onExpandToggle,
   onTimeChange,
+  wheelFadeColor,
 }: {
   row: ReminderRowConfig;
   enabled: boolean;
   time: string;
+  expanded: boolean;
   onToggle: () => void;
+  onExpandToggle: () => void;
   onTimeChange: (next: string) => void;
+  wheelFadeColor: string;
 }) {
   const { colors } = useAppTheme();
   const defaultTime = DEFAULT_NOTIFICATION_PREFERENCES[row.timeKey];
@@ -167,29 +227,46 @@ function SettingsNotificationRow({
           <Switch
             value={enabled}
             onValueChange={onToggle}
-            trackColor={{ false: colors.border, true: colors.accent }}
+            trackColor={{ false: colors.border, true: colors.textPrimary }}
             accessibilityLabel={enabled ? `${row.label} on` : `${row.label} off`}
           />
         </View>
         <View style={{ marginTop: 10 }}>
-          <Text className="mb-1 text-xs" style={{ color: colors.textTertiary }}>Reminder time</Text>
-          <TextInput
-            value={time}
-            onChangeText={(next) => onTimeChange(normalizeTimeHHmm(next, defaultTime))}
-            editable={enabled}
-            placeholder={defaultTime}
-            placeholderTextColor={colors.textTertiary}
-            keyboardType="numbers-and-punctuation"
-            className="rounded-[10px] border px-3 py-2.5 text-base"
-            style={{
-              borderColor: colors.border,
-              backgroundColor: colors.backgroundSecondary,
-              color: colors.textPrimary,
-              opacity: enabled ? 1 : 0.45,
-            }}
+          <PressableScale
+            onPress={onExpandToggle}
+            accessibilityRole="button"
             accessibilityLabel={row.timeAriaLabel}
+            accessibilityState={{ expanded }}
             testID={`notification-time-${row.timeKey}`}
-          />
+            style={{
+              minHeight: 40,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingVertical: 4,
+              opacity: enabled ? 1 : 0.72,
+            }}
+          >
+            <Text className="text-xs" style={{ color: colors.textTertiary }}>
+              Reminder time
+            </Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className="text-[17px] font-medium tabular-nums" style={{ color: colors.textPrimary }}>
+                {formatNotificationTimeDisplay(time)}
+              </Text>
+              <Text className="text-[13px]" style={{ color: colors.textTertiary }}>
+                {expanded ? "▴" : "▾"}
+              </Text>
+            </View>
+          </PressableScale>
+          {expanded ? (
+            <InlineTimeDial
+              time={time}
+              onTimeChange={onTimeChange}
+              fadeColor={wheelFadeColor}
+              testID={`notification-time-dial-${row.timeKey}`}
+            />
+          ) : null}
         </View>
       </GradientCard>
     </View>
@@ -214,10 +291,17 @@ export function NotificationPreferencesPicker({
   onPermissionChange,
 }: Props) {
   const { colors } = useAppTheme();
+  const { ob } = useOnboardingTheme();
+  const [expandedTimeKey, setExpandedTimeKey] = useState<ReminderRowConfig["timeKey"] | null>(null);
   const permissionGranted = permission === "granted";
+  const wheelFadeColor = ob.gradientCardStops[1]?.color ?? colors.card;
 
   function patch(partial: Partial<NotificationPreferences>) {
     onChange({ ...value, ...partial });
+  }
+
+  function toggleExpanded(timeKey: ReminderRowConfig["timeKey"]) {
+    setExpandedTimeKey((current) => (current === timeKey ? null : timeKey));
   }
 
   if (variant === "onboarding") {
@@ -231,8 +315,11 @@ export function NotificationPreferencesPicker({
                 row={row}
                 enabled={value[row.enabledKey]}
                 time={value[row.timeKey]}
+                expanded={expandedTimeKey === row.timeKey}
                 onToggle={() => patch({ [row.enabledKey]: !value[row.enabledKey] })}
+                onExpandToggle={() => toggleExpanded(row.timeKey)}
                 onTimeChange={(next) => patch({ [row.timeKey]: next })}
+                wheelFadeColor={wheelFadeColor}
               />
             </View>
           ))}
@@ -252,8 +339,11 @@ export function NotificationPreferencesPicker({
               row={row}
               enabled={value[row.enabledKey]}
               time={value[row.timeKey]}
+              expanded={expandedTimeKey === row.timeKey}
               onToggle={() => patch({ [row.enabledKey]: !value[row.enabledKey] })}
+              onExpandToggle={() => toggleExpanded(row.timeKey)}
               onTimeChange={(next) => patch({ [row.timeKey]: next })}
+              wheelFadeColor={wheelFadeColor}
             />
           ))
         : null}

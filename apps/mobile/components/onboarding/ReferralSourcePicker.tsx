@@ -1,6 +1,9 @@
+import { IconMessageCircle, IconUsers } from "@tabler/icons-react-native";
 import type { ReferralSource } from "@newyouai/types";
 import type { ImageSourcePropType } from "react-native";
 import { Image, Text, View } from "react-native";
+
+import type { TablerIcon } from "@/lib/tablerIcon";
 
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
@@ -23,9 +26,9 @@ const BRAND_ICON_IMAGES: Partial<Record<ReferralSource, ImageSourcePropType>> = 
   x: require("@/assets/brand-icons/x.png"),
 };
 
-const EMOJI_ICONS: Partial<Record<ReferralSource, string>> = {
-  friend: "👥",
-  other: "💬",
+const GLYPH_ICONS: Partial<Record<ReferralSource, TablerIcon>> = {
+  friend: IconUsers,
+  other: IconMessageCircle,
 };
 
 const ICON_SIZE = 32;
@@ -42,6 +45,7 @@ function ReferralSourceIcon({ source }: { source: ReferralSource }) {
     );
   }
 
+  const Icon = GLYPH_ICONS[source] ?? IconMessageCircle;
   return (
     <View
       style={{
@@ -51,7 +55,7 @@ function ReferralSourceIcon({ source }: { source: ReferralSource }) {
         justifyContent: "center",
       }}
     >
-      <Text style={{ fontSize: 22, lineHeight: 24 }}>{EMOJI_ICONS[source] ?? "💬"}</Text>
+      <Icon size={24} color="#6B7280" strokeWidth={2} />
     </View>
   );
 }
