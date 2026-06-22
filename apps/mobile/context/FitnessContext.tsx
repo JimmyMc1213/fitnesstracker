@@ -4,6 +4,7 @@ import {
   savePersistedSlice,
 } from "@newyouai/core";
 import type { AppState, PersistedFitnessSlice } from "@newyouai/types";
+import type { Session } from "@supabase/supabase-js";
 import {
   createContext,
   useCallback,
@@ -14,17 +15,25 @@ import {
   type ReactNode,
 } from "react";
 
+import { useAuth } from "@/context/AuthContext";
 import { e2eFitnessSeedByName, type E2eFitnessSeedName } from "@/lib/e2e/fitnessPersistSeed";
 import { buildFitnessAppState } from "@/lib/fitness/buildFitnessAppState";
 import { sliceFromAppState } from "@/lib/fitness/sliceFromAppState";
+import { hasAuthenticatedUser } from "@/lib/authSession";
 import { writeOnboardingComplete } from "@/lib/onboardingStorage";
 import { createAsyncStorageAdapter } from "@/lib/createAsyncStorageAdapter";
+import { isVisualParityWebFrame } from "@/lib/visualParity";
 
 function e2eSeedFromEnv(): Partial<PersistedFitnessSlice> | null {
   if (!__DEV__) return null;
   const raw = process.env.EXPO_PUBLIC_E2E_FITNESS_SEED?.trim();
   if (!raw) return null;
   return e2eFitnessSeedByName(raw as E2eFitnessSeedName);
+}
+
+function canLoadFitnessData(session: Session | null, sessionResolved: boolean): boolean {
+  if (isVisualParityWebFrame()) return true;
+  return sessionResolved && hasAuthenticatedUser(session);
 }
 
 type FitnessContextValue = {
@@ -41,14 +50,26 @@ const FitnessContext = createContext<FitnessContextValue | null>(null);
 const storageAdapter = createAsyncStorageAdapter();
 
 export function FitnessProvider({ children }: { children: ReactNode }) {
+  const { session, sessionResolved } = useAuth();
   const [state, setState] = useState<AppState | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [syncRevision, setSyncRevision] = useState(0);
 
+  const fitnessAccessAllowed = canLoadFitnessData(session, sessionResolved);
+
   useEffect(() => {
+    if (fitnessAccessAllowed) return;
+    setState(null);
+    setHydrated(sessionResolved);
+  }, [fitnessAccessAllowed, sessionResolved]);
+
+  useEffect(() => {
+    if (!fitnessAccessAllowed) return;
+
     let cancelled = false;
 
     void (async () => {
+      setHydrated(false);
       const e2eSeed = e2eSeedFromEnv();
       if (e2eSeed) {
         if (e2eSeed.onboardingComplete) {
@@ -68,7 +89,7 @@ export function FitnessProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fitnessAccessAllowed, session?.user?.id]);
 
   const persistState = useCallback((next: AppState) => {
     void savePersistedSlice(storageAdapter, FITNESS_LOCAL_STORAGE_KEY, sliceFromAppState(next));

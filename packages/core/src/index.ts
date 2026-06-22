@@ -141,7 +141,12 @@ export {
   logNutritionMealToDay,
   mergeNutritionMeals,
 } from "./nutrition/nutritionMeals";
-export { hasExistingFitnessData } from "./sync/onboardingSkip";
+export {
+  hasExistingFitnessData,
+  hasOnboardingProfileSetup,
+  isLegacyUserEmail,
+  shouldSkipOnboarding,
+} from "./sync/onboardingSkip";
 export { normalizeAppTheme } from "./sync/theme";
 export { DEFAULT_UNIT_PREFERENCES, normalizeUnitPreferences } from "./sync/unitPreferences";
 export {
@@ -592,6 +597,29 @@ export {
   FUTURE_YOU_REPORT_CATEGORY_OPTIONS,
   futureYouReportCategoryLabel,
 } from "./future-you/reportModel";
+export {
+  ISSUE_REPORT_CATEGORIES,
+  ISSUE_REPORT_MESSAGE_MAX,
+  ISSUE_REPORT_APP_VERSION_MAX,
+  ISSUE_REPORT_PLATFORM_MAX,
+  ISSUE_REPORT_DEVICE_MODEL_MAX,
+  isIssueReportCategory,
+  normalizeIssueReportMessage,
+  normalizeIssueReportMetadata,
+  type IssueReportCategory,
+  type IssueReportRequest,
+} from "./issue-report/reportGuards";
+export {
+  ISSUE_REPORT_SETTINGS_LABEL,
+  ISSUE_REPORT_SHEET_TITLE,
+  ISSUE_REPORT_SHEET_BODY,
+  ISSUE_REPORT_SUBMIT_LABEL,
+  ISSUE_REPORT_SUCCESS_MESSAGE,
+  ISSUE_REPORT_ERROR_MESSAGE,
+  ISSUE_REPORT_CATEGORY_OPTIONS,
+  issueReportCategoryLabel,
+  linearLabelsForIssueReportCategory,
+} from "./issue-report/reportModel";
 export {
   FUTURE_YOU_MOTIVATIONS,
   getFutureYouMotivationById,

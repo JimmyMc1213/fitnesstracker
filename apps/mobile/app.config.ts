@@ -18,6 +18,8 @@ const config: ExpoConfig = {
         "New You AI uses your camera to scan food barcodes and capture photos for your Future You transformation preview.",
       NSPhotoLibraryUsageDescription:
         "New You AI uses your photo library so you can choose a picture for your Future You preview.",
+      NSPhotoLibraryAddUsageDescription:
+        "New You AI saves your NewYou preview to your photo library when you tap Save to photos.",
       NSUserNotificationsUsageDescription:
         "New You AI sends workout and nutrition reminders you choose in Settings.",
     },
@@ -58,6 +60,15 @@ const config: ExpoConfig = {
           "New You AI uses your photo library so you can choose a picture for your Future You preview.",
         cameraPermission:
           "New You AI uses your camera to scan food barcodes and capture photos for your Future You preview.",
+      },
+    ],
+    [
+      "expo-media-library",
+      {
+        photosPermission:
+          "New You AI uses your photo library so you can choose a picture for your Future You preview.",
+        savePhotosPermission:
+          "New You AI saves your NewYou preview to your photo library when you tap Save to photos.",
       },
     ],
     [

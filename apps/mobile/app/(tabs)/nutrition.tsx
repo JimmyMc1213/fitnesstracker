@@ -186,7 +186,6 @@ export default function NutritionScreen() {
           items={todayFoodItems}
           onRemove={handleRemoveFood}
           onEdit={handleEditFood}
-          onLogFood={openLogFood}
         />
       </ScrollView>
       </TabScreenFade>

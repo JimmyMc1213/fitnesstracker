@@ -38,6 +38,13 @@ export const authLayout = StyleSheet.create({
     lineHeight: 32,
     textAlign: "center",
   },
+  welcomeHeadlineEmphasis: {
+    fontSize: 40,
+    fontWeight: "700",
+    lineHeight: 46,
+    textAlign: "center",
+    marginTop: 2,
+  },
   subline: {
     marginTop: 10,
     fontSize: 15,
@@ -72,6 +79,13 @@ export const authLayout = StyleSheet.create({
     borderRadius: borderRadius.pill,
     paddingVertical: 14,
     borderWidth: 1,
+    minHeight: 52,
+  },
+  oauthButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
   },
   oauthButtonText: {
     fontSize: 16,

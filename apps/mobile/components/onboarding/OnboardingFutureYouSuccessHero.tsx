@@ -31,7 +31,7 @@ export function OnboardingFutureYouSuccessHero({
   const { value: timelineValue, unit: timelineUnit } = splitFutureYouTimelineForPaywall(timeline);
 
   return (
-    <View className={`items-center gap-3${fill ? " flex-1 w-full" : ""}`}>
+    <View className={`items-center${fill ? " min-h-0 w-full flex-1 gap-5" : " gap-3"}`}>
       <OnboardingFutureYouHeroImage
         imageUri={imageUri}
         placeholderSource={placeholderSource}
@@ -40,7 +40,10 @@ export function OnboardingFutureYouSuccessHero({
         fill={fill}
         imageHeight={imageHeight}
       />
-      <Text className="text-center text-base" style={{ color: colors.textPrimary }}>
+      <Text
+        className={`shrink-0 text-center text-base${fill ? " pb-1" : ""}`}
+        style={{ color: colors.textPrimary }}
+      >
         You in{" "}
         <Text className="font-bold" style={{ color: accentColor ?? colors.accent }}>
           {timelineValue}

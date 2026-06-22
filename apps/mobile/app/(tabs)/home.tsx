@@ -10,11 +10,13 @@ import {
   mergeFutureYouDraft,
   planWeekIndex,
 } from "@newyouai/core";
-import { router, useLocalSearchParams } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { TabScreenFade } from "@/components/motion/TabScreenFade";
+import { useAuth } from "@/context/AuthContext";
+import { hasAuthenticatedUser } from "@/lib/authSession";
 import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 
 import { FutureYouSkipperReminderPill } from "@/components/home/FutureYouSkipperReminderPill";
@@ -49,6 +51,7 @@ import { isMobilityHabit } from "@/lib/mobilityHabit";
 import type { HabitTemplate } from "@newyouai/types";
 
 export default function HomeScreen() {
+  const { session, sessionResolved } = useAuth();
   const { colors, scheme } = useAppTheme();
   const { paddingTop, paddingBottom } = useTabScreenInsets();
   const { state, hydrated, setFitnessState } = useFitnessState();
@@ -187,6 +190,10 @@ export default function HomeScreen() {
   const dismissNewYouReminderPill = useCallback(() => {
     patchFutureYou({ reminderDismissedDateKey: dateKeyToday });
   }, [patchFutureYou, dateKeyToday]);
+
+  if (sessionResolved && !hasAuthenticatedUser(session)) {
+    return <Redirect href="/(auth)" />;
+  }
 
   if (!hydrated || !state) {
     return (

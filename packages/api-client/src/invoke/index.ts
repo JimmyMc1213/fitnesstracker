@@ -9,6 +9,10 @@ export {
   type OffBarcodeLookupPayload,
 } from "../offBarcodeLookup";
 export {
+  IssueReportError,
+  submitIssueReport,
+} from "./issueReport";
+export {
   deleteFutureYou,
   FutureYouDeleteError,
   FutureYouGenerateError,

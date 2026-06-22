@@ -24,12 +24,14 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
+import { readLastAuthUserId, writeLastAuthUserId } from "@/lib/authSessionStorage";
 import { createAsyncStorageAdapter } from "@/lib/createAsyncStorageAdapter";
 import { syncOnboardingStorageFromFitnessSlice } from "@/lib/onboardingStorage";
 import { buildFitnessAppState } from "@/lib/fitness/buildFitnessAppState";
 import { createSupabaseSyncClient } from "@/lib/fitness/createSupabaseSyncClient";
 import { migratePersistedFitnessSlice } from "@/lib/fitness/migratePersistedFitnessSlice";
 import { sliceFromAppState } from "@/lib/fitness/sliceFromAppState";
+import { resetLocalAfterAccountDelete } from "@/lib/resetAfterAccountDelete";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 
 const HYDRATION_PULL_TIMEOUT_MS = 5000;
@@ -166,18 +168,30 @@ export function FitnessSyncProvider({ children }: { children: ReactNode }) {
       if (!cancelled) setFitnessHydrated(true);
     }, HYDRATION_PULL_TIMEOUT_MS);
 
-    void runPullForUser(session.user.id).finally(() => {
-      if (!cancelled) {
-        clearTimeout(timeoutId);
-        setFitnessHydrated(true);
+    const uid = session.user.id;
+
+    void (async () => {
+      try {
+        const lastUid = await readLastAuthUserId();
+        if (lastUid && lastUid !== uid) {
+          const next = await resetLocalAfterAccountDelete();
+          replaceFitnessState(next);
+        }
+        await runPullForUser(uid);
+        await writeLastAuthUserId(uid);
+      } finally {
+        if (!cancelled) {
+          clearTimeout(timeoutId);
+          setFitnessHydrated(true);
+        }
       }
-    });
+    })();
 
     return () => {
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [configured, sessionResolved, fitnessLocalHydrated, session?.user?.id, runPullForUser]);
+  }, [configured, sessionResolved, fitnessLocalHydrated, session?.user?.id, runPullForUser, replaceFitnessState]);
 
   const runPushWithConflictRetry = useCallback(async (uid: string) => {
     const client = createSupabaseSyncClient();

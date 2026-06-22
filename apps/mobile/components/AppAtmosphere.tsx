@@ -5,7 +5,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 
 /**
  * Atmospheric background ported from the PWA's `body::before` layer
- * (apps/pwa/src/index.css). Soft elliptical blue + violet blobs over a base
+ * (apps/pwa/src/index.css). Soft elliptical gold + violet blobs over a base
  * vignette and a faint vertical gradient. Themed for light and dark.
  *
  * RN SVG ignores alpha inside `stopColor="rgba(...)"`, so every stop carries an
@@ -57,14 +57,14 @@ const DARK_ATMOSPHERE: AtmosphereConfig = {
       ],
     },
     {
-      id: "atm-blue",
+      id: "atm-gold",
       cx: 0.08,
       cy: -0.08,
       rx: 1.1,
       ry: 0.85,
       stops: [
-        { offset: 0, color: "rgb(10, 132, 255)", opacity: 0.1 },
-        { offset: 0.54, color: "rgb(10, 132, 255)", opacity: 0 },
+        { offset: 0, color: "rgb(201, 168, 118)", opacity: 0.1 },
+        { offset: 0.54, color: "rgb(201, 168, 118)", opacity: 0 },
       ],
     },
   ],
@@ -102,15 +102,15 @@ const LIGHT_ATMOSPHERE: AtmosphereConfig = {
       ],
     },
     {
-      id: "atm-blue",
+      id: "atm-gold",
       cx: 0.08,
       cy: -0.08,
       rx: 1.15,
       ry: 0.92,
       stops: [
-        { offset: 0, color: "rgb(10, 132, 255)", opacity: 0.34 },
-        { offset: 0.34, color: "rgb(10, 132, 255)", opacity: 0.14 },
-        { offset: 0.58, color: "rgb(10, 132, 255)", opacity: 0 },
+        { offset: 0, color: "rgb(201, 168, 118)", opacity: 0.34 },
+        { offset: 0.34, color: "rgb(201, 168, 118)", opacity: 0.14 },
+        { offset: 0.58, color: "rgb(201, 168, 118)", opacity: 0 },
       ],
     },
   ],

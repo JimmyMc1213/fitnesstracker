@@ -11,6 +11,7 @@ import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
+import { AuthSessionRedirect } from "@/components/AuthSessionRedirect";
 import { AppShellErrorFallback } from "@/components/AppShellErrorFallback";
 import { AppShellLoading } from "@/components/AppShellLoading";
 import { BootSplash } from "@/components/BootSplash";
@@ -29,7 +30,7 @@ import {
   pushStackScreenOptions,
 } from "@/lib/navigationMotion";
 import { initLocalNotifications } from "@/lib/localNotifications";
-import { isSupabaseConfigured } from "@/lib/supabaseClient";
+import { hasAuthenticatedUser } from "@/lib/authSession";
 import { isVisualParityMode, isVisualParityWebFrame } from "@/lib/visualParity";
 
 export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
@@ -37,9 +38,7 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 }
 
 export const unstable_settings = {
-  // Auth-first when Supabase is configured (AC1); tabs-first for unconfigured smoke (AC6).
-  initialRouteName:
-    isVisualParityMode() ? "(tabs)" : isSupabaseConfigured() ? "(auth)" : "(tabs)",
+  initialRouteName: isVisualParityMode() ? "(tabs)" : "(auth)",
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -119,19 +118,24 @@ export default function RootLayout() {
   );
 }
 
-function AppShellLoadingGate({ children }: { children: ReactNode }) {
-  const { configured, sessionEmail } = useAuth();
+function AppShellLoadingGate({
+  children,
+  signedOut = false,
+}: {
+  children: ReactNode;
+  signedOut?: boolean;
+}) {
+  const { sessionEmail } = useAuth();
   const shellInput = useAppShellRoutingInput();
   const { onboardingStubHydrated } = useOnboardingStub();
 
-  if (isVisualParityWebFrame()) {
+  if (isVisualParityWebFrame() || signedOut) {
     return children;
   }
 
-  const awaitingOnboardingStub =
-    configured && sessionEmail != null && !onboardingStubHydrated;
+  const awaitingOnboardingStub = sessionEmail != null && !onboardingStubHydrated;
 
-  if (awaitingOnboardingStub || (configured && isAppShellLoading(shellInput))) {
+  if (awaitingOnboardingStub || isAppShellLoading(shellInput)) {
     return <AppShellLoading />;
   }
 
@@ -146,14 +150,27 @@ function DeepLinkListener() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const { session, sessionResolved } = useAuth();
+  const bypassAuth = isVisualParityWebFrame();
+  const signedOut = !bypassAuth && sessionResolved && !hasAuthenticatedUser(session);
+
   useAppShellGate();
+
+  if (!bypassAuth && !sessionResolved) {
+    return (
+      <ThemeProvider value={navigationTheme(colorScheme)}>
+        <AppShellLoading />
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider value={navigationTheme(colorScheme)}>
-      <AppShellLoadingGate>
+      <AppShellLoadingGate signedOut={signedOut}>
+        <AuthSessionRedirect />
         <DeepLinkListener />
         <Stack screenOptions={defaultStackScreenOptions}>
-          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(onboarding)" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="(modals)" options={modalStackScreenOptions} />

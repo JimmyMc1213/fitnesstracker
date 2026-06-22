@@ -13,6 +13,8 @@ import { AppState, Platform, type AppStateStatus } from "react-native";
 
 import { mapOAuthSessionError, parseOAuthRedirectUrl } from "@/lib/authOAuth";
 import { changeUserPassword, updateUserEmail } from "@/lib/accountAuth";
+import { enforceAuthGenerationIfNeeded } from "@/lib/authEnforcement";
+import { authenticatedUserEmail } from "@/lib/authSession";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -47,15 +49,26 @@ function isDuplicateEmailError(message: string | undefined): boolean {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const configured = isSupabaseConfigured();
   const [session, setSession] = useState<Session | null>(null);
-  const [sessionResolved, setSessionResolved] = useState(!configured);
+  const [sessionResolved, setSessionResolved] = useState(false);
 
   const refreshSession = useCallback(async () => {
     const sb = getSupabase();
     if (!sb) {
+      setSession(null);
       setSessionResolved(true);
       return;
     }
     try {
+      const { data: userResult, error: userError } = await sb.auth.getUser();
+      if (userError || !userResult.user) {
+        try {
+          await sb.auth.signOut({ scope: "local" });
+        } catch {
+          /* stale token cleanup */
+        }
+        setSession(null);
+        return;
+      }
       const { data } = await sb.auth.getSession();
       setSession(data.session ?? null);
     } catch {
@@ -66,17 +79,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const sb = getSupabase();
-    if (!sb) return;
+    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
 
-    void refreshSession();
-    const { data: sub } = sb.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setSessionResolved(true);
-    });
+    void (async () => {
+      try {
+        await enforceAuthGenerationIfNeeded();
+        if (cancelled) return;
 
-    return () => sub.subscription.unsubscribe();
-  }, [refreshSession]);
+        if (!configured) {
+          setSession(null);
+          setSessionResolved(true);
+          return;
+        }
+
+        const sb = getSupabase();
+        if (!sb) {
+          setSession(null);
+          setSessionResolved(true);
+          return;
+        }
+
+        await refreshSession();
+        if (cancelled) return;
+
+        const { data: sub } = sb.auth.onAuthStateChange(async (_event, nextSession) => {
+          if (!nextSession?.user?.id) {
+            setSession(null);
+            setSessionResolved(true);
+            return;
+          }
+          try {
+            const { data: userResult, error: userError } = await sb.auth.getUser();
+            if (userError || !userResult.user) {
+              setSession(null);
+            } else {
+              setSession(nextSession);
+            }
+          } catch {
+            setSession(null);
+          } finally {
+            setSessionResolved(true);
+          }
+        });
+
+        unsubscribe = () => sub.subscription.unsubscribe();
+      } catch {
+        if (!cancelled) {
+          setSession(null);
+          setSessionResolved(true);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+  }, [configured, refreshSession]);
 
   useEffect(() => {
     const onAppStateChange = (nextState: AppStateStatus) => {
@@ -264,7 +324,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     const sb = getSupabase();
     try {
-      if (sb) await sb.auth.signOut();
+      if (sb) await sb.auth.signOut({ scope: "local" });
     } catch {
       // Best-effort remote sign-out; local session must still clear (RN-2-05).
     } finally {
@@ -288,7 +348,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       configured,
       session,
-      sessionEmail: session?.user?.email ?? null,
+      sessionEmail: authenticatedUserEmail(session),
       sessionResolved,
       signInWithPassword,
       signUpWithEmail,

@@ -3,12 +3,14 @@ import { useCallback, useState, type ReactNode } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import {
   formatVolumeFromOz,
+  ISSUE_REPORT_SETTINGS_LABEL,
   nutritionGoalLabel,
   nutritionGoalSettingsLabel,
 } from "@newyouai/core";
 
 import { FutureYouDeleteConfirmSheet } from "@/components/future-you/FutureYouDeleteConfirmSheet";
 import { TabScreenFade } from "@/components/motion/TabScreenFade";
+import { ReportIssueDialog } from "@/components/settings/ReportIssueDialog";
 import { SettingsScreenChrome } from "@/components/settings/SettingsScreenChrome";
 import {
   IconBell,
@@ -35,6 +37,7 @@ import { useFitnessState } from "@/context/FitnessContext";
 import { useFitnessSync } from "@/context/FitnessSyncContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { deleteUserAccount, isDeleteAccountDryRunEnabled } from "@/lib/deleteUserAccount";
+import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
 import { EQUIPMENT_SETUP_LABELS } from "@/lib/equipmentSetup";
 import { resetLocalAfterAccountDelete } from "@/lib/resetAfterAccountDelete";
 import type { SettingsPanelId } from "@/lib/settingsPanelRegistry";
@@ -82,6 +85,15 @@ export default function SettingsHubScreen() {
   const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
   const [deleteAccountNotice, setDeleteAccountNotice] = useState<string | null>(null);
   const [deleteAccountBusy, setDeleteAccountBusy] = useState(false);
+  const [reportIssueOpen, setReportIssueOpen] = useState(false);
+
+  const handleSignOut = useCallback(async () => {
+    stopOnboardingPreview();
+    const next = await resetLocalAfterAccountDelete();
+    replaceFitnessState(next);
+    await signOut();
+    router.replace("/(auth)");
+  }, [replaceFitnessState, signOut]);
 
   const handleDeleteAccount = useCallback(async () => {
     const sb = getSupabase();
@@ -261,18 +273,12 @@ export default function SettingsHubScreen() {
           />
         </SettingsHubSection>
 
-        <SettingsHubSection title="Legal">
+        <SettingsHubSection title="Help & support">
           <SettingsRow
-            icon={rowIcon(<IconDocument size={16} stroke={1.6} color={colors.textPrimary} />)}
-            label="Terms of service"
-            testID="settings-row-terms"
-            onPress={() => void openExternalUrl(SETTINGS_TERMS_URL)}
-          />
-          <SettingsRow
-            icon={rowIcon(<IconShield size={16} stroke={1.6} color={colors.textPrimary} />)}
-            label="Privacy policy"
-            testID="settings-row-privacy"
-            onPress={() => void openExternalUrl(SETTINGS_PRIVACY_POLICY_URL)}
+            icon={rowIcon(<IconFlag size={16} stroke={1.6} color={colors.textPrimary} />)}
+            label={ISSUE_REPORT_SETTINGS_LABEL}
+            testID="settings-row-report-issue"
+            onPress={() => setReportIssueOpen(true)}
           />
           <SettingsRow
             icon={rowIcon(<IconMail size={16} stroke={1.6} color={colors.textPrimary} />)}
@@ -284,6 +290,22 @@ export default function SettingsHubScreen() {
             icon={rowIcon(<IconSpeakerphone size={16} stroke={1.6} color={colors.textPrimary} />)}
             label="Request a feature"
             isLast
+          />
+        </SettingsHubSection>
+
+        <SettingsHubSection title="Legal">
+          <SettingsRow
+            icon={rowIcon(<IconDocument size={16} stroke={1.6} color={colors.textPrimary} />)}
+            label="Terms of service"
+            testID="settings-row-terms"
+            onPress={() => void openExternalUrl(SETTINGS_TERMS_URL)}
+          />
+          <SettingsRow
+            icon={rowIcon(<IconShield size={16} stroke={1.6} color={colors.textPrimary} />)}
+            label="Privacy policy"
+            testID="settings-row-privacy"
+            isLast
+            onPress={() => void openExternalUrl(SETTINGS_PRIVACY_POLICY_URL)}
           />
         </SettingsHubSection>
 
@@ -361,10 +383,12 @@ export default function SettingsHubScreen() {
           onCancel={() => setShowSignOutConfirm(false)}
           onConfirm={() => {
             setShowSignOutConfirm(false);
-            void signOut();
+            void handleSignOut();
           }}
         />
       ) : null}
+
+      <ReportIssueDialog open={reportIssueOpen} onClose={() => setReportIssueOpen(false)} />
 
       {deleteAccountStep === "warn" ? (
         <FutureYouDeleteConfirmSheet

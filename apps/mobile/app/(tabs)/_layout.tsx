@@ -1,18 +1,27 @@
-import { router, Tabs } from "expo-router";
+import { Redirect, router, Tabs } from "expo-router";
 import { View } from "react-native";
 
 import { AppAtmosphere } from "@/components/AppAtmosphere";
 import { AppShellErrorBoundary } from "@/components/AppShellErrorBoundary";
 import { TabBarDock } from "@/components/TabBarDock";
 import { WorkoutShellProvider } from "@/context/WorkoutShellContext";
+import { RequireSignedInSession } from "@/hooks/useRequireSignedInSession";
+import { useAuth } from "@/context/AuthContext";
+import { hasAuthenticatedUser } from "@/lib/authSession";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { tabScreenOptions } from "@/lib/navigationMotion";
 
 export default function TabLayout() {
   const { colors } = useAppTheme();
+  const { session } = useAuth();
 
   return (
-    <AppShellErrorBoundary onRetry={() => router.replace("/(tabs)/home")}>
+    <RequireSignedInSession>
+    <AppShellErrorBoundary
+      onRetry={() => {
+        router.replace(hasAuthenticatedUser(session) ? "/(tabs)/home" : "/(auth)");
+      }}
+    >
       <WorkoutShellProvider>
       <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppAtmosphere />
@@ -45,5 +54,6 @@ export default function TabLayout() {
       </View>
       </WorkoutShellProvider>
     </AppShellErrorBoundary>
+    </RequireSignedInSession>
   );
 }

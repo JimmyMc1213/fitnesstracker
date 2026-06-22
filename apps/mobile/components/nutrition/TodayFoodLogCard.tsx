@@ -13,7 +13,6 @@ type Props = {
   items: NutritionLoggedItem[];
   onRemove: (itemId: string) => void;
   onEdit: (item: NutritionLoggedItem) => void;
-  onLogFood?: () => void;
 };
 
 function formatLoggedTime(ms: number | undefined): string {
@@ -121,7 +120,7 @@ function SwipeableFoodLogRow({ item, onEdit, onRemove, showDivider }: SwipeableF
   );
 }
 
-export function TodayFoodLogCard({ items, onRemove, onEdit, onLogFood }: Props) {
+export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
   const { colors } = useAppTheme();
   const deleteLockRef = useRef(false);
 
@@ -156,18 +155,6 @@ export function TodayFoodLogCard({ items, onRemove, onEdit, onLogFood }: Props) 
           <Text className="text-sm leading-6" style={{ color: colors.textSecondary }}>
             No food logged yet today.
           </Text>
-          {onLogFood ? (
-            <Pressable
-              onPress={onLogFood}
-              testID="today-food-log-empty-cta"
-              accessibilityRole="button"
-              className="mt-2 self-start"
-            >
-              <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
-                Log food
-              </Text>
-            </Pressable>
-          ) : null}
         </View>
       ) : (
         <View className="gap-3">
