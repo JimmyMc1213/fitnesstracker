@@ -26,11 +26,13 @@ import {
   IconShield,
   IconSpeakerphone,
   IconSun,
+  IconSync,
   IconToolsKitchen2,
 } from "@/components/icons/FitnessIcons";
 import { SettingsRowIcon } from "@/components/settings/SettingsRowIcon";
 import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
+import { useFitnessSync } from "@/context/FitnessSyncContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { deleteUserAccount, isDeleteAccountDryRunEnabled } from "@/lib/deleteUserAccount";
 import { EQUIPMENT_SETUP_LABELS } from "@/lib/equipmentSetup";
@@ -71,7 +73,8 @@ async function openExternalUrl(url: string) {
 export default function SettingsHubScreen() {
   const { colors, theme } = useAppTheme();
   const { contentPaddingBottom } = useTabScreenInsets();
-  const { session, sessionEmail, signOut } = useAuth();
+  const { configured, session, sessionEmail, signOut } = useAuth();
+  const { lastSyncedLabel } = useFitnessSync();
   const { state, replaceFitnessState } = useFitnessState();
 
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
@@ -132,6 +135,11 @@ export default function SettingsHubScreen() {
 
   const volumeUnit = state.unitPreferences.volumeUnit;
   const weightUnit = state.unitPreferences.weightUnit;
+  const accountTrailing = !configured
+    ? "Not configured"
+    : sessionEmail
+      ? (lastSyncedLabel ?? "Signed in")
+      : "Sign in";
   const nutritionTargets = state.nutritionTargets;
 
   return (
@@ -149,6 +157,16 @@ export default function SettingsHubScreen() {
           contentContainerStyle={{ paddingTop: 16, paddingBottom: contentPaddingBottom }}
         >
         <SettingsProfileCard name={state.displayName} onPress={() => openPanel("you")} />
+
+        <SettingsHubSection title="Account">
+          <SettingsRow
+            icon={rowIcon(<IconSync size={16} stroke={1.6} color={colors.textPrimary} />)}
+            label="Sync & backup"
+            trailing={accountTrailing}
+            testID="settings-row-account"
+            onPress={() => openPanel("account")}
+          />
+        </SettingsHubSection>
 
         <SettingsHubSection title="Preferences">
           <SettingsRow

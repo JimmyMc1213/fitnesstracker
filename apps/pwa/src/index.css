@@ -53,7 +53,7 @@
   --macro-hydration: #5a9ae8;
   /* Tab bar layout — theme-agnostic (surface colors live in data-theme blocks). */
   --tabbar-float-offset: 4px;
-  --tabbar-pill-height: 60px;
+  --tabbar-pill-height: 66px;
   --tabbar-dock-gap: 12px;
   --tabbar-future-you-lift: 10px;
   --tabbar-scroll-extra: 28px;
@@ -214,8 +214,8 @@
   --chart-bar-active: #ffffff;
   --chart-bar-label-active: rgba(255, 255, 255, 0.55);
   --chart-bar-label: rgba(255, 255, 255, 0.3);
-  --tabbar-bg: rgba(52, 52, 58, 0.94);
-  --tabbar-border: rgba(74, 74, 82, 0.9);
+  --tabbar-bg: rgba(52, 52, 58, 0.88);
+  --tabbar-border: rgba(74, 74, 82, 0.82);
   --tab-inactive-fg: rgba(255, 255, 255, 0.62);
   --tab-active-fg: #ffffff;
   --tab-active-bg: rgba(255, 255, 255, 0.14);
@@ -403,8 +403,8 @@
   --chart-bar-active: #0a0a0a;
   --chart-bar-label-active: rgba(0, 0, 0, 0.55);
   --chart-bar-label: rgba(0, 0, 0, 0.38);
-  --tabbar-bg: rgba(220, 220, 226, 0.94);
-  --tabbar-border: rgba(196, 196, 204, 0.9);
+  --tabbar-bg: rgba(220, 220, 226, 0.88);
+  --tabbar-border: rgba(196, 196, 204, 0.82);
   --tab-inactive-fg: rgba(0, 0, 0, 0.52);
   --tab-active-fg: #0a0a0a;
   --tab-active-bg: rgba(255, 255, 255, 0.88);
@@ -1130,7 +1130,7 @@ textarea {
   box-sizing: border-box;
   flex: 1 1 auto;
   min-width: 0;
-  padding: 4px 11px;
+  padding: 9px 11px;
   background-color: var(--tabbar-bg);
   backdrop-filter: blur(18px) saturate(130%);
   -webkit-backdrop-filter: blur(18px) saturate(130%);
@@ -1199,9 +1199,9 @@ textarea {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 8px 4px;
-  min-height: 52px;
+  gap: 4px;
+  padding: 7px 4px;
+  min-height: 48px;
   justify-content: center;
   border: none;
   background: transparent;
