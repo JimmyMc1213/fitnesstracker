@@ -1,5 +1,6 @@
 import { ScrollView, Text, View } from "react-native";
 
+import { TabScreenFade } from "@/components/motion/TabScreenFade";
 import { WorkoutIdleDashboard } from "@/components/workout/WorkoutIdleDashboard";
 import { WorkoutLiftingSlot } from "@/components/workout/WorkoutLiftingSlot";
 import { UpdateTemplateOrderConfirmSheet } from "@/components/workout/UpdateTemplateOrderConfirmSheet";
@@ -30,23 +31,25 @@ export default function WorkoutScreen() {
         paddingTop,
       }}
     >
-      {!hydrated || !state ? (
-        <View className="flex-1 items-center justify-center px-screen-x py-24">
-          <Text style={{ color: colors.textSecondary }}>Loading…</Text>
-        </View>
-      ) : sessionPhase === "idle" ? (
-        <ScrollView
-          className="px-screen-x"
-          contentContainerStyle={{ flexGrow: 1, paddingBottom }}
-          keyboardShouldPersistTaps="handled"
-        >
-          <WorkoutIdleDashboard />
-        </ScrollView>
-      ) : (
-        <View className="flex-1 px-screen-x">
-          <WorkoutLiftingSlot />
-        </View>
-      )}
+      <TabScreenFade>
+        {!hydrated || !state ? (
+          <View className="flex-1 items-center justify-center px-screen-x py-24">
+            <Text style={{ color: colors.textSecondary }}>Loading…</Text>
+          </View>
+        ) : sessionPhase === "idle" ? (
+          <ScrollView
+            className="px-screen-x"
+            contentContainerStyle={{ flexGrow: 1, paddingBottom }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <WorkoutIdleDashboard />
+          </ScrollView>
+        ) : (
+          <View className="flex-1 px-screen-x">
+            <WorkoutLiftingSlot />
+          </View>
+        )}
+      </TabScreenFade>
 
       {state?.workoutSummary ? (
         <WorkoutSummarySheet

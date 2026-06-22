@@ -9,6 +9,7 @@ import { TodayFoodLogCard } from "@/components/nutrition/TodayFoodLogCard";
 import { WaterTrackerCard } from "@/components/nutrition/WaterTrackerCard";
 import { MacroBar } from "@/components/home/MacroBar";
 import { MacroRing } from "@/components/home/MacroRing";
+import { TabScreenFade } from "@/components/motion/TabScreenFade";
 import { MACRO_COLORS } from "@/lib/macroColors";
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { useFitnessState } from "@/context/FitnessContext";
@@ -113,6 +114,7 @@ export default function NutritionScreen() {
 
   return (
     <View testID="tab-nutrition" style={{ flex: 1, backgroundColor: colors.background }}>
+      <TabScreenFade>
       <ScrollView
         className="flex-1 px-screen-x"
         contentContainerStyle={{ paddingBottom, paddingTop }}
@@ -187,6 +189,7 @@ export default function NutritionScreen() {
           onLogFood={openLogFood}
         />
       </ScrollView>
+      </TabScreenFade>
 
       <View
         className="absolute bottom-28 left-0 right-0 px-screen-x"

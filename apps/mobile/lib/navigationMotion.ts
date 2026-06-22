@@ -18,6 +18,15 @@ export const pushStackScreenOptions = {
   animation: "slide_from_right" as const,
 };
 
+/**
+ * Fade routes (log-food, workout history, progress gallery) — native crossfade.
+ * Matches the PWA's `motionVariant="fade"` deep-flow presentations.
+ */
+export const fadeStackScreenOptions = {
+  headerShown: false,
+  animation: "fade" as const,
+};
+
 /** Modals — native sheet presentation. */
 export const modalStackScreenOptions = {
   headerShown: false,

@@ -43,6 +43,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useBottomActionPadding } from "@/lib/screenInsets";
+import { PageTransition } from "@/components/motion";
 import { EditUserFoodSheet } from "@/components/nutrition/EditUserFoodSheet";
 import { BarcodeScannerGate } from "@/components/nutrition/BarcodeScannerGate";
 import { LogFoodAllTab } from "@/components/nutrition/LogFoodAllTab";
@@ -530,6 +531,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
     !pickerFood && !manualOpen && !(mealEditorOpen && mealAddMode !== "none" && mealAddMode !== "manual");
 
   return (
+    <PageTransition>
     <KeyboardAvoidingView
       testID="modal-log-food"
       style={{ flex: 1, backgroundColor: colors.background }}
@@ -737,5 +739,6 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
         </View>
       ) : null}
     </KeyboardAvoidingView>
+    </PageTransition>
   );
 }

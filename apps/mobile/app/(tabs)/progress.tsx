@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { FullScreenOverlay } from "@/components/motion";
+import { TabScreenFade } from "@/components/motion/TabScreenFade";
 
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { WeighInSheet } from "@/components/home/WeighInSheet";
@@ -89,6 +90,7 @@ export default function ProgressScreen() {
 
   return (
     <View testID="tab-progress" style={{ flex: 1, backgroundColor: colors.background }}>
+      <TabScreenFade>
       <ScrollView
         className="flex-1 px-screen-x"
         contentContainerStyle={{ paddingBottom, paddingTop }}
@@ -231,6 +233,7 @@ export default function ProgressScreen() {
 
         <NutritionTargetsGrid targets={state.nutritionTargets} />
       </ScrollView>
+      </TabScreenFade>
 
       <WeighInSheet
         open={weighInOpen}

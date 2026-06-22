@@ -1,10 +1,14 @@
 /**
- * Mount-only opacity fade for tab screens.
- * Matches PWA .motion-screen: opacity 0→1, no y shift.
- * No y shift keeps position:absolute FABs viewport-anchored.
+ * Per-focus fade for tab screens.
+ * Matches PWA TAB_PAGE_VARIANTS: opacity 0→1 + y 8→0.
+ * Replays on every focus (not just first mount) so switching back to an
+ * already-mounted tab still animates — tab screens stay mounted in expo-router.
+ * Keep position:absolute FABs/fixed elements outside this wrapper so the
+ * drift doesn't visibly move them.
  */
 
-import { useEffect, type ReactNode } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, type ReactNode } from "react";
 import { type StyleProp, type ViewStyle } from "react-native";
 import Animated, {
   Easing,
@@ -16,6 +20,9 @@ import Animated, {
 import { TAB_PAGE_EASING } from "./tokens";
 import { useReducedMotion } from "./useReducedMotion";
 
+const TAB_FADE_DURATION = 220;
+const TAB_FADE_DRIFT = 8;
+
 type TabScreenFadeProps = {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
@@ -24,20 +31,32 @@ type TabScreenFadeProps = {
 export function TabScreenFade({ children, style }: TabScreenFadeProps) {
   const reduceMotion = useReducedMotion();
   const opacity = useSharedValue(reduceMotion ? 1 : 0);
+  const translateY = useSharedValue(reduceMotion ? 0 : TAB_FADE_DRIFT);
 
-  useEffect(() => {
-    if (reduceMotion) {
-      opacity.value = 1;
-      return;
-    }
-    opacity.value = withTiming(1, {
-      duration: 180,
-      easing: Easing.bezier(...TAB_PAGE_EASING),
-    });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useFocusEffect(
+    useCallback(() => {
+      if (reduceMotion) {
+        opacity.value = 1;
+        translateY.value = 0;
+        return;
+      }
+      const easing = Easing.bezier(...TAB_PAGE_EASING);
+      opacity.value = 0;
+      translateY.value = TAB_FADE_DRIFT;
+      opacity.value = withTiming(1, { duration: TAB_FADE_DURATION, easing });
+      translateY.value = withTiming(0, { duration: TAB_FADE_DURATION, easing });
+      return () => {
+        // Pre-position for the next focus so re-entering an already-mounted tab
+        // doesn't flash its last fully-visible frame before the fade restarts.
+        opacity.value = 0;
+        translateY.value = TAB_FADE_DRIFT;
+      };
+    }, [reduceMotion]), // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
   }));
 
   return (
