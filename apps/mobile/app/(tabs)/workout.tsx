@@ -27,7 +27,7 @@ export default function WorkoutScreen() {
       testID="tab-workout"
       style={{
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: "transparent",
         paddingTop,
       }}
     >

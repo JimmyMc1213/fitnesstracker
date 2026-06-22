@@ -193,7 +193,7 @@ export default function HomeScreen() {
       <View
         testID="tab-home"
         className="flex-1 items-center justify-center px-screen-x"
-        style={{ backgroundColor: colors.background, paddingTop }}
+        style={{ backgroundColor: "transparent", paddingTop }}
       >
         <Text style={{ color: colors.textSecondary }}>Loading…</Text>
       </View>
@@ -252,7 +252,7 @@ export default function HomeScreen() {
         className="px-screen-x"
         style={{
           flex: 1,
-          backgroundColor: colors.background,
+          backgroundColor: "transparent",
           paddingTop,
         }}
         contentContainerStyle={{ paddingBottom }}

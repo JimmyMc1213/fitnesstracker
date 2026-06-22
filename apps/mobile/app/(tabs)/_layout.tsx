@@ -1,14 +1,21 @@
 import { router, Tabs } from "expo-router";
+import { View } from "react-native";
 
+import { AppAtmosphere } from "@/components/AppAtmosphere";
 import { AppShellErrorBoundary } from "@/components/AppShellErrorBoundary";
 import { TabBarDock } from "@/components/TabBarDock";
 import { WorkoutShellProvider } from "@/context/WorkoutShellContext";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { tabScreenOptions } from "@/lib/navigationMotion";
 
 export default function TabLayout() {
+  const { colors } = useAppTheme();
+
   return (
     <AppShellErrorBoundary onRetry={() => router.replace("/(tabs)/home")}>
       <WorkoutShellProvider>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <AppAtmosphere />
       <Tabs
       initialRouteName="home"
       tabBar={(props) => (
@@ -35,6 +42,7 @@ export default function TabLayout() {
       <Tabs.Screen name="settings" options={{ href: null, title: "Settings" }} />
       <Tabs.Screen name="future-you" options={{ href: null, title: "NewYou" }} />
     </Tabs>
+      </View>
       </WorkoutShellProvider>
     </AppShellErrorBoundary>
   );

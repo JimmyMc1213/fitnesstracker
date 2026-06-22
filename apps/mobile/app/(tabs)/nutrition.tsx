@@ -113,7 +113,7 @@ export default function NutritionScreen() {
   }
 
   return (
-    <View testID="tab-nutrition" style={{ flex: 1, backgroundColor: colors.background }}>
+    <View testID="tab-nutrition" style={{ flex: 1, backgroundColor: "transparent" }}>
       <TabScreenFade>
       <ScrollView
         className="flex-1 px-screen-x"

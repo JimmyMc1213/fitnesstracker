@@ -656,7 +656,7 @@ export function FutureYouScreen() {
   }
 
   return (
-    <View testID="tab-future-you" style={{ flex: 1, backgroundColor: colors.background }}>
+    <View testID="tab-future-you" style={{ flex: 1, backgroundColor: "transparent" }}>
       <ScrollView
         className="flex-1 px-screen-x"
         contentContainerStyle={{ paddingBottom, paddingTop }}

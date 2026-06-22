@@ -84,12 +84,12 @@ export default function ProgressScreen() {
 
   if (!state) {
     return (
-      <View testID="tab-progress" style={{ flex: 1, backgroundColor: colors.background }} />
+      <View testID="tab-progress" style={{ flex: 1, backgroundColor: "transparent" }} />
     );
   }
 
   return (
-    <View testID="tab-progress" style={{ flex: 1, backgroundColor: colors.background }}>
+    <View testID="tab-progress" style={{ flex: 1, backgroundColor: "transparent" }}>
       <TabScreenFade>
       <ScrollView
         className="flex-1 px-screen-x"

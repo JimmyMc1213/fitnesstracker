@@ -32,7 +32,7 @@ export function SettingsScreenChrome({
   return (
     <View
       testID={testID}
-      style={{ flex: 1, backgroundColor: colors.background, paddingTop }}
+      style={{ flex: 1, backgroundColor: "transparent", paddingTop }}
     >
       <View
         className="px-2 pb-3"
