@@ -7,11 +7,10 @@ import {
 import type { FutureYouDraft, OnboardingProfile } from "@newyouai/types";
 import { useCallback, useState } from "react";
 
-import { compressImageToJpegDataUrl } from "@/lib/imageCompress";
 import {
-  E2E_MOCK_FUTURE_YOU_JPEG_DATA_URL,
-  isE2eMockFutureYouEnabled,
-} from "@/lib/e2e/futureYouMock";
+  pickFutureYouPhotoFromCamera,
+  pickFutureYouPhotoFromGallery,
+} from "@/lib/futureYouPhotoPicker";
 import {
   buildFutureYouGenerateProfile,
   FutureYouGenerateError,
@@ -26,12 +25,6 @@ type WizardNav = {
   futureYou: FutureYouDraft | undefined;
   profile: OnboardingProfile;
 };
-
-function permissionDeniedMessage(kind: "camera" | "gallery"): string {
-  return kind === "camera" ?
-      "Camera access is off. Enable it in Settings or choose from gallery, or skip for now."
-    : "Photo library access is off. Enable it in Settings or use the camera, or skip for now.";
-}
 
 export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, profile }: WizardNav) {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -60,89 +53,40 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
     goToStep(ONBOARDING_STEP_ACTIVITY, { futureYou: nextFutureYou });
   }, [futureYouSkippedDraft, goToStep]);
 
-  const onPickImageUri = useCallback(
-    async (uri: string) => {
+  const applyPhotoPreview = useCallback(
+    (preview: string) => {
       setUploadError(null);
-      try {
-        const preview = await compressImageToJpegDataUrl(uri);
-        setPhotoPreview(preview);
-        const consentAt = futureYou?.photoAiConsentAt ?? new Date().toISOString();
-        patchFutureYou({
-          photoSkipped: false,
-          photoUploaded: false,
-          photoStoragePath: undefined,
-          photoAiConsentAt: consentAt,
-        });
-      } catch {
-        setUploadError("Could not read that photo. Try another image.");
-      }
+      setPhotoPreview(preview);
+      const consentAt = futureYou?.photoAiConsentAt ?? new Date().toISOString();
+      patchFutureYou({
+        photoSkipped: false,
+        photoUploaded: false,
+        photoStoragePath: undefined,
+        photoAiConsentAt: consentAt,
+      });
     },
     [futureYou?.photoAiConsentAt, patchFutureYou],
   );
 
   const pickFromCamera = useCallback(async () => {
-    if (isE2eMockFutureYouEnabled()) {
-      setUploadError(null);
-      setPhotoPreview(E2E_MOCK_FUTURE_YOU_JPEG_DATA_URL);
-      const consentAt = futureYou?.photoAiConsentAt ?? new Date().toISOString();
-      patchFutureYou({
-        photoSkipped: false,
-        photoUploaded: false,
-        photoStoragePath: undefined,
-        photoAiConsentAt: consentAt,
-      });
+    const result = await pickFutureYouPhotoFromCamera();
+    if (!result) return;
+    if ("error" in result) {
+      setUploadError(result.error);
       return;
     }
-    try {
-      const ImagePicker = await import("expo-image-picker");
-      const permission = await ImagePicker.requestCameraPermissionsAsync();
-      if (!permission.granted) {
-        setUploadError(permissionDeniedMessage("camera"));
-        return;
-      }
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        quality: 1,
-      });
-      if (result.canceled || !result.assets[0]?.uri) return;
-      await onPickImageUri(result.assets[0].uri);
-    } catch {
-      setUploadError(permissionDeniedMessage("camera"));
-    }
-  }, [futureYou?.photoAiConsentAt, patchFutureYou]);
+    applyPhotoPreview(result.preview);
+  }, [applyPhotoPreview]);
 
   const pickFromGallery = useCallback(async () => {
-    if (isE2eMockFutureYouEnabled()) {
-      setUploadError(null);
-      setPhotoPreview(E2E_MOCK_FUTURE_YOU_JPEG_DATA_URL);
-      const consentAt = futureYou?.photoAiConsentAt ?? new Date().toISOString();
-      patchFutureYou({
-        photoSkipped: false,
-        photoUploaded: false,
-        photoStoragePath: undefined,
-        photoAiConsentAt: consentAt,
-      });
+    const result = await pickFutureYouPhotoFromGallery();
+    if (!result) return;
+    if ("error" in result) {
+      setUploadError(result.error);
       return;
     }
-    try {
-      const ImagePicker = await import("expo-image-picker");
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        setUploadError(permissionDeniedMessage("gallery"));
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        quality: 1,
-      });
-      if (result.canceled || !result.assets[0]?.uri) return;
-      await onPickImageUri(result.assets[0].uri);
-    } catch {
-      setUploadError(permissionDeniedMessage("gallery"));
-    }
-  }, [onPickImageUri]);
+    applyPhotoPreview(result.preview);
+  }, [applyPhotoPreview]);
 
   const continueFutureYouPhoto = useCallback(
     async (previewOverride?: string, consentAtOverride?: string) => {

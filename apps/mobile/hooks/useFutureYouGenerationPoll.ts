@@ -2,10 +2,16 @@ import {
   FUTURE_YOU_GENERATION_POLL_INTERVAL_MS,
   patchGenerationReadyAt,
   shouldPollFutureYouGeneration,
+  isFutureYouJobStale,
 } from "@newyouai/core";
 import type { FutureYouDraft, FutureYouJobStatus } from "@newyouai/types";
 import { useEffect, useRef, useState } from "react";
 
+import {
+  cacheFutureYouPreviewUrl,
+  cacheFutureYouResultUrl,
+  preloadFutureYouImage,
+} from "@/lib/futureYouImagePreload";
 import { FutureYouPollError, pollFutureYouJobStatus } from "@/lib/futureYouPollService";
 import { futureYouPollImageUrl } from "@/lib/futureYouStatus";
 
@@ -59,11 +65,27 @@ export function useFutureYouGenerationPoll({
       try {
         const response = await pollFutureYouJobStatus(jobId);
         if (cancelled) return;
+        let status = response.status;
+        if (isFutureYouJobStale(response.updatedAt, status)) {
+          status = "failed";
+        }
         onPatchRef.current({
           generationJobId: response.jobId,
-          ...patchGenerationReadyAt(response.status, response.updatedAt),
+          ...patchGenerationReadyAt(status, response.updatedAt),
         });
-        if (response.status !== "ready" && response.status !== "failed") {
+        if (status === "ready") {
+          const previewUrl = futureYouPollImageUrl(response, false);
+          if (previewUrl) {
+            cacheFutureYouPreviewUrl(jobId, previewUrl);
+            void preloadFutureYouImage(previewUrl).catch(() => undefined);
+          }
+          const resultUrl = futureYouPollImageUrl(response, true);
+          if (resultUrl) {
+            cacheFutureYouResultUrl(jobId, resultUrl);
+            void preloadFutureYouImage(resultUrl).catch(() => undefined);
+          }
+        }
+        if (status !== "ready" && status !== "failed") {
           timeoutId = setTimeout(pollOnce, FUTURE_YOU_GENERATION_POLL_INTERVAL_MS);
         }
       } catch (error) {

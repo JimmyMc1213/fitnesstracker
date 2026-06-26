@@ -9,6 +9,7 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { FUTURE_YOU_CALLOUT_BG, FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
 
 type Props = {
   open: boolean;
@@ -50,9 +51,9 @@ export function FutureYouReplaceDialog({
               disabled={busy}
               onPress={onKeepOld}
               className="items-center rounded-full px-6 py-3.5"
-              style={{ backgroundColor: colors.accent, opacity: busy ? 0.5 : 1 }}
+              style={{ backgroundColor: FUTURE_YOU_GOLD, opacity: busy ? 0.5 : 1 }}
             >
-              <Text className="text-base font-semibold" style={{ color: colors.background }}>
+              <Text className="text-base font-semibold" style={{ color: FUTURE_YOU_CALLOUT_BG }}>
                 {FUTURE_YOU_REPLACE_KEEP_LABEL}
               </Text>
             </Pressable>
@@ -60,8 +61,8 @@ export function FutureYouReplaceDialog({
               testID="future-you-replace-delete"
               disabled={busy}
               onPress={onDeleteOld}
-              className="items-center rounded-full border px-6 py-3.5"
-              style={{ borderColor: "#FF453A", opacity: busy ? 0.5 : 1 }}
+              className="items-center px-6 py-3"
+              style={{ opacity: busy ? 0.5 : 1 }}
             >
               {busy ? (
                 <ActivityIndicator color="#FF453A" />

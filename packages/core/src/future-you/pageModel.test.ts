@@ -25,6 +25,17 @@ describe("futureYouPageModel", () => {
     );
   });
 
+  it("allows redo during cooldown when skipRedoCooldown is enabled", () => {
+    const oneWeekLater = Date.parse(readyAt) + 7 * 24 * 60 * 60 * 1000;
+    expect(
+      canRedoFutureYouTransformation("reveal", "ready", readyAt, false, oneWeekLater, true),
+    ).toBe(true);
+    expect(
+      shouldPromptFutureYouReplaceDialog("reveal", "ready", readyAt, false, oneWeekLater, true),
+    ).toBe(true);
+    expect(futureYouPageRedoLede(msUntilFutureYouRedoEligible(readyAt, oneWeekLater), true)).toBeNull();
+  });
+
   it("blocks redo until 14 days after ready", () => {
     const oneWeekLater = Date.parse(readyAt) + 7 * 24 * 60 * 60 * 1000;
     expect(canRedoFutureYouTransformation("reveal", "ready", readyAt, false, oneWeekLater)).toBe(false);

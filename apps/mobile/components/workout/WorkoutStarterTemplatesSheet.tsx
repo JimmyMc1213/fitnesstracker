@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { BottomSheet } from "@/components/motion";
+import { AppTextField } from "@/components/ui/AppTextField";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { useBottomActionPadding } from "@/lib/screenInsets";
@@ -199,17 +200,11 @@ export function WorkoutStarterTemplatesSheet({
           </Text>
 
           {!selected ? (
-            <TextInput
+            <AppTextField
               value={query}
               onChangeText={setQuery}
               placeholder="Search templates…"
-              placeholderTextColor={colors.textTertiary}
-              className="mt-3.5 rounded-xl border px-3 py-3 text-[15px]"
-              style={{
-                borderColor: colors.border,
-                backgroundColor: colors.backgroundSecondary,
-                color: colors.textPrimary,
-              }}
+              shellStyle={{ marginTop: 14 }}
             />
           ) : null}
 

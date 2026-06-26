@@ -62,14 +62,20 @@ export function canRedoFutureYouTransformation(
   readyAtIso: string | undefined,
   previewMode = false,
   nowMs = Date.now(),
+  skipRedoCooldown = false,
 ): boolean {
-  if (readyAtIso?.trim() && msUntilFutureYouRedoEligible(readyAtIso, nowMs) > 0) {
+  if (
+    !skipRedoCooldown &&
+    readyAtIso?.trim() &&
+    msUntilFutureYouRedoEligible(readyAtIso, nowMs) > 0
+  ) {
     return false;
   }
   if (mode !== "reveal") return true;
   if (previewMode) return generationStatus === "ready";
   if (generationStatus === "queued" || generationStatus === "generating") return false;
   if (generationStatus !== "ready") return true;
+  if (skipRedoCooldown) return true;
   return msUntilFutureYouRedoEligible(readyAtIso, nowMs) === 0;
 }
 
@@ -79,9 +85,10 @@ export function shouldPromptFutureYouReplaceDialog(
   readyAtIso: string | undefined,
   previewMode = false,
   nowMs = Date.now(),
+  skipRedoCooldown = false,
 ): boolean {
   if (mode !== "reveal" || generationStatus !== "ready") return false;
-  if (previewMode) return true;
+  if (previewMode || skipRedoCooldown) return true;
   return msUntilFutureYouRedoEligible(readyAtIso, nowMs) === 0;
 }
 
@@ -90,8 +97,8 @@ export function futureYouPageLede(mode: HomeFutureYouEntryMode | null): string {
   return FUTURE_YOU_PAGE_EMPTY_LEDE;
 }
 
-export function futureYouPageRedoLede(msUntilRedo: number): string | null {
-  if (msUntilRedo <= 0) return null;
+export function futureYouPageRedoLede(msUntilRedo: number, skipRedoCooldown = false): string | null {
+  if (skipRedoCooldown || msUntilRedo <= 0) return null;
   return `You can upload again in ${formatDaysUntilFutureYouRedo(msUntilRedo)}.`;
 }
 

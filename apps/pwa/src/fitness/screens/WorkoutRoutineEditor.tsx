@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { defaultExerciseTarget, formatPrescriptionRepRange, usesSecFieldForExercise } from "../exercisePrescriptionDefaults";
 import { newTemplateExerciseLine, resizeWorkoutSets } from "../data";
+import { USER_EDITABLE_MAX_SETS } from "@newyouai/core";
 import { IconMinus, IconPencil, IconPlus, IconTrash } from "../icons";
 import { FullScreenOverlay } from "../motion";
 import { RoutineExerciseSearchSheet } from "../RoutineExerciseSearchSheet";
@@ -17,7 +18,7 @@ import {
 import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { DeleteExerciseConfirmSheet } from "../workout/DeleteExerciseConfirmSheet";
 import { SaveWorkoutConfirmSheet } from "../workout/SaveWorkoutConfirmSheet";
-import { resolveRoutineFocusOnSave } from "../routineTemplateFocus";
+import { templateFocusFromExercises } from "../routineTemplateFocus";
 import { CARD_PADDING, EDITOR_LIST_GAP, labelStyle, SECONDARY_ACTION_COLOR, workoutFieldInputStyle } from "../workoutUiTokens";
 
 /** Pass as `editingRoutineId` to open the editor for a brand-new routine. */
@@ -59,7 +60,6 @@ function buildDraftTemplate(
   template: WorkoutRoutineTemplate | null,
   name: string,
   dayLabel: string,
-  focus: string,
   exercises: WorkoutExercise[],
 ): WorkoutRoutineTemplate {
   const id = template?.id ?? `tpl_${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -68,7 +68,7 @@ function buildDraftTemplate(
     id,
     name: resolvedWorkoutName(name, trimmedDay),
     dayLabel: trimmedDay,
-    focus: focus.trim(),
+    focus: templateFocusFromExercises(exercises),
     exercises: exercises.map((e) => ({
       ...e,
       sets: e.sets.map((s) => ({ ...s })),
@@ -98,11 +98,10 @@ function isRoutineEditorDirty(
   template: WorkoutRoutineTemplate | null,
   name: string,
   dayLabel: string,
-  focus: string,
   exercises: WorkoutExercise[],
 ): boolean {
   if (!template) return false;
-  const draft = buildDraftTemplate(template, name, dayLabel, focus, exercises);
+  const draft = buildDraftTemplate(template, name, dayLabel, exercises);
   return routineEditorSnapshot(draft) !== routineEditorSnapshot(template);
 }
 
@@ -193,71 +192,6 @@ function CollapsibleNoteRow({
   );
 }
 
-function CollapsibleFocusField({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (next: string) => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const trimmed = value.trim();
-
-  if (expanded) {
-    return (
-      <textarea
-        autoFocus
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onBlur={() => setExpanded(false)}
-        placeholder="Coach notes, session focus, reminders…"
-        rows={4}
-        style={{
-          ...workoutFieldInputStyle,
-          minHeight: 96,
-          resize: "vertical",
-          lineHeight: 1.5,
-          whiteSpace: "pre-wrap",
-        }}
-      />
-    );
-  }
-
-  const preview = trimmed
-    ? trimmed.length > 48
-      ? `${trimmed.slice(0, 48)}…`
-      : trimmed
-    : null;
-
-  return (
-    <button
-      type="button"
-      className="tap"
-      onClick={() => setExpanded(true)}
-      style={{
-        width: "100%",
-        padding: "10px 12px",
-        borderRadius: 10,
-        border: "0.5px solid var(--border)",
-        background: "var(--card-2)",
-        textAlign: "left",
-        fontSize: 13,
-        fontWeight: 500,
-        color: preview ? "var(--text-muted-soft)" : "var(--text-ghost)",
-      }}
-    >
-      {preview ? (
-        <>
-          <span style={{ color: "var(--text-soft)" }}>Session focus: </span>
-          {preview}
-        </>
-      ) : (
-        "Add session focus (optional)"
-      )}
-    </button>
-  );
-}
-
 function SetCountStepper({
   count,
   onChange,
@@ -267,7 +201,7 @@ function SetCountStepper({
   onChange: (next: number) => void;
   disabled?: boolean;
 }) {
-  const n = Math.min(Math.max(count, 1), 4);
+  const n = Math.min(Math.max(count, 1), USER_EDITABLE_MAX_SETS);
 
   return (
     <div
@@ -304,7 +238,7 @@ function SetCountStepper({
       <button
         type="button"
         className="tap"
-        disabled={disabled || n >= 4}
+        disabled={disabled || n >= USER_EDITABLE_MAX_SETS}
         aria-label="Increase sets"
         onClick={() => onChange(n + 1)}
         style={{
@@ -324,14 +258,39 @@ function SetCountStepper({
 }
 
 const repStepperShellStyle: CSSProperties = {
-  display: "flex",
+  display: "grid",
+  gridTemplateColumns: "28px 1fr 32px 32px 32px",
   alignItems: "center",
-  justifyContent: "space-between",
   background: "var(--card-2)",
   border: "0.5px solid var(--border)",
   borderRadius: 10,
   padding: "4px 6px",
   minHeight: 38,
+};
+
+const repStepperLabelStyle: CSSProperties = {
+  fontSize: 10,
+  fontWeight: 600,
+  color: "var(--text-ghost)",
+  textTransform: "uppercase",
+};
+
+const repStepperValueStyle: CSSProperties = {
+  fontSize: 14,
+  fontWeight: 600,
+  color: "var(--text-primary)",
+  fontVariantNumeric: "tabular-nums",
+  textAlign: "center",
+};
+
+const repStepperBtnStyle: CSSProperties = {
+  width: 32,
+  height: 32,
+  flexShrink: 0,
+  display: "grid",
+  placeItems: "center",
+  border: "none",
+  background: "transparent",
 };
 
 function RepBoundStepper({
@@ -353,19 +312,8 @@ function RepBoundStepper({
 
   return (
     <div style={repStepperShellStyle}>
-      <span
-        style={{
-          width: 28,
-          flexShrink: 0,
-          fontSize: 11,
-          fontWeight: 600,
-          color: "var(--text-ghost)",
-          textTransform: "uppercase",
-          letterSpacing: "0.04em",
-        }}
-      >
-        {boundLabel}
-      </span>
+      <span style={repStepperLabelStyle}>{boundLabel}</span>
+      <span aria-hidden="true" />
       <button
         type="button"
         className="tap"
@@ -373,18 +321,13 @@ function RepBoundStepper({
         aria-label={`Decrease ${boundLabel.toLowerCase()} reps`}
         onClick={() => onChange(n - 1)}
         style={{
-          width: 28,
-          height: 28,
-          display: "grid",
-          placeItems: "center",
-          border: "none",
-          background: "transparent",
+          ...repStepperBtnStyle,
           color: n <= min ? "var(--text-whisper)" : "var(--text-primary)",
         }}
       >
         <IconMinus size={15} stroke={2} />
       </button>
-      <span style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>{n}</span>
+      <span style={repStepperValueStyle}>{n}</span>
       <button
         type="button"
         className="tap"
@@ -392,12 +335,7 @@ function RepBoundStepper({
         aria-label={`Increase ${boundLabel.toLowerCase()} reps`}
         onClick={() => onChange(n + 1)}
         style={{
-          width: 28,
-          height: 28,
-          display: "grid",
-          placeItems: "center",
-          border: "none",
-          background: "transparent",
+          ...repStepperBtnStyle,
           color: n >= max ? "var(--text-whisper)" : "var(--text-primary)",
         }}
       >
@@ -458,8 +396,6 @@ export function WorkoutRoutineEditor({
 }: WorkoutRoutineEditorProps) {
   const [name, setName] = useState("");
   const [dayLabel, setDayLabel] = useState("");
-  const [focus, setFocus] = useState("");
-  const [focusDirty, setFocusDirty] = useState(false);
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [searchSheet, setSearchSheet] = useState<SearchSheetMode | null>(null);
   const [pendingExerciseDelete, setPendingExerciseDelete] = useState<{
@@ -479,14 +415,10 @@ export function WorkoutRoutineEditor({
     if (template) {
       setName(template.name);
       setDayLabel(template.dayLabel);
-      setFocus(template.focus);
-      setFocusDirty(false);
       setExercises(template.exercises.map((e) => ({ ...e, sets: e.sets.map((s) => ({ ...s })) })));
     } else {
       setName("");
       setDayLabel("");
-      setFocus("");
-      setFocusDirty(false);
       setExercises([]);
     }
     setSearchSheet(null);
@@ -577,12 +509,11 @@ export function WorkoutRoutineEditor({
   }
 
   function handleSave() {
-    const resolvedFocus = resolveRoutineFocusOnSave(focus, focusDirty, exercises);
-    onSave(buildDraftTemplate(template, name, dayLabel, resolvedFocus, exercises));
+    onSave(buildDraftTemplate(template, name, dayLabel, exercises));
   }
 
   function handleSaveClick() {
-    if (isRoutineEditorDirty(template, name, dayLabel, focus, exercises)) {
+    if (isRoutineEditorDirty(template, name, dayLabel, exercises)) {
       setPendingSaveConfirm(true);
       return;
     }
@@ -699,13 +630,6 @@ export function WorkoutRoutineEditor({
                 })}
               </div>
             </div>
-            <CollapsibleFocusField
-              value={focus}
-              onChange={(next) => {
-                setFocus(next);
-                setFocusDirty(true);
-              }}
-            />
           </div>
 
           <div className="between" style={{ marginTop: 24, marginBottom: 10 }}>

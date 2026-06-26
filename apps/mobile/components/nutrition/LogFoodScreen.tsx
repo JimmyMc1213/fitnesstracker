@@ -56,6 +56,7 @@ import { ServingPickerSheet, type ServingPickerMode } from "@/components/nutriti
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useLogFoodAccent } from "@/hooks/useLogFoodAccent";
 import type { CuratedFood } from "@/lib/curatedFoods";
 import { CURATED_FOODS } from "@/lib/curatedFoods";
 import { curatedToSearchResult } from "@/lib/curatedFoodSearch";
@@ -94,6 +95,7 @@ type Props = {
 
 export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   const { colors } = useAppTheme();
+  const { accent, accentText } = useLogFoodAccent();
   const insets = useSafeAreaInsets();
   const bottomActionPadding = useBottomActionPadding();
   const { state, setFitnessState } = useFitnessState();
@@ -569,9 +571,9 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
             testID="log-food-scan"
             accessibilityLabel="Scan barcode"
             className="flex-row items-center gap-1.5 rounded-full border px-3.5 py-2"
-            style={{ borderColor: colors.accent, backgroundColor: colors.accent }}
+            style={{ borderColor: accent, backgroundColor: accent }}
           >
-            <Text className="text-[13px] font-bold" style={{ color: colors.accentText }}>
+            <Text className="text-[13px] font-bold" style={{ color: accentText }}>
               Scan
             </Text>
           </Pressable>
@@ -629,7 +631,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
                     accessibilityRole="tab"
                     accessibilityState={{ selected }}
                     className="min-w-0 flex-1 items-center justify-center border-b-2 py-3"
-                    style={{ borderBottomColor: selected ? colors.accent : "transparent" }}
+                    style={{ borderBottomColor: selected ? accent : "transparent" }}
                   >
                     <Text
                       className="text-center text-[13px] font-semibold"

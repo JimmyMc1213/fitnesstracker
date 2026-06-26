@@ -282,8 +282,8 @@ export function IconSpeakerphone({ size = 20, stroke = 1.5, color = "currentColo
   return (
     <SvgIcon size={size} stroke={stroke} color={color}>
       <Path d="M18 8a3 3 0 0 1 0 6" />
-      <Path d="M6 8v8a1 1 0 0 0 1.5.86l5-3a1 1 0 0 0 .5-.86V8a1 1 0 0 0-.5-.86l-5-3A1 1 0 0 0 6 8Z" />
-      <Path d="M6 8H4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2" />
+      <Path d="M10 8v11a1 1 0 0 1 -1 1h-1a1 1 0 0 1 -1 -1v-5" />
+      <Path d="M12 8l4.524 -3.77a.9 .9 0 0 1 1.476 .692v12.156a.9 .9 0 0 1 -1.476 .692l-4.524 -3.77h-8a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h8" />
     </SvgIcon>
   );
 }

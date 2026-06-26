@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from "react-native";
 
 import { BarcodeScannerManual } from "@/components/nutrition/BarcodeScannerManual";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useLogFoodAccent } from "@/hooks/useLogFoodAccent";
 import { isExpoCameraAvailable } from "@/lib/expoNativeModules";
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
 /** Loads camera scanner when native module exists; otherwise manual entry only. */
 export function BarcodeScannerGate({ onScan, onClose }: Props) {
   const { colors } = useAppTheme();
+  const { accent } = useLogFoodAccent();
   const [CameraScanner, setCameraScanner] = useState<ComponentType<Props> | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -43,7 +45,7 @@ export function BarcodeScannerGate({ onScan, onClose }: Props) {
   if (!ready) {
     return (
       <View className="flex-1 items-center justify-center" style={{ backgroundColor: colors.background }}>
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={accent} />
       </View>
     );
   }

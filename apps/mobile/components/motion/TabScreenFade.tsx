@@ -45,12 +45,6 @@ export function TabScreenFade({ children, style }: TabScreenFadeProps) {
       translateY.value = TAB_FADE_DRIFT;
       opacity.value = withTiming(1, { duration: TAB_FADE_DURATION, easing });
       translateY.value = withTiming(0, { duration: TAB_FADE_DURATION, easing });
-      return () => {
-        // Pre-position for the next focus so re-entering an already-mounted tab
-        // doesn't flash its last fully-visible frame before the fade restarts.
-        opacity.value = 0;
-        translateY.value = TAB_FADE_DRIFT;
-      };
     }, [reduceMotion]), // eslint-disable-line react-hooks/exhaustive-deps
   );
 

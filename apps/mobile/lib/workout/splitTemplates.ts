@@ -32,13 +32,13 @@ export const REP_RANGES: Record<Experience, { sets: number; repsLow: number; rep
   advanced:     { sets: 3, repsLow: 4,  repsHigh: 8  }
 };
 
-// Set counts by session length
+// Default programmed set counts by session length (fitSessionVolume may use four when needed).
 export const SET_COUNT: Record<SessionLength, number> = {
   under_30: 2,
   '30_45':  3,
   '45_60':  3,
-  '60_90':  4,
-  '90_plus': 4
+  '60_90':  3,
+  '90_plus': 3
 };
 
 export const splitTemplates: SplitTemplate[] = [

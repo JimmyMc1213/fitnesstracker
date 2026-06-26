@@ -1,8 +1,9 @@
 import { useCallback, useRef, useState, type ReactNode } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
+import { AppTextField } from "@/components/ui/AppTextField";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
@@ -103,17 +104,16 @@ function ManualBarcodeEntry({
 }) {
   return (
     <View className="mt-6 w-full">
-      <TextInput
+      <AppTextField
         value={manualCode}
         onChangeText={onChangeManualCode}
         testID="barcode-manual-input"
         accessibilityLabel="Barcode digits"
         placeholder="Enter barcode digits"
-        placeholderTextColor={colors.textTertiary}
         keyboardType="number-pad"
         autoCorrect={false}
-        className="rounded-xl border px-3 py-3 text-[15px] tabular-nums"
-        style={{ borderColor: colors.border, backgroundColor: colors.card, color: colors.textPrimary }}
+        backgroundColor={colors.card}
+        style={{ fontVariant: ["tabular-nums"] }}
       />
       <PrimaryButton
         block

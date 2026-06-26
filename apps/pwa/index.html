@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/newyou-logo.png" />
+    <link rel="apple-touch-icon" href="/newyou-logo.png" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, interactive-widget=overlays-content, viewport-fit=cover, user-scalable=no, maximum-scale=1"
@@ -107,22 +107,10 @@
       }
 
       .boot-splash__logo {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: block;
         width: 36px;
         height: 36px;
-        border-radius: 10px;
-      }
-
-      html[data-theme="dark"] .boot-splash__logo {
-        background: #ffffff;
-        color: #0a0a0a;
-      }
-
-      html[data-theme="light"] .boot-splash__logo {
-        background: #0a0a0a;
-        color: #ffffff;
+        object-fit: contain;
       }
 
       .boot-splash__wordmark {
@@ -142,16 +130,8 @@
   <body>
     <div id="boot-splash" aria-hidden="true">
       <div class="boot-splash__mark">
-        <div class="boot-splash__logo">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="3" y="8" width="3" height="8" rx="1.5" fill="currentColor"></rect>
-            <rect x="6.5" y="9.5" width="2.5" height="5" rx="1.25" fill="currentColor"></rect>
-            <rect x="9" y="11" width="6" height="2" rx="1" fill="currentColor"></rect>
-            <rect x="15" y="9.5" width="2.5" height="5" rx="1.25" fill="currentColor"></rect>
-            <rect x="18" y="8" width="3" height="8" rx="1.5" fill="currentColor"></rect>
-          </svg>
-        </div>
-        <span class="boot-splash__wordmark">Gymmy</span>
+        <img class="boot-splash__logo" src="/newyou-logo.png" alt="" aria-hidden="true" />
+        <span class="boot-splash__wordmark">NewYou</span>
       </div>
     </div>
     <div id="root"></div>

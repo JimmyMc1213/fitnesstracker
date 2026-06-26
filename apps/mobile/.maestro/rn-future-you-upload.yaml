@@ -1,7 +1,7 @@
 # RN-9-09 Future You tab smoke, gallery empty state + mock upload flow
-# Run: EXPO_PUBLIC_E2E_FITNESS_SEED=future-you EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:future-you
+# Run: EXPO_PUBLIC_E2E_FITNESS_SEED=future-you EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU_CAMERA=true MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:future-you
 # Metro:
-#   cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=future-you EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true npx expo start --dev-client --port 8082
+#   cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=future-you EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU_CAMERA=true npx expo start --dev-client --port 8082
 #
 # Stable testIDs: tab-fab-future-you, tab-future-you, future-you-gallery, future-you-create-cta,
 # future-you-upload-photo, future-you-consent-checkbox, future-you-upload-confirm,

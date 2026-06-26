@@ -7,17 +7,35 @@ import {
   buildFutureYouResultPath,
 } from "../_shared/future-you/paths.ts";
 import {
+  FUTURE_YOU_JOB_STALE_ERROR,
+  isFutureYouJobStale,
+} from "../_shared/future-you/staleJob.ts";
+import {
   badGenerateResponse,
   conflictActiveJobResponse,
   unauthorizedResponse,
   validateFutureYouGenerateRequest,
   type FutureYouGenerateRequest,
 } from "./guards.ts";
-import { editFutureYouImageWithRetries } from "./openai.ts";
+import {
+  editFutureYouImageWithRetries,
+  getImageProvider,
+  ImageProviderUnavailableError,
+  type ImageEditProvider,
+} from "./providers/index.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+/** Fail cleanly before Supabase's ~150s request limit (which returns HTTP 546). */
+const GENERATION_JOB_TIMEOUT_MS = 130 * 1000;
+
+type ActiveJobRow = {
+  id: string;
+  status: string;
+  updated_at: string;
 };
 
 type AuthContext = {
@@ -56,10 +74,10 @@ async function resolveAuthenticatedContext(req: Request): Promise<AuthContext | 
   return { userId: user.id, userClient, adminClient };
 }
 
-async function findActiveJob(adminClient: SupabaseClient, userId: string) {
+async function findActiveJob(adminClient: SupabaseClient, userId: string): Promise<ActiveJobRow | null> {
   const { data, error } = await adminClient
     .from("future_you_jobs")
-    .select("id, status")
+    .select("id, status, updated_at")
     .eq("user_id", userId)
     .in("status", ["queued", "generating"])
     .maybeSingle();
@@ -69,7 +87,37 @@ async function findActiveJob(adminClient: SupabaseClient, userId: string) {
     throw new Error("Could not start generation.");
   }
 
-  return data;
+  return data as ActiveJobRow | null;
+}
+
+async function failJob(
+  adminClient: SupabaseClient,
+  jobId: string,
+  userId: string,
+  message: string,
+) {
+  await updateJob(adminClient, jobId, userId, {
+    status: "failed",
+    error: message,
+  });
+}
+
+/** Clear stale in-flight jobs so users can retry after edge timeouts. */
+async function reconcileStaleActiveJob(
+  adminClient: SupabaseClient,
+  userId: string,
+): Promise<ActiveJobRow | null> {
+  const active = await findActiveJob(adminClient, userId);
+  if (!active) return null;
+  if (!isFutureYouJobStale(active.updated_at, active.status)) return active;
+
+  console.warn("future-you-generate: failing stale active job", {
+    jobId: active.id,
+    status: active.status,
+    updatedAt: active.updated_at,
+  });
+  await failJob(adminClient, active.id, userId, FUTURE_YOU_JOB_STALE_ERROR);
+  return null;
 }
 
 async function updateJob(
@@ -148,52 +196,78 @@ async function runGenerationJob(
   userId: string,
   jobId: string,
   request: FutureYouGenerateRequest,
-  openAiApiKey: string,
+  provider: ImageEditProvider,
 ) {
-  try {
-    await updateJob(adminClient, jobId, userId, { status: "generating", error: null });
+  const run = async () => {
+    try {
+      await updateJob(adminClient, jobId, userId, { status: "generating", error: null });
 
-    const prompt = buildFutureYouPrompt({
-      profile: request.profile,
-      motivationId: request.motivationId,
-      timeline: request.timeline,
-    });
+      const prompt = buildFutureYouPrompt({
+        profile: request.profile,
+        motivationId: request.motivationId,
+        timeline: request.timeline,
+      });
 
-    const onRetry = (attempt: number, error: unknown) => {
-      console.warn("future-you-generate: openai retry", { jobId, attempt, error });
-    };
+      const onRetry = (attempt: number, error: unknown) => {
+        console.warn("future-you-generate: image provider retry", {
+          jobId,
+          provider: provider.id,
+          attempt,
+          error,
+        });
+      };
 
-    const { bytes, mimeType } = await downloadSourcePhoto(adminClient, request.sourcePath);
-    const resultBytes = await editFutureYouImageWithRetries(
-      bytes,
-      mimeType,
-      prompt,
-      openAiApiKey,
-      onRetry,
-    );
+      const { bytes, mimeType } = await downloadSourcePhoto(adminClient, request.sourcePath);
+      const resultBytes = await editFutureYouImageWithRetries(
+        provider,
+        bytes,
+        mimeType,
+        prompt,
+        onRetry,
+      );
 
-    const resultPath = buildFutureYouResultPath(userId, jobId);
-    const { error: uploadError } = await adminClient.storage.from(FUTURE_YOU_BUCKET).upload(resultPath, resultBytes, {
-      contentType: "image/png",
-      upsert: true,
-    });
+      const resultPath = buildFutureYouResultPath(userId, jobId);
+      const { error: uploadError } = await adminClient.storage.from(FUTURE_YOU_BUCKET).upload(resultPath, resultBytes, {
+        contentType: "image/png",
+        upsert: true,
+      });
 
-    if (uploadError) {
-      throw new Error("Could not save generated image.");
+      if (uploadError) {
+        throw new Error("Could not save generated image.");
+      }
+
+      await updateJob(adminClient, jobId, userId, {
+        status: "ready",
+        result_photo_path: resultPath,
+        error: null,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Generation failed.";
+      console.error("future-you-generate: job failed", { jobId, error });
+      await updateJob(adminClient, jobId, userId, {
+        status: "failed",
+        error: message,
+      });
     }
+  };
 
-    await updateJob(adminClient, jobId, userId, {
-      status: "ready",
-      result_photo_path: resultPath,
-      error: null,
-    });
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      run(),
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(
+          () => reject(new Error(FUTURE_YOU_JOB_STALE_ERROR)),
+          GENERATION_JOB_TIMEOUT_MS,
+        );
+      }),
+    ]);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Generation failed.";
-    console.error("future-you-generate: job failed", { jobId, error });
-    await updateJob(adminClient, jobId, userId, {
-      status: "failed",
-      error: message,
-    });
+    const message = error instanceof Error ? error.message : FUTURE_YOU_JOB_STALE_ERROR;
+    console.error("future-you-generate: job timed out or aborted", { jobId, error });
+    await failJob(adminClient, jobId, userId, message);
+  } finally {
+    if (timeoutId !== undefined) clearTimeout(timeoutId);
   }
 }
 
@@ -215,13 +289,18 @@ Deno.serve(async (req) => {
       return unauthorizedResponse(corsHeaders);
     }
 
-    const openAiApiKey = Deno.env.get("OPENAI_API_KEY")?.trim();
-    if (!openAiApiKey) {
-      console.error("future-you-generate: missing OPENAI_API_KEY");
-      return new Response(JSON.stringify({ error: "Generation is temporarily unavailable." }), {
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    let provider: ImageEditProvider;
+    try {
+      provider = getImageProvider();
+    } catch (error) {
+      if (error instanceof ImageProviderUnavailableError) {
+        console.error("future-you-generate: image provider unavailable", error.message);
+        return new Response(JSON.stringify({ error: "Generation is temporarily unavailable." }), {
+          status: 503,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      throw error;
     }
 
     const body = await req.json().catch(() => ({}));
@@ -230,7 +309,7 @@ Deno.serve(async (req) => {
       return badGenerateResponse(validated.error, validated.status, corsHeaders);
     }
 
-    const activeJob = await findActiveJob(auth.adminClient, auth.userId);
+    const activeJob = await reconcileStaleActiveJob(auth.adminClient, auth.userId);
     if (activeJob) {
       return conflictActiveJobResponse(activeJob.id, activeJob.status, corsHeaders);
     }
@@ -256,7 +335,7 @@ Deno.serve(async (req) => {
     if (insertError || !job) {
       console.error("future-you-generate: job insert failed", insertError);
       if (insertError?.code === "23505") {
-        const retryActive = await findActiveJob(auth.adminClient, auth.userId);
+        const retryActive = await reconcileStaleActiveJob(auth.adminClient, auth.userId);
         if (retryActive) {
           return conflictActiveJobResponse(retryActive.id, retryActive.status, corsHeaders);
         }
@@ -269,20 +348,17 @@ Deno.serve(async (req) => {
 
     const jobId = job.id as string;
 
+    // Return the job immediately and finish generation in the background so the
+    // client gets a durable jobId to poll. Medium quality (~60s) completes well
+    // within the background-task window.
     EdgeRuntime.waitUntil(
-      runGenerationJob(auth.adminClient, auth.userId, jobId, validated.request, openAiApiKey),
+      runGenerationJob(auth.adminClient, auth.userId, jobId, validated.request, provider),
     );
 
-    return new Response(
-      JSON.stringify({
-        jobId,
-        status: "generating",
-      }),
-      {
-        status: 202,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return new Response(JSON.stringify({ jobId, status: "queued" }), {
+      status: 202,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (e) {
     console.error("future-you-generate error", e);
     return new Response(JSON.stringify({ error: "Generation failed. Try again." }), {

@@ -10,6 +10,7 @@ import {
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { IconMinus, IconPlus } from "./icons";
 import { newTemplateExerciseLine, resizeWorkoutSets } from "./data";
+import { USER_EDITABLE_MAX_SETS } from "@newyouai/core";
 import { estimatedSessionLabel } from "./estimateSessionDuration";
 import exerciseLibrary from "./exerciseLibrary";
 import { ExerciseDragHandle, SortableExerciseList } from "./SortableExerciseList";
@@ -129,7 +130,7 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                           <input
                             type="number"
                             min={1}
-                            max={4}
+                            max={USER_EDITABLE_MAX_SETS}
                             aria-label={`Set count for ${row.name}`}
                             value={row.sets.length}
                             onChange={(e) => {

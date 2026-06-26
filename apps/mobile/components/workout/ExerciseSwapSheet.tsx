@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { BottomSheet } from "@/components/motion";
+import { AppTextField } from "@/components/ui/AppTextField";
 
 import {
   ExerciseSearchResultRow,
@@ -66,17 +67,11 @@ export function ExerciseSwapSheet({
             Sets, targets, and logged reps stay on this row. Your saved workout is not changed.
           </Text>
 
-          <TextInput
+          <AppTextField
             value={query}
             onChangeText={setQuery}
             placeholder="Search exercises..."
-            placeholderTextColor={colors.textTertiary}
-            className="mt-3 rounded-xl border px-3 py-3 text-[15px]"
-            style={{
-              borderColor: colors.border,
-              backgroundColor: colors.backgroundSecondary,
-              color: colors.textPrimary,
-            }}
+            shellStyle={{ marginTop: 12 }}
           />
 
           <ScrollView className="mt-3 max-h-[360px]" keyboardShouldPersistTaps="handled">

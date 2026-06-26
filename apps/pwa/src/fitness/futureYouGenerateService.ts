@@ -4,7 +4,7 @@ import {
   type FutureYouGenerateResult,
 } from "@newyouai/api-client";
 import type { FutureYouGenerateProfile, FutureYouGenerateRequest } from "./futureYouGenerateGuards";
-import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabase, getSupabaseEnv, isSupabaseConfigured } from "./supabaseClient";
 
 export type { FutureYouGenerateResult };
 
@@ -41,5 +41,5 @@ export async function startFutureYouGeneration(
     throw new ApiFutureYouGenerateError("Sign in to create your Future You.", "auth_required");
   }
 
-  return startFutureYouGenerationApi(sb, request);
+  return startFutureYouGenerationApi(sb, getSupabaseEnv(), request);
 }

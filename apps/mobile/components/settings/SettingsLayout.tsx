@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Pressable, Text, TextInput, View, type TextInputProps } from "react-native";
+import { Pressable, Text, View, type TextInputProps } from "react-native";
 
+import { AppTextField } from "@/components/ui/AppTextField";
 import { GradientCard } from "@/components/ui/GradientCard";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -23,6 +24,7 @@ export function SettingsHubSection({ title, children }: { title: string; childre
 export function SettingsRow({
   icon,
   label,
+  labelColor,
   trailing,
   onPress,
   disabled,
@@ -31,6 +33,7 @@ export function SettingsRow({
 }: {
   icon?: ReactNode;
   label: string;
+  labelColor?: string;
   trailing?: ReactNode;
   onPress?: () => void;
   disabled?: boolean;
@@ -43,7 +46,7 @@ export function SettingsRow({
   const content = (
     <>
       {icon ? icon : null}
-      <Text className="flex-1 text-[15px] font-medium" style={{ color: colors.textPrimary }}>
+      <Text className="flex-1 text-[15px] font-medium" style={{ color: labelColor ?? colors.textPrimary }}>
         {label}
       </Text>
       <View className="ml-2 flex-row items-center shrink" style={{ maxWidth: "52%" }}>
@@ -203,19 +206,7 @@ export function SettingsFormField({ label, children }: { label: string; children
 }
 
 export function SettingsTextField(props: TextInputProps) {
-  const { colors } = useAppTheme();
-  return (
-    <TextInput
-      placeholderTextColor={colors.textTertiary}
-      className="rounded-[12px] border px-3.5 py-3 text-[15px]"
-      style={{
-        borderColor: colors.border,
-        backgroundColor: colors.backgroundSecondary,
-        color: colors.textPrimary,
-      }}
-      {...props}
-    />
-  );
+  return <AppTextField {...props} />;
 }
 
 export function SettingsFormMessage({

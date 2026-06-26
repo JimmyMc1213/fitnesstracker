@@ -1,14 +1,15 @@
-import { effectiveNutritionTotalsForDateKey, formatDateKeyEyebrow, localDateKey, appendNutritionLoggedItem, removeNutritionLoggedItem, appendWaterLogEntry, removeWaterLogEntry } from "@newyouai/core";
+import { effectiveNutritionTotalsForDateKey, formatDateKeyEyebrow, localDateKey, appendNutritionLoggedItem, removeNutritionLoggedItem, appendWaterLogEntry, removeWaterLogEntry, clearWaterLogForDateKey } from "@newyouai/core";
 import type { NutritionLoggedItem } from "@newyouai/types";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { FoodAddedToast, useFoodAddedToast } from "@/components/nutrition/FoodAddedToast";
 import { TodayFoodLogCard } from "@/components/nutrition/TodayFoodLogCard";
 import { WaterTrackerCard } from "@/components/nutrition/WaterTrackerCard";
 import { MacroBar } from "@/components/home/MacroBar";
 import { MacroRing } from "@/components/home/MacroRing";
+import { ConfettiBurst } from "@/components/motion/ConfettiBurst";
 import { TabScreenFade } from "@/components/motion/TabScreenFade";
 import { MACRO_COLORS } from "@/lib/macroColors";
 import { ScreenHeader } from "@/components/home/ScreenHeader";
@@ -30,6 +31,8 @@ export default function NutritionScreen() {
   const [toastMessage, setToastMessage] = useState("Food added");
   const [toastTestId, setToastTestId] = useState("food-added-toast");
   const [toastUndoTestId, setToastUndoTestId] = useState("food-added-toast-undo");
+  const [hydrationConfettiKey, setHydrationConfettiKey] = useState(0);
+  const hydrationConfettiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const todayKey = useMemo(() => localDateKey(new Date()), []);
   const todayFoodItems = useMemo(
@@ -52,6 +55,21 @@ export default function NutritionScreen() {
   }, [state, todayKey]);
   const kcalLeft = Math.max(0, targets.cal - totals.cal);
   const proteinLeft = Math.max(0, targets.p - totals.p);
+
+  const handleHydrationGoalReached = useCallback(() => {
+    setHydrationConfettiKey((key) => key + 1);
+    if (hydrationConfettiTimerRef.current) clearTimeout(hydrationConfettiTimerRef.current);
+    hydrationConfettiTimerRef.current = setTimeout(() => {
+      setHydrationConfettiKey(0);
+      hydrationConfettiTimerRef.current = null;
+    }, 4000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (hydrationConfettiTimerRef.current) clearTimeout(hydrationConfettiTimerRef.current);
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -179,6 +197,10 @@ export default function NutritionScreen() {
             onRemoveEntry={(entryId) =>
               setFitnessState((prev) => removeWaterLogEntry(prev, todayKey, entryId))
             }
+            onRemoveAllEntries={() =>
+              setFitnessState((prev) => clearWaterLogForDateKey(prev, todayKey))
+            }
+            onGoalReached={handleHydrationGoalReached}
           />
         ) : null}
 
@@ -189,6 +211,12 @@ export default function NutritionScreen() {
         />
       </ScrollView>
       </TabScreenFade>
+
+      {hydrationConfettiKey > 0 ? (
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <ConfettiBurst key={hydrationConfettiKey} count={48} />
+        </View>
+      ) : null}
 
       <View
         className="absolute bottom-28 left-0 right-0 px-screen-x"

@@ -163,6 +163,7 @@ export function FitnessSyncProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    setFitnessHydrated(false);
     let cancelled = false;
     const timeoutId = setTimeout(() => {
       if (!cancelled) setFitnessHydrated(true);

@@ -9,9 +9,10 @@ import {
   type IssueReportCategory,
 } from "@newyouai/core";
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 import { CenterDialog } from "@/components/motion";
+import { AlignedTextInput } from "@/components/ui/AlignedTextInput";
 import { OnboardingContinueButton } from "@/components/onboarding/OnboardingContinueButton";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
@@ -160,28 +161,22 @@ export function ReportIssueDialog({ open, onClose }: Props) {
             <Text className="mb-1.5 text-[13px] font-semibold" style={{ color: colors.textPrimary }}>
               Details (optional)
             </Text>
-            <TextInput
+            <AlignedTextInput
               testID="issue-report-message"
               value={message}
               onChangeText={setMessage}
               placeholder="What happened? What were you trying to do?"
               placeholderTextColor={ob.mutedFg}
               multiline
+              multilineMinHeight={88}
               editable={submitState !== "submitting"}
               maxLength={ISSUE_REPORT_MESSAGE_MAX}
-              style={{
-                minHeight: 88,
-                borderRadius: 10,
-                borderWidth: 1,
-                paddingHorizontal: 12,
-                paddingVertical: 10,
-                fontSize: 14,
-                lineHeight: 20,
+              shellStyle={{
                 borderColor: ob.inputBorder,
                 backgroundColor: ob.optionBg,
-                color: colors.textPrimary,
-                textAlignVertical: "top",
               }}
+              inputStyle={{ color: colors.textPrimary }}
+              style={{ fontSize: 14, lineHeight: 20 }}
             />
 
             {submitState === "error" && errorMessage ?

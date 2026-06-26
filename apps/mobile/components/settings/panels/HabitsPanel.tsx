@@ -1,10 +1,11 @@
 import { localDateKey } from "@newyouai/core";
 import type { HabitTemplate } from "@newyouai/types";
 import { useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { habitIconComponent } from "@/lib/habitIcons";
 import { SettingsHelper } from "@/components/settings/SettingsLayout";
+import { AppTextField } from "@/components/ui/AppTextField";
 import { GradientCard } from "@/components/ui/GradientCard";
 import { WorkoutConfirmSheet } from "@/components/workout/WorkoutConfirmSheet";
 import { useFitnessState } from "@/context/FitnessContext";
@@ -68,7 +69,7 @@ export function HabitsPanel() {
         {state.habitTemplates.map((h) => (
           <GradientCard key={h.id} padding={14}>
             <View style={{ gap: 10 }}>
-              <TextInput
+              <AppTextField
               value={h.name}
               onChangeText={(value) => {
                 const name = sanitizeUserText(value);
@@ -82,14 +83,7 @@ export function HabitsPanel() {
                 });
               }}
               placeholder="Habit name"
-              placeholderTextColor={colors.textTertiary}
               accessibilityLabel="Habit name"
-              className="rounded-xl border px-3 py-2.5 text-[15px]"
-              style={{
-                borderColor: colors.border,
-                backgroundColor: colors.backgroundSecondary,
-                color: colors.textPrimary,
-              }}
               />
               <View className="flex-row flex-wrap items-center gap-2">
               <Text

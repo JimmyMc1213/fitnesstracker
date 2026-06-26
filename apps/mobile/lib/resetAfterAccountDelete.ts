@@ -1,7 +1,13 @@
-import { FITNESS_LOCAL_STORAGE_KEY, createEmptyPersistedSlice, savePersistedSlice } from "@newyouai/core";
+import {
+  FITNESS_LOCAL_STORAGE_KEY,
+  FITNESS_SYNC_META_KEY,
+  createEmptyPersistedSlice,
+  savePersistedSlice,
+} from "@newyouai/core";
 import type { AppState, PersistedFitnessSlice } from "@newyouai/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { clearLastAuthUserId } from "@/lib/authSessionStorage";
 import { createAsyncStorageAdapter } from "@/lib/createAsyncStorageAdapter";
 import { buildFitnessAppState } from "@/lib/fitness/buildFitnessAppState";
 import { clearOnboardingDraftStorage, writeOnboardingComplete } from "@/lib/onboardingStorage";
@@ -12,7 +18,8 @@ const storageAdapter = createAsyncStorageAdapter();
 export async function resetLocalAfterAccountDelete(): Promise<AppState> {
   await clearOnboardingDraftStorage();
   await writeOnboardingComplete(false);
-  await AsyncStorage.removeItem(FITNESS_LOCAL_STORAGE_KEY);
+  await clearLastAuthUserId();
+  await AsyncStorage.multiRemove([FITNESS_LOCAL_STORAGE_KEY, FITNESS_SYNC_META_KEY]);
 
   const empty = createEmptyPersistedSlice();
   const nextSlice: PersistedFitnessSlice = {

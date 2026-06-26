@@ -6,19 +6,21 @@ import {
   Platform,
   Pressable,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
+import { AuthTextField } from "@/components/ui/AuthTextField";
 import { useAuth } from "@/context/AuthContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { authLayout } from "@/lib/authLayoutStyles";
 
 export default function SignInScreen() {
   const { colors } = useAppTheme();
+  const { ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
   const { signInWithPassword } = useAuth();
   const [email, setEmail] = useState("");
@@ -45,15 +47,6 @@ export default function SignInScreen() {
     }
   };
 
-  const inputStyle = [
-    authLayout.input,
-    {
-      backgroundColor: colors.card,
-      color: colors.textPrimary,
-      borderColor: colors.border,
-    },
-  ];
-
   return (
     <KeyboardAvoidingView
       style={[authLayout.screen, { backgroundColor: colors.background }]}
@@ -70,7 +63,7 @@ export default function SignInScreen() {
         ]}
       >
         <Pressable onPress={() => router.back()} testID="auth-sign-in-back">
-          <Text style={{ color: colors.accent, fontSize: 16 }}>Back</Text>
+          <Text style={{ color: colors.textPrimary, fontSize: 16 }}>Back</Text>
         </Pressable>
 
         <View style={{ marginTop: 24, alignItems: "center" }}>
@@ -88,10 +81,8 @@ export default function SignInScreen() {
         </Text>
 
         <View style={authLayout.inputStack}>
-          <TextInput
-            style={inputStyle}
+          <AuthTextField
             placeholder="Email"
-            placeholderTextColor={colors.textTertiary}
             value={email}
             onChangeText={setEmail}
             onEndEditing={(event) => setEmail(event.nativeEvent.text.trim())}
@@ -102,10 +93,8 @@ export default function SignInScreen() {
             accessibilityLabel="Email"
             testID="auth-sign-in-email"
           />
-          <TextInput
-            style={inputStyle}
+          <AuthTextField
             placeholder="Password"
-            placeholderTextColor={colors.textTertiary}
             value={password}
             onChangeText={setPassword}
             onEndEditing={(event) => setPassword(event.nativeEvent.text)}
@@ -135,16 +124,16 @@ export default function SignInScreen() {
           <Pressable
             style={[
               authLayout.primaryButton,
-              { backgroundColor: colors.accent, opacity: loading ? 0.7 : 1 },
+              { backgroundColor: ob.gold, opacity: loading ? 0.7 : 1 },
             ]}
             onPress={() => void handleSignIn()}
             disabled={loading}
             testID="auth-sign-in-submit"
           >
             {loading ? (
-              <ActivityIndicator color={colors.accentText} />
+              <ActivityIndicator color={ob.goldOn} />
             ) : (
-              <Text style={[authLayout.primaryButtonText, { color: colors.accentText }]}>
+              <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
                 Sign In
               </Text>
             )}
@@ -157,7 +146,7 @@ export default function SignInScreen() {
           >
             <Text style={{ fontSize: 14, color: colors.textSecondary }}>
               Don&apos;t have an account?{" "}
-              <Text style={{ color: colors.accent, fontWeight: "600" }}>Sign up</Text>
+              <Text style={{ color: colors.textPrimary, fontWeight: "600" }}>Sign up</Text>
             </Text>
           </Pressable>
         </View>

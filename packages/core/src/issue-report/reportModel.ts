@@ -9,6 +9,16 @@ export const ISSUE_REPORT_SUBMIT_LABEL = "Send report";
 export const ISSUE_REPORT_SUCCESS_MESSAGE = "Thanks — we received your report.";
 export const ISSUE_REPORT_ERROR_MESSAGE = "Could not send report. Try again.";
 
+export const FEATURE_REQUEST_SETTINGS_LABEL = "Request a feature";
+export const FEATURE_REQUEST_SHEET_TITLE = "Request a feature";
+export const FEATURE_REQUEST_SHEET_BODY =
+  "Tell us what you'd love to see. We read every request.";
+export const FEATURE_REQUEST_INPUT_LABEL = "What feature would you like?";
+export const FEATURE_REQUEST_INPUT_PLACEHOLDER =
+  "Describe the feature and how it would help you.";
+export const FEATURE_REQUEST_SUBMIT_LABEL = "Send request";
+export const FEATURE_REQUEST_SUCCESS_MESSAGE = "Thanks, we received your feature request.";
+
 export const ISSUE_REPORT_CATEGORY_OPTIONS: ReadonlyArray<{
   id: IssueReportCategory;
   label: string;

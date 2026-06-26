@@ -20,6 +20,8 @@ import { msUntilFutureYouRedoEligible } from "./futureYouPageModel";
 type Props = {
   previewMode?: boolean;
   className?: string;
+  /** When set, deletes only this preview; otherwise wipes all Future You data. */
+  jobId?: string;
   /** ISO timestamp for the 2-week redo window — preserved on delete so cooldown stays active. */
   redoAnchorIso?: string;
   onDeleted: () => void;
@@ -30,6 +32,7 @@ type ConfirmStep = "initial" | "final";
 export function FutureYouDeleteButton({
   previewMode = false,
   className,
+  jobId,
   redoAnchorIso,
   onDeleted,
 }: Props) {
@@ -60,7 +63,7 @@ export function FutureYouDeleteButton({
     setBusy(true);
     setErrorMessage(null);
     try {
-      await deleteFutureYou({ previewMode });
+      await deleteFutureYou({ previewMode, jobId });
       closeConfirm();
       onDeleted();
     } catch (error) {

@@ -1,4 +1,5 @@
 import { FutureYouDeleteButton } from "@/components/future-you/FutureYouDeleteButton";
+import { FutureYouGenerationLoadingView } from "@/components/future-you/FutureYouGenerationLoadingView";
 import { FutureYouLegalFooter } from "@/components/future-you/FutureYouLegalFooter";
 import { FutureYouReportButton } from "@/components/future-you/FutureYouReportButton";
 import { OnboardingFutureYouSuccessHero } from "@/components/onboarding/OnboardingFutureYouSuccessHero";
@@ -14,29 +15,31 @@ import {
   futureYouRedoAnchorIso,
   type FutureYouGalleryItem,
 } from "@newyouai/core";
-import type { FutureYouDraft, UserGender } from "@newyouai/types";
+import type { FutureYouDraft, FutureYouJobStatus, NutritionGoal, UserGender } from "@newyouai/types";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 type Props = {
   item: FutureYouGalleryItem;
-  timeline: string;
+  goal: NutritionGoal;
   gender: UserGender | undefined;
+  motivationId: string | undefined;
+  generationStatus: FutureYouJobStatus | "idle";
   futureYou: FutureYouDraft | undefined;
   jobId?: string;
   onBack: () => void;
-  onOpenFullscreen: () => void;
-  onFutureYouDeleted: () => void;
+  onFutureYouDeleted: (jobId: string) => void;
 };
 
 export function FutureYouDetailView({
   item,
-  timeline,
+  goal,
   gender,
+  motivationId,
+  generationStatus,
   futureYou,
   jobId,
   onBack,
-  onOpenFullscreen,
   onFutureYouDeleted,
 }: Props) {
   const { colors } = useAppTheme();
@@ -44,7 +47,6 @@ export function FutureYouDetailView({
   const [saveError, setSaveError] = useState<string | null>(null);
   const placeholderSource = futureYouRevealPlaceholderSource(gender);
   const canSave = Boolean(item.imageSrc && !item.loading);
-  const canFullscreen = canSave;
 
   async function onSave() {
     if (!item.imageSrc) return;
@@ -74,33 +76,35 @@ export function FutureYouDetailView({
           </Text>
         </Pressable>
         <FutureYouDeleteButton
+          jobId={item.id}
           redoAnchorIso={futureYouRedoAnchorIso(futureYou)}
-          onDeleted={onFutureYouDeleted}
+          onDeleted={() => onFutureYouDeleted(item.id)}
         />
       </View>
 
       <View className="min-h-0 flex-1 pt-3">
-        <Pressable
-          className="flex-1"
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !canFullscreen }}
-          disabled={!canFullscreen}
-          onPress={() => {
-            if (canFullscreen) onOpenFullscreen();
-          }}
-        >
-          <OnboardingFutureYouSuccessHero
+        {item.loading ?
+          <FutureYouGenerationLoadingView
             fill
-            accentColor={FUTURE_YOU_GOLD}
-            timeline={timeline}
+            goal={goal}
+            gender={gender}
+            motivationId={motivationId}
+            generationStatus={generationStatus}
             imageUri={item.imageSrc}
             placeholderSource={placeholderSource}
-            loading={item.loading}
           />
-        </Pressable>
+        : <View className="flex-1">
+            <OnboardingFutureYouSuccessHero
+              fill
+              imageUri={item.imageSrc}
+              placeholderSource={placeholderSource}
+              loading={false}
+            />
+          </View>
+        }
       </View>
 
-      <View className="shrink-0 gap-2.5 pt-4 pb-1">
+      <View className="shrink-0 gap-2.5 pt-4">
         <Text className="text-center text-xs" style={{ color: colors.textTertiary }}>
           {FUTURE_YOU_SUCCESS_AI_LABEL}
         </Text>
@@ -109,14 +113,17 @@ export function FutureYouDetailView({
           accessibilityRole="button"
           disabled={!canSave || saveState === "saving"}
           onPress={() => void onSave()}
-          className="w-full max-w-[20rem] self-center items-center rounded-full px-6 py-3.5"
+          className="w-full max-w-[20rem] self-center items-center justify-center rounded-full px-6 py-3.5"
           style={{
             backgroundColor: FUTURE_YOU_GOLD,
             minHeight: 52,
             opacity: !canSave || saveState === "saving" ? 0.6 : 1,
           }}
         >
-          <Text className="text-base font-semibold" style={{ color: FUTURE_YOU_CALLOUT_BG }}>
+          <Text
+            className="text-center text-base font-semibold"
+            style={{ color: FUTURE_YOU_CALLOUT_BG }}
+          >
             {saveState === "saving" ? FUTURE_YOU_GALLERY_SAVING_LABEL : FUTURE_YOU_GALLERY_SAVE_LABEL}
           </Text>
         </Pressable>
@@ -138,10 +145,11 @@ export function FutureYouDetailView({
             {saveError}
           </Text>
         ) : null}
-        <View className="items-center gap-1 pt-0.5">
-          <FutureYouReportButton jobId={jobId} context="home" />
-          <FutureYouLegalFooter compact accentColor={FUTURE_YOU_GOLD} />
-        </View>
+      </View>
+
+      <View className="shrink-0 items-center gap-1 pt-3 pb-1">
+        <FutureYouReportButton jobId={jobId} context="home" />
+        <FutureYouLegalFooter compact accentColor={FUTURE_YOU_GOLD} />
       </View>
     </View>
   );

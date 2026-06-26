@@ -1,10 +1,10 @@
-# RN-8-07 Progress tab smoke, weigh-in updates chart + goal range + Sunday history
+# RN-8-07 Progress tab smoke, weigh-in updates chart + Sunday history
 # Run: EXPO_PUBLIC_E2E_FITNESS_SEED=progress MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:progress
 # Metro:
 #   cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=progress npx expo start --dev-client --port 8082
 #
 # Stable testIDs: tab-bar-progress, tab-progress, progress-log-weight, weigh-in-sheet,
-# weigh-in-weight-input, weigh-in-save, progress-weight-chart, progress-goal-range,
+# weigh-in-weight-input, weigh-in-save, progress-weight-chart,
 # progress-sunday-history, progress-sunday-history-show-previous, sunday-history-page,
 # progress-pics-section, progress-pics-gallery, progress-pics-gallery-add
 appId: app.newyouai.mobile
@@ -34,8 +34,6 @@ env:
     timeout: 10000
 - assertVisible:
     id: progress-sunday-history
-- assertVisible:
-    id: progress-goal-range
 - assertVisible:
     id: progress-pics-section
 - tapOn:
@@ -86,8 +84,6 @@ env:
     visible:
       id: progress-weight-chart
     timeout: 10000
-- assertVisible:
-    id: progress-goal-range
 - tapOn:
     id: progress-sunday-history-show-previous
 - extendedWaitUntil:

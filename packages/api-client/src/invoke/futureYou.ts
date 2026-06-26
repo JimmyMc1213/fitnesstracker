@@ -139,11 +139,15 @@ function parseGenerateResponse(data: unknown): FutureYouGenerateResult {
 
   if (typeof body.error === "string" && body.error.trim()) {
     if (typeof body.jobId === "string" && body.jobId.trim()) {
+      const status = parseStatus(body.status);
+      if (status === "failed") {
+        throw new FutureYouGenerateError(body.error.trim(), "invalid", body.jobId.trim(), status);
+      }
       throw new FutureYouGenerateError(
         body.error.trim(),
         "conflict",
         body.jobId.trim(),
-        parseStatus(body.status),
+        status,
       );
     }
     throw new FutureYouGenerateError(body.error.trim(), "invalid");
@@ -153,9 +157,14 @@ function parseGenerateResponse(data: unknown): FutureYouGenerateResult {
     throw new FutureYouGenerateError("Could not start generation. Try again.", "invalid");
   }
 
+  const status = parseStatus(body.status) ?? "generating";
+  if (status === "failed") {
+    throw new FutureYouGenerateError("Generation failed. Try again.", "invalid", body.jobId.trim(), status);
+  }
+
   return {
     jobId: body.jobId.trim(),
-    status: parseStatus(body.status) ?? "generating",
+    status,
   };
 }
 
@@ -269,18 +278,49 @@ function parseDeleteResponse(data: unknown): { removedObjects: number } {
   return { removedObjects: typeof body.removedObjects === "number" ? body.removedObjects : 0 };
 }
 
+/** Image generation can take 60–120s; default invoke timeouts are too short. */
+const FUTURE_YOU_GENERATE_TIMEOUT_MS = 180_000;
+
 /** Queue Future You generation after step 10c. Caller must ensure auth. */
 export async function startFutureYouGeneration(
   client: SupabaseClient,
+  env: SupabaseEnv,
   request: FutureYouGenerateRequest,
 ): Promise<FutureYouGenerateResult> {
-  const { data, error } = await invokeEdgeFunction<unknown>(client, "future-you-generate", request);
+  const {
+    data: { session },
+  } = await client.auth.getSession();
+  if (!session) {
+    throw new FutureYouGenerateError("Sign in to create your Future You.", "auth_required");
+  }
 
-  if (error) {
-    throw new FutureYouGenerateError(
-      invokeErrorMessage(error) || "Could not start generation. Try again.",
-      "unavailable",
-    );
+  const baseUrl = envTrim(env.url).replace(/\/+$/, "");
+  const url = `${baseUrl}/functions/v1/future-you-generate`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: clientSupabaseKeyForFetch(env),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+    signal: AbortSignal.timeout(FUTURE_YOU_GENERATE_TIMEOUT_MS),
+  });
+
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch {
+    throw new FutureYouGenerateError("Could not start generation. Try again.", "unavailable");
+  }
+
+  if (!response.ok) {
+    const message =
+      data && typeof data === "object" && typeof (data as { error?: string }).error === "string"
+        ? (data as { error: string }).error.trim()
+        : "Could not start generation. Try again.";
+    throw new FutureYouGenerateError(message || "Could not start generation. Try again.", "unavailable");
   }
 
   try {
@@ -387,11 +427,17 @@ export async function submitFutureYouReport(
   return parseReportResponse(data);
 }
 
-/** Permanently delete the user's Future You photos and generation jobs. Caller must ensure auth. */
+/**
+ * Delete the user's Future You data. Pass a `jobId` to remove a single preview (row + its
+ * stored images); omit it to permanently delete all Future You photos and jobs. Caller must
+ * ensure auth.
+ */
 export async function deleteFutureYou(
   client: SupabaseClient,
+  jobId?: string,
 ): Promise<{ removedObjects: number }> {
-  const { data, error } = await invokeEdgeFunction<unknown>(client, "future-you-delete", {});
+  const body = jobId?.trim() ? { jobId: jobId.trim() } : {};
+  const { data, error } = await invokeEdgeFunction<unknown>(client, "future-you-delete", body);
 
   if (error) {
     throw new FutureYouDeleteError(

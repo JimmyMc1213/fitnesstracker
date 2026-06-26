@@ -158,6 +158,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {};
   }, []);
 
+  useEffect(() => {
+    if (!__DEV__ || !configured || !sessionResolved || session?.user?.email) return;
+
+    const email = String(process.env.EXPO_PUBLIC_DEV_AUTO_SIGN_IN_EMAIL ?? "").trim();
+    const password = String(process.env.EXPO_PUBLIC_DEV_AUTO_SIGN_IN_PASSWORD ?? "").trim();
+    if (!email || !password) return;
+
+    void signInWithPassword(email, password);
+  }, [configured, sessionResolved, session?.user?.email, signInWithPassword]);
+
   const signUpWithEmail = useCallback(async (email: string, password: string, name: string) => {
     const sb = getSupabase();
     if (!sb) return { error: "Add Supabase keys to sign up." };

@@ -42,7 +42,7 @@ export function OnboardingWelcomeScreen({
   return (
     <div
       className={`onboarding-welcome${phase === "welcome" ? " onboarding-welcome--ready" : ""}`}
-      aria-label={phase === "splash" ? "Loading Gymmy" : "Welcome to Gymmy"}
+      aria-label={phase === "splash" ? "Loading NewYou" : "Welcome to NewYou"}
     >
       <div className="onboarding-welcome__splash-layer" aria-hidden={phase !== "splash"}>
         <GymmySplashMark instant={splashInstant} />

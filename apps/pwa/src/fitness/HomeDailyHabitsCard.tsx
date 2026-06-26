@@ -7,7 +7,8 @@ import { isActionHabit, isWeighInActionHabit } from "./habits";
 import { IconCheck, IconChevR, IconGrip, IconMinus, IconMobilityRunner, IconPlus } from "./icons";
 import { isMobilityHabit } from "./mobilityHabit";
 import { SortableExerciseList } from "./SortableExerciseList";
-import { MOBILITY_ACCENT, MOBILITY_BG, MOBILITY_BORDER } from "./workoutUiTokens";
+import { mobilityColors } from "./workoutUiTokens";
+import { useTheme } from "./ThemeContext";
 import type { Habit, HabitTemplate } from "./types";
 
 type Props = {
@@ -32,6 +33,8 @@ function MobilityRoutineCard({
   readOnly: boolean;
   onPress?: () => void;
 }) {
+  const { theme } = useTheme();
+  const mobility = mobilityColors(theme);
   const subtitle = habit.done
     ? "Routine complete for today"
     : habit.subtitle?.trim()
@@ -58,8 +61,6 @@ function MobilityRoutineCard({
         className="card"
         style={{
           padding: "15px 16px 14px",
-          borderColor: habit.done ? "rgba(196,181,253,0.42)" : MOBILITY_BORDER,
-          background: MOBILITY_BG,
         }}
       >
         <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
@@ -67,16 +68,14 @@ function MobilityRoutineCard({
             style={{
               width: 40,
               height: 40,
-              borderRadius: 12,
-              background: habit.done ? "rgba(196,181,253,0.18)" : "rgba(196,181,253,0.12)",
-              border: "0.5px solid rgba(196,181,253,0.22)",
+              borderRadius: 10,
+              background: habit.done ? "rgba(255,255,255,0.08)" : "var(--surface-2)",
               display: "grid",
               placeItems: "center",
-              color: MOBILITY_ACCENT,
               flexShrink: 0,
             }}
           >
-            <IconMobilityRunner size={22} color={MOBILITY_ACCENT} />
+            <IconMobilityRunner size={22} color={mobility.accent} />
           </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -87,7 +86,7 @@ function MobilityRoutineCard({
                   fontWeight: 700,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  color: MOBILITY_ACCENT,
+                  color: mobility.accent,
                 }}
               >
                 Guided routine
@@ -127,11 +126,11 @@ function MobilityRoutineCard({
                   gap: 6,
                   fontSize: 12,
                   fontWeight: 600,
-                  color: MOBILITY_ACCENT,
+                  color: "var(--text-secondary)",
                 }}
               >
                 {habit.done ? "Open routine" : "Start routine"}
-                <IconChevR size={14} stroke={2.2} />
+                <IconChevR size={14} stroke={2.2} style={{ color: "var(--text-tertiary)" }} />
               </div>
             ) : null}
           </div>

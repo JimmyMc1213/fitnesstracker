@@ -1,5 +1,6 @@
 /** Shared typography & color tokens for workout UI (FTI-19, FTI-17). */
 import type { CSSProperties } from "react";
+import type { AppTheme } from "@newyouai/types";
 
 /** Primary CTA fill (see `--primary` in index.css). */
 export const PRIMARY_FILL = "var(--primary)";
@@ -18,6 +19,13 @@ export const COACH_CARD_BORDER = "var(--coach-card-border)";
 export const MOBILITY_ACCENT = "rgba(196,181,253,0.95)";
 export const MOBILITY_BORDER = "rgba(196,181,253,0.32)";
 export const MOBILITY_BG = "rgba(196,181,253,0.07)";
+
+export function mobilityColors(theme: AppTheme) {
+  if (theme === "light") {
+    return { accent: "#7C6AD2" };
+  }
+  return { accent: MOBILITY_ACCENT };
+}
 
 export const USER_NOTE_GRAY = "var(--text-muted-soft)";
 export const USER_NOTE_GRAY_MUTED = "var(--text-faint-soft)";

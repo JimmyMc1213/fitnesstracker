@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { buildFutureYouGalleryItem, formatFutureYouGalleryDate, shouldShowFutureYouGalleryTile } from "./galleryModel";
+import {
+  buildFutureYouGalleryItem,
+  formatFutureYouGalleryCount,
+  formatFutureYouGalleryDate,
+  shouldShowFutureYouGalleryTile,
+} from "./galleryModel";
 
 describe("futureYouGalleryModel", () => {
   it("formats ready dates for gallery tiles", () => {
@@ -19,6 +24,11 @@ describe("futureYouGalleryModel", () => {
     });
     expect(item?.caption).toContain("3 months");
     expect(item?.imageSrc).toContain("preview.png");
+  });
+
+  it("pluralizes the preview count label", () => {
+    expect(formatFutureYouGalleryCount(1)).toBe("1 preview");
+    expect(formatFutureYouGalleryCount(3)).toBe("3 previews");
   });
 
   it("shows a tile for reveal and in-progress jobs", () => {

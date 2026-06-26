@@ -80,5 +80,5 @@ export function UnitPreferencePicker({
     return <SettingsDetailCard>{fieldStack}</SettingsDetailCard>;
   }
 
-  return <GradientCard>{fieldStack}</GradientCard>;
+  return <GradientCard spacious>{fieldStack}</GradientCard>;
 }

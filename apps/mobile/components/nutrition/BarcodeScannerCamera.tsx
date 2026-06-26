@@ -5,13 +5,14 @@ import {
   Platform,
   Pressable,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
+import { AppTextField } from "@/components/ui/AppTextField";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useLogFoodAccent } from "@/hooks/useLogFoodAccent";
 
 type Props = {
   onScan: (code: string) => void;
@@ -22,6 +23,7 @@ const BARCODE_TYPES = ["ean13", "ean8", "upc_a", "upc_e", "code128"] as const;
 
 export function BarcodeScannerCamera({ onScan, onClose }: Props) {
   const { colors } = useAppTheme();
+  const { accent } = useLogFoodAccent();
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -64,7 +66,7 @@ export function BarcodeScannerCamera({ onScan, onClose }: Props) {
   if (!permission) {
     return (
       <ScannerShell insets={insets} colors={colors} onClose={handleClose}>
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={accent} />
         <Text className="mt-3 text-sm" style={{ color: colors.textSecondary }}>
           Checking camera permission…
         </Text>
@@ -164,19 +166,19 @@ export function BarcodeScannerCamera({ onScan, onClose }: Props) {
       >
         <View
           className="absolute left-0 top-0 h-7 w-7 border-l-2 border-t-2"
-          style={{ borderColor: colors.accent }}
+          style={{ borderColor: accent }}
         />
         <View
           className="absolute right-0 top-0 h-7 w-7 border-r-2 border-t-2"
-          style={{ borderColor: colors.accent }}
+          style={{ borderColor: accent }}
         />
         <View
           className="absolute bottom-0 left-0 h-7 w-7 border-b-2 border-l-2"
-          style={{ borderColor: colors.accent }}
+          style={{ borderColor: accent }}
         />
         <View
           className="absolute bottom-0 right-0 h-7 w-7 border-b-2 border-r-2"
-          style={{ borderColor: colors.accent }}
+          style={{ borderColor: accent }}
         />
       </View>
 
@@ -290,17 +292,16 @@ function ManualBarcodeEntry({
 }) {
   return (
     <View className="mt-6 w-full">
-      <TextInput
+      <AppTextField
         value={manualCode}
         onChangeText={onChangeManualCode}
         testID="barcode-manual-input"
         accessibilityLabel="Barcode digits"
         placeholder="Enter barcode digits"
-        placeholderTextColor={colors.textTertiary}
         keyboardType="number-pad"
         autoCorrect={false}
-        className="rounded-xl border px-3 py-3 text-[15px] tabular-nums"
-        style={{ borderColor: colors.border, backgroundColor: colors.card, color: colors.textPrimary }}
+        backgroundColor={colors.card}
+        style={{ fontVariant: ["tabular-nums"] }}
       />
       <PrimaryButton
         block

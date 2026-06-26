@@ -12,6 +12,7 @@ export {
   mergeWaterLogByDay,
   totalWaterOzForDateKey,
   removeWaterLogEntry,
+  clearWaterLogForDateKey,
   appendWaterLogEntry,
   formatWaterOz,
   formatWaterLitersFromOz,

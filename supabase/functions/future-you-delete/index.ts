@@ -124,6 +124,67 @@ async function collectFutureYouStoragePaths(
   return [...paths];
 }
 
+async function parseRequestedJobId(req: Request): Promise<string | null> {
+  try {
+    const body = await req.json();
+    if (body && typeof body === "object" && typeof (body as Record<string, unknown>).jobId === "string") {
+      const jobId = ((body as Record<string, unknown>).jobId as string).trim();
+      return jobId || null;
+    }
+  } catch {
+    // No / invalid JSON body -> treat as full delete.
+  }
+  return null;
+}
+
+async function deleteSingleJob(
+  auth: AuthContext,
+  jobId: string,
+): Promise<Response> {
+  const { data: job, error } = await auth.adminClient
+    .from("future_you_jobs")
+    .select("id, source_photo_path, result_photo_path")
+    .eq("user_id", auth.userId)
+    .eq("id", jobId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("future-you-delete: single job lookup failed", error);
+    return jsonError("Could not delete Future You. Try again.", 500);
+  }
+
+  const paths: string[] = [];
+  if (job) {
+    if (typeof job.source_photo_path === "string" && job.source_photo_path.trim()) {
+      paths.push(job.source_photo_path.trim());
+    }
+    if (typeof job.result_photo_path === "string" && job.result_photo_path.trim()) {
+      paths.push(job.result_photo_path.trim());
+    }
+    await removeStoragePaths(auth.adminClient, paths);
+
+    const { error: jobError } = await auth.adminClient
+      .from("future_you_jobs")
+      .delete()
+      .eq("user_id", auth.userId)
+      .eq("id", jobId);
+    if (jobError) {
+      console.error("future-you-delete: single job delete failed", jobError);
+      return jsonError("Could not delete Future You. Try again.", 500);
+    }
+  }
+
+  console.info("future-you-delete: completed single job", {
+    userId: auth.userId,
+    jobId,
+    removedObjects: paths.length,
+  });
+
+  return new Response(JSON.stringify({ ok: true, removedObjects: paths.length }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 async function removeStoragePaths(adminClient: SupabaseClient, paths: string[]) {
   if (paths.length === 0) return;
 
@@ -151,6 +212,11 @@ Deno.serve(async (req) => {
     const auth = await resolveAuthenticatedContext(req);
     if (!auth) {
       return jsonError("Unauthorized", 401);
+    }
+
+    const requestedJobId = await parseRequestedJobId(req);
+    if (requestedJobId) {
+      return await deleteSingleJob(auth, requestedJobId);
     }
 
     const storagePaths = await collectFutureYouStoragePaths(auth.adminClient, auth.userId);

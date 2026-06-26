@@ -60,6 +60,8 @@ export {
   mergeFutureYouDraft,
   isFutureYouMediaCleared,
   futureYouDraftAfterUserDelete,
+  futureYouDraftAfterPreviewDelete,
+  unionFutureYouPreviews,
   EMPTY_FUTURE_YOU_DRAFT,
 } from "./sync/futureYouDraft";
 export {
@@ -165,6 +167,7 @@ export {
   L_TO_FL_OZ,
   totalWaterOzForDateKey,
   removeWaterLogEntry,
+  clearWaterLogForDateKey,
   appendWaterLogEntry,
   formatWaterOz,
   formatWaterLitersFromOz,
@@ -302,6 +305,13 @@ export {
   autofillExerciseSets,
   buildSetsForExercise,
 } from "./workout/workoutAutofill";
+export {
+  PROGRAMMED_MAX_SETS,
+  PREFERRED_PROGRAMMED_SETS,
+  USER_EDITABLE_MAX_SETS,
+  clampProgrammedSetCount,
+  clampUserEditableSetCount,
+} from "./workout/workoutSetLimits";
 export {
   formatPreviousSetLine,
   previousSetsForExercise,
@@ -470,6 +480,12 @@ export {
   patchGenerationReadyAt,
 } from "./future-you/pageModel";
 export {
+  FUTURE_YOU_JOB_STALE_MS,
+  FUTURE_YOU_JOB_STALE_ERROR,
+  isFutureYouJobActiveStatus,
+  isFutureYouJobStale,
+} from "./future-you/staleJob";
+export {
   FUTURE_YOU_DELETE_TRIGGER_LABEL,
   FUTURE_YOU_DELETE_CONFIRM_TITLE,
   FUTURE_YOU_DELETE_CONFIRM_MESSAGE,
@@ -492,6 +508,7 @@ export {
   FUTURE_YOU_DETAIL_BACK_LABEL,
   FUTURE_YOU_FULLSCREEN_DONE_LABEL,
   FUTURE_YOU_DETAIL_TAP_FULLSCREEN_HINT,
+  formatFutureYouGalleryCount,
   formatFutureYouGalleryDate,
   buildFutureYouGalleryItem,
   shouldShowFutureYouGalleryTile,
@@ -619,6 +636,13 @@ export {
   ISSUE_REPORT_CATEGORY_OPTIONS,
   issueReportCategoryLabel,
   linearLabelsForIssueReportCategory,
+  FEATURE_REQUEST_SETTINGS_LABEL,
+  FEATURE_REQUEST_SHEET_TITLE,
+  FEATURE_REQUEST_SHEET_BODY,
+  FEATURE_REQUEST_INPUT_LABEL,
+  FEATURE_REQUEST_INPUT_PLACEHOLDER,
+  FEATURE_REQUEST_SUBMIT_LABEL,
+  FEATURE_REQUEST_SUCCESS_MESSAGE,
 } from "./issue-report/reportModel";
 export {
   FUTURE_YOU_MOTIVATIONS,

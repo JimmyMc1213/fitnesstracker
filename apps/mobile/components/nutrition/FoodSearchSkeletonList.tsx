@@ -1,5 +1,15 @@
-import { Text, View } from "react-native";
+import { useEffect } from "react";
+import { View } from "react-native";
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
 
+import { useReducedMotion } from "@/components/motion/useReducedMotion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
@@ -26,20 +36,44 @@ function FoodSearchRowSkeleton({ isLast }: { isLast: boolean }) {
 
 export function FoodSearchSkeletonList({ rows = 4, showSectionHeader = true }: Props) {
   const { colors } = useAppTheme();
+  const reduceMotion = useReducedMotion();
+  const pulse = useSharedValue(1);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      cancelAnimation(pulse);
+      pulse.value = 1;
+      return;
+    }
+
+    pulse.value = withRepeat(
+      withTiming(0.45, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true,
+    );
+
+    return () => cancelAnimation(pulse);
+  }, [pulse, reduceMotion]);
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: pulse.value,
+  }));
 
   return (
     <View accessibilityRole="progressbar" accessibilityLabel="Searching foods" accessibilityState={{ busy: true }}>
-      {showSectionHeader ? (
-        <View className="mb-2.5 h-[11px] w-[88px] rounded" style={{ backgroundColor: colors.border }} />
-      ) : null}
-      <View
-        className="overflow-hidden rounded-[14px] border px-3.5 py-1"
-        style={{ borderColor: colors.border, backgroundColor: colors.card }}
-      >
-        {Array.from({ length: rows }, (_, idx) => (
-          <FoodSearchRowSkeleton key={idx} isLast={idx === rows - 1} />
-        ))}
-      </View>
+      <Animated.View style={pulseStyle}>
+        {showSectionHeader ? (
+          <View className="mb-2.5 h-[11px] w-[88px] rounded" style={{ backgroundColor: colors.border }} />
+        ) : null}
+        <View
+          className="overflow-hidden rounded-[14px] border px-3.5 py-1"
+          style={{ borderColor: colors.border, backgroundColor: colors.card }}
+        >
+          {Array.from({ length: rows }, (_, idx) => (
+            <FoodSearchRowSkeleton key={idx} isLast={idx === rows - 1} />
+          ))}
+        </View>
+      </Animated.View>
     </View>
   );
 }

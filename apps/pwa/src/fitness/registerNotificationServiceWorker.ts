@@ -1,5 +1,5 @@
 const NOTIFICATION_SW_URL = "/notification-sw.js";
-const NOTIFICATION_ICON = "/favicon.svg";
+const NOTIFICATION_ICON = "/newyou-logo.png";
 
 let registrationPromise: Promise<ServiceWorkerRegistration | null> | null = null;
 

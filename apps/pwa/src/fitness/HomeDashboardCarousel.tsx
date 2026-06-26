@@ -440,7 +440,7 @@ export function HomeDashboardCarousel({
               borderRadius: 999,
               border: "none",
               padding: 0,
-              background: activeSlide === i ? "var(--accent)" : "var(--text-tertiary)",
+              background: activeSlide === i ? "var(--text-primary)" : "var(--text-tertiary)",
               opacity: activeSlide === i ? 1 : 0.5,
               transition: "width 0.2s ease, opacity 0.2s ease",
             }}

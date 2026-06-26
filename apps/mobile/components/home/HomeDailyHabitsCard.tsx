@@ -1,8 +1,10 @@
 import { planWeekIndex } from "@newyouai/core";
+import { SymbolView } from "expo-symbols";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { AddHabitSheet } from "@/components/home/AddHabitSheet";
+import { EditHabitDialog } from "@/components/home/EditHabitDialog";
 import {
   IconCheck,
   IconChevR,
@@ -10,9 +12,20 @@ import {
   IconMobilityRunner,
   IconPlus,
 } from "@/components/icons/FitnessIcons";
-import { ExerciseDragHandle, SortableExerciseList } from "@/components/workout/SortableExerciseList";
+import {
+  ExerciseDragHandle,
+  type ExerciseDragHandleProps,
+  SortableExerciseList,
+} from "@/components/workout/SortableExerciseList";
 import { isMobilityHabit } from "@/lib/mobilityHabit";
-import { isActionHabit, isWeighInActionHabit } from "@/lib/habits";
+import {
+  isActionHabit,
+  isWeighInActionHabit,
+  normalizeHabitName,
+  normalizeHabitSubtitle,
+  normalizeHabitTemplate,
+  stripEmDash,
+} from "@/lib/habits";
 import { habitIconComponent } from "@/lib/habitIcons";
 import { mobilityColors } from "@/lib/workoutUiTokens";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -47,6 +60,7 @@ export function HomeDailyHabitsCard({
   const [editMode, setEditMode] = useState(false);
   const [editDraft, setEditDraft] = useState<HabitTemplate[]>([]);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
+  const [editingHabitId, setEditingHabitId] = useState<string | null>(null);
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
 
   const mobilityHabit = habits.find((h) => isMobilityHabit(h.id));
@@ -62,18 +76,20 @@ export function HomeDailyHabitsCard({
   }, [displayHabits, editDraft, editMode]);
 
   const enterEditMode = useCallback(() => {
-    setEditDraft(dailyHabitTemplates);
+    setEditDraft(dailyHabitTemplates.map(normalizeHabitTemplate));
     setRemovingIds(new Set());
+    setEditingHabitId(null);
     setEditMode(true);
   }, [dailyHabitTemplates]);
 
   const exitEditMode = useCallback(
     (save: boolean) => {
       if (save && onSaveHabitTemplates) {
-        onSaveHabitTemplates(editDraft);
+        onSaveHabitTemplates(editDraft.map(normalizeHabitTemplate));
       }
       setEditMode(false);
       setEditDraft([]);
+      setEditingHabitId(null);
       setRemovingIds(new Set());
       setAddSheetOpen(false);
     },
@@ -91,6 +107,19 @@ export function HomeDailyHabitsCard({
       });
     }, 250);
   }, []);
+
+  const updateHabitDetails = useCallback((id: string, name: string, description: string) => {
+    setEditDraft((draft) =>
+      draft.map((h) => {
+        if (h.id !== id) return h;
+        const subtitle = normalizeHabitSubtitle(description);
+        const { subtitle: _existing, ...rest } = h;
+        return subtitle ? { ...rest, name: normalizeHabitName(name) || "New habit", subtitle } : { ...rest, name: normalizeHabitName(name) || "New habit" };
+      }),
+    );
+  }, []);
+
+  const editingHabit = editingHabitId ? editDraft.find((h) => h.id === editingHabitId) ?? null : null;
 
   if (habits.length === 0 && dailyHabitTemplates.length === 0) return null;
 
@@ -148,21 +177,18 @@ export function HomeDailyHabitsCard({
                     const habit = editHabits.find((h) => h.id === item.id) ?? { ...item, done: false };
                     const removing = removingIds.has(item.id);
                     return (
-                      <View className="flex-row items-center gap-2" style={{ width: "100%" }}>
-                        <View style={{ flex: 1, minWidth: 0, opacity: removing ? 0 : 1 }}>
-                          <HabitRowContent
-                            habit={habit}
-                            stepsTarget={stepsTarget}
-                            progWeek={progWeek}
-                            readOnly={readOnly}
-                            onToggle={onToggle}
-                            editMode
-                            onRemove={removeHabit}
-                            removing={removing}
-                          />
-                        </View>
-                        {!removing ? <ExerciseDragHandle handle={handle} tapSize={36} /> : null}
-                      </View>
+                      <HabitRowContent
+                        habit={habit}
+                        stepsTarget={stepsTarget}
+                        progWeek={progWeek}
+                        readOnly={readOnly}
+                        onToggle={onToggle}
+                        editMode
+                        onRemove={removeHabit}
+                        onEdit={() => setEditingHabitId(item.id)}
+                        removing={removing}
+                        dragHandle={removing ? undefined : handle}
+                      />
                     );
                   }}
                 />
@@ -197,12 +223,22 @@ export function HomeDailyHabitsCard({
       </View>
 
       {editMode ? (
-        <AddHabitSheet
-          open={addSheetOpen}
-          currentTemplates={editDraft}
-          onAdd={(template) => setEditDraft((draft) => [...draft, template])}
-          onClose={() => setAddSheetOpen(false)}
-        />
+        <>
+          <AddHabitSheet
+            open={addSheetOpen}
+            currentTemplates={editDraft}
+            onAdd={(template) => setEditDraft((draft) => [...draft, template])}
+            onClose={() => setAddSheetOpen(false)}
+          />
+          <EditHabitDialog
+            open={Boolean(editingHabit)}
+            habitId={editingHabit?.id ?? null}
+            initialName={editingHabit?.name ?? ""}
+            initialDescription={editingHabit?.subtitle ?? ""}
+            onSave={updateHabitDetails}
+            onClose={() => setEditingHabitId(null)}
+          />
+        </>
       ) : null}
     </>
   );
@@ -231,17 +267,16 @@ function MobilityRoutineCard({
       accessibilityLabel={habit.done ? "Open mobility routine" : "Start mobility routine"}
       className="rounded-xl border p-4"
       style={{
-        borderColor: habit.done ? mobility.borderDone : mobility.border,
-        backgroundColor: mobility.bg,
+        borderColor: colors.border,
+        backgroundColor: colors.card,
         opacity: readOnly ? 0.72 : 1,
       }}
     >
       <View className="flex-row items-start gap-3.5">
         <View
-          className="h-10 w-10 items-center justify-center rounded-xl border"
+          className="h-10 w-10 items-center justify-center rounded-[10px]"
           style={{
-            borderColor: mobility.iconBorder,
-            backgroundColor: habit.done ? mobility.iconBgDone : mobility.iconBg,
+            backgroundColor: habit.done ? "rgba(255,255,255,0.08)" : colors.backgroundSecondary,
           }}
         >
           <IconMobilityRunner size={22} color={mobility.accent} />
@@ -270,10 +305,10 @@ function MobilityRoutineCard({
           </Text>
           {!readOnly ? (
             <View className="mt-3 flex-row items-center gap-1.5">
-              <Text className="text-xs font-semibold" style={{ color: mobility.accent }}>
+              <Text className="text-xs font-semibold" style={{ color: colors.textSecondary }}>
                 {habit.done ? "Open routine" : "Start routine"}
               </Text>
-              <IconChevR size={14} stroke={2.2} color={mobility.accent} />
+              <IconChevR size={14} stroke={2.2} color={colors.textTertiary} />
             </View>
           ) : null}
         </View>
@@ -333,7 +368,9 @@ function HabitRowContent({
   onToggle,
   editMode,
   onRemove,
+  onEdit,
   removing,
+  dragHandle,
 }: {
   habit: Habit;
   stepsTarget: number;
@@ -342,12 +379,15 @@ function HabitRowContent({
   onToggle: (id: string) => void;
   editMode?: boolean;
   onRemove?: (id: string) => void;
+  onEdit?: () => void;
   removing?: boolean;
+  dragHandle?: ExerciseDragHandleProps;
 }) {
   const { colors } = useAppTheme();
   const IconComp = habitIconComponent(habit.icon);
   const actionHabit = isActionHabit(habit);
   const subtitle = habitSubtitle(habit, stepsTarget, progWeek);
+  const editDescription = habit.subtitle?.trim() ? stripEmDash(habit.subtitle.trim()) : "";
 
   return (
     <View
@@ -382,12 +422,41 @@ function HabitRowContent({
       </View>
 
       <View className="min-w-0 flex-1">
-        <Text className="mb-0.5 text-sm font-semibold tracking-tight" style={{ color: colors.textPrimary }}>
-          {habit.name}
-        </Text>
-        <Text className="text-xs leading-[1.35]" style={{ color: colors.textTertiary }}>
-          {subtitle}
-        </Text>
+        <View className="flex-row items-start gap-1.5">
+          <View className="min-w-0 flex-1">
+            <Text className="mb-0.5 text-sm font-semibold tracking-tight" style={{ color: colors.textPrimary }}>
+              {habit.name}
+            </Text>
+            {editMode ? (
+              <Text
+                className="text-xs leading-[1.35]"
+                style={{ color: colors.textTertiary, opacity: editDescription ? 1 : 0.72 }}
+              >
+                {editDescription || "Add description"}
+              </Text>
+            ) : (
+              <Text className="text-xs leading-[1.35]" style={{ color: colors.textTertiary }}>
+                {subtitle}
+              </Text>
+            )}
+          </View>
+          {editMode ? (
+            <Pressable
+              onPress={onEdit}
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${habit.name}`}
+              hitSlop={8}
+              className="h-7 w-7 items-center justify-center rounded-full"
+              style={{ backgroundColor: colors.backgroundSecondary }}
+            >
+              <SymbolView
+                name={{ ios: "square.and.pencil", android: "edit", web: "edit" }}
+                tintColor={colors.textSecondary}
+                size={14}
+              />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       {!editMode ? (
@@ -400,6 +469,8 @@ function HabitRowContent({
         ) : (
           <HabitToggle habit={habit} readOnly={readOnly} onToggle={onToggle} />
         )
+      ) : dragHandle ? (
+        <ExerciseDragHandle handle={dragHandle} tapSize={36} />
       ) : null}
     </View>
   );
@@ -446,7 +517,7 @@ function HabitToggle({
 
 function habitSubtitle(habit: Habit, stepsTarget: number, progWeek: number): string {
   if (habit.done) return "Done";
-  if (habit.subtitle?.trim()) return habit.subtitle.trim();
+  if (habit.subtitle?.trim()) return stripEmDash(habit.subtitle.trim());
   if (habit.icon === "run") return `${stepsTarget.toLocaleString()} steps · Week ${progWeek}`;
   return "Not yet today";
 }

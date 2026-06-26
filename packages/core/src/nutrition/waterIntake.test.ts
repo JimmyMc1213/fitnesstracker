@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   appendWaterLogEntry,
+  clearWaterLogForDateKey,
   DEFAULT_WATER_DAILY_TARGET_OZ,
   FL_OZ_TO_L,
   formatVolumeFromOz,
@@ -157,6 +158,20 @@ describe("removeWaterLogEntry", () => {
     const id = state.waterLogByDay["2026-05-18"][0].id;
     const next = removeWaterLogEntry(state, "2026-05-18", id);
     expect(next.waterLogByDay["2026-05-18"]).toBeUndefined();
+  });
+});
+
+describe("clearWaterLogForDateKey", () => {
+  it("removes all entries for a day", () => {
+    let state = appendWaterLogEntry(minimalAppState(), "2026-05-18", 8);
+    state = appendWaterLogEntry(state, "2026-05-18", 16);
+    const next = clearWaterLogForDateKey(state, "2026-05-18");
+    expect(next.waterLogByDay["2026-05-18"]).toBeUndefined();
+  });
+
+  it("no-ops when the day has no entries", () => {
+    const state = minimalAppState();
+    expect(clearWaterLogForDateKey(state, "2026-05-18")).toBe(state);
   });
 });
 

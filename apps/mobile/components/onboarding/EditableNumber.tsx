@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
@@ -166,11 +166,23 @@ const styles = StyleSheet.create({
   heroInput: {
     minWidth: 120,
     padding: 0,
+    ...Platform.select({
+      android: {
+        includeFontPadding: false,
+        textAlignVertical: "center" as const,
+      },
+    }),
   },
   rowInput: {
     textAlign: "right",
     minWidth: 56,
     padding: 0,
+    ...Platform.select({
+      android: {
+        includeFontPadding: false,
+        textAlignVertical: "center" as const,
+      },
+    }),
   },
   heroUnit: {
     fontSize: 20,

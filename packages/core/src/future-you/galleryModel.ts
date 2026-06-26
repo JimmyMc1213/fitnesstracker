@@ -7,6 +7,11 @@ export const FUTURE_YOU_GALLERY_SAVE_SUCCESS = "Saved to your device.";
 export const FUTURE_YOU_GALLERY_EMPTY_TITLE = "No NewYou previews yet";
 export const FUTURE_YOU_GALLERY_TRY_CTA_LABEL = "Try NewYou";
 export const FUTURE_YOU_GALLERY_COUNT_ONE = "1 preview";
+
+export function formatFutureYouGalleryCount(count: number): string {
+  if (count === 1) return FUTURE_YOU_GALLERY_COUNT_ONE;
+  return `${count} previews`;
+}
 export const FUTURE_YOU_GALLERY_TAP_HINT = "Tap to view";
 export const FUTURE_YOU_DETAIL_BACK_LABEL = "Gallery";
 export const FUTURE_YOU_FULLSCREEN_DONE_LABEL = "Done";

@@ -99,7 +99,7 @@ export function OnboardingHeightInput({
 
   return (
     <View style={onboardingInputStyles.row}>
-      <OnboardingFieldGroup label="Ft" labelColor={colors.textTertiary}>
+      <OnboardingFieldGroup fill label="Ft" labelColor={colors.textTertiary}>
         <OnboardingInputField
           testID="onboarding-height-feet"
           shellStyle={shellStyle}
@@ -116,7 +116,7 @@ export function OnboardingHeightInput({
           accessibilityLabel="Height feet"
         />
       </OnboardingFieldGroup>
-      <OnboardingFieldGroup label="In" labelColor={colors.textTertiary}>
+      <OnboardingFieldGroup fill label="In" labelColor={colors.textTertiary}>
         <OnboardingInputField
           testID="onboarding-height-inches"
           shellStyle={shellStyle}

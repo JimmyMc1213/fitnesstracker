@@ -15,13 +15,17 @@ export function FutureYouLegalFooter({ className, compact = false, accentColor }
   const { colors } = useAppTheme();
   const linkColor = accentColor ?? colors.accent;
 
+  const textSizeClass = compact ? "text-[9px] leading-[1.35]" : "text-xs leading-5";
+
   return (
     <View className={className}>
       <Text
-        className={`text-center px-1${compact ? " text-[9px] leading-[1.35]" : " text-xs leading-5"}`}
+        className={`text-center px-1 ${textSizeClass}`}
         style={{ color: colors.textTertiary }}
       >
-        Illustrative preview, not medical advice. Delete anytime in Settings.{" "}
+        Illustrative preview, not medical advice. Delete anytime in Settings.
+      </Text>
+      <Text className={`text-center px-1 ${textSizeClass}`} style={{ color: colors.textTertiary }}>
         <Text style={{ color: linkColor }} onPress={() => void Linking.openURL(FUTURE_YOU_PRIVACY_POLICY_URL)}>
           Privacy Policy
         </Text>

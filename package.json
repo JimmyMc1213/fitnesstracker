@@ -13,14 +13,17 @@
     "dev:mobile": "turbo run dev --filter=@newyouai/mobile",
     "dev:visual-parity": "node scripts/dev-visual-parity.mjs",
     "dev:mobile:client": "npm run dev --workspace=@newyouai/mobile",
-    "dev:mobile:phone": "node scripts/dev-mobile-phone.mjs",
+    "dev:mobile:phone": "KILL_PORT=1 node scripts/start-mobile-metro.mjs",
+    "dev:mobile:tunnel": "KILL_PORT=1 TUNNEL=1 node scripts/start-mobile-metro.mjs",
+    "fix:logos": "python3 scripts/fixNewYouLogoTransparency.py",
     "dev:onboarding": "node scripts/dev-onboarding-simulator.mjs",
     "dev:onboarding:clear": "DEV_ONBOARDING_CLEAR=1 node scripts/dev-onboarding-simulator.mjs",
     "dev:onboarding:rebuild": "node scripts/dev-onboarding-rebuild.mjs",
     "build": "turbo run build",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e --filter=@newyouai/pwa",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "future-you:clear-stuck": "node scripts/futureYouClearStuckJobs.mjs"
   },
   "devDependencies": {
     "turbo": "^2.5.4"

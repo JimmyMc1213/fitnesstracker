@@ -7,8 +7,10 @@ import {
   waterQuickAddPresets,
 } from "@newyouai/core";
 import type { VolumeUnit, WaterLogEntry } from "@newyouai/types";
-import { useEffect, useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, Text, View } from "react-native";
+
+import { AppTextField } from "@/components/ui/AppTextField";
 
 import { IconDroplet } from "@/components/icons/FitnessIcons";
 import { WorkoutConfirmSheet } from "@/components/workout/WorkoutConfirmSheet";
@@ -26,6 +28,9 @@ type Props = {
   volumeUnit: VolumeUnit;
   onAddOz: (oz: number) => void;
   onRemoveEntry?: (entryId: string) => void;
+  onRemoveAllEntries?: () => void;
+  /** Fires when today's total crosses from below target to at/above target. */
+  onGoalReached?: () => void;
 };
 
 function formatLoggedTime(ms: number): string {
@@ -41,12 +46,17 @@ export function WaterTrackerCard({
   volumeUnit,
   onAddOz,
   onRemoveEntry,
+  onRemoveAllEntries,
+  onGoalReached,
 }: Props) {
   const { colors } = useAppTheme();
+  const prevTotalRef = useRef<number | null>(null);
+  const onGoalReachedRef = useRef(onGoalReached);
   const [customAmount, setCustomAmount] = useState("");
   const [customError, setCustomError] = useState<string | null>(null);
   const [showEarlier, setShowEarlier] = useState(false);
   const [pendingRemoveEntryId, setPendingRemoveEntryId] = useState<string | null>(null);
+  const [pendingRemoveAll, setPendingRemoveAll] = useState(false);
 
   const total = totalWaterOzForDateKey({ [dateKey]: entries }, dateKey);
   const pct = targetOz > 0 ? Math.max(0, Math.min(1, total / targetOz)) : 0;
@@ -63,6 +73,22 @@ export function WaterTrackerCard({
   useEffect(() => {
     if (sortedEntries.length <= 1) setShowEarlier(false);
   }, [sortedEntries.length]);
+
+  useEffect(() => {
+    onGoalReachedRef.current = onGoalReached;
+  }, [onGoalReached]);
+
+  useEffect(() => {
+    if (prevTotalRef.current === null) {
+      prevTotalRef.current = total;
+      return;
+    }
+    const prev = prevTotalRef.current;
+    if (!readOnly && targetOz > 0 && prev < targetOz && total >= targetOz) {
+      onGoalReachedRef.current?.();
+    }
+    prevTotalRef.current = total;
+  }, [total, targetOz, readOnly]);
 
   const parsedCustomAmount = volumeUnit === "L" ? parseFloat(customAmount) : parseInt(customAmount, 10);
   const parsedCustomOz =
@@ -176,18 +202,32 @@ export function WaterTrackerCard({
               )
             : null}
           {earlierCount > 0 ? (
-            <Pressable
-              testID="water-show-earlier"
-              onPress={() => setShowEarlier((open) => !open)}
-              accessibilityRole="button"
-              className="mt-0.5"
-            >
-              <Text className="text-xs font-semibold" style={{ color: WATER_ACCENT }}>
-                {showEarlier
-                  ? "Hide earlier entries"
-                  : `Show ${earlierCount} earlier ${earlierCount === 1 ? "entry" : "entries"}`}
-              </Text>
-            </Pressable>
+            <View className="mt-0.5 flex-row items-center justify-between gap-3">
+              <Pressable
+                testID="water-show-earlier"
+                onPress={() => setShowEarlier((open) => !open)}
+                accessibilityRole="button"
+              >
+                <Text className="text-xs font-semibold" style={{ color: WATER_ACCENT }}>
+                  {showEarlier
+                    ? "Hide earlier entries"
+                    : `Show ${earlierCount} earlier ${earlierCount === 1 ? "entry" : "entries"}`}
+                </Text>
+              </Pressable>
+              {showEarlier && !readOnly && onRemoveAllEntries ? (
+                <Pressable
+                  testID="water-remove-all"
+                  onPress={() => setPendingRemoveAll(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Remove all water entries"
+                  hitSlop={8}
+                >
+                  <Text className="text-[11px] font-medium" style={{ color: colors.textTertiary, opacity: 0.75 }}>
+                    Remove all
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
           ) : null}
         </View>
       ) : null}
@@ -216,24 +256,24 @@ export function WaterTrackerCard({
           </View>
 
           <View className="mt-2.5 flex-row items-stretch gap-2">
-            <TextInput
-              value={customAmount}
-              onChangeText={(raw) => {
-                setCustomAmount(raw);
-                if (customError) setCustomError(null);
-              }}
-              testID="water-custom-amount"
-              accessibilityLabel={volumeUnit === "L" ? "Custom water amount in liters" : "Custom water amount in ounces"}
-              placeholder={volumeUnit === "L" ? "Custom L" : "Custom oz"}
-              placeholderTextColor={colors.textTertiary}
-              keyboardType="decimal-pad"
-              className="min-w-0 flex-1 rounded-[10px] border px-3 py-2.5 text-[13px] tabular-nums"
-              style={{
-                borderColor: colors.border,
-                backgroundColor: colors.backgroundSecondary,
-                color: colors.textPrimary,
-              }}
-            />
+            <View
+              className="min-w-0 flex-1 flex-row items-center rounded-[10px] border px-3"
+              style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
+            >
+              <AppTextField
+                inline
+                value={customAmount}
+                onChangeText={(raw) => {
+                  setCustomAmount(raw);
+                  if (customError) setCustomError(null);
+                }}
+                testID="water-custom-amount"
+                accessibilityLabel={volumeUnit === "L" ? "Custom water amount in liters" : "Custom water amount in ounces"}
+                placeholder={volumeUnit === "L" ? "Custom L" : "Custom oz"}
+                keyboardType="decimal-pad"
+                style={{ flex: 1, fontSize: 13, fontVariant: ["tabular-nums"] }}
+              />
+            </View>
             <Pressable
               testID="water-custom-add"
               onPress={handleCustomAdd}
@@ -257,6 +297,25 @@ export function WaterTrackerCard({
             </Text>
           ) : null}
         </>
+      ) : null}
+
+      {pendingRemoveAll && onRemoveAllEntries ? (
+        <WorkoutConfirmSheet
+          title="Remove all water entries?"
+          message={`Remove all ${sortedEntries.length} entries (${formatWaterVolume(total, volumeUnit)}) from today's log?`}
+          cancelLabel="Keep entries"
+          confirmLabel="Remove all"
+          confirmDestructive
+          sheetTestID="water-remove-all-confirm"
+          cancelTestID="water-remove-all-cancel"
+          confirmTestID="water-remove-all-confirm-action"
+          onCancel={() => setPendingRemoveAll(false)}
+          onConfirm={() => {
+            onRemoveAllEntries();
+            setPendingRemoveAll(false);
+            setShowEarlier(false);
+          }}
+        />
       ) : null}
 
       {pendingRemoveEntryId && onRemoveEntry && pendingEntry ? (

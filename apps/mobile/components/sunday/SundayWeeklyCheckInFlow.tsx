@@ -12,13 +12,13 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   View,
   useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BottomActionBar } from "@/components/BottomActionBar";
+import { AppTextField } from "@/components/ui/AppTextField";
 import { CHART_PAD_LEFT, CHART_PAD_RIGHT, WeightLineChart } from "@/components/progress/WeightLineChart";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
@@ -499,20 +499,14 @@ function StepCommitments({
               <Text className="mb-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: colors.textTertiary }}>
                 Custom commitment
               </Text>
-              <TextInput
+              <AppTextField
                 value={customDraft}
                 onChangeText={setCustomDraft}
                 placeholder="e.g. No phone after 9pm"
-                placeholderTextColor={colors.textTertiary}
                 maxLength={80}
                 autoFocus
                 testID="sunday-check-in-custom-input"
-                className="rounded-lg border px-3 py-2.5 text-[15px]"
-                style={{
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                  backgroundColor: colors.backgroundSecondary,
-                }}
+                size="compact"
                 onSubmitEditing={submitCustom}
               />
               {atSelectionLimit ? (

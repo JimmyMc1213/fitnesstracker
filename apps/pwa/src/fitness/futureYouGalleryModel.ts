@@ -9,6 +9,7 @@ export {
   FUTURE_YOU_DETAIL_BACK_LABEL,
   FUTURE_YOU_FULLSCREEN_DONE_LABEL,
   FUTURE_YOU_DETAIL_TAP_FULLSCREEN_HINT,
+  formatFutureYouGalleryCount,
   formatFutureYouGalleryDate,
   buildFutureYouGalleryItem,
   shouldShowFutureYouGalleryTile,

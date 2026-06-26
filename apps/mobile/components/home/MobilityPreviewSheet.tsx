@@ -10,13 +10,14 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
   open: boolean;
+  doneCount?: number;
   onClose: () => void;
   onStart?: () => void;
 };
 
 const SHEET_MAX_HEIGHT = Math.round(Dimensions.get("window").height * 0.78);
 
-export function MobilityPreviewSheet({ open, onClose, onStart }: Props) {
+export function MobilityPreviewSheet({ open, doneCount = 0, onClose, onStart }: Props) {
   const { colors, theme } = useAppTheme();
   const mobility = mobilityColors(theme);
   const totalMoves = STRETCH_BLOCKS.length;
@@ -49,6 +50,7 @@ export function MobilityPreviewSheet({ open, onClose, onStart }: Props) {
           </Text>
           <Text className="mt-2 text-[11px] font-medium tabular-nums" style={{ color: colors.textTertiary }}>
             {totalMoves} moves
+            {doneCount > 0 ? ` · ${doneCount}/${totalMoves} logged today` : ""}
           </Text>
         </View>
 
@@ -97,9 +99,6 @@ export function MobilityPreviewSheet({ open, onClose, onStart }: Props) {
             </View>
           ))}
 
-          <Text className="mt-2 text-center text-[11px] font-medium" style={{ color: colors.textTertiary }}>
-            Full stretch session player ships in RN-6
-          </Text>
         </ScrollView>
 
         <BottomActionBar
@@ -108,8 +107,8 @@ export function MobilityPreviewSheet({ open, onClose, onStart }: Props) {
           bordered
           borderColor={colors.border}
         >
-          <PrimaryButton block onPress={onStart ?? onClose}>
-            Preview complete
+          <PrimaryButton block onPress={onStart ?? onClose} testID="mobility-start">
+            Start mobility routine
           </PrimaryButton>
           <Pressable onPress={onClose} className="mt-2 items-center py-2">
             <Text className="text-sm font-semibold" style={{ color: colors.textTertiary }}>

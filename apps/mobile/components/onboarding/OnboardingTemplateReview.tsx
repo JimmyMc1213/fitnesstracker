@@ -1,8 +1,10 @@
 import type { WorkoutExercise, WorkoutRoutineTemplate } from "@newyouai/types";
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { EditableNumber } from "@/components/onboarding/EditableNumber";
+import { USER_EDITABLE_MAX_SETS } from "@newyouai/core";
+import { AppTextField } from "@/components/ui/AppTextField";
 import { GradientCard } from "@/components/ui/GradientCard";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -89,17 +91,12 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                     <Text className="mb-1.5 text-sm font-semibold" style={{ color: colors.textPrimary }}>
                       {row.name}
                     </Text>
-                    <TextInput
+                    <AppTextField
+                      size="dense"
                       value={row.target}
                       onChangeText={(target) => patchExercise(routine.id, row.id, { target })}
                       placeholder="Target"
-                      placeholderTextColor={colors.textSecondary}
-                      className="rounded-lg border px-2.5 py-2 text-[13px]"
-                      style={{
-                        borderColor: colors.border,
-                        backgroundColor: colors.card,
-                        color: colors.textPrimary,
-                      }}
+                      backgroundColor={colors.card}
                     />
                     <View className="mt-2 flex-row items-center gap-2">
                       <Text className="text-xs" style={{ color: colors.textSecondary }}>
@@ -110,7 +107,7 @@ export function OnboardingTemplateReview({ templates, onChange }: Props) {
                         label="Sets"
                         variant="row"
                         onChange={(n) => patchExercise(routine.id, row.id, { setCount: n })}
-                        sanitize={(n) => Math.max(1, Math.min(4, n))}
+                        sanitize={(n) => Math.max(1, Math.min(USER_EDITABLE_MAX_SETS, n))}
                       />
                       <PressableScale
                         onPress={() => setSwapTarget({ routineId: routine.id, exerciseId: row.id })}

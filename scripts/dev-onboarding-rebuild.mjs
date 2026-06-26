@@ -58,7 +58,6 @@ const child = spawn(
     env: {
       ...process.env,
       EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING: "false",
-      EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU: "true",
       EXPO_PUBLIC_ONBOARDING_DEV_TOOLS: "1",
       EXPO_PUBLIC_BUNDLE_MARKER: marker,
     },

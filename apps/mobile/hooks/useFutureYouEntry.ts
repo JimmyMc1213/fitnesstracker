@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 
+import { useFutureYouGalleryImages } from "@/hooks/useFutureYouGalleryImages";
+import { useFutureYouRevealImage } from "@/hooks/useFutureYouRevealImage";
 import { getHomeFutureYouEntryMode } from "@/lib/homeFutureYouModel";
 import { ageFromDateOfBirth } from "@/lib/onboardingProfile";
 import type { AppState } from "@newyouai/types";
@@ -31,6 +33,20 @@ export function useFutureYouEntry(state: AppState | null, enabled = true) {
           state.onboardingComplete,
         )
       : null;
+
+  const generationStatus = state?.futureYou?.generationStatus ?? "idle";
+  const shouldPrefetchImage = enabled && mode === "reveal" && Boolean(state?.futureYou?.generationJobId?.trim());
+
+  useFutureYouRevealImage({
+    jobId: shouldPrefetchImage ? state?.futureYou?.generationJobId : undefined,
+    status: shouldPrefetchImage ? generationStatus : "idle",
+    subscriptionTier: state?.subscriptionTier,
+    previewMode: false,
+  });
+
+  // Warm the signed URLs + image cache for every kept preview on app open so opening the
+  // NewYou gallery / a detail view is instant.
+  useFutureYouGalleryImages(enabled ? state?.futureYou?.previews : undefined, state?.subscriptionTier);
 
   return {
     mode,

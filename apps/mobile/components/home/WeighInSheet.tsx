@@ -1,8 +1,10 @@
 import { buildCoachContext, getWeighInReaction, localDateKey } from "@newyouai/core";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Image, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, Text, View } from "react-native";
 
 import { BottomSheet } from "@/components/motion";
+import { PrimaryButton } from "@/components/home/PrimaryButton";
+import { AlignedTextInput } from "@/components/ui/AlignedTextInput";
 
 import { buildHabitsForDateKey, markWeighInHabitDone } from "@/lib/habits";
 import { compressImageToJpegDataUrl } from "@/lib/imageCompress";
@@ -175,23 +177,25 @@ export function WeighInSheet({
             Morning scale, post-bathroom, before food. Optional progress photo, same stance and lighting when you can.
           </Text>
 
-          <Text className="text-[10px] font-medium tracking-wider" style={{ color: colors.textTertiary }}>
-            Weight ({weightUnitLabel(wUnit)})
-          </Text>
-          <TextInput
+          <View style={{ gap: 10 }}>
+            <Text className="text-[10px] font-medium tracking-wider" style={{ color: colors.textTertiary }}>
+              Weight ({weightUnitLabel(wUnit)})
+            </Text>
+          <AlignedTextInput
+            size="sheet"
             testID="weigh-in-weight-input"
-            value={weightDraft}
-            onChangeText={setWeightDraft}
-            keyboardType="decimal-pad"
-            placeholder={wUnit === "kg" ? "78.2" : "172.4"}
-            placeholderTextColor={colors.textTertiary}
-            className="mt-1.5 rounded-xl border px-3 py-3 text-lg font-semibold"
-            style={{
-              borderColor: colors.border,
-              color: colors.textPrimary,
-              backgroundColor: colors.background,
-            }}
-          />
+              value={weightDraft}
+              onChangeText={setWeightDraft}
+              keyboardType="decimal-pad"
+              placeholder={wUnit === "kg" ? "78.2" : "172.4"}
+              placeholderTextColor={colors.textTertiary}
+              shellStyle={{
+                borderColor: colors.border,
+                backgroundColor: colors.background,
+              }}
+              inputStyle={{ color: colors.textPrimary }}
+            />
+          </View>
 
           <View className="mt-3 flex-row flex-wrap items-center gap-2">
             <Pressable
@@ -229,16 +233,14 @@ export function WeighInSheet({
             </View>
           ) : null}
 
-          <Pressable
+          <PrimaryButton
             onPress={save}
             testID="weigh-in-save"
-            className="mt-4 items-center rounded-xl py-3.5"
-            style={{ backgroundColor: colors.accent }}
+            block
+            style={{ marginTop: 16 }}
           >
-            <Text className="text-sm font-semibold" style={{ color: colors.accentText }}>
-              {existing ? "Update weigh-in" : "Save weigh-in"}
-            </Text>
-          </Pressable>
+            {existing ? "Update weigh-in" : "Save weigh-in"}
+          </PrimaryButton>
 
           <Pressable onPress={onClose} className="mt-2.5 items-center py-2.5">
             <Text className="text-[13px] font-semibold" style={{ color: colors.textTertiary }}>

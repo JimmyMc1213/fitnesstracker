@@ -17,6 +17,29 @@
 
 Edge function secrets (`OPENAI_API_KEY`, etc.) stay in Supabase dashboard.
 
+## Future You image model (edge function `future-you-generate`)
+
+The image model is selected server-side, not in any client `.env`. React Native only uploads the selfie and polls — swapping models means changing the secret below and redeploying the function.
+
+| Secret | Required | Notes |
+|--------|:--------:|-------|
+| `OPENAI_API_KEY` | yes (default) | Used when provider is `openai`. Model is `gpt-image-2`. May require OpenAI Organization Verification. |
+| `FUTURE_YOU_IMAGE_PROVIDER` | opt | `openai` (default) or `grok`. |
+| `XAI_API_KEY` | only for `grok` | xAI key from <https://console.x.ai>. Model is `grok-imagine-image-quality`. |
+| `FUTURE_YOU_ENTITLEMENT_STUB` | opt (testing) | `true` makes the status endpoint return the full `resultSignedUrl` so the unblurred reveal can be tested without real IAP. |
+
+### Switch to Grok
+
+1. Create an xAI account at <https://console.x.ai>, generate an API key, and add billing credits.
+2. Set the secrets and redeploy:
+
+```bash
+supabase secrets set FUTURE_YOU_IMAGE_PROVIDER=grok XAI_API_KEY=xai-... --project-ref ztedlrvvkcjxoomwavyd
+supabase functions deploy future-you-generate --project-ref ztedlrvvkcjxoomwavyd
+```
+
+3. To switch back to OpenAI: `supabase secrets unset FUTURE_YOU_IMAGE_PROVIDER` (or set it to `openai`) and redeploy.
+
 ## Mobile (`@newyouai/mobile`)
 
 Expo inlines `EXPO_PUBLIC_*` at build time. Values are **not** read from the monorepo root `.env` automatically — use `apps/mobile/.env` for local dev (see [`apps/mobile/.env.example`](../apps/mobile/.env.example)).

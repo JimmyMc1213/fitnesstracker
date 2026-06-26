@@ -1,13 +1,20 @@
-import type { FutureYouDraft } from "@newyouai/types";
+import type { FutureYouDraft, FutureYouPreview } from "@newyouai/types";
 import {
   EMPTY_FUTURE_YOU_DRAFT,
+  futureYouDraftAfterPreviewDelete,
   isFutureYouMediaCleared,
   mergeFutureYouDraft,
   normalizeFutureYouDraft,
 } from "@newyouai/core";
 
-export type { FutureYouDraft };
-export { EMPTY_FUTURE_YOU_DRAFT, isFutureYouMediaCleared, mergeFutureYouDraft, normalizeFutureYouDraft };
+export type { FutureYouDraft, FutureYouPreview };
+export {
+  EMPTY_FUTURE_YOU_DRAFT,
+  futureYouDraftAfterPreviewDelete,
+  isFutureYouMediaCleared,
+  mergeFutureYouDraft,
+  normalizeFutureYouDraft,
+};
 
 /** Photo + motivation fields preserved when replacing an existing preview. */
 export function futureYouUploadSnapshot(draft: FutureYouDraft): FutureYouDraft {

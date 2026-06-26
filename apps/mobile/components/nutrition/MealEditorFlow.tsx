@@ -14,10 +14,11 @@ import type {
   NutritionUserFood,
 } from "@newyouai/types";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useBottomActionPadding } from "@/lib/screenInsets";
+import { AppTextField } from "@/components/ui/AppTextField";
 import { FoodSearchSkeletonList } from "@/components/nutrition/FoodSearchSkeletonList";
 import { NutritionDeleteConfirmSheet } from "@/components/nutrition/NutritionDeleteConfirmSheet";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
@@ -212,17 +213,15 @@ export function MealEditorFlow({
   function renderSearchPanel() {
     return (
       <>
-        <TextInput
+        <AppTextField
           value={search}
           onChangeText={setSearch}
           testID="meal-editor-search-input"
           accessibilityLabel="Search foods for meal"
           placeholder="Search foods to add"
-          placeholderTextColor={colors.textTertiary}
           autoCorrect={false}
           autoCapitalize="none"
-          className="rounded-xl border px-3 py-3 text-[15px]"
-          style={{ borderColor: colors.border, backgroundColor: colors.card, color: colors.textPrimary }}
+          backgroundColor={colors.card}
         />
         {searchActive ? (
           searchLoading ? (
@@ -386,24 +385,22 @@ export function MealEditorFlow({
         style={{ borderColor: colors.border, backgroundColor: colors.card }}
       >
         <FieldLabel label="Ingredient name" />
-        <TextInput
+        <AppTextField
           value={manualName}
           onChangeText={setManualName}
           accessibilityLabel="Ingredient name"
           placeholder="e.g. Greek yogurt"
-          placeholderTextColor={colors.textTertiary}
-          className="rounded-xl border px-3 py-3 text-[15px]"
-          style={{ borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }}
+          backgroundColor={colors.background}
         />
         <FieldLabel label="Calories (cal)" />
-        <TextInput
+        <AppTextField
           value={manualCal}
           onChangeText={(raw) => setManualCal(clampMacroInputString(raw, "cal"))}
           onBlur={() => setManualCal(String(parseBoundedMacro(manualCal, "cal")))}
           accessibilityLabel="Ingredient calories"
           keyboardType="decimal-pad"
-          className="rounded-xl border px-3 py-3 text-[15px] tabular-nums"
-          style={{ borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }}
+          backgroundColor={colors.background}
+          style={{ fontVariant: ["tabular-nums"] }}
         />
         <View className="mt-2 flex-row gap-2">
           {(
@@ -415,27 +412,25 @@ export function MealEditorFlow({
           ).map((field) => (
             <View key={field.macro} className="min-w-0 flex-1">
               <FieldLabel label={field.label} />
-              <TextInput
+              <AppTextField
                 value={field.value}
                 onChangeText={(raw) => field.set(clampMacroInputString(raw, field.macro))}
                 onBlur={() => field.set(String(parseBoundedMacro(field.value, field.macro)))}
                 accessibilityLabel={field.label}
                 keyboardType="decimal-pad"
-                className="rounded-xl border px-3 py-3 text-[15px] tabular-nums"
-                style={{ borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }}
+                backgroundColor={colors.background}
+                style={{ fontVariant: ["tabular-nums"] }}
               />
             </View>
           ))}
         </View>
         <FieldLabel label="Serving (optional)" />
-        <TextInput
+        <AppTextField
           value={manualServing}
           onChangeText={setManualServing}
           accessibilityLabel="Ingredient serving"
           placeholder="e.g. 1 cup"
-          placeholderTextColor={colors.textTertiary}
-          className="rounded-xl border px-3 py-3 text-[15px]"
-          style={{ borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }}
+          backgroundColor={colors.background}
         />
       </View>
     );
@@ -449,15 +444,13 @@ export function MealEditorFlow({
           style={{ borderColor: colors.border, backgroundColor: colors.card }}
         >
           <FieldLabel label="Meal name" />
-          <TextInput
+          <AppTextField
             value={draftName}
             onChangeText={onDraftNameChange}
             testID="meal-editor-name-input"
             accessibilityLabel="Meal name"
             placeholder="e.g. Meal prep lunch"
-            placeholderTextColor={colors.textTertiary}
-            className="rounded-xl border px-3 py-3 text-[15px]"
-            style={{ borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }}
+            backgroundColor={colors.background}
           />
           <Text className="mt-3 text-xs font-medium tabular-nums" style={{ color: colors.textSecondary }}>
             {Math.round(mealDraftMacros.cal)} cal · {Math.round(mealDraftMacros.p)}g protein ·{" "}

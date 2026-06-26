@@ -2,7 +2,7 @@ export type { AppTheme } from "./app-theme";
 export type { AppState } from "./app-state";
 export type { PersistedFitnessSlice } from "./persisted-slice";
 export { FUTURE_YOU_JOB_STATUSES } from "./future-you";
-export type { FutureYouDraft, FutureYouJobStatus } from "./future-you";
+export type { FutureYouDraft, FutureYouJobStatus, FutureYouPreview } from "./future-you";
 export type { Habit, HabitAction, HabitTemplate, HabitType } from "./habits";
 export type { MacroTotals } from "./macros";
 export type { NavigateFn, NavigateOptions, TabId } from "./navigation";

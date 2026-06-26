@@ -4,35 +4,65 @@ import {
   type ReactNode,
   type RefObject,
   useCallback,
+  useMemo,
   useRef,
   useState,
 } from "react";
-import { Pressable, Text, View, type ViewStyle } from "react-native";
+import {
+  LayoutAnimation,
+  Platform,
+  Pressable,
+  Text,
+  UIManager,
+  View,
+  type ViewStyle,
+} from "react-native";
 import Animated, {
   Easing,
   Extrapolation,
   interpolate,
-  runOnJS,
   type SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 import DraggableFlatList, {
+  NestableDraggableFlatList,
   ScaleDecorator,
   ShadowDecorator,
   type RenderItemParams,
 } from "react-native-draggable-flatlist";
 
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { WORKOUT_ACCENT } from "@/lib/workoutUiTokens";
 
 const COMPACT_ROW_HEIGHT = 56;
 const COMPACT_ROW_GAP = 4;
 const DEFAULT_GAP = 12;
-const FULL_LAYER_MAX_HEIGHT = 1600;
-const EXPAND_MS = 250;
-const COLLAPSE_MS = 250;
+// Collapse on press-in must finish well before the long-press fires the drag, so
+// the library only ever measures the settled uniform 56px rows.
+const ENTER_MS = 130;
+const EXPAND_MS = 220;
 const TRANSITION_EASING = Easing.bezier(0.25, 0.46, 0.45, 0.94);
+const LONG_PRESS_MS = 150;
+
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+/**
+ * Animates the row-height change (full <-> 56px compact) when reorder mode
+ * toggles. The committed heights stay real, so `react-native-draggable-flatlist`
+ * always measures the true cell sizes -- LayoutAnimation only smooths the visual.
+ */
+function heightAnim(duration: number) {
+  return {
+    duration,
+    create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+    update: { type: LayoutAnimation.Types.easeInEaseOut },
+    delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+  } as const;
+}
 
 export type SortableListContext = {
   isListDragging: boolean;
@@ -155,48 +185,65 @@ function DragPlaceholder() {
   );
 }
 
-/** PWA-style stacked full + compact layers with animated max-height crossfade. */
+const ABSOLUTE_LAYER: ViewStyle = {
+  position: "absolute",
+  left: 0,
+  right: 0,
+  top: 0,
+};
+
+/**
+ * Stacked full + compact layers.
+ *
+ * The outer row commits a real JS-side height (auto when expanded, a fixed 56px
+ * while reordering) so `react-native-draggable-flatlist` always measures the
+ * true, uniform cell heights -- the library's happy path. The height change is
+ * smoothed by `LayoutAnimation` (configured by the parent on the reorder toggle),
+ * and the two content layers crossfade by opacity, which never touches layout.
+ */
 function ExerciseReorderSlot({
   collapseProgress,
+  reorderActive,
   marginBottom,
   full,
   label,
   subtitle,
   handle,
-  compactVisible,
 }: {
   collapseProgress: SharedValue<number>;
+  reorderActive: boolean;
   marginBottom: number;
   full: ReactNode;
   label: string;
   subtitle?: string;
   handle: ExerciseDragHandleProps;
-  compactVisible: boolean;
 }) {
   const fullLayerStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(collapseProgress.value, [0, 0.35], [1, 0], Extrapolation.CLAMP),
-    maxHeight: interpolate(collapseProgress.value, [0, 1], [FULL_LAYER_MAX_HEIGHT, 0]),
-    overflow: "hidden" as const,
+    opacity: interpolate(collapseProgress.value, [0, 0.4], [1, 0], Extrapolation.CLAMP),
   }));
 
   const compactLayerStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(collapseProgress.value, [0, 0.35], [0, 1], Extrapolation.CLAMP),
-    maxHeight: interpolate(collapseProgress.value, [0, 1], [0, COMPACT_ROW_HEIGHT]),
-    overflow: "hidden" as const,
+    opacity: interpolate(collapseProgress.value, [0.3, 1], [0, 1], Extrapolation.CLAMP),
   }));
 
   return (
-    <View style={{ marginBottom, overflow: "hidden" }}>
-      <Animated.View style={fullLayerStyle} pointerEvents={compactVisible ? "none" : "auto"}>
+    <View
+      style={[
+        { marginBottom, overflow: "hidden" },
+        reorderActive ? { height: COMPACT_ROW_HEIGHT } : null,
+      ]}
+    >
+      <Animated.View
+        style={[reorderActive ? ABSOLUTE_LAYER : null, fullLayerStyle]}
+        pointerEvents={reorderActive ? "none" : "auto"}
+      >
         {full}
       </Animated.View>
-      <Animated.View style={compactLayerStyle} pointerEvents={compactVisible ? "auto" : "none"}>
-        <CompactDragCard
-          label={label}
-          subtitle={subtitle}
-          handle={handle}
-          dimmed={compactVisible}
-        />
+      <Animated.View
+        style={[ABSOLUTE_LAYER, compactLayerStyle]}
+        pointerEvents={reorderActive ? "auto" : "none"}
+      >
+        <CompactDragCard label={label} subtitle={subtitle} handle={handle} dimmed={reorderActive} />
       </Animated.View>
     </View>
   );
@@ -218,7 +265,7 @@ export function ExerciseDragHandle({
       accessibilityLabel="Reorder exercise"
       disabled={handle.disabled}
       onLongPress={handle.onLongPress}
-      delayLongPress={150}
+      delayLongPress={LONG_PRESS_MS}
       hitSlop={8}
       style={{
         flexShrink: 0,
@@ -231,7 +278,7 @@ export function ExerciseDragHandle({
     >
       <SymbolView
         name="line.3.horizontal"
-        tintColor={handle.isDragging ? colors.accent : colors.textTertiary}
+        tintColor={handle.isDragging ? WORKOUT_ACCENT : colors.textTertiary}
         size={18}
       />
     </Pressable>
@@ -255,34 +302,43 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   const [reorderActive, setReorderActive] = useState(false);
   const collapseProgress = useSharedValue(0);
   const isDraggingCellRef = useRef(false);
+  const reorderActiveRef = useRef(false);
+
+  reorderActiveRef.current = reorderActive;
 
   const normalGap = typeof contentContainerStyle?.gap === "number" ? contentContainerStyle.gap : DEFAULT_GAP;
   const listGap = reorderActive ? COMPACT_ROW_GAP : normalGap;
 
-  const finishExpand = useCallback(() => {
-    setReorderActive(false);
-    isDraggingCellRef.current = false;
-  }, []);
+  // Phase 1: a long-press anywhere on a grip collapses the whole list into a
+  // stable, uniform 56px compact mode. No drag happens here, so the upward
+  // reflow of the collapse can't yank the held row out from under the finger.
+  const enterReorder = useCallback(() => {
+    if (!canReorder || reorderActiveRef.current) return;
+    LayoutAnimation.configureNext(heightAnim(ENTER_MS));
+    setReorderActive(true);
+    collapseProgress.value = withTiming(1, { duration: ENTER_MS, easing: TRANSITION_EASING });
+  }, [canReorder, collapseProgress]);
 
-  const startReorderDrag = useCallback(
+  const exitReorder = useCallback(() => {
+    isDraggingCellRef.current = false;
+    if (!reorderActiveRef.current) return;
+    LayoutAnimation.configureNext(heightAnim(EXPAND_MS));
+    setReorderActive(false);
+    collapseProgress.value = withTiming(0, { duration: EXPAND_MS, easing: TRANSITION_EASING });
+  }, [collapseProgress]);
+
+  // Phase 2: once compact (rows are uniform and stationary), a long-press on any
+  // row starts the library drag with no mid-gesture reflow -> every row drags
+  // identically, including the ones further down the list.
+  const onGripLongPress = useCallback(
     (dragFn: () => void) => {
-      if (!canReorder) return;
-      if (reorderActive) {
+      if (reorderActiveRef.current) {
         dragFn();
-        return;
+      } else {
+        enterReorder();
       }
-      setReorderActive(true);
-      collapseProgress.value = withTiming(
-        1,
-        { duration: COLLAPSE_MS, easing: TRANSITION_EASING },
-        (finished) => {
-          if (finished) {
-            runOnJS(dragFn)();
-          }
-        },
-      );
     },
-    [canReorder, collapseProgress, reorderActive],
+    [enterReorder],
   );
 
   const ctx: SortableListContext = {
@@ -290,12 +346,17 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
     isCompactReorder: reorderActive,
   };
 
+  const listExtraData = useMemo(() => [extraData, reorderActive], [extraData, reorderActive]);
+
+  const ListComponent = nestedInScrollView ? NestableDraggableFlatList : DraggableFlatList;
+
   return (
-    <DraggableFlatList
+    <View style={nestedInScrollView ? undefined : { flex: 1 }}>
+    <ListComponent
       ref={listRef}
       testID="workout-exercise-list"
       data={items}
-      extraData={[extraData, reorderActive]}
+      extraData={listExtraData}
       keyExtractor={(item) => item.id}
       activationDistance={canReorder ? 8 : 9999}
       dragItemOverflow
@@ -304,17 +365,10 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
         isDraggingCellRef.current = true;
       }}
       onDragEnd={({ data }) => {
-        onReorder(data as T[]);
         isDraggingCellRef.current = false;
-        collapseProgress.value = withTiming(
-          0,
-          { duration: EXPAND_MS, easing: TRANSITION_EASING },
-          (finished) => {
-            if (finished) {
-              runOnJS(finishExpand)();
-            }
-          },
-        );
+        onReorder(data as T[]);
+        // Stay in compact reorder mode so several rows can be arranged in a row;
+        // the "Done" button expands back to full cards.
       }}
       scrollEnabled={!nestedInScrollView}
       nestedScrollEnabled={nestedInScrollView}
@@ -342,11 +396,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
 
         const handle: ExerciseDragHandleProps = {
           isDragging: isActive,
-          onLongPress: canReorder
-            ? reorderActive
-              ? drag
-              : () => startReorderDrag(drag)
-            : undefined,
+          onLongPress: canReorder ? () => onGripLongPress(drag) : undefined,
           disabled: !canReorder,
         };
 
@@ -375,15 +425,50 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
         return (
           <ExerciseReorderSlot
             collapseProgress={collapseProgress}
+            reorderActive={reorderActive}
             marginBottom={marginBottom}
             full={full}
             label={label}
             subtitle={subtitle}
             handle={handle}
-            compactVisible={reorderActive}
           />
         );
       }}
     />
+      {reorderActive ? <ReorderDoneButton onPress={exitReorder} /> : null}
+    </View>
+  );
+}
+
+function ReorderDoneButton({ onPress }: { onPress: () => void }) {
+  return (
+    <View
+      pointerEvents="box-none"
+      style={{ position: "absolute", left: 0, right: 0, bottom: 16, alignItems: "center" }}
+    >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Done reordering"
+        onPress={onPress}
+        hitSlop={8}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+          paddingHorizontal: 18,
+          height: 44,
+          borderRadius: 22,
+          backgroundColor: WORKOUT_ACCENT,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.3,
+          shadowRadius: 12,
+          elevation: 8,
+        }}
+      >
+        <SymbolView name="checkmark" tintColor="#fff" size={15} />
+        <Text style={{ color: "#fff", fontSize: 15, fontWeight: "700" }}>Done</Text>
+      </Pressable>
+    </View>
   );
 }

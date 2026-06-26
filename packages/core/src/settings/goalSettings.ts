@@ -56,7 +56,7 @@ export function normalizeGoalProfilePatch(
     }
     return {
       ...next,
-      goalWeightLbs: defaultGoalWeightLbs(patch.goal, currentWeightLbs),
+      goalWeightLbs: patch.goalWeightLbs ?? defaultGoalWeightLbs(patch.goal, currentWeightLbs),
       pace: next.pace ?? profile.pace ?? "balanced",
     };
   }

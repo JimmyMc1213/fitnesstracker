@@ -1,5 +1,6 @@
 import {
   canRevisitFutureYouPhoto,
+  DEFAULT_UNIT_PREFERENCES,
   ONBOARDING_STEP_ACTIVITY,
   ONBOARDING_STEP_FUTURE_YOU_MOTIVATION,
   ONBOARDING_STEP_FUTURE_YOU_PHOTO,
@@ -383,7 +384,6 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title="Choose your units"
         subtitle="Weight, height, and volume display across the app."
-        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!isUnitPreferencesComplete(unitPreferences)}
@@ -395,22 +395,19 @@ export default function OnboardingWizardScreen() {
   }
 
   if (forStep === 6) {
-    const hUnit = unitPreferences.heightUnit;
+    const hUnit = unitPreferences.heightUnit ?? DEFAULT_UNIT_PREFERENCES.heightUnit;
     const heightStepValid = isValidOnboardingHeightIn(profile.heightIn);
-
-    if (!hUnit) return null;
 
     return (
       <OnboardingShell
         step={forStep}
         title="How tall are you?"
-        scrollEnabled={false}
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={!heightStepValid}
         testID="onboarding-step-6"
       >
-        <GradientCard padding={16}>
+        <GradientCard spacious>
           <OnboardingHeightInput
             unit={hUnit}
             heightIn={profile.heightIn}
@@ -428,13 +425,11 @@ export default function OnboardingWizardScreen() {
   }
 
   if (forStep === 7) {
-    const wUnit = unitPreferences.weightUnit;
+    const wUnit = unitPreferences.weightUnit ?? DEFAULT_UNIT_PREFERENCES.weightUnit;
     const weightStepValid = isValidWeighInLbs(profile.weightLbs);
     const currentWeightLbs = isValidWeighInLbs(profile.weightLbs)
       ? profile.weightLbs
       : DEFAULT_ONBOARDING_CURRENT_WEIGHT_LBS;
-
-    if (!wUnit) return null;
 
     return (
       <OnboardingShell
@@ -480,7 +475,7 @@ export default function OnboardingWizardScreen() {
   }
 
   if (forStep === 9 && profile.goal && profile.goal !== "maintain") {
-    const wUnit = unitPreferences.weightUnit;
+    const wUnit = unitPreferences.weightUnit ?? DEFAULT_UNIT_PREFERENCES.weightUnit;
     const goal = profile.goal;
     const { minLbs, maxLbs } = goalWeightRangeLbs(goal, profile.weightLbs);
     const valueLbs = clampGoalWeightLbs(
@@ -491,8 +486,6 @@ export default function OnboardingWizardScreen() {
     const reinforcement = goalWeightReinforcementParts(profile, wUnit ?? "lbs");
     const showGoalWeightReinforcement = layerFlags.goalWeightReinforcement;
     const goalWeightValid = isGoalWeightValid(profile, profile.weightLbs);
-
-    if (!wUnit) return null;
 
     return (
       <OnboardingShell

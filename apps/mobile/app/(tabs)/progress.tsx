@@ -10,9 +10,7 @@ import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { WeighInSheet } from "@/components/home/WeighInSheet";
 import { AverageCalTrackerCard } from "@/components/progress/AverageCalTrackerCard";
 import { FuelUpdatesSection } from "@/components/progress/FuelUpdatesSection";
-import { NutritionTargetsGrid } from "@/components/progress/NutritionTargetsGrid";
 import { PersonalRecordsSection } from "@/components/progress/PersonalRecordsSection";
-import { ProgressGoalRangeCard } from "@/components/progress/ProgressGoalRangeCard";
 import { ProgressPicsSection } from "@/components/progress/ProgressPicsSection";
 import { ProgressSectionLabel } from "@/components/progress/ProgressSectionLabel";
 import { ScreenSundayCheckInHistory } from "@/components/progress/ScreenSundayCheckInHistory";
@@ -46,8 +44,7 @@ export default function ProgressScreen() {
   const wUnit = state?.unitPreferences.weightUnit ?? "lbs";
   const todayEntry = state?.weightLog.find((e) => e.dateKey === todayKey);
   const goal = state?.onboardingProfile?.goal ?? "maintain";
-  const progressGoal = state?.progressGoal;
-  const cutBarStart = progressGoal?.progressStartWeightLbs;
+  const cutBarStart = state?.progressGoal?.progressStartWeightLbs;
 
   const sorted = useMemo(
     () => [...(state?.weightLog ?? [])].sort((a, b) => a.dateKey.localeCompare(b.dateKey)),
@@ -72,15 +69,6 @@ export default function ProgressScreen() {
     const last = sorted[sorted.length - 1]!.dateKey;
     return [first, mid, last].map(shortChartDate);
   }, [sorted]);
-
-  const goalLo = progressGoal?.goalWeightLowLbs;
-  const goalHi = progressGoal?.goalWeightHighLbs;
-  const goalMid = goalLo != null && goalHi != null ? (goalLo + goalHi) / 2 : null;
-  const denom = goalMid != null && cutBarStart != null ? cutBarStart - goalMid : 0;
-  const goalPct =
-    denom !== 0 && cutBarStart != null
-      ? Math.max(0, Math.min(1, (cutBarStart - todayWeightLbs) / denom))
-      : 0;
 
   if (!state) {
     return (
@@ -115,7 +103,7 @@ export default function ProgressScreen() {
               onPress={() => setWeighInOpen(true)}
               className="flex-row items-center gap-1"
             >
-              <Text className="text-[13px] font-semibold" style={{ color: colors.accent }}>
+              <Text className="text-[13px] font-semibold" style={{ color: colors.textPrimary }}>
                 {todayEntry ? "Update weight" : "Log weight"}
               </Text>
             </Pressable>
@@ -148,11 +136,7 @@ export default function ProgressScreen() {
                     · started at {formatWeightFromLbs(startWeightLbs, wUnit)}
                   </Text>
                 </Text>
-              ) : (
-                <Text className="text-xs font-medium" style={{ color: colors.textTertiary }}>
-                  Log weigh-in
-                </Text>
-              )}
+              ) : null}
             </View>
           </View>
 
@@ -221,17 +205,7 @@ export default function ProgressScreen() {
         <ProgressSectionLabel>Personal records</ProgressSectionLabel>
         <PersonalRecordsSection state={state} />
 
-        <ProgressSectionLabel>Goal range</ProgressSectionLabel>
-        <ProgressGoalRangeCard
-          progressGoal={progressGoal}
-          todayWeightLbs={todayWeightLbs}
-          goalPct={goalPct}
-          weightUnit={wUnit}
-        />
-
         <FuelUpdatesSection adjustmentHistory={state.adjustmentHistory} weightUnit={wUnit} />
-
-        <NutritionTargetsGrid targets={state.nutritionTargets} />
       </ScrollView>
       </TabScreenFade>
 

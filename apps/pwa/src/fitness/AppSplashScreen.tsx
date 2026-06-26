@@ -76,7 +76,7 @@ export function AppSplashScreen({ dismiss = false, onExitComplete }: AppSplashSc
       ref={divRef}
       className={`app-splash-screen${instant ? " app-splash-screen--instant" : ""}${exiting ? " app-splash-screen--out" : ""}`}
       role="status"
-      aria-label="Loading Gymmy"
+      aria-label="Loading NewYou"
       aria-hidden={exiting}
       onTransitionEnd={handleTransitionEnd}
     >

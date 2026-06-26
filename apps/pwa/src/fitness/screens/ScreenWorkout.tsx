@@ -851,41 +851,6 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
     );
   }
 
-  if (showRoutineEditor) {
-    return (
-      <>
-        <WorkoutRoutineEditor
-          key={editingRoutineId}
-          template={editTemplate}
-          customExercises={state.customExercises}
-          equipmentSetup={state.equipmentSetup}
-          onSaveCustomExercise={saveCustomExercise}
-          onSave={(saved) => {
-            setState((s) => {
-              const i = s.workoutTemplates.findIndex((t) => t.id === saved.id);
-              const next = [...s.workoutTemplates];
-              if (i >= 0) next[i] = saved;
-              else next.push(saved);
-              return { ...s, workoutTemplates: next };
-            });
-            setEditingRoutineId(null);
-          }}
-          onDelete={
-            editingRoutineId !== NEW_ROUTINE_EDITOR_ID
-              ? (id) => {
-                  setState((s) => ({
-                    ...s,
-                    workoutTemplates: s.workoutTemplates.filter((t) => t.id !== id),
-                  }));
-                }
-              : null
-          }
-          onClose={() => setEditingRoutineId(null)}
-        />
-      </>
-    );
-  }
-
   if (phase === "idle") {
     return (
       <>
@@ -904,6 +869,36 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
           onCreateWeeklyRoutine={() => setShowCreateWeeklyRoutineSheet(true)}
           onBrowseTemplates={() => setShowStarterTemplatesSheet(true)}
         />
+        {showRoutineEditor ? (
+          <WorkoutRoutineEditor
+            key={editingRoutineId}
+            template={editTemplate}
+            customExercises={state.customExercises}
+            equipmentSetup={state.equipmentSetup}
+            onSaveCustomExercise={saveCustomExercise}
+            onSave={(saved) => {
+              setState((s) => {
+                const i = s.workoutTemplates.findIndex((t) => t.id === saved.id);
+                const next = [...s.workoutTemplates];
+                if (i >= 0) next[i] = saved;
+                else next.push(saved);
+                return { ...s, workoutTemplates: next };
+              });
+              setEditingRoutineId(null);
+            }}
+            onDelete={
+              editingRoutineId !== NEW_ROUTINE_EDITOR_ID
+                ? (id) => {
+                    setState((s) => ({
+                      ...s,
+                      workoutTemplates: s.workoutTemplates.filter((t) => t.id !== id),
+                    }));
+                  }
+                : null
+            }
+            onClose={() => setEditingRoutineId(null)}
+          />
+        ) : null}
         {showStarterTemplatesSheet ? (
           <WorkoutStarterTemplatesSheet
             open

@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
   View,
   type ImageSourcePropType,
+  type ImageStyle,
   type ViewStyle,
 } from "react-native";
 
@@ -19,9 +20,6 @@ import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { isFutureYouPhotoBlocked } from "@/lib/futureYouAge";
 import { FUTURE_YOU_PRIVACY_POLICY_URL, PAYWALL_TERMS_URL } from "@/lib/futureYouLegal";
 import { futureYouSilhouettesForGender } from "@/lib/futureYouSilhouettes";
-import {
-  FUTURE_YOU_PANEL_BG,
-} from "@/lib/futureYouTokens";
 
 type Props = {
   gender: UserGender | undefined;
@@ -44,6 +42,9 @@ type Props = {
 function panelMaxHeight(windowHeight: number) {
   return Math.min(320, Math.max(220, windowHeight * 0.42));
 }
+
+/** Floor so the aspect-ratio panel never collapses inside a flex/scroll host. */
+const PANEL_MIN_HEIGHT = 200;
 
 const PANEL_RADIUS = 14;
 
@@ -68,16 +69,27 @@ function PhotoPanel({
   const shellStyle: ViewStyle = {
     width: "100%",
     aspectRatio: 9 / 16,
+    minHeight: PANEL_MIN_HEIGHT,
     maxHeight,
     borderRadius: PANEL_RADIUS,
     ...panelCornerStyle,
     overflow: "hidden",
-    backgroundColor: uri ? colors.card : FUTURE_YOU_PANEL_BG,
-    borderWidth: isAfter ? 1 : StyleSheet.hairlineWidth,
+    // Silhouette PNGs are dark-on-white; match that backing so no seam shows.
+    backgroundColor: uri ? colors.card : "#ffffff",
+    borderWidth: 1,
     borderColor: isAfter ? ob.gold : colors.border,
+    ...(isAfter ?
+      {
+        shadowColor: ob.gold,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.28,
+        shadowRadius: 10,
+        elevation: 3,
+      }
+    : {}),
   };
 
-  const panel = (
+  return (
     <View style={shellStyle}>
       {uri ? (
         <Image
@@ -87,10 +99,10 @@ function PhotoPanel({
           accessibilityIgnoresInvertColors
         />
       ) : silhouetteSource ? (
-        <View style={[StyleSheet.absoluteFill, { justifyContent: "flex-end" }]}>
+        <View style={silhouetteFrameStyle}>
           <Image
             source={silhouetteSource}
-            style={{ width: "100%", height: "92%" }}
+            style={silhouetteImageStyle}
             resizeMode="contain"
             accessibilityIgnoresInvertColors
           />
@@ -98,26 +110,19 @@ function PhotoPanel({
       ) : null}
     </View>
   );
-
-  if (!isAfter) return panel;
-
-  return (
-    <View
-      style={{
-        width: "100%",
-        borderRadius: PANEL_RADIUS,
-        ...panelCornerStyle,
-        shadowColor: ob.gold,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.32,
-        shadowRadius: 11,
-        elevation: 4,
-      }}
-    >
-      {panel}
-    </View>
-  );
 }
+
+/** Matches PWA `.future-you-photo-step__silhouette` — feet anchored, ~88% scale. */
+const silhouetteFrameStyle: ViewStyle = {
+  ...StyleSheet.absoluteFill,
+  alignItems: "center",
+  justifyContent: "flex-end",
+};
+
+const silhouetteImageStyle: ImageStyle = {
+  width: "88%",
+  height: "88%",
+};
 
 export function OnboardingFutureYouPhoto({
   gender,
@@ -171,7 +176,7 @@ export function OnboardingFutureYouPhoto({
 
   return (
     <View className="flex-1">
-      <View className="min-h-0 flex-1 justify-center pt-6">
+      <View className="flex-1 justify-center gap-6 pt-3">
         <View className="relative pb-9">
           <View className={`flex-row items-center gap-2.5${blocked ? " opacity-40" : ""}`}>
             <View className="relative min-w-0 flex-1">
@@ -214,10 +219,9 @@ export function OnboardingFutureYouPhoto({
             </View>
           ) : null}
         </View>
-      </View>
 
       {!blocked ? (
-        <View className="mt-5 shrink-0">
+        <View>
           <Text className="mb-3 text-center text-sm" style={{ color: colors.textSecondary }}>
             Your photo is only used to create your Future You, never shared or sold.
           </Text>
@@ -333,8 +337,9 @@ export function OnboardingFutureYouPhoto({
           ) : null}
         </View>
       ) : null}
+      </View>
 
-      <FutureYouLegalFooter className="mt-4 shrink-0" />
+      <FutureYouLegalFooter className="pt-5 shrink-0" accentColor={colors.textPrimary} />
     </View>
   );
 }

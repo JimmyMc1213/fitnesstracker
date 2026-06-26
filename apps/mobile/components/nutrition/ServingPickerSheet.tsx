@@ -5,7 +5,9 @@ import {
 } from "@newyouai/core";
 import type { FoodMeasurement, FoodSearchResult } from "@newyouai/types";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
+
+import { AppTextField } from "@/components/ui/AppTextField";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
@@ -180,13 +182,13 @@ export function ServingPickerSheet({
           className="flex-row items-center gap-2.5 rounded-[14px] border px-4 py-3.5"
           style={{ borderColor: colors.border, backgroundColor: colors.card }}
         >
-          <TextInput
+          <AppTextField
+            inline
             value={quantity}
             onChangeText={(raw) => setQuantity(clampServingQuantityInput(raw))}
             accessibilityLabel="Number of servings"
             keyboardType="decimal-pad"
-            className="min-w-0 flex-1 text-[15px] font-medium tabular-nums"
-            style={{ color: colors.textPrimary }}
+            style={{ flex: 1, fontSize: 15, fontWeight: "500", fontVariant: ["tabular-nums"] }}
           />
           {measurement?.unitSuffix ? (
             <Text className="text-[13px] font-semibold tabular-nums" style={{ color: colors.textSecondary }}>

@@ -125,14 +125,22 @@ export function useFitnessCloudSync(
       setSessionResolved(true);
       return;
     }
-    const { data } = await sb.auth.getSession();
-    setSession(data.session ?? null);
-    setSessionResolved(true);
+    try {
+      const { data } = await sb.auth.getSession();
+      setSession(data.session ?? null);
+    } catch {
+      setSession(null);
+    } finally {
+      setSessionResolved(true);
+    }
   }, []);
 
   useEffect(() => {
     const sb = getSupabase();
-    if (!sb) return;
+    if (!sb) {
+      setSessionResolved(true);
+      return;
+    }
     void refreshSession();
     const { data: sub } = sb.auth.onAuthStateChange((_evt, sess) => {
       setSession(sess);

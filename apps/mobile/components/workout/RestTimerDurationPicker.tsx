@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+
+import { AppTextField } from "@/components/ui/AppTextField";
 
 import {
   clampRestTimerSeconds,
@@ -61,7 +63,7 @@ export function RestTimerDurationPicker({ value, onChange, variant = "settings" 
           <Text className="text-[11px] font-medium uppercase tracking-widest" style={{ color: colors.textTertiary }}>
             Custom (seconds)
           </Text>
-          <TextInput
+          <AppTextField
             value={customIn}
             onChangeText={(v) => {
               setCustomIn(v);
@@ -72,12 +74,9 @@ export function RestTimerDurationPicker({ value, onChange, variant = "settings" 
             }}
             onBlur={() => commitCustom(customIn)}
             keyboardType="number-pad"
-            className="mt-2 rounded-[10px] border px-3 py-2.5 text-base tabular-nums"
-            style={{
-              borderColor: colors.border,
-              backgroundColor: colors.backgroundSecondary,
-              color: colors.textPrimary,
-            }}
+            size="compact"
+            shellStyle={{ marginTop: 8 }}
+            style={{ fontVariant: ["tabular-nums"] }}
           />
         </>
       )}

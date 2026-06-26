@@ -88,6 +88,7 @@ results.push(run("mobile unit tests", "npm", ["run", "test", "--workspace=@newyo
 startMetro({
   EXPO_PUBLIC_E2E_FITNESS_SEED: "future-you",
   EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU: "true",
+  EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU_CAMERA: "true",
   EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING: "true",
 });
 results.push(run("e2e future-you", "npm", ["run", "test:e2e:future-you"]));

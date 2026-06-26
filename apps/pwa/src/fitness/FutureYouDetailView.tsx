@@ -64,6 +64,7 @@ export function FutureYouDetailView({
         <FutureYouDeleteButton
           previewMode={previewMode}
           className="future-you-detail__delete"
+          jobId={item.id}
           redoAnchorIso={futureYouRedoAnchorIso(futureYou)}
           onDeleted={onFutureYouDeleted}
         />

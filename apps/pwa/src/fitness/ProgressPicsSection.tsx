@@ -38,7 +38,7 @@ export function ProgressPicsSection({ state, onOpenGallery }: Props) {
         <div style={{ fontSize: 11, color: "var(--text-whisper)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>
           Progress pics
         </div>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 600, color: "var(--accent)" }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
           {items.length > 0 ? `${items.length} photo${items.length === 1 ? "" : "s"}` : "Open gallery"}
           <IconChevR size={14} stroke={2.2} />
         </span>

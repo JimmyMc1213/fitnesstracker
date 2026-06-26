@@ -14,6 +14,7 @@ import {
   isFutureYouMediaCleared,
   mergeFutureYouDraft,
   normalizeFutureYouDraft,
+  unionFutureYouPreviews,
 } from "./futureYouDraft";
 import { hasExistingFitnessData } from "./onboardingSkip";
 import { normalizeAppTheme } from "./theme";
@@ -310,12 +311,17 @@ function mergeFutureYouReminderPrefs(
   remote: FutureYouDraft | undefined,
 ): FutureYouDraft | undefined {
   if (!draft) return undefined;
+  const activeJobId = draft.generationJobId?.trim();
+  const previews = unionFutureYouPreviews(draft.previews, local?.previews, remote?.previews)?.filter(
+    (preview) => preview.jobId !== activeJobId,
+  );
   return mergeFutureYouDraft(draft, {
     remindersMuted: local?.remindersMuted === true || remote?.remindersMuted === true,
     reminderDismissedDateKey: mergeReminderDismissedDateKey(
       local?.reminderDismissedDateKey,
       remote?.reminderDismissedDateKey,
     ),
+    previews: previews && previews.length > 0 ? previews : undefined,
   });
 }
 

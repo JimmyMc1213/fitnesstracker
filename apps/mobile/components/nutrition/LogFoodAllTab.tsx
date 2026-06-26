@@ -1,9 +1,10 @@
 import { getRecentlyLoggedFoods } from "@newyouai/core";
 import type { AppState, FoodSearchResult, NutritionLoggedItem } from "@newyouai/types";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { FoodSearchSkeletonList } from "@/components/nutrition/FoodSearchSkeletonList";
+import { AppTextField } from "@/components/ui/AppTextField";
 import {
   curatedDefaultServingMacros,
   curatedToSearchResult,
@@ -13,6 +14,7 @@ import type { CuratedFood } from "@/lib/curatedFoods";
 import { FOOD_SEARCH_MIN_QUERY_LEN } from "@/lib/foodSearchGuards";
 import { FoodSearchError, searchFoods } from "@/lib/foodSearchService";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useLogFoodAccent } from "@/hooks/useLogFoodAccent";
 const SEARCH_DEBOUNCE_MS = 300;
 
 function formatServingLabel(label: string): string {
@@ -87,6 +89,7 @@ function FoodListCard({ children }: { children: ReactNode }) {
 
 export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogItem }: Props) {
   const { colors } = useAppTheme();
+  const { accent, accentText } = useLogFoodAccent();
   const [search, setSearch] = useState("");
   const [apiResults, setApiResults] = useState<FoodSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -166,22 +169,17 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
         >
           Search foods
         </Text>
-        <TextInput
+        <AppTextField
           value={search}
           onChangeText={setSearch}
           testID="log-food-search-input"
           accessibilityLabel="Search foods"
           placeholder="Chicken breast, Greek yogurt…"
-          placeholderTextColor={colors.textTertiary}
           autoCorrect={false}
           autoCapitalize="none"
           returnKeyType="search"
-          className="rounded-xl border px-3.5 py-3.5 text-[15px] leading-5"
-          style={{
-            borderColor: colors.border,
-            backgroundColor: colors.card,
-            color: colors.textPrimary,
-          }}
+          backgroundColor={colors.card}
+          style={{ lineHeight: 20 }}
         />
         {searchTypingHint ? (
           <Text className="mt-2.5 text-xs leading-5" style={{ color: colors.textTertiary }}>
@@ -291,12 +289,12 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
                     disabled={dayLogAtCapacity}
                     className="h-9 w-9 items-center justify-center rounded-full border"
                     style={{
-                      borderColor: colors.accent,
-                      backgroundColor: dayLogAtCapacity ? colors.border : colors.accent,
+                      borderColor: accent,
+                      backgroundColor: dayLogAtCapacity ? colors.border : accent,
                       opacity: dayLogAtCapacity ? 0.5 : 1,
                     }}
                   >
-                    <Text className="text-lg font-bold leading-none" style={{ color: colors.accentText }}>
+                    <Text className="text-lg font-bold leading-none" style={{ color: accentText }}>
                       +
                     </Text>
                   </Pressable>

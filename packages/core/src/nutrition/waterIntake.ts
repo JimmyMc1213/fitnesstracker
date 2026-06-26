@@ -76,6 +76,13 @@ export function removeWaterLogEntry(state: AppState, dateKey: string, entryId: s
   return { ...state, waterLogByDay };
 }
 
+export function clearWaterLogForDateKey(state: AppState, dateKey: string): AppState {
+  if (!state.waterLogByDay[dateKey]?.length) return state;
+  const waterLogByDay = { ...state.waterLogByDay };
+  delete waterLogByDay[dateKey];
+  return { ...state, waterLogByDay };
+}
+
 export function appendWaterLogEntry(state: AppState, dateKey: string, amountOz: number): AppState {
   if (!Number.isFinite(amountOz) || amountOz <= 0 || amountOz > 128) return state;
   const id =

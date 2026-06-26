@@ -1,8 +1,9 @@
 import { router } from "expo-router";
 import { useCallback, useState, type ReactNode } from "react";
-import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import {
   formatVolumeFromOz,
+  FEATURE_REQUEST_SETTINGS_LABEL,
   ISSUE_REPORT_SETTINGS_LABEL,
   nutritionGoalLabel,
   nutritionGoalSettingsLabel,
@@ -11,6 +12,7 @@ import {
 import { FutureYouDeleteConfirmSheet } from "@/components/future-you/FutureYouDeleteConfirmSheet";
 import { TabScreenFade } from "@/components/motion/TabScreenFade";
 import { ReportIssueDialog } from "@/components/settings/ReportIssueDialog";
+import { RequestFeatureDialog } from "@/components/settings/RequestFeatureDialog";
 import { SettingsScreenChrome } from "@/components/settings/SettingsScreenChrome";
 import {
   IconBell,
@@ -46,6 +48,7 @@ import {
   SETTINGS_SUPPORT_EMAIL,
   SETTINGS_TERMS_URL,
 } from "@/lib/settingsLinks";
+import { settingsGoldIconColors } from "@/lib/settingsUiTokens";
 import { getSupabase } from "@/lib/supabaseClient";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
 import { volumeUnitLabel, weightUnitLabel } from "@/lib/unitLabels";
@@ -56,6 +59,18 @@ import {
 } from "@/components/settings/SettingsLayout";
 import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 import { formatRestDuration } from "@/lib/workout/restTimerPreferences";
+
+const SOCIAL_LOGOS = {
+  instagram: require("@/assets/brand-icons/instagram.png"),
+  tiktok: require("@/assets/brand-icons/tiktok.png"),
+  x: require("@/assets/brand-icons/x.png"),
+} as const;
+
+function SocialLogo({ source }: { source: number }) {
+  return (
+    <Image source={source} style={{ width: 20, height: 20 }} resizeMode="contain" />
+  );
+}
 
 function rowIcon(node: ReactNode) {
   return <SettingsRowIcon>{node}</SettingsRowIcon>;
@@ -86,6 +101,7 @@ export default function SettingsHubScreen() {
   const [deleteAccountNotice, setDeleteAccountNotice] = useState<string | null>(null);
   const [deleteAccountBusy, setDeleteAccountBusy] = useState(false);
   const [reportIssueOpen, setReportIssueOpen] = useState(false);
+  const [featureRequestOpen, setFeatureRequestOpen] = useState(false);
 
   const handleSignOut = useCallback(async () => {
     stopOnboardingPreview();
@@ -153,6 +169,7 @@ export default function SettingsHubScreen() {
       ? (lastSyncedLabel ?? "Signed in")
       : "Sign in";
   const nutritionTargets = state.nutritionTargets;
+  const goldIcon = settingsGoldIconColors(theme);
 
   return (
     <>
@@ -286,10 +303,13 @@ export default function SettingsHubScreen() {
             testID="settings-row-support-email"
             onPress={() => void openExternalUrl(`mailto:${SETTINGS_SUPPORT_EMAIL}`)}
           />
-          <SettingsComingSoonRow
-            icon={rowIcon(<IconSpeakerphone size={16} stroke={1.6} color={colors.textPrimary} />)}
-            label="Request a feature"
+          <SettingsRow
+            icon={rowIcon(<IconSpeakerphone size={16} stroke={2} color={goldIcon.iconColor} />)}
+            label={FEATURE_REQUEST_SETTINGS_LABEL}
+            labelColor={goldIcon.iconColor}
+            testID="settings-row-request-feature"
             isLast
+            onPress={() => setFeatureRequestOpen(true)}
           />
         </SettingsHubSection>
 
@@ -311,15 +331,15 @@ export default function SettingsHubScreen() {
 
         <SettingsHubSection title="Socials">
           <SettingsComingSoonRow
-            icon={rowIcon(<Text className="text-[10px] font-bold" style={{ color: colors.textPrimary }}>IG</Text>)}
+            icon={rowIcon(<SocialLogo source={SOCIAL_LOGOS.instagram} />)}
             label="Instagram"
           />
           <SettingsComingSoonRow
-            icon={rowIcon(<Text className="text-[10px] font-bold" style={{ color: colors.textPrimary }}>TT</Text>)}
+            icon={rowIcon(<SocialLogo source={SOCIAL_LOGOS.tiktok} />)}
             label="TikTok"
           />
           <SettingsComingSoonRow
-            icon={rowIcon(<Text className="text-[10px] font-bold" style={{ color: colors.textPrimary }}>X</Text>)}
+            icon={rowIcon(<SocialLogo source={SOCIAL_LOGOS.x} />)}
             label="X"
             isLast
           />
@@ -389,6 +409,7 @@ export default function SettingsHubScreen() {
       ) : null}
 
       <ReportIssueDialog open={reportIssueOpen} onClose={() => setReportIssueOpen(false)} />
+      <RequestFeatureDialog open={featureRequestOpen} onClose={() => setFeatureRequestOpen(false)} />
 
       {deleteAccountStep === "warn" ? (
         <FutureYouDeleteConfirmSheet

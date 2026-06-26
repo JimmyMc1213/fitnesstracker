@@ -55,7 +55,7 @@ export function ProgramPanel() {
           onBlur={() => commitStepsTarget(stepsIn)}
           keyboardType="number-pad"
           inputMode="numeric"
-          className="rounded-[12px] border px-3.5 py-3 text-[15px] tabular-nums"
+          style={{ fontVariant: ["tabular-nums"] }}
           accessibilityLabel="Daily steps goal"
         />
       </SettingsFormField>

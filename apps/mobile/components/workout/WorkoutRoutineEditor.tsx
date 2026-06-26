@@ -1,4 +1,4 @@
-import { weekdayFullName } from "@newyouai/core";
+import { USER_EDITABLE_MAX_SETS, weekdayFullName } from "@newyouai/core";
 import type { CustomExerciseTemplate, EquipmentSetup, WorkoutExercise, WorkoutRoutineTemplate } from "@newyouai/types";
 import { IconTrash } from "@tabler/icons-react-native";
 import { useEffect, useState } from "react";
@@ -6,11 +6,14 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FullScreenOverlay } from "@/components/motion";
+import { GradientPill } from "@/components/ui/GradientPill";
+import { coreAlignedInputStyle } from "@/components/ui/AlignedTextInput";
 
 import { useBottomActionPadding } from "@/lib/screenInsets";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { DeleteExerciseConfirmSheet } from "@/components/workout/DeleteExerciseConfirmSheet";
+import { ExerciseEquipmentLabelPickerDialog } from "@/components/workout/ExerciseEquipmentLabelPickerDialog";
 import { ExerciseDragHandle, SortableExerciseList } from "@/components/workout/SortableExerciseList";
 import { RoutineExerciseSearchSheet } from "@/components/workout/RoutineExerciseSearchSheet";
 import { SaveWorkoutConfirmSheet } from "@/components/workout/SaveWorkoutConfirmSheet";
@@ -21,7 +24,7 @@ import {
   formatPrescriptionRepRange,
   usesSecFieldForExercise,
 } from "@/lib/workout/exercisePrescriptionDefaults";
-import { resolveRoutineFocusOnSave } from "@/lib/workout/routineTemplateFocus";
+import { templateFocusFromExercises } from "@/lib/workout/routineTemplateFocus";
 import { newTemplateExerciseLine, resizeWorkoutSets } from "@/lib/workout/templateExerciseUtils";
 import {
   formatWorkoutTarget,
@@ -29,7 +32,12 @@ import {
   parseWorkoutTarget,
   syncTargetRepRange,
 } from "@/lib/workout/workoutTarget";
-import { COACH_BLUE_LABEL } from "@/lib/workoutUiTokens";
+import {
+  COACH_BLUE,
+  WORKOUT_ACCENT_ON,
+  equipmentTypePillStyle,
+  workoutAccentLabel,
+} from "@/lib/workoutUiTokens";
 
 /** Pass as `editingRoutineId` to open the editor for a brand-new routine. */
 export const NEW_ROUTINE_EDITOR_ID = "__new__";
@@ -69,7 +77,6 @@ function buildDraftTemplate(
   template: WorkoutRoutineTemplate | null,
   name: string,
   dayLabel: string,
-  focus: string,
   exercises: WorkoutExercise[],
 ): WorkoutRoutineTemplate {
   const id = template?.id ?? `tpl_${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -78,7 +85,7 @@ function buildDraftTemplate(
     id,
     name: resolvedWorkoutName(name, trimmedDay),
     dayLabel: trimmedDay,
-    focus: focus.trim(),
+    focus: templateFocusFromExercises(exercises),
     exercises: exercises.map((e) => ({
       ...e,
       sets: e.sets.map((s) => ({ ...s })),
@@ -108,24 +115,37 @@ function isRoutineEditorDirty(
   template: WorkoutRoutineTemplate | null,
   name: string,
   dayLabel: string,
-  focus: string,
   exercises: WorkoutExercise[],
 ): boolean {
   if (!template) return false;
-  const draft = buildDraftTemplate(template, name, dayLabel, focus, exercises);
+  const draft = buildDraftTemplate(template, name, dayLabel, exercises);
   return routineEditorSnapshot(draft) !== routineEditorSnapshot(template);
 }
 
-function StepperButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
+function StepperButton({
+  label,
+  onPress,
+  disabled,
+  size = "default",
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  size?: "default" | "compact";
+}) {
   const { colors } = useAppTheme();
+  const compact = size === "compact";
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      className="h-8 w-8 items-center justify-center"
+      className={`${compact ? "h-8 w-8" : "h-8 w-8"} shrink-0 items-center justify-center`}
       style={{ opacity: disabled ? 0.35 : 1 }}
     >
-      <Text className="text-lg font-semibold" style={{ color: colors.textPrimary }}>
+      <Text
+        className={`${compact ? "text-base" : "text-lg"} font-semibold`}
+        style={{ color: colors.textPrimary }}
+      >
         {label}
       </Text>
     </Pressable>
@@ -142,7 +162,7 @@ function SetCountStepper({
   disabled?: boolean;
 }) {
   const { colors } = useAppTheme();
-  const n = Math.min(Math.max(count, 1), 4);
+  const n = Math.min(Math.max(count, 1), USER_EDITABLE_MAX_SETS);
 
   return (
     <View
@@ -153,7 +173,7 @@ function SetCountStepper({
       <Text className="text-[15px] font-semibold tabular-nums" style={{ color: colors.textPrimary }}>
         {n}
       </Text>
-      <StepperButton label="+" disabled={disabled || n >= 4} onPress={() => onChange(n + 1)} />
+      <StepperButton label="+" disabled={disabled || n >= USER_EDITABLE_MAX_SETS} onPress={() => onChange(n + 1)} />
     </View>
   );
 }
@@ -178,17 +198,36 @@ function RepBoundStepper({
 
   return (
     <View
-      className="min-h-[38px] flex-row items-center justify-between rounded-[10px] border px-1.5 py-1"
+      className="min-h-[38px] flex-row items-center rounded-[10px] border px-1.5 py-1"
       style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
     >
-      <Text className="w-7 text-[11px] font-semibold uppercase tracking-wide" style={{ color: colors.textTertiary }}>
+      <Text
+        className="w-7 shrink-0 text-[10px] font-semibold uppercase"
+        numberOfLines={1}
+        style={{ color: colors.textTertiary }}
+      >
         {boundLabel}
       </Text>
-      <StepperButton label="−" disabled={disabled || n <= min} onPress={() => onChange(n - 1)} />
-      <Text className="text-[15px] font-semibold tabular-nums" style={{ color: colors.textPrimary }}>
-        {n}
-      </Text>
-      <StepperButton label="+" disabled={disabled || n >= max} onPress={() => onChange(n + 1)} />
+      <View className="min-w-0 flex-1 flex-row items-center justify-end">
+        <StepperButton
+          label="−"
+          size="compact"
+          disabled={disabled || n <= min}
+          onPress={() => onChange(n - 1)}
+        />
+        <Text
+          className="w-8 shrink-0 text-center text-[14px] font-semibold tabular-nums"
+          style={{ color: colors.textPrimary }}
+        >
+          {n}
+        </Text>
+        <StepperButton
+          label="+"
+          size="compact"
+          disabled={disabled || n >= max}
+          onPress={() => onChange(n + 1)}
+        />
+      </View>
     </View>
   );
 }
@@ -243,15 +282,12 @@ export function WorkoutRoutineEditor({
   title,
   progressLabel,
 }: WorkoutRoutineEditorProps) {
-  const { colors } = useAppTheme();
+  const { colors, theme } = useAppTheme();
   const insets = useSafeAreaInsets();
   const bottomActionPadding = useBottomActionPadding();
 
   const [name, setName] = useState("");
   const [dayLabel, setDayLabel] = useState("");
-  const [focus, setFocus] = useState("");
-  const [focusDirty, setFocusDirty] = useState(false);
-  const [focusExpanded, setFocusExpanded] = useState(false);
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [searchSheet, setSearchSheet] = useState<SearchSheetMode | null>(null);
   const [pendingExerciseDelete, setPendingExerciseDelete] = useState<{
@@ -261,6 +297,7 @@ export function WorkoutRoutineEditor({
   } | null>(null);
   const [pendingRoutineDelete, setPendingRoutineDelete] = useState(false);
   const [pendingSaveConfirm, setPendingSaveConfirm] = useState(false);
+  const [equipmentLabelPickerExerciseId, setEquipmentLabelPickerExerciseId] = useState<string | null>(null);
 
   const templateId = template?.id ?? null;
 
@@ -268,16 +305,10 @@ export function WorkoutRoutineEditor({
     if (template) {
       setName(template.name);
       setDayLabel(template.dayLabel);
-      setFocus(template.focus);
-      setFocusDirty(false);
-      setFocusExpanded(false);
       setExercises(template.exercises.map((e) => ({ ...e, sets: e.sets.map((s) => ({ ...s })) })));
     } else {
       setName("");
       setDayLabel("");
-      setFocus("");
-      setFocusDirty(false);
-      setFocusExpanded(false);
       setExercises([]);
     }
     setSearchSheet(null);
@@ -348,12 +379,11 @@ export function WorkoutRoutineEditor({
   }
 
   function handleSave() {
-    const resolvedFocus = resolveRoutineFocusOnSave(focus, focusDirty, exercises);
-    onSave(buildDraftTemplate(template, name, dayLabel, resolvedFocus, exercises));
+    onSave(buildDraftTemplate(template, name, dayLabel, exercises));
   }
 
   function handleSaveClick() {
-    if (isRoutineEditorDirty(template, name, dayLabel, focus, exercises)) {
+    if (isRoutineEditorDirty(template, name, dayLabel, exercises)) {
       setPendingSaveConfirm(true);
       return;
     }
@@ -370,6 +400,9 @@ export function WorkoutRoutineEditor({
   const headerTitle = title ?? (template ? "Edit workout" : "New workout");
   const namePlaceholder = dayLabel.trim() ? defaultWorkoutName(dayLabel) : headerTitle;
 
+  const equipmentPill = equipmentTypePillStyle(theme);
+  const accentLabel = workoutAccentLabel(theme);
+
   const body = (
     <View
       testID="workout-routine-editor"
@@ -378,7 +411,7 @@ export function WorkoutRoutineEditor({
     >
       <View className="px-screen-x pb-3 pt-2">
         <Pressable onPress={onClose} className="self-start py-2">
-          <Text className="text-[15px] font-semibold" style={{ color: COACH_BLUE_LABEL }}>
+          <Text className="text-[15px] font-semibold" style={{ color: accentLabel }}>
             ← Back
           </Text>
         </Pressable>
@@ -391,8 +424,8 @@ export function WorkoutRoutineEditor({
           onChangeText={setName}
           placeholder={namePlaceholder}
           placeholderTextColor={colors.textTertiary}
-          className="mt-1 text-[26px] font-bold tracking-tight"
-          style={{ color: colors.textPrimary }}
+          className="mt-1 font-bold tracking-tight"
+          style={[coreAlignedInputStyle(26), { color: colors.textPrimary, fontWeight: "700" }]}
         />
 
         <Text className="mb-1.5 mt-4 text-[11px] font-semibold uppercase tracking-widest" style={{ color: colors.textTertiary }}>
@@ -407,14 +440,14 @@ export function WorkoutRoutineEditor({
                 onPress={() => setDayLabel(d)}
                 className="rounded-lg px-3 py-1.5"
                 style={{
-                  backgroundColor: selected ? colors.accent : "transparent",
+                  backgroundColor: selected ? COACH_BLUE : "transparent",
                   borderWidth: selected ? 0 : 0.5,
                   borderColor: colors.border,
                 }}
               >
                 <Text
                   className="text-xs font-semibold"
-                  style={{ color: selected ? "#fff" : colors.textSecondary }}
+                  style={{ color: selected ? WORKOUT_ACCENT_ON : colors.textSecondary }}
                 >
                   {d}
                 </Text>
@@ -422,40 +455,6 @@ export function WorkoutRoutineEditor({
             );
           })}
         </View>
-
-        {focusExpanded ? (
-          <TextInput
-            value={focus}
-            onChangeText={(next) => {
-              setFocus(next);
-              setFocusDirty(true);
-            }}
-            onBlur={() => setFocusExpanded(false)}
-            placeholder="Coach notes, session focus, reminders…"
-            placeholderTextColor={colors.textTertiary}
-            multiline
-            autoFocus
-            className="mt-3 min-h-[96px] rounded-[10px] border px-3 py-2.5 text-[13px] leading-[1.5]"
-            style={{
-              borderColor: colors.border,
-              backgroundColor: colors.backgroundSecondary,
-              color: colors.textPrimary,
-              textAlignVertical: "top",
-            }}
-          />
-        ) : (
-          <Pressable
-            onPress={() => setFocusExpanded(true)}
-            className="mt-3 rounded-[10px] border px-3 py-2.5"
-            style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
-          >
-            <Text className="text-[13px] font-medium" style={{ color: focus.trim() ? colors.textSecondary : colors.textTertiary }}>
-              {focus.trim()
-                ? `Session focus: ${focus.trim().length > 48 ? `${focus.trim().slice(0, 48)}…` : focus.trim()}`
-                : "Add session focus (optional)"}
-            </Text>
-          </Pressable>
-        )}
 
         <View className="mb-2.5 mt-6 flex-row items-center justify-between">
           <Text className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: colors.textTertiary }}>
@@ -500,7 +499,7 @@ export function WorkoutRoutineEditor({
                         disabled={ctx.isListDragging}
                         onPress={() => setSearchSheet({ kind: "swap", exerciseId: row.id })}
                       >
-                        <Text className="text-xs font-semibold" style={{ color: COACH_BLUE_LABEL }}>
+                        <Text className="text-xs font-semibold" style={{ color: accentLabel }}>
                           Swap
                         </Text>
                       </Pressable>
@@ -556,14 +555,23 @@ export function WorkoutRoutineEditor({
                   </View>
                 </View>
 
-                <TextInput
-                  value={row.label ?? ""}
-                  onChangeText={(label) => patchExercise(row.id, { label })}
-                  placeholder="Add note (optional)"
-                  placeholderTextColor={colors.textTertiary}
-                  className="mt-2 border-b py-2 text-[13px] font-medium"
-                  style={{ borderColor: colors.border, color: colors.textSecondary }}
-                />
+                <GradientPill
+                  disabled={ctx.isListDragging}
+                  onPress={() => setEquipmentLabelPickerExerciseId(row.id)}
+                  style={{ marginTop: 8 }}
+                  accessibilityLabel={
+                    row.label?.trim()
+                      ? `Equipment type ${row.label.trim()}. Tap to change.`
+                      : "Choose equipment type"
+                  }
+                >
+                  <Text
+                    className="text-[12px] font-semibold"
+                    style={{ color: row.label?.trim() ? equipmentPill.text : equipmentPill.placeholderText }}
+                  >
+                    {row.label?.trim() || "Choose type"}
+                  </Text>
+                </GradientPill>
               </View>
             );
           }}
@@ -608,6 +616,14 @@ export function WorkoutRoutineEditor({
           onSelect={handleExerciseSelect}
           onSaveCustomAndAdd={handleSaveCustomAndAdd}
           onClose={() => setSearchSheet(null)}
+        />
+      ) : null}
+
+      {equipmentLabelPickerExerciseId ? (
+        <ExerciseEquipmentLabelPickerDialog
+          selected={exercises.find((e) => e.id === equipmentLabelPickerExerciseId)?.label}
+          onSelect={(label) => patchExercise(equipmentLabelPickerExerciseId, { label })}
+          onClose={() => setEquipmentLabelPickerExerciseId(null)}
         />
       ) : null}
 

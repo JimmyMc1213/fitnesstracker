@@ -2,6 +2,12 @@ import { isFutureYouPostPayEntitled } from "@newyouai/core";
 import type { FutureYouJobStatus, SubscriptionTier } from "@newyouai/types";
 import { useEffect, useState } from "react";
 
+import {
+  cacheFutureYouResultUrl,
+  getCachedFutureYouResultUrl,
+  preloadFutureYouImage,
+} from "@/lib/futureYouImagePreload";
+import { isFutureYouDevEntitlementEnabled } from "@/lib/futureYouDevFlags";
 import { FutureYouPollError, pollFutureYouJobStatus } from "@/lib/futureYouPollService";
 import { futureYouPollImageUrl } from "@/lib/futureYouStatus";
 
@@ -23,14 +29,15 @@ export function useFutureYouRevealImage({
   subscriptionTier,
   previewMode = false,
 }: Options): { imageUri: string | null; loading: boolean } {
-  const entitled = isFutureYouPostPayEntitled(subscriptionTier, previewMode);
+  const entitled =
+    isFutureYouPostPayEntitled(subscriptionTier, previewMode) || isFutureYouDevEntitlementEnabled();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setImageUri(null);
 
-    if (!entitled || previewMode) {
+    if (previewMode) {
       setLoading(false);
       return;
     }
@@ -46,22 +53,46 @@ export function useFutureYouRevealImage({
       return;
     }
 
+    const cachedUrl = getCachedFutureYouResultUrl(trimmedJobId);
+    if (cachedUrl) {
+      setImageUri(cachedUrl);
+      setLoading(false);
+      return;
+    }
+
+    if (!entitled) {
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setLoading(true);
 
     void (async () => {
+      async function showWhenPreloaded(url: string) {
+        cacheFutureYouResultUrl(trimmedJobId, url);
+        await preloadFutureYouImage(url);
+        if (cancelled) return;
+        setImageUri(url);
+        setLoading(false);
+      }
+
       try {
         const response = await pollFutureYouJobStatus(trimmedJobId);
         if (cancelled) return;
         const url = futureYouPollImageUrl(response, true);
-        setImageUri(url ?? null);
+        if (!url) {
+          setLoading(false);
+          return;
+        }
+        await showWhenPreloaded(url);
       } catch (error) {
         if (cancelled) return;
         if (error instanceof FutureYouPollError && error.code === "not_found") {
-          setImageUri(null);
+          setLoading(false);
+          return;
         }
-      } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     })();
 

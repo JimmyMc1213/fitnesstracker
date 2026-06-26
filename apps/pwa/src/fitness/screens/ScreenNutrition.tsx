@@ -7,7 +7,7 @@ import { effectiveNutritionTotalsForDateKey } from "../nutritionTotals";
 import { MacroBar, MacroRing, ScreenHeader } from "../shared";
 import { TodayFoodLogCard, todayFoodLogHandlers } from "../TodayFoodLogCard";
 import { WaterTrackerCard } from "../WaterTrackerCard";
-import { appendWaterLogEntry, removeWaterLogEntry } from "../waterIntake";
+import { appendWaterLogEntry, removeWaterLogEntry, clearWaterLogForDateKey } from "../waterIntake";
 import type { NutritionLoggedItem, ScreenProps } from "../types";
 
 /**
@@ -114,6 +114,7 @@ export function ScreenNutrition({ state, setState, logFoodOpenRequest, onLogFood
         volumeUnit={state.unitPreferences.volumeUnit}
         onAddOz={(oz) => setState((s) => appendWaterLogEntry(s, todayKey, oz))}
         onRemoveEntry={(entryId) => setState((s) => removeWaterLogEntry(s, todayKey, entryId))}
+        onRemoveAllEntries={() => setState((s) => clearWaterLogForDateKey(s, todayKey))}
       />
 
       <TodayFoodLogCard

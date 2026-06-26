@@ -4,13 +4,15 @@ import {
   FUTURE_YOU_PAGE_SHEET_TITLE_MOTIVATION,
   FUTURE_YOU_PAGE_SHEET_TITLE_PHOTO,
 } from "@newyouai/core";
-import type { NutritionGoal, UserGender } from "@newyouai/types";
+import type { FutureYouJobStatus, NutritionGoal, UserGender } from "@newyouai/types";
 import { Pressable, Text, View } from "react-native";
 
+import { FutureYouGenerationLoadingView } from "@/components/future-you/FutureYouGenerationLoadingView";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { OnboardingFutureYouMotivation } from "@/components/onboarding/OnboardingFutureYouMotivation";
 import { OnboardingFutureYouPhoto } from "@/components/onboarding/OnboardingFutureYouPhoto";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { futureYouRevealPlaceholderSource } from "@/lib/futureYouRevealPlaceholder";
 
 export type FutureYouNewPicStep = "photo" | "motivation";
 
@@ -27,6 +29,7 @@ type Props = {
   uploadError: string | null;
   generating: boolean;
   generationActive: boolean;
+  generationStatus: FutureYouJobStatus | "idle";
   generateError: string | null;
   onClose: () => void;
   onBackToPhoto: () => void;
@@ -53,6 +56,7 @@ export function FutureYouNewPicView({
   uploadError,
   generating,
   generationActive,
+  generationStatus,
   generateError,
   onClose,
   onBackToPhoto,
@@ -66,15 +70,52 @@ export function FutureYouNewPicView({
   onGenerate,
 }: Props) {
   const { colors } = useAppTheme();
+  const showGenerationLoading = generating || generationActive;
   const title = step === "photo" ? FUTURE_YOU_PAGE_SHEET_TITLE_PHOTO : FUTURE_YOU_PAGE_SHEET_TITLE_MOTIVATION;
-  const generateDisabled = !motivationId || generating || generationActive;
+  const generateDisabled = !motivationId || showGenerationLoading;
   const generateLabel =
-    generating ? "Starting…"
+    generating ? "Creating your Future You… (up to 2 min)"
     : generationActive ? "Creating your Future You…"
     : FUTURE_YOU_PAGE_GENERATE_LABEL;
+  const placeholderSource = futureYouRevealPlaceholderSource(gender);
+
+  if (showGenerationLoading) {
+    return (
+      <View testID="future-you-upload-photo" className="mt-1 flex-1">
+        <View className="flex-row items-center gap-2 px-4 pb-1 pt-3">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Leave and keep generating in the background"
+            onPress={onClose}
+            hitSlop={10}
+            className="py-1.5"
+          >
+            <Text className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+              ← {FUTURE_YOU_DETAIL_BACK_LABEL}
+            </Text>
+          </Pressable>
+          <Text
+            className="min-w-0 flex-1 text-right text-xs"
+            style={{ color: colors.textSecondary }}
+          >
+            Keeps going if you leave
+          </Text>
+        </View>
+        <FutureYouGenerationLoadingView
+          fill
+          goal={goal}
+          gender={gender}
+          motivationId={motivationId}
+          generationStatus={generationStatus}
+          imageUri={photoPreview}
+          placeholderSource={placeholderSource}
+        />
+      </View>
+    );
+  }
 
   return (
-    <View testID="future-you-upload-photo" className="mt-1">
+    <View testID="future-you-upload-photo" className="mt-1 flex-1">
       <View
         className="flex-row items-center gap-2 border-b px-4 pb-2 pt-3"
         style={{ borderColor: colors.border }}
@@ -102,7 +143,7 @@ export function FutureYouNewPicView({
         <View className="min-w-[4.5rem]" />
       </View>
 
-      <View className="gap-4 pt-3">
+      <View className={step === "photo" ? "flex-1 pt-3" : "gap-4 pt-3"}>
       {step === "photo" ?
         <OnboardingFutureYouPhoto
           gender={gender}

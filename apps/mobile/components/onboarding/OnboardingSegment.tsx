@@ -21,6 +21,8 @@ export function OnboardingSegment({
   const { ob } = useOnboardingTheme();
   const pill = onboardingPillColors(ob, selected);
 
+  const inline = layout === "inline";
+
   return (
     <PressableScale
       onPress={onPress}
@@ -29,20 +31,26 @@ export function OnboardingSegment({
       accessibilityRole="button"
       accessibilityState={{ selected }}
       style={{
-        minHeight: ONBOARDING_PILL_MIN_HEIGHT,
+        minHeight: inline ? 48 : ONBOARDING_PILL_MIN_HEIGHT,
         borderWidth: 1.5,
         borderRadius: 9999,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        alignItems: layout === "inline" ? "center" : "flex-start",
-        justifyContent: layout === "inline" ? "center" : "flex-start",
+        paddingHorizontal: inline ? 12 : 16,
+        paddingVertical: inline ? 10 : 14,
+        alignItems: inline ? "center" : "flex-start",
+        justifyContent: inline ? "center" : "flex-start",
         borderColor: pill.borderColor,
         backgroundColor: pill.backgroundColor,
-        ...(layout === "inline" ? { flex: 1 } : null),
+        ...(inline ? { flex: 1, minWidth: 0 } : null),
       }}
     >
       {typeof children === "string" || typeof children === "number" ? (
-        <Text className="text-base font-medium" style={{ color: pill.color }}>
+        <Text
+          className={inline ? "text-[15px] font-medium" : "text-base font-medium"}
+          style={{ color: pill.color }}
+          numberOfLines={1}
+          adjustsFontSizeToFit={inline}
+          minimumFontScale={inline ? 0.85 : 1}
+        >
           {children}
         </Text>
       ) : (

@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { FavoriteStarButton } from "@/components/nutrition/FavoriteStarButton";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useLogFoodAccent } from "@/hooks/useLogFoodAccent";
 import { favoriteInputFromPreset, formatPresetSubtitle } from "@/lib/nutritionUserFoodHelpers";
 
 type Props = {
@@ -35,6 +36,7 @@ export function LogFoodFavoriteFoodsTab({
   onToggleFavorite,
 }: Props) {
   const { colors } = useAppTheme();
+  const { accent, accentText } = useLogFoodAccent();
 
   const favoritePresets = useMemo(
     () =>
@@ -99,12 +101,12 @@ export function LogFoodFavoriteFoodsTab({
               disabled={dayLogAtCapacity}
               className="h-9 w-9 items-center justify-center rounded-full border"
               style={{
-                borderColor: colors.accent,
-                backgroundColor: dayLogAtCapacity ? colors.border : colors.accent,
+                borderColor: accent,
+                backgroundColor: dayLogAtCapacity ? colors.border : accent,
                 opacity: dayLogAtCapacity ? 0.5 : 1,
               }}
             >
-              <Text className="text-lg font-bold leading-none" style={{ color: colors.accentText }}>
+              <Text className="text-lg font-bold leading-none" style={{ color: accentText }}>
                 +
               </Text>
             </Pressable>
@@ -150,12 +152,12 @@ export function LogFoodFavoriteFoodsTab({
               disabled={dayLogAtCapacity}
               className="h-9 w-9 items-center justify-center rounded-full border"
               style={{
-                borderColor: colors.accent,
-                backgroundColor: dayLogAtCapacity ? colors.border : colors.accent,
+                borderColor: accent,
+                backgroundColor: dayLogAtCapacity ? colors.border : accent,
                 opacity: dayLogAtCapacity ? 0.5 : 1,
               }}
             >
-              <Text className="text-lg font-bold leading-none" style={{ color: colors.accentText }}>
+              <Text className="text-lg font-bold leading-none" style={{ color: accentText }}>
                 +
               </Text>
             </Pressable>

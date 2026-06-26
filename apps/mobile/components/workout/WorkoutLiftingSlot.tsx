@@ -123,6 +123,16 @@ export function WorkoutLiftingSlot() {
     [state, w],
   );
 
+  const liftingDoneSets = useMemo(
+    () => (w ? w.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0) : 0),
+    [w],
+  );
+
+  const listExtraData = useMemo(
+    () => (useNewLook ? [liftingDoneSets, restTimer, restedRestSecByExerciseId] : liftingDoneSets),
+    [useNewLook, liftingDoneSets, restTimer, restedRestSecByExerciseId],
+  );
+
   if (!state || !w) return null;
 
   const workout = w;
@@ -130,7 +140,7 @@ export function WorkoutLiftingSlot() {
   const activeRoutine = state.workoutTemplates.find((t) => t.id === workout.splitId);
   const splitDay = activeRoutine?.dayLabel;
   const weightUnit = state.unitPreferences.weightUnit;
-  const doneSets = workout.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0);
+  const doneSets = liftingDoneSets;
   const overloadTip = getFirstSessionCoachNote(state, workout) ?? progressiveOverloadInsight(workout);
 
   const restSheetExercise = restSheetExerciseId
@@ -731,7 +741,7 @@ export function WorkoutLiftingSlot() {
               items={workout.exercises}
               onReorder={reorderExercises}
               listFooter={listFooter}
-              extraData={useNewLook ? [doneSets, restTimer, restedRestSecByExerciseId] : doneSets}
+              extraData={listExtraData}
               onScrollToIndexFailed={({ index, averageItemLength }) => {
                 listRef.current?.scrollToOffset({
                   offset: Math.max(0, averageItemLength * index),

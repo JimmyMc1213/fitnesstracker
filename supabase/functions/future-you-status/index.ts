@@ -3,6 +3,10 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import { FUTURE_YOU_BUCKET } from "../_shared/future-you/paths.ts";
 import {
+  FUTURE_YOU_JOB_STALE_ERROR,
+  isFutureYouJobStale,
+} from "../_shared/future-you/staleJob.ts";
+import {
   badStatusResponse,
   buildFutureYouPollResponse,
   isFutureYouJobId,
@@ -111,6 +115,43 @@ async function createResultSignedUrl(
   return data.signedUrl;
 }
 
+async function reconcileStaleJob(
+  adminClient: SupabaseClient,
+  userId: string,
+  job: FutureYouPollJobRow,
+): Promise<FutureYouPollJobRow> {
+  if (!isFutureYouJobStale(job.updated_at, job.status)) return job;
+
+  console.warn("future-you-status: failing stale job", {
+    jobId: job.id,
+    status: job.status,
+    updatedAt: job.updated_at,
+  });
+
+  const updatedAt = new Date().toISOString();
+  const { error } = await adminClient
+    .from("future_you_jobs")
+    .update({
+      status: "failed",
+      error: FUTURE_YOU_JOB_STALE_ERROR,
+      updated_at: updatedAt,
+    })
+    .eq("id", job.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("future-you-status: stale job update failed", { jobId: job.id, error });
+    return job;
+  }
+
+  return {
+    ...job,
+    status: "failed",
+    error: FUTURE_YOU_JOB_STALE_ERROR,
+    updated_at: updatedAt,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -137,10 +178,12 @@ Deno.serve(async (req) => {
       return badStatusResponse("Invalid job id.", corsHeaders);
     }
 
-    const job = await loadJob(auth.userClient, jobId);
+    let job = await loadJob(auth.userClient, jobId);
     if (!job) {
       return notFoundResponse(corsHeaders);
     }
+
+    job = await reconcileStaleJob(auth.adminClient, auth.userId, job);
 
     const entitled = await isFutureYouEntitled(auth.userId, auth.adminClient);
     let previewSignedUrl: string | null = null;

@@ -5,17 +5,19 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   View,
 } from "react-native";
 
 import { BottomSheet } from "@/components/motion";
+import { AppTextField } from "@/components/ui/AppTextField";
 
 import { IconSearch } from "@/components/icons/FitnessIcons";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { useBottomActionPadding } from "@/lib/screenInsets";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import {
+  HABIT_DESCRIPTION_MAX_LENGTH,
+  HABIT_NAME_MAX_LENGTH,
   availableHabitsToAdd,
   createCustomHabitTemplate,
   normalizeHabitIcon,
@@ -109,18 +111,12 @@ export function AddHabitSheet({ open, currentTemplates, onAdd, onClose }: Props)
                   <View className="absolute left-3 top-3.5 z-10">
                     <IconSearch size={16} stroke={1.6} color={colors.textTertiary} />
                   </View>
-                  <TextInput
+                  <AppTextField
                     value={query}
                     onChangeText={setQuery}
                     placeholder="Search habits"
-                    placeholderTextColor={colors.textTertiary}
                     accessibilityLabel="Search habits"
-                    className="rounded-xl border px-3 py-3 pl-9 text-[15px]"
-                    style={{
-                      borderColor: colors.border,
-                      backgroundColor: colors.backgroundSecondary,
-                      color: colors.textPrimary,
-                    }}
+                    shellStyle={{ paddingLeft: 36 }}
                   />
                 </View>
 
@@ -198,19 +194,12 @@ export function AddHabitSheet({ open, currentTemplates, onAdd, onClose }: Props)
                   >
                     Habit name
                   </Text>
-                  <TextInput
+                  <AppTextField
                     value={customName}
-                    maxLength={40}
+                    maxLength={HABIT_NAME_MAX_LENGTH}
                     onChangeText={(value) => setCustomName(sanitizeUserText(value))}
                     placeholder="e.g. Meditate"
-                    placeholderTextColor={colors.textTertiary}
                     accessibilityLabel="Habit name"
-                    className="rounded-xl border px-3 py-3 text-[15px]"
-                    style={{
-                      borderColor: colors.border,
-                      backgroundColor: colors.backgroundSecondary,
-                      color: colors.textPrimary,
-                    }}
                   />
                 </View>
                 <View>
@@ -220,19 +209,12 @@ export function AddHabitSheet({ open, currentTemplates, onAdd, onClose }: Props)
                   >
                     Description (optional)
                   </Text>
-                  <TextInput
+                  <AppTextField
                     value={customDescription}
-                    maxLength={80}
+                    maxLength={HABIT_DESCRIPTION_MAX_LENGTH}
                     onChangeText={(value) => setCustomDescription(sanitizeUserText(value))}
                     placeholder="Why this matters"
-                    placeholderTextColor={colors.textTertiary}
                     accessibilityLabel="Habit description"
-                    className="rounded-xl border px-3 py-3 text-[15px]"
-                    style={{
-                      borderColor: colors.border,
-                      backgroundColor: colors.backgroundSecondary,
-                      color: colors.textPrimary,
-                    }}
                   />
                 </View>
                 <PrimaryButton block onPress={saveCustom} disabled={!customName.trim()}>

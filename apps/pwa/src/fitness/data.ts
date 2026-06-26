@@ -1,6 +1,11 @@
 import { defaultExerciseTarget } from "./exercisePrescriptionDefaults";
 import exerciseLibrary from "./exerciseLibrary";
 import type { Habit, HabitTemplate, MacroTotals, VolumeUnit, WorkoutExercise, WorkoutRoutineTemplate, WorkoutSet, WorkoutState } from "./types";
+import {
+  PREFERRED_PROGRAMMED_SETS,
+  clampProgrammedSetCount,
+  clampUserEditableSetCount,
+} from "@newyouai/core";
 import { buildHabitsForDateKey as buildHabitsForDateKeyFromTemplates, defaultDailyHabitTemplates, isLegacyDefaultHabitTemplates } from "./habits";
 import { DEFAULT_WATER_DAILY_TARGET_OZ } from "./waterIntake";
 
@@ -57,7 +62,7 @@ export function newTemplateExerciseLine(
   name: string,
   opts?: { label?: string; target?: string; setCount?: number },
 ): WorkoutExercise {
-  const setCount = Math.min(Math.max(opts?.setCount ?? 3, 1), 4);
+  const setCount = clampProgrammedSetCount(opts?.setCount ?? PREFERRED_PROGRAMMED_SETS);
   const label = opts?.label?.trim();
   const target =
     (opts?.target ?? defaultExerciseTarget(name.trim(), label, setCount)).trim() || defaultExerciseTarget(name.trim(), label, setCount);
@@ -71,7 +76,7 @@ export function newTemplateExerciseLine(
 }
 
 export function resizeWorkoutSets(existing: WorkoutSet[], n: number): WorkoutSet[] {
-  const c = Math.min(Math.max(n, 1), 12);
+  const c = clampUserEditableSetCount(n);
   const next = existing.slice(0, c);
   while (next.length < c) {
     const last = next[next.length - 1] ?? { w: 0, r: 0, done: false };

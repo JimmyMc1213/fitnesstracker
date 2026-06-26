@@ -13,7 +13,8 @@ import {
 import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { TabScreenFade } from "@/components/motion/TabScreenFade";
 import { useAuth } from "@/context/AuthContext";
 import { hasAuthenticatedUser } from "@/lib/authSession";
@@ -28,8 +29,8 @@ import {
   activeWeekFocusCommitments,
   HomeWeekFocusCard,
 } from "@/components/home/HomeWeekFocusCard";
-import { MobilityPreviewSheet } from "@/components/home/MobilityPreviewSheet";
 import { ScreenHeader } from "@/components/home/ScreenHeader";
+import { MobilityRoutineFlow } from "@/components/stretch/MobilityRoutineFlow";
 import { WeighInCoachReaction } from "@/components/home/WeighInCoachReaction";
 import { WeighInSheet } from "@/components/home/WeighInSheet";
 import { IconChevR, IconPlus } from "@/components/icons/FitnessIcons";
@@ -253,8 +254,16 @@ export default function HomeScreen() {
   }
 
   return (
-    <TabScreenFade>
-      <ScrollView
+    <TabScreenFade style={{ flex: 1 }}>
+      <MobilityRoutineFlow
+        state={state}
+        setState={setFitnessState}
+        previewOpen={mobilityPreviewOpen}
+        onPreviewOpenChange={setMobilityPreviewOpen}
+        paddingTop={paddingTop}
+        paddingBottom={paddingBottom}
+      >
+      <NestableScrollContainer
         testID="tab-home"
         className="px-screen-x"
         style={{
@@ -370,7 +379,7 @@ export default function HomeScreen() {
           onLogFuel={() => router.push("/(tabs)/nutrition")}
           onStartWorkout={() => router.push("/(tabs)/workout")}
           onReviewWorkout={() => router.push("/(tabs)/workout")}
-          onOpenMobilityPreview={() => setMobilityPreviewOpen(true)}
+          onLogWeighIn={() => setWeighInOpen(true)}
           onOpenNewYou={openNewYou}
         />
 
@@ -388,7 +397,7 @@ export default function HomeScreen() {
         />
 
         <View className="h-2" />
-      </ScrollView>
+      </NestableScrollContainer>
 
       <WeighInSheet
         open={weighInOpen}
@@ -398,11 +407,7 @@ export default function HomeScreen() {
         unitPreferences={state.unitPreferences}
         setFitnessState={setFitnessState}
       />
-
-      <MobilityPreviewSheet
-        open={mobilityPreviewOpen}
-        onClose={() => setMobilityPreviewOpen(false)}
-      />
+      </MobilityRoutineFlow>
     </TabScreenFade>
   );
 }

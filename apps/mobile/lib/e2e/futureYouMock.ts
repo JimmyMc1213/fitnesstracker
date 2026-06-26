@@ -4,9 +4,14 @@ import type {
   FutureYouUploadResult,
 } from "@newyouai/api-client";
 
-/** Dev/E2E only, set EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true on Metro to bypass camera + Edge Functions. */
+/** Dev/E2E only — stubs upload/generate/poll Edge Functions (Maestro without real AI). */
 export function isE2eMockFutureYouEnabled(): boolean {
   return __DEV__ && process.env.EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU === "true";
+}
+
+/** Maestro/simulator only — injects a tiny JPEG instead of opening camera/gallery. */
+export function isE2eMockFutureYouCameraEnabled(): boolean {
+  return __DEV__ && process.env.EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU_CAMERA === "true";
 }
 
 export const E2E_MOCK_FUTURE_YOU_JOB_ID = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";

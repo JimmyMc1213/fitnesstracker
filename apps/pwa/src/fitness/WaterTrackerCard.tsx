@@ -1,11 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleContext,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { IconDroplet } from "./icons";
 import {
@@ -27,6 +21,7 @@ type WaterTrackerCardProps = {
   volumeUnit: VolumeUnit;
   onAddOz: (oz: number) => void;
   onRemoveEntry?: (entryId: string) => void;
+  onRemoveAllEntries?: () => void;
 };
 
 export function WaterTrackerCard({
@@ -38,11 +33,13 @@ export function WaterTrackerCard({
   volumeUnit,
   onAddOz,
   onRemoveEntry,
+  onRemoveAllEntries,
 }: WaterTrackerCardProps) {
   const [customAmount, setCustomAmount] = useState("");
   const [customError, setCustomError] = useState<string | null>(null);
   const [showEarlier, setShowEarlier] = useState(false);
   const [pendingRemoveEntryId, setPendingRemoveEntryId] = useState<string | null>(null);
+  const [pendingRemoveAll, setPendingRemoveAll] = useState(false);
 
   const total = totalWaterOzForDateKey({ [dateKey]: entries }, dateKey);
   const pct = targetOz > 0 ? Math.max(0, Math.min(1, total / targetOz)) : 0;
@@ -194,17 +191,26 @@ export function WaterTrackerCard({
           }}
         >
           {renderEntryRow(sortedEntries[0], earlierCount > 0)}
+          {showEarlier
+            ? earlierEntries.map((entry, idx) =>
+                renderEntryRow(entry, idx < earlierEntries.length - 1),
+              )
+            : null}
           {earlierCount > 0 ? (
-            <Collapsible open={showEarlier} onOpenChange={(details) => setShowEarlier(details.open)}>
-              <CollapsibleContent>
-                {earlierEntries.map((entry, idx) =>
-                  renderEntryRow(entry, idx < earlierEntries.length - 1),
-                )}
-              </CollapsibleContent>
-              <CollapsibleTrigger
+            <div
+              style={{
+                marginTop: 2,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <button
+                type="button"
                 className="tap"
+                onClick={() => setShowEarlier((open) => !open)}
                 style={{
-                  marginTop: 2,
                   padding: 0,
                   border: "none",
                   background: "none",
@@ -214,15 +220,31 @@ export function WaterTrackerCard({
                   color: "rgba(10,132,255,0.95)",
                 }}
               >
-                <CollapsibleContext>
-                  {(ctx) =>
-                    ctx.open
-                      ? "Hide earlier entries"
-                      : `Show ${earlierCount} earlier ${earlierCount === 1 ? "entry" : "entries"}`
-                  }
-                </CollapsibleContext>
-              </CollapsibleTrigger>
-            </Collapsible>
+                {showEarlier
+                  ? "Hide earlier entries"
+                  : `Show ${earlierCount} earlier ${earlierCount === 1 ? "entry" : "entries"}`}
+              </button>
+              {showEarlier && !readOnly && onRemoveAllEntries ? (
+                <button
+                  type="button"
+                  className="tap"
+                  aria-label="Remove all water entries"
+                  onClick={() => setPendingRemoveAll(true)}
+                  style={{
+                    padding: 0,
+                    border: "none",
+                    background: "none",
+                    fontSize: 11,
+                    fontWeight: 500,
+                    color: "var(--text-ghost)",
+                    opacity: 0.75,
+                    flexShrink: 0,
+                  }}
+                >
+                  Remove all
+                </button>
+              ) : null}
+            </div>
           ) : null}
         </div>
       ) : null}
@@ -301,6 +323,28 @@ export function WaterTrackerCard({
             </div>
           ) : null}
         </>
+      ) : null}
+      {pendingRemoveAll && onRemoveAllEntries ? (
+        <DeleteConfirmSheet
+          title="Remove all water entries?"
+          cancelLabel="Keep entries"
+          confirmLabel="Remove all"
+          message={
+            <>
+              Remove all{" "}
+              <strong style={{ color: "var(--text-primary)" }}>
+                {sortedEntries.length} entries ({formatWaterVolume(total, volumeUnit)})
+              </strong>{" "}
+              from today&apos;s log?
+            </>
+          }
+          onCancel={() => setPendingRemoveAll(false)}
+          onConfirm={() => {
+            onRemoveAllEntries();
+            setPendingRemoveAll(false);
+            setShowEarlier(false);
+          }}
+        />
       ) : null}
       {pendingRemoveEntryId && onRemoveEntry ? (
         <DeleteConfirmSheet

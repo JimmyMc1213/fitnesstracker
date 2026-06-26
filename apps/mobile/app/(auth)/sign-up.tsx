@@ -6,19 +6,21 @@ import {
   Platform,
   Pressable,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
+import { AuthTextField } from "@/components/ui/AuthTextField";
 import { useAuth } from "@/context/AuthContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { authLayout } from "@/lib/authLayoutStyles";
 
 export default function SignUpScreen() {
   const { colors } = useAppTheme();
+  const { ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
   const { signUpWithEmail } = useAuth();
   const [name, setName] = useState("");
@@ -55,15 +57,6 @@ export default function SignUpScreen() {
     }
   };
 
-  const inputStyle = [
-    authLayout.input,
-    {
-      backgroundColor: colors.card,
-      color: colors.textPrimary,
-      borderColor: colors.border,
-    },
-  ];
-
   return (
     <KeyboardAvoidingView
       style={[authLayout.screen, { backgroundColor: colors.background }]}
@@ -80,7 +73,7 @@ export default function SignUpScreen() {
         testID="auth-sign-up-screen"
       >
         <Pressable onPress={() => router.back()} testID="auth-sign-up-back">
-          <Text style={{ color: colors.accent, fontSize: 16 }}>Back</Text>
+          <Text style={{ color: colors.textPrimary, fontSize: 16 }}>Back</Text>
         </Pressable>
 
         <View style={{ marginTop: 24, alignItems: "center" }}>
@@ -98,10 +91,8 @@ export default function SignUpScreen() {
         </Text>
 
         <View style={authLayout.inputStack}>
-          <TextInput
-            style={inputStyle}
+          <AuthTextField
             placeholder="Name"
-            placeholderTextColor={colors.textTertiary}
             value={name}
             onChangeText={setName}
             autoComplete="name"
@@ -109,10 +100,8 @@ export default function SignUpScreen() {
             accessibilityLabel="Name"
             testID="auth-sign-up-name"
           />
-          <TextInput
-            style={inputStyle}
+          <AuthTextField
             placeholder="Email"
-            placeholderTextColor={colors.textTertiary}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -122,10 +111,8 @@ export default function SignUpScreen() {
             accessibilityLabel="Email"
             testID="auth-sign-up-email"
           />
-          <TextInput
-            style={inputStyle}
+          <AuthTextField
             placeholder="Password"
-            placeholderTextColor={colors.textTertiary}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -151,7 +138,7 @@ export default function SignUpScreen() {
 
         {info ? (
           <Text
-            style={{ marginTop: 16, textAlign: "center", fontSize: 14, color: colors.accent }}
+            style={{ marginTop: 16, textAlign: "center", fontSize: 14, color: colors.textSecondary }}
             testID="auth-sign-up-info"
           >
             {info}
@@ -162,16 +149,16 @@ export default function SignUpScreen() {
           <Pressable
             style={[
               authLayout.primaryButton,
-              { backgroundColor: colors.accent, opacity: loading ? 0.7 : 1 },
+              { backgroundColor: ob.gold, opacity: loading ? 0.7 : 1 },
             ]}
             onPress={() => void handleSignUp()}
             disabled={loading}
             testID="auth-sign-up-submit"
           >
             {loading ? (
-              <ActivityIndicator color={colors.accentText} />
+              <ActivityIndicator color={ob.goldOn} />
             ) : (
-              <Text style={[authLayout.primaryButtonText, { color: colors.accentText }]}>
+              <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
                 Create Account
               </Text>
             )}
@@ -184,7 +171,7 @@ export default function SignUpScreen() {
           >
             <Text style={{ fontSize: 14, color: colors.textSecondary }}>
               Already have an account?{" "}
-              <Text style={{ color: colors.accent, fontWeight: "600" }}>Sign in</Text>
+              <Text style={{ color: colors.textPrimary, fontWeight: "600" }}>Sign in</Text>
             </Text>
           </Pressable>
         </View>

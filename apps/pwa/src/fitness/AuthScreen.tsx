@@ -93,7 +93,12 @@ function AuthFormShell({
         </div>
 
         <div className="auth-screen__footer">
-          <button type="button" className="tap onboarding-continue" onClick={onPrimary} disabled={primaryDisabled}>
+          <button
+            type="button"
+            className="tap onboarding-continue onboarding-continue--gold"
+            onClick={onPrimary}
+            disabled={primaryDisabled}
+          >
             {primaryDisabled ? primaryLoadingLabel : primaryLabel}
           </button>
           <button type="button" className="auth-screen__toggle tap" onClick={onToggle}>

@@ -1,11 +1,8 @@
 import type { CoachContext, HomeCoachPlan } from "@newyouai/core";
 import {
-  estimateRoutineSessionSeconds,
-  formatEstimatedSessionMinutes,
   homePlanSubline,
   nextTrainingDayFrom,
 } from "@newyouai/core";
-import { IconDroplet, IconMeat, IconZzz } from "@tabler/icons-react-native";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -21,9 +18,7 @@ import {
 import { MacroBar } from "@/components/home/MacroBar";
 import { MacroRing } from "@/components/home/MacroRing";
 import { MACRO_COLORS } from "@/lib/macroColors";
-import { PrimaryButton } from "@/components/home/PrimaryButton";
-import { resolveCoachTaskNavigation } from "@/lib/coachTaskActions";
-import { STRETCH_BLOCKS } from "@/lib/stretchRoutine";
+import { IconCheck, IconChevR } from "@/components/icons/FitnessIcons";
 import { futureYouWeekProgress } from "@/lib/futureYouTimeline";
 import {
   FUTURE_YOU_CALLOUT_BG,
@@ -39,12 +34,6 @@ type NewYouProgress = { week: number; totalWeeks: number };
 const CAROUSEL_CARD_HEIGHT = 196;
 const SLIDE_COUNT = 2;
 
-const REST_FOCUS_TAGS = [
-  { Icon: IconDroplet, label: "Hydration" },
-  { Icon: IconMeat, label: "Hit protein" },
-  { Icon: IconZzz, label: "8hrs sleep" },
-] as const;
-
 type Props = {
   totals: MacroTotals;
   targets: MacroTotals;
@@ -58,28 +47,31 @@ type Props = {
   onLogFuel: () => void;
   onStartWorkout: () => void;
   onReviewWorkout: () => void;
-  onOpenMobilityPreview?: () => void;
+  onLogWeighIn?: () => void;
   onOpenNewYou?: () => void;
 };
 
-function CarouselCard({ children, gold = false }: { children: React.ReactNode; gold?: boolean }) {
-  const { colors, scheme } = useAppTheme();
+function CarouselCard({
+  children,
+  gold = false,
+  compactLayout = false,
+}: {
+  children: React.ReactNode;
+  gold?: boolean;
+  compactLayout?: boolean;
+}) {
+  const { colors } = useAppTheme();
   return (
     <View
-      className="overflow-hidden rounded-[14px] border px-4 py-[18px]"
+      className="overflow-hidden rounded-[14px] border px-4"
       style={{
         height: CAROUSEL_CARD_HEIGHT,
+        paddingTop: compactLayout ? 10 : 18,
+        paddingBottom: compactLayout ? 12 : 18,
         borderColor: gold ? FUTURE_YOU_GOLD : colors.border,
         backgroundColor: colors.card,
       }}
     >
-      {gold ? (
-        <View
-          pointerEvents="none"
-          className="absolute inset-0 rounded-[14px]"
-          style={{ backgroundColor: scheme === "dark" ? "rgba(201, 168, 118, 0.10)" : "rgba(201, 168, 118, 0.07)" }}
-        />
-      ) : null}
       {children}
     </View>
   );
@@ -122,7 +114,7 @@ function NewYouProgressLine({ week, totalWeeks }: NewYouProgress) {
   const { scheme } = useAppTheme();
   const color = scheme === "dark" ? FUTURE_YOU_GOLD_MID : FUTURE_YOU_GOLD_DEEP;
   return (
-    <Text className="mt-1.5 text-[13px] font-semibold leading-[1.45]" style={{ color }}>
+    <Text className="mt-1 text-[13px] font-semibold leading-[1.45]" style={{ color }}>
       Week {week} of {totalWeeks} to reach your NewYou
     </Text>
   );
@@ -140,7 +132,7 @@ function SlideTopRow({
 }) {
   if (!isToday && !newYou) return null;
   return (
-    <View className="mb-1.5 flex-row items-center justify-between">
+    <View className="mb-1 flex-row items-center justify-between">
       {isToday ? <TodayLabel gold={newYou} /> : <View />}
       {newYou ? <NewYouGoldButton onPress={onOpenNewYou} /> : null}
     </View>
@@ -159,14 +151,13 @@ export function HomeDashboardCarousel({
   onLogFuel,
   onStartWorkout,
   onReviewWorkout,
-  onOpenMobilityPreview,
+  onLogWeighIn,
   onOpenNewYou,
 }: Props) {
   const { colors } = useAppTheme();
   const [activeSlide, setActiveSlide] = useState(0);
   const slideWidth = Dimensions.get("window").width - 48;
   const kcalLeft = Math.max(0, targets.cal - totals.cal);
-  const proteinLeft = Math.max(0, targets.p - totals.p);
 
   const newYouProgress = useMemo<NewYouProgress | null>(() => {
     if (!newYou || !isToday) return null;
@@ -197,11 +188,11 @@ export function HomeDashboardCarousel({
       coachPlan={coachPlan}
       state={state}
       isToday={isToday}
-      proteinLeft={proteinLeft}
       newYouProgress={newYouProgress}
       onStartWorkout={onStartWorkout}
       onReviewWorkout={onReviewWorkout}
-      onOpenMobilityPreview={onOpenMobilityPreview}
+      onLogFuel={onLogFuel}
+      onLogWeighIn={onLogWeighIn}
       onOpenNewYou={onOpenNewYou}
     />,
   ];
@@ -233,7 +224,7 @@ export function HomeDashboardCarousel({
               width: activeSlide === i ? 18 : 6,
               height: 6,
               borderRadius: 999,
-              backgroundColor: activeSlide === i ? colors.accent : colors.textTertiary,
+              backgroundColor: activeSlide === i ? colors.textPrimary : colors.textTertiary,
               opacity: activeSlide === i ? 1 : 0.5,
             }}
           />
@@ -294,27 +285,34 @@ function FuelSlide({
   );
 }
 
+type TodoItem = {
+  key: string;
+  label: string;
+  done: boolean;
+  onPress?: () => void;
+};
+
 function TrainingSlide({
   coachCtx,
   coachPlan,
   state,
   isToday,
-  proteinLeft,
   newYouProgress,
   onStartWorkout,
   onReviewWorkout,
-  onOpenMobilityPreview,
+  onLogFuel,
+  onLogWeighIn,
   onOpenNewYou,
 }: {
   coachCtx: CoachContext | null;
   coachPlan: HomeCoachPlan | null;
   state: AppState;
   isToday: boolean;
-  proteinLeft: number;
   newYouProgress: NewYouProgress | null;
   onStartWorkout: () => void;
   onReviewWorkout: () => void;
-  onOpenMobilityPreview?: () => void;
+  onLogFuel: () => void;
+  onLogWeighIn?: () => void;
   onOpenNewYou?: () => void;
 }) {
   const { colors } = useAppTheme();
@@ -324,147 +322,121 @@ function TrainingSlide({
   const workoutDone = coachCtx?.workoutCompletedToday ?? false;
   const newYou = newYouProgress != null;
 
-  if (isTrainingDay && template && !workoutDone) {
-    const durationSec = estimateRoutineSessionSeconds(template);
-    const durationLabel = formatEstimatedSessionMinutes(durationSec);
-    const exerciseCount = template.exercises.length;
-    const subtitleParts: string[] = [];
-    if (durationLabel) subtitleParts.push(durationLabel);
-    if (exerciseCount > 0) subtitleParts.push(`${exerciseCount} exercises`);
+  const proteinTarget = state.nutritionTargets.p;
+  const nutritionGoalHit = coachCtx?.nutritionGoalHit ?? false;
+  const scheduledWeighInDay = coachCtx?.scheduledWeighInDay ?? false;
+  const weighInLoggedToday = coachCtx?.weighInLoggedToday ?? false;
 
-    return (
-      <CarouselCard gold={newYou}>
-        <View className="flex-1 justify-between gap-3">
-          <View>
-            <SlideTopRow isToday={isToday} newYou={newYou} onOpenNewYou={onOpenNewYou} />
-            <Text className="text-[22px] font-bold tracking-tight" style={{ color: colors.textPrimary }}>
-              {template.name}
-            </Text>
-            {newYouProgress ? (
-              <NewYouProgressLine week={newYouProgress.week} totalWeeks={newYouProgress.totalWeeks} />
-            ) : subtitleParts.length > 0 ? (
-              <Text className="mt-1.5 text-[13px] font-medium leading-[1.45]" style={{ color: colors.textSecondary }}>
-                {subtitleParts.join(" · ")}
-              </Text>
-            ) : null}
-          </View>
-          <View className="gap-2.5">
-            {isToday ? (
-              <PrimaryButton block onPress={onStartWorkout}>
-                Start workout
-              </PrimaryButton>
-            ) : null}
-            {!newYou && splitSubline ? (
-              <Text className="text-center text-[11px] font-medium" style={{ color: colors.textTertiary }}>
-                {splitSubline}
-              </Text>
-            ) : null}
-          </View>
-        </View>
-      </CarouselCard>
-    );
+  const title = isTrainingDay ? "Today's workout" : "Rest day";
+
+  const todos: TodoItem[] = [];
+
+  if (isTrainingDay && template) {
+    todos.push({
+      key: "workout",
+      label: template.name,
+      done: workoutDone,
+      onPress: workoutDone ? onReviewWorkout : onStartWorkout,
+    });
   }
 
-  if (isTrainingDay && template && workoutDone) {
-    return (
-      <CarouselCard gold={newYou}>
-        <View className="flex-1 justify-between gap-3">
-          <View>
-            <SlideTopRow isToday={isToday} newYou={newYou} onOpenNewYou={onOpenNewYou} />
-            <Text className="text-[22px] font-bold tracking-tight" style={{ color: colors.textPrimary }}>
-              Session complete
-            </Text>
-            {newYouProgress ? (
-              <NewYouProgressLine week={newYouProgress.week} totalWeeks={newYouProgress.totalWeeks} />
-            ) : (
-              <Text className="mt-1.5 text-[13px] font-medium" style={{ color: colors.textSecondary }}>
-                {template.name} · logged today
-              </Text>
-            )}
-          </View>
-          <View className="gap-2.5">
-            {isToday ? (
-              <Pressable
-                onPress={onReviewWorkout}
-                className="items-center rounded-xl border px-4 py-3"
-                style={{ borderColor: colors.border }}
-              >
-                <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
-                  Review session →
-                </Text>
-              </Pressable>
-            ) : null}
-            {!newYou && splitSubline ? (
-              <Text className="text-center text-[11px] font-medium" style={{ color: colors.textTertiary }}>
-                {splitSubline}
-              </Text>
-            ) : null}
-          </View>
-        </View>
-      </CarouselCard>
-    );
+  todos.push({
+    key: "fuel",
+    label: `Hit ${proteinTarget}g protein`,
+    done: nutritionGoalHit,
+    onPress: onLogFuel,
+  });
+
+  if (scheduledWeighInDay) {
+    todos.push({
+      key: "weigh-in",
+      label: coachCtx?.isSunday ? "Sunday weigh-in" : "Log weigh-in",
+      done: weighInLoggedToday,
+      onPress: onLogWeighIn,
+    });
   }
 
-  const nextSession = nextTrainingDayFrom(state.workoutTemplates, coachCtx?.now ?? new Date());
   const restTask = coachPlan?.tasks.find((t) => t.kind === "rest_day");
-  const showStretchCta =
-    isToday && STRETCH_BLOCKS.length > 0 && restTask != null && resolveCoachTaskNavigation(restTask) === "stretch";
+  const nextSession = nextTrainingDayFrom(state.workoutTemplates, coachCtx?.now ?? new Date());
+  const restSubline = nextSession
+    ? `Next session: ${nextSession.fullName} · ${nextSession.template.name}`
+    : (restTask?.label ?? "Recovery keeps the habit chain alive.");
+  const subline = isTrainingDay ? splitSubline : restSubline;
 
   return (
-    <CarouselCard gold={newYou}>
-      <View className="flex-1 justify-between gap-3">
-        <View>
-          <SlideTopRow isToday={isToday} newYou={newYou} onOpenNewYou={onOpenNewYou} />
-          <Text className="text-[22px] font-bold tracking-tight" style={{ color: colors.textPrimary }}>
-            Rest day
+    <CarouselCard gold={newYou} compactLayout>
+      <View className="flex-1 justify-center">
+        <SlideTopRow isToday={isToday} newYou={newYou} onOpenNewYou={onOpenNewYou} />
+        <Text className="text-[20px] font-bold tracking-tight" style={{ color: colors.textPrimary }}>
+          {title}
+        </Text>
+        {newYouProgress ? (
+          <NewYouProgressLine week={newYouProgress.week} totalWeeks={newYouProgress.totalWeeks} />
+        ) : subline ? (
+          <Text
+            className="mt-0.5 text-[12px] font-medium leading-[1.4]"
+            style={{ color: colors.textSecondary }}
+            numberOfLines={1}
+          >
+            {subline}
           </Text>
-          {newYouProgress ? (
-            <NewYouProgressLine week={newYouProgress.week} totalWeeks={newYouProgress.totalWeeks} />
-          ) : (
-            <Text className="mt-1.5 text-[13px] font-medium leading-[1.45]" style={{ color: colors.textSecondary }}>
-              {nextSession
-                ? `Next session: ${nextSession.fullName} · ${nextSession.template.name}`
-                : (restTask?.label ?? "Recovery keeps the habit chain alive.")}
-            </Text>
-          )}
-        </View>
+        ) : null}
 
-        <View className="flex-row justify-between gap-1.5">
-          {REST_FOCUS_TAGS.map(({ Icon, label }) => (
-            <View
-              key={label}
-              className="min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-full border px-2 py-1.5"
-              style={{ borderColor: colors.border, backgroundColor: colors.background }}
-            >
-              <Icon size={13} color={colors.textSecondary} strokeWidth={2} />
-              <Text className="text-xs font-medium" style={{ color: colors.textSecondary }} numberOfLines={1}>
-                {label}
-              </Text>
-            </View>
+        <View className="mt-1.5" style={{ gap: 2 }}>
+          {todos.map((item) => (
+            <TodoRow key={item.key} item={item} interactive={isToday} />
           ))}
-        </View>
-
-        <View className="gap-2.5">
-          {showStretchCta ? (
-            <Pressable
-              onPress={onOpenMobilityPreview}
-              testID="coach-stretch-cta"
-              className="items-center rounded-xl border px-4 py-3"
-              style={{ borderColor: colors.border }}
-            >
-              <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
-                Start stretch routine →
-              </Text>
-            </Pressable>
-          ) : isToday ? (
-            <Text className="text-center text-[13px] font-medium leading-[1.45]" style={{ color: colors.textSecondary }}>
-              Focus on fuel today, {Math.round(proteinLeft)}g protein left
-            </Text>
-          ) : null}
         </View>
       </View>
     </CarouselCard>
   );
+}
+
+function TodoRow({ item, interactive }: { item: TodoItem; interactive: boolean }) {
+  const { colors } = useAppTheme();
+  const actionable = interactive && !item.done && Boolean(item.onPress);
+
+  const inner = (
+    <View className="flex-row items-center gap-2.5" style={{ paddingVertical: 4 }}>
+      <View
+        className="items-center justify-center rounded-full border"
+        style={{
+          height: 20,
+          width: 20,
+          borderColor: item.done ? colors.accent : colors.border,
+          backgroundColor: item.done ? colors.accent : "transparent",
+        }}
+      >
+        {item.done ? <IconCheck size={12} stroke={2.6} color={colors.background} /> : null}
+      </View>
+      <Text
+        className="min-w-0 flex-1 text-[13px] font-semibold tracking-tight"
+        numberOfLines={1}
+        style={{
+          color: item.done ? colors.textTertiary : colors.textPrimary,
+          textDecorationLine: item.done ? "line-through" : "none",
+        }}
+      >
+        {item.label}
+      </Text>
+      {actionable ? <IconChevR size={16} stroke={2.2} color={colors.textTertiary} /> : null}
+    </View>
+  );
+
+  if (actionable) {
+    return (
+      <Pressable
+        onPress={item.onPress}
+        testID={`home-todo-${item.key}`}
+        accessibilityRole="button"
+        accessibilityLabel={item.label}
+      >
+        {inner}
+      </Pressable>
+    );
+  }
+
+  return <View testID={`home-todo-${item.key}`}>{inner}</View>;
 }
 
 function TodayLabel({ gold = false }: { gold?: boolean }) {

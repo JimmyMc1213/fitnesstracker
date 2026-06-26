@@ -6,6 +6,10 @@ import {
   SESSION_TARGET_SECONDS,
   restSecondsForSessionLength,
 } from "./sessionLengthConfig";
+import {
+  PREFERRED_PROGRAMMED_SETS,
+  PROGRAMMED_MAX_SETS,
+} from "@newyouai/core";
 import type { SessionLength } from "@newyouai/types";
 
 export type SessionVolumeFit = {
@@ -15,43 +19,44 @@ export type SessionVolumeFit = {
 };
 
 const MIN_SETS = 2;
-const MAX_SETS = 4;
+
+type VolumeCandidate = SessionVolumeFit & { diff: number; setDiff: number };
+
+function isBetterVolumeCandidate(candidate: VolumeCandidate, best: VolumeCandidate): boolean {
+  if (candidate.diff < best.diff) return true;
+  if (candidate.diff > best.diff) return false;
+  if (candidate.setDiff < best.setDiff) return true;
+  if (candidate.setDiff > best.setDiff) return false;
+  return candidate.setCount < best.setCount;
+}
 
 export function fitSessionVolume(
   maxExercises: number,
   sessionLength: SessionLength,
-  preferredSets: number,
+  preferredSets: number = PREFERRED_PROGRAMMED_SETS,
 ): SessionVolumeFit {
   const targetSeconds = SESSION_TARGET_SECONDS[sessionLength];
   const { minSeconds, maxSeconds } = SESSION_BOUNDS_SECONDS[sessionLength];
   const restSeconds = restSecondsForSessionLength(sessionLength);
   const cappedMax = Math.max(1, maxExercises);
 
-  let bestInBucket: (SessionVolumeFit & { diff: number; setDiff: number }) | null = null;
-  let bestOverall: (SessionVolumeFit & { diff: number; setDiff: number }) | null = null;
+  let bestInBucket: VolumeCandidate | null = null;
+  let bestOverall: VolumeCandidate | null = null;
 
   for (let exerciseCount = 1; exerciseCount <= cappedMax; exerciseCount++) {
-    for (let setCount = MIN_SETS; setCount <= MAX_SETS; setCount++) {
+    for (let setCount = MIN_SETS; setCount <= PROGRAMMED_MAX_SETS; setCount++) {
       const estimatedSeconds = estimateSessionSecondsFromCounts(exerciseCount, setCount, restSeconds);
       const diff = Math.abs(estimatedSeconds - targetSeconds);
       const setDiff = Math.abs(setCount - preferredSets);
-      const candidate = { exerciseCount, setCount, estimatedSeconds, diff, setDiff };
+      const candidate: VolumeCandidate = { exerciseCount, setCount, estimatedSeconds, diff, setDiff };
 
       if (estimatedSeconds >= minSeconds && estimatedSeconds <= maxSeconds) {
-        if (
-          !bestInBucket ||
-          candidate.diff < bestInBucket.diff ||
-          (candidate.diff === bestInBucket.diff && candidate.setDiff < bestInBucket.setDiff)
-        ) {
+        if (!bestInBucket || isBetterVolumeCandidate(candidate, bestInBucket)) {
           bestInBucket = candidate;
         }
       }
 
-      if (
-        !bestOverall ||
-        candidate.diff < bestOverall.diff ||
-        (candidate.diff === bestOverall.diff && candidate.setDiff < bestOverall.setDiff)
-      ) {
+      if (!bestOverall || isBetterVolumeCandidate(candidate, bestOverall)) {
         bestOverall = candidate;
       }
     }

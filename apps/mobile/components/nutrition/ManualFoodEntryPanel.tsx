@@ -5,12 +5,14 @@ import {
 } from "@newyouai/core";
 import type { NutritionLoggedItem } from "@newyouai/types";
 import { useState } from "react";
-import { ScrollView, Switch, Text, TextInput, View } from "react-native";
+import { ScrollView, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useBottomActionPadding } from "@/lib/screenInsets";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
+import { AppTextField } from "@/components/ui/AppTextField";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useLogFoodAccent } from "@/hooks/useLogFoodAccent";
 
 type Props = {
   dayLogAtCapacity: boolean;
@@ -31,6 +33,7 @@ function FieldLabel({ label }: { label: string }) {
 
 export function ManualFoodEntryPanel({ dayLogAtCapacity, onLog }: Props) {
   const { colors } = useAppTheme();
+  const { accent } = useLogFoodAccent();
   const insets = useSafeAreaInsets();
   const bottomActionPadding = useBottomActionPadding();
   const [draftName, setDraftName] = useState("");
@@ -77,27 +80,25 @@ export function ManualFoodEntryPanel({ dayLogAtCapacity, onLog }: Props) {
           </Text>
 
           <FieldLabel label="Name" />
-          <TextInput
+          <AppTextField
             value={draftName}
             onChangeText={setDraftName}
             testID="manual-food-name"
             accessibilityLabel="Food name"
             placeholder="e.g. Greek yogurt"
-            placeholderTextColor={colors.textTertiary}
-            className="rounded-xl border px-3 py-3 text-[15px]"
-            style={{ borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }}
+            backgroundColor={colors.background}
           />
 
           <FieldLabel label="Calories (cal)" />
-          <TextInput
+          <AppTextField
             value={draftCal}
             onChangeText={(raw) => setDraftCal(clampMacroInputString(raw, "cal"))}
             onBlur={() => setDraftCal(String(parseBoundedMacro(draftCal, "cal")))}
             testID="manual-food-calories"
             accessibilityLabel="Calories"
             keyboardType="decimal-pad"
-            className="rounded-xl border px-3 py-3 text-[15px] tabular-nums"
-            style={{ borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }}
+            backgroundColor={colors.background}
+            style={{ fontVariant: ["tabular-nums"] }}
           />
 
           <View className="mt-1 flex-row gap-2">
@@ -110,30 +111,28 @@ export function ManualFoodEntryPanel({ dayLogAtCapacity, onLog }: Props) {
             ).map((field) => (
               <View key={field.macro} className="min-w-0 flex-1">
                 <FieldLabel label={field.label} />
-                <TextInput
+                <AppTextField
                   value={field.value}
                   onChangeText={(raw) => field.set(clampMacroInputString(raw, field.macro))}
                   onBlur={() => field.set(String(parseBoundedMacro(field.value, field.macro)))}
                   testID={field.testID}
                   accessibilityLabel={field.label}
                   keyboardType="decimal-pad"
-                  className="rounded-xl border px-3 py-3 text-[15px] tabular-nums"
-                  style={{ borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }}
+                  backgroundColor={colors.background}
+                  style={{ fontVariant: ["tabular-nums"] }}
                 />
               </View>
             ))}
           </View>
 
           <FieldLabel label="Serving (optional)" />
-          <TextInput
+          <AppTextField
             value={draftServing}
             onChangeText={setDraftServing}
             testID="manual-food-serving"
             accessibilityLabel="Serving label"
             placeholder="e.g. 1 cup"
-            placeholderTextColor={colors.textTertiary}
-            className="rounded-xl border px-3 py-3 text-[15px]"
-            style={{ borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }}
+            backgroundColor={colors.background}
           />
 
           <View
@@ -147,7 +146,7 @@ export function ManualFoodEntryPanel({ dayLogAtCapacity, onLog }: Props) {
               value={saveToMyFoods}
               onValueChange={setSaveToMyFoods}
               accessibilityLabel="Save to My foods"
-              trackColor={{ false: colors.border, true: colors.accent }}
+              trackColor={{ false: colors.border, true: accent }}
               thumbColor="#fff"
             />
           </View>

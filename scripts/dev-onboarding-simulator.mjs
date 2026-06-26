@@ -69,13 +69,12 @@ console.log("──────────────────────�
 console.log("");
 console.log("Env (set for this Metro session):");
 console.log("  • EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING=false  → wizard after sign-in");
-console.log("  • EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true       → tap Take a photo (no camera)");
 console.log("  • EXPO_PUBLIC_ONBOARDING_DEV_TOOLS=1          → Start fresh on Welcome");
 console.log("");
 console.log("Walkthrough:");
 console.log("  1. Sign in (or create account)");
 console.log("  2. Welcome → About you → Your goal");
-console.log("  3. Future You: tap Take a photo (mock injects sample image)");
+console.log("  3. Future You: Take a photo (real camera) or Choose from gallery");
 console.log("  4. Training → Fuel → Paywall → Subscribe (stub) → Home");
 console.log("");
 console.log("Resume: kill/reopen app — draft saves your step.");
@@ -114,8 +113,8 @@ const child = spawn("npx", expoArgs, {
   stdio: ["inherit", "pipe", "inherit"],
   env: {
     ...process.env,
+    REACT_NATIVE_PACKAGER_HOSTNAME: "127.0.0.1",
     EXPO_PUBLIC_MAESTRO_SKIP_ONBOARDING: "false",
-    EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU: "true",
     EXPO_PUBLIC_ONBOARDING_DEV_TOOLS: "1",
     EXPO_PUBLIC_BUNDLE_MARKER: bundleMarker,
   },

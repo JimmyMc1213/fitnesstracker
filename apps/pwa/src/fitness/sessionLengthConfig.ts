@@ -16,7 +16,7 @@ export const SESSION_BOUNDS_SECONDS: Record<SessionLength, { minSeconds: number;
   "30_45": { minSeconds: 30 * 60, maxSeconds: 45 * 60 },
   "45_60": { minSeconds: 45 * 60, maxSeconds: 60 * 60 },
   "60_90": { minSeconds: 60 * 60, maxSeconds: 90 * 60 },
-  "90_plus": { minSeconds: 90 * 60, maxSeconds: 130 * 60 },
+  "90_plus": { minSeconds: 80 * 60, maxSeconds: 130 * 60 },
 };
 
 /** Default rest between sets, derived from preferred session length. */

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useFitnessSync } from "@/context/FitnessSyncContext";
 import {
@@ -28,6 +29,7 @@ function resolveDefaultOnboardingComplete(): boolean {
 }
 
 export function useOnboardingState() {
+  const { session, sessionResolved } = useAuth();
   const { fitnessHydrated } = useFitnessSync();
   const { state: fitnessState, hydrated: fitnessLocalHydrated } = useFitnessState();
   const [onboardingComplete, setOnboardingCompleteState] = useState(resolveDefaultOnboardingComplete);
@@ -58,6 +60,27 @@ export function useOnboardingState() {
   }, []);
 
   useEffect(() => {
+    if (!sessionResolved) return;
+
+    let cancelled = false;
+    void (async () => {
+      const stored = await readOnboardingComplete();
+      if (cancelled) return;
+      if (stored !== null) {
+        setOnboardingCompleteState(stored);
+        return;
+      }
+      if (!session?.user?.id) {
+        setOnboardingCompleteState(resolveDefaultOnboardingComplete());
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionResolved, session?.user?.id]);
+
+  useEffect(() => {
     if (!fitnessHydrated) return;
 
     let cancelled = false;
@@ -73,10 +96,11 @@ export function useOnboardingState() {
   }, [fitnessHydrated]);
 
   useEffect(() => {
-    if (!fitnessLocalHydrated || !fitnessState?.onboardingComplete) return;
-    setOnboardingCompleteState(true);
-    void writeOnboardingComplete(true);
-  }, [fitnessLocalHydrated, fitnessState?.onboardingComplete]);
+    if (!fitnessLocalHydrated || !fitnessState) return;
+    const complete = fitnessState.onboardingComplete === true;
+    setOnboardingCompleteState(complete);
+    void writeOnboardingComplete(complete);
+  }, [fitnessLocalHydrated, fitnessState?.onboardingComplete, fitnessState]);
 
   const setOnboardingComplete = useCallback(async (value: boolean) => {
     setOnboardingCompleteState(value);

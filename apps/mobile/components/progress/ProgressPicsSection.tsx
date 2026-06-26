@@ -38,12 +38,12 @@ export function ProgressPicsSection({ state, onOpenGallery }: Props) {
           Progress pics
         </Text>
         <View className="flex-row items-center gap-1">
-          <Text className="text-[13px] font-semibold" style={{ color: colors.accent }}>
+          <Text className="text-[13px] font-semibold" style={{ color: colors.textPrimary }}>
             {items.length > 0 ? `${items.length} photo${items.length === 1 ? "" : "s"}` : "Open gallery"}
           </Text>
           <SymbolView
             name={{ ios: "chevron.right", android: "chevron_right", web: "chevron_right" }}
-            tintColor={colors.accent}
+            tintColor={colors.textPrimary}
             size={14}
           />
         </View>

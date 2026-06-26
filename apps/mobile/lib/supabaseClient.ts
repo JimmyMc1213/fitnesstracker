@@ -5,7 +5,7 @@ import {
 } from "@newyouai/api-client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { getSupabaseSecureStoreAdapter } from "./supabaseSecureStore";
+import { getSupabaseSecureStoreAdapter, resetSupabaseSecureStoreAdapterCache } from "./supabaseSecureStore";
 
 function envTrim(raw: string | undefined): string {
   if (raw === undefined || raw === null) return "";
@@ -45,4 +45,5 @@ export function getSupabase(): SupabaseClient | null {
 /** Clears cached client, for tests only. */
 export function resetSupabaseClientCache(): void {
   cached = undefined;
+  resetSupabaseSecureStoreAdapterCache();
 }

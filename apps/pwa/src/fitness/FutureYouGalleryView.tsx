@@ -1,5 +1,5 @@
 import {
-  FUTURE_YOU_GALLERY_COUNT_ONE,
+  formatFutureYouGalleryCount,
   FUTURE_YOU_GALLERY_EMPTY_TITLE,
   FUTURE_YOU_GALLERY_TAP_HINT,
   FUTURE_YOU_GALLERY_TRY_CTA_LABEL,
@@ -40,7 +40,7 @@ export function FutureYouGalleryView({
 
       {items.length > 0 ?
         <>
-          <p className="future-you-gallery__meta">{FUTURE_YOU_GALLERY_COUNT_ONE}</p>
+          <p className="future-you-gallery__meta">{formatFutureYouGalleryCount(items.length)}</p>
           <div className="future-you-gallery__grid">
             {items.map((item) => (
               <button

@@ -7,7 +7,7 @@ import type { NutritionGoal, OnboardingProfile, UserGender } from "@newyouai/typ
 
 import { e2eMockFutureYouGenerate } from "@/lib/e2e/futureYouMock";
 
-import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabase, getSupabaseEnv, isSupabaseConfigured } from "./supabaseClient";
 
 export type { FutureYouGenerateResult };
 
@@ -62,5 +62,5 @@ export async function startFutureYouGeneration(
     throw new ApiFutureYouGenerateError("Sign in to create your Future You.", "auth_required");
   }
 
-  return startFutureYouGenerationApi(sb, request);
+  return startFutureYouGenerationApi(sb, getSupabaseEnv(), request);
 }

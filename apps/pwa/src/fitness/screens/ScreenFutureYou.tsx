@@ -1,4 +1,8 @@
-import { futureYouDraftAfterUserDelete, mergeFutureYouDraft } from "../futureYouDraft";
+import {
+  futureYouDraftAfterPreviewDelete,
+  futureYouDraftAfterUserDelete,
+  mergeFutureYouDraft,
+} from "../futureYouDraft";
 import { FutureYouPageContent } from "../FutureYouPageContent";
 import { ageFromDateOfBirth } from "../onboardingProfile";
 import { savePersistedSlice, sliceFromAppState } from "../persistFitnessSlice";
@@ -26,9 +30,12 @@ export function ScreenFutureYou({
     }));
   }
 
-  function onFutureYouDeleted() {
+  function onFutureYouDeleted(jobId?: string) {
     setState((s) => {
-      const next = futureYouDraftAfterUserDelete(s.futureYou);
+      const next =
+        jobId ?
+          futureYouDraftAfterPreviewDelete(s.futureYou, jobId)
+        : futureYouDraftAfterUserDelete(s.futureYou);
       const nextState = {
         ...s,
         futureYou: Object.keys(next).length > 0 ? next : undefined,

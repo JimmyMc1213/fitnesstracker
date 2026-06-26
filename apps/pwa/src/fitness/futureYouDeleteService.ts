@@ -11,8 +11,14 @@ function logDevDeleteFallback(): { removedObjects: number } {
   return { removedObjects: 0 };
 }
 
-/** Permanently delete the user's Future You photos and generation jobs. */
-export async function deleteFutureYou(options?: { previewMode?: boolean }): Promise<{ removedObjects: number }> {
+/**
+ * Delete the user's Future You data. Pass `jobId` to remove a single kept preview; omit it to
+ * permanently delete all Future You photos and generation jobs.
+ */
+export async function deleteFutureYou(options?: {
+  previewMode?: boolean;
+  jobId?: string;
+}): Promise<{ removedObjects: number }> {
   if (options?.previewMode) {
     return logDevDeleteFallback();
   }
@@ -39,5 +45,5 @@ export async function deleteFutureYou(options?: { previewMode?: boolean }): Prom
     throw new ApiFutureYouDeleteError("Sign in to delete NewYou.", "auth_required");
   }
 
-  return deleteFutureYouApi(sb);
+  return deleteFutureYouApi(sb, options?.jobId);
 }

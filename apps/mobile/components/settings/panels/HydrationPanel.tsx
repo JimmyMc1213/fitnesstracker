@@ -8,11 +8,12 @@ import {
   waterTargetPresets,
 } from "@newyouai/core";
 import { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { IconDroplet } from "@/components/icons/FitnessIcons";
 import { OnboardingFieldGroup } from "@/components/onboarding/OnboardingInputField";
 import { SettingsHelper } from "@/components/settings/SettingsLayout";
+import { AppTextField } from "@/components/ui/AppTextField";
 import { GradientCard } from "@/components/ui/GradientCard";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -120,7 +121,7 @@ export function HydrationPanel() {
             label={`Custom target (${volumeUnitLabel(volumeUnit)})`}
             labelColor={colors.textTertiary}
           >
-            <TextInput
+            <AppTextField
               testID="settings-hydration-custom"
               value={waterTargetIn}
               onChangeText={(v) => {
@@ -139,14 +140,7 @@ export function HydrationPanel() {
               onBlur={() => commitWaterTarget(waterTargetIn)}
               keyboardType="decimal-pad"
               placeholder="0"
-              placeholderTextColor={colors.textTertiary}
               accessibilityLabel={`Daily water target in ${volumeUnitLabel(volumeUnit)}`}
-              className="rounded-[10px] border px-3 py-2.5 text-base tabular-nums"
-              style={{
-                borderColor: colors.border,
-                backgroundColor: colors.backgroundSecondary,
-                color: colors.textPrimary,
-              }}
             />
           </OnboardingFieldGroup>
           <Text className="mt-2 text-[12px] font-medium" style={{ color: colors.textTertiary }}>

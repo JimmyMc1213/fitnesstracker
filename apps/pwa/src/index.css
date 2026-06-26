@@ -1424,7 +1424,7 @@ input[type="number"] {
   font-size: 13px;
   line-height: 1.5;
   text-align: center;
-  color: rgba(120, 200, 255, 0.95);
+  color: var(--text-secondary);
 }
 
 .auth-screen__toggle {
@@ -1500,14 +1500,10 @@ input[type="number"] {
 }
 
 .gymmy-splash-mark__logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  background: var(--text-primary);
-  color: var(--bg);
+  object-fit: contain;
 }
 
 .gymmy-splash-mark__wordmark {

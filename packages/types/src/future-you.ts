@@ -8,6 +8,17 @@ export const FUTURE_YOU_JOB_STATUSES = [
 
 export type FutureYouJobStatus = (typeof FUTURE_YOU_JOB_STATUSES)[number];
 
+/** A previously generated NewYou preview the user chose to keep (older than the active job). */
+export type FutureYouPreview = {
+  jobId: string;
+  motivationId?: string;
+  motivationIsGeneric?: boolean;
+  /** ISO timestamp when this preview reached ready. */
+  readyAt?: string;
+  /** Timeline label captured at generation time (e.g. "3 months"). */
+  timeline?: string;
+};
+
 export type FutureYouDraft = {
   photoSkipped?: boolean;
   photoUploaded?: boolean;
@@ -21,6 +32,8 @@ export type FutureYouDraft = {
   /** ISO timestamp when the current preview job reached ready (for 2-week redo cadence). */
   generationReadyAt?: string;
   resultStoragePath?: string;
+  /** Older completed previews the user kept (the active job stays in the fields above). */
+  previews?: FutureYouPreview[];
   onboardingGoalLocked?: boolean;
   /** User turned off Home NewYou reminder pill in Settings. */
   remindersMuted?: boolean;

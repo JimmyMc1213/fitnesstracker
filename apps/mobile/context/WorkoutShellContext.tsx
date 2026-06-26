@@ -18,6 +18,8 @@ type WorkoutShellContextValue = {
   setRoutineEditorOpen: (open: boolean) => void;
   futureYouFlowOpen: boolean;
   setFutureYouFlowOpen: (open: boolean) => void;
+  mobilitySessionOpen: boolean;
+  setMobilitySessionOpen: (open: boolean) => void;
   hideTabBar: boolean;
 };
 
@@ -27,11 +29,14 @@ export function WorkoutShellProvider({ children }: { children: ReactNode }) {
   const { state } = useFitnessState();
   const [routineEditorOpen, setRoutineEditorOpen] = useState(false);
   const [futureYouFlowOpen, setFutureYouFlowOpen] = useState(false);
+  const [mobilitySessionOpen, setMobilitySessionOpen] = useState(false);
   const segments = useSegments();
   const onWorkoutTab = activeTabRoute(segments) === "workout";
+  const onHomeTab = activeTabRoute(segments) === "home";
 
   const hideTabBar =
     futureYouFlowOpen ||
+    (onHomeTab && mobilitySessionOpen) ||
     (onWorkoutTab && state?.workout.sessionPhase === "lifting") ||
     (onWorkoutTab && routineEditorOpen);
 
@@ -41,9 +46,11 @@ export function WorkoutShellProvider({ children }: { children: ReactNode }) {
       setRoutineEditorOpen,
       futureYouFlowOpen,
       setFutureYouFlowOpen,
+      mobilitySessionOpen,
+      setMobilitySessionOpen,
       hideTabBar,
     }),
-    [routineEditorOpen, futureYouFlowOpen, hideTabBar, onWorkoutTab],
+    [routineEditorOpen, futureYouFlowOpen, mobilitySessionOpen, hideTabBar],
   );
 
   return <WorkoutShellContext.Provider value={value}>{children}</WorkoutShellContext.Provider>;

@@ -1,8 +1,32 @@
 import type { Habit, HabitTemplate } from "@newyouai/types";
 
 import { isMobilityHabit } from "@/lib/mobilityHabit";
+import { sanitizeUserText } from "@/lib/userText";
 
 export const WEIGH_IN_HABIT_ID = "weigh_in";
+export const HABIT_NAME_MAX_LENGTH = 40;
+export const HABIT_DESCRIPTION_MAX_LENGTH = 80;
+
+export function stripEmDash(input: string): string {
+  return input.replace(/\s*\u2014\s*/g, ", ").replace(/\u2014/g, ", ");
+}
+
+export function normalizeHabitName(input: string): string {
+  return stripEmDash(sanitizeUserText(input)).trim().slice(0, HABIT_NAME_MAX_LENGTH);
+}
+
+export function normalizeHabitSubtitle(input: string | undefined): string | undefined {
+  if (!input?.trim()) return undefined;
+  const cleaned = stripEmDash(sanitizeUserText(input)).trim().slice(0, HABIT_DESCRIPTION_MAX_LENGTH);
+  return cleaned || undefined;
+}
+
+export function normalizeHabitTemplate(template: HabitTemplate): HabitTemplate {
+  const { subtitle: _existing, ...rest } = template;
+  const name = normalizeHabitName(template.name) || "New habit";
+  const subtitle = normalizeHabitSubtitle(template.subtitle);
+  return subtitle ? { ...rest, name, subtitle } : { ...rest, name };
+}
 
 export type HabitAction = "openWeighIn";
 export type HabitType = "manual" | "action";
@@ -95,8 +119,8 @@ export function availableHabitsToAdd(
 }
 
 export function createCustomHabitTemplate(name: string, subtitle?: string): HabitTemplate {
-  const trimmedName = name.trim().slice(0, 40);
-  const trimmedSubtitle = subtitle?.trim().slice(0, 80);
+  const trimmedName = normalizeHabitName(name) || "New habit";
+  const trimmedSubtitle = normalizeHabitSubtitle(subtitle);
   return {
     id: newCustomHabitId(),
     name: trimmedName,

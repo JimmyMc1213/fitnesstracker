@@ -20,6 +20,8 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { deleteFutureYou } from "@/lib/futureYouDeleteService";
 
 type Props = {
+  /** When set, deletes only this preview; otherwise wipes all Future You data. */
+  jobId?: string;
   /** ISO timestamp for the 2-week redo window, preserved on delete so cooldown stays active. */
   redoAnchorIso?: string;
   onDeleted: () => void;
@@ -27,7 +29,7 @@ type Props = {
 
 type ConfirmStep = "initial" | "final";
 
-export function FutureYouDeleteButton({ redoAnchorIso, onDeleted }: Props) {
+export function FutureYouDeleteButton({ jobId, redoAnchorIso, onDeleted }: Props) {
   const { colors } = useAppTheme();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmStep, setConfirmStep] = useState<ConfirmStep>("initial");
@@ -56,7 +58,7 @@ export function FutureYouDeleteButton({ redoAnchorIso, onDeleted }: Props) {
     setBusy(true);
     setErrorMessage(null);
     try {
-      await deleteFutureYou();
+      await deleteFutureYou(jobId);
       closeConfirm();
       onDeleted();
     } catch (error) {

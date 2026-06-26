@@ -123,7 +123,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
         </p>
         <div className="between" style={{ alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 100 }}>
-            <label htmlFor="wi-weight-sheet" style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em" }}>
+            <label htmlFor="wi-weight-sheet" style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.06em", display: "block", marginBottom: 10 }}>
               Weight ({weightUnitLabel(wUnit)})
             </label>
             <input
@@ -131,7 +131,7 @@ export function WeighInSheet({ open, onClose, dateKey, existing, unitPreferences
               type="number"
               inputMode="decimal"
               className="input"
-              style={{ marginTop: 6, fontSize: 18, fontWeight: 600 }}
+              style={{ fontSize: 18, fontWeight: 600 }}
               placeholder={wUnit === "kg" ? "78.2" : "172.4"}
               value={weightDraft}
               onChange={(e) => setWeightDraft(e.target.value)}

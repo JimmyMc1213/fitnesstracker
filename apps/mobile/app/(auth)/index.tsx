@@ -23,7 +23,6 @@ function WelcomeShell({
   testID: string;
 }) {
   const { colors } = useAppTheme();
-  const { ob } = useOnboardingTheme();
 
   return (
     <View
@@ -45,7 +44,7 @@ function WelcomeShell({
         showsVerticalScrollIndicator={false}
       >
         <View style={authLayout.brandRow}>
-          <NewYouSplashMark logoBackgroundColor={ob.gold} logoIconColor={ob.goldOn} />
+          <NewYouSplashMark />
         </View>
 
         <View style={authLayout.heroRow}>
@@ -68,28 +67,30 @@ export default function AuthWelcomeScreen() {
   if (phase === "landing") {
     return (
       <WelcomeShell insets={insets} testID="auth-welcome-screen">
-        <View style={authLayout.copyBlock}>
-          <View style={{ alignItems: "center" }} testID="auth-welcome-headline">
-            <Text style={[authLayout.welcomeHeadline, { color: colors.textPrimary }]}>
-              Discover a new version of
+        <View style={authLayout.welcomeBottom}>
+          <View style={authLayout.copyBlock}>
+            <View style={{ alignItems: "center" }} testID="auth-welcome-headline">
+              <Text style={[authLayout.welcomeHeadline, { color: colors.textPrimary }]}>
+                Discover a new version of
+              </Text>
+              <Text style={[authLayout.welcomeHeadlineEmphasis, { color: ob.gold }]}>You</Text>
+            </View>
+            <Text style={[authLayout.subline, { color: colors.textSecondary }]}>
+              Progressive training and nutrition, built around you.
             </Text>
-            <Text style={[authLayout.welcomeHeadlineEmphasis, { color: ob.gold }]}>You</Text>
           </View>
-          <Text style={[authLayout.subline, { color: colors.textSecondary }]}>
-            Progressive training and nutrition, built around you.
-          </Text>
-        </View>
 
-        <View style={[authLayout.actions, { marginTop: "auto" as const, paddingTop: 16 }]}>
-          <Pressable
-            style={[authLayout.primaryButton, { backgroundColor: ob.gold }]}
-            onPress={() => setPhase("auth")}
-            testID="auth-get-started-button"
-          >
-            <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
-              Get Started
-            </Text>
-          </Pressable>
+          <View style={authLayout.actions}>
+            <Pressable
+              style={[authLayout.primaryButton, { backgroundColor: ob.gold }]}
+              onPress={() => setPhase("auth")}
+              testID="auth-get-started-button"
+            >
+              <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
+                Get Started
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </WelcomeShell>
     );
@@ -97,19 +98,20 @@ export default function AuthWelcomeScreen() {
 
   return (
     <WelcomeShell insets={insets} testID="auth-welcome-screen">
-      <View style={authLayout.copyBlock}>
-        <Text
-          style={[authLayout.welcomeHeadline, { color: colors.textPrimary }]}
-          testID="auth-entry-headline"
-        >
-          Create your account
-        </Text>
-        <Text style={[authLayout.subline, { color: colors.textSecondary }]}>
-          Sign up with email or Apple to get started.
-        </Text>
-      </View>
+      <View style={authLayout.welcomeBottom}>
+        <View style={authLayout.copyBlock}>
+          <Text
+            style={[authLayout.welcomeHeadline, { color: colors.textPrimary }]}
+            testID="auth-entry-headline"
+          >
+            Create your account
+          </Text>
+          <Text style={[authLayout.subline, { color: colors.textSecondary }]}>
+            Sign up with email or Apple to get started.
+          </Text>
+        </View>
 
-      <View style={[authLayout.actions, { marginTop: "auto" as const, paddingTop: 16 }]}>
+        <View style={authLayout.actions}>
         <Pressable
           style={[authLayout.primaryButton, { backgroundColor: ob.gold }]}
           onPress={() => router.push("/(auth)/sign-up")}
@@ -157,6 +159,7 @@ export default function AuthWelcomeScreen() {
             </Text>
           </Pressable>
         ) : null}
+        </View>
       </View>
     </WelcomeShell>
   );

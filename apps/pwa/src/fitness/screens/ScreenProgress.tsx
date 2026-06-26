@@ -47,10 +47,7 @@ export function ScreenProgress({ state, setState, onProgressGalleryOpenChange }:
   const dateKeyToday = weighInDateKeyToday();
   const todayEntry = state.weightLog.find((e) => e.dateKey === dateKeyToday);
 
-  const progressGoal = state.progressGoal;
-  const goalLo = progressGoal?.goalWeightLowLbs;
-  const goalHi = progressGoal?.goalWeightHighLbs;
-  const cutBarStart = progressGoal?.progressStartWeightLbs;
+  const cutBarStart = state.progressGoal?.progressStartWeightLbs;
 
   useLayoutEffect(() => {
     const el = chartWrapRef.current;
@@ -86,15 +83,6 @@ export function ScreenProgress({ state, setState, onProgressGalleryOpenChange }:
     const last = sorted[sorted.length - 1]!.dateKey;
     return [first, mid, last].map(shortChartDate);
   }, [sorted]);
-  const goalLoDisplay = goalLo != null ? (wUnit === "kg" ? goalLo / LBS_PER_KG : goalLo) : null;
-  const goalHiDisplay = goalHi != null ? (wUnit === "kg" ? goalHi / LBS_PER_KG : goalHi) : null;
-
-  const goalMid = goalLo != null && goalHi != null ? (goalLo + goalHi) / 2 : null;
-  const denom = goalMid != null && cutBarStart != null ? cutBarStart - goalMid : 0;
-  const goalPct = denom !== 0 && cutBarStart != null ? Math.max(0, Math.min(1, (cutBarStart - todayWeightLbs) / denom)) : 0;
-
-  const T = state.nutritionTargets;
-
   const showMainProgress = !showCheckInHistoryPage && !showPicsGalleryPage;
 
   return (
@@ -149,7 +137,7 @@ export function ScreenProgress({ state, setState, onProgressGalleryOpenChange }:
               padding: 0,
               fontSize: 13,
               fontWeight: 600,
-              color: "var(--accent)",
+              color: "var(--text-primary)",
               background: "transparent",
             }}
           >
@@ -183,9 +171,7 @@ export function ScreenProgress({ state, setState, onProgressGalleryOpenChange }:
                   · started at {formatWeightFromLbs(startWeightLbs, wUnit)}
                 </span>
               </div>
-            ) : (
-              <span style={{ fontSize: 12, color: "var(--text-tertiary)", fontWeight: 500 }}>Log weigh-in</span>
-            )}
+            ) : null}
           </div>
         </div>
         <div ref={chartWrapRef} style={{ marginTop: 14, width: "100%" }}>
@@ -252,32 +238,6 @@ export function ScreenProgress({ state, setState, onProgressGalleryOpenChange }:
       <SectionLabel>Personal records</SectionLabel>
       <PersonalRecordsSection state={state} />
 
-      <SectionLabel>Goal range</SectionLabel>
-      {progressGoal && goalLoDisplay != null && goalHiDisplay != null ? (
-      <div className="card" style={{ padding: 18 }}>
-        <div className="between" style={{ alignItems: "baseline" }}>
-          <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>
-            {todayDisplay.toFixed(1)}{" "}
-            <span style={{ color: "var(--text-ghost)", fontSize: 16 }}>→</span> {goalLoDisplay.toFixed(1)}–{goalHiDisplay.toFixed(1)}
-            <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 6, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>{weightUnitLabel(wUnit)}</span>
-          </div>
-          <div style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{Math.round(goalPct * 100)}%</div>
-        </div>
-        <p style={{ margin: "12px 0 0", fontSize: 11, lineHeight: 1.5, color: "var(--text-ghost)", fontWeight: 400 }}>
-          ~{wUnit === "kg" ? "0.5" : "1"} {weightUnitLabel(wUnit)}/wk · read trend over a few weeks
-        </p>
-        <div style={{ marginTop: 14 }}>
-          <div className="barTrack" style={{ height: 4 }}>
-            <div className="barFill" style={{ width: `${goalPct * 100}%` }} />
-          </div>
-        </div>
-      </div>
-      ) : (
-        <div className="card" style={{ padding: 18, fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-          Complete onboarding to set your goal weight range.
-        </div>
-      )}
-
       {state.adjustmentHistory.length > 0 ? (
         <>
           <SectionLabel>Fuel updates</SectionLabel>
@@ -316,29 +276,6 @@ export function ScreenProgress({ state, setState, onProgressGalleryOpenChange }:
           </div>
         </>
       ) : null}
-
-      <SectionLabel>Targets</SectionLabel>
-      <div className="card" style={{ padding: 18 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          {[
-            { label: "Calories", value: String(T.cal), unit: "cal" },
-            { label: "Protein", value: String(T.p), unit: "g" },
-            { label: "Carbs", value: String(T.c), unit: "g" },
-            { label: "Fat", value: String(T.f), unit: "g" },
-          ].map((x) => (
-            <div key={x.label}>
-              <div style={{ fontSize: 10, color: "var(--text-ghost)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>{x.label}</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 6 }}>
-                <span style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{x.value}</span>
-                <span style={{ fontSize: 10, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>{x.unit}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p style={{ margin: "14px 0 0", fontSize: 11, lineHeight: 1.5, color: "var(--text-tertiary)", fontWeight: 400 }}>
-          Steps: Settings
-        </p>
-      </div>
 
       <div style={{ height: 8 }} />
     </div>

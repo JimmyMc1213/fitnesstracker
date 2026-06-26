@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { CenterDialog } from "@/components/motion";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
+import { AppTextField } from "@/components/ui/AppTextField";
 import { SaveWorkoutConfirmSheet } from "@/components/workout/SaveWorkoutConfirmSheet";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { WorkoutRoutineTemplate } from "@newyouai/types";
@@ -52,17 +53,11 @@ export function RenameRoutineSheet({ open = true, template, onSave, onClose }: P
             <Text className="mt-2 text-sm leading-[1.5]" style={{ color: colors.textSecondary }}>
               Update the name shown on your workouts list.
             </Text>
-            <TextInput
+            <AppTextField
               value={name}
               onChangeText={setName}
               placeholder="Workout name"
-              placeholderTextColor={colors.textTertiary}
-              className="mt-4 rounded-xl border px-3 py-3 text-base"
-              style={{
-                borderColor: colors.border,
-                backgroundColor: colors.backgroundSecondary,
-                color: colors.textPrimary,
-              }}
+              shellStyle={{ marginTop: 16 }}
             />
             <View className="mt-4">
               <PrimaryButton block onPress={handleSaveClick} disabled={!name.trim()}>

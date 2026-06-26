@@ -60,7 +60,8 @@ function blendChannel(source: number, edited: number, sourceAlpha: number): numb
 
 /**
  * Hard guarantee: paste the source face/head back over the model output.
- * gpt-image-1 regenerates the whole frame; prompts alone cannot stop face drift.
+ * Image-edit models regenerate the whole frame; prompts alone cannot stop face
+ * drift, so this composite runs on every provider's output (OpenAI, Grok, ...).
  */
 export async function preserveIdentityRegion(
   sourceBytes: Uint8Array,

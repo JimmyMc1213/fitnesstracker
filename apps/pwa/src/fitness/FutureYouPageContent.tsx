@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { FutureYouDraft } from "./futureYouDraft";
+import type { FutureYouDraft, FutureYouPreview } from "./futureYouDraft";
 import { futureYouUploadSnapshot, mergeFutureYouDraft } from "./futureYouDraft";
+import { useFutureYouGalleryImages } from "./useFutureYouGalleryImages";
 import { isFutureYouPhotoBlocked } from "./futureYouAge";
 import {
   buildFutureYouGenerateProfile,
@@ -50,7 +51,7 @@ type Props = {
   subscriptionTier: SubscriptionTier | null;
   onboardingComplete: boolean;
   onFutureYouChange: (patch: Partial<FutureYouDraft>) => void;
-  onFutureYouDeleted: () => void;
+  onFutureYouDeleted: (jobId?: string) => void;
   previewMode?: boolean;
   futureYouUploadRequest?: number;
   onFutureYouUploadRequestHandled?: () => void;
@@ -157,10 +158,32 @@ export function FutureYouPageContent({
     ],
   );
 
+  const previewImages = useFutureYouGalleryImages(draft.previews, subscriptionTier, previewMode);
+
+  const previewItems = useMemo((): FutureYouGalleryItem[] => {
+    const previews = draft.previews ?? [];
+    return previews
+      .map((preview) => {
+        const resolved = previewImages[preview.jobId];
+        return buildFutureYouGalleryItem({
+          jobId: preview.jobId,
+          imageSrc: resolved?.src ?? silhouetteSrc,
+          timeline: preview.timeline ?? timeline,
+          motivationLabel: homeFutureYouMotivationLabel(preview.motivationId),
+          readyAtIso: preview.readyAt,
+          loading: resolved?.loading ?? true,
+        });
+      })
+      .filter((item): item is FutureYouGalleryItem => item !== null);
+  }, [draft.previews, previewImages, silhouetteSrc, timeline]);
+
   const galleryItems = useMemo((): FutureYouGalleryItem[] => {
-    if (!shouldShowFutureYouGalleryTile(mode, generationStatus) || !galleryItem) return [];
-    return [galleryItem];
-  }, [mode, generationStatus, galleryItem]);
+    const activeItem =
+      shouldShowFutureYouGalleryTile(mode, generationStatus) && galleryItem ? galleryItem : null;
+    return [activeItem, ...previewItems].filter(
+      (item): item is FutureYouGalleryItem => item !== null,
+    );
+  }, [mode, generationStatus, galleryItem, previewItems]);
 
   const selectedItem = useMemo(() => {
     if (!selectedItemId) return galleryItems[0] ?? null;
@@ -171,12 +194,22 @@ export function FutureYouPageContent({
 
   const detailItem = useMemo((): FutureYouGalleryItem | null => {
     if (!selectedItem) return null;
+    const isActiveJob = selectedItem.id === draft.generationJobId?.trim();
+    if (isActiveJob) {
+      return {
+        ...selectedItem,
+        imageSrc:
+          selectedItem.loading ? selectedItem.imageSrc : saveableImageSrc ?? selectedItem.imageSrc,
+        loading: revealLoading,
+      };
+    }
+    const resolved = previewImages[selectedItem.id];
     return {
       ...selectedItem,
-      imageSrc: selectedItem.loading ? selectedItem.imageSrc : saveableImageSrc ?? selectedItem.imageSrc,
-      loading: revealLoading,
+      imageSrc: resolved?.src ?? selectedItem.imageSrc,
+      loading: resolved?.loading ?? false,
     };
-  }, [selectedItem, saveableImageSrc, revealLoading]);
+  }, [selectedItem, saveableImageSrc, revealLoading, draft.generationJobId, previewImages]);
 
   const resetUploadFlow = useCallback(() => {
     setPhotoPreview(null);
@@ -280,11 +313,11 @@ export function FutureYouPageContent({
     setFullscreenOpen(false);
   }
 
-  function handleFutureYouDeleted() {
+  function handleFutureYouDeleted(jobId?: string) {
     setView("gallery");
     setSelectedItemId(null);
     setFullscreenOpen(false);
-    onFutureYouDeleted();
+    onFutureYouDeleted(jobId);
   }
 
   async function executeGeneration(fromDraft: FutureYouDraft) {
@@ -331,13 +364,18 @@ export function FutureYouPageContent({
   async function onReplaceDeleteOld() {
     if (!replacePendingGenerate) return;
     const snapshot = futureYouUploadSnapshot(draft);
+    const currentJobId = draft.generationJobId?.trim();
+    const keptPreviews = draft.previews ?? [];
     setReplaceBusy(true);
     try {
-      await deleteFutureYou({ previewMode });
-      onFutureYouDeleted();
+      // Remove only the current preview's server data; keep older previews intact.
+      await deleteFutureYou({ previewMode, jobId: currentJobId || undefined });
       setReplaceDialogOpen(false);
       setReplacePendingGenerate(false);
-      const nextDraft = mergeFutureYouDraft(undefined, snapshot);
+      const nextDraft = mergeFutureYouDraft(undefined, {
+        ...snapshot,
+        previews: keptPreviews.length > 0 ? keptPreviews : undefined,
+      });
       onFutureYouChange(nextDraft);
       await executeGeneration(nextDraft);
     } catch {
@@ -352,7 +390,22 @@ export function FutureYouPageContent({
     if (!replacePendingGenerate) return;
     setReplaceDialogOpen(false);
     setReplacePendingGenerate(false);
-    void executeGeneration(draft);
+
+    // Preserve the current ready preview before the new job overwrites the active fields.
+    const currentJobId = draft.generationJobId?.trim();
+    let baseDraft = draft;
+    if (currentJobId && draft.generationStatus === "ready") {
+      const kept: FutureYouPreview = { jobId: currentJobId, timeline };
+      if (draft.generationReadyAt) kept.readyAt = draft.generationReadyAt;
+      if (draft.motivationId) kept.motivationId = draft.motivationId;
+      if (draft.motivationIsGeneric) kept.motivationIsGeneric = true;
+      const existing = (draft.previews ?? []).filter((preview) => preview.jobId !== currentJobId);
+      const nextPreviews = [kept, ...existing];
+      baseDraft = mergeFutureYouDraft(draft, { previews: nextPreviews });
+      onFutureYouChange({ previews: nextPreviews });
+    }
+
+    void executeGeneration(baseDraft);
   }
 
   function onReplaceCancel() {
@@ -428,12 +481,12 @@ export function FutureYouPageContent({
         <FutureYouDetailView
           item={detailItem}
           timeline={timeline}
-          jobId={draft.generationJobId}
+          jobId={detailItem.id}
           futureYou={draft}
           previewMode={previewMode}
           onBack={onBackToGallery}
           onOpenFullscreen={() => setFullscreenOpen(true)}
-          onFutureYouDeleted={handleFutureYouDeleted}
+          onFutureYouDeleted={() => handleFutureYouDeleted(detailItem.id)}
         />
       );
     }

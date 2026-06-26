@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
+import { coreAlignedInputStyle } from "@/components/ui/AlignedTextInput";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { formatWorkoutDuration, weekdayFullName } from "@newyouai/core";
 
@@ -71,8 +72,11 @@ export function WorkoutSessionHeader({
         onChangeText={onSessionTitleChange}
         placeholder="Workout name"
         placeholderTextColor={colors.textTertiary}
-        className={`mt-1.5 w-full py-1.5 font-bold tracking-tight ${stackedMeta ? "text-[26px]" : "text-xl"}`}
-        style={{ color: colors.textPrimary }}
+        className="mt-1.5 w-full font-bold tracking-tight"
+        style={[
+          coreAlignedInputStyle(stackedMeta ? 26 : 20),
+          { color: colors.textPrimary, fontWeight: "700", width: "100%" },
+        ]}
       />
 
       {stackedMeta ? (

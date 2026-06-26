@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { BottomSheet } from "@/components/motion";
+import { AppTextField } from "@/components/ui/AppTextField";
 
 import { WorkoutConfirmSheet } from "@/components/workout/WorkoutConfirmSheet";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -65,20 +66,14 @@ export function ExerciseNotesEditSheet({
             <Text className="mt-2 text-xs leading-[1.45]" style={{ color: colors.textTertiary }}>
               Saved to this exercise everywhere it appears: seat height, form cues, machine settings, etc.
             </Text>
-            <TextInput
+            <AppTextField
               value={draft}
               onChangeText={setDraft}
               placeholder='e.g. "seat height 3", "keep elbows in"'
-              placeholderTextColor={colors.textTertiary}
               multiline
               numberOfLines={4}
-              className="mt-3 min-h-[96px] rounded-xl border px-3.5 py-3 text-[15px] leading-[1.45]"
-              style={{
-                borderColor: colors.border,
-                backgroundColor: colors.backgroundSecondary,
-                color: colors.textPrimary,
-                textAlignVertical: "top",
-              }}
+              shellStyle={{ marginTop: 12 }}
+              style={{ lineHeight: 22 }}
             />
             <View className="mt-4 flex-row gap-2.5">
               <Pressable

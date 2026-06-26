@@ -1,8 +1,8 @@
 import {
-  FUTURE_YOU_GALLERY_COUNT_ONE,
   FUTURE_YOU_GALLERY_EMPTY_TITLE,
   FUTURE_YOU_GALLERY_TAP_HINT,
   FUTURE_YOU_GALLERY_TRY_CTA_LABEL,
+  formatFutureYouGalleryCount,
   type FutureYouGalleryItem,
 } from "@newyouai/core";
 import type { UserGender } from "@newyouai/types";
@@ -10,6 +10,7 @@ import { ActivityIndicator, Image, Pressable, Text, View } from "react-native";
 import type { ImageSourcePropType } from "react-native";
 
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { FUTURE_YOU_CALLOUT_BG, FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
 import { futureYouRevealPlaceholderSource } from "@/lib/futureYouRevealPlaceholder";
 
 type Props = {
@@ -69,7 +70,7 @@ export function FutureYouGalleryView({
             className="text-[11px] font-semibold uppercase tracking-widest"
             style={{ color: colors.textTertiary }}
           >
-            {FUTURE_YOU_GALLERY_COUNT_ONE}
+            {formatFutureYouGalleryCount(items.length)}
           </Text>
           <View className="mt-2.5 flex-row flex-wrap gap-2.5">
             {items.map((item) => {
@@ -144,9 +145,9 @@ export function FutureYouGalleryView({
               accessibilityRole="button"
               onPress={onTryNewYou}
               className="mt-2 w-full max-w-[18rem] items-center rounded-full px-6 py-3.5"
-              style={{ backgroundColor: colors.accent, minHeight: 52 }}
+              style={{ backgroundColor: FUTURE_YOU_GOLD, minHeight: 52 }}
             >
-              <Text className="text-lg font-semibold" style={{ color: colors.background }}>
+              <Text className="text-lg font-semibold" style={{ color: FUTURE_YOU_CALLOUT_BG }}>
                 {FUTURE_YOU_GALLERY_TRY_CTA_LABEL}
               </Text>
             </Pressable>

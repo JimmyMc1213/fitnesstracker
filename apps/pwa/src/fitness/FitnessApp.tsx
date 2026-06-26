@@ -201,6 +201,12 @@ function FitnessAppMain({
     return () => window.clearTimeout(id);
   }, []);
 
+  // Never leave the boot splash overlay up indefinitely (e.g. session bootstrap hang).
+  useEffect(() => {
+    const id = window.setTimeout(() => setBootSplashMounted(false), 10_000);
+    return () => window.clearTimeout(id);
+  }, []);
+
   useEffect(() => {
     if (tab !== "nutrition") setLogFoodOverlayOpen(false);
   }, [tab]);

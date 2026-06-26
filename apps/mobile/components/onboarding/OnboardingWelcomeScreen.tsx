@@ -45,42 +45,44 @@ export function OnboardingWelcomeScreen({ onGetStarted }: OnboardingWelcomeScree
         showsVerticalScrollIndicator={false}
       >
         <View style={authLayout.brandRow}>
-          <NewYouSplashMark logoBackgroundColor={ob.gold} logoIconColor={ob.goldOn} />
+          <NewYouSplashMark />
         </View>
 
         <View style={authLayout.heroRow}>
           <WelcomePhonePreview size="hero" useBrandGold />
         </View>
 
-        <View style={authLayout.copyBlock}>
-          <Text style={[authLayout.welcomeHeadline, { color: colors.textPrimary }]}>
-            Your program. Smarter every session.
-          </Text>
-          <Text style={[authLayout.subline, { color: colors.textSecondary }]}>
-            Progressive training and nutrition, built around you.
-          </Text>
-        </View>
-
-        <View style={[authLayout.actions, { marginTop: "auto" as const, paddingTop: 16 }]}>
-          <PressableScale
-            onPress={onGetStarted}
-            testID="onboarding-continue"
-            style={[authLayout.primaryButton, { backgroundColor: ob.gold }]}
-          >
-            <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
-              Get Started
+        <View style={authLayout.welcomeBottom}>
+          <View style={authLayout.copyBlock}>
+            <Text style={[authLayout.welcomeHeadline, { color: colors.textPrimary }]}>
+              Your program. Smarter every session.
             </Text>
-          </PressableScale>
-          {showDevTools ? (
-            <PressableScale onPress={onStartFresh} testID="onboarding-start-fresh" style={{ marginTop: 12, paddingVertical: 8 }}>
-              <Text className="text-center text-sm" style={{ color: colors.textTertiary }}>
-                Start fresh (dev)
-                {process.env.EXPO_PUBLIC_BUNDLE_MARKER ?
-                  ` · ${process.env.EXPO_PUBLIC_BUNDLE_MARKER}`
-                : ""}
+            <Text style={[authLayout.subline, { color: colors.textSecondary }]}>
+              Progressive training and nutrition, built around you.
+            </Text>
+          </View>
+
+          <View style={authLayout.actions}>
+            <PressableScale
+              onPress={onGetStarted}
+              testID="onboarding-continue"
+              style={[authLayout.primaryButton, { backgroundColor: ob.gold }]}
+            >
+              <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
+                Get Started
               </Text>
             </PressableScale>
-          ) : null}
+            {showDevTools ? (
+              <PressableScale onPress={onStartFresh} testID="onboarding-start-fresh" style={{ marginTop: 12, paddingVertical: 8 }}>
+                <Text className="text-center text-sm" style={{ color: colors.textTertiary }}>
+                  Start fresh (dev)
+                  {process.env.EXPO_PUBLIC_BUNDLE_MARKER ?
+                    ` · ${process.env.EXPO_PUBLIC_BUNDLE_MARKER}`
+                  : ""}
+                </Text>
+              </PressableScale>
+            ) : null}
+          </View>
         </View>
       </ScrollView>
     </View>

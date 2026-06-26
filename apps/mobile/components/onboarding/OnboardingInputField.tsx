@@ -1,13 +1,7 @@
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  type TextInputProps,
-  type ViewStyle,
-} from "react-native";
+import { StyleSheet, Text, View, type TextInputProps, type ViewStyle } from "react-native";
 import type { ReactNode } from "react";
+
+import { AlignedTextInput } from "@/components/ui/AlignedTextInput";
 
 /** Mirrors PWA `.onboarding-input-pill` — fixed height, horizontal padding only. */
 export const ONBOARDING_INPUT_HEIGHT = 56;
@@ -24,9 +18,7 @@ export function OnboardingInputField({
   inputStyle: { color: string };
 }) {
   return (
-    <View style={[styles.fieldShell, shellStyle]}>
-      <TextInput {...props} style={[styles.fieldInput, inputStyle]} />
-    </View>
+    <AlignedTextInput size="onboarding" shellStyle={shellStyle} inputStyle={inputStyle} {...props} />
   );
 }
 
@@ -35,14 +27,17 @@ export function OnboardingFieldGroup({
   labelColor,
   children,
   style,
+  fill = false,
 }: {
   label?: string;
   labelColor: string;
   children: ReactNode;
   style?: ViewStyle;
+  /** When true, expands in a horizontal row (e.g. ft + in). Off in vertical stacks like Units. */
+  fill?: boolean;
 }) {
   return (
-    <View style={[styles.fieldGroup, style]}>
+    <View style={[styles.fieldGroup, fill ? styles.fieldGroupFill : null, style]}>
       {label ? <Text style={[styles.label, { color: labelColor }]}>{label}</Text> : null}
       {children}
     </View>
@@ -61,36 +56,18 @@ export const onboardingInputStyles = StyleSheet.create({
     gap: 8,
   },
   fieldGroup: {
-    flex: 1,
     gap: 8,
+  },
+  fieldGroupFill: {
+    flex: 1,
+    minWidth: 0,
   },
   label: {
     fontSize: 11,
     fontWeight: "500",
     letterSpacing: 0.66,
+    lineHeight: 14,
     textTransform: "uppercase",
-  },
-  fieldShell: {
-    height: ONBOARDING_INPUT_HEIGHT,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    paddingHorizontal: 24,
-    justifyContent: "center",
-  },
-  fieldInput: {
-    fontSize: ONBOARDING_INPUT_FONT_SIZE,
-    fontWeight: "400",
-    letterSpacing: -0.18,
-    padding: 0,
-    margin: 0,
-    ...Platform.select({
-      ios: { height: ONBOARDING_INPUT_FONT_SIZE + 2 },
-      android: {
-        paddingVertical: 0,
-        textAlignVertical: "center",
-        includeFontPadding: false,
-      },
-    }),
   },
 });
 

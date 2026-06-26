@@ -2,7 +2,7 @@ import {
   buildFutureYouGalleryItem,
   canRedoFutureYouTransformation,
   FUTURE_YOU_PAGE_BLOCKED_LEDE,
-  futureYouDraftAfterUserDelete,
+  futureYouDraftAfterPreviewDelete,
   futureYouPageLede,
   futureYouPageRedoLede,
   futureYouRedoAnchorIso,
@@ -14,13 +14,12 @@ import {
   shouldShowFutureYouGalleryTile,
   type FutureYouGalleryItem,
 } from "@newyouai/core";
-import type { FutureYouDraft } from "@newyouai/types";
+import type { FutureYouDraft, FutureYouPreview } from "@newyouai/types";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Alert, AppState, ScrollView, View } from "react-native";
 
 import { FutureYouDetailView } from "@/components/future-you/FutureYouDetailView";
-import { FutureYouFullscreenViewer } from "@/components/future-you/FutureYouFullscreenViewer";
 import { FutureYouGalleryView } from "@/components/future-you/FutureYouGalleryView";
 import { FutureYouReplaceDialog } from "@/components/future-you/FutureYouReplaceDialog";
 import {
@@ -32,6 +31,7 @@ import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useWorkoutShell } from "@/context/WorkoutShellContext";
 import { useFutureYouEntry } from "@/hooks/useFutureYouEntry";
+import { useFutureYouGalleryImages } from "@/hooks/useFutureYouGalleryImages";
 import { useFutureYouGenerationPoll } from "@/hooks/useFutureYouGenerationPoll";
 import { useFutureYouRevealImage } from "@/hooks/useFutureYouRevealImage";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -42,22 +42,26 @@ import {
   startFutureYouGeneration,
 } from "@/lib/futureYouGenerateService";
 import { deleteFutureYou } from "@/lib/futureYouDeleteService";
+import {
+  cacheFutureYouResultUrl,
+  preloadFutureYouImage,
+} from "@/lib/futureYouImagePreload";
 import { FutureYouPollError, pollFutureYouJobStatus } from "@/lib/futureYouPollService";
 import {
-  E2E_MOCK_FUTURE_YOU_JPEG_DATA_URL,
-  isE2eMockFutureYouEnabled,
-} from "@/lib/e2e/futureYouMock";
-import { compressImageToJpegDataUrl } from "@/lib/imageCompress";
+  FUTURE_YOU_READY_NOTIFICATION_BODY,
+  FUTURE_YOU_READY_NOTIFICATION_TITLE,
+  presentFutureYouReadyNotification,
+} from "@/lib/futureYouReadyNotification";
+import { futureYouPollImageUrl } from "@/lib/futureYouStatus";
+import {
+  pickFutureYouPhotoFromCamera,
+  pickFutureYouPhotoFromGallery,
+} from "@/lib/futureYouPhotoPicker";
 import { ageFromDateOfBirth } from "@/lib/onboardingProfile";
 import { FutureYouUploadError, uploadFutureYouPhoto } from "@/lib/futureYouUploadService";
+import { isFutureYouSkipCooldownEnabled } from "@/lib/futureYouDevFlags";
 
 type PageView = "gallery" | "detail" | "upload";
-
-function permissionDeniedMessage(kind: "camera" | "gallery"): string {
-  return kind === "camera" ?
-      "Camera access is off. Enable it in Settings or choose from gallery."
-    : "Photo library access is off. Enable it in Settings or use the camera.";
-}
 
 /** Photo + motivation fields preserved when replacing an existing preview. */
 function futureYouUploadSnapshot(draft: FutureYouDraft): FutureYouDraft {
@@ -93,9 +97,6 @@ export function FutureYouScreen() {
   const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
   const [replacePendingGenerate, setReplacePendingGenerate] = useState(false);
   const [uploadStep, setUploadStep] = useState<FutureYouNewPicStep>("photo");
-  const [fullscreenOpen, setFullscreenOpen] = useState(false);
-  const [fullscreenImageUri, setFullscreenImageUri] = useState<string | null>(null);
-
   const flowOpen = view === "upload" || view === "detail";
   const { paddingTop, paddingBottom } = useTabScreenInsets({ tabBarHidden: flowOpen });
 
@@ -142,9 +143,9 @@ export function FutureYouScreen() {
   const generationStatus = useFutureYouGenerationPoll({
     futureYou: draft,
     onFutureYouPatch: onFutureYouPatch,
-    pollEnabled:
-      tabFocused &&
-      (mode === "reveal" || view === "detail" || (view === "upload" && uploadJobActive)),
+    // Keep polling whenever a job is active (incl. on the gallery, so leaving the
+    // generating screen still resolves the result), or while viewing a preview.
+    pollEnabled: tabFocused && (mode === "reveal" || view === "detail" || uploadJobActive),
   });
 
   const generationActive =
@@ -159,19 +160,30 @@ export function FutureYouScreen() {
   const revealLoading =
     revealImageLoading || generationStatus === "queued" || generationStatus === "generating";
 
+  const skipRedoCooldown = isFutureYouSkipCooldownEnabled();
   const redoAnchorIso = futureYouRedoAnchorIso(draft);
   const msUntilRedo = useMemo(
     () => msUntilFutureYouRedoEligible(redoAnchorIso),
     [redoAnchorIso, redoCountdownTick],
   );
-  const canRedo = canRedoFutureYouTransformation(mode, generationStatus, redoAnchorIso);
+  const canRedo = canRedoFutureYouTransformation(
+    mode,
+    generationStatus,
+    redoAnchorIso,
+    false,
+    Date.now(),
+    skipRedoCooldown,
+  );
   const shouldPromptReplace = shouldPromptFutureYouReplaceDialog(
     mode,
     generationStatus,
     redoAnchorIso,
+    false,
+    Date.now(),
+    skipRedoCooldown,
   );
   const pageLede = photoBlocked ? FUTURE_YOU_PAGE_BLOCKED_LEDE : futureYouPageLede(mode);
-  const pageRedoLede = futureYouPageRedoLede(msUntilRedo);
+  const pageRedoLede = futureYouPageRedoLede(msUntilRedo, skipRedoCooldown);
 
   const galleryItem = useMemo(
     () =>
@@ -193,10 +205,32 @@ export function FutureYouScreen() {
     ],
   );
 
+  const previewImages = useFutureYouGalleryImages(draft.previews, subscriptionTier);
+
+  const previewItems = useMemo((): FutureYouGalleryItem[] => {
+    const previews = draft.previews ?? [];
+    return previews
+      .map((preview) => {
+        const resolved = previewImages[preview.jobId];
+        return buildFutureYouGalleryItem({
+          jobId: preview.jobId,
+          imageSrc: resolved?.uri ?? null,
+          timeline: preview.timeline ?? timeline,
+          motivationLabel: homeFutureYouMotivationLabel(preview.motivationId),
+          readyAtIso: preview.readyAt,
+          loading: resolved?.loading ?? true,
+        });
+      })
+      .filter((item): item is FutureYouGalleryItem => item !== null);
+  }, [draft.previews, previewImages, timeline]);
+
   const galleryItems = useMemo((): FutureYouGalleryItem[] => {
-    if (!shouldShowFutureYouGalleryTile(mode, generationStatus) || !galleryItem) return [];
-    return [galleryItem];
-  }, [mode, generationStatus, galleryItem]);
+    const activeItem =
+      shouldShowFutureYouGalleryTile(mode, generationStatus) && galleryItem ? galleryItem : null;
+    return [activeItem, ...previewItems].filter(
+      (item): item is FutureYouGalleryItem => item !== null,
+    );
+  }, [mode, generationStatus, galleryItem, previewItems]);
 
   const selectedItem = useMemo(() => {
     if (!selectedItemId) return galleryItems[0] ?? null;
@@ -207,12 +241,22 @@ export function FutureYouScreen() {
 
   const detailItem = useMemo((): FutureYouGalleryItem | null => {
     if (!selectedItem) return null;
+    const isActiveJob = selectedItem.id === draft.generationJobId?.trim();
+    if (isActiveJob) {
+      return {
+        ...selectedItem,
+        imageSrc:
+          selectedItem.loading ? selectedItem.imageSrc : saveableImageUri ?? selectedItem.imageSrc,
+        loading: revealLoading,
+      };
+    }
+    const resolved = previewImages[selectedItem.id];
     return {
       ...selectedItem,
-      imageSrc: selectedItem.loading ? selectedItem.imageSrc : saveableImageUri ?? selectedItem.imageSrc,
-      loading: revealLoading,
+      imageSrc: resolved?.uri ?? selectedItem.imageSrc,
+      loading: resolved?.loading ?? false,
     };
-  }, [selectedItem, saveableImageUri, revealLoading]);
+  }, [selectedItem, saveableImageUri, revealLoading, draft.generationJobId, previewImages]);
 
   useEffect(() => {
     if (msUntilRedo <= 0) return;
@@ -293,22 +337,20 @@ export function FutureYouScreen() {
     awaitingUploadGenerationRef.current = false;
   }, []);
 
-  const handleFutureYouDeleted = useCallback(() => {
-    setFitnessState((prev) => {
-      const next = futureYouDraftAfterUserDelete(prev.futureYou);
-      return {
-        ...prev,
-        futureYou: Object.keys(next).length > 0 ? next : undefined,
-      };
-    });
-  }, [setFitnessState]);
-
-  const onDetailFutureYouDeleted = useCallback(() => {
-    setView("gallery");
-    setSelectedItemId(null);
-    setFullscreenOpen(false);
-    handleFutureYouDeleted();
-  }, [handleFutureYouDeleted]);
+  const onDetailFutureYouDeleted = useCallback(
+    (jobId: string) => {
+      setView("gallery");
+      setSelectedItemId(null);
+      setFitnessState((prev) => {
+        const next = futureYouDraftAfterPreviewDelete(prev.futureYou, jobId);
+        return {
+          ...prev,
+          futureYou: Object.keys(next).length > 0 ? next : undefined,
+        };
+      });
+    },
+    [setFitnessState],
+  );
 
   const executeGeneration = useCallback(
     async (fromDraft: FutureYouDraft) => {
@@ -333,8 +375,26 @@ export function FutureYouScreen() {
           generationStatus: result.status,
           photoSkipped: false,
         });
+        if (result.status === "ready") {
+          try {
+            const poll = await pollFutureYouJobStatus(result.jobId);
+            const resultUrl = futureYouPollImageUrl(poll, true);
+            if (resultUrl) {
+              cacheFutureYouResultUrl(result.jobId, resultUrl);
+              void preloadFutureYouImage(resultUrl).catch(() => undefined);
+            }
+          } catch {
+            // Poll hook will retry if preload fails.
+          }
+        }
+        setPhotoPreview(null);
+        setUploadError(null);
+        setGenerateError(null);
+        // Generation runs in the background; the poll hook resolves it. Don't yank
+        // the user to the detail view — if they stay on the generating screen the
+        // effect below opens the result; if they leave, the gallery tile + a
+        // notification surface it instead.
         awaitingUploadGenerationRef.current = true;
-        setUploadStep("motivation");
       } catch (error) {
         const message =
           error instanceof FutureYouGenerateError ?
@@ -351,13 +411,18 @@ export function FutureYouScreen() {
   const onReplaceDeleteOld = useCallback(async () => {
     if (replaceBusy || !replacePendingGenerate) return;
     const snapshot = futureYouUploadSnapshot(draft);
+    const currentJobId = draft.generationJobId?.trim();
+    const keptPreviews = draft.previews ?? [];
     setReplaceBusy(true);
     try {
-      await deleteFutureYou();
-      handleFutureYouDeleted();
+      // Remove only the current preview's server data; keep older previews intact.
+      await deleteFutureYou(currentJobId || undefined);
       setReplaceDialogOpen(false);
       setReplacePendingGenerate(false);
-      const nextDraft = mergeFutureYouDraft(undefined, snapshot);
+      const nextDraft = mergeFutureYouDraft(undefined, {
+        ...snapshot,
+        previews: keptPreviews.length > 0 ? keptPreviews : undefined,
+      });
       setFitnessState((prev) => ({ ...prev, futureYou: nextDraft }));
       await executeGeneration(nextDraft);
     } catch {
@@ -370,7 +435,6 @@ export function FutureYouScreen() {
   }, [
     draft,
     executeGeneration,
-    handleFutureYouDeleted,
     replaceBusy,
     replacePendingGenerate,
     setFitnessState,
@@ -380,8 +444,26 @@ export function FutureYouScreen() {
     if (!replacePendingGenerate) return;
     setReplaceDialogOpen(false);
     setReplacePendingGenerate(false);
-    void executeGeneration(draft);
-  }, [draft, executeGeneration, replacePendingGenerate]);
+
+    // Preserve the current ready preview before the new job overwrites the active fields.
+    const currentJobId = draft.generationJobId?.trim();
+    let baseDraft = draft;
+    if (currentJobId && draft.generationStatus === "ready") {
+      const kept: FutureYouPreview = { jobId: currentJobId, timeline };
+      if (draft.generationReadyAt) kept.readyAt = draft.generationReadyAt;
+      if (draft.motivationId) kept.motivationId = draft.motivationId;
+      if (draft.motivationIsGeneric) kept.motivationIsGeneric = true;
+      const existing = (draft.previews ?? []).filter((preview) => preview.jobId !== currentJobId);
+      const nextPreviews = [kept, ...existing];
+      baseDraft = mergeFutureYouDraft(draft, { previews: nextPreviews });
+      setFitnessState((prev) => ({
+        ...prev,
+        futureYou: mergeFutureYouDraft(prev.futureYou, { previews: nextPreviews }),
+      }));
+    }
+
+    void executeGeneration(baseDraft);
+  }, [draft, executeGeneration, replacePendingGenerate, setFitnessState, timeline]);
 
   const onReplaceCancel = useCallback(() => {
     setReplaceDialogOpen(false);
@@ -436,89 +518,77 @@ export function FutureYouScreen() {
     setUploadStep("photo");
   }, [view, generationStatus, draft.generationJobId]);
 
-  const onPickImageUri = useCallback(
-    async (uri: string) => {
+  useEffect(() => {
+    if (generationStatus !== "failed") return;
+    if (view !== "detail" && view !== "upload") return;
+    setGenerateError((prev) => prev ?? "Generation failed. Try again.");
+    if (view === "detail") {
+      setView("upload");
+      setUploadStep("motivation");
+      setSelectedItemId(null);
+    }
+  }, [generationStatus, view]);
+
+  // Notify when generation finishes while the user has left the generating screen.
+  const prevGenerationStatusRef = useRef(generationStatus);
+  useEffect(() => {
+    const prev = prevGenerationStatusRef.current;
+    prevGenerationStatusRef.current = generationStatus;
+    if (prev === "ready" || generationStatus !== "ready") return;
+    const jobId = draft.generationJobId?.trim();
+    if (!jobId) return;
+    // Still on the loader/preview — they'll see the result without interruption.
+    if (view === "detail" || view === "upload") return;
+    if (AppState.currentState === "active") {
+      Alert.alert(FUTURE_YOU_READY_NOTIFICATION_TITLE, FUTURE_YOU_READY_NOTIFICATION_BODY, [
+        { text: "Later", style: "cancel" },
+        {
+          text: "View",
+          onPress: () => {
+            setSelectedItemId(jobId);
+            setView("detail");
+          },
+        },
+      ]);
+    } else {
+      void presentFutureYouReadyNotification();
+    }
+  }, [generationStatus, view, draft.generationJobId]);
+
+  const applyPhotoPreview = useCallback(
+    (preview: string) => {
       setUploadError(null);
-      try {
-        const preview = await compressImageToJpegDataUrl(uri);
-        setPhotoPreview(preview);
-        const consentAt = draft.photoAiConsentAt ?? new Date().toISOString();
-        onFutureYouPatch({
-          photoSkipped: false,
-          photoUploaded: false,
-          photoStoragePath: undefined,
-          photoAiConsentAt: consentAt,
-        });
-      } catch {
-        setUploadError("Could not read that photo. Try another image.");
-      }
+      setPhotoPreview(preview);
+      const consentAt = draft.photoAiConsentAt ?? new Date().toISOString();
+      onFutureYouPatch({
+        photoSkipped: false,
+        photoUploaded: false,
+        photoStoragePath: undefined,
+        photoAiConsentAt: consentAt,
+      });
     },
     [draft.photoAiConsentAt, onFutureYouPatch],
   );
 
   const pickFromCamera = useCallback(async () => {
-    if (isE2eMockFutureYouEnabled()) {
-      setUploadError(null);
-      const consentAt = draft.photoAiConsentAt ?? new Date().toISOString();
-      setPhotoPreview(E2E_MOCK_FUTURE_YOU_JPEG_DATA_URL);
-      onFutureYouPatch({
-        photoSkipped: false,
-        photoUploaded: false,
-        photoStoragePath: undefined,
-        photoAiConsentAt: consentAt,
-      });
+    const result = await pickFutureYouPhotoFromCamera();
+    if (!result) return;
+    if ("error" in result) {
+      setUploadError(result.error);
       return;
     }
-    try {
-      const ImagePicker = await import("expo-image-picker");
-      const permission = await ImagePicker.requestCameraPermissionsAsync();
-      if (!permission.granted) {
-        setUploadError(permissionDeniedMessage("camera"));
-        return;
-      }
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        quality: 1,
-      });
-      if (result.canceled || !result.assets[0]?.uri) return;
-      await onPickImageUri(result.assets[0].uri);
-    } catch {
-      setUploadError(permissionDeniedMessage("camera"));
-    }
-  }, [draft.photoAiConsentAt, onFutureYouPatch, onPickImageUri]);
+    applyPhotoPreview(result.preview);
+  }, [applyPhotoPreview]);
 
   const pickFromGallery = useCallback(async () => {
-    if (isE2eMockFutureYouEnabled()) {
-      setUploadError(null);
-      const consentAt = draft.photoAiConsentAt ?? new Date().toISOString();
-      setPhotoPreview(E2E_MOCK_FUTURE_YOU_JPEG_DATA_URL);
-      onFutureYouPatch({
-        photoSkipped: false,
-        photoUploaded: false,
-        photoStoragePath: undefined,
-        photoAiConsentAt: consentAt,
-      });
+    const result = await pickFutureYouPhotoFromGallery();
+    if (!result) return;
+    if ("error" in result) {
+      setUploadError(result.error);
       return;
     }
-    try {
-      const ImagePicker = await import("expo-image-picker");
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        setUploadError(permissionDeniedMessage("gallery"));
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        quality: 1,
-      });
-      if (result.canceled || !result.assets[0]?.uri) return;
-      await onPickImageUri(result.assets[0].uri);
-    } catch {
-      setUploadError(permissionDeniedMessage("gallery"));
-    }
-  }, [draft.photoAiConsentAt, onFutureYouPatch, onPickImageUri]);
+    applyPhotoPreview(result.preview);
+  }, [applyPhotoPreview]);
 
   const continuePhotoUpload = useCallback(async () => {
     const preview = photoPreview;
@@ -586,7 +656,7 @@ export function FutureYouScreen() {
   const goal = profile?.goal ?? "cut";
   const effectiveGenerateError =
     generateError ??
-    (view === "upload" && uploadStep === "motivation" && generationStatus === "failed" ?
+    (view === "upload" && generationStatus === "failed" ?
       "Generation failed. Try again."
     : null);
 
@@ -606,6 +676,7 @@ export function FutureYouScreen() {
           uploadError={uploadError}
           generating={generating || replaceBusy}
           generationActive={generationActive}
+          generationStatus={generationStatus}
           generateError={effectiveGenerateError}
           onClose={closeUploadPage}
           onBackToPhoto={onBackToPhoto}
@@ -622,19 +693,17 @@ export function FutureYouScreen() {
     }
 
     if (view === "detail" && detailItem) {
+      const detailIsActive = detailItem.id === draft.generationJobId?.trim();
       return (
         <FutureYouDetailView
           item={detailItem}
-          timeline={timeline}
+          goal={goal}
           gender={gender}
+          motivationId={detailIsActive ? draft.motivationId : undefined}
+          generationStatus={detailIsActive ? generationStatus : "ready"}
           futureYou={draft}
-          jobId={draft.generationJobId}
+          jobId={detailItem.id}
           onBack={onBackToGallery}
-          onOpenFullscreen={() => {
-            if (!saveableImageUri) return;
-            setFullscreenImageUri(saveableImageUri);
-            setFullscreenOpen(true);
-          }}
           onFutureYouDeleted={onDetailFutureYouDeleted}
         />
       );
@@ -659,7 +728,11 @@ export function FutureYouScreen() {
     <View testID="tab-future-you" style={{ flex: 1, backgroundColor: "transparent" }}>
       <ScrollView
         className="flex-1 px-screen-x"
-        contentContainerStyle={{ paddingBottom, paddingTop, flexGrow: view === "detail" ? 1 : undefined }}
+        contentContainerStyle={{
+          paddingBottom,
+          paddingTop,
+          flexGrow: view === "detail" || view === "upload" ? 1 : undefined,
+        }}
         showsVerticalScrollIndicator={false}
       >
         {showHeader ? (
@@ -675,11 +748,6 @@ export function FutureYouScreen() {
         ) : null}
         {renderBody()}
       </ScrollView>
-      <FutureYouFullscreenViewer
-        open={fullscreenOpen}
-        imageUri={fullscreenImageUri}
-        onClose={() => setFullscreenOpen(false)}
-      />
       <FutureYouReplaceDialog
         open={replaceDialogOpen}
         busy={replaceBusy}

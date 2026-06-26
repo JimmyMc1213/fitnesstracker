@@ -1,10 +1,11 @@
 import { clampMacroInputString, parseBoundedMacro } from "@newyouai/core";
 import type { NutritionUserFood } from "@newyouai/types";
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FullScreenOverlay } from "@/components/motion";
+import { AppTextField } from "@/components/ui/AppTextField";
 
 import { useBottomActionPadding } from "@/lib/screenInsets";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
@@ -86,25 +87,23 @@ export function EditUserFoodSheet({ food, onClose, onSave }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           <FieldLabel label="Food name" colors={colors} />
-          <TextInput
+          <AppTextField
             value={name}
             onChangeText={setName}
             accessibilityLabel="Food name"
             placeholder="e.g. Greek yogurt"
-            placeholderTextColor={colors.textTertiary}
-            className="rounded-xl border px-3 py-3 text-[15px]"
-            style={{ borderColor: colors.border, backgroundColor: colors.card, color: colors.textPrimary }}
+            backgroundColor={colors.card}
           />
 
           <FieldLabel label="Calories (cal)" colors={colors} />
-          <TextInput
+          <AppTextField
             value={cal}
             onChangeText={(raw) => setCal(clampMacroInputString(raw, "cal"))}
             onBlur={() => setCal(String(parseBoundedMacro(cal, "cal")))}
             accessibilityLabel="Calories"
             keyboardType="decimal-pad"
-            className="rounded-xl border px-3 py-3 text-[15px] tabular-nums"
-            style={{ borderColor: colors.border, backgroundColor: colors.card, color: colors.textPrimary }}
+            backgroundColor={colors.card}
+            style={{ fontVariant: ["tabular-nums"] }}
           />
 
           <View className="mt-4 flex-row gap-2">
@@ -114,14 +113,12 @@ export function EditUserFoodSheet({ food, onClose, onSave }: Props) {
           </View>
 
           <FieldLabel label="Serving label" colors={colors} />
-          <TextInput
+          <AppTextField
             value={serving}
             onChangeText={setServing}
             accessibilityLabel="Serving label"
             placeholder="e.g. 1 cup"
-            placeholderTextColor={colors.textTertiary}
-            className="rounded-xl border px-3 py-3 text-[15px]"
-            style={{ borderColor: colors.border, backgroundColor: colors.card, color: colors.textPrimary }}
+            backgroundColor={colors.card}
           />
         </ScrollView>
 
@@ -165,14 +162,14 @@ function MacroField({
   return (
     <View className="min-w-0 flex-1">
       <FieldLabel label={label} colors={colors} />
-      <TextInput
+      <AppTextField
         value={value}
         onChangeText={(raw) => setValue(clampMacroInputString(raw, macro))}
         onBlur={() => setValue(String(parseBoundedMacro(value, macro)))}
         accessibilityLabel={label}
         keyboardType="decimal-pad"
-        className="rounded-xl border px-3 py-3 text-[15px] tabular-nums"
-        style={{ borderColor: colors.border, backgroundColor: colors.card, color: colors.textPrimary }}
+        backgroundColor={colors.card}
+        style={{ fontVariant: ["tabular-nums"] }}
       />
     </View>
   );

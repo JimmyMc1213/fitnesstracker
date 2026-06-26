@@ -23,8 +23,12 @@ export const authLayout = StyleSheet.create({
   },
   copyBlock: {
     flexShrink: 0,
-    marginTop: 16,
     alignItems: "center",
+  },
+  welcomeBottom: {
+    flexShrink: 0,
+    marginTop: "auto",
+    gap: 12,
   },
   headline: {
     fontSize: 28,

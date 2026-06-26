@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * RN-9-09 Future You Maestro, provisions a disposable Supabase user, then runs Future You smoke.
- * Requires: Metro on :8082 with EXPO_PUBLIC_E2E_FITNESS_SEED=future-you and
- * EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true, iOS simulator + dev client.
+ * Requires: Metro on :8082 with EXPO_PUBLIC_E2E_FITNESS_SEED=future-you,
+ * EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true, EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU_CAMERA=true,
+ * iOS simulator + dev client.
  */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -79,7 +80,7 @@ const metroProbe = spawnSync("curl", ["-sf", "-o", "/dev/null", "http://127.0.0.
 if (metroProbe.status !== 0) {
   console.error(
     "Metro is not reachable on http://127.0.0.1:8082, start it first:\n" +
-      "  cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=future-you EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true npx expo start --dev-client --port 8082",
+      "  cd apps/mobile && EXPO_PUBLIC_E2E_FITNESS_SEED=future-you EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU=true EXPO_PUBLIC_E2E_MOCK_FUTURE_YOU_CAMERA=true npx expo start --dev-client --port 8082",
   );
   process.exit(1);
 }
