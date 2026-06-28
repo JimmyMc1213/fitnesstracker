@@ -27,6 +27,7 @@ type Props = {
   displayName: string;
   previewMode?: boolean;
   onContinue: () => void;
+  onReported?: (jobId: string) => void;
 };
 
 export function OnboardingFutureYouSuccess({
@@ -40,6 +41,7 @@ export function OnboardingFutureYouSuccess({
   displayName,
   previewMode = false,
   onContinue,
+  onReported,
 }: Props) {
   const heroVisible = isFutureYouSuccessHeroVisible(futureYou, photoBlocked);
   const { imageSrc, loading } = useFutureYouRevealImage({
@@ -98,6 +100,7 @@ export function OnboardingFutureYouSuccess({
           context="onboarding_success"
           previewMode={previewMode}
           className="onboarding-fy-success__report"
+          onReported={onReported}
         />
       </div>
 

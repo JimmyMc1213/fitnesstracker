@@ -24,6 +24,7 @@ type Props = {
   onBack: () => void;
   onOpenFullscreen: () => void;
   onFutureYouDeleted: () => void;
+  onReported?: (jobId: string) => void;
 };
 
 export function FutureYouDetailView({
@@ -35,6 +36,7 @@ export function FutureYouDetailView({
   onBack,
   onOpenFullscreen,
   onFutureYouDeleted,
+  onReported,
 }: Props) {
   const [saveState, setSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -111,7 +113,7 @@ export function FutureYouDetailView({
           </p>
         : null}
 
-        <FutureYouReportButton jobId={jobId} context="home" className="future-you-page__report" />
+        <FutureYouReportButton jobId={jobId} context="home" className="future-you-page__report" onReported={onReported} />
       </div>
     </div>
   );

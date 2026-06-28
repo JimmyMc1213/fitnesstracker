@@ -12,6 +12,7 @@ import {
   msUntilFutureYouRedoEligible,
   shouldPromptFutureYouReplaceDialog,
   shouldShowFutureYouGalleryTile,
+  shouldSkipFutureYouRedoCooldown,
   type FutureYouGalleryItem,
 } from "@newyouai/core";
 import type { FutureYouDraft, FutureYouPreview } from "@newyouai/types";
@@ -168,7 +169,16 @@ export function FutureYouScreen() {
   const revealLoading =
     revealImageLoading || generationStatus === "queued" || generationStatus === "generating";
 
-  const skipRedoCooldown = isFutureYouSkipCooldownEnabled();
+  const skipRedoCooldown = shouldSkipFutureYouRedoCooldown(
+    draft,
+    isFutureYouSkipCooldownEnabled(),
+  );
+  const onFutureYouReported = useCallback(
+    (jobId: string) => {
+      onFutureYouPatch({ reportedJobId: jobId });
+    },
+    [onFutureYouPatch],
+  );
   const redoAnchorIso = futureYouRedoAnchorIso(draft);
   const msUntilRedo = useMemo(
     () => msUntilFutureYouRedoEligible(redoAnchorIso),
@@ -744,6 +754,7 @@ export function FutureYouScreen() {
           sourcePhotoPath={detailSourcePhotoPath}
           onBack={onBackToGallery}
           onFutureYouDeleted={onDetailFutureYouDeleted}
+          onReported={onFutureYouReported}
         />
       );
     }

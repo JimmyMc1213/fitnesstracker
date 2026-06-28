@@ -1580,6 +1580,7 @@ export function OnboardingFlow({
         displayName={displayName}
         previewMode={previewMode}
         onContinue={() => void finishWithTier(pendingSubscriptionTier)}
+        onReported={(jobId) => patchFutureYou({ reportedJobId: jobId })}
       />
     );
   }

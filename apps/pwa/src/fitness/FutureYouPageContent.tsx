@@ -30,6 +30,7 @@ import {
   futureYouRedoAnchorIso,
   msUntilFutureYouRedoEligible,
   shouldPromptFutureYouReplaceDialog,
+  shouldSkipFutureYouRedoCooldown,
 } from "./futureYouPageModel";
 import { futureYouRevealPlaceholderImage } from "./futureYouRevealPlaceholder";
 import { futureYouTimelineFromProfile } from "./futureYouTimeline";
@@ -115,20 +116,32 @@ export function FutureYouPageContent({
     () => msUntilFutureYouRedoEligible(redoAnchorIso),
     [redoAnchorIso, redoCountdownTick],
   );
+  const skipRedoCooldown = shouldSkipFutureYouRedoCooldown(draft);
+  const onFutureYouReported = useCallback(
+    (jobId: string) => {
+      onFutureYouChange({ reportedJobId: jobId });
+    },
+    [onFutureYouChange],
+  );
+
   const canRedo = canRedoFutureYouTransformation(
     mode,
     generationStatus,
     redoAnchorIso,
     previewMode,
+    Date.now(),
+    skipRedoCooldown,
   );
   const shouldPromptReplace = shouldPromptFutureYouReplaceDialog(
     mode,
     generationStatus,
     redoAnchorIso,
     previewMode,
+    Date.now(),
+    skipRedoCooldown,
   );
   const pageLede = futureYouPageLede(mode);
-  const pageRedoLede = futureYouPageRedoLede(msUntilRedo);
+  const pageRedoLede = futureYouPageRedoLede(msUntilRedo, skipRedoCooldown);
 
   useEffect(() => {
     if (!active || msUntilRedo <= 0) return;
@@ -487,6 +500,7 @@ export function FutureYouPageContent({
           onBack={onBackToGallery}
           onOpenFullscreen={() => setFullscreenOpen(true)}
           onFutureYouDeleted={() => handleFutureYouDeleted(detailItem.id)}
+          onReported={onFutureYouReported}
         />
       );
     }

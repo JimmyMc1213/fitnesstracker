@@ -13,11 +13,8 @@ export class ImageProviderUnavailableError extends Error {
 }
 
 /**
- * Resolve the maskless Responses-API provider (the single-image Future You
- * path). Throws ImageProviderUnavailableError if OPENAI_API_KEY is missing.
- *
- * NOTE: the legacy masked providers (openai.ts, grok.ts) remain on disk but are
- * no longer wired in here; they are removed in Phase 3.
+ * Resolve the maskless Responses-API provider for Future You generation.
+ * Throws ImageProviderUnavailableError if OPENAI_API_KEY is missing.
  */
 export function getFutureYouImageProvider(): FutureYouImageProvider {
   const apiKey = Deno.env.get("OPENAI_API_KEY")?.trim();

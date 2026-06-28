@@ -1161,6 +1161,7 @@ export default function OnboardingWizardScreen() {
         onContinue={() => void handleFinishOnboarding()}
         onBack={goBack}
         continuing={finishingOnboarding}
+        onReported={(jobId) => patchFutureYou({ reportedJobId: jobId })}
       />
     );
   }

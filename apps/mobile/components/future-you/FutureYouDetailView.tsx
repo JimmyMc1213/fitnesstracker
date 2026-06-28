@@ -35,6 +35,7 @@ type Props = {
   sourcePhotoPath?: string;
   onBack: () => void;
   onFutureYouDeleted: (jobId: string) => void;
+  onReported?: (jobId: string) => void;
 };
 
 export function FutureYouDetailView({
@@ -48,6 +49,7 @@ export function FutureYouDetailView({
   sourcePhotoPath,
   onBack,
   onFutureYouDeleted,
+  onReported,
 }: Props) {
   const { colors } = useAppTheme();
   const [saveState, setSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
@@ -194,7 +196,7 @@ export function FutureYouDetailView({
       </View>
 
       <View className="shrink-0 items-center gap-1 pt-3 pb-1">
-        <FutureYouReportButton jobId={jobId} context="home" />
+        <FutureYouReportButton jobId={jobId} context="home" onReported={onReported} />
         <FutureYouLegalFooter compact accentColor={FUTURE_YOU_GOLD} />
       </View>
     </View>

@@ -27,11 +27,12 @@ type Props = {
   context: FutureYouReportContext;
   previewMode?: boolean;
   className?: string;
+  onReported?: (jobId: string) => void;
 };
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
-export function FutureYouReportButton({ jobId, context, previewMode = false, className }: Props) {
+export function FutureYouReportButton({ jobId, context, previewMode = false, className, onReported }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [category, setCategory] = useState<FutureYouReportCategory>("not_accurate");
   const [message, setMessage] = useState("");
@@ -64,6 +65,7 @@ export function FutureYouReportButton({ jobId, context, previewMode = false, cla
         { previewMode },
       );
       setSubmitState("success");
+      if (jobId?.trim()) onReported?.(jobId.trim());
     } catch (error) {
       setSubmitState("error");
       setErrorMessage(error instanceof Error ? error.message : FUTURE_YOU_REPORT_ERROR_MESSAGE);

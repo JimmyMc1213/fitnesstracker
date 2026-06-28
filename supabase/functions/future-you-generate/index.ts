@@ -37,12 +37,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-/**
- * Safety net for the background task — kept under the Supabase Paid wall-clock
- * limit (400s). One high-quality maskless generation runs well within this.
- */
-const GENERATION_JOB_TIMEOUT_MS = 360 * 1000;
-
 type ActiveJobRow = {
   id: string;
   status: string;
@@ -242,79 +236,58 @@ async function runGenerationJob(
   request: FutureYouGenerateRequest,
   provider: FutureYouImageProvider,
 ) {
-  const run = async () => {
-    try {
-      await updateJob(adminClient, jobId, userId, { status: "generating", error: null });
-
-      const prompt = buildFutureYouPrompt({
-        profile: request.profile,
-        motivationId: request.motivationId,
-        timeline: request.timeline,
-      });
-
-      const { bytes, mimeType } = await downloadSourcePhoto(adminClient, request.sourcePath);
-
-      console.log("future-you-generate: calling provider", {
-        jobId,
-        provider: provider.id,
-        sourceBytes: bytes.length,
-        promptLength: prompt.length,
-      });
-
-      const { imageBytes, revisedPrompt } = await provider.generate(bytes, mimeType, prompt);
-
-      console.log("future-you-generate: generation complete", {
-        jobId,
-        provider: provider.id,
-        revisedPrompt: revisedPrompt ?? null,
-      });
-
-      const resultPath = buildFutureYouResultPath(userId, jobId);
-      const { error: uploadError } = await adminClient.storage
-        .from(FUTURE_YOU_BUCKET)
-        .upload(resultPath, imageBytes, {
-          contentType: "image/png",
-          upsert: true,
-        });
-
-      if (uploadError) {
-        throw new Error("Could not save generated image.");
-      }
-
-      await markJobReady(adminClient, jobId, userId, resultPath, revisedPrompt);
-    } catch (error) {
-      const message = formatGenerationError(error);
-      console.error("future-you-generate: job failed", {
-        jobId,
-        message,
-        ...(error instanceof ImageProviderError
-          ? { status: error.status, body: error.body.slice(0, 1000) }
-          : { error }),
-      });
-      await updateJob(adminClient, jobId, userId, {
-        status: "failed",
-        error: message,
-      });
-    }
-  };
-
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
   try {
-    await Promise.race([
-      run(),
-      new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(
-          () => reject(new Error(FUTURE_YOU_JOB_STALE_ERROR)),
-          GENERATION_JOB_TIMEOUT_MS,
-        );
-      }),
-    ]);
+    await updateJob(adminClient, jobId, userId, { status: "generating", error: null });
+
+    const prompt = buildFutureYouPrompt({
+      profile: request.profile,
+      motivationId: request.motivationId,
+      timeline: request.timeline,
+    });
+
+    const { bytes, mimeType } = await downloadSourcePhoto(adminClient, request.sourcePath);
+
+    console.log("future-you-generate: calling provider", {
+      jobId,
+      provider: provider.id,
+      sourceBytes: bytes.length,
+      promptLength: prompt.length,
+    });
+
+    const { imageBytes, revisedPrompt } = await provider.generate(bytes, mimeType, prompt);
+
+    console.log("future-you-generate: generation complete", {
+      jobId,
+      provider: provider.id,
+      revisedPrompt: revisedPrompt ?? null,
+    });
+
+    const resultPath = buildFutureYouResultPath(userId, jobId);
+    const { error: uploadError } = await adminClient.storage
+      .from(FUTURE_YOU_BUCKET)
+      .upload(resultPath, imageBytes, {
+        contentType: "image/png",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw new Error("Could not save generated image.");
+    }
+
+    await markJobReady(adminClient, jobId, userId, resultPath, revisedPrompt);
   } catch (error) {
-    const message = error instanceof Error ? error.message : FUTURE_YOU_JOB_STALE_ERROR;
-    console.error("future-you-generate: job timed out or aborted", { jobId, error });
-    await failJob(adminClient, jobId, userId, message);
-  } finally {
-    if (timeoutId !== undefined) clearTimeout(timeoutId);
+    const message = formatGenerationError(error);
+    console.error("future-you-generate: job failed", {
+      jobId,
+      message,
+      ...(error instanceof ImageProviderError
+        ? { status: error.status, body: error.body.slice(0, 1000) }
+        : { error }),
+    });
+    await updateJob(adminClient, jobId, userId, {
+      status: "failed",
+      error: message,
+    });
   }
 }
 
@@ -396,8 +369,7 @@ Deno.serve(async (req) => {
     const jobId = job.id as string;
 
     // Return the job immediately and finish generation in the background so the
-    // client gets a durable jobId to poll. Medium quality (~60s) completes well
-    // within the background-task window.
+    // client gets a durable jobId to poll.
     EdgeRuntime.waitUntil(
       runGenerationJob(auth.adminClient, auth.userId, jobId, validated.request, provider),
     );

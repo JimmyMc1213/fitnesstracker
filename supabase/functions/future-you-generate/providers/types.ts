@@ -1,14 +1,3 @@
-/**
- * Image-edit provider abstraction for Future You generation.
- *
- * NOTE: This masked-edit contract is superseded by FutureYouImageProvider
- * (below) and is removed in Phase 3 along with the old masked providers.
- */
-export interface ImageEditProvider {
-  readonly id: string;
-  editImage(imageBytes: Uint8Array, mimeType: string, prompt: string): Promise<Uint8Array>;
-}
-
 /** Result of a single maskless Future You generation. */
 export type GeneratedImage = {
   imageBytes: Uint8Array;
@@ -20,7 +9,7 @@ export type GeneratedImage = {
  * Maskless single-image provider contract for Future You generation.
  *
  * Takes the user's source selfie + a positive prompt and returns one
- * transformed image plus the revised prompt. Replaces ImageEditProvider.
+ * transformed image plus the revised prompt.
  */
 export interface FutureYouImageProvider {
   readonly id: string;

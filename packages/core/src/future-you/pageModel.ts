@@ -17,6 +17,17 @@ export function futureYouRedoAnchorIso(draft: FutureYouDraft | undefined): strin
 /** Minimum time between transformation updates when user already has a ready preview. */
 export const FUTURE_YOU_REDO_INTERVAL_MS = 14 * 24 * 60 * 60 * 1000;
 
+/** Bypass the 2-week redo gate after the user reports the active result. */
+export function shouldSkipFutureYouRedoCooldown(
+  draft: FutureYouDraft | undefined,
+  devBypass = false,
+): boolean {
+  if (devBypass) return true;
+  const reported = draft?.reportedJobId?.trim();
+  const active = draft?.generationJobId?.trim();
+  return Boolean(reported && active && reported === active);
+}
+
 export const FUTURE_YOU_PAGE_NEW_CHIP_LABEL = "New";
 /** Accessible label for the gallery new-transformation control. */
 export const FUTURE_YOU_PAGE_NEW_CHIP_ARIA_LABEL = "New NewYou transformation";

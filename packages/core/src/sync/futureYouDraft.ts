@@ -92,6 +92,9 @@ export function normalizeFutureYouDraft(raw: unknown): FutureYouDraft | undefine
   if (previews) draft.previews = previews;
   if (o.onboardingGoalLocked === true) draft.onboardingGoalLocked = true;
   if (o.remindersMuted === true) draft.remindersMuted = true;
+  if (typeof o.reportedJobId === "string" && o.reportedJobId.trim()) {
+    draft.reportedJobId = o.reportedJobId.trim();
+  }
   if (typeof o.reminderDismissedDateKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(o.reminderDismissedDateKey)) {
     draft.reminderDismissedDateKey = o.reminderDismissedDateKey;
   }

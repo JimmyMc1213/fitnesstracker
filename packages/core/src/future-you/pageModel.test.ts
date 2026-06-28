@@ -8,6 +8,7 @@ import {
   FUTURE_YOU_REDO_INTERVAL_MS,
   msUntilFutureYouRedoEligible,
   shouldPromptFutureYouReplaceDialog,
+  shouldSkipFutureYouRedoCooldown,
 } from "./pageModel";
 
 describe("futureYouPageModel", () => {
@@ -34,6 +35,27 @@ describe("futureYouPageModel", () => {
       shouldPromptFutureYouReplaceDialog("reveal", "ready", readyAt, false, oneWeekLater, true),
     ).toBe(true);
     expect(futureYouPageRedoLede(msUntilFutureYouRedoEligible(readyAt, oneWeekLater), true)).toBeNull();
+  });
+
+  it("skips redo cooldown when the active result was reported", () => {
+    const oneWeekLater = Date.parse(readyAt) + 7 * 24 * 60 * 60 * 1000;
+    const draft = {
+      generationJobId: "job-reported",
+      reportedJobId: "job-reported",
+      generationReadyAt: readyAt,
+      generationStatus: "ready" as const,
+    };
+    expect(shouldSkipFutureYouRedoCooldown(draft)).toBe(true);
+    expect(
+      canRedoFutureYouTransformation(
+        "reveal",
+        "ready",
+        readyAt,
+        false,
+        oneWeekLater,
+        shouldSkipFutureYouRedoCooldown(draft),
+      ),
+    ).toBe(true);
   });
 
   it("blocks redo until 14 days after ready", () => {

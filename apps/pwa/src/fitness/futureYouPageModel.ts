@@ -18,6 +18,7 @@ export {
   formatDaysUntilFutureYouRedo,
   canRedoFutureYouTransformation,
   shouldPromptFutureYouReplaceDialog,
+  shouldSkipFutureYouRedoCooldown,
   futureYouPageLede,
   futureYouPageRedoLede,
   patchGenerationReadyAt,

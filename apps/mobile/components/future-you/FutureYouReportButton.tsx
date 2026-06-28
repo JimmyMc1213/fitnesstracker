@@ -28,6 +28,7 @@ type Props = {
   jobId?: string;
   context: FutureYouReportContext;
   previewMode?: boolean;
+  onReported?: (jobId: string) => void;
 };
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
@@ -38,7 +39,7 @@ const REPORT_DIALOG_PANEL = {
   maxHeight: "85%" as const,
 };
 
-export function FutureYouReportButton({ jobId, context, previewMode = false }: Props) {
+export function FutureYouReportButton({ jobId, context, previewMode = false, onReported }: Props) {
   const { colors, ob } = useOnboardingTheme();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [category, setCategory] = useState<FutureYouReportCategory>("not_accurate");
@@ -72,6 +73,7 @@ export function FutureYouReportButton({ jobId, context, previewMode = false }: P
         { previewMode },
       );
       setSubmitState("success");
+      if (jobId?.trim()) onReported?.(jobId.trim());
     } catch (error) {
       setSubmitState("error");
       setErrorMessage(error instanceof Error ? error.message : FUTURE_YOU_REPORT_ERROR_MESSAGE);

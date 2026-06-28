@@ -36,6 +36,7 @@ type Props = {
   onBack?: () => void;
   continuing?: boolean;
   previewMode?: boolean;
+  onReported?: (jobId: string) => void;
 };
 
 /** Gold ring color = `--ob-gold` (#c9a876) at 0.75, matching PWA `__image-wrap`. */
@@ -53,6 +54,7 @@ export function OnboardingFutureYouSuccess({
   onBack,
   continuing = false,
   previewMode = false,
+  onReported,
 }: Props) {
   const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
@@ -188,6 +190,7 @@ export function OnboardingFutureYouSuccess({
                 jobId={futureYou?.generationJobId}
                 context="onboarding_success"
                 previewMode={previewMode}
+                onReported={onReported}
               />
             </View>
           </>

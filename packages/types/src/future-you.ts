@@ -39,6 +39,8 @@ export type FutureYouDraft = {
   onboardingGoalLocked?: boolean;
   /** User turned off Home NewYou reminder pill in Settings. */
   remindersMuted?: boolean;
+  /** Job id whose result the user reported — bypasses redo cooldown while it remains active. */
+  reportedJobId?: string;
   /** Local YYYY-MM-DD when the user dismissed the Home reminder pill for that day. */
   reminderDismissedDateKey?: string;
 };
