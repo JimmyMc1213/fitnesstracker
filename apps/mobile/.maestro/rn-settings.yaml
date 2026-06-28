@@ -34,8 +34,8 @@ env:
       id: settings-hub
     timeout: 10000
 - tapOn:
-    id: settings-row-account
+    id: settings-profile-card
 - extendedWaitUntil:
     visible:
-      id: settings-panel-account
+      id: settings-panel-you
     timeout: 10000

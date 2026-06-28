@@ -39,7 +39,6 @@ import {
   IconSettings,
   IconShield,
   IconSun,
-  IconSync,
 } from "../icons";
 import {
   SettingsComingSoonRow,
@@ -98,7 +97,6 @@ type YouSubPanel = null | "change-password";
 type SettingsPanel =
   | null
   | "you"
-  | "account"
   | "appearance"
   | "units"
   | "fuel-targets"
@@ -120,7 +118,6 @@ function settingsLayerKey(panel: SettingsPanel, youSubPanel: YouSubPanel): Setti
 
 const PANEL_TITLES: Record<Exclude<SettingsPanel, null>, string> = {
   you: "You",
-  account: "Account",
   appearance: "Appearance",
   units: "Units",
   "fuel-targets": "Fuel targets",
@@ -242,9 +239,6 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
   }, [state, todayKey]);
 
   const newYouRemindersEnabled = state.futureYou?.remindersMuted !== true;
-  const [syncEmail, setSyncEmail] = useState("");
-  const [syncPassword, setSyncPassword] = useState("");
-  const [syncHint, setSyncHint] = useState<string | null>(null);
   const [notificationPermission, setNotificationPermission] = useState(getNotificationPermission);
   const [pendingHabitRemove, setPendingHabitRemove] = useState<{ id: string; name: string } | null>(null);
   const [deleteAccountStep, setDeleteAccountStep] = useState<null | "warn" | "final">(null);
@@ -294,6 +288,10 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
   useEffect(() => {
     if (panel === null) {
       setTitleKey("hub");
+      return;
+    }
+    if ((panel as string | null) === "account") {
+      setPanel("you");
       return;
     }
     const id = window.setTimeout(() => setTitleKey(panel), MOTION_DURATIONS.tab);
@@ -461,24 +459,9 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
     goalDraft != null && isGoalWeightValid(goalDraft, latestWeightLbs(state)) && goalDraftDirty;
 
   function renderHub() {
-    const accountTrailing = !sync.configured
-      ? "Not configured"
-      : sync.sessionEmail
-        ? sync.lastSyncedLabel ?? "Signed in"
-        : "Sign in";
-
     return (
       <>
         <SettingsProfileCard name={state.displayName} onClick={() => openPanel("you")} />
-
-        <SettingsHubSection title="Account">
-          <SettingsRow
-            icon={rowIcon(<IconSync size={16} stroke={1.6} />)}
-            label="Sync & backup"
-            trailing={accountTrailing}
-            onClick={() => openPanel("account")}
-          />
-        </SettingsHubSection>
 
         <SettingsHubSection title="Preferences">
           <SettingsRow
@@ -838,135 +821,6 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
           </SettingsHubSection>
           </>
         ) : null}
-      </>
-    );
-  }
-
-  function renderAccountPanel() {
-    return (
-      <>
-        <SettingsHelper>
-          Sign in with the same account on your phone and computer. Data merges when both sides edit, and the cloud copy is updated after changes (about a second delay).
-        </SettingsHelper>
-        {!sync.configured ? (
-          <div className="card settings-detail-card" style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-secondary)" }}>
-            <p style={{ margin: "0 0 10px" }}>
-              Cloud sync is off, the app does not see valid Supabase env vars. Fix this, then restart{" "}
-              <code style={{ fontSize: 12, color: "var(--text-soft)" }}>npm run dev</code>.
-            </p>
-            <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8 }}>
-              <li>
-                File must be named <code style={{ fontSize: 12 }}>.env</code> in the project root (same folder as{" "}
-                <code style={{ fontSize: 12 }}>package.json</code>), not inside <code style={{ fontSize: 12 }}>src</code>.
-              </li>
-              <li>
-                Exact lines: <code style={{ fontSize: 12 }}>VITE_SUPABASE_URL=https://…supabase.co</code> and{" "}
-                <code style={{ fontSize: 12 }}>VITE_SUPABASE_ANON_KEY=…</code> (anon JWT <code style={{ fontSize: 11 }}>eyJ…</code>), or{" "}
-                <code style={{ fontSize: 12 }}>VITE_SUPABASE_PUBLISHABLE_KEY=…</code>. Never the secret JWT. No spaces around{" "}
-                <code style={{ fontSize: 12 }}>=</code>.
-              </li>
-              <li>
-                URL must start with <code style={{ fontSize: 12 }}>https://</code>. Restart the dev server after saving.
-              </li>
-              <li style={{ color: "var(--text-ghost)", fontSize: 12 }}>
-                Dev hint: open the browser console, if env still fails, you’ll see a short{" "}
-                <code style={{ fontSize: 11 }}>[Fitcoach]</code> message about what’s missing.
-              </li>
-            </ul>
-          </div>
-        ) : !sync.sessionEmail ? (
-          <div className="card settings-detail-card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-              Email
-              <input
-                className="input"
-                style={{ marginTop: 8 }}
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={syncEmail}
-                onChange={(e) => setSyncEmail(e.target.value)}
-                aria-label="Email"
-              />
-            </label>
-            <label style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-              Password
-              <input
-                className="input"
-                style={{ marginTop: 8 }}
-                type="password"
-                autoComplete="current-password"
-                placeholder="Password"
-                value={syncPassword}
-                onChange={(e) => setSyncPassword(e.target.value)}
-                aria-label="Password"
-              />
-            </label>
-            {syncHint ? (
-              <p style={{ margin: 0, fontSize: 13, color: "rgba(120,200,255,0.95)", lineHeight: 1.45 }}>{syncHint}</p>
-            ) : null}
-            {sync.lastError ? (
-              <p style={{ margin: 0, fontSize: 13, color: "rgba(248,113,113,0.95)", lineHeight: 1.45 }}>{sync.lastError}</p>
-            ) : null}
-            <button
-              type="button"
-              className="tap"
-              disabled={sync.busy || !syncEmail.includes("@") || !syncPassword}
-              onClick={async () => {
-                setSyncHint(null);
-                const r = await sync.signInWithPassword(syncEmail, syncPassword);
-                if (r.error) setSyncHint(r.error);
-                else setSyncHint("Signed in. Sync continues automatically.");
-              }}
-              style={{
-                padding: "12px 14px",
-                borderRadius: 12,
-                fontWeight: 700,
-                fontSize: 14,
-                border: "none",
-                background: sync.busy || !syncEmail.includes("@") || !syncPassword ? "var(--btn-disabled-bg)" : "var(--surface-selected)",
-                color: "var(--text-primary)",
-              }}
-            >
-              Sign in
-            </button>
-          </div>
-        ) : (
-          <div className="card settings-detail-card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Signed in</div>
-            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>{sync.sessionEmail}</div>
-            {sync.lastSyncedLabel ? (
-              <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Last uploaded · {sync.lastSyncedLabel}</div>
-            ) : (
-              <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Waiting for first upload…</div>
-            )}
-            {sync.busy ? (
-              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Syncing…</div>
-            ) : null}
-            {sync.lastError ? (
-              <p style={{ margin: 0, fontSize: 13, color: "rgba(248,113,113,0.95)", lineHeight: 1.45 }}>{sync.lastError}</p>
-            ) : null}
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button
-                type="button"
-                className="tap"
-                disabled={sync.busy}
-                onClick={() => void sync.syncNow()}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 10,
-                  fontWeight: 700,
-                  fontSize: 13,
-                  border: "none",
-                  background: "var(--surface-selected)",
-                  color: "var(--text-primary)",
-                }}
-              >
-                Sync now
-              </button>
-            </div>
-          </div>
-        )}
       </>
     );
   }
@@ -1380,8 +1234,6 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
     switch (panelKey) {
       case "you":
         return renderYouPanel();
-      case "account":
-        return renderAccountPanel();
       case "appearance":
         return renderAppearancePanel();
       case "units":

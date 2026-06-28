@@ -22,7 +22,6 @@ import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { connectedAuthProviders } from "@/lib/accountAuth";
 import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
-import { resetLocalAfterAccountDelete } from "@/lib/resetAfterAccountDelete";
 import { sanitizeUserText } from "@/lib/userText";
 
 function providerLabel(provider: string): string {
@@ -35,7 +34,7 @@ function providerLabel(provider: string): string {
 export function YouPanel() {
   const { colors } = useAppTheme();
   const { sessionEmail, session, updateEmail, signOut } = useAuth();
-  const { state, setFitnessState, replaceFitnessState } = useFitnessState();
+  const { state, setFitnessState } = useFitnessState();
   const [emailEditing, setEmailEditing] = useState(false);
   const [emailIn, setEmailIn] = useState(sessionEmail ?? "");
   const [emailBusy, setEmailBusy] = useState(false);
@@ -45,11 +44,9 @@ export function YouPanel() {
 
   const handleSignOut = useCallback(async () => {
     stopOnboardingPreview();
-    const next = await resetLocalAfterAccountDelete();
-    replaceFitnessState(next);
     await signOut();
     router.replace("/(auth)");
-  }, [replaceFitnessState, signOut]);
+  }, [signOut]);
 
   if (!state) return null;
 

@@ -165,7 +165,7 @@ export function FitnessSyncProvider({ children }: { children: ReactNode }) {
     void (async () => {
       try {
         const lastUid = await readLastAuthUserId();
-        if (lastUid && lastUid !== uid) {
+        if (!lastUid || lastUid !== uid) {
           const next = await resetLocalAfterAccountDelete();
           replaceFitnessState(next);
         }

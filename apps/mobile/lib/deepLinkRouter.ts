@@ -5,7 +5,7 @@ export type DeepLinkNavigateAction = {
   href:
     | "/(tabs)/home"
     | "/(tabs)/settings"
-    | "/(tabs)/settings/account"
+    | "/(tabs)/settings/you"
     | "/(tabs)/settings/notifications"
     | { pathname: "/(tabs)/home"; params: { mobility: string } };
 };
@@ -59,7 +59,7 @@ export function resolveDeepLink(url: string): DeepLinkAction {
   }
 
   if (path === "settings/account") {
-    return { type: "navigate", href: "/(tabs)/settings/account" };
+    return { type: "navigate", href: "/(tabs)/settings/you" };
   }
 
   if (path === "settings") {
@@ -75,7 +75,7 @@ export function resolveDeepLink(url: string): DeepLinkAction {
     if (panel) {
       return {
         type: "navigate",
-        href: `/(tabs)/settings/${panel}` as "/(tabs)/settings/account",
+        href: `/(tabs)/settings/${panel}` as "/(tabs)/settings/you",
       };
     }
   }

@@ -1,4 +1,4 @@
-# RN-OFFLINE-05 sync sign-in, requires Supabase + test account (Option B: pre-seeded test user)
+# RN-OFFLINE-05 signed-in account smoke, requires Supabase + test account
 # Run: MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:sync
 appId: app.newyouai.mobile
 env:
@@ -22,10 +22,10 @@ env:
 - tapOn:
     id: tab-settings
 - tapOn:
-    id: settings-row-account
+    id: settings-profile-card
 - extendedWaitUntil:
     visible:
-      id: settings-sync-now
+      id: settings-you-email-row
     timeout: 15000
 - assertVisible:
-    id: settings-sync-now
+    id: settings-you-email-row

@@ -17,10 +17,10 @@ describe("resolveDeepLink", () => {
     });
   });
 
-  it("routes settings account panel", () => {
+  it("routes legacy settings account deep link to You panel", () => {
     expect(resolveDeepLink("newyouai://settings/account")).toEqual({
       type: "navigate",
-      href: "/(tabs)/settings/account",
+      href: "/(tabs)/settings/you",
     });
   });
 

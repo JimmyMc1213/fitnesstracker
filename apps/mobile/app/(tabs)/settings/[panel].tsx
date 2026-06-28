@@ -1,8 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
-import { AccountPanel } from "@/components/settings/panels/AccountPanel";
 import { AppearancePanel } from "@/components/settings/panels/AppearancePanel";
 import { EquipmentPanel } from "@/components/settings/panels/EquipmentPanel";
 import { FuelTargetsPanel } from "@/components/settings/panels/FuelTargetsPanel";
@@ -30,6 +29,12 @@ export default function SettingsPanelScreen() {
   const title = valid ? PANEL_TITLES[panelId] : "Settings";
   const goalPanelRef = useRef<GoalPanelHandle>(null);
   const [goalSavable, setGoalSavable] = useState(false);
+
+  useEffect(() => {
+    if (panelId === "account") {
+      router.replace("/(tabs)/settings/you");
+    }
+  }, [panelId]);
 
   const handleBack = () => {
     if (valid && panelId === "goal") {
@@ -72,10 +77,6 @@ export default function SettingsPanelScreen() {
       {valid && panelId === "you" ? (
         <>
           <YouPanel />
-        </>
-      ) : valid && panelId === "account" ? (
-        <>
-          <AccountPanel />
         </>
       ) : valid && panelId === "appearance" ? (
         <>
