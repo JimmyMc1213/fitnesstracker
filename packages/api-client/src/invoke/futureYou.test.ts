@@ -108,7 +108,7 @@ describe("startFutureYouGeneration", () => {
 });
 
 describe("uploadFutureYouPhoto", () => {
-  it("parses upload response", async () => {
+  it("parses upload response via invoke", async () => {
     const invoke = vi.fn().mockResolvedValue({
       data: { path: "users/u1/source/x.jpg", uploadId: "up-1", bucket: "future-you" },
       error: null,
@@ -152,6 +152,19 @@ describe("pollFutureYouJobStatus", () => {
 describe("parseFutureYouPollResponse", () => {
   it("throws on invalid payload", () => {
     expect(() => parseFutureYouPollResponse({})).toThrow(FutureYouPollError);
+  });
+
+  it("parses failed job error without treating it as a transport error", () => {
+    const response = parseFutureYouPollResponse({
+      jobId: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      status: "failed",
+      motivationId: "cut_m_veins",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      error: "Source photo not found.",
+    });
+
+    expect(response.status).toBe("failed");
+    expect(response.error).toBe("Source photo not found.");
   });
 });
 

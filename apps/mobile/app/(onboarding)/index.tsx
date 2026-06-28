@@ -32,7 +32,6 @@ import { PrimaryGoalPicker } from "@/components/onboarding/PrimaryGoalPicker";
 import { OnboardingPillStack, OnboardingSegment } from "@/components/onboarding/OnboardingSegment";
 import { OnboardingStepPlaceholder } from "@/components/onboarding/OnboardingStepPlaceholder";
 import { OnboardingThemePicker } from "@/components/onboarding/OnboardingThemePicker";
-import { OnboardingWelcomeScreen } from "@/components/onboarding/OnboardingWelcomeScreen";
 import { ScreenTransition, type NavDirection } from "@/components/motion/ScreenTransition";
 import { EquipmentSetupPicker } from "@/components/onboarding/EquipmentSetupPicker";
 import { ExperienceLevelPicker } from "@/components/onboarding/ExperienceLevelPicker";
@@ -284,10 +283,6 @@ export default function OnboardingWizardScreen() {
   }
 
   function renderOnboardingStep(forStep: number, layerFlags: OnboardingScreenLayerFlags): ReactNode {
-  if (forStep === 0) {
-    return <OnboardingWelcomeScreen onGetStarted={goNext} />;
-  }
-
   if (forStep === 1) {
     return (
       <OnboardingThemePicker
@@ -297,7 +292,6 @@ export default function OnboardingWizardScreen() {
           setDraftTheme(nextTheme);
           setTheme(nextTheme);
         }}
-        onBack={goBack}
         onContinue={() => {
           const selected = draftTheme ?? theme;
           setTheme(selected);

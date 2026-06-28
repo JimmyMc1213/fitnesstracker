@@ -1,3 +1,4 @@
+import type { Session } from "@supabase/supabase-js";
 import {
   clampOnboardingStepIndex,
   DEFAULT_NOTIFICATION_PREFERENCES,
@@ -30,9 +31,17 @@ import {
 
 import type { NavDirection } from "@/components/motion";
 
+import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useFitnessSync } from "@/context/FitnessSyncContext";
-import { EMPTY_WIZARD_UNIT_PREFERENCES, FRESH_ONBOARDING_PROFILE, freshWizardStateAtStep } from "@/lib/onboardingDefaults";
+import { displayNameFromUser } from "@/lib/displayNameFromUser";
+import {
+  EMPTY_WIZARD_UNIT_PREFERENCES,
+  FRESH_ONBOARDING_PROFILE,
+  freshWizardStateAtStep,
+  normalizeWizardStartStep,
+  ONBOARDING_WIZARD_START_STEP,
+} from "@/lib/onboardingDefaults";
 import { ONBOARDING_NOTIFICATION_DEFAULTS } from "@/lib/notificationPreferences";
 import {
   buildOnboardingDraft,
@@ -83,13 +92,28 @@ type OnboardingWizardContextValue = {
 
 export const OnboardingWizardContext = createContext<OnboardingWizardContextValue | null>(null);
 
+function withSeededDisplayName<T extends { displayName: string }>(
+  state: T,
+  session: Session | null,
+  fitnessDisplayName?: string,
+): T {
+  if (state.displayName.trim()) return state;
+  const fromAuth = displayNameFromUser(session?.user);
+  const fromFitness = fitnessDisplayName?.trim();
+  const resolved = fromAuth ?? fromFitness;
+  if (!resolved) return state;
+  return { ...state, displayName: resolved };
+}
+
 function stateFromDraft(draft: OnboardingDraft) {
   const profile = { ...draft.profile };
   return {
-    stepIndex: resolveOnboardingStepOnRestore(
-      clampOnboardingStepIndex(draft.stepIndex),
-      profile.goal,
-      draft.futureYou,
+    stepIndex: normalizeWizardStartStep(
+      resolveOnboardingStepOnRestore(
+        clampOnboardingStepIndex(draft.stepIndex),
+        profile.goal,
+        draft.futureYou,
+      ),
     ),
     displayName: draft.displayName,
     profile,
@@ -107,7 +131,7 @@ function stateFromDraft(draft: OnboardingDraft) {
 }
 
 const INITIAL_STATE = {
-  stepIndex: 0,
+  stepIndex: ONBOARDING_WIZARD_START_STEP,
   displayName: "",
   profile: { ...FRESH_ONBOARDING_PROFILE },
   unitPreferences: { ...EMPTY_WIZARD_UNIT_PREFERENCES },
@@ -123,6 +147,7 @@ const INITIAL_STATE = {
 };
 
 export function OnboardingWizardProvider({ children }: { children: ReactNode }) {
+  const { session } = useAuth();
   const { state: fitnessState } = useFitnessState();
   const { fitnessHydrated } = useFitnessSync();
   const [hydrated, setHydrated] = useState(false);
@@ -141,17 +166,45 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
       ]);
       if (cancelled) return;
       if (draft) {
-        const fromDraft = stateFromDraft(draft);
+        const restored = stateFromDraft(draft);
+        const fromDraft = withSeededDisplayName(
+          {
+            ...restored,
+            draftTheme: restored.draftTheme ?? storedTheme,
+          },
+          session,
+          fitnessState?.displayName,
+        );
         setWizardState((prev) => {
-          if (prev.stepIndex > 0 && fromDraft.stepIndex <= prev.stepIndex) return prev;
-          return {
-            ...fromDraft,
-            draftTheme: fromDraft.draftTheme ?? storedTheme,
-          };
+          if (prev.stepIndex >= ONBOARDING_WIZARD_START_STEP && fromDraft.stepIndex <= prev.stepIndex) {
+            return prev;
+          }
+          return fromDraft;
         });
+        if (fromDraft.displayName.trim() && !draft.displayName.trim()) {
+          void persistOnboardingDraft(
+            buildOnboardingDraft({
+              stepIndex: fromDraft.stepIndex,
+              displayName: fromDraft.displayName,
+              unitPreferences: fromDraft.unitPreferences as UnitPreferences,
+              experienceLevel: fromDraft.experienceLevel,
+              equipmentSetup: fromDraft.equipmentSetup,
+              profile: fromDraft.profile,
+              sessionLength: fromDraft.sessionLength,
+              draftTemplates: fromDraft.draftTemplates,
+              macros: fromDraft.macros,
+              notificationPrefs: fromDraft.notificationPrefs,
+              subscriptionTier: fromDraft.subscriptionTier,
+              theme: fromDraft.draftTheme,
+              futureYou: fromDraft.futureYou,
+            }),
+          );
+        }
       } else {
         setWizardState((prev) =>
-          prev.stepIndex > 0 ? prev : { ...INITIAL_STATE, draftTheme: storedTheme },
+          prev.stepIndex >= ONBOARDING_WIZARD_START_STEP
+            ? prev
+            : withSeededDisplayName({ ...INITIAL_STATE, draftTheme: storedTheme }, session, fitnessState?.displayName),
         );
       }
       setHydrated(true);
@@ -160,7 +213,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
     return () => {
       cancelled = true;
     };
-  }, [fitnessHydrated, fitnessState?.onboardingDraft]);
+  }, [fitnessHydrated, fitnessState?.onboardingDraft, fitnessState?.displayName, session]);
 
   const persistDraft = useCallback(
     async (nextState: typeof INITIAL_STATE) => {
@@ -206,7 +259,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
         }
         return {
           ...prev,
-          stepIndex: clamped,
+          stepIndex: normalizeWizardStartStep(clamped),
           displayName: overrides?.displayName ?? prev.displayName,
           unitPreferences: overrides?.unitPreferences ?? prev.unitPreferences,
           experienceLevel: overrides?.experienceLevel ?? prev.experienceLevel,

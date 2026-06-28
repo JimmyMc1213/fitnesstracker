@@ -24,6 +24,9 @@ function normalizeFutureYouPreview(raw: unknown): FutureYouPreview | undefined {
   if (o.motivationIsGeneric === true) preview.motivationIsGeneric = true;
   if (typeof o.readyAt === "string" && o.readyAt.trim()) preview.readyAt = o.readyAt.trim();
   if (typeof o.timeline === "string" && o.timeline.trim()) preview.timeline = o.timeline.trim();
+  if (typeof o.sourcePhotoPath === "string" && o.sourcePhotoPath.trim()) {
+    preview.sourcePhotoPath = o.sourcePhotoPath.trim();
+  }
   return preview;
 }
 

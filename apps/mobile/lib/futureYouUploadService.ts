@@ -12,17 +12,21 @@ export type { FutureYouUploadResult };
 
 export { ApiFutureYouUploadError as FutureYouUploadError };
 
-/** Upload a compressed JPEG data URL from onboarding step 10b. */
-export async function uploadFutureYouPhoto(imageDataUrl: string): Promise<FutureYouUploadResult> {
-  const mocked = e2eMockFutureYouUpload(imageDataUrl);
-  if (mocked) return mocked;
+import { isFutureYouPhotoDataUrl, isLocalFutureYouPhotoUri } from "@/lib/futureYouPhotoUri";
 
+async function requireAuthedClient() {
   if (!isSupabaseConfigured()) {
     throw new ApiFutureYouUploadError("Sign in to upload your photo.", "unavailable");
   }
   const sb = getSupabase();
   if (!sb) {
     throw new ApiFutureYouUploadError("Sign in to upload your photo.", "unavailable");
+  }
+
+  try {
+    await sb.auth.refreshSession();
+  } catch {
+    // Offline refresh can fail; fall back to the persisted session below.
   }
 
   const {
@@ -32,5 +36,54 @@ export async function uploadFutureYouPhoto(imageDataUrl: string): Promise<Future
     throw new ApiFutureYouUploadError("Sign in to upload your photo.", "auth_required");
   }
 
-  return uploadFutureYouPhotoApi(sb, imageDataUrl);
+  return sb;
+}
+
+/** Read a compressed on-device JPEG and upload via Supabase invoke (works on React Native). */
+async function uploadFutureYouPhotoFromUri(localUri: string): Promise<FutureYouUploadResult> {
+  const FileSystem = await import("expo-file-system/legacy");
+  const base64 = await FileSystem.readAsStringAsync(localUri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  if (!base64) {
+    throw new ApiFutureYouUploadError("Could not read that photo. Try another image.", "invalid");
+  }
+
+  const sb = await requireAuthedClient();
+  return uploadFutureYouPhotoApi(sb, `data:image/jpeg;base64,${base64}`);
+}
+
+/** Upload a compressed JPEG (local file URI or data URL). */
+export async function uploadFutureYouPhoto(source: string): Promise<FutureYouUploadResult> {
+  const mocked = e2eMockFutureYouUpload(source);
+  if (mocked) return mocked;
+
+  const trimmed = source.trim();
+  if (isLocalFutureYouPhotoUri(trimmed)) {
+    return uploadFutureYouPhotoFromUri(trimmed);
+  }
+
+  const sb = await requireAuthedClient();
+  if (isFutureYouPhotoDataUrl(trimmed)) {
+    return uploadFutureYouPhotoApi(sb, trimmed);
+  }
+
+  throw new ApiFutureYouUploadError("Invalid photo. Choose another image.", "invalid");
+}
+
+/** Use stored upload path when present; otherwise upload the local photo. */
+export async function resolveFutureYouSourcePath(options: {
+  photoStoragePath?: string;
+  photoPreview?: string | null;
+}): Promise<string> {
+  const storedPath = options.photoStoragePath?.trim();
+  if (storedPath) return storedPath;
+
+  const preview = options.photoPreview?.trim();
+  if (!preview) {
+    throw new ApiFutureYouUploadError("Upload your photo again.", "invalid");
+  }
+
+  const uploaded = await uploadFutureYouPhoto(preview);
+  return uploaded.path;
 }

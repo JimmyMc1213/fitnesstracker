@@ -1,13 +1,17 @@
+import { FutureYouComparePanels } from "@/components/future-you/FutureYouComparePanels";
 import { FutureYouDeleteButton } from "@/components/future-you/FutureYouDeleteButton";
 import { FutureYouGenerationLoadingView } from "@/components/future-you/FutureYouGenerationLoadingView";
 import { FutureYouLegalFooter } from "@/components/future-you/FutureYouLegalFooter";
 import { FutureYouReportButton } from "@/components/future-you/FutureYouReportButton";
 import { OnboardingFutureYouSuccessHero } from "@/components/onboarding/OnboardingFutureYouSuccessHero";
+import { useFutureYouSourceImage } from "@/hooks/useFutureYouSourceImage";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { futureYouRevealPlaceholderSource } from "@/lib/futureYouRevealPlaceholder";
 import { FUTURE_YOU_CALLOUT_BG, FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
 import {
   FUTURE_YOU_DETAIL_BACK_LABEL,
+  FUTURE_YOU_DETAIL_COMPARE_LABEL,
+  FUTURE_YOU_DETAIL_SINGLE_LABEL,
   FUTURE_YOU_GALLERY_SAVE_LABEL,
   FUTURE_YOU_GALLERY_SAVE_SUCCESS,
   FUTURE_YOU_GALLERY_SAVING_LABEL,
@@ -16,7 +20,7 @@ import {
   type FutureYouGalleryItem,
 } from "@newyouai/core";
 import type { FutureYouDraft, FutureYouJobStatus, NutritionGoal, UserGender } from "@newyouai/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 type Props = {
@@ -27,6 +31,8 @@ type Props = {
   generationStatus: FutureYouJobStatus | "idle";
   futureYou: FutureYouDraft | undefined;
   jobId?: string;
+  /** Persisted storage path for the upload used to create this preview. */
+  sourcePhotoPath?: string;
   onBack: () => void;
   onFutureYouDeleted: (jobId: string) => void;
 };
@@ -39,14 +45,31 @@ export function FutureYouDetailView({
   generationStatus,
   futureYou,
   jobId,
+  sourcePhotoPath,
   onBack,
   onFutureYouDeleted,
 }: Props) {
   const { colors } = useAppTheme();
   const [saveState, setSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [compareOpen, setCompareOpen] = useState(false);
   const placeholderSource = futureYouRevealPlaceholderSource(gender);
   const canSave = Boolean(item.imageSrc && !item.loading);
+  const { sourceUri, loading: sourceLoading } = useFutureYouSourceImage(
+    sourcePhotoPath,
+    item.id,
+    canSave,
+  );
+  const canCompare = Boolean(canSave && sourceUri);
+  const showCompareToggle = canSave;
+
+  useEffect(() => {
+    setCompareOpen(false);
+  }, [item.id]);
+
+  useEffect(() => {
+    if (!canCompare) setCompareOpen(false);
+  }, [canCompare]);
 
   async function onSave() {
     if (!item.imageSrc) return;
@@ -82,6 +105,27 @@ export function FutureYouDetailView({
         />
       </View>
 
+      {showCompareToggle ?
+        <View className="shrink-0 items-center pt-2">
+          <Pressable
+            testID="future-you-detail-compare-toggle"
+            accessibilityRole="button"
+            disabled={!canCompare}
+            onPress={() => setCompareOpen((open) => !open)}
+            className="rounded-full px-4 py-2"
+            style={{
+              borderWidth: 1,
+              borderColor: canCompare ? FUTURE_YOU_GOLD : colors.border,
+              opacity: canCompare ? 1 : sourceLoading ? 0.65 : 0.45,
+            }}
+          >
+            <Text className="text-sm font-semibold" style={{ color: FUTURE_YOU_GOLD }}>
+              {compareOpen ? FUTURE_YOU_DETAIL_SINGLE_LABEL : FUTURE_YOU_DETAIL_COMPARE_LABEL}
+            </Text>
+          </Pressable>
+        </View>
+      : null}
+
       <View className="min-h-0 flex-1 pt-3">
         {item.loading ?
           <FutureYouGenerationLoadingView
@@ -93,6 +137,8 @@ export function FutureYouDetailView({
             imageUri={item.imageSrc}
             placeholderSource={placeholderSource}
           />
+        : compareOpen && canCompare && item.imageSrc && sourceUri ?
+          <FutureYouComparePanels beforeUri={sourceUri} afterUri={item.imageSrc} />
         : <View className="flex-1">
             <OnboardingFutureYouSuccessHero
               fill

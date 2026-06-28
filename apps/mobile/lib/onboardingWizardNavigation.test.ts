@@ -85,4 +85,8 @@ describe("resolveWizardBackStep", () => {
   it("returns to training schedule when backing from barriers survey", () => {
     expect(resolveWizardBackStep(17, { ...baseProfile, goal: "cut" }, undefined)).toBe(15);
   });
+
+  it("does not back into the removed welcome step", () => {
+    expect(resolveWizardBackStep(1, { ...baseProfile, goal: "cut" }, undefined)).toBeNull();
+  });
 });

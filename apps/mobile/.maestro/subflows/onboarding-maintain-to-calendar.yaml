@@ -1,8 +1,6 @@
 appId: app.newyouai.mobile
 ---
-# Welcome + theme
-- tapOn:
-    id: onboarding-continue
+# Theme (welcome Get Started is on auth only)
 - extendedWaitUntil:
     visible:
       id: onboarding-step-1

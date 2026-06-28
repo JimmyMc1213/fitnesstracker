@@ -1,6 +1,7 @@
+import * as ImagePicker from "expo-image-picker";
 import type { ImagePickerOptions } from "expo-image-picker";
 
-import { compressImageToJpegDataUrl } from "@/lib/imageCompress";
+import { compressImageToJpegFile } from "@/lib/imageCompress";
 import {
   E2E_MOCK_FUTURE_YOU_JPEG_DATA_URL,
   isE2eMockFutureYouCameraEnabled,
@@ -27,7 +28,6 @@ export async function pickFutureYouPhotoFromCamera(): Promise<PickResult> {
   }
 
   try {
-    const ImagePicker = await import("expo-image-picker");
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
       return { error: futureYouPhotoPermissionDeniedMessage("camera") };
@@ -40,7 +40,7 @@ export async function pickFutureYouPhotoFromCamera(): Promise<PickResult> {
     if (result.canceled || !result.assets[0]?.uri) return null;
 
     try {
-      const preview = await compressImageToJpegDataUrl(result.assets[0].uri);
+      const preview = await compressImageToJpegFile(result.assets[0].uri);
       return { preview };
     } catch {
       return { error: "Could not read that photo. Try another image." };
@@ -56,7 +56,6 @@ export async function pickFutureYouPhotoFromGallery(): Promise<PickResult> {
   }
 
   try {
-    const ImagePicker = await import("expo-image-picker");
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       return { error: futureYouPhotoPermissionDeniedMessage("gallery") };
@@ -66,7 +65,7 @@ export async function pickFutureYouPhotoFromGallery(): Promise<PickResult> {
     if (result.canceled || !result.assets[0]?.uri) return null;
 
     try {
-      const preview = await compressImageToJpegDataUrl(result.assets[0].uri);
+      const preview = await compressImageToJpegFile(result.assets[0].uri);
       return { preview };
     } catch {
       return { error: "Could not read that photo. Try another image." };

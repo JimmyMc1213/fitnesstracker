@@ -15,15 +15,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function resolveAuthenticatedUserClient(
-  req: Request,
-): Promise<{ userId: string; client: ReturnType<typeof createClient> } | null> {
+type AuthContext = {
+  userId: string;
+  userClient: ReturnType<typeof createClient>;
+  adminClient: ReturnType<typeof createClient>;
+};
+
+async function resolveAuthenticatedContext(req: Request): Promise<AuthContext | null> {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) return null;
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim();
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")?.trim();
-  if (!supabaseUrl || !anonKey) {
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
+  if (!supabaseUrl || !anonKey || !serviceRoleKey) {
     console.error("future-you-upload: missing Supabase env");
     return null;
   }
@@ -38,7 +43,22 @@ async function resolveAuthenticatedUserClient(
     error,
   } = await userClient.auth.getUser();
   if (error || !user) return null;
-  return { userId: user.id, client: userClient };
+
+  const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  return { userId: user.id, userClient, adminClient };
+}
+
+async function verifySourcePhotoStored(
+  adminClient: ReturnType<typeof createClient>,
+  path: string,
+): Promise<boolean> {
+  const { data, error } = await adminClient.storage.from(FUTURE_YOU_BUCKET).download(path);
+  if (error || !data) return false;
+  const bytes = new Uint8Array(await data.arrayBuffer());
+  return bytes.length > 0;
 }
 
 async function readUploadFromRequest(req: Request) {
@@ -87,11 +107,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const auth = await resolveAuthenticatedUserClient(req);
+    const auth = await resolveAuthenticatedContext(req);
     if (!auth) {
       return unauthorizedResponse(corsHeaders);
     }
-    const { userId, client: userClient } = auth;
+    const { userId, adminClient } = auth;
 
     const validated = await readUploadFromRequest(req);
     if (validated instanceof Response) {
@@ -103,13 +123,23 @@ Deno.serve(async (req) => {
     const path = buildFutureYouSourcePath(userId, uploadId, extension);
     const storageMime = mimeType === "image/jpg" ? "image/jpeg" : mimeType;
 
-    const { error: uploadError } = await userClient.storage.from(FUTURE_YOU_BUCKET).upload(path, bytes, {
+    const { error: uploadError } = await adminClient.storage.from(FUTURE_YOU_BUCKET).upload(path, bytes, {
       contentType: storageMime,
       upsert: false,
     });
 
     if (uploadError) {
       console.error("future-you-upload: storage upload failed", uploadError);
+      return new Response(JSON.stringify({ error: "Could not save your photo. Try again." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const stored = await verifySourcePhotoStored(adminClient, path);
+    if (!stored) {
+      console.error("future-you-upload: photo missing after upload", { path, userId });
+      await adminClient.storage.from(FUTURE_YOU_BUCKET).remove([path]).catch(() => undefined);
       return new Response(JSON.stringify({ error: "Could not save your photo. Try again." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

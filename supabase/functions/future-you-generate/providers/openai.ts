@@ -38,9 +38,9 @@ async function callOpenAIImageEdit(
   const maskBytes = await buildBodyEditMask(decoded.width, decoded.height);
 
   const form = new FormData();
-  const blob = new Blob([imageBytes], { type: normalizeMimeType(mimeType) });
+  const blob = new Blob([imageBytes as BlobPart], { type: normalizeMimeType(mimeType) });
   form.append("image", blob, mimeToFilename(mimeType));
-  form.append("mask", new Blob([maskBytes], { type: "image/png" }), "mask.png");
+  form.append("mask", new Blob([maskBytes as BlobPart], { type: "image/png" }), "mask.png");
   form.append("model", OPENAI_IMAGE_MODEL);
   form.append("prompt", prompt);
   // "high" exceeds Supabase's 150s function limit (~150s+ per call); "medium"

@@ -1,7 +1,9 @@
 import { router } from "expo-router";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Text, View } from "react-native";
 
+import { FutureYouDeleteConfirmSheet } from "@/components/future-you/FutureYouDeleteConfirmSheet";
+import { IconLogout } from "@/components/icons/FitnessIcons";
 import {
   SettingsFormField,
   SettingsFormMessage,
@@ -13,10 +15,14 @@ import {
   SettingsSecondaryButton,
   SettingsTextField,
 } from "@/components/settings/SettingsLayout";
+import { SettingsRowIcon } from "@/components/settings/SettingsRowIcon";
 import { GradientCard } from "@/components/ui/GradientCard";
 import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { connectedAuthProviders } from "@/lib/accountAuth";
+import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
+import { resetLocalAfterAccountDelete } from "@/lib/resetAfterAccountDelete";
 import { sanitizeUserText } from "@/lib/userText";
 
 function providerLabel(provider: string): string {
@@ -27,13 +33,23 @@ function providerLabel(provider: string): string {
 }
 
 export function YouPanel() {
-  const { sessionEmail, session, updateEmail } = useAuth();
-  const { state, setFitnessState } = useFitnessState();
+  const { colors } = useAppTheme();
+  const { sessionEmail, session, updateEmail, signOut } = useAuth();
+  const { state, setFitnessState, replaceFitnessState } = useFitnessState();
   const [emailEditing, setEmailEditing] = useState(false);
   const [emailIn, setEmailIn] = useState(sessionEmail ?? "");
   const [emailBusy, setEmailBusy] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSuccess, setEmailSuccess] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+
+  const handleSignOut = useCallback(async () => {
+    stopOnboardingPreview();
+    const next = await resetLocalAfterAccountDelete();
+    replaceFitnessState(next);
+    await signOut();
+    router.replace("/(auth)");
+  }, [replaceFitnessState, signOut]);
 
   if (!state) return null;
 
@@ -156,7 +172,39 @@ export function YouPanel() {
               <SettingsRow label="Email & password" trailing="Connected" isLast disabled />
             )}
           </SettingsHubSection>
+
+          <SettingsHubSection title="Account actions">
+            <SettingsRow
+              icon={
+                <SettingsRowIcon>
+                  <IconLogout size={16} stroke={1.6} color={colors.textPrimary} />
+                </SettingsRowIcon>
+              }
+              label="Sign out"
+              trailing=""
+              testID="settings-sign-out"
+              isLast
+              onPress={() => setShowSignOutConfirm(true)}
+            />
+          </SettingsHubSection>
         </>
+      ) : null}
+
+      {showSignOutConfirm ? (
+        <FutureYouDeleteConfirmSheet
+          title="Sign out?"
+          cancelLabel="Cancel"
+          confirmLabel="Sign out"
+          message="Your local data stays on this device, but cloud sync pauses until you sign in again."
+          sheetTestID="settings-sign-out-sheet"
+          cancelTestID="settings-sign-out-cancel"
+          confirmTestID="settings-sign-out-confirm"
+          onCancel={() => setShowSignOutConfirm(false)}
+          onConfirm={() => {
+            setShowSignOutConfirm(false);
+            void handleSignOut();
+          }}
+        />
       ) : null}
     </View>
   );

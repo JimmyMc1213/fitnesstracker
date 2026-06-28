@@ -148,8 +148,10 @@ export function OnboardingFutureYouPhoto({
   const [aiConsentChecked, setAiConsentChecked] = useState(Boolean(photoAiConsentAt));
   const [confirmReady, setConfirmReady] = useState(false);
   const blocked = isFutureYouPhotoBlocked(age);
-  const hasPhoto = Boolean(photoPreview || photoSaved);
-  const canRetry = Boolean(uploadError && hasPhoto);
+  // Only a local preview counts as "having a photo" in the UI — a persisted
+  // storage path alone must not show Remove photo without an image on screen.
+  const hasPhoto = Boolean(photoPreview);
+  const canRetry = Boolean(uploadError && photoPreview);
   const canUpload = aiConsentChecked && !uploading && !blocked;
   const awaitingConfirm = Boolean(photoPreview && !photoSaved && !canRetry);
   const silhouettes = futureYouSilhouettesForGender(gender);

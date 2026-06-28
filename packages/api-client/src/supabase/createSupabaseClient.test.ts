@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   clientSupabaseKeyForFetch,
   createSupabaseClient,
+  edgeFunctionApiKey,
   isSupabaseConfigured,
   type SupabaseEnv,
 } from "./createSupabaseClient";
@@ -45,6 +46,20 @@ describe("clientSupabaseKeyForFetch", () => {
 
   it("returns empty string when no keys are set", () => {
     expect(clientSupabaseKeyForFetch(env({ publishableKey: "", anonKey: "" }))).toBe("");
+  });
+});
+
+describe("edgeFunctionApiKey", () => {
+  it("prefers anon JWT over publishable key", () => {
+    expect(
+      edgeFunctionApiKey(env({ publishableKey: validPublishable, anonKey: validAnonJwt })),
+    ).toBe(validAnonJwt);
+  });
+
+  it("falls back to publishable when anon JWT is missing", () => {
+    expect(edgeFunctionApiKey(env({ publishableKey: validPublishable, anonKey: "" }))).toBe(
+      validPublishable,
+    );
   });
 });
 

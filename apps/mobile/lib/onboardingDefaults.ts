@@ -29,7 +29,14 @@ export function isUnitPreferencesComplete(
   return prefs.weightUnit != null && prefs.heightUnit != null && prefs.volumeUnit != null;
 }
 
-/** Blank wizard state when the user taps Get Started on the welcome screen. */
+/** First wizard screen after auth — welcome (step 0) lives on `(auth)` only. */
+export const ONBOARDING_WIZARD_START_STEP = 1;
+
+export function normalizeWizardStartStep(stepIndex: number): number {
+  return stepIndex <= 0 ? ONBOARDING_WIZARD_START_STEP : stepIndex;
+}
+
+/** Blank wizard state when advancing past the removed in-app welcome screen. */
 export function freshWizardStateAtStep(stepIndex: number) {
   return {
     stepIndex,

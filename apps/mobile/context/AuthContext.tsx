@@ -15,6 +15,8 @@ import { mapOAuthSessionError, parseOAuthRedirectUrl } from "@/lib/authOAuth";
 import { changeUserPassword, updateUserEmail } from "@/lib/accountAuth";
 import { enforceAuthGenerationIfNeeded } from "@/lib/authEnforcement";
 import { authenticatedUserEmail } from "@/lib/authSession";
+import { displayNameFromUser } from "@/lib/displayNameFromUser";
+import { seedPersistedDisplayName } from "@/lib/seedPersistedDisplayName";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -39,6 +41,9 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const DUPLICATE_EMAIL_PATTERNS = ["already registered", "already exists", "user already"];
+
+/** Never leave the app on a spinner if Supabase or SecureStore is slow/unreachable. */
+const AUTH_BOOTSTRAP_TIMEOUT_MS = 10_000;
 
 function isDuplicateEmailError(message: string | undefined): boolean {
   if (!message) return false;
@@ -81,6 +86,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     let unsubscribe: (() => void) | undefined;
+    let bootstrapFinished = false;
+
+    const finishBootstrap = () => {
+      if (cancelled || bootstrapFinished) return;
+      bootstrapFinished = true;
+      setSessionResolved(true);
+    };
+
+    const bootstrapTimeoutId = setTimeout(finishBootstrap, AUTH_BOOTSTRAP_TIMEOUT_MS);
 
     void (async () => {
       try {
@@ -89,14 +103,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!configured) {
           setSession(null);
-          setSessionResolved(true);
           return;
         }
 
         const sb = getSupabase();
         if (!sb) {
           setSession(null);
-          setSessionResolved(true);
           return;
         }
 
@@ -127,13 +139,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         if (!cancelled) {
           setSession(null);
-          setSessionResolved(true);
         }
+      } finally {
+        clearTimeout(bootstrapTimeoutId);
+        finishBootstrap();
       }
     })();
 
     return () => {
       cancelled = true;
+      clearTimeout(bootstrapTimeoutId);
       unsubscribe?.();
     };
   }, [configured, refreshSession]);
@@ -174,6 +189,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const trimmedEmail = email.trim();
     const trimmedName = name.trim();
+
+    const seedNameFromSession = async (session: Session | null) => {
+      const resolved = displayNameFromUser(session?.user) ?? trimmedName;
+      if (resolved) await seedPersistedDisplayName(resolved);
+    };
+
     const { data, error } = await sb.auth.signUp({
       email: trimmedEmail,
       password,
@@ -186,6 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
       });
       if (!signInError) {
+        await seedNameFromSession(signInData.session ?? null);
         if (signInData.session) setSession(signInData.session);
         setSessionResolved(true);
         return {};
@@ -198,6 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) return { error: error.message };
     if (data.session) {
+      await seedNameFromSession(data.session);
       setSession(data.session);
       setSessionResolved(true);
       return {};
@@ -208,6 +231,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
     });
     if (!signInError) {
+      await seedNameFromSession(signInData.session ?? null);
       if (signInData.session) setSession(signInData.session);
       setSessionResolved(true);
       return {};

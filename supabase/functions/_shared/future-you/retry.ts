@@ -14,6 +14,12 @@ export async function withFutureYouRetries<T>(
     baseDelayMs?: number;
     onRetry?: (attempt: number, error: unknown) => void;
     sleep?: (ms: number) => Promise<void>;
+    /**
+     * Optional predicate to gate retries. Return false to fail immediately
+     * without retrying (e.g. non-transient HTTP errors). Defaults to retrying
+     * all errors, preserving existing callers.
+     */
+    shouldRetry?: (error: unknown) => boolean;
   },
 ): Promise<T> {
   const maxAttempts = options?.maxAttempts ?? FUTURE_YOU_OPENAI_MAX_ATTEMPTS;
@@ -27,6 +33,7 @@ export async function withFutureYouRetries<T>(
     } catch (error) {
       lastError = error;
       if (attempt >= maxAttempts) break;
+      if (options?.shouldRetry && !options.shouldRetry(error)) break;
       options?.onRetry?.(attempt, error);
       await sleep(futureYouRetryDelayMs(attempt, baseDelayMs));
     }

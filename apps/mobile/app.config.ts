@@ -15,6 +15,10 @@ const config: ExpoConfig = {
     usesAppleSignIn: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
+      NSAppTransportSecurity: {
+        NSAllowsArbitraryLoads: true,
+        NSAllowsLocalNetworking: true,
+      },
       NSCameraUsageDescription:
         "New You AI uses your camera to scan food barcodes and capture photos for your Future You transformation preview.",
       NSPhotoLibraryUsageDescription:

@@ -15,6 +15,13 @@ function envTrim(raw: string | undefined): string {
   return String(raw).trim().replace(/^["']|["']$/g, "");
 }
 
+/** Prefer anon JWT for Edge Function gateway calls (publishable keys can fail on some routes). */
+export function edgeFunctionApiKey(env: SupabaseEnv): string {
+  const anonJwt = envTrim(env.anonKey);
+  if (anonJwt.startsWith("eyJ")) return anonJwt;
+  return clientSupabaseKeyForFetch(env);
+}
+
 /** Browser-safe Supabase API key: prefer publishable (new dashboard), else legacy anon JWT (`eyJ…`). */
 export function clientSupabaseKeyForFetch(env: SupabaseEnv): string {
   const publishable = envTrim(env.publishableKey);

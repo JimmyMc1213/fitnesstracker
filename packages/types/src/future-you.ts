@@ -17,6 +17,8 @@ export type FutureYouPreview = {
   readyAt?: string;
   /** Timeline label captured at generation time (e.g. "3 months"). */
   timeline?: string;
+  /** Storage path of the source selfie used for this preview (kept until deleted). */
+  sourcePhotoPath?: string;
 };
 
 export type FutureYouDraft = {

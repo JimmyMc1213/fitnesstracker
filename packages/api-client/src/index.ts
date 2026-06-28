@@ -1,6 +1,7 @@
 export {
   clientSupabaseKeyForFetch,
   createSupabaseClient,
+  edgeFunctionApiKey,
   isSupabaseConfigured,
   type SupabaseEnv,
 } from "./supabase/createSupabaseClient";

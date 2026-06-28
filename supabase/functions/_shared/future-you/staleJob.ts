@@ -4,11 +4,10 @@ import type { FutureYouJobStatus } from "./jobStatus.ts";
 
 /**
  * Jobs in queued/generating longer than this are treated as stuck.
- * Must stay safely above this function's generation timeout (130s) and
- * Supabase's ~150s hard request limit so a slow-but-valid generation is never
- * marked failed by the status reconcile while the server is still working.
+ * Must stay safely above future-you-generate's background timeout (360s) so a
+ * slow-but-valid generation is never marked failed while the server is working.
  */
-export const FUTURE_YOU_JOB_STALE_MS = 5 * 60 * 1000;
+export const FUTURE_YOU_JOB_STALE_MS = 7 * 60 * 1000;
 
 export const FUTURE_YOU_JOB_STALE_ERROR = "Generation timed out. Try again.";
 

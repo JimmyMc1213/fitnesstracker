@@ -17,7 +17,7 @@ type Props = {
   step: number;
   value: AppTheme;
   onChange: (theme: AppTheme) => void;
-  onBack: () => void;
+  onBack?: () => void;
   onContinue: () => void;
 };
 

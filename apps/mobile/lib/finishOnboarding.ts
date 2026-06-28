@@ -76,7 +76,7 @@ export async function finishOnboarding(input: FinishOnboardingInput): Promise<Ap
 
   const slice: Partial<PersistedFitnessSlice> = {
     ...existing,
-    displayName: input.displayName.trim(),
+    displayName: input.displayName.trim() || existing.displayName?.trim() || "",
     unitPreferences: input.unitPreferences,
     unitPreferencesChosen: true,
     experienceLevel: input.experienceLevel,

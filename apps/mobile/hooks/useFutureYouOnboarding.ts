@@ -17,7 +17,7 @@ import {
   startFutureYouGeneration,
 } from "@/lib/futureYouGenerateService";
 import { futureYouTimelineFromProfile } from "@/lib/futureYouTimeline";
-import { FutureYouUploadError, uploadFutureYouPhoto } from "@/lib/futureYouUploadService";
+import { FutureYouUploadError, resolveFutureYouSourcePath, uploadFutureYouPhoto } from "@/lib/futureYouUploadService";
 
 type WizardNav = {
   goToStep: (next: number, overrides?: { futureYou?: FutureYouDraft }) => void;
@@ -121,10 +121,10 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
 
   const continueFutureYouMotivation = useCallback(async () => {
     const motivationId = futureYou?.motivationId?.trim();
-    if (!motivationId || !futureYou?.photoStoragePath || generating) return;
+    if (!motivationId || generating) return;
 
     if (
-      futureYou.generationJobId &&
+      futureYou?.generationJobId &&
       futureYou.generationStatus &&
       futureYou.generationStatus !== "idle" &&
       futureYou.generationStatus !== "failed"
@@ -136,31 +136,41 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
     setGenerateError(null);
     setGenerating(true);
     try {
+      const sourcePath = await resolveFutureYouSourcePath({
+        photoStoragePath: futureYou?.photoStoragePath,
+        photoPreview,
+      });
       const generateProfile = buildFutureYouGenerateProfile(profile);
       const timeline = futureYouTimelineFromProfile(profile);
       const result = await startFutureYouGeneration({
-        sourcePath: futureYou.photoStoragePath,
+        sourcePath,
         motivationId,
         profile: generateProfile,
         timeline,
       });
       const nextFutureYou = mergeFutureYouDraft(futureYou, {
         motivationId,
-        motivationIsGeneric: futureYou.motivationIsGeneric,
+        motivationIsGeneric: futureYou?.motivationIsGeneric,
+        photoStoragePath: sourcePath,
+        photoUploaded: true,
         generationJobId: result.jobId,
         generationStatus: result.status,
       });
+      setPhotoPreview(null);
       goToStep(ONBOARDING_STEP_ACTIVITY, { futureYou: nextFutureYou });
     } catch (error) {
       const message =
-        error instanceof FutureYouGenerateError ?
-          error.message
+        error instanceof FutureYouGenerateError ? error.message
+        : error instanceof FutureYouUploadError ? error.message
         : "Could not start generation. Try again.";
+      if (/source photo not found/i.test(message)) {
+        patchFutureYou({ photoStoragePath: undefined, photoUploaded: false });
+      }
       setGenerateError(message);
     } finally {
       setGenerating(false);
     }
-  }, [futureYou, generating, goToStep, profile]);
+  }, [futureYou, generating, goToStep, patchFutureYou, photoPreview, profile]);
 
   const clearPhoto = useCallback(() => {
     setPhotoPreview(null);

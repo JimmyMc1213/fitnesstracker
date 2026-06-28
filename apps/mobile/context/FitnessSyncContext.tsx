@@ -10,7 +10,6 @@ import {
   tryPush,
   userFacingSyncError,
 } from "@newyouai/core";
-import type { Session } from "@supabase/supabase-js";
 import {
   createContext,
   useCallback,
@@ -26,6 +25,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
 import { readLastAuthUserId, writeLastAuthUserId } from "@/lib/authSessionStorage";
 import { createAsyncStorageAdapter } from "@/lib/createAsyncStorageAdapter";
+import { displayNameFromUser } from "@/lib/displayNameFromUser";
 import { syncOnboardingStorageFromFitnessSlice } from "@/lib/onboardingStorage";
 import { buildFitnessAppState } from "@/lib/fitness/buildFitnessAppState";
 import { createSupabaseSyncClient } from "@/lib/fitness/createSupabaseSyncClient";
@@ -62,16 +62,6 @@ const disabledStub: FitnessSyncContextValue = {
   restoreFromCloud: async () => false,
 };
 
-function displayNameFromUser(user: Session["user"] | null | undefined): string | null {
-  if (!user) return null;
-  const meta = user.user_metadata;
-  if (!meta || typeof meta !== "object") return null;
-  const raw = meta.full_name ?? meta.name;
-  if (typeof raw !== "string") return null;
-  const trimmed = raw.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
 function persistSliceWithMigration(slice: ReturnType<typeof sliceFromAppState>) {
   const { slice: migrated, dirty } = migratePersistedFitnessSlice(slice);
   return dirty ? migrated : slice;
@@ -103,8 +93,9 @@ export function FitnessSyncProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const name = displayNameFromUser(session?.user);
-    if (name) seedDisplayName(name);
-  }, [session?.user, seedDisplayName]);
+    if (!name || !fitnessLocalHydrated || !stateRef.current) return;
+    seedDisplayName(name);
+  }, [session?.user, fitnessLocalHydrated, seedDisplayName]);
 
   const applyMergedSlice = useCallback(
     async (mergedSlice: ReturnType<typeof sliceFromAppState>, meta: { lastSeenRemoteUpdatedAtMs: number }) => {

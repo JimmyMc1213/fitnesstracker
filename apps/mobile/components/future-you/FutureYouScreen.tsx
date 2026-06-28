@@ -58,7 +58,7 @@ import {
   pickFutureYouPhotoFromGallery,
 } from "@/lib/futureYouPhotoPicker";
 import { ageFromDateOfBirth } from "@/lib/onboardingProfile";
-import { FutureYouUploadError, uploadFutureYouPhoto } from "@/lib/futureYouUploadService";
+import { FutureYouUploadError, resolveFutureYouSourcePath, uploadFutureYouPhoto } from "@/lib/futureYouUploadService";
 import { isFutureYouSkipCooldownEnabled } from "@/lib/futureYouDevFlags";
 
 type PageView = "gallery" | "detail" | "upload";
@@ -146,6 +146,14 @@ export function FutureYouScreen() {
     // Keep polling whenever a job is active (incl. on the gallery, so leaving the
     // generating screen still resolves the result), or while viewing a preview.
     pollEnabled: tabFocused && (mode === "reveal" || view === "detail" || uploadJobActive),
+    onGenerationFailed: (message) => {
+      setGenerateError(message);
+      if (/source photo not found/i.test(message)) {
+        onFutureYouPatch({ photoStoragePath: undefined, photoUploaded: false });
+        setUploadStep("photo");
+        setView("upload");
+      }
+    },
   });
 
   const generationActive =
@@ -258,6 +266,13 @@ export function FutureYouScreen() {
     };
   }, [selectedItem, saveableImageUri, revealLoading, draft.generationJobId, previewImages]);
 
+  const detailSourcePhotoPath = useMemo(() => {
+    if (!detailItem) return undefined;
+    const isActiveJob = detailItem.id === draft.generationJobId?.trim();
+    if (isActiveJob) return draft.photoStoragePath?.trim();
+    return draft.previews?.find((preview) => preview.jobId === detailItem.id)?.sourcePhotoPath?.trim();
+  }, [detailItem, draft.generationJobId, draft.photoStoragePath, draft.previews]);
+
   useEffect(() => {
     if (msUntilRedo <= 0) return;
     const intervalMs = msUntilRedo < 48 * 60 * 60 * 1000 ? 60_000 : 60 * 60_000;
@@ -307,8 +322,15 @@ export function FutureYouScreen() {
     setGenerateError(null);
     setUploadStep("photo");
     awaitingUploadGenerationRef.current = false;
+    // Drop the onboarding/previous-session storage path so the photo step starts
+    // empty instead of showing "Remove photo" with no preview.
+    onFutureYouPatch({
+      photoUploaded: false,
+      photoStoragePath: undefined,
+      ...(draft.generationStatus === "failed" ? { generationStatus: "idle" as const } : {}),
+    });
     setView("upload");
-  }, [photoBlocked]);
+  }, [photoBlocked, draft.generationStatus, onFutureYouPatch]);
 
   useEffect(() => {
     if (params.openFutureYouUpload !== "1") return;
@@ -355,12 +377,21 @@ export function FutureYouScreen() {
   const executeGeneration = useCallback(
     async (fromDraft: FutureYouDraft) => {
       const motivationId = fromDraft.motivationId?.trim();
-      const sourcePath = fromDraft.photoStoragePath;
-      if (!motivationId || !sourcePath || !profile) return;
+      if (!motivationId || !profile) return;
 
       setGenerateError(null);
       setGenerating(true);
       try {
+        const sourcePath = await resolveFutureYouSourcePath({
+          photoStoragePath: fromDraft.photoStoragePath,
+          photoPreview,
+        });
+        onFutureYouPatch({
+          photoStoragePath: sourcePath,
+          photoUploaded: true,
+          photoSkipped: false,
+        });
+
         const generateProfile = buildFutureYouGenerateProfile(profile);
         const result = await startFutureYouGeneration({
           sourcePath,
@@ -397,15 +428,19 @@ export function FutureYouScreen() {
         awaitingUploadGenerationRef.current = true;
       } catch (error) {
         const message =
-          error instanceof FutureYouGenerateError ?
-            error.message
+          error instanceof FutureYouGenerateError ? error.message
+          : error instanceof FutureYouUploadError ? error.message
           : "Could not start generation. Try again.";
+        if (/source photo not found/i.test(message)) {
+          onFutureYouPatch({ photoStoragePath: undefined, photoUploaded: false });
+          setUploadStep("photo");
+        }
         setGenerateError(message);
       } finally {
         setGenerating(false);
       }
     },
-    [onFutureYouPatch, profile, timeline],
+    [onFutureYouPatch, photoPreview, profile, timeline],
   );
 
   const onReplaceDeleteOld = useCallback(async () => {
@@ -453,6 +488,7 @@ export function FutureYouScreen() {
       if (draft.generationReadyAt) kept.readyAt = draft.generationReadyAt;
       if (draft.motivationId) kept.motivationId = draft.motivationId;
       if (draft.motivationIsGeneric) kept.motivationIsGeneric = true;
+      if (draft.photoStoragePath?.trim()) kept.sourcePhotoPath = draft.photoStoragePath.trim();
       const existing = (draft.previews ?? []).filter((preview) => preview.jobId !== currentJobId);
       const nextPreviews = [kept, ...existing];
       baseDraft = mergeFutureYouDraft(draft, { previews: nextPreviews });
@@ -477,7 +513,8 @@ export function FutureYouScreen() {
 
   const continueMotivation = useCallback(async () => {
     const motivationId = draft.motivationId?.trim();
-    if (!motivationId || !draft.photoStoragePath || generating || replaceBusy) return;
+    if (!motivationId || generating || replaceBusy) return;
+    if (!draft.photoStoragePath && !photoPreview) return;
 
     if (shouldPromptReplace) {
       promptReplaceDialog();
@@ -488,6 +525,7 @@ export function FutureYouScreen() {
   }, [
     draft,
     generating,
+    photoPreview,
     replaceBusy,
     shouldPromptReplace,
     promptReplaceDialog,
@@ -521,13 +559,15 @@ export function FutureYouScreen() {
   useEffect(() => {
     if (generationStatus !== "failed") return;
     if (view !== "detail" && view !== "upload") return;
+    // Motivation picker is shown before generate is tapped — don't surface a stale failed job.
+    if (view === "upload" && uploadStep === "motivation" && !generating && !generationActive) return;
     setGenerateError((prev) => prev ?? "Generation failed. Try again.");
     if (view === "detail") {
       setView("upload");
       setUploadStep("motivation");
       setSelectedItemId(null);
     }
-  }, [generationStatus, view]);
+  }, [generationStatus, view, uploadStep, generating, generationActive]);
 
   // Notify when generation finishes while the user has left the generating screen.
   const prevGenerationStatusRef = useRef(generationStatus);
@@ -599,11 +639,13 @@ export function FutureYouScreen() {
     setUploading(true);
     try {
       const result = await uploadFutureYouPhoto(preview);
+      setGenerateError(null);
       onFutureYouPatch({
         photoSkipped: false,
         photoUploaded: true,
         photoAiConsentAt: consentAt,
         photoStoragePath: result.path,
+        ...(draft.generationStatus === "failed" ? { generationStatus: "idle" as const } : {}),
       });
       setPhotoPreview(null);
       setUploadStep("motivation");
@@ -616,7 +658,7 @@ export function FutureYouScreen() {
     } finally {
       setUploading(false);
     }
-  }, [draft.photoAiConsentAt, onFutureYouPatch, photoBlocked, photoPreview]);
+  }, [draft.photoAiConsentAt, draft.generationStatus, onFutureYouPatch, photoBlocked, photoPreview]);
 
   const onGrantAiConsent = useCallback(() => {
     if (!draft.photoAiConsentAt) {
@@ -654,11 +696,7 @@ export function FutureYouScreen() {
   const showHeader = view === "gallery";
 
   const goal = profile?.goal ?? "cut";
-  const effectiveGenerateError =
-    generateError ??
-    (view === "upload" && generationStatus === "failed" ?
-      "Generation failed. Try again."
-    : null);
+  const effectiveGenerateError = generateError;
 
   function renderBody() {
     if (view === "upload") {
@@ -703,6 +741,7 @@ export function FutureYouScreen() {
           generationStatus={detailIsActive ? generationStatus : "ready"}
           futureYou={draft}
           jobId={detailItem.id}
+          sourcePhotoPath={detailSourcePhotoPath}
           onBack={onBackToGallery}
           onFutureYouDeleted={onDetailFutureYouDeleted}
         />

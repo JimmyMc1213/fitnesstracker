@@ -17,6 +17,7 @@ import {
 } from "@newyouai/core";
 import type { FutureYouDraft, NutritionGoal, OnboardingProfile } from "@newyouai/types";
 
+import { ONBOARDING_WIZARD_START_STEP } from "@/lib/onboardingDefaults";
 import {
   isOnboardingBackIntoGoalLockBlocked,
   isOnboardingBackLocked,
@@ -108,9 +109,11 @@ export function resolveWizardBackStep(
   if (step === ONBOARDING_STEP_FUTURE_YOU_SUCCESS) return ONBOARDING_STEP_PAYWALL;
   if (step === ONBOARDING_STEP_PAYWALL) return 26;
 
+  if (step <= ONBOARDING_WIZARD_START_STEP) return null;
+
   const prev = step - 1;
   if (isOnboardingBackIntoGoalLockBlocked(step, prev, futureYou)) return null;
-  return Math.max(prev, 0);
+  return Math.max(prev, ONBOARDING_WIZARD_START_STEP);
 }
 
 export function canNavigateWizardToStep(

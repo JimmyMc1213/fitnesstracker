@@ -571,19 +571,6 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
         </SettingsHubSection>
 
         {sync.sessionEmail ? (
-          <SettingsHubSection title="Account actions">
-            <div className="settings-sign-out-row">
-              <SettingsRow
-                icon={rowIcon(<IconLogout size={16} stroke={1.6} />)}
-                label="Sign out"
-                trailing={null}
-                onClick={() => setShowSignOutConfirm(true)}
-              />
-            </div>
-          </SettingsHubSection>
-        ) : null}
-
-        {sync.sessionEmail ? (
           <div className="settings-delete-account">
             {deleteAccountNotice ? (
               <p className="settings-delete-account__notice">{deleteAccountNotice}</p>
@@ -839,6 +826,16 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
               label="Apple Sign-In"
             />
           </SettingsHubSection>
+          <SettingsHubSection title="Account actions">
+            <div className="settings-sign-out-row">
+              <SettingsRow
+                icon={rowIcon(<IconLogout size={16} stroke={1.6} />)}
+                label="Sign out"
+                trailing={null}
+                onClick={() => setShowSignOutConfirm(true)}
+              />
+            </div>
+          </SettingsHubSection>
           </>
         ) : null}
       </>
@@ -966,22 +963,6 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
                 }}
               >
                 Sync now
-              </button>
-              <button
-                type="button"
-                className="tap"
-                onClick={() => setShowSignOutConfirm(true)}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 10,
-                  fontWeight: 600,
-                  fontSize: 13,
-                  border: "none",
-                  background: "var(--surface-3)",
-                  color: "var(--text-secondary)",
-                }}
-              >
-                Sign out
               </button>
             </div>
           </div>

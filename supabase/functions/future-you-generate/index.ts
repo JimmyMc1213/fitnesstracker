@@ -18,19 +18,30 @@ import {
   type FutureYouGenerateRequest,
 } from "./guards.ts";
 import {
-  editFutureYouImageWithRetries,
-  getImageProvider,
+  getFutureYouImageProvider,
   ImageProviderUnavailableError,
-  type ImageEditProvider,
+  type FutureYouImageProvider,
 } from "./providers/index.ts";
+import { formatGenerationError, ImageProviderError } from "./providers/types.ts";
+
+// EdgeRuntime is provided as a global by the Supabase edge runtime at deploy
+// time (via the edge-runtime.d.ts import above), but standalone `deno check`
+// does not resolve it. Declare the minimal shape we use so type-checking passes.
+declare global {
+  // deno-lint-ignore no-var
+  var EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-/** Fail cleanly before Supabase's ~150s request limit (which returns HTTP 546). */
-const GENERATION_JOB_TIMEOUT_MS = 130 * 1000;
+/**
+ * Safety net for the background task — kept under the Supabase Paid wall-clock
+ * limit (400s). One high-quality maskless generation runs well within this.
+ */
+const GENERATION_JOB_TIMEOUT_MS = 360 * 1000;
 
 type ActiveJobRow = {
   id: string;
@@ -128,6 +139,7 @@ async function updateJob(
     status?: "queued" | "generating" | "ready" | "failed";
     result_photo_path?: string | null;
     error?: string | null;
+    revised_prompt?: string | null;
   },
 ) {
   const { error } = await adminClient
@@ -142,6 +154,38 @@ async function updateJob(
   if (error) {
     console.error("future-you-generate: job update failed", { jobId, patch, error });
     throw new Error("Could not update generation job.");
+  }
+}
+
+/**
+ * Mark a job ready. Persists revised_prompt when the column exists; if migration
+ * 008 has not been applied yet, falls back to a ready update without it so the
+ * generation still completes. The revised prompt is logged regardless.
+ */
+async function markJobReady(
+  adminClient: SupabaseClient,
+  jobId: string,
+  userId: string,
+  resultPath: string,
+  revisedPrompt: string | undefined,
+) {
+  try {
+    await updateJob(adminClient, jobId, userId, {
+      status: "ready",
+      result_photo_path: resultPath,
+      error: null,
+      revised_prompt: revisedPrompt ?? null,
+    });
+  } catch (error) {
+    console.warn(
+      "future-you-generate: ready update with revised_prompt failed, retrying without it",
+      { jobId, error },
+    );
+    await updateJob(adminClient, jobId, userId, {
+      status: "ready",
+      result_photo_path: resultPath,
+      error: null,
+    });
   }
 }
 
@@ -196,7 +240,7 @@ async function runGenerationJob(
   userId: string,
   jobId: string,
   request: FutureYouGenerateRequest,
-  provider: ImageEditProvider,
+  provider: FutureYouImageProvider,
 ) {
   const run = async () => {
     try {
@@ -208,42 +252,45 @@ async function runGenerationJob(
         timeline: request.timeline,
       });
 
-      const onRetry = (attempt: number, error: unknown) => {
-        console.warn("future-you-generate: image provider retry", {
-          jobId,
-          provider: provider.id,
-          attempt,
-          error,
-        });
-      };
-
       const { bytes, mimeType } = await downloadSourcePhoto(adminClient, request.sourcePath);
-      const resultBytes = await editFutureYouImageWithRetries(
-        provider,
-        bytes,
-        mimeType,
-        prompt,
-        onRetry,
-      );
+
+      console.log("future-you-generate: calling provider", {
+        jobId,
+        provider: provider.id,
+        sourceBytes: bytes.length,
+        promptLength: prompt.length,
+      });
+
+      const { imageBytes, revisedPrompt } = await provider.generate(bytes, mimeType, prompt);
+
+      console.log("future-you-generate: generation complete", {
+        jobId,
+        provider: provider.id,
+        revisedPrompt: revisedPrompt ?? null,
+      });
 
       const resultPath = buildFutureYouResultPath(userId, jobId);
-      const { error: uploadError } = await adminClient.storage.from(FUTURE_YOU_BUCKET).upload(resultPath, resultBytes, {
-        contentType: "image/png",
-        upsert: true,
-      });
+      const { error: uploadError } = await adminClient.storage
+        .from(FUTURE_YOU_BUCKET)
+        .upload(resultPath, imageBytes, {
+          contentType: "image/png",
+          upsert: true,
+        });
 
       if (uploadError) {
         throw new Error("Could not save generated image.");
       }
 
-      await updateJob(adminClient, jobId, userId, {
-        status: "ready",
-        result_photo_path: resultPath,
-        error: null,
-      });
+      await markJobReady(adminClient, jobId, userId, resultPath, revisedPrompt);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Generation failed.";
-      console.error("future-you-generate: job failed", { jobId, error });
+      const message = formatGenerationError(error);
+      console.error("future-you-generate: job failed", {
+        jobId,
+        message,
+        ...(error instanceof ImageProviderError
+          ? { status: error.status, body: error.body.slice(0, 1000) }
+          : { error }),
+      });
       await updateJob(adminClient, jobId, userId, {
         status: "failed",
         error: message,
@@ -289,9 +336,9 @@ Deno.serve(async (req) => {
       return unauthorizedResponse(corsHeaders);
     }
 
-    let provider: ImageEditProvider;
+    let provider: FutureYouImageProvider;
     try {
-      provider = getImageProvider();
+      provider = getFutureYouImageProvider();
     } catch (error) {
       if (error instanceof ImageProviderUnavailableError) {
         console.error("future-you-generate: image provider unavailable", error.message);

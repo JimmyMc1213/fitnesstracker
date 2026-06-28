@@ -21,7 +21,6 @@ import {
   IconDumbbell,
   IconFlag,
   IconHabits,
-  IconLogout,
   IconMail,
   IconMoon,
   IconRun,
@@ -39,7 +38,6 @@ import { useFitnessState } from "@/context/FitnessContext";
 import { useFitnessSync } from "@/context/FitnessSyncContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { deleteUserAccount, isDeleteAccountDryRunEnabled } from "@/lib/deleteUserAccount";
-import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
 import { EQUIPMENT_SETUP_LABELS } from "@/lib/equipmentSetup";
 import { resetLocalAfterAccountDelete } from "@/lib/resetAfterAccountDelete";
 import type { SettingsPanelId } from "@/lib/settingsPanelRegistry";
@@ -95,21 +93,12 @@ export default function SettingsHubScreen() {
   const { lastSyncedLabel } = useFitnessSync();
   const { state, replaceFitnessState } = useFitnessState();
 
-  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [deleteAccountStep, setDeleteAccountStep] = useState<null | "warn" | "final">(null);
   const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
   const [deleteAccountNotice, setDeleteAccountNotice] = useState<string | null>(null);
   const [deleteAccountBusy, setDeleteAccountBusy] = useState(false);
   const [reportIssueOpen, setReportIssueOpen] = useState(false);
   const [featureRequestOpen, setFeatureRequestOpen] = useState(false);
-
-  const handleSignOut = useCallback(async () => {
-    stopOnboardingPreview();
-    const next = await resetLocalAfterAccountDelete();
-    replaceFitnessState(next);
-    await signOut();
-    router.replace("/(auth)");
-  }, [replaceFitnessState, signOut]);
 
   const handleDeleteAccount = useCallback(async () => {
     const sb = getSupabase();
@@ -346,19 +335,6 @@ export default function SettingsHubScreen() {
         </SettingsHubSection>
 
         {sessionEmail ? (
-          <SettingsHubSection title="Account actions">
-            <SettingsRow
-              icon={rowIcon(<IconLogout size={16} stroke={1.6} color={colors.textPrimary} />)}
-              label="Sign out"
-              trailing=""
-              testID="settings-sign-out"
-              isLast
-              onPress={() => setShowSignOutConfirm(true)}
-            />
-          </SettingsHubSection>
-        ) : null}
-
-        {sessionEmail ? (
           <View className="mt-2">
             {deleteAccountNotice ? (
               <Text className="mb-2 text-center text-[13px]" style={{ color: colors.textSecondary }}>
@@ -390,23 +366,6 @@ export default function SettingsHubScreen() {
         </ScrollView>
       </SettingsScreenChrome>
       </TabScreenFade>
-
-      {showSignOutConfirm ? (
-        <FutureYouDeleteConfirmSheet
-          title="Sign out?"
-          cancelLabel="Cancel"
-          confirmLabel="Sign out"
-          message="Your local data stays on this device, but cloud sync pauses until you sign in again."
-          sheetTestID="settings-sign-out-sheet"
-          cancelTestID="settings-sign-out-cancel"
-          confirmTestID="settings-sign-out-confirm"
-          onCancel={() => setShowSignOutConfirm(false)}
-          onConfirm={() => {
-            setShowSignOutConfirm(false);
-            void handleSignOut();
-          }}
-        />
-      ) : null}
 
       <ReportIssueDialog open={reportIssueOpen} onClose={() => setReportIssueOpen(false)} />
       <RequestFeatureDialog open={featureRequestOpen} onClose={() => setFeatureRequestOpen(false)} />

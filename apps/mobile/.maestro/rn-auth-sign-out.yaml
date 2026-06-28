@@ -22,6 +22,12 @@ env:
 - assertVisible:
     id: home-title
 - runFlow: subflows/open-settings-hub.yaml
+- tapOn:
+    id: settings-profile-card
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-you
+    timeout: 10000
 - scrollUntilVisible:
     element:
       id: settings-sign-out

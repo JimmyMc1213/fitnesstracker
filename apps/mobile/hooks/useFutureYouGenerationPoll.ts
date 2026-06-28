@@ -23,6 +23,7 @@ type Options = {
   /** Poll while tab/detail is active or onboarding steps 11–27. */
   pollEnabled: boolean;
   previewMode?: boolean;
+  onGenerationFailed?: (message: string) => void;
 };
 
 export function useFutureYouGenerationPoll({
@@ -30,11 +31,14 @@ export function useFutureYouGenerationPoll({
   onFutureYouPatch,
   pollEnabled,
   previewMode = false,
+  onGenerationFailed,
 }: Options): FutureYouJobStatus | "idle" {
   const status = futureYou.generationStatus ?? "idle";
   const jobId = futureYou.generationJobId?.trim() ?? "";
   const onPatchRef = useRef(onFutureYouPatch);
   onPatchRef.current = onFutureYouPatch;
+  const onGenerationFailedRef = useRef(onGenerationFailed);
+  onGenerationFailedRef.current = onGenerationFailed;
 
   const [previewReady, setPreviewReady] = useState(false);
 
@@ -73,6 +77,9 @@ export function useFutureYouGenerationPoll({
           generationJobId: response.jobId,
           ...patchGenerationReadyAt(status, response.updatedAt),
         });
+        if (status === "failed" && response.error?.trim()) {
+          onGenerationFailedRef.current?.(response.error.trim());
+        }
         if (status === "ready") {
           const previewUrl = futureYouPollImageUrl(response, false);
           if (previewUrl) {
