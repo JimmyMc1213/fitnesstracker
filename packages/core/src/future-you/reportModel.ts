@@ -6,7 +6,7 @@ export const FUTURE_YOU_REPORT_SHEET_TITLE = "Report this preview";
 export const FUTURE_YOU_REPORT_SHEET_BODY =
   "Tell us what went wrong. We review reports to improve Future You previews.";
 export const FUTURE_YOU_REPORT_SUBMIT_LABEL = "Send report";
-export const FUTURE_YOU_REPORT_SUCCESS_MESSAGE = "Thanks — we'll review this.";
+export const FUTURE_YOU_REPORT_SUCCESS_MESSAGE = "Thanks, we'll review this.";
 export const FUTURE_YOU_REPORT_ERROR_MESSAGE = "Could not send report. Try again.";
 
 export const FUTURE_YOU_REPORT_CATEGORY_OPTIONS: ReadonlyArray<{

@@ -6,6 +6,7 @@ import {
   parseFutureYouReportRequest,
   unauthorizedResponse,
 } from "./guards.ts";
+import { createLinearIssueForFutureYouReport } from "./linear.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -118,17 +119,66 @@ Deno.serve(async (req) => {
       return badReportResponse("Could not send report. Try again.", corsHeaders, 500);
     }
 
+    const reportId = data.id as string;
+    let linearIssueId: string | null = null;
+    let linearIssueUrl: string | null = null;
+
+    const linearApiKey = Deno.env.get("LINEAR_API_KEY")?.trim();
+    const linearTeamId = Deno.env.get("LINEAR_TEAM_ID")?.trim();
+
+    if (linearApiKey && linearTeamId) {
+      try {
+        const linearIssue = await createLinearIssueForFutureYouReport({
+          apiKey: linearApiKey,
+          teamId: linearTeamId,
+          category: request.category,
+          context: request.context,
+          message: request.message,
+          reportId,
+          userId: auth.userId,
+          jobId: request.jobId,
+        });
+
+        linearIssueId = linearIssue.issueId;
+        linearIssueUrl = linearIssue.issueUrl;
+
+        const { error: updateError } = await auth.adminClient
+          .from("future_you_reports")
+          .update({
+            linear_issue_id: linearIssueId,
+            linear_issue_url: linearIssueUrl,
+          })
+          .eq("id", reportId);
+
+        if (updateError) {
+          console.error("future-you-report: linear link update failed", updateError);
+        }
+      } catch (linearError) {
+        console.error("future-you-report: linear create failed (report saved)", linearError);
+      }
+    } else {
+      console.warn("future-you-report: LINEAR_API_KEY or LINEAR_TEAM_ID not set; skipping Linear issue");
+    }
+
     console.info("future-you-report: received", {
-      reportId: data.id,
+      reportId,
       userId: auth.userId,
       jobId: request.jobId ?? null,
       context: request.context,
       category: request.category,
+      linearIssueId,
     });
 
-    return new Response(JSON.stringify({ ok: true, reportId: data.id }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        reportId,
+        linearIssueUrl: linearIssueUrl ?? undefined,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (e) {
     console.error("future-you-report error", e);
     return badReportResponse("Could not send report. Try again.", corsHeaders, 500);

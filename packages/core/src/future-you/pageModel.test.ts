@@ -56,6 +56,68 @@ describe("futureYouPageModel", () => {
         shouldSkipFutureYouRedoCooldown(draft),
       ),
     ).toBe(true);
+    expect(
+      shouldPromptFutureYouReplaceDialog(
+        "reveal",
+        "ready",
+        readyAt,
+        false,
+        oneWeekLater,
+        shouldSkipFutureYouRedoCooldown(draft),
+      ),
+    ).toBe(true);
+    expect(
+      futureYouPageRedoLede(
+        msUntilFutureYouRedoEligible(readyAt, oneWeekLater),
+        shouldSkipFutureYouRedoCooldown(draft),
+      ),
+    ).toBeNull();
+  });
+
+  it("keeps redo cooldown for accepted ready results", () => {
+    const oneWeekLater = Date.parse(readyAt) + 7 * 24 * 60 * 60 * 1000;
+    const acceptedDraft = {
+      generationJobId: "job-accepted",
+      generationReadyAt: readyAt,
+      generationStatus: "ready" as const,
+    };
+    expect(shouldSkipFutureYouRedoCooldown(acceptedDraft)).toBe(false);
+    expect(
+      canRedoFutureYouTransformation(
+        "reveal",
+        "ready",
+        readyAt,
+        false,
+        oneWeekLater,
+        shouldSkipFutureYouRedoCooldown(acceptedDraft),
+      ),
+    ).toBe(false);
+    expect(
+      shouldPromptFutureYouReplaceDialog(
+        "reveal",
+        "ready",
+        readyAt,
+        false,
+        oneWeekLater,
+        shouldSkipFutureYouRedoCooldown(acceptedDraft),
+      ),
+    ).toBe(false);
+    expect(
+      futureYouPageRedoLede(
+        msUntilFutureYouRedoEligible(readyAt, oneWeekLater),
+        shouldSkipFutureYouRedoCooldown(acceptedDraft),
+      ),
+    ).toBe("You can upload again in 7 days.");
+  });
+
+  it("does not bypass cooldown when reported job is not the active job", () => {
+    const draft = {
+      generationJobId: "job-new",
+      reportedJobId: "job-old",
+      generationReadyAt: readyAt,
+      generationStatus: "ready" as const,
+    };
+    expect(shouldSkipFutureYouRedoCooldown(draft)).toBe(false);
   });
 
   it("blocks redo until 14 days after ready", () => {
