@@ -28,15 +28,16 @@ export function FutureYouGenerationPill({ status, motivationId, goal, gender }: 
   );
 
   const copy = futureYouGenerationPillCopy(status, phraseIndex, phrases);
-  const isReady = copy.ready;
+  // Spin/rotate only while actively generating — both ready and failed are terminal.
+  const isLoading = !copy.ready && !copy.failed;
 
   useEffect(() => {
-    if (isReady) return;
+    if (!isLoading) return;
     const id = setInterval(() => {
       setPhraseIndex((index) => (index + 1) % phrases.length);
     }, FUTURE_YOU_GENERATION_PILL_ROTATE_MS);
     return () => clearInterval(id);
-  }, [isReady, phrases.length]);
+  }, [isLoading, phrases.length]);
 
   return (
     <PressableScale
@@ -55,7 +56,7 @@ export function FutureYouGenerationPill({ status, motivationId, goal, gender }: 
         backgroundColor: "#161410",
       }}
     >
-      {!isReady ? <ActivityIndicator size="small" color={ob.goldMid} /> : null}
+      {isLoading ? <ActivityIndicator size="small" color={ob.goldMid} /> : null}
       <View className="min-w-0 flex-1">
         <Text className="text-sm font-semibold" style={{ color: ob.gold }}>
           {copy.headline}

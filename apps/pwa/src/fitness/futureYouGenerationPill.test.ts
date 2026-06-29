@@ -31,7 +31,7 @@ describe("futureYouGenerationPill", () => {
     ).toBe(true);
   });
 
-  it("stops polling once ready", () => {
+  it("stops polling once terminal (ready or failed)", () => {
     expect(
       shouldPollFutureYouGeneration(
         { generationJobId: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", generationStatus: "generating" },
@@ -41,6 +41,12 @@ describe("futureYouGenerationPill", () => {
     expect(
       shouldPollFutureYouGeneration(
         { generationJobId: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", generationStatus: "ready" },
+        true,
+      ),
+    ).toBe(false);
+    expect(
+      shouldPollFutureYouGeneration(
+        { generationJobId: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", generationStatus: "failed" },
         true,
       ),
     ).toBe(false);
@@ -64,6 +70,7 @@ describe("futureYouGenerationPill", () => {
       headline: FUTURE_YOU_GENERATION_PILL_CREATING_LABEL,
       subline: "A…",
       ready: false,
+      failed: false,
     });
     expect(futureYouGenerationPillCopy("generating", 1, phrases).subline).toBe("B…");
   });

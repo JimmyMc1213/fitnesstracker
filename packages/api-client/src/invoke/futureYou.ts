@@ -203,11 +203,20 @@ export function parseFutureYouPollResponse(data: unknown): FutureYouPollResponse
     resultSignedUrl?: string;
   };
 
-  if (typeof body.error === "string" && body.error.trim()) {
-    throw new FutureYouPollError(body.error.trim(), "invalid");
-  }
+  // A 200 status payload always carries a valid jobId + status. A failed job
+  // legitimately includes an `error` field (its failure reason), so only treat a
+  // top-level `error` as a fatal transport/envelope error when no job payload is
+  // present — otherwise a failed job is misread as a transport failure and the
+  // caller keeps polling forever instead of surfacing a terminal error.
+  const hasJobPayload =
+    typeof body.jobId === "string" &&
+    isFutureYouJobId(body.jobId) &&
+    parseStatus(body.status) !== undefined;
 
-  if (typeof body.jobId !== "string" || !isFutureYouJobId(body.jobId)) {
+  if (!hasJobPayload) {
+    if (typeof body.error === "string" && body.error.trim()) {
+      throw new FutureYouPollError(body.error.trim(), "invalid");
+    }
     throw new FutureYouPollError("Could not load generation status.", "invalid");
   }
 
@@ -225,11 +234,16 @@ export function parseFutureYouPollResponse(data: unknown): FutureYouPollResponse
   }
 
   const response: FutureYouPollResponse = {
-    jobId: body.jobId.trim(),
+    jobId: (body.jobId as string).trim(),
     status,
     motivationId: body.motivationId.trim(),
     updatedAt: body.updatedAt.trim(),
   };
+
+  // Surface a failed job's reason so the client can show a terminal error state.
+  if (status === "failed" && typeof body.error === "string" && body.error.trim()) {
+    response.error = body.error.trim();
+  }
 
   if (body.teaser) {
     response.teaser = body.teaser;

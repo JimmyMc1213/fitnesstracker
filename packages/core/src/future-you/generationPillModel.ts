@@ -8,10 +8,36 @@ import {
 
 export const FUTURE_YOU_GENERATION_PILL_READY_LABEL = "Your Future You is ready — unlock at the end";
 export const FUTURE_YOU_GENERATION_PILL_CREATING_LABEL = "Creating your Future You…";
+export const FUTURE_YOU_GENERATION_PILL_FAILED_LABEL = "We couldn't generate this one";
+export const FUTURE_YOU_GENERATION_PILL_FAILED_SUBLINE = "Try a different photo from the NewYou tab";
 export const FUTURE_YOU_READY_BANNER_LABEL = "Your Future You is ready, keep going to unlock it.";
 
 export const FUTURE_YOU_GENERATION_PILL_ROTATE_MS = 3500;
 export const FUTURE_YOU_GENERATION_POLL_INTERVAL_MS = 4000;
+
+/**
+ * Distinct job error stored by future-you-generate when the Responses
+ * image_generation_call returns status="failed" with no error — a likely
+ * content/safety refusal rather than a transient outage. Kept in sync with
+ * supabase/functions/future-you-generate/providers/types.ts.
+ */
+export const FUTURE_YOU_GENERATION_REFUSED_ERROR = "generation_refused";
+
+/** Reason-specific copy for a content/safety refusal (bad framing, lighting, etc.). */
+export const FUTURE_YOU_GENERATION_REFUSED_MESSAGE =
+  "This photo couldn't be used — try one with different framing or lighting.";
+
+/** Generic terminal-failure copy when we don't have a more specific reason. */
+export const FUTURE_YOU_GENERATION_FAILED_MESSAGE =
+  "We couldn't generate this one — try a different photo.";
+
+/** Map a stored job error string to user-facing copy for the failed state. */
+export function futureYouGenerationErrorMessage(error: string | undefined): string {
+  if (error?.trim() === FUTURE_YOU_GENERATION_REFUSED_ERROR) {
+    return FUTURE_YOU_GENERATION_REFUSED_MESSAGE;
+  }
+  return FUTURE_YOU_GENERATION_FAILED_MESSAGE;
+}
 
 /** True when the onboarding generation pill should appear (photo path with an active job). */
 export function isFutureYouGenerationPillVisible(draft: FutureYouDraft | undefined): boolean {
@@ -27,7 +53,8 @@ export function shouldPollFutureYouGeneration(
 ): boolean {
   if (!draft) return false;
   if (!enabled || !isFutureYouGenerationPillVisible(draft)) return false;
-  return draft.generationStatus !== "ready";
+  // "ready" and "failed" are both terminal — never poll a resolved job.
+  return draft.generationStatus !== "ready" && draft.generationStatus !== "failed";
 }
 
 /** Step 26 banner when generation finished before the user reaches the paywall. */
@@ -64,7 +91,10 @@ export function buildFutureYouGenerationPillPhrases(
 export type FutureYouGenerationPillCopy = {
   headline: string;
   subline?: string;
+  /** Generation finished successfully. */
   ready: boolean;
+  /** Generation failed terminally — show an error, not a spinner. */
+  failed: boolean;
 };
 
 export function futureYouGenerationPillCopy(
@@ -76,6 +106,16 @@ export function futureYouGenerationPillCopy(
     return {
       headline: FUTURE_YOU_GENERATION_PILL_READY_LABEL,
       ready: true,
+      failed: false,
+    };
+  }
+
+  if (status === "failed") {
+    return {
+      headline: FUTURE_YOU_GENERATION_PILL_FAILED_LABEL,
+      subline: FUTURE_YOU_GENERATION_PILL_FAILED_SUBLINE,
+      ready: false,
+      failed: true,
     };
   }
 
@@ -84,5 +124,6 @@ export function futureYouGenerationPillCopy(
     headline: FUTURE_YOU_GENERATION_PILL_CREATING_LABEL,
     subline,
     ready: false,
+    failed: false,
   };
 }

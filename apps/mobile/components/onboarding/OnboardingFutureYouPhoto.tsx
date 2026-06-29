@@ -220,6 +220,17 @@ export function OnboardingFutureYouPhoto({
               </Text>
             </View>
           ) : null}
+
+          {uploadError ? (
+            <Text
+              accessibilityRole="alert"
+              className="absolute bottom-0 left-0 right-0 text-center text-sm px-1"
+              style={{ color: "#f87171" }}
+              pointerEvents="none"
+            >
+              {uploadError}
+            </Text>
+          ) : null}
         </View>
 
       {!blocked ? (
@@ -331,12 +342,6 @@ export function OnboardingFutureYouPhoto({
               </PressableScale>
             </View>
           )}
-
-          {uploadError ? (
-            <Text className="mt-3 text-center text-sm" style={{ color: "#f87171" }}>
-              {uploadError}
-            </Text>
-          ) : null}
         </View>
       ) : null}
       </View>

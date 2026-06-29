@@ -34,14 +34,16 @@ export function FutureYouGenerationPill({ status, motivationId, goal, gender }: 
 
   const copy = futureYouGenerationPillCopy(status, phraseIndex, phrases);
   const isReady = copy.ready;
+  // Spin/rotate only while actively generating — both ready and failed are terminal.
+  const isLoading = !copy.ready && !copy.failed;
 
   useEffect(() => {
-    if (isReady) return;
+    if (!isLoading) return;
     const id = window.setInterval(() => {
       setPhraseIndex((index) => (index + 1) % phrases.length);
     }, FUTURE_YOU_GENERATION_PILL_ROTATE_MS);
     return () => window.clearInterval(id);
-  }, [isReady, phrases.length]);
+  }, [isLoading, phrases.length]);
 
   useEffect(() => {
     const previousStatus = previousStatusRef.current;
@@ -68,12 +70,12 @@ export function FutureYouGenerationPill({ status, motivationId, goal, gender }: 
       <div ref={wrapRef} className="future-you-generation-pill-wrap">
         <button
           type="button"
-          className={`future-you-generation-pill tap${isReady ? " future-you-generation-pill--ready" : ""}`}
+          className={`future-you-generation-pill tap${isReady ? " future-you-generation-pill--ready" : ""}${copy.failed ? " future-you-generation-pill--failed" : ""}`}
           onClick={() => setSheetOpen(true)}
           aria-live="polite"
-          aria-busy={!isReady}
+          aria-busy={isLoading}
         >
-          {!isReady ? <PillSpinner /> : null}
+          {isLoading ? <PillSpinner /> : null}
           <span className="future-you-generation-pill__text">
             <span className="future-you-generation-pill__headline">{copy.headline}</span>
             {copy.subline ? (

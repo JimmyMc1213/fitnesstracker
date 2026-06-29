@@ -22,6 +22,7 @@ import { FutureYouNewChip } from "./FutureYouNewChip";
 import { ScreenHeader } from "./shared";
 import { FutureYouNewPicView, type FutureYouNewPicStep } from "./FutureYouNewPicView";
 import { FutureYouReplaceDialog } from "./FutureYouReplaceDialog";
+import { futureYouGenerationErrorMessage } from "./futureYouGenerationPillModel";
 import { getHomeFutureYouEntryMode, homeFutureYouMotivationLabel } from "./homeFutureYouModel";
 import {
   canRedoFutureYouTransformation,
@@ -96,6 +97,13 @@ export function FutureYouPageContent({
     pollEnabled: active && (mode === "reveal" || view === "detail"),
     previewMode: false,
     onFutureYouPatch: onFutureYouChange,
+    onGenerationFailed: (message) => {
+      // Surface a terminal error in the upload flow instead of leaving the
+      // gallery silently empty when a job resolves to failed.
+      setGenerateError(futureYouGenerationErrorMessage(message));
+      setUploadStep("motivation");
+      setView("upload");
+    },
   });
 
   const { imageSrc, loading } = useFutureYouRevealImage({

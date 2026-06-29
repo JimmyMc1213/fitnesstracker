@@ -1,6 +1,8 @@
 import {
   buildFutureYouGalleryItem,
   canRedoFutureYouTransformation,
+  FUTURE_YOU_GENERATION_FAILED_MESSAGE,
+  futureYouGenerationErrorMessage,
   FUTURE_YOU_PAGE_BLOCKED_LEDE,
   futureYouDraftAfterPreviewDelete,
   futureYouPageLede,
@@ -148,7 +150,7 @@ export function FutureYouScreen() {
     // generating screen still resolves the result), or while viewing a preview.
     pollEnabled: tabFocused && (mode === "reveal" || view === "detail" || uploadJobActive),
     onGenerationFailed: (message) => {
-      setGenerateError(message);
+      setGenerateError(futureYouGenerationErrorMessage(message));
       if (/source photo not found/i.test(message)) {
         onFutureYouPatch({ photoStoragePath: undefined, photoUploaded: false });
         setUploadStep("photo");
@@ -571,7 +573,7 @@ export function FutureYouScreen() {
     if (view !== "detail" && view !== "upload") return;
     // Motivation picker is shown before generate is tapped — don't surface a stale failed job.
     if (view === "upload" && uploadStep === "motivation" && !generating && !generationActive) return;
-    setGenerateError((prev) => prev ?? "Generation failed. Try again.");
+    setGenerateError((prev) => prev ?? FUTURE_YOU_GENERATION_FAILED_MESSAGE);
     if (view === "detail") {
       setView("upload");
       setUploadStep("motivation");

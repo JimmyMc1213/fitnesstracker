@@ -3712,6 +3712,11 @@ input[type="number"] {
     0 0 16px var(--fy-gold-glow);
 }
 
+.future-you-generation-pill--failed {
+  border-color: rgba(248, 113, 113, 0.5);
+  color: #f87171;
+}
+
 .future-you-ready-banner {
   margin-top: 16px;
   padding: 12px 14px;

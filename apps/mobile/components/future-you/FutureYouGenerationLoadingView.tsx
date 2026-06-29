@@ -40,15 +40,15 @@ export function FutureYouGenerationLoadingView({
     [motivationId, goal, gender],
   );
   const copy = futureYouGenerationPillCopy(status, phraseIndex, phrases);
-  const isReady = copy.ready;
+  const isLoading = !copy.ready && !copy.failed;
 
   useEffect(() => {
-    if (isReady) return;
+    if (!isLoading) return;
     const id = setInterval(() => {
       setPhraseIndex((index) => (index + 1) % phrases.length);
     }, FUTURE_YOU_GENERATION_PILL_ROTATE_MS);
     return () => clearInterval(id);
-  }, [isReady, phrases.length]);
+  }, [isLoading, phrases.length]);
 
   return (
     <View

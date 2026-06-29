@@ -56,8 +56,37 @@ function formatImageProviderErrorMessage(
   return `${providerId} image generation failed (${status}).`;
 }
 
+/**
+ * Distinct job error stored when the Responses image_generation_call returns
+ * status="failed" with no error detail (HTTP 200) — a likely content/safety
+ * refusal rather than a transient outage. The client maps this code to copy
+ * like "This photo couldn't be used — try one with different framing or
+ * lighting." Kept in sync with packages/core/src/future-you/generationPillModel.ts.
+ */
+export const FUTURE_YOU_GENERATION_REFUSED_ERROR = "generation_refused";
+
+/**
+ * Message thrown by the OpenAI Responses provider when image_generation_call
+ * comes back failed with no error message/code. Mirrors the literal in
+ * providers/openaiResponses.ts (which must not be modified) so we can classify
+ * the no-detail refusal here without touching the provider.
+ */
+const IMAGE_GENERATION_NO_DETAIL_FAILURE = "OpenAI image generation call failed.";
+
+/**
+ * True when the failure is a content/safety refusal (image_generation_call
+ * failed with no error detail on HTTP 200) rather than a transient/transport
+ * error. These must not be retried and should surface a usable, distinct reason.
+ */
+export function isImageGenerationRefusal(error: unknown): boolean {
+  return error instanceof Error && error.message.trim() === IMAGE_GENERATION_NO_DETAIL_FAILURE;
+}
+
 /** Map any thrown value to a user-visible job error string. */
 export function formatGenerationError(error: unknown): string {
+  if (isImageGenerationRefusal(error)) {
+    return FUTURE_YOU_GENERATION_REFUSED_ERROR;
+  }
   if (error instanceof ImageProviderError) {
     return error.message;
   }
