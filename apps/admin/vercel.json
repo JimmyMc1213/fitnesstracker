@@ -1,4 +1,5 @@
 {
   "buildCommand": "cd ../.. && npx turbo run build --filter=@newyouai/admin",
-  "installCommand": "cd ../.. && npm ci"
+  "installCommand": "cd ../.. && npm ci",
+  "ignoreCommand": "cd ../.. && npx turbo-ignore @newyouai/admin"
 }

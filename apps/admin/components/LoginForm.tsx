@@ -10,12 +10,15 @@ type LoginFormProps = {
   authConfigured?: boolean;
   devBypass?: boolean;
   supabaseConfigured?: boolean;
+  /** Staff dashboard origin — always admin.newyouai.app in production, not app.newyouai.app. */
+  adminSiteUrl?: string;
 };
 
 export function LoginForm({
   authConfigured: authConfiguredProp,
   devBypass = false,
   supabaseConfigured = false,
+  adminSiteUrl = "https://admin.newyouai.app",
 }: LoginFormProps = {}) {
   const params = useSearchParams();
   const denied = params.get("denied") === "1";
@@ -31,9 +34,10 @@ export function LoginForm({
     setStatus("sending");
     try {
       const supabase = createBrowserSupabase();
+      const redirectBase = adminSiteUrl.replace(/\/$/, "");
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { emailRedirectTo: `${redirectBase}/auth/callback` },
       });
       if (error) throw error;
       setStatus("sent");

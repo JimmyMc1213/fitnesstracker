@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import { LoginForm } from "../../components/LoginForm";
 import { isAuthConfigured, isDevAuthBypass, isSupabaseConfigured } from "../../lib/env";
+import { getAdminSiteUrl } from "../../lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export default function AdminLoginPage() {
           authConfigured={isAuthConfigured()}
           devBypass={isDevAuthBypass()}
           supabaseConfigured={isSupabaseConfigured()}
+          adminSiteUrl={getAdminSiteUrl()}
         />
       </Suspense>
     </div>

@@ -4,7 +4,7 @@ import { AreaChart, HBars, Ring } from "../../components/charts";
 import { KpiCard } from "../../components/KpiCard";
 import { DemoBanner } from "../../components/DemoBanner";
 import { getDashboard } from "../../lib/data";
-import { auditIcon } from "../../lib/audit";
+import { auditIcon } from "../../lib/audit-icons";
 import { compactNumber, numberWithCommas, relativeTime } from "../../lib/format";
 
 export const dynamic = "force-dynamic";

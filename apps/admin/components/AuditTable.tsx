@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 
 import type { AuditEntry } from "../lib/types";
-import { auditIcon } from "../lib/audit";
+import { auditIcon } from "../lib/audit-icons";
 import { formatDate, relativeTime } from "../lib/format";
 
 type Filter = "all" | "edit" | "delete" | "override" | "impersonate";

@@ -20,7 +20,15 @@ function syncAdminEnv(): Record<string, string> {
   return {
     NEXT_PUBLIC_SUPABASE_URL: url,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: anon,
+    NEXT_PUBLIC_ADMIN_SITE_URL:
+      process.env.NEXT_PUBLIC_ADMIN_SITE_URL?.trim() || "https://admin.newyouai.app",
   };
+}
+
+if (process.env.VERCEL_ENV === "production" && !process.env.ADMIN_ALLOWED_EMAILS?.trim()) {
+  throw new Error(
+    "ADMIN_ALLOWED_EMAILS must be set for production admin deploys (admin.newyouai.app).",
+  );
 }
 
 const nextConfig: NextConfig = {
