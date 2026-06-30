@@ -81,7 +81,7 @@ export function useFutureYouGenerationPoll({
         generationStatus: "failed",
         generationRetrying: false,
         ...(pollError ? { generationError: pollError } : {}),
-        ...patchGenerationReadyAt("failed", updatedAt),
+        ...patchGenerationReadyAt("failed", updatedAt ?? ""),
       });
       if (pollError) {
         onGenerationFailedRef.current?.(pollError);
@@ -148,7 +148,7 @@ export function useFutureYouGenerationPoll({
             void preloadFutureYouImage(resultUrl).catch(() => undefined);
           }
         }
-        if (nextStatus !== "ready" && nextStatus !== "failed") {
+        if (nextStatus !== "ready") {
           timeoutId = setTimeout(pollOnce, FUTURE_YOU_GENERATION_POLL_INTERVAL_MS);
         }
       } catch (error) {
