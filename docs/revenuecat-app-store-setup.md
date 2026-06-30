@@ -52,6 +52,12 @@ cd apps/mobile
 eas secret:create --name EXPO_PUBLIC_REVENUECAT_IOS_KEY --value "appl_…" --scope project
 ```
 
+Server (Supabase edge function secret, for the webhook in section 6):
+
+```bash
+supabase secrets set REVENUECAT_WEBHOOK_AUTH="<random-strong-string>" --project-ref ztedlrvvkcjxoomwavyd
+```
+
 Also set Supabase vars per [`env-matrix.md`](env-matrix.md).
 
 **Rebuild dev client** after adding `react-native-purchases` or changing native config.
@@ -72,6 +78,42 @@ Without `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, paywall uses **stub purchase** (dev/Ma
 ## 5. Production test (TestFlight)
 
 Same flow on TestFlight build with production StoreKit. Use a real Apple ID; cancel subscription after verifying unblur.
+
+---
+
+## 6. Server-authoritative entitlement (webhook)
+
+Client `subscriptionTier` is no longer trusted by the server. Future You unblur is gated on a `subscriptions` table that RevenueCat writes to via webhook.
+
+### How it fits together
+
+1. On sign-in, the app calls `Purchases.logIn(session.user.id)` ([`apps/mobile/context/AuthContext.tsx`](../apps/mobile/context/AuthContext.tsx)) so the RevenueCat `app_user_id` equals the Supabase `auth.users.id`.
+2. RevenueCat sends subscription events to the [`revenuecat-webhook`](../supabase/functions/revenuecat-webhook/index.ts) edge function.
+3. The function verifies a shared secret, maps the event ([`revenueCatEvent.ts`](../supabase/functions/_shared/subscriptions/revenueCatEvent.ts)), and upserts a row into `public.subscriptions` ([`010_subscriptions.sql`](../supabase/migrations/010_subscriptions.sql)) with the service role.
+4. [`future-you-status`](../supabase/functions/future-you-status/index.ts) reads that row and only returns the unblurred `resultSignedUrl` when the subscription is active and unexpired.
+
+### Deploy
+
+```bash
+# 1. Pick a strong random string for the webhook shared secret
+supabase secrets set REVENUECAT_WEBHOOK_AUTH="<random-strong-string>" --project-ref ztedlrvvkcjxoomwavyd
+
+# 2. Apply the migration and deploy the functions
+supabase db push --project-ref ztedlrvvkcjxoomwavyd
+supabase functions deploy revenuecat-webhook --project-ref ztedlrvvkcjxoomwavyd
+supabase functions deploy future-you-status --project-ref ztedlrvvkcjxoomwavyd
+```
+
+### Wire the webhook in RevenueCat
+
+RevenueCat dashboard → **Integrations → Webhooks**:
+
+- **URL:** `https://ztedlrvvkcjxoomwavyd.supabase.co/functions/v1/revenuecat-webhook`
+- **Authorization header:** the exact `REVENUECAT_WEBHOOK_AUTH` value set above
+
+Send a test event from the dashboard; it should return `200`. Then confirm a sandbox purchase creates a row in `public.subscriptions` with `is_active = true`, and that Future You unblurs.
+
+> Local dev without a real purchase: set `FUTURE_YOU_ENTITLEMENT_STUB=true` (see [`env-matrix.md`](env-matrix.md)) to force entitled responses.
 
 ---
 

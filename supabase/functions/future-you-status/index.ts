@@ -6,6 +6,7 @@ import {
   FUTURE_YOU_JOB_STALE_ERROR,
   isFutureYouJobStale,
 } from "../_shared/future-you/staleJob.ts";
+import { isSubscriptionRowEntitled } from "../_shared/subscriptions/entitlement.ts";
 import {
   badStatusResponse,
   buildFutureYouPollResponse,
@@ -58,11 +59,27 @@ async function resolveAuthenticatedContext(req: Request): Promise<AuthContext | 
   return { userId: user.id, userClient, adminClient };
 }
 
-/** Phase 7 step 30: replace with subscription / StoreKit entitlement check. */
-async function isFutureYouEntitled(_userId: string, _adminClient: SupabaseClient): Promise<boolean> {
+/**
+ * Server-authoritative entitlement: reads the subscriptions table populated by the
+ * RevenueCat webhook. FUTURE_YOU_ENTITLEMENT_STUB stays as a dev-only override so
+ * Maestro/local flows work without a real purchase.
+ */
+async function isFutureYouEntitled(userId: string, adminClient: SupabaseClient): Promise<boolean> {
   const stub = Deno.env.get("FUTURE_YOU_ENTITLEMENT_STUB")?.trim().toLowerCase();
   if (stub === "true" || stub === "1" || stub === "yes") return true;
-  return false;
+
+  const { data, error } = await adminClient
+    .from("subscriptions")
+    .select("is_active, expires_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("future-you-status: subscription lookup failed", error);
+    return false;
+  }
+
+  return isSubscriptionRowEntitled(data, Date.now());
 }
 
 async function loadJob(

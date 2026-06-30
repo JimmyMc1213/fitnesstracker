@@ -18,6 +18,7 @@ import { authenticatedUserEmail } from "@/lib/authSession";
 import { displayNameFromUser } from "@/lib/displayNameFromUser";
 import { seedPersistedDisplayName } from "@/lib/seedPersistedDisplayName";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
+import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/revenueCat";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -162,6 +163,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sub = AppState.addEventListener("change", onAppStateChange);
     return () => sub.remove();
   }, [refreshSession]);
+
+  // Link the RevenueCat customer to the Supabase user id for every sign-in path
+  // (password, sign-up, OAuth, Apple, and cold-start session restore). RevenueCat
+  // webhooks use this id (app_user_id) to map purchases to the right account.
+  const userId = session?.user?.id ?? null;
+  useEffect(() => {
+    if (!userId) return;
+    void (async () => {
+      await configureRevenueCat();
+      await logInRevenueCat(userId);
+    })();
+  }, [userId]);
 
   const signInWithPassword = useCallback(async (email: string, password: string) => {
     const sb = getSupabase();
@@ -362,6 +375,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Best-effort remote sign-out; local session must still clear (RN-2-05).
     } finally {
+      void logOutRevenueCat();
       setSession(null);
       setSessionResolved(true);
     }

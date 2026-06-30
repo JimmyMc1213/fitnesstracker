@@ -1,8 +1,17 @@
-export default function AdminUsersPage() {
+import { UsersTable } from "../../../components/UsersTable";
+import { DemoBanner } from "../../../components/DemoBanner";
+import { getUsers } from "../../../lib/data";
+
+export const dynamic = "force-dynamic";
+
+export default async function UsersPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { q } = await searchParams;
+  const { data, demo } = await getUsers();
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Users</h1>
-      <p className="mt-2 text-muted">Search auth users and view fitness_user_data summaries.</p>
-    </div>
+    <>
+      <DemoBanner show={demo} />
+      <UsersTable rows={data} initialQuery={q ?? ""} />
+    </>
   );
 }

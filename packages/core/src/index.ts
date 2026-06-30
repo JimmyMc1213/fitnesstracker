@@ -511,6 +511,8 @@ export {
   FUTURE_YOU_DETAIL_SINGLE_LABEL,
   FUTURE_YOU_COMPARE_BEFORE_LABEL,
   FUTURE_YOU_COMPARE_AFTER_LABEL,
+  futureYouCompareBeforeWeightLabel,
+  futureYouCompareAfterWeightLabel,
   FUTURE_YOU_FULLSCREEN_DONE_LABEL,
   FUTURE_YOU_DETAIL_TAP_FULLSCREEN_HINT,
   formatFutureYouGalleryCount,
@@ -658,6 +660,18 @@ export {
   type FutureYouMotivation,
 } from "./future-you/motivations";
 export { FUTURE_YOU_HERO_LOADING_LABEL } from "./future-you/heroCopy";
+export {
+  isSubscriptionRowEntitled,
+  type SubscriptionEntitlementRow,
+} from "./subscriptions/entitlement";
+export {
+  computeIsActive,
+  mapRevenueCatEvent,
+  type MappedEvent,
+  type RevenueCatEvent,
+  type RevenueCatWebhookBody,
+  type SubscriptionRecord,
+} from "./subscriptions/revenueCatEvent";
 export {
   FUTURE_YOU_PAYWALL_CTA_TRIAL,
   FUTURE_YOU_PAYWALL_CTA_PREPARING,

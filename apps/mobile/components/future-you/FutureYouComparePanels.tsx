@@ -2,18 +2,16 @@ import {
   FUTURE_YOU_COMPARE_AFTER_LABEL,
   FUTURE_YOU_COMPARE_BEFORE_LABEL,
 } from "@newyouai/core";
+import type { RefObject } from "react";
 import { Image, Platform, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from "react-native";
 
-import { useAppTheme } from "@/hooks/useAppTheme";
-import { FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
-
-type Props = {
-  beforeUri: string;
-  afterUri: string;
-};
-
-const PANEL_RADIUS = 14;
+const COMPARE_BG = "#121212";
+const COMPARE_TITLE = "#f5f5f5";
+const COMPARE_SUBTITLE = "#aaaaaa";
+const PANEL_RADIUS = 10;
 const PANEL_MIN_HEIGHT = 160;
+const LABEL_BLOCK_HEIGHT = 56;
+const PANEL_GAP = 12;
 
 const panelCornerStyle: ViewStyle =
   Platform.OS === "ios" ? { borderCurve: "continuous" } : {};
@@ -22,22 +20,43 @@ function panelMaxHeight(windowHeight: number) {
   return Math.min(320, Math.max(200, windowHeight * 0.38));
 }
 
+type Props = {
+  beforeUri: string;
+  afterUri: string;
+  beforeSubtitle?: string | null;
+  afterSubtitle?: string | null;
+  captureRef?: RefObject<View | null>;
+};
+
 function ComparePanel({
   uri,
-  label,
-  variant,
+  title,
+  subtitle,
   maxHeight,
 }: {
   uri: string;
-  label: string;
-  variant: "before" | "after";
+  title: string;
+  subtitle?: string | null;
   maxHeight: number;
 }) {
-  const { colors } = useAppTheme();
-  const isAfter = variant === "after";
-
   return (
-    <View className="min-w-0 flex-1 gap-1.5">
+    <View className="min-w-0 flex-1">
+      <View style={{ minHeight: LABEL_BLOCK_HEIGHT, justifyContent: "flex-end", paddingBottom: 8 }}>
+        <Text
+          className="text-center text-[17px] font-bold"
+          style={{ color: COMPARE_TITLE }}
+        >
+          {title}
+        </Text>
+        {subtitle ?
+          <Text
+            className="mt-0.5 text-center text-[13px]"
+            style={{ color: COMPARE_SUBTITLE }}
+          >
+            {subtitle}
+          </Text>
+        : null}
+      </View>
       <View
         style={{
           width: "100%",
@@ -47,18 +66,7 @@ function ComparePanel({
           borderRadius: PANEL_RADIUS,
           ...panelCornerStyle,
           overflow: "hidden",
-          backgroundColor: colors.card,
-          borderWidth: 1,
-          borderColor: isAfter ? FUTURE_YOU_GOLD : colors.border,
-          ...(isAfter ?
-            {
-              shadowColor: FUTURE_YOU_GOLD,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.28,
-              shadowRadius: 10,
-              elevation: 3,
-            }
-          : {}),
+          backgroundColor: "#1a1a1a",
         }}
       >
         <Image
@@ -68,38 +76,48 @@ function ComparePanel({
           accessibilityIgnoresInvertColors
         />
       </View>
-      <Text
-        className="text-center text-[11px] font-semibold uppercase tracking-widest"
-        style={{ color: isAfter ? FUTURE_YOU_GOLD : colors.textTertiary }}
-      >
-        {label}
-      </Text>
     </View>
   );
 }
 
-export function FutureYouComparePanels({ beforeUri, afterUri }: Props) {
+export function FutureYouComparePanels({
+  beforeUri,
+  afterUri,
+  beforeSubtitle,
+  afterSubtitle,
+  captureRef,
+}: Props) {
   const { height: windowHeight } = useWindowDimensions();
   const maxPanelHeight = panelMaxHeight(windowHeight);
 
   return (
     <View testID="future-you-compare-panels" className="min-h-0 flex-1 justify-center">
-      <View className="flex-row items-center gap-2.5">
-        <ComparePanel
-          uri={beforeUri}
-          label={FUTURE_YOU_COMPARE_BEFORE_LABEL}
-          variant="before"
-          maxHeight={maxPanelHeight}
-        />
-        <Text className="text-lg font-medium" style={{ color: FUTURE_YOU_GOLD }}>
-          →
-        </Text>
-        <ComparePanel
-          uri={afterUri}
-          label={FUTURE_YOU_COMPARE_AFTER_LABEL}
-          variant="after"
-          maxHeight={maxPanelHeight}
-        />
+      <View
+        ref={captureRef}
+        collapsable={false}
+        style={{
+          backgroundColor: COMPARE_BG,
+          borderRadius: 16,
+          paddingHorizontal: 12,
+          paddingTop: 10,
+          paddingBottom: 12,
+          ...(Platform.OS === "ios" ? { borderCurve: "continuous" } : {}),
+        }}
+      >
+        <View className="flex-row items-end" style={{ gap: PANEL_GAP }}>
+          <ComparePanel
+            uri={beforeUri}
+            title={FUTURE_YOU_COMPARE_BEFORE_LABEL}
+            subtitle={beforeSubtitle}
+            maxHeight={maxPanelHeight}
+          />
+          <ComparePanel
+            uri={afterUri}
+            title={FUTURE_YOU_COMPARE_AFTER_LABEL}
+            subtitle={afterSubtitle}
+            maxHeight={maxPanelHeight}
+          />
+        </View>
       </View>
     </View>
   );

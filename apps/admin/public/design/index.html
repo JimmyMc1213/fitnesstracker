@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script><style>
+:root{--ink:#17150E;--ink2:#0F0E0A;--mut:#56544A;--lab:#75736A;--gold:#CAA668;--gold2:#9C7C3E;--goldt:#FBF4E4;--goldb:#EBDFC4;--hair:#ECE8DE;--canvas:#FAF8F3;--light:#C9C6BC}
+*{box-sizing:border-box}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-weight:500;-webkit-font-smoothing:antialiased}
+.mono{font-family:'JetBrains Mono',monospace}
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+/* sidebar */
+.sb{background:var(--ink2);color:var(--light);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;padding:22px 14px 16px}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 22px}
+.blogo{width:34px;height:34px;border-radius:10px;background:linear-gradient(150deg,#CAA668,#9C7C3E);display:flex;align-items:center;justify-content:center;color:#17150E;font-weight:800;font-size:17px;letter-spacing:-.03em}
+.bname{font-weight:800;font-size:15px;letter-spacing:-.02em;color:#fff;line-height:1.1}
+.bsub{font-size:10.5px;color:#75736A;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-top:1px}
+.navgrp{margin-top:14px}
+.navlab{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5b5950;padding:6px 10px 7px}
+.navitem{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;font-size:13.5px;font-weight:600;color:#9d9a8f;cursor:pointer;letter-spacing:-.01em;transition:background .12s,color .12s;border:1px solid transparent;width:100%;text-align:left;background:none;font-family:inherit}
+.navitem i{font-size:18px}
+.navitem:hover{background:#1c1a14;color:#d8d5cb}
+.navitem.on{background:#1f1c15;color:#fff;border-color:#2b2820}
+.navitem.on i{color:var(--gold)}
+.navitem .nbadge{margin-left:auto;font-size:10.5px;font-weight:700;background:#2a2720;color:var(--gold);padding:1px 7px;border-radius:20px;min-width:20px;text-align:center}
+.sbfoot{margin-top:auto;padding-top:14px;border-top:1px solid #211e18}
+.acct{display:flex;align-items:center;gap:10px;padding:8px 8px}
+.aav{width:30px;height:30px;border-radius:9px;background:#2a2720;color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}
+.aname{font-size:12.5px;font-weight:700;color:#e6e3d9;line-height:1.15}
+.arole{font-size:10.5px;color:#75736A;font-weight:600}
+/* main */
+.main{display:flex;flex-direction:column;min-width:0}
+.top{display:flex;align-items:center;gap:18px;padding:20px 32px;background:rgba(250,248,243,.86);backdrop-filter:blur(8px);border-bottom:1px solid var(--hair);position:sticky;top:0;z-index:5}
+.ttl{font-size:21px;font-weight:800;letter-spacing:-.025em;line-height:1.1}
+.tsub{font-size:12.5px;color:var(--lab);font-weight:600;margin-top:2px}
+.tsearch{margin-left:auto;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--hair);border-radius:11px;padding:9px 13px;width:280px;color:var(--lab)}
+.tsearch i{font-size:16px}
+.tsearch input{border:none;outline:none;background:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--ink);width:100%}
+.tbtn{display:flex;align-items:center;gap:7px;background:var(--ink);color:#fff;border:none;border-radius:11px;padding:10px 15px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:-.01em}
+.tbtn i{font-size:16px}
+.tbtn.ghost{background:#fff;color:var(--ink);border:1px solid var(--hair)}
+.content{padding:28px 32px 48px;max-width:1280px;width:100%}
+/* primitives */
+.card{background:#fff;border:1px solid var(--hair);border-radius:18px;box-shadow:0 1px 2px rgba(23,21,14,.03),0 6px 22px -14px rgba(23,21,14,.10)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700;letter-spacing:-.01em}
+.chip i{font-size:13px}
+.cgold{background:var(--goldt);color:var(--gold2);border:1px solid var(--goldb)}
+.cgreen{background:#EAF3EC;color:#3C7A4E}
+.cred{background:#F8ECEA;color:#A8493C}
+.cgray{background:#F1EFE9;color:#6f6d63}
+.camber{background:#FBF1E0;color:#9a6a25}
+.cblue{background:#EAEFF6;color:#3F6193}
+.iconchip{width:40px;height:40px;border-radius:12px;background:var(--goldt);border:1px solid var(--goldb);display:flex;align-items:center;justify-content:center;color:var(--gold2)}
+.iconchip i{font-size:20px}
+.iconchip.neu{background:#F4F2EC;border-color:var(--hair);color:var(--mut)}
+.sect{font-size:13px;font-weight:800;letter-spacing:-.01em}
+.muted{color:var(--mut)}
+.lab{color:var(--lab);font-weight:600}
+.delta{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700}
+.delta i{font-size:13px}
+.up{color:#3C7A4E}.down{color:#A8493C}
+/* kpi */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:18px 18px 16px}
+.kpitop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.kpilab{font-size:12px;font-weight:700;color:var(--lab);letter-spacing:.01em}
+.kpival{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.kpifoot{margin-top:9px;display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--lab);font-weight:600}
+.ring{transform:rotate(-90deg)}
+.kpiring{display:flex;align-items:center;gap:16px;padding:18px}
+.ringwrap{position:relative;width:104px;height:104px;flex:none}
+.ringctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ringpct{font-size:23px;font-weight:800;letter-spacing:-.03em}
+.ringsub{font-size:9.5px;font-weight:700;color:var(--lab);text-transform:uppercase;letter-spacing:.06em}
+/* charts row */
+.grid2{display:grid;grid-template-columns:1.62fr 1fr;gap:16px;margin-top:16px}
+.grid2b{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.cardhd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px}
+.cardhd h3{margin:0;font-size:14px;font-weight:800;letter-spacing:-.02em}
+.cardhd .hsub{font-size:11.5px;color:var(--lab);font-weight:600;margin-top:2px}
+.hbars{padding:4px 18px 18px;display:flex;flex-direction:column;gap:13px}
+.hbar{display:grid;grid-template-columns:96px 1fr 46px;align-items:center;gap:12px}
+.hbar .hl{font-size:12.5px;font-weight:700}
+.htrack{height:9px;background:#F1EFE9;border-radius:20px;overflow:hidden}
+.hfill{height:100%;border-radius:20px}
+.hbar .hv{font-size:12.5px;font-weight:700;text-align:right;font-family:'JetBrains Mono',monospace}
+/* legend */
+.lgnd{display:flex;gap:16px;padding:0 18px 16px;flex-wrap:wrap}
+.lgi{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--mut)}
+.dot{width:9px;height:9px;border-radius:3px}
+/* table */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:11px;font-weight:700;color:var(--lab);text-transform:uppercase;letter-spacing:.06em;padding:11px 16px;border-bottom:1px solid var(--hair);background:#FCFBF8;cursor:pointer;white-space:nowrap}
+.tbl td{padding:12px 16px;border-bottom:1px solid var(--hair);font-size:13px;font-weight:600;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.trow{cursor:pointer;transition:background .1s}
+.trow:hover{background:#FCFBF8}
+.umail{font-weight:700;letter-spacing:-.01em}
+.uid{font-size:11px;color:var(--lab);font-family:'JetBrains Mono',monospace;font-weight:500}
+.avem{width:30px;height:30px;border-radius:9px;background:var(--goldt);border:1px solid var(--goldb);color:var(--gold2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none}
+.uc{display:flex;align-items:center;gap:11px}
+.tblwrap{overflow:hidden;border-radius:18px}
+.tblfoot{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;color:var(--lab);font-size:12px;font-weight:600}
+.pg{display:flex;gap:5px}
+.pgb{width:30px;height:30px;border-radius:9px;border:1px solid var(--hair);background:#fff;font-family:inherit;font-weight:700;font-size:12.5px;color:var(--mut);cursor:pointer}
+.pgb.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sorth{display:inline-flex;align-items:center;gap:5px}
+.sorth i{font-size:13px;color:var(--gold2)}
+/* misc */
+.row{display:flex;align-items:center}
+.spread{justify-content:space-between}
+.pad{padding:18px}
+.divider{height:1px;background:var(--hair)}
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:10px;padding:8px 13px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;border:1px solid var(--hair);background:#fff;color:var(--ink)}
+.btn i{font-size:15px}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#17150E}
+.btn.dark{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.danger{background:#fff;border-color:#E7CDC7;color:#A8493C}
+.btn.sm{padding:6px 10px;font-size:11.5px}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--ink2);color:#fff;padding:12px 18px;border-radius:13px;font-size:13px;font-weight:700;box-shadow:0 12px 40px -10px rgba(0,0,0,.5);display:flex;align-items:center;gap:9px;z-index:50}
+.toast i{color:var(--gold);font-size:17px}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:46px 24px;gap:6px}
+.empty .iconchip{width:54px;height:54px;border-radius:16px;margin-bottom:6px}
+.empty .iconchip i{font-size:26px}
+.empty h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.02em}
+.empty p{margin:0;font-size:13px;color:var(--mut);max-width:340px;font-weight:500;line-height:1.5}
+.ph-img{background:repeating-linear-gradient(135deg,#F4F2EC,#F4F2EC 9px,#EEEBE2 9px,#EEEBE2 18px);border:1px solid var(--hair);display:flex;align-items:center;justify-content:center}
+.ph-img span{font-family:'JetBrains Mono',monospace;font-size:10px;color:#9b988d;font-weight:500;background:rgba(255,255,255,.7);padding:3px 7px;border-radius:6px}
+/* tabs */
+.utabs{display:flex;gap:4px;border-bottom:1px solid var(--hair);margin-bottom:20px;flex-wrap:wrap}
+.utab{padding:10px 14px;font-family:inherit;font-size:13px;font-weight:700;color:var(--lab);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;letter-spacing:-.01em;margin-bottom:-1px}
+.utab:hover{color:var(--ink)}
+.utab.on{color:var(--ink);border-bottom-color:var(--gold)}
+/* user header */
+.uhead{display:flex;align-items:center;gap:16px;padding:20px;margin-bottom:18px}
+.uhav{width:56px;height:56px;border-radius:15px;background:var(--goldt);border:1px solid var(--goldb);color:var(--gold2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:21px;flex:none}
+.uactions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.backlink{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--mut);cursor:pointer;background:none;border:none;font-family:inherit;padding:0;margin-bottom:14px}
+.backlink i{font-size:15px}
+/* field grid */
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--hair);border-radius:14px;overflow:hidden;border:1px solid var(--hair)}
+.fcell{background:#fff;padding:14px 16px}
+.fcell .fk{font-size:11px;font-weight:700;color:var(--lab);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.fcell .fv{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.json{background:var(--ink2);color:#d8d5cb;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;padding:18px 20px;border-radius:14px;white-space:pre;overflow:auto;max-height:440px;margin:0}
+.jsonbar{display:flex;align-items:center;gap:10px;padding:13px 18px;background:#FBF1E0;border:1px solid #EBDFC4;border-radius:12px;margin-bottom:14px;font-size:12.5px;font-weight:600;color:#9a6a25}
+.jsonbar i{font-size:18px}
+/* stat strip */
+.statstrip{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.gcell{border-radius:14px;overflow:hidden;aspect-ratio:3/4}
+.fy-compare{display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:16px;overflow:hidden;border:1px solid var(--hair)}
+.fy-half{aspect-ratio:3/4;position:relative}
+.fy-tag{position:absolute;top:10px;left:10px;background:rgba(15,14,10,.8);color:#fff;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase}
+.barcode{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--lab)}
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.field label{font-size:12px;font-weight:700;color:var(--ink)}
+.field input{border:1px solid var(--hair);border-radius:11px;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:12.5px;background:#FCFBF8;color:var(--ink);outline:none}
+.field input:focus{border-color:var(--gold);background:#fff}
+.field .fhint{font-size:11.5px;color:var(--lab);font-weight:500}
+.toggle{width:42px;height:24px;border-radius:20px;background:#E3DFD4;position:relative;cursor:pointer;border:none;flex:none;transition:background .15s}
+.toggle.on{background:var(--gold)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle.on::after{left:21px}
+.integ-card{padding:20px;display:flex;flex-direction:column;gap:14px}
+.integ-top{display:flex;align-items:flex-start;gap:14px}
+.bigchip{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--goldt);border:1px solid var(--goldb);color:var(--gold2);flex:none}
+.bigchip i{font-size:24px}
+.social-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.postrow{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--hair)}
+.postthumb{width:46px;height:46px;border-radius:11px;flex:none}
+.mininum{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px}
+.sectit{font-size:16px;font-weight:800;letter-spacing:-.02em;margin:0 0 14px}
+.filterbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.fbtn{padding:7px 13px;border-radius:20px;border:1px solid var(--hair);background:#fff;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--mut);cursor:pointer}
+.fbtn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.son{color:#CAA668}.soff{color:#dcd8cd}
+.stars{display:flex;gap:2px}.stars i{font-size:15px}
+.rev{padding:15px 18px;border-bottom:1px solid var(--hair)}
+.rev:last-child{border-bottom:none}
+.revtop{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.revtitle{font-weight:800;font-size:13.5px;letter-spacing:-.01em}
+.revbody{font-size:13px;color:var(--mut);line-height:1.55;font-weight:500}
+.revmeta{font-size:11.5px;color:var(--lab);font-weight:600;margin-top:8px;font-family:'JetBrains Mono',monospace}
+</style></helmet><div class="app"><aside class="sb"><div class="brand"><div class="blogo">N</div><div><div class="bname">New You AI</div><div class="bsub">Admin</div></div></div><sc-for list="{{ nav }}" as="g" hint-placeholder-count="4"><div class="navgrp"><div class="navlab">{{ g.label }}</div><sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3"><button class="{{ it.cls }}" onClick="{{ it.go }}"><i class="{{ it.icon }}"></i>{{ it.label }}<sc-if value="{{ it.badge }}" hint-placeholder-val="{{ false }}"><span class="nbadge">{{ it.badge }}</span></sc-if></button></sc-for></div></sc-for><div class="sbfoot"><div class="acct"><div class="aav">AO</div><div><div class="aname">Alex Okafor</div><div class="arole">owner · allowlisted</div></div></div></div></aside><div class="main"><div class="top"><div><div class="ttl">{{ meta.title }}</div><div class="tsub">{{ meta.sub }}</div></div><div class="tsearch"><i class="ph ph-magnifying-glass"></i><input placeholder="Search users, jobs, foods…"/></div><button class="tbtn ghost"><i class="ph ph-arrows-clockwise"></i>Sync</button></div><div class="content"><sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}"><div class="kpis"><sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4"><div class="card kpi"><div class="kpitop"><div class="kpilab">{{ k.label }}</div><div class="iconchip neu"><i class="{{ k.icon }}"></i></div></div><div class="kpival">{{ k.value }}</div><div class="kpifoot"><span class="{{ k.dcls }}"><i class="{{ k.dicon }}"></i>{{ k.delta }}</span><span>{{ k.foot }}</span></div></div></sc-for></div><div class="grid2"><div class="card"><div class="cardhd"><div><h3>New signups</h3><div class="hsub">Last 12 weeks · {{ signupTotal }} total</div></div><span class="chip cgold"><i class="ph ph-trend-up"></i>{{ signupTrend }}</span></div><div class="pad" style="padding-top:0"><svg viewBox="0 0 660 200" width="100%" height="200" preserveAspectRatio="none"><defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CAA668" stop-opacity="0.20"/><stop offset="1" stop-color="#CAA668" stop-opacity="0"/></linearGradient></defs><line x1="0" y1="50" x2="660" y2="50" stroke="#F1EFE9"/><line x1="0" y1="100" x2="660" y2="100" stroke="#F1EFE9"/><line x1="0" y1="150" x2="660" y2="150" stroke="#F1EFE9"/><path d="{{ areaPath }}" fill="url(#ga)"/><polyline points="{{ linePts }}" fill="none" stroke="#9C7C3E" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><sc-for list="{{ lineDots }}" as="d" hint-placeholder-count="12"><circle cx="{{ d.x }}" cy="{{ d.y }}" r="3" fill="#fff" stroke="#9C7C3E" stroke-width="2"/></sc-for></svg></div></div><div class="card"><div class="cardhd"><div><h3>Future You jobs</h3><div class="hsub">Generation queue · 24h</div></div></div><div class="hbars"><sc-for list="{{ jobBars }}" as="b" hint-placeholder-count="4"><div class="hbar"><span class="hl">{{ b.label }}</span><div class="htrack"><div class="hfill" style="{{ b.style }}"></div></div><span class="hv">{{ b.count }}</span></div></sc-for></div></div></div><div class="grid2b"><div class="card kpiring"><div class="ringwrap"><svg class="ring" width="104" height="104" viewBox="0 0 104 104"><circle cx="52" cy="52" r="44" fill="none" stroke="#F1EFE9" stroke-width="11"/><circle cx="52" cy="52" r="44" fill="none" stroke="#CAA668" stroke-width="11" stroke-linecap="round" stroke-dasharray="{{ convDash }}" stroke-dashoffset="0"/></svg><div class="ringctr"><div class="ringpct">{{ convPct }}</div><div class="ringsub">convert</div></div></div><div><div class="sect" style="margin-bottom:4px">Trial → paid conversion</div><div class="muted" style="font-size:12.5px;line-height:1.5">{{ convCopy }}</div><div class="row" style="gap:16px;margin-top:12px"><div><div class="kpival" style="font-size:20px">{{ trialCount }}</div><div class="lab" style="font-size:11px">on trial</div></div><div><div class="kpival" style="font-size:20px">{{ paidCount }}</div><div class="lab" style="font-size:11px">paid this wk</div></div></div></div></div><div class="card"><div class="cardhd"><div><h3>Recent admin activity</h3><div class="hsub">From audit log</div></div><button class="btn sm" onClick="{{ goAudit }}">View all<i class="ph ph-arrow-right"></i></button></div><div style="padding:2px 0 8px"><sc-for list="{{ recentAudit }}" as="a" hint-placeholder-count="4"><div class="row" style="gap:11px;padding:9px 18px"><div class="iconchip neu" style="width:32px;height:32px;border-radius:9px"><i class="{{ a.icon }}"></i></div><div style="min-width:0;flex:1"><div style="font-size:12.5px;font-weight:700">{{ a.text }}</div><div class="lab" style="font-size:11px">{{ a.meta }}</div></div><div class="lab" style="font-size:11px;white-space:nowrap">{{ a.time }}</div></div></sc-for></div></div></div></sc-if><sc-if value="{{ isUsers }}" hint-placeholder-val="{{ false }}"><div class="card tblwrap"><table class="tbl"><thead><tr><th>User</th><th>Created</th><th>Goal</th><th>Plan</th><th>Subscription</th><th>Last sync</th></tr></thead><tbody><sc-for list="{{ usersView }}" as="u" hint-placeholder-count="10"><tr class="trow" onClick="{{ u.open }}"><td><div class="uc"><div class="avem">{{ u.initials }}</div><div><div class="umail">{{ u.email }}</div><div class="uid">{{ u.id }} · {{ u.country }}</div></div></div></td><td class="muted">{{ u.created }}</td><td><span class="{{ u.goalCls }}">{{ u.goalLab }}</span></td><td>{{ u.plan }}</td><td><span class="{{ u.statusCls }}">{{ u.statusLab }}</span></td><td class="muted">{{ u.sync }}</td></tr></sc-for></tbody></table><div class="tblfoot"><span>Showing {{ usersShown }} accounts</span><div class="pg"><button class="pgb"><i class="ph ph-caret-left"></i></button><button class="pgb on">1</button><button class="pgb">2</button><button class="pgb">3</button><button class="pgb">…</button><button class="pgb">428</button><button class="pgb"><i class="ph ph-caret-right"></i></button></div></div></div></sc-if><sc-if value="{{ isUserDetail }}" hint-placeholder-val="{{ false }}"><button class="backlink" onClick="{{ backToUsers }}"><i class="ph ph-arrow-left"></i>All users</button><div class="card uhead"><div class="uhav">{{ suInitials }}</div><div><div style="font-size:18px;font-weight:800;letter-spacing:-.02em">{{ su.email }}</div><div class="row" style="gap:8px;margin-top:7px"><span class="uid">{{ su.id }}</span><span class="{{ suStatusCls }}">{{ suStatusLab }}</span><span class="{{ suGoalCls }}">{{ suGoalLab }}</span></div></div><div class="uactions"><button class="btn" onClick="{{ impersonate }}"><i class="ph ph-user-switch"></i>Impersonate</button><button class="btn" onClick="{{ overrideSub }}"><i class="ph ph-crown-simple"></i>Override sub</button><button class="btn danger" onClick="{{ delUser }}"><i class="ph ph-trash"></i>Delete</button></div></div><div class="utabs"><sc-for list="{{ userTabs }}" as="t" hint-placeholder-count="7"><button class="{{ t.cls }}" onClick="{{ t.go }}">{{ t.label }}</button></sc-for></div><sc-if value="{{ tabOverview }}" hint-placeholder-val="{{ true }}"><div class="fgrid"><div class="fcell"><div class="fk">Theme</div><div class="fv">Light</div></div><div class="fcell"><div class="fk">Gender</div><div class="fv">Female</div></div><div class="fcell"><div class="fk">Date of birth</div><div class="fv">1994-03-11</div></div><div class="fcell"><div class="fk">Units</div><div class="fv">Metric</div></div><div class="fcell"><div class="fk">Height</div><div class="fv">168 cm</div></div><div class="fcell"><div class="fk">Start weight</div><div class="fv">74.2 kg</div></div><div class="fcell"><div class="fk">Goal weight</div><div class="fv">64.0 kg</div></div><div class="fcell"><div class="fk">Pace</div><div class="fv">Moderate</div></div><div class="fcell"><div class="fk">Motivation</div><div class="fv">Look my best</div></div><div class="fcell"><div class="fk">Experience</div><div class="fv">Intermediate</div></div><div class="fcell"><div class="fk">Equipment</div><div class="fv">Dumbbells, bench</div></div><div class="fcell"><div class="fk">Session length</div><div class="fv">45 min</div></div><div class="fcell"><div class="fk">Training days</div><div class="fv">Mon · Tue · Thu · Sat</div></div><div class="fcell"><div class="fk">Style</div><div class="fv">Hypertrophy</div></div><div class="fcell"><div class="fk">Heard via</div><div class="fv">TikTok</div></div></div><div class="grid2b"><div class="card"><div class="cardhd"><div><h3>Weight log</h3><div class="hsub">74.2 → 68.1 kg · 6.1 kg down</div></div><span class="chip cblue"><i class="ph ph-trend-down"></i>cut</span></div><div class="pad" style="padding-top:0"><svg viewBox="0 0 560 110" width="100%" height="110" preserveAspectRatio="none"><line x1="0" y1="55" x2="560" y2="55" stroke="#F1EFE9"/><polyline points="0,18 62,26 124,22 186,36 248,34 310,48 372,55 434,66 496,76 558,84" fill="none" stroke="#3F6193" stroke-width="2.5" stroke-linejoin="round"/></svg></div></div><div class="card"><div class="cardhd"><div><h3>Daily habits</h3><div class="hsub">Today · 4 of 6 done</div></div></div><div class="pad" style="padding-top:4px"><div class="row spread" style="padding:7px 0"><span style="font-weight:600;font-size:13px"><i class="ph ph-check-circle" style="color:#3C7A4E"></i> Hit protein target</span><span class="chip cgreen">done</span></div><div class="row spread" style="padding:7px 0"><span style="font-weight:600;font-size:13px"><i class="ph ph-check-circle" style="color:#3C7A4E"></i> 10k steps</span><span class="chip cgreen">done</span></div><div class="row spread" style="padding:7px 0"><span style="font-weight:600;font-size:13px"><i class="ph ph-check-circle" style="color:#3C7A4E"></i> Morning weigh-in</span><span class="chip cgreen">done</span></div><div class="row spread" style="padding:7px 0"><span style="font-weight:600;font-size:13px;color:var(--lab)"><i class="ph ph-circle" style="color:#bcb9ad"></i> 8h sleep</span><span class="chip cgray">open</span></div></div></div></div></sc-if><sc-if value="{{ tabWorkouts }}" hint-placeholder-val="{{ false }}"><div class="statstrip"><div class="card pad"><div class="kpilab">Sessions logged</div><div class="kpival" style="font-size:24px;margin-top:6px">142</div></div><div class="card pad"><div class="kpilab">This week</div><div class="kpival" style="font-size:24px;margin-top:6px">3 / 4</div></div><div class="card pad"><div class="kpilab">Total volume</div><div class="kpival" style="font-size:24px;margin-top:6px">284t</div></div><div class="card pad"><div class="kpilab">Current streak</div><div class="kpival" style="font-size:24px;margin-top:6px">11d</div></div></div><div class="card"><div class="cardhd"><div><h3>Last session · Push Day A</h3><div class="hsub">Jun 29 · 47 min · 1 PR</div></div><span class="chip cgold"><i class="ph ph-trophy"></i>PR: Bench 72.5kg</span></div><table class="tbl"><thead><tr><th>Exercise</th><th>Sets</th><th>Top set</th><th>Volume</th></tr></thead><tbody><tr><td style="font-weight:700">Barbell Bench Press</td><td>4</td><td>72.5kg × 6</td><td class="mono">2,030 kg</td></tr><tr><td style="font-weight:700">Incline DB Press</td><td>3</td><td>28kg × 10</td><td class="mono">1,680 kg</td></tr><tr><td style="font-weight:700">Cable Fly</td><td>3</td><td>15kg × 14</td><td class="mono">945 kg</td></tr><tr><td style="font-weight:700">Overhead Press</td><td>4</td><td>35kg × 8</td><td class="mono">1,120 kg</td></tr><tr><td style="font-weight:700">Tricep Pushdown</td><td>3</td><td>25kg × 15</td><td class="mono">1,125 kg</td></tr></tbody></table></div></sc-if><sc-if value="{{ tabNutrition }}" hint-placeholder-val="{{ false }}"><div class="grid2b"><div class="card kpiring"><div class="ringwrap"><svg class="ring" width="104" height="104" viewBox="0 0 104 104"><circle cx="52" cy="52" r="44" fill="none" stroke="#F1EFE9" stroke-width="11"/><circle cx="52" cy="52" r="44" fill="none" stroke="#CAA668" stroke-width="11" stroke-linecap="round" stroke-dasharray="229 276.46"/></svg><div class="ringctr"><div class="ringpct" style="font-size:19px">1,640</div><div class="ringsub">/ 1,980</div></div></div><div><div class="sect" style="margin-bottom:4px">Calories today</div><div class="muted" style="font-size:12.5px;line-height:1.5">340 kcal remaining. Protein prioritised per plan.</div><div class="hbars" style="padding:12px 0 0;gap:11px"><div class="hbar"><span class="hl">Protein</span><div class="htrack"><div class="hfill" style="width:84%;background:#9C7C3E"></div></div><span class="hv">138g</span></div><div class="hbar"><span class="hl">Carbs</span><div class="htrack"><div class="hfill" style="width:62%;background:#3F6193"></div></div><span class="hv">118g</span></div><div class="hbar"><span class="hl">Fat</span><div class="htrack"><div class="hfill" style="width:71%;background:#A8493C"></div></div><span class="hv">44g</span></div></div></div></div><div class="card"><div class="cardhd"><div><h3>Today's log</h3><div class="hsub">5 entries · editable</div></div></div><div class="pad" style="padding-top:2px"><div class="row spread" style="padding:9px 0;border-bottom:1px solid var(--hair)"><span style="font-weight:700;font-size:13px">Overnight oats</span><span class="mono lab">312 kcal</span></div><div class="row spread" style="padding:9px 0;border-bottom:1px solid var(--hair)"><span style="font-weight:700;font-size:13px">Whey shake</span><span class="mono lab">180 kcal</span></div><div class="row spread" style="padding:9px 0;border-bottom:1px solid var(--hair)"><span style="font-weight:700;font-size:13px">Chicken & rice bowl</span><span class="mono lab">620 kcal</span></div><div class="row spread" style="padding:9px 0;border-bottom:1px solid var(--hair)"><span style="font-weight:700;font-size:13px">Greek yogurt</span><span class="mono lab">146 kcal</span></div><div class="row spread" style="padding:9px 0"><span style="font-weight:700;font-size:13px">Apple</span><span class="mono lab">95 kcal</span></div></div></div></div></sc-if><sc-if value="{{ tabProgress }}" hint-placeholder-val="{{ false }}"><div class="card pad" style="margin-bottom:16px"><div class="sect" style="margin-bottom:12px">Progress photos · <span class="lab">locked private</span></div><div class="gallery"><div class="gcell ph-img"><span>Jun 1</span></div><div class="gcell ph-img"><span>Jun 14</span></div><div class="gcell ph-img"><span>Jun 28</span></div><div class="gcell ph-img"><span>+ weekly</span></div></div></div><div class="grid2b"><div class="card"><div class="cardhd"><div><h3>Personal records</h3></div></div><div class="pad" style="padding-top:2px"><div class="row spread" style="padding:8px 0;border-bottom:1px solid var(--hair)"><span style="font-weight:700;font-size:13px">Bench Press</span><span class="chip cgold">72.5 kg</span></div><div class="row spread" style="padding:8px 0;border-bottom:1px solid var(--hair)"><span style="font-weight:700;font-size:13px">Squat</span><span class="chip cgold">95 kg</span></div><div class="row spread" style="padding:8px 0"><span style="font-weight:700;font-size:13px">Deadlift</span><span class="chip cgold">120 kg</span></div></div></div><div class="card"><div class="cardhd"><div><h3>Sunday check-ins</h3><div class="hsub">9 logged</div></div></div><div class="pad" style="padding-top:2px"><div class="row spread" style="padding:8px 0;border-bottom:1px solid var(--hair)"><span style="font-weight:700;font-size:13px">Jun 29</span><span class="lab" style="font-size:12px">-0.6kg · 3/4 workouts</span></div><div class="row spread" style="padding:8px 0;border-bottom:1px solid var(--hair)"><span style="font-weight:700;font-size:13px">Jun 22</span><span class="lab" style="font-size:12px">-0.4kg · 4/4 workouts</span></div><div class="row spread" style="padding:8px 0"><span style="font-weight:700;font-size:13px">Jun 15</span><span class="lab" style="font-size:12px">-0.8kg · 4/4 workouts</span></div></div></div></div></sc-if><sc-if value="{{ tabFutureYou }}" hint-placeholder-val="{{ false }}"><div class="card pad"><div class="row spread" style="margin-bottom:14px"><div class="sect">Future You · before / after</div><span class="chip cgold"><i class="ph ph-sparkle"></i>regen in 9 days</span></div><div class="fy-compare"><div class="fy-half ph-img"><span class="fy-tag">Original selfie</span><span>signed URL · selfie</span></div><div class="fy-half ph-img"><span class="fy-tag">Generated</span><span>signed URL · result</span></div></div><div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap"><div class="chip cgray mono">prompt: "athletic, lean, confident · look my best"</div><div class="chip cgray mono">model: flux-v3</div><div class="chip cgray mono">job: fy_9241</div></div></div></sc-if><sc-if value="{{ tabRaw }}" hint-placeholder-val="{{ false }}"><div class="jsonbar"><i class="ph ph-warning"></i>Saving bumps <b>updated_at_ms</b> so the server wins over the device on next sync. This is logged to the audit trail.</div><div class="row" style="gap:8px;margin-bottom:12px"><button class="btn dark" onClick="{{ saveJson }}"><i class="ph ph-floppy-disk"></i>Save payload</button><button class="btn"><i class="ph ph-arrow-counter-clockwise"></i>Revert</button><span class="lab" style="font-size:12px;align-self:center">fitness_user_data · payloadToPersistedSlice</span></div><pre class="json">{{ rawJson }}</pre></sc-if><sc-if value="{{ tabSub }}" hint-placeholder-val="{{ false }}"><div class="card pad" style="max-width:520px"><div class="row spread" style="margin-bottom:14px"><div class="sect">Subscription</div><button class="btn sm gold" onClick="{{ overrideSub }}"><i class="ph ph-crown-simple"></i>Override tier</button></div><sc-for list="{{ subRows }}" as="r" hint-placeholder-count="6"><div class="row spread" style="padding:11px 0;border-bottom:1px solid var(--hair)"><span class="lab" style="font-size:13px">{{ r.k }}</span><span style="font-weight:700;font-size:13px" class="mono">{{ r.v }}</span></div></sc-for></div></sc-if></sc-if><sc-if value="{{ isFutureYou }}" hint-placeholder-val="{{ false }}"><div class="statstrip"><div class="card pad"><div class="kpilab">Queued</div><div class="kpival" style="font-size:24px;margin-top:6px">42</div></div><div class="card pad"><div class="kpilab">Processing</div><div class="kpival" style="font-size:24px;margin-top:6px">18</div></div><div class="card pad"><div class="kpilab">Succeeded · 24h</div><div class="kpival" style="font-size:24px;margin-top:6px">312</div></div><div class="card pad"><div class="kpilab">Failed · 24h</div><div class="kpival" style="font-size:24px;margin-top:6px;color:#A8493C">31</div></div></div><div class="card tblwrap"><div class="cardhd"><div><h3>Generation queue</h3><div class="hsub">future_you_jobs · newest first</div></div></div><table class="tbl"><thead><tr><th>Job</th><th>User</th><th>Motivation</th><th>Status</th><th>Duration</th><th>Created</th></tr></thead><tbody><sc-for list="{{ jobsView }}" as="j" hint-placeholder-count="6"><tr><td class="mono uid">{{ j.id }}</td><td><div class="umail" style="font-size:12.5px">{{ j.user }}</div><div class="uid">{{ j.uid }}</div></td><td class="muted">{{ j.motivation }}</td><td><span class="{{ j.statusCls }}">{{ j.statusLab }}</span></td><td class="mono muted">{{ j.dur }}</td><td class="muted">{{ j.created }}</td></tr></sc-for></tbody></table></div><h2 class="sectit" style="margin-top:26px">Reports · moderation</h2><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px"><sc-for list="{{ reportsView }}" as="r" hint-placeholder-count="3"><div class="card pad"><div class="fy-compare" style="margin-bottom:13px"><div class="fy-half ph-img"><span class="fy-tag">Selfie</span><span>signed URL</span></div><div class="fy-half ph-img"><span class="fy-tag">Result</span><span>signed URL</span></div></div><div class="row spread" style="margin-bottom:6px"><span class="mono uid">{{ r.id }}</span><span class="chip camber">Open</span></div><div style="font-size:13.5px;font-weight:700;letter-spacing:-.01em;margin-bottom:4px">{{ r.reason }}</div><div class="lab" style="font-size:12px;margin-bottom:12px">{{ r.user }} · job {{ r.job }} · {{ r.created }}</div><div class="row" style="gap:8px"><button class="btn sm dark" onClick="{{ r.resolve }}"><i class="ph ph-check"></i>Resolve</button><button class="btn sm" onClick="{{ r.resolve }}">Dismiss</button><button class="btn sm danger" onClick="{{ r.del }}"><i class="ph ph-trash"></i></button></div></div></sc-for></div></sc-if><sc-if value="{{ isFoods }}" hint-placeholder-val="{{ false }}"><div class="filterbar"><button class="fbtn on">All foods</button><button class="fbtn">Live</button><button class="fbtn">Flagged · 2</button><button class="btn sm danger" style="margin-left:auto"><i class="ph ph-trash"></i>Bulk delete selected</button></div><div class="card tblwrap"><table class="tbl"><thead><tr><th style="width:34px"><i class="ph ph-check-square" style="color:var(--lab)"></i></th><th>Food</th><th>Calories</th><th>Macros</th><th>Added by</th><th>Flags</th><th>Status</th><th></th></tr></thead><tbody><sc-for list="{{ foodsView }}" as="f" hint-placeholder-count="6"><tr><td><i class="ph ph-square" style="color:#c9c6bc;font-size:17px"></i></td><td><div style="font-weight:700;letter-spacing:-.01em">{{ f.name }}</div><div class="uid">{{ f.id }} · {{ f.brand }}</div></td><td class="mono">{{ f.calStr }}</td><td class="mono muted" style="font-size:12px">{{ f.macro }}</td><td class="uid">{{ f.by }}</td><td class="mono">{{ f.flags }}</td><td><span class="{{ f.statusCls }}">{{ f.statusLab }}</span></td><td><div class="row" style="gap:6px"><button class="btn sm"><i class="ph ph-pencil-simple"></i></button><button class="btn sm danger"><i class="ph ph-trash"></i></button></div></td></tr></sc-for></tbody></table><div class="tblfoot"><span>community_foods · 4,210 entries · 2 flagged</span></div></div></sc-if><sc-if value="{{ isIssues }}" hint-placeholder-val="{{ false }}"><div class="filterbar"><button class="fbtn on">All</button><button class="fbtn">Bugs</button><button class="fbtn">Features</button><button class="fbtn">Open · 3</button></div><div class="card tblwrap"><table class="tbl"><thead><tr><th>Type</th><th>Report</th><th>From</th><th>Linear</th><th>Status</th><th></th></tr></thead><tbody><sc-for list="{{ issuesView }}" as="i" hint-placeholder-count="6"><tr><td><span class="{{ i.typeCls }}"><i class="{{ i.icon }}"></i>{{ i.typeLab }}</span></td><td><div style="font-weight:700;letter-spacing:-.01em">{{ i.title }}</div><div class="uid">{{ i.id }} · {{ i.created }}</div></td><td class="uid">{{ i.user }}</td><td><span class="chip cblue mono"><i class="ph ph-arrow-square-out"></i>{{ i.linear }}</span></td><td><span class="{{ i.statusCls }}">{{ i.statusLab }}</span></td><td><button class="btn sm"><i class="ph ph-check"></i>Resolve</button></td></tr></sc-for></tbody></table><div class="tblfoot"><span>issue_reports · synced to Linear</span></div></div></sc-if><sc-if value="{{ isRevenueCat }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ rcConnected }}" hint-placeholder-val="{{ true }}"><div class="row spread" style="margin-bottom:16px"><span class="chip cgreen"><i class="ph ph-check-circle"></i>Connected · key ••••7f2a</span><span class="lab" style="font-size:12px">cross-referenced with local subscriptions table</span></div><div class="kpis" style="margin-bottom:16px"><sc-for list="{{ rcKpis }}" as="k" hint-placeholder-count="4"><div class="card kpi"><div class="kpitop"><div class="kpilab">{{ k.label }}</div></div><div class="kpival">{{ k.value }}</div><div class="kpifoot"><span class="delta up"><i class="ph ph-arrow-up-right"></i>{{ k.delta }}</span><span>{{ k.foot }}</span></div></div></sc-for></div><div class="grid2"><div class="card"><div class="cardhd"><div><h3>Monthly recurring revenue</h3><div class="hsub">Last 7 months</div></div><span class="chip cgold"><i class="ph ph-trend-up"></i>+66% YTD</span></div><div class="pad" style="padding-top:0"><svg viewBox="0 0 560 160" width="100%" height="160" preserveAspectRatio="none"><defs><linearGradient id="gm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CAA668" stop-opacity="0.2"/><stop offset="1" stop-color="#CAA668" stop-opacity="0"/></linearGradient></defs><line x1="0" y1="50" x2="560" y2="50" stroke="#F1EFE9"/><line x1="0" y1="100" x2="560" y2="100" stroke="#F1EFE9"/><path d="{{ mrrArea }}" fill="url(#gm)"/><polyline points="{{ mrrPts }}" fill="none" stroke="#9C7C3E" stroke-width="2.5" stroke-linejoin="round"/></svg></div></div><div class="card"><div class="cardhd"><div><h3>Plan mix</h3><div class="hsub">Active paid subs</div></div></div><div class="hbars"><div class="hbar"><span class="hl">Annual</span><div class="htrack"><div class="hfill" style="width:64%;background:#9C7C3E"></div></div><span class="hv">1,994</span></div><div class="hbar"><span class="hl">Monthly</span><div class="htrack"><div class="hfill" style="width:36%;background:#CAA668"></div></div><span class="hv">1,124</span></div><div class="hbar"><span class="hl">Trialing</span><div class="htrack"><div class="hfill" style="width:14%;background:#3F6193"></div></div><span class="hv">418</span></div><div class="hbar"><span class="hl">Grace</span><div class="htrack"><div class="hfill" style="width:5%;background:#A8493C"></div></div><span class="hv">61</span></div></div></div></div></sc-if><sc-if value="{{ rcConnectedOff }}" hint-placeholder-val="{{ false }}"></sc-if></sc-if><sc-if value="{{ isInstagram }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ instaConnected }}" hint-placeholder-val="{{ false }}"><div class="social-kpis"><div class="card pad"><div class="kpilab">Followers</div><div class="kpival" style="font-size:24px;margin-top:6px">84.2k</div></div><div class="card pad"><div class="kpilab">Reach · 28d</div><div class="kpival" style="font-size:24px;margin-top:6px">1.9M</div></div><div class="card pad"><div class="kpilab">Engagement</div><div class="kpival" style="font-size:24px;margin-top:6px">5.4%</div></div><div class="card pad"><div class="kpilab">Profile visits</div><div class="kpival" style="font-size:24px;margin-top:6px">62.1k</div></div></div></sc-if><sc-if value="{{ instaOff }}" hint-placeholder-val="{{ true }}"><div class="card"><div class="empty"><div class="iconchip"><i class="ph ph-instagram-logo"></i></div><h3>Connect Instagram</h3><p>Add a long-lived Graph API token and business account ID to pull followers, reach, engagement and top posts. The adapter is coded against the documented endpoints and goes live the moment credentials exist.</p><button class="btn dark" style="margin-top:10px" onClick="{{ backToIntegrations }}"><i class="ph ph-plugs-connected"></i>Open Integrations</button></div></div></sc-if></sc-if><sc-if value="{{ isTiktok }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ tiktokConnected }}" hint-placeholder-val="{{ false }}"><div class="social-kpis"><div class="card pad"><div class="kpilab">Followers</div><div class="kpival" style="font-size:24px;margin-top:6px">—</div></div></div></sc-if><sc-if value="{{ tiktokOff }}" hint-placeholder-val="{{ true }}"><div class="card"><div class="empty"><div class="iconchip"><i class="ph ph-tiktok-logo"></i></div><h3>Connect TikTok</h3><p>Add a client key, client secret and access token to pull audience, views and engagement on your top videos. Inert until tokens are added — no redeploy needed to connect.</p><button class="btn dark" style="margin-top:10px" onClick="{{ backToIntegrations }}"><i class="ph ph-plugs-connected"></i>Open Integrations</button></div></div></sc-if></sc-if><sc-if value="{{ isAppstore }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ appstoreConnected }}" hint-placeholder-val="{{ true }}"><div class="row spread" style="margin-bottom:16px"><span class="chip cgreen"><i class="ph ph-check-circle"></i>Connected · key ••••9K2 · read-only</span><span class="lab" style="font-size:12px">App Store Connect · JWT auth · issuer ••••a41</span></div><div class="kpis" style="margin-bottom:16px"><div class="card kpi"><div class="kpitop"><div class="kpilab">Downloads · 7d</div><div class="iconchip neu"><i class="ph ph-download-simple"></i></div></div><div class="kpival">5,870</div><div class="kpifoot"><span class="delta up"><i class="ph ph-arrow-up-right"></i>+6.1%</span><span>first-time units</span></div></div><div class="card kpi"><div class="kpitop"><div class="kpilab">Units · 30d</div><div class="iconchip neu"><i class="ph ph-stack"></i></div></div><div class="kpival">38,860</div><div class="kpifoot"><span class="delta up"><i class="ph ph-arrow-up-right"></i>+12.0%</span><span>incl. redownloads</span></div></div><div class="card kpi"><div class="kpitop"><div class="kpilab">Average rating</div><div class="iconchip"><i class="ph-fill ph-star"></i></div></div><div class="row" style="gap:10px;align-items:center"><div class="kpival">4.6</div><div class="stars"><sc-for list="{{ ratingStars }}" as="s" hint-placeholder-count="5"><i class="{{ s.cls }}"></i></sc-for></div></div><div class="kpifoot"><span>all versions · App Store</span></div></div><div class="card kpi"><div class="kpitop"><div class="kpilab">Ratings count</div><div class="iconchip neu"><i class="ph ph-users"></i></div></div><div class="kpival">7,412</div><div class="kpifoot"><span class="delta up"><i class="ph ph-arrow-up-right"></i>+184</span><span>this week</span></div></div></div><div class="grid2"><div class="card"><div class="cardhd"><div><h3>Downloads</h3><div class="hsub">Units · last 8 weeks</div></div><span class="chip cgold"><i class="ph ph-trend-up"></i>+42% qtr</span></div><div class="pad" style="padding-top:0"><svg viewBox="0 0 560 160" width="100%" height="160" preserveAspectRatio="none"><defs><linearGradient id="gap2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CAA668" stop-opacity="0.2"/><stop offset="1" stop-color="#CAA668" stop-opacity="0"/></linearGradient></defs><line x1="0" y1="50" x2="560" y2="50" stroke="#F1EFE9"/><line x1="0" y1="100" x2="560" y2="100" stroke="#F1EFE9"/><path d="{{ appArea }}" fill="url(#gap2)"/><polyline points="{{ appPts }}" fill="none" stroke="#9C7C3E" stroke-width="2.5" stroke-linejoin="round"/></svg></div></div><div class="card"><div class="cardhd"><div><h3>Ratings breakdown</h3><div class="hsub">7,412 ratings</div></div></div><div class="hbars"><div class="hbar"><span class="hl">5 star</span><div class="htrack"><div class="hfill" style="width:78%;background:#9C7C3E"></div></div><span class="hv">78%</span></div><div class="hbar"><span class="hl">4 star</span><div class="htrack"><div class="hfill" style="width:14%;background:#CAA668"></div></div><span class="hv">14%</span></div><div class="hbar"><span class="hl">3 star</span><div class="htrack"><div class="hfill" style="width:4%;background:#75736A"></div></div><span class="hv">4%</span></div><div class="hbar"><span class="hl">2 star</span><div class="htrack"><div class="hfill" style="width:2%;background:#A8493C"></div></div><span class="hv">2%</span></div><div class="hbar"><span class="hl">1 star</span><div class="htrack"><div class="hfill" style="width:2%;background:#A8493C"></div></div><span class="hv">2%</span></div></div></div></div><div class="card" style="margin-top:16px"><div class="cardhd"><div><h3>Customer reviews</h3><div class="hsub">Latest from App Store Connect · read-only</div></div><span class="chip cgray"><i class="ph ph-lock-simple"></i>read-only</span></div><div><sc-for list="{{ reviewsView }}" as="r" hint-placeholder-count="6"><div class="rev"><div class="revtop"><div class="stars"><sc-for list="{{ r.stars }}" as="s" hint-placeholder-count="5"><i class="{{ s.cls }}"></i></sc-for></div><span class="revtitle">{{ r.title }}</span></div><div class="revbody">{{ r.body }}</div><div class="revmeta">{{ r.meta }}</div></div></sc-for></div></div></sc-if><sc-if value="{{ appstoreOff }}" hint-placeholder-val="{{ false }}"><div class="card"><div class="empty"><div class="iconchip"><i class="ph ph-apple-logo"></i></div><h3>Connect App Store</h3><p>Add your App Store Connect issuer ID, key ID and .p8 private key to pull downloads/units, ratings and the customer reviews feed. Read-only, JWT-authed, live the moment credentials exist.</p><button class="btn dark" style="margin-top:10px" onClick="{{ backToIntegrations }}"><i class="ph ph-plugs-connected"></i>Open Integrations</button></div></div></sc-if></sc-if><sc-if value="{{ isGoogleplay }}" hint-placeholder-val="{{ false }}"><div class="card"><div class="empty"><div class="iconchip neu"><i class="ph ph-google-play-logo"></i></div><h3>Google Play — stubbed for later</h3><p>The Android Publisher API adapter (downloads, ratings, reviews via a service-account JSON) is scaffolded against the documented interface but intentionally inert for v1. App Store ships first; this slot goes live when you add credentials.</p><span class="chip cgray" style="margin-top:10px"><i class="ph ph-wrench"></i>Adapter scaffolded · not wired</span></div></div></sc-if><sc-if value="{{ isIntegrations }}" hint-placeholder-val="{{ false }}"><div class="jsonbar" style="background:#EAEFF6;border-color:#CFDCEC;color:#3F6193"><i class="ph ph-shield-check"></i>Credentials live in the service-role-only <b>admin_integrations</b> table. Rotate keys here — never shipped to the browser, no redeploy to apply.</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px"><sc-for list="{{ integView }}" as="p" hint-placeholder-count="3"><div class="card integ-card"><div class="integ-top"><div class="bigchip"><i class="{{ p.icon }}"></i></div><div style="flex:1;min-width:0"><div class="row spread"><div style="font-size:15px;font-weight:800;letter-spacing:-.02em">{{ p.name }}</div><button class="{{ p.togCls }}" onClick="{{ p.toggle }}"></button></div><div class="lab" style="font-size:11px;margin-top:2px">{{ p.depth }}</div></div></div><div class="muted" style="font-size:12.5px;line-height:1.5">{{ p.desc }}</div><sc-for list="{{ p.fields }}" as="f" hint-placeholder-count="2"><div class="field" style="margin-bottom:0"><label>{{ f }}</label><input type="password" value="••••••••••••" /></div></sc-for><div class="divider"></div><div class="row spread"><span class="{{ p.statusCls }}">{{ p.statusLab }}</span><div class="row" style="gap:8px"><button class="btn sm" onClick="{{ p.test }}"><i class="ph ph-pulse"></i>Test</button><button class="{{ p.btnCls }} sm" onClick="{{ p.toggle }}">{{ p.btnLab }}</button></div></div></div></sc-for></div></sc-if><sc-if value="{{ isAudit }}" hint-placeholder-val="{{ false }}"><div class="filterbar"><button class="fbtn on">All actions</button><button class="fbtn">Edits</button><button class="fbtn">Deletes</button><button class="fbtn">Overrides</button><button class="fbtn">Impersonation</button></div><div class="card tblwrap"><table class="tbl"><thead><tr><th>Action</th><th>Target</th><th>Admin</th><th>Detail</th><th>When</th></tr></thead><tbody><sc-for list="{{ auditView }}" as="a" hint-placeholder-count="8"><tr><td><div class="row" style="gap:9px"><div class="iconchip neu" style="width:30px;height:30px;border-radius:8px"><i class="{{ a.icon }}"></i></div><span style="font-weight:700;font-size:12.5px">{{ a.text }}</span></div></td><td class="mono uid">{{ a.target }}</td><td class="muted" style="font-size:12px">{{ a.admin }}</td><td class="muted" style="font-size:12px">{{ a.detail }}</td><td class="muted" style="font-size:12px;white-space:nowrap">{{ a.date }}</td></tr></sc-for></tbody></table><div class="tblfoot"><span>admin_audit_log · before / after captured on every write</span><span class="lab">retention: forever</span></div></div></sc-if></div></div><sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}"><div class="toast"><i class="ph ph-check-circle"></i>{{ toast }}</div></sc-if></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { screen:'dashboard', selectedUserId:'u_1042', userTab:'overview', integ:{revenuecat:true,instagram:false,tiktok:false,appstore:true,googleplay:false}, page:1, toast:'' };
+
+  appUnits = [4120,3980,4410,4760,5210,4990,5530,5870];
+  reviews = [
+    {rating:5, title:'Saw my future self and cried', body:'The blurred-to-reveal moment at the paywall got me. Worth it just for that — the daily coaching is a bonus.', territory:'US', date:'Jun 29, 2026', author:'lift_with_mara'},
+    {rating:5, title:'Down 6kg, the photo keeps me going', body:'Looking at Future You every morning is the most motivating thing any fitness app has done for me.', territory:'US', date:'Jun 28, 2026', author:'connord'},
+    {rating:4, title:'Coaching actually feels personal', body:'The weigh-in reactions and Sunday check-in feel like a real coach is paying attention. Wish the rest timer was more reliable.', territory:'GB', date:'Jun 27, 2026', author:'priya.n'},
+    {rating:2, title:'Generation failed twice', body:'My Future You image failed to generate on first upload and I had to retry. Support fixed it but rough first impression.', territory:'AU', date:'Jun 26, 2026', author:'hfields'},
+    {rating:5, title:'The macro ring is gorgeous', body:'Cleanest nutrition tracker I have used. Barcode scan is fast and protein-first targets make sense.', territory:'CA', date:'Jun 25, 2026', author:'jwhit'},
+    {rating:3, title:'Want kettlebell support', body:'Plans are great but I only have kettlebells and the equipment picker does not cover them yet.', territory:'DE', date:'Jun 24, 2026', author:'dvolkov'},
+  ];
+
+  users = [
+    {id:'u_1042', email:'mara.delgado@gmail.com', created:'Jun 28, 2026', createdSort:20260628, plan:'Annual', status:'active', sync:'2m ago', goal:'cut', country:'US'},
+    {id:'u_1039', email:'tobiasreyes@outlook.com', created:'Jun 27, 2026', createdSort:20260627, plan:'Monthly', status:'active', sync:'18m ago', goal:'bulk', country:'US'},
+    {id:'u_1036', email:'priya.nair@gmail.com', created:'Jun 27, 2026', createdSort:20260627, plan:'—', status:'trialing', sync:'1h ago', goal:'maintain', country:'GB'},
+    {id:'u_1031', email:'j.whitmore@icloud.com', created:'Jun 26, 2026', createdSort:20260626, plan:'Annual', status:'active', sync:'4h ago', goal:'cut', country:'CA'},
+    {id:'u_1028', email:'samkasprzak@gmail.com', created:'Jun 25, 2026', createdSort:20260625, plan:'—', status:'trialing', sync:'6h ago', goal:'bulk', country:'PL'},
+    {id:'u_1025', email:'leah.osei@gmail.com', created:'Jun 24, 2026', createdSort:20260624, plan:'Monthly', status:'active', sync:'1d ago', goal:'cut', country:'US'},
+    {id:'u_1019', email:'dmitri.volkov@gmail.com', created:'Jun 23, 2026', createdSort:20260623, plan:'—', status:'expired', sync:'3d ago', goal:'maintain', country:'DE'},
+    {id:'u_1014', email:'hannah.fields@yahoo.com', created:'Jun 22, 2026', createdSort:20260622, plan:'Annual', status:'active', sync:'2h ago', goal:'cut', country:'AU'},
+    {id:'u_1011', email:'marco.bianchi@gmail.com', created:'Jun 21, 2026', createdSort:20260621, plan:'Monthly', status:'active', sync:'9h ago', goal:'bulk', country:'IT'},
+    {id:'u_1007', email:'aisha.rahman@gmail.com', created:'Jun 20, 2026', createdSort:20260620, plan:'—', status:'none', sync:'5d ago', goal:'maintain', country:'AE'},
+    {id:'u_1004', email:'connor.daly@icloud.com', created:'Jun 19, 2026', createdSort:20260619, plan:'Annual', status:'active', sync:'30m ago', goal:'cut', country:'IE'},
+    {id:'u_1001', email:'yuki.tanaka@gmail.com', created:'Jun 18, 2026', createdSort:20260618, plan:'Monthly', status:'active', sync:'12h ago', goal:'bulk', country:'JP'},
+  ];
+
+  signups = [712,684,798,910,872,1004,1120,1066,1198,1242,1180,1308];
+
+  jobs = [
+    {id:'fy_9301', user:'mara.delgado@gmail.com', uid:'u_1042', motivation:'Look my best', status:'succeeded', created:'2m ago', dur:'38s', model:'flux-v3'},
+    {id:'fy_9300', user:'priya.nair@gmail.com', uid:'u_1036', motivation:'Fit my wedding dress', status:'processing', created:'3m ago', dur:'—', model:'flux-v3'},
+    {id:'fy_9298', user:'samkasprzak@gmail.com', uid:'u_1028', motivation:'Bigger arms', status:'queued', created:'5m ago', dur:'—', model:'flux-v3'},
+    {id:'fy_9295', user:'tobiasreyes@outlook.com', uid:'u_1039', motivation:'Beach-ready', status:'succeeded', created:'14m ago', dur:'41s', model:'flux-v3'},
+    {id:'fy_9291', user:'dmitri.volkov@gmail.com', uid:'u_1019', motivation:'Look my best', status:'failed', created:'31m ago', dur:'—', model:'flux-v3', err:'NSFW filter tripped on source selfie'},
+    {id:'fy_9288', user:'leah.osei@gmail.com', uid:'u_1025', motivation:'Beach-ready', status:'succeeded', created:'52m ago', dur:'36s', model:'flux-v3'},
+  ];
+
+  reports = [
+    {id:'fy_rep_8842', user:'connor.daly@icloud.com', uid:'u_1004', reason:'Result looks nothing like me', status:'open', created:'1h ago', job:'fy_9277'},
+    {id:'fy_rep_8839', user:'aisha.rahman@gmail.com', uid:'u_1007', reason:'Distorted / artifacts on face', status:'open', created:'5h ago', job:'fy_9241'},
+    {id:'fy_rep_8831', user:'yuki.tanaka@gmail.com', uid:'u_1001', reason:'Inappropriate output', status:'open', created:'1d ago', job:'fy_9198'},
+  ];
+
+  foods = [
+    {id:'cf_5621', name:'Overnight oats, almond + chia', brand:'user-entered', cal:312, p:11, c:48, f:9, by:'u_1042', flags:0, status:'live'},
+    {id:'cf_5618', name:'Grilled chicken thigh (skinless)', brand:'user-entered', cal:209, p:26, c:0, f:11, by:'u_1031', flags:0, status:'live'},
+    {id:'cf_5610', name:'PROTEEN BAR 9000 (mega gains)', brand:'unverified', cal:120, p:60, c:2, f:1, by:'u_1019', flags:3, status:'flagged'},
+    {id:'cf_5604', name:'Sourdough slice, large', brand:'user-entered', cal:175, p:6, c:33, f:2, by:'u_1025', flags:0, status:'live'},
+    {id:'cf_5599', name:'asdfasdf test food ignore', brand:'unverified', cal:9999, p:0, c:0, f:0, by:'u_1011', flags:5, status:'flagged'},
+    {id:'cf_5590', name:'Greek yogurt, 2% (170g)', brand:'user-entered', cal:146, p:20, c:8, f:4, by:'u_1014', flags:0, status:'live'},
+  ];
+
+  issues = [
+    {id:'is_412', title:'Rest timer keeps resetting when phone locks', type:'bug', user:'u_1039', status:'open', created:'2h ago', linear:'NEW-318'},
+    {id:'is_411', title:'Add support for kettlebell equipment', type:'feature', user:'u_1025', status:'open', created:'6h ago', linear:'NEW-317'},
+    {id:'is_409', title:'Barcode scanner crashes on Pixel 8', type:'bug', user:'u_1019', status:'triaged', created:'1d ago', linear:'NEW-314'},
+    {id:'is_405', title:'Water confetti fires twice', type:'bug', user:'u_1014', status:'open', created:'2d ago', linear:'NEW-309'},
+    {id:'is_401', title:'Let me export progress photos as a grid', type:'feature', user:'u_1004', status:'planned', created:'4d ago', linear:'NEW-302'},
+    {id:'is_398', title:'Future You regen cooldown unclear', type:'bug', user:'u_1001', status:'resolved', created:'6d ago', linear:'NEW-295'},
+  ];
+
+  audit = [
+    {icon:'ph ph-pencil-simple', action:'edit', text:'Edited nutrition payload', target:'u_1031', admin:'alex@newyouai.app', detail:'structured editor · bumped updated_at_ms', time:'4m ago', date:'Jun 30, 14:22'},
+    {icon:'ph ph-crown-simple', action:'override', text:'Override subscription → Annual', target:'u_1042', admin:'alex@newyouai.app', detail:'tier: monthly → annual · server wins', time:'22m ago', date:'Jun 30, 14:04'},
+    {icon:'ph ph-flag-checkered', action:'resolve', text:'Resolved Future You report', target:'fy_rep_8842', admin:'alex@newyouai.app', detail:'resolution: dismissed', time:'1h ago', date:'Jun 30, 13:25'},
+    {icon:'ph ph-trash', action:'delete', text:'Deleted community food', target:'cf_5510', admin:'alex@newyouai.app', detail:'reason: spam · 5 flags', time:'3h ago', date:'Jun 30, 11:40'},
+    {icon:'ph ph-user-circle-gear', action:'impersonate', text:'Impersonated user (login link)', target:'u_1019', admin:'alex@newyouai.app', detail:'generateLink → app.newyouai.app · 60s TTL', time:'5h ago', date:'Jun 30, 09:12'},
+    {icon:'ph ph-pencil-simple', action:'edit', text:'Edited raw JSON payload', target:'u_1007', admin:'sam@newyouai.app', detail:'workouts[3].sets · device sync override', time:'1d ago', date:'Jun 29, 16:50'},
+    {icon:'ph ph-plugs-connected', action:'config', text:'Rotated RevenueCat API key', target:'integration:revenuecat', admin:'alex@newyouai.app', detail:'credentials updated · no redeploy', time:'2d ago', date:'Jun 28, 10:30'},
+    {icon:'ph ph-trash', action:'delete', text:'Deleted user account', target:'u_0992', admin:'alex@newyouai.app', detail:'delete-user edge fn · GDPR request', time:'3d ago', date:'Jun 27, 13:05'},
+  ];
+
+  statusMeta(st){
+    const m={active:['cgreen','Active'],trialing:['camber','Trial'],expired:['cgray','Expired'],none:['cgray','Free'],succeeded:['cgreen','Succeeded'],processing:['cblue','Processing'],queued:['camber','Queued'],failed:['cred','Failed'],open:['camber','Open'],triaged:['cblue','Triaged'],planned:['cblue','Planned'],resolved:['cgreen','Resolved'],live:['cgreen','Live'],flagged:['cred','Flagged']};
+    return m[st]||['cgray',st];
+  }
+  goalChip(g){ return {cut:['cblue','Cutting'],bulk:['camber','Bulking'],maintain:['cgray','Maintain']}[g]||['cgray',g]; }
+  initials(e){ return e.slice(0,2).toUpperCase(); }
+
+  go(s){ this.setState({screen:s, page:1}); }
+  goUser(id){ this.setState({screen:'user-detail', selectedUserId:id, userTab:'overview'}); }
+  setTab(t){ this.setState({userTab:t}); }
+  flash(msg){ this.setState({toast:msg}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({toast:''}),2600); }
+  toggleInteg(p){ const integ={...this.state.integ, [p]:!this.state.integ[p]}; this.setState({integ}); this.flash(integ[p]?'Provider enabled':'Provider disabled'); }
+
+  navDef(){
+    return [
+      {label:'Overview', items:[{id:'dashboard',label:'Dashboard',icon:'ph ph-squares-four'}]},
+      {label:'Data', items:[
+        {id:'users',label:'Users',icon:'ph ph-users-three',badge:'12.8k'},
+        {id:'future-you',label:'Future You',icon:'ph ph-sparkle',badge:'60'},
+        {id:'foods',label:'Community Foods',icon:'ph ph-fork-knife'},
+        {id:'issues',label:'Issue Reports',icon:'ph ph-warning-circle',badge:'6'},
+      ]},
+      {label:'Growth', items:[
+        {id:'revenuecat',label:'RevenueCat',icon:'ph ph-chart-line-up'},
+        {id:'appstore',label:'App Store',icon:'ph ph-apple-logo'},
+        {id:'googleplay',label:'Google Play',icon:'ph ph-google-play-logo'},
+        {id:'instagram',label:'Instagram',icon:'ph ph-instagram-logo'},
+        {id:'tiktok',label:'TikTok',icon:'ph ph-tiktok-logo'},
+      ]},
+      {label:'System', items:[
+        {id:'integrations',label:'Integrations',icon:'ph ph-plugs-connected'},
+        {id:'audit',label:'Audit Log',icon:'ph ph-scroll'},
+      ]},
+    ];
+  }
+
+  metaFor(s){
+    const m={
+      dashboard:['Dashboard','Live overview · derived from Supabase'],
+      users:['Users','12,847 accounts · full read + edit + delete'],
+      'user-detail':['User detail','Full app-state reconstruction'],
+      'future-you':['Future You','Generation queue & report moderation'],
+      foods:['Community Foods','User-contributed food database'],
+      issues:['Issue Reports','Bug reports & feature requests'],
+      revenuecat:['RevenueCat','Subscription & revenue metrics'],
+      appstore:['App Store','Apple App Store Connect · read-only'],
+      googleplay:['Google Play','Android · adapter scaffolded, stubbed'],
+      instagram:['Instagram','Audience & content performance'],
+      tiktok:['TikTok','Audience & content performance'],
+      integrations:['Integrations','Credentials & provider connections'],
+      audit:['Audit Log','Every admin write, before & after'],
+    };
+    return m[s]||['',''];
+  }
+
+  renderVals(){
+    const s=this.state.screen;
+    const nav=this.navDef().map(g=>({label:g.label, items:g.items.map(it=>({...it, cls:(s===it.id?'navitem on':'navitem'), go:()=>this.go(it.id)}))}));
+    const [title,sub]=this.metaFor(s);
+
+    // dashboard charts
+    const data=this.signups, n=data.length, W=660,H=200, max=Math.max(...data)*1.08, min=Math.min(...data)*0.86;
+    const X=i=>i*(W/(n-1)), Y=v=>H-((v-min)/(max-min))*(H-24)-12;
+    const linePts=data.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+    const areaPath=`M0,${H} L`+data.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' L')+` L${W},${H} Z`;
+    const lineDots=data.map((v,i)=>({x:X(i).toFixed(1),y:Y(v).toFixed(1)}));
+
+    const jobsRaw=[{label:'Succeeded',count:9124,c:'#3C7A4E'},{label:'Queued',count:42,c:'#CAA668'},{label:'Processing',count:18,c:'#3F6193'},{label:'Failed',count:31,c:'#A8493C'}];
+    const jmax=Math.max(...jobsRaw.map(j=>j.count));
+    const jobBars=jobsRaw.map(j=>({label:j.label,count:j.count.toLocaleString(),style:`width:${Math.max(4,(j.count/jmax)*100)}%;background:${j.c}`}));
+
+    const kpis=[
+      {label:'Total users',value:'12,847',icon:'ph ph-users-three',delta:'+8.2%',dcls:'delta up',dicon:'ph ph-arrow-up-right',foot:'vs last month'},
+      {label:'Active subscriptions',value:'3,118',icon:'ph ph-seal-check',delta:'+5.1%',dcls:'delta up',dicon:'ph ph-arrow-up-right',foot:'24.3% of users'},
+      {label:'New signups · 7d',value:'1,308',icon:'ph ph-user-plus',delta:'+12.4%',dcls:'delta up',dicon:'ph ph-arrow-up-right',foot:'187/day avg'},
+      {label:'Open reports',value:'37',icon:'ph ph-flag',delta:'+9',dcls:'delta down',dicon:'ph ph-arrow-up-right',foot:'6 issues · 31 FY'},
+    ];
+
+    const recentAudit=[
+      {icon:'ph ph-pencil-simple',text:'Edited nutrition payload — u_1031',meta:'alex@newyouai · structured editor',time:'4m ago'},
+      {icon:'ph ph-crown-simple',text:'Override subscription → Annual — u_1042',meta:'alex@newyouai · server wins',time:'22m ago'},
+      {icon:'ph ph-flag-checkered',text:'Resolved Future You report fy_8842',meta:'alex@newyouai · dismissed',time:'1h ago'},
+      {icon:'ph ph-trash',text:'Deleted community food cf_5510',meta:'alex@newyouai · moderation',time:'3h ago'},
+    ];
+
+    // users table
+    const usersView=this.users.map(u=>{ const[sc,sl]=this.statusMeta(u.status); const[gc,gl]=this.goalChip(u.goal); return {...u, initials:this.initials(u.email), statusCls:'chip '+sc, statusLab:sl, goalCls:'chip '+gc, goalLab:gl, open:()=>this.goUser(u.id)}; });
+
+    // selected user detail
+    const su=this.users.find(u=>u.id===this.state.selectedUserId)||this.users[0];
+    const[ssc,ssl]=this.statusMeta(su.status); const[sgc,sgl]=this.goalChip(su.goal);
+    const userTabs=['overview','workouts','nutrition','progress','future-you','raw-json','subscription'].map(t=>({id:t, label:t.replace('-',' ').replace(/\b\w/g,c=>c.toUpperCase()), cls:this.state.userTab===t?'utab on':'utab', go:()=>this.setTab(t)}));
+    const rawJson=JSON.stringify({ id:su.id, email:su.email, updated_at_ms:1751294520000, onboarding:{ theme:'light', gender:'female', dob:'1994-03-11', units:'metric', height_cm:168, start_weight_kg:74.2, goal:su.goal, goal_weight_kg:su.goal==='cut'?64:79, pace:'moderate', motivation:'Look my best', source:'tiktok' }, training:{ experience:'intermediate', equipment:['dumbbells','bench','bands'], session_min:45, days:['Mon','Tue','Thu','Sat'], style:'hypertrophy' }, fuel:{ kcal:1980, protein_g:165, carbs_g:190, fat_g:62, water_ml_goal:3000 }, subscription:{ tier:su.plan.toLowerCase(), status:su.status } }, null, 2);
+
+    const subRows=[
+      {k:'Tier', v:su.plan==='—'?'Free':su.plan},
+      {k:'Status', v:ssl},
+      {k:'Store', v:su.country==='US'?'App Store':'Play Store'},
+      {k:'Renews', v:su.status==='active'?'Jul 28, 2026':'—'},
+      {k:'Price', v:su.plan==='Annual'?'$69.99/yr':su.plan==='Monthly'?'$14.99/mo':'—'},
+      {k:'RevenueCat ID', v:'$RCAnon'+su.id.slice(2)},
+    ];
+
+    // foods / issues / jobs / reports / audit views
+    const foodsView=this.foods.map(f=>{ const[sc,sl]=this.statusMeta(f.status); return {...f, statusCls:'chip '+sc, statusLab:sl, calStr:f.cal.toLocaleString(), macro:`${f.p}p · ${f.c}c · ${f.f}f`}; });
+    const issuesView=this.issues.map(i=>{ const[sc,sl]=this.statusMeta(i.status); return {...i, statusCls:'chip '+sc, statusLab:sl, typeCls:i.type==='bug'?'chip cred':'chip cblue', typeLab:i.type==='bug'?'Bug':'Feature', icon:i.type==='bug'?'ph ph-bug':'ph ph-lightbulb'}; });
+    const jobsView=this.jobs.map(j=>{ const[sc,sl]=this.statusMeta(j.status); return {...j, statusCls:'chip '+sc, statusLab:sl}; });
+    const reportsView=this.reports.map(r=>({...r, resolve:()=>this.flash('Report '+r.id+' dismissed'), del:()=>this.flash('Deleted '+r.id)}));
+    const auditView=this.audit.map(a=>({...a, badgeCls:'chip '+({edit:'cblue',override:'camber',resolve:'cgreen',delete:'cred',impersonate:'cgold',config:'cgray'}[a.action]||'cgray'), badgeLab:a.action}));
+
+    const integView=[
+      {id:'revenuecat', name:'RevenueCat', icon:'ph ph-chart-line-up', desc:'Subscriptions, MRR, trials & churn. Cross-referenced with local subscriptions table.', on:this.state.integ.revenuecat, fields:['Secret API key','Project ID'], depth:'Primary billing'},
+      {id:'appstore', name:'App Store', icon:'ph ph-apple-logo', desc:'App Store Connect — downloads/units, ratings & customer reviews. JWT auth from issuer ID + key ID + .p8. Read-only.', on:this.state.integ.appstore, fields:['Issuer ID','Key ID','.p8 private key'], depth:'Apple · read-only'},
+      {id:'instagram', name:'Instagram', icon:'ph ph-instagram-logo', desc:'Graph API — followers, reach, engagement, top posts.', on:this.state.integ.instagram, fields:['Long-lived access token','Business account ID'], depth:'Social'},
+      {id:'tiktok', name:'TikTok', icon:'ph ph-tiktok-logo', desc:'TikTok API — audience, views, engagement on top videos.', on:this.state.integ.tiktok, fields:['Client key','Client secret','Access token'], depth:'Social'},
+    ].map(p=>({...p, statusCls:p.on?'chip cgreen':'chip cgray', statusLab:p.on?'Connected':'Not connected', togCls:p.on?'toggle on':'toggle', toggle:()=>this.toggleInteg(p.id), test:()=>this.flash(p.on?p.name+' connection OK':'Add credentials first'), btnLab:p.on?'Disconnect':'Connect', btnCls:p.on?'btn danger':'btn dark'})).concat([
+      {id:'googleplay', name:'Google Play', icon:'ph ph-google-play-logo', desc:'Android Publisher API via service-account JSON. Adapter interface scaffolded — stubbed for a later release.', fields:['Service account JSON'], depth:'Android · stubbed', stub:true, statusCls:'chip cgray', statusLab:'Stubbed', togCls:'toggle', toggle:()=>this.flash('Google Play adapter is scaffolded — stubbed for later'), test:()=>this.flash('Google Play is stubbed for now'), btnLab:'Coming soon', btnCls:'btn'}
+    ]);
+
+    const rcConnected=this.state.integ.revenuecat;
+    const rcKpis=[
+      {label:'MRR',value:'$46,720',delta:'+6.3%',foot:'monthly recurring'},
+      {label:'Active subscriptions',value:'3,118',delta:'+5.1%',foot:'paid + trial'},
+      {label:'Active trials',value:'418',delta:'+22',foot:'in 7-day window'},
+      {label:'Churn (30d)',value:'4.8%',delta:'-0.4pt',foot:'voluntary + involuntary'},
+    ];
+    const mrr=[28100,31200,33800,37400,41100,43900,46720];
+    const mW=560,mH=150,mmax=Math.max(...mrr)*1.05,mmin=Math.min(...mrr)*0.9;
+    const mX=i=>i*(mW/(mrr.length-1)), mY=v=>mH-((v-mmin)/(mmax-mmin))*(mH-20)-10;
+    const mrrPts=mrr.map((v,i)=>`${mX(i).toFixed(1)},${mY(v).toFixed(1)}`).join(' ');
+    const mrrArea=`M0,${mH} L`+mrr.map((v,i)=>`${mX(i).toFixed(1)},${mY(v).toFixed(1)}`).join(' L')+` L${mW},${mH} Z`;
+
+    // app store
+    const au=this.appUnits, aW=560,aH=160,amax=Math.max(...au)*1.05,amin=Math.min(...au)*0.85;
+    const aX=i=>i*(aW/(au.length-1)), aY=v=>aH-((v-amin)/(amax-amin))*(aH-22)-11;
+    const appPts=au.map((v,i)=>`${aX(i).toFixed(1)},${aY(v).toFixed(1)}`).join(' ');
+    const appArea=`M0,${aH} L`+au.map((v,i)=>`${aX(i).toFixed(1)},${aY(v).toFixed(1)}`).join(' L')+` L${aW},${aH} Z`;
+    const starsFor=(n,half)=>[1,2,3,4,5].map(i=>({cls:i<=n?'ph-fill ph-star son':(half&&i===n+1?'ph-fill ph-star-half son':'ph ph-star soff')}));
+    const reviewsView=this.reviews.map(r=>({...r, stars:starsFor(r.rating,false), meta:`${r.territory} · ${r.date} · @${r.author}`}));
+    const ratingStars=starsFor(4,true);
+
+    return {
+      nav, meta:{title,sub}, toast:this.state.toast,
+      isDashboard:s==='dashboard',
+      isUsers:s==='users', isUserDetail:s==='user-detail', isFutureYou:s==='future-you',
+      isFoods:s==='foods', isIssues:s==='issues', isRevenueCat:s==='revenuecat',
+      isInstagram:s==='instagram', isTiktok:s==='tiktok', isIntegrations:s==='integrations', isAudit:s==='audit',
+      isAppstore:s==='appstore', isGoogleplay:s==='googleplay',
+      appstoreConnected:this.state.integ.appstore, appstoreOff:!this.state.integ.appstore,
+      appPts, appArea, reviewsView, ratingStars,
+      usersView, usersShown:'12 of 12,847',
+      su, suStatusCls:'chip '+ssc, suStatusLab:ssl, suGoalCls:'chip '+sgc, suGoalLab:sgl, suInitials:this.initials(su.email),
+      userTabs, userTab:this.state.userTab, rawJson, subRows,
+      tabOverview:this.state.userTab==='overview', tabWorkouts:this.state.userTab==='workouts', tabNutrition:this.state.userTab==='nutrition', tabProgress:this.state.userTab==='progress', tabFutureYou:this.state.userTab==='future-you', tabRaw:this.state.userTab==='raw-json', tabSub:this.state.userTab==='subscription',
+      foodsView, issuesView, jobsView, reportsView, auditView, integView,
+      rcConnected, rcConnectedOff:!rcConnected, rcKpis, mrrPts, mrrArea,
+      instaConnected:this.state.integ.instagram, instaOff:!this.state.integ.instagram,
+      tiktokConnected:this.state.integ.tiktok, tiktokOff:!this.state.integ.tiktok,
+      backToUsers:()=>this.go('users'), backToIntegrations:()=>this.go('integrations'),
+      impersonate:()=>this.flash('Login link generated → app.newyouai.app'),
+      saveJson:()=>this.flash('Payload saved · updated_at_ms bumped'),
+      delUser:()=>this.flash('delete-user edge function queued'),
+      overrideSub:()=>this.flash('Subscription tier overridden'),
+      kpis, linePts, areaPath, lineDots,
+      signupTotal:'11,894', signupTrend:'+12.4%',
+      jobBars,
+      convDash:`${(0.243*276.46).toFixed(1)} 276.46`, convPct:'24.3%',
+      convCopy:'Trials converting to paid within 7 days of the blurred-reveal paywall.',
+      trialCount:'418', paidCount:'1,084',
+      recentAudit, goAudit:()=>this.go('audit'),
+    };
+  }
+}
+</script>
+</body>
+</html>

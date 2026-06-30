@@ -1,3 +1,7 @@
+import type { NutritionGoal } from "@newyouai/types";
+import type { WeightUnit } from "@newyouai/types";
+
+import { formatSetWeight, weightUnitLabel } from "../workout/unitDisplay";
 import type { FutureYouJobStatus } from "./jobs";
 import type { HomeFutureYouEntryMode } from "./homeEntryModel";
 
@@ -18,6 +22,25 @@ export const FUTURE_YOU_DETAIL_COMPARE_LABEL = "Side by side view";
 export const FUTURE_YOU_DETAIL_SINGLE_LABEL = "Single view";
 export const FUTURE_YOU_COMPARE_BEFORE_LABEL = "Before";
 export const FUTURE_YOU_COMPARE_AFTER_LABEL = "After";
+
+export function futureYouCompareBeforeWeightLabel(
+  weightLbs: number | undefined,
+  weightUnit: WeightUnit,
+): string | null {
+  if (weightLbs == null || !Number.isFinite(weightLbs) || weightLbs <= 0) return null;
+  return `${formatSetWeight(weightLbs, weightUnit)} ${weightUnitLabel(weightUnit)}`;
+}
+
+export function futureYouCompareAfterWeightLabel(
+  goalWeightLbs: number | undefined,
+  weightUnit: WeightUnit,
+  goal: NutritionGoal | undefined,
+): string | null {
+  if (goalWeightLbs == null || !Number.isFinite(goalWeightLbs) || goalWeightLbs <= 0) return null;
+  const weight = `${formatSetWeight(goalWeightLbs, weightUnit)} ${weightUnitLabel(weightUnit)}`;
+  if (goal === "cut" || goal === "bulk") return `${weight} goal`;
+  return weight;
+}
 export const FUTURE_YOU_FULLSCREEN_DONE_LABEL = "Done";
 export const FUTURE_YOU_DETAIL_TAP_FULLSCREEN_HINT = "Tap image for full screen";
 

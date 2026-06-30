@@ -64,3 +64,7 @@ verify_jwt = true
 
 [functions.issue-report]
 verify_jwt = true
+
+# Inbound RevenueCat webhook: authenticated by REVENUECAT_WEBHOOK_AUTH header, not a user JWT.
+[functions.revenuecat-webhook]
+verify_jwt = false

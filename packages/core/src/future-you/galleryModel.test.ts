@@ -4,6 +4,8 @@ import {
   buildFutureYouGalleryItem,
   formatFutureYouGalleryCount,
   formatFutureYouGalleryDate,
+  futureYouCompareAfterWeightLabel,
+  futureYouCompareBeforeWeightLabel,
   shouldShowFutureYouGalleryTile,
 } from "./galleryModel";
 
@@ -35,5 +37,12 @@ describe("futureYouGalleryModel", () => {
     expect(shouldShowFutureYouGalleryTile("reveal", "ready")).toBe(true);
     expect(shouldShowFutureYouGalleryTile("upload_prompt", "generating")).toBe(true);
     expect(shouldShowFutureYouGalleryTile("upload_prompt", "idle")).toBe(false);
+  });
+
+  it("formats compare weight labels for side-by-side export", () => {
+    expect(futureYouCompareBeforeWeightLabel(210, "lbs")).toBe("210 lbs");
+    expect(futureYouCompareAfterWeightLabel(195, "lbs", "cut")).toBe("195 lbs goal");
+    expect(futureYouCompareAfterWeightLabel(195, "lbs", "maintain")).toBe("195 lbs");
+    expect(futureYouCompareBeforeWeightLabel(undefined, "lbs")).toBeNull();
   });
 });

@@ -1,8 +1,15 @@
-export default function AdminCommunityFoodsPage() {
+import { FoodsTable } from "../../../components/FoodsTable";
+import { DemoBanner } from "../../../components/DemoBanner";
+import { getFoods } from "../../../lib/data";
+
+export const dynamic = "force-dynamic";
+
+export default async function CommunityFoodsPage() {
+  const { data, demo } = await getFoods();
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Community foods</h1>
-      <p className="mt-2 text-muted">Moderate community_foods submissions.</p>
-    </div>
+    <>
+      <DemoBanner show={demo} />
+      <FoodsTable foods={data} />
+    </>
   );
 }

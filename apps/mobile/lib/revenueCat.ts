@@ -4,6 +4,8 @@ import type { PaywallBillingPeriod } from "@/lib/paywallPlans";
 
 const IOS_KEY = String(process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? "").trim();
 const ANDROID_KEY = String(process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? "").trim();
+/** Must match the entitlement Identifier in RevenueCat (Product catalog → Entitlements). */
+const PRO_ENTITLEMENT_ID = "New You AI Pro";
 
 let configured = false;
 let purchasesModuleUnavailable = false;
@@ -52,9 +54,13 @@ export async function configureRevenueCat(): Promise<void> {
   }
 }
 
-/** Optional identity link after Supabase auth (RN-4 scope: configure only; logIn when user id available). */
+/** Link the RevenueCat customer to the Supabase user id so webhooks map to the right account. */
 export async function logInRevenueCat(appUserId: string): Promise<void> {
-  if (!configured || !appUserId.trim()) return;
+  if (!appUserId.trim()) return;
+  if (!configured) {
+    await configureRevenueCat();
+    if (!configured) return;
+  }
 
   const Purchases = loadPurchasesModule()?.default;
   if (!Purchases) return;
@@ -63,6 +69,20 @@ export async function logInRevenueCat(appUserId: string): Promise<void> {
     await Purchases.logIn(appUserId);
   } catch {
     purchasesModuleUnavailable = true;
+  }
+}
+
+/** Detach the current user from RevenueCat on sign-out so the device isn't left linked. */
+export async function logOutRevenueCat(): Promise<void> {
+  if (!configured) return;
+
+  const Purchases = loadPurchasesModule()?.default;
+  if (!Purchases) return;
+
+  try {
+    await Purchases.logOut();
+  } catch {
+    // Best-effort; anonymous RevenueCat users cannot log out and that's fine.
   }
 }
 
@@ -108,7 +128,7 @@ export async function purchaseProSubscription(period: PaywallBillingPeriod): Pro
     }
 
     const { customerInfo } = await Purchases.purchasePackage(pkg);
-    const hasPro = Boolean(customerInfo.entitlements.active.pro);
+    const hasPro = Boolean(customerInfo.entitlements.active[PRO_ENTITLEMENT_ID]);
     if (!hasPro) {
       return { ok: false, error: "Purchase did not grant pro entitlement" };
     }
@@ -140,7 +160,7 @@ export async function restorePurchases(): Promise<PurchaseProResult> {
     }
 
     const customerInfo = await Purchases.restorePurchases();
-    const hasPro = Boolean(customerInfo.entitlements.active.pro);
+    const hasPro = Boolean(customerInfo.entitlements.active[PRO_ENTITLEMENT_ID]);
     return hasPro ? { ok: true, stub: false } : { ok: false, error: "No active subscription found" };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Restore failed";

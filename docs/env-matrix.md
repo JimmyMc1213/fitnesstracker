@@ -26,7 +26,7 @@ The image model is selected server-side, not in any client `.env`. React Native 
 | `OPENAI_API_KEY` | yes (default) | Used when provider is `openai`. Model is `gpt-image-2`. May require OpenAI Organization Verification. |
 | `FUTURE_YOU_IMAGE_PROVIDER` | opt | `openai` (default) or `grok`. |
 | `XAI_API_KEY` | only for `grok` | xAI key from <https://console.x.ai>. Model is `grok-imagine-image-quality`. |
-| `FUTURE_YOU_ENTITLEMENT_STUB` | opt (testing) | `true` makes the status endpoint return the full `resultSignedUrl` so the unblurred reveal can be tested without real IAP. |
+| `FUTURE_YOU_ENTITLEMENT_STUB` | opt (testing) | Dev-only override. `true` forces the status endpoint to return the full `resultSignedUrl` so the unblurred reveal can be tested without real IAP. When unset, entitlement is read from the `subscriptions` table (populated by the RevenueCat webhook). |
 
 ### Switch to Grok
 
@@ -148,10 +148,33 @@ EXPO_PUBLIC_REVENUECAT_IOS_KEY=appl_xxxxxxxx
 
 Production App Store products: see [`revenuecat-app-store-setup.md`](revenuecat-app-store-setup.md).
 
+On sign-in, the app links the RevenueCat customer to the Supabase user id (`Purchases.logIn(session.user.id)` in [`AuthContext.tsx`](../apps/mobile/context/AuthContext.tsx)), so `app_user_id` in webhook events equals `auth.users.id`.
+
 ```javascript
 import AsyncStorage from "@react-native-async-storage/async-storage";
 await AsyncStorage.setItem("@newyouai/onboardingComplete", "false");
 ```
+
+### RevenueCat webhook & server entitlement (server-authoritative)
+
+The `subscriptions` table ([`010_subscriptions.sql`](../supabase/migrations/010_subscriptions.sql)) is the source of truth for who has paid. The [`revenuecat-webhook`](../supabase/functions/revenuecat-webhook/index.ts) edge function ingests RevenueCat events and upserts a row per user; [`future-you-status`](../supabase/functions/future-you-status/index.ts) reads it to decide whether to return the unblurred image.
+
+| Secret | Required | Notes |
+|--------|:--------:|-------|
+| `REVENUECAT_WEBHOOK_AUTH` | yes (server) | Shared secret. Must exactly match the **Authorization header** value configured in RevenueCat → Integrations → Webhooks. The function rejects requests whose `Authorization` header does not match. |
+
+`revenuecat-webhook` runs with `verify_jwt = false` (see [`config.toml`](../supabase/config.toml)) because RevenueCat calls it with the shared secret, not a user JWT.
+
+```bash
+# Set the webhook secret and deploy the function + migration
+supabase secrets set REVENUECAT_WEBHOOK_AUTH="<random-strong-string>" --project-ref ztedlrvvkcjxoomwavyd
+supabase db push --project-ref ztedlrvvkcjxoomwavyd
+supabase functions deploy revenuecat-webhook --project-ref ztedlrvvkcjxoomwavyd
+```
+
+Then in RevenueCat → Integrations → Webhooks, point the URL at
+`https://ztedlrvvkcjxoomwavyd.supabase.co/functions/v1/revenuecat-webhook`
+and set its Authorization header to the same `REVENUECAT_WEBHOOK_AUTH` value.
 
 ### Custom scheme deep links (RN-3-06)
 

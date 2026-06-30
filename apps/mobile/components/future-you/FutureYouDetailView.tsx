@@ -6,6 +6,7 @@ import { FutureYouReportButton } from "@/components/future-you/FutureYouReportBu
 import { OnboardingFutureYouSuccessHero } from "@/components/onboarding/OnboardingFutureYouSuccessHero";
 import { useFutureYouSourceImage } from "@/hooks/useFutureYouSourceImage";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { captureFutureYouCompareImage } from "@/lib/captureFutureYouCompareImage";
 import { futureYouRevealPlaceholderSource } from "@/lib/futureYouRevealPlaceholder";
 import { FUTURE_YOU_CALLOUT_BG, FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
 import {
@@ -16,11 +17,13 @@ import {
   FUTURE_YOU_GALLERY_SAVE_SUCCESS,
   FUTURE_YOU_GALLERY_SAVING_LABEL,
   FUTURE_YOU_SUCCESS_AI_LABEL,
+  futureYouCompareAfterWeightLabel,
+  futureYouCompareBeforeWeightLabel,
   futureYouRedoAnchorIso,
   type FutureYouGalleryItem,
 } from "@newyouai/core";
-import type { FutureYouDraft, FutureYouJobStatus, NutritionGoal, UserGender } from "@newyouai/types";
-import { useEffect, useState } from "react";
+import type { FutureYouDraft, FutureYouJobStatus, NutritionGoal, UserGender, WeightUnit } from "@newyouai/types";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 type Props = {
@@ -33,6 +36,9 @@ type Props = {
   jobId?: string;
   /** Persisted storage path for the upload used to create this preview. */
   sourcePhotoPath?: string;
+  weightLbs?: number;
+  goalWeightLbs?: number;
+  weightUnit?: WeightUnit;
   onBack: () => void;
   onFutureYouDeleted: (jobId: string) => void;
   onReported?: (jobId: string) => void;
@@ -47,16 +53,28 @@ export function FutureYouDetailView({
   futureYou,
   jobId,
   sourcePhotoPath,
+  weightLbs,
+  goalWeightLbs,
+  weightUnit = "lbs",
   onBack,
   onFutureYouDeleted,
   onReported,
 }: Props) {
   const { colors } = useAppTheme();
+  const compareCaptureRef = useRef<View>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const placeholderSource = futureYouRevealPlaceholderSource(gender);
   const canSave = Boolean(item.imageSrc && !item.loading);
+  const beforeSubtitle = useMemo(
+    () => futureYouCompareBeforeWeightLabel(weightLbs, weightUnit),
+    [weightLbs, weightUnit],
+  );
+  const afterSubtitle = useMemo(
+    () => futureYouCompareAfterWeightLabel(goalWeightLbs, weightUnit, goal),
+    [goalWeightLbs, weightUnit, goal],
+  );
   const { sourceUri, loading: sourceLoading } = useFutureYouSourceImage(
     sourcePhotoPath,
     item.id,
@@ -78,7 +96,23 @@ export function FutureYouDetailView({
     setSaveState("saving");
     setSaveError(null);
     const { saveImageToDevice } = await import("@/lib/saveImageToDevice");
-    const result = await saveImageToDevice(item.imageSrc, `newyou-${item.id.slice(0, 8)}.png`);
+    const filename = `newyou-${item.id.slice(0, 8)}.png`;
+
+    if (compareOpen && canCompare && sourceUri) {
+      const capturedUri = await captureFutureYouCompareImage(compareCaptureRef);
+      if (capturedUri) {
+        const result = await saveImageToDevice(capturedUri, filename);
+        if (result.ok) {
+          setSaveState("success");
+          return;
+        }
+        setSaveState("error");
+        setSaveError(result.error);
+        return;
+      }
+    }
+
+    const result = await saveImageToDevice(item.imageSrc, filename);
     if (result.ok) {
       setSaveState("success");
       return;
@@ -140,7 +174,13 @@ export function FutureYouDetailView({
             placeholderSource={placeholderSource}
           />
         : compareOpen && canCompare && item.imageSrc && sourceUri ?
-          <FutureYouComparePanels beforeUri={sourceUri} afterUri={item.imageSrc} />
+          <FutureYouComparePanels
+            captureRef={compareCaptureRef}
+            beforeUri={sourceUri}
+            afterUri={item.imageSrc}
+            beforeSubtitle={beforeSubtitle}
+            afterSubtitle={afterSubtitle}
+          />
         : <View className="flex-1">
             <OnboardingFutureYouSuccessHero
               fill

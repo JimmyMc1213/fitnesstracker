@@ -1,33 +1,30 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
 
-const nav = [
-  { href: "/", label: "Dashboard" },
-  { href: "/users", label: "Users" },
-  { href: "/future-you", label: "Future You" },
-  { href: "/community-foods", label: "Community foods" },
-  { href: "/settings", label: "Settings" },
-];
+import { Sidebar } from "../../components/Sidebar";
+import { Topbar } from "../../components/Topbar";
+import { ToastProvider } from "../../components/Toast";
+import { getAdminSession } from "../../lib/auth";
+import { isAuthConfigured, isDevAuthBypass } from "../../lib/env";
+import { getNavBadges } from "../../lib/data";
 
-export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  if (process.env.VERCEL_ENV === "production" && !process.env.ADMIN_ALLOWED_EMAILS?.trim()) {
-    throw new Error("ADMIN_ALLOWED_EMAILS must be set for production admin deploys.");
+export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const session = await getAdminSession();
+  if (isAuthConfigured() && !session && !isDevAuthBypass()) {
+    redirect("/login");
   }
 
+  const badges = await getNavBadges();
+  const account = session ?? { name: "Owner", role: "owner" };
+
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-border px-6 py-4">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <span className="font-semibold">New You AI Admin</span>
-          <nav className="flex gap-4 text-sm text-muted">
-            {nav.map((item) => (
-              <Link key={item.href} href={item.href} className="hover:text-foreground">
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+    <ToastProvider>
+      <div className="app">
+        <Sidebar badges={badges} account={{ name: account.name, role: account.role }} />
+        <div className="main">
+          <Topbar />
+          <div className="content">{children}</div>
         </div>
-      </header>
-      <div className="mx-auto max-w-6xl px-6 py-8">{children}</div>
-    </div>
+      </div>
+    </ToastProvider>
   );
 }

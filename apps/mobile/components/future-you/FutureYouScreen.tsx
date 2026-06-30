@@ -761,6 +761,9 @@ export function FutureYouScreen() {
           futureYou={draft}
           jobId={detailItem.id}
           sourcePhotoPath={detailSourcePhotoPath}
+          weightLbs={profile?.weightLbs}
+          goalWeightLbs={profile?.goalWeightLbs}
+          weightUnit={state?.unitPreferences.weightUnit ?? "lbs"}
           onBack={onBackToGallery}
           onFutureYouDeleted={onDetailFutureYouDeleted}
           onReported={onFutureYouReported}
