@@ -120,6 +120,26 @@ describe("futureYouPageModel", () => {
     expect(shouldSkipFutureYouRedoCooldown(draft)).toBe(false);
   });
 
+  it("skips redo cooldown when the active generation failed", () => {
+    const failedDraft = {
+      generationJobId: "job-failed",
+      generationReadyAt: readyAt,
+      generationStatus: "failed" as const,
+    };
+    expect(shouldSkipFutureYouRedoCooldown(failedDraft)).toBe(true);
+    const oneWeekLater = Date.parse(readyAt) + 7 * 24 * 60 * 60 * 1000;
+    expect(
+      canRedoFutureYouTransformation(
+        "reveal",
+        "failed",
+        readyAt,
+        false,
+        oneWeekLater,
+        shouldSkipFutureYouRedoCooldown(failedDraft),
+      ),
+    ).toBe(true);
+  });
+
   it("blocks redo until 14 days after ready", () => {
     const oneWeekLater = Date.parse(readyAt) + 7 * 24 * 60 * 60 * 1000;
     expect(canRedoFutureYouTransformation("reveal", "ready", readyAt, false, oneWeekLater)).toBe(false);

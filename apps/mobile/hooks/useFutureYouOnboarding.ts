@@ -5,7 +5,7 @@ import {
   ONBOARDING_STEP_FUTURE_YOU_PHOTO,
 } from "@newyouai/core";
 import type { FutureYouDraft, OnboardingProfile } from "@newyouai/types";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import {
   pickFutureYouPhotoFromCamera,
@@ -32,6 +32,7 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const reuploadReturnStepRef = useRef(ONBOARDING_STEP_ACTIVITY);
 
   const futureYouSkippedDraft = useCallback(() => {
     return mergeFutureYouDraft(futureYou, {
@@ -89,7 +90,14 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
   }, [applyPhotoPreview]);
 
   const continueFutureYouPhoto = useCallback(
-    async (previewOverride?: string, consentAtOverride?: string) => {
+    async (
+      previewOverride?: string,
+      consentAtOverride?: string,
+      returnStep?: number,
+    ) => {
+      if (returnStep !== undefined) {
+        reuploadReturnStepRef.current = returnStep;
+      }
       const preview = previewOverride ?? photoPreview;
       const consentAt = consentAtOverride ?? futureYou?.photoAiConsentAt;
       if (!preview || !consentAt) return;
@@ -119,9 +127,11 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
     [futureYou, goToStep, photoPreview],
   );
 
-  const continueFutureYouMotivation = useCallback(async () => {
+  const continueFutureYouMotivation = useCallback(async (returnStep?: number) => {
     const motivationId = futureYou?.motivationId?.trim();
     if (!motivationId || generating) return;
+
+    const targetStep = returnStep ?? reuploadReturnStepRef.current ?? ONBOARDING_STEP_ACTIVITY;
 
     if (
       futureYou?.generationJobId &&
@@ -129,7 +139,7 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
       futureYou.generationStatus !== "idle" &&
       futureYou.generationStatus !== "failed"
     ) {
-      goToStep(ONBOARDING_STEP_ACTIVITY);
+      goToStep(targetStep);
       return;
     }
 
@@ -155,9 +165,11 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
         photoUploaded: true,
         generationJobId: result.jobId,
         generationStatus: result.status,
+        generationError: undefined,
+        generationReadyAt: undefined,
       });
       setPhotoPreview(null);
-      goToStep(ONBOARDING_STEP_ACTIVITY, { futureYou: nextFutureYou });
+      goToStep(targetStep, { futureYou: nextFutureYou });
     } catch (error) {
       const message =
         error instanceof FutureYouGenerateError ? error.message
@@ -171,6 +183,29 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
       setGenerating(false);
     }
   }, [futureYou, generating, goToStep, patchFutureYou, photoPreview, profile]);
+
+  const startFutureYouReupload = useCallback(
+    (returnStep: number) => {
+      reuploadReturnStepRef.current = returnStep;
+      setPhotoPreview(null);
+      setUploadError(null);
+      setGenerateError(null);
+      // photoSkipped:true is the only state that satisfies canRevisitFutureYouPhoto,
+      // which the navigation guard requires to re-enter the goal-locked photo step.
+      // Uploading a new photo resets photoSkipped back to false.
+      const nextFutureYou = mergeFutureYouDraft(futureYou, {
+        photoSkipped: true,
+        generationStatus: "idle",
+        generationJobId: undefined,
+        generationError: undefined,
+        generationReadyAt: undefined,
+        photoStoragePath: undefined,
+        photoUploaded: false,
+      });
+      goToStep(ONBOARDING_STEP_FUTURE_YOU_PHOTO, { futureYou: nextFutureYou });
+    },
+    [futureYou, goToStep],
+  );
 
   const clearPhoto = useCallback(() => {
     setPhotoPreview(null);
@@ -203,6 +238,7 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
     pickFromGallery,
     continueFutureYouPhoto,
     continueFutureYouMotivation,
+    startFutureYouReupload,
     clearPhoto,
     grantAiConsent,
     selectMotivation,

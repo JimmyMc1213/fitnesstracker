@@ -666,6 +666,7 @@ export {
   ONBOARDING_PLAN_READY_CONTINUE_LABEL,
   ONBOARDING_FUTURE_YOU_CONTINUE_LABEL,
   isFutureYouPaywallHeroVisible,
+  isFutureYouPaywallFailedVisible,
   isFutureYouPaywallCtaEnabled,
   isPlanOnlyPaywallPath,
   onboardingPlanReadyContinueLabel,
@@ -691,6 +692,14 @@ export {
   futureYouGenerationPillCopy,
   type FutureYouGenerationPillCopy,
 } from "./future-you/generationPillModel";
+export {
+  FUTURE_YOU_FAILURE_TIPS_INTRO,
+  FUTURE_YOU_FAILURE_TIPS,
+  FUTURE_YOU_FAILURE_PRIMARY_CTA,
+  FUTURE_YOU_FAILURE_SYSTEM_LEAD,
+  futureYouFailureCopy,
+  type FutureYouFailureCopy,
+} from "./future-you/failureModel";
 export {
   futureYouSilhouetteGenderKey,
   type FutureYouSilhouetteGenderKey,

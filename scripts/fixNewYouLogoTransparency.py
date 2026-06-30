@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Strip baked-in black logo plates while preserving interior muscle linework."""
+"""Strip baked-in black plates and muscle linework from NewYou logo PNGs.
+
+Interior pec/abs/bicep lines must be transparent cutouts, not black strokes —
+otherwise they read as black artifacts on non-black app backgrounds.
+"""
 
 from __future__ import annotations
 
-import sys
 from collections import deque
 from pathlib import Path
 
@@ -31,6 +34,19 @@ LOGO_PATHS = [
 
 def is_black_pixel(r: int, g: int, b: int, a: int) -> bool:
     return a > 128 and r <= BLACK_THRESH and g <= BLACK_THRESH and b <= BLACK_THRESH
+
+
+def is_gold_pixel(r: int, g: int, b: int, a: int) -> bool:
+    """Tan/gold muscle fill plus its edge anti-aliasing — keep these opaque."""
+    if a <= 128:
+        return False
+    return (
+        r >= 60
+        and g >= 45
+        and b >= 28
+        and r >= g >= b
+        and (r - b) >= 15
+    )
 
 
 def normalize_transparent_rgb(im: Image.Image) -> Image.Image:
@@ -80,6 +96,22 @@ def remove_black_background(im: Image.Image) -> tuple[Image.Image, int]:
     return rgba, removed
 
 
+def remove_dark_linework(im: Image.Image) -> tuple[Image.Image, int]:
+    """Turn interior black strokes and dark edge halos into transparent cutouts."""
+    rgba = im.convert("RGBA")
+    px = rgba.load()
+    w, h = rgba.size
+    removed = 0
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a <= 128 or is_gold_pixel(r, g, b, a):
+                continue
+            px[x, y] = (0, 0, 0, 0)
+            removed += 1
+    return rgba, removed
+
+
 def to_monochrome_white(im: Image.Image) -> Image.Image:
     rgba = im.convert("RGBA")
     px = rgba.load()
@@ -98,7 +130,8 @@ def process_file(path: Path, monochrome: bool = False) -> None:
         return
 
     with Image.open(path) as src:
-        cleaned, removed = remove_black_background(src)
+        cleaned, bg_removed = remove_black_background(src)
+        cleaned, line_removed = remove_dark_linework(cleaned)
         if monochrome:
             cleaned = to_monochrome_white(cleaned)
         cleaned = normalize_transparent_rgb(cleaned)
@@ -115,9 +148,15 @@ def process_file(path: Path, monochrome: bool = False) -> None:
             for x in range(w)
             if px[x, y][3] > 128 and px[x, y][0] < 40 and px[x, y][1] < 40 and px[x, y][2] < 40
         )
+        dark_left = sum(
+            1
+            for y in range(h)
+            for x in range(w)
+            if px[x, y][3] > 128 and not is_gold_pixel(*px[x, y])
+        )
     print(
-        f"{path.relative_to(REPO_ROOT)}: removed {removed} bg px, "
-        f"transparent={transparent}/{w * h}, linework_black={black_left}"
+        f"{path.relative_to(REPO_ROOT)}: removed bg={bg_removed} line={line_removed}, "
+        f"transparent={transparent}/{w * h}, black_left={black_left}, dark_left={dark_left}"
     )
 
 

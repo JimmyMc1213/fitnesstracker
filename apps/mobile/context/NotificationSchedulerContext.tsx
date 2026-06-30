@@ -109,26 +109,30 @@ export function NotificationSchedulerProvider({ children }: { children: ReactNod
         let Notifications = await loadExpoNotificationsModule();
         if (!Notifications) return;
 
-        if (patches.workoutPayload) {
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: patches.workoutPayload.title,
-              body: patches.workoutPayload.body,
-              data: { tag: patches.workoutPayload.tag },
-            },
-            trigger: null,
-          });
-        }
+        try {
+          if (patches.workoutPayload) {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: patches.workoutPayload.title,
+                body: patches.workoutPayload.body,
+                data: { tag: patches.workoutPayload.tag },
+              },
+              trigger: null,
+            });
+          }
 
-        if (patches.nutritionPayload) {
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: patches.nutritionPayload.title,
-              body: patches.nutritionPayload.body,
-              data: { tag: patches.nutritionPayload.tag },
-            },
-            trigger: null,
-          });
+          if (patches.nutritionPayload) {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: patches.nutritionPayload.title,
+                body: patches.nutritionPayload.body,
+                data: { tag: patches.nutritionPayload.tag },
+              },
+              trigger: null,
+            });
+          }
+        } catch {
+          // Immediate-fire scheduling can throw in unsupported environments; never crash.
         }
 
         if (patches.notificationPreferences && (patches.workoutPayload || patches.nutritionPayload)) {

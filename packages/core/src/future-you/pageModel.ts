@@ -23,6 +23,7 @@ export function shouldSkipFutureYouRedoCooldown(
   devBypass = false,
 ): boolean {
   if (devBypass) return true;
+  if (draft?.generationStatus === "failed") return true;
   const reported = draft?.reportedJobId?.trim();
   const active = draft?.generationJobId?.trim();
   return Boolean(reported && active && reported === active);

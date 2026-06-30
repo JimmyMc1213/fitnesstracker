@@ -86,8 +86,6 @@ function InlineTimeDial({
   return (
     <View
       testID={testID}
-      onStartShouldSetResponder={() => true}
-      onMoveShouldSetResponder={() => true}
       style={{ marginTop: 4, marginHorizontal: -4 }}
     >
       <TimeWheelPicker

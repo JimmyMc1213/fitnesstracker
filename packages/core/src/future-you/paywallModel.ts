@@ -12,6 +12,17 @@ export const FUTURE_YOU_PAYWALL_CTA_PLAN_ONLY = "Start My Journey";
 export const ONBOARDING_PLAN_READY_CONTINUE_LABEL = "Unlock your plan";
 export const ONBOARDING_FUTURE_YOU_CONTINUE_LABEL = "Continue to Future You";
 
+/** True when the user is on the photo path with a failed generation job. */
+export function isFutureYouPaywallFailedVisible(
+  futureYou: FutureYouDraft | undefined,
+  photoBlocked: boolean,
+): boolean {
+  if (!futureYou || photoBlocked) return false;
+  if (futureYou.photoSkipped) return false;
+  if (!futureYou.generationJobId?.trim()) return false;
+  return (futureYou.generationStatus ?? "idle") === "failed";
+}
+
 /** Show blurred Future You hero on paywall (photo path with an active, non-failed job). */
 export function isFutureYouPaywallHeroVisible(
   futureYou: FutureYouDraft | undefined,

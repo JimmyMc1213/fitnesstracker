@@ -58,7 +58,10 @@ import {
   startFutureYouGeneration,
 } from "./futureYouGenerateService";
 import { futureYouTimelineFromProfile } from "./futureYouTimeline";
-import { FutureYouUploadError, uploadFutureYouPhoto } from "./futureYouUploadService";
+import {
+  FutureYouUploadError,
+  uploadFutureYouPhoto,
+} from "./futureYouUploadService";
 import { FutureYouGenerationPill } from "./FutureYouGenerationPill";
 import { FutureYouGenerationPillProvider } from "./FutureYouGenerationPillContext";
 import { FutureYouReadyBanner } from "./FutureYouReadyBanner";

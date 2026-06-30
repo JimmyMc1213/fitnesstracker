@@ -12,11 +12,13 @@ import {
 import { ActivityIndicator, Image, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { FutureYouFailureRecovery } from "@/components/future-you/FutureYouFailureRecovery";
 import { FutureYouReportButton } from "@/components/future-you/FutureYouReportButton";
 import { OnboardingPaywallPlanSummary } from "@/components/onboarding/OnboardingPaywallPlanSummary";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { useFutureYouRevealImage } from "@/hooks/useFutureYouRevealImage";
+import { isFutureYouPaywallFailedVisible } from "@/lib/futureYouPaywallModel";
 import {
   futureYouGoalLabel,
   futureYouWeightDeltaLabel,
@@ -37,6 +39,7 @@ type Props = {
   continuing?: boolean;
   previewMode?: boolean;
   onReported?: (jobId: string) => void;
+  onReupload?: () => void;
 };
 
 /** Gold ring color = `--ob-gold` (#c9a876) at 0.75, matching PWA `__image-wrap`. */
@@ -55,10 +58,12 @@ export function OnboardingFutureYouSuccess({
   continuing = false,
   previewMode = false,
   onReported,
+  onReupload,
 }: Props) {
   const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
+  const failedVisible = isFutureYouPaywallFailedVisible(futureYou, photoBlocked);
   const heroVisible = isFutureYouSuccessHeroVisible(futureYou, photoBlocked);
   const { imageUri, loading } = useFutureYouRevealImage({
     jobId: futureYou?.generationJobId,
@@ -106,11 +111,37 @@ export function OnboardingFutureYouSuccess({
       <View
         className="flex-1"
         style={
-          heroVisible
+          heroVisible || failedVisible
             ? { gap: 12, justifyContent: "flex-start", paddingTop: 4 }
             : { gap: 20, justifyContent: "center" }
         }
       >
+        {failedVisible && onReupload ? (
+          <>
+            <View className="items-center" style={{ gap: 4 }}>
+              <Text
+                className="text-center text-[34px] font-bold"
+                style={{ color: ob.gold, letterSpacing: -0.5 }}
+              >
+                Future You
+              </Text>
+              <Text
+                className="text-center text-xl font-medium"
+                style={{ color: colors.textSecondary }}
+                accessibilityLabel={`You in ${planSnapshot.timeline}`}
+              >
+                You in {planSnapshot.timeline}
+              </Text>
+            </View>
+            <FutureYouFailureRecovery
+              generationError={futureYou?.generationError}
+              onReupload={onReupload}
+              tone="onboarding"
+              testID="onboarding-future-you-success-failure"
+            />
+          </>
+        ) : null}
+
         {heroVisible ? (
           <>
             <View className="items-center" style={{ gap: 4 }}>
@@ -194,7 +225,7 @@ export function OnboardingFutureYouSuccess({
               />
             </View>
           </>
-        ) : (
+        ) : !failedVisible ? (
           <>
             <View
               className="mx-auto h-16 w-16 items-center justify-center rounded-full"
@@ -216,11 +247,11 @@ export function OnboardingFutureYouSuccess({
               {FUTURE_YOU_SUCCESS_WELCOME_BRAND}
             </Text>
           </>
-        )}
+        ) : null}
       </View>
 
       <View style={{ gap: 14 }}>
-        {heroVisible ? (
+        {heroVisible || failedVisible ? (
           <Text className="text-center text-base" style={{ color: colors.textSecondary }}>
             {FUTURE_YOU_SUCCESS_WELCOME_PREFIX}
             <Text className="font-semibold" style={{ color: ob.gold }}>

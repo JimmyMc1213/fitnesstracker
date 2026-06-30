@@ -20,7 +20,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "cut_generic_best",
     label: "Look my best",
     promptFragment:
-      "Show a healthier, slightly leaner version of this exact person — modest waist slimming, natural tone in chest shoulders and arms. Body changes only; do not alter the face. Believable for the stated timeline; motivating but never fantasy abs or airbrushed leanness.",
+      "Show a clearly leaner, tighter version — visible waist slimming, less body fat, and stronger tone in chest, shoulders, and arms. Body changes only; do not alter the face. Make the transformation obvious and motivating.",
     loadingPhrase: "Polishing your look…",
     isGeneric: true,
     goals: ["cut"],
@@ -30,7 +30,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "cut_generic_lean",
     label: "Lean & defined",
     promptFragment:
-      "Show a leaner body with a tighter, smoother waist — love handles reduced or gone, flatter belly, natural tone in chest and shoulders. Match the stated weight loss — fit and leaner, not stage-ready and not 'ripped fat'.",
+      "Show a clearly leaner body — tighter waist, reduced love handles, flatter belly, and visible muscle definition in chest, shoulders, and arms.",
     loadingPhrase: "Sharpening definition…",
     isGeneric: true,
     goals: ["cut"],
@@ -40,7 +40,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "cut_generic_confident",
     label: "Feel confident",
     promptFragment:
-      "Project a confident, fit appearance — leaner frame, natural tone in shoulders and arms.",
+      "Project a confident, fit appearance — visibly leaner frame with defined shoulders, arms, and core.",
     loadingPhrase: "Building your confident look…",
     isGeneric: true,
     goals: ["cut"],
@@ -62,7 +62,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "cut_f_toned_arms",
     label: "Toned arms",
     promptFragment:
-      "Highlight lean, toned upper arms and shoulders — visible definition without looking overly muscular.",
+      "Highlight lean, toned upper arms and shoulders — clear muscle definition that reads athletic and strong.",
     loadingPhrase: "Toning your arms…",
     isGeneric: false,
     goals: ["cut"],
@@ -72,7 +72,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "cut_f_beach_ready",
     label: "Beach-ready",
     promptFragment:
-      "Show a sun-ready, lean physique — flat midsection, toned legs, and an athletic but feminine silhouette.",
+      "Show a sun-ready, lean physique — flat midsection, toned legs, visible muscle definition, and an athletic silhouette.",
     loadingPhrase: "Getting beach-ready…",
     isGeneric: false,
     goals: ["cut"],
@@ -82,7 +82,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "cut_f_abs",
     label: "Visible abs",
     promptFragment:
-      "Emphasize a tighter core only if already plausible — otherwise a flatter belly and slimmer waistline without sharp abdominal lines.",
+      "Emphasize a tighter core and visible ab definition when plausible — flatter belly, slimmer waist, and clear midsection tone.",
     loadingPhrase: "Toning your core…",
     isGeneric: false,
     goals: ["cut"],
@@ -94,7 +94,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "cut_m_veins",
     label: "Visible veins & definition",
     promptFragment:
-      "Emphasize lean, naturally visible vascularity on forearms and arms — realistic gym-lean look with subtle vein detail, not stage-ready bodybuilding dryness.",
+      "Emphasize lean, visible vascularity and arm definition — gym-lean look with clear muscle separation.",
     loadingPhrase: "Enhancing arm definition…",
     isGeneric: false,
     goals: ["cut"],
@@ -104,7 +104,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "cut_m_abs",
     label: "Visible abs",
     promptFragment:
-      "If the source already shows abs, modest additional core tone only. If not, show a flatter belly and slimmer waist — never invent sharp six-pack lines or fake ab definition.",
+      "Show a flatter belly, slimmer waist, and visible core and ab definition — clear leanness in the midsection.",
     loadingPhrase: "Carving your core…",
     isGeneric: false,
     goals: ["cut"],
@@ -124,7 +124,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "cut_m_beach_ready",
     label: "Beach-ready",
     promptFragment:
-      "Show a leaner, beach-ready look — slimmer waist, natural tone in chest and shoulders, healthier skin. Flat midsection is fine; do not add carved abs unless already plausible in the source.",
+      "Show a leaner, beach-ready look — slimmer waist, defined chest and shoulders, tighter midsection, and healthier skin.",
     loadingPhrase: "Getting beach-ready…",
     isGeneric: false,
     goals: ["cut"],
@@ -148,7 +148,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "bulk_generic_strong",
     label: "Strong & filled out",
     promptFragment:
-      "Show a slightly fuller, stronger build below the collarbone only — modest added muscle under the same clothes, with a bit more chest and arm shape while staying proportional. Keep the exact same shirt and outfit. Do not alter the face. Same person, not a fitness model swap.",
+      "Show a clearly stronger, filled-out build below the neck — visibly bigger and fuller chest, shoulders, and arms with real added muscle size that fills out the same shirt and stretches the sleeves a little. Make the muscle gain obvious and motivating, like a dedicated natural lifter after consistent training, while keeping the body proportional and believable. Keep the exact same face, hair, and outfit — same person, just noticeably more muscular.",
     loadingPhrase: "Filling out your frame…",
     isGeneric: true,
     goals: ["bulk"],
@@ -158,7 +158,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "bulk_generic_athletic",
     label: "Athletic physique",
     promptFragment:
-      "Emphasize an athletic, muscular build — balanced upper and lower body with visible muscle without excess fat.",
+      "Show a noticeably athletic, muscular build — well-developed chest, shoulders, arms, and back with clearly visible muscle and lean, low-to-moderate body fat, like a fit gym regular. Keep the same person and face.",
     loadingPhrase: "Building your athletic look…",
     isGeneric: true,
     goals: ["bulk"],
@@ -168,7 +168,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "bulk_generic_powerful",
     label: "Feel powerful",
     promptFragment:
-      "Project power and presence — broader shoulders, fuller muscles, and a confident, strong posture.",
+      "Project real power and presence — visibly broader shoulders, a thicker, fuller chest, and bigger, stronger muscles with a confident, powerful posture. Keep the same person and face.",
     loadingPhrase: "Adding power to your look…",
     isGeneric: true,
     goals: ["bulk"],
@@ -180,7 +180,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "bulk_m_shoulders",
     label: "Broader shoulders",
     promptFragment:
-      "Emphasize wider shoulders and a thicker upper body — capped delts, fuller chest, and a V-taper silhouette.",
+      "Show clearly wider shoulders and a thicker, more developed upper body — capped, rounded delts, a fuller chest, and an obvious V-taper. Keep the same person and face.",
     loadingPhrase: "Broadening your shoulders…",
     isGeneric: false,
     goals: ["bulk"],
@@ -190,7 +190,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "bulk_m_arms",
     label: "Bigger arms",
     promptFragment:
-      "Highlight fuller biceps and triceps with added arm size while keeping the rest of the physique proportionate.",
+      "Show clearly bigger, fuller biceps and triceps with obvious added arm size and a stronger upper body, while keeping the physique proportional. Keep the same person and face.",
     loadingPhrase: "Growing your arms…",
     isGeneric: false,
     goals: ["bulk"],
@@ -202,7 +202,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "bulk_f_curves",
     label: "Strong, filled-out look",
     promptFragment:
-      "Show a stronger, fuller physique with toned curves — fuller glutes and legs, defined shoulders, and athletic shape.",
+      "Show a clearly stronger, fuller physique with athletic curves — fuller, firmer glutes and legs, defined shoulders and arms, and a strong, toned shape. Keep the same person and face.",
     loadingPhrase: "Sculpting your strong look…",
     isGeneric: false,
     goals: ["bulk"],
@@ -212,7 +212,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "bulk_f_glutes",
     label: "Stronger glutes & legs",
     promptFragment:
-      "Emphasize fuller, toned glutes and legs with a strong lower body while keeping a balanced upper body.",
+      "Show clearly fuller, firmer glutes and stronger, more developed legs with a powerful lower body, keeping a balanced, athletic upper body. Keep the same person and face.",
     loadingPhrase: "Building your lower body…",
     isGeneric: false,
     goals: ["bulk"],
@@ -224,7 +224,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "bulk_shared_performance",
     label: "Perform better",
     promptFragment:
-      "Show a muscular, performance-ready build — added lean mass, strong posture, and an capable athlete look.",
+      "Show a clearly muscular, performance-ready build — noticeable added lean mass across the whole body, strong posture, and a capable, athletic look. Keep the same person and face.",
     loadingPhrase: "Powering up your build…",
     isGeneric: false,
     goals: ["bulk"],
@@ -236,7 +236,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "maintain_generic_healthier",
     label: "Healthier overall",
     promptFragment:
-      "Show a subtly healthier version — almost imperceptible improvements: slightly refreshed complexion, a touch more tone, same overall size and body fat.",
+      "Show a visibly healthier, tighter version — less body fat, more muscle tone, refreshed complexion, and a fitter frame at similar scale.",
     loadingPhrase: "Refreshing your look…",
     isGeneric: true,
     goals: ["maintain"],
@@ -246,7 +246,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "maintain_generic_energy",
     label: "More energy",
     promptFragment:
-      "Project vibrant health and energy — barely noticeable leaner frame, brighter complexion, and an alert look. Same weight class and clothing fit.",
+      "Project vibrant health and energy — visibly leaner frame, stronger muscle tone, brighter complexion, and an alert, athletic look.",
     loadingPhrase: "Brightening your look…",
     isGeneric: true,
     goals: ["maintain"],
@@ -256,7 +256,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "maintain_generic_glow",
     label: "Subtle glow-up",
     promptFragment:
-      "Show a subtle glow-up — slightly tighter waist, a touch more shoulder and arm tone, healthier complexion. Same weight class; gentle visible improvement, a little closer to early cut progress but still clearly maintain.",
+      "Show a clear glow-up — tighter waist, stronger shoulder and arm definition, less softness, and a healthier, more muscular look.",
     loadingPhrase: "Adding a subtle glow…",
     isGeneric: true,
     goals: ["maintain"],
@@ -268,7 +268,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "maintain_tone_up",
     label: "Subtle tone-up",
     promptFragment:
-      "Emphasize a minor tone-up only — barely tighter midsection, slightly more definition, same overall size and body fat.",
+      "Emphasize a visible tone-up — tighter midsection, clearer muscle definition, less body fat, stronger overall look.",
     loadingPhrase: "Toning up subtly…",
     isGeneric: false,
     goals: ["maintain"],
@@ -278,7 +278,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "maintain_kids_energy",
     label: "Keep up with my kids",
     promptFragment:
-      "Show a fitter, energetic parent look — healthier complexion, slightly leaner, and ready for an active lifestyle.",
+      "Show a fitter, energetic parent look — leaner frame, visible muscle tone, healthier complexion, and an active lifestyle look.",
     loadingPhrase: "Boosting your energy look…",
     isGeneric: false,
     goals: ["maintain"],
@@ -288,7 +288,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "maintain_posture",
     label: "Stand taller & stronger",
     promptFragment:
-      "Emphasize improved posture and subtle muscle tone — upright stance, slightly tighter core, same weight class.",
+      "Emphasize improved posture and visible muscle tone — upright stance, tighter core, stronger shoulders, less body fat.",
     loadingPhrase: "Refining your posture…",
     isGeneric: false,
     goals: ["maintain"],
@@ -298,7 +298,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "maintain_f_definition",
     label: "A little more definition",
     promptFragment:
-      "Show slightly more muscle definition in arms and legs while keeping the same overall weight and proportions.",
+      "Show clearly more muscle definition in arms and legs with a tighter waist and less body fat while staying the same person.",
     loadingPhrase: "Adding subtle definition…",
     isGeneric: false,
     goals: ["maintain"],
@@ -308,7 +308,7 @@ export const FUTURE_YOU_MOTIVATIONS: FutureYouMotivation[] = [
     id: "maintain_m_definition",
     label: "A little more definition",
     promptFragment:
-      "Show slightly more muscle definition in chest and arms while keeping the same overall weight and proportions.",
+      "Show clearly more muscle definition in chest and arms with a tighter waist and less body fat while staying the same person.",
     loadingPhrase: "Adding subtle definition…",
     isGeneric: false,
     goals: ["maintain"],

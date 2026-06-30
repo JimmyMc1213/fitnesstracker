@@ -1,5 +1,6 @@
 import { IconMessageCircle, IconUsers } from "@tabler/icons-react-native";
 import type { ReferralSource } from "@newyouai/types";
+import type { ReactNode } from "react";
 import type { ImageSourcePropType } from "react-native";
 import { Image, Text, View } from "react-native";
 
@@ -33,30 +34,49 @@ const GLYPH_ICONS: Partial<Record<ReferralSource, TablerIcon>> = {
 
 const ICON_SIZE = 32;
 
-function ReferralSourceIcon({ source }: { source: ReferralSource }) {
-  const image = BRAND_ICON_IMAGES[source];
-  if (image) {
-    return (
-      <Image
-        source={image}
-        style={{ width: ICON_SIZE, height: ICON_SIZE }}
-        resizeMode="contain"
-      />
-    );
-  }
-
-  const Icon = GLYPH_ICONS[source] ?? IconMessageCircle;
+function ReferralSourceIconSlot({ children }: { children: ReactNode }) {
   return (
     <View
       style={{
         width: ICON_SIZE,
         height: ICON_SIZE,
+        flexShrink: 0,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Icon size={24} color="#6B7280" strokeWidth={2} />
+      {children}
     </View>
+  );
+}
+
+function ReferralSourceIcon({
+  source,
+  selected,
+}: {
+  source: ReferralSource;
+  selected: boolean;
+}) {
+  const image = BRAND_ICON_IMAGES[source];
+  if (image) {
+    return (
+      <ReferralSourceIconSlot>
+        <Image
+          source={image}
+          style={{ width: ICON_SIZE, height: ICON_SIZE, backgroundColor: "transparent" }}
+          resizeMode="contain"
+          accessibilityIgnoresInvertColors
+        />
+      </ReferralSourceIconSlot>
+    );
+  }
+
+  const Icon = GLYPH_ICONS[source] ?? IconMessageCircle;
+  const glyphColor = selected ? "#ffffff" : "#6B7280";
+  return (
+    <ReferralSourceIconSlot>
+      <Icon size={24} color={glyphColor} strokeWidth={2} />
+    </ReferralSourceIconSlot>
   );
 }
 
@@ -95,7 +115,7 @@ export function ReferralSourcePicker({
               backgroundColor: option.backgroundColor,
             }}
           >
-            <ReferralSourceIcon source={source} />
+            <ReferralSourceIcon source={source} selected={selected} />
             <Text
               className={`flex-1 text-base ${selected ? "font-semibold" : "font-medium"}`}
               style={{ color: option.color }}

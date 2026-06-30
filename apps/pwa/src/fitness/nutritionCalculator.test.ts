@@ -85,6 +85,60 @@ describe("calculateNutritionTargets protein by goal", () => {
     const macros = calculateNutritionTargets({ ...BASE, goal: "maintain" });
     expect(macros.p).toBe(Math.round(180 * 0.85));
   });
+
+  it("caps the protein basis at 215 lbs for heavy cutters", () => {
+    const macros = calculateNutritionTargets({
+      ...BASE,
+      weightLbs: 240,
+      goal: "cut",
+      pace: "balanced",
+    });
+    expect(macros.p).toBe(215);
+  });
+
+  it("caps the protein basis at 215 lbs for heavy bulkers", () => {
+    const macros = calculateNutritionTargets({
+      ...BASE,
+      weightLbs: 250,
+      goal: "bulk",
+      pace: "balanced",
+      goalWeightLbs: 260,
+    });
+    expect(macros.p).toBe(215);
+  });
+});
+
+describe("calculateNutritionTargets healthier deficit floor", () => {
+  it("keeps a heavy aggressive cut at or above BMR", () => {
+    const input = {
+      weightLbs: 240,
+      heightIn: 70,
+      age: 45,
+      gender: "male" as const,
+      activityLevel: "sedentary" as const,
+      goal: "cut" as const,
+      pace: "aggressive" as const,
+      goalWeightLbs: 195,
+    };
+    const macros = calculateNutritionTargets(input);
+    const bmr = Math.round(calculateBmr(input));
+    expect(macros.cal).toBeGreaterThanOrEqual(bmr);
+  });
+
+  it("never runs a deficit larger than 25% of TDEE", () => {
+    const input = {
+      weightLbs: 240,
+      heightIn: 70,
+      age: 45,
+      gender: "male" as const,
+      activityLevel: "moderate" as const,
+      goal: "cut" as const,
+      pace: "aggressive" as const,
+    };
+    const tdee = calculateTdee(input);
+    const macros = calculateNutritionTargets(input);
+    expect(macros.cal).toBeGreaterThanOrEqual(Math.round(tdee * 0.75));
+  });
 });
 
 describe("calculateNutritionTargets safety clamps", () => {

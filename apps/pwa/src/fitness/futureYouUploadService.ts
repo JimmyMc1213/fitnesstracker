@@ -3,7 +3,7 @@ import {
   uploadFutureYouPhoto as uploadFutureYouPhotoApi,
   type FutureYouUploadResult,
 } from "@newyouai/api-client";
-import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabase, getSupabaseEnv, isSupabaseConfigured } from "./supabaseClient";
 
 export type { FutureYouUploadResult };
 
@@ -26,5 +26,5 @@ export async function uploadFutureYouPhoto(imageDataUrl: string): Promise<Future
     throw new ApiFutureYouUploadError("Sign in to upload your photo.", "auth_required");
   }
 
-  return uploadFutureYouPhotoApi(sb, imageDataUrl);
+  return uploadFutureYouPhotoApi(sb, getSupabaseEnv(), imageDataUrl);
 }

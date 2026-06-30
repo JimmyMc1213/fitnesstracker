@@ -20,9 +20,16 @@ export type BuildFutureYouPromptInput = {
 
 /** Positive, natural-language description of the goal direction. */
 const GOAL_PHRASE: Record<NutritionGoal, string> = {
-  cut: "a leaner, more defined physique",
-  bulk: "a more muscular, fuller physique",
-  maintain: "a maintained, healthy physique",
+  cut: "a visibly leaner, tighter physique with less body fat and clear muscle definition",
+  bulk: "a noticeably bigger, more muscular physique with added lean mass",
+  maintain: "a tighter, more defined physique with less body fat and more visible muscle",
+};
+
+/** Goal-specific body recomposition emphasis (always: more muscle tone, less fat). */
+const GOAL_BODY_DIRECTIVE: Record<NutritionGoal, string> = {
+  cut: "Visibly reduce body fat and bring out leanness — slimmer waist, tighter midsection, less softness, and sharper definition in chest, shoulders, arms, and legs.",
+  bulk: "Visibly add muscle size — fuller chest, shoulders, and arms, thicker upper body, and a stronger build with less soft fat.",
+  maintain: "Recompose toward less fat and more muscle — tighter midsection, stronger shoulders and arms, and clearer definition while staying the same person.",
 };
 
 function subjectFromGender(gender: UserGender): string {
@@ -49,8 +56,9 @@ export function buildFutureYouPrompt(input: BuildFutureYouPromptInput): string {
   const sentences = [
     "Keep this exact person — same face, hair, skin, and pose.",
     `Show a realistic, believable version of ${subject} after ${timeline} of training toward ${goalPhrase}.`,
+    GOAL_BODY_DIRECTIVE[input.profile.goal],
     "Same lighting and setting.",
-    "Photorealistic, natural, not an idealized fitness model.",
+    "Photorealistic, same person — make the physique upgrade obvious and motivating; believable gym progress, not a different face.",
     motivation.promptFragment.trim(),
   ];
 

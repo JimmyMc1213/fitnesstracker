@@ -8,6 +8,7 @@ import {
   ONBOARDING_PLAN_READY_CONTINUE_LABEL,
   futureYouPaywallCtaLabel,
   isFutureYouPaywallCtaEnabled,
+  isFutureYouPaywallFailedVisible,
   isFutureYouPaywallHeroVisible,
   isPlanOnlyPaywallPath,
   onboardingPlanReadyContinueLabel,
@@ -28,6 +29,15 @@ describe("futureYouPaywallModel", () => {
     expect(isFutureYouPaywallHeroVisible(activeJob, true)).toBe(false);
     expect(isFutureYouPaywallHeroVisible({ ...activeJob, generationStatus: "failed" }, false)).toBe(false);
     expect(isFutureYouPaywallHeroVisible({}, false)).toBe(false);
+  });
+
+  it("shows failed recovery slot on photo path when job failed", () => {
+    expect(isFutureYouPaywallFailedVisible({ ...activeJob, generationStatus: "failed" }, false)).toBe(true);
+    expect(isFutureYouPaywallFailedVisible(activeJob, false)).toBe(false);
+    expect(isFutureYouPaywallFailedVisible({ ...activeJob, generationStatus: "failed" }, true)).toBe(false);
+    expect(isFutureYouPaywallFailedVisible({ photoSkipped: true, generationStatus: "failed" }, false)).toBe(
+      false,
+    );
   });
 
   it("disables CTA on photo path until generation is ready", () => {

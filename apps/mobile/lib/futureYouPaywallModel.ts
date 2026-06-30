@@ -8,6 +8,7 @@ export {
   ONBOARDING_PLAN_READY_CONTINUE_LABEL,
   ONBOARDING_FUTURE_YOU_CONTINUE_LABEL,
   isFutureYouPaywallHeroVisible,
+  isFutureYouPaywallFailedVisible,
   isFutureYouPaywallCtaEnabled,
   isPlanOnlyPaywallPath,
   onboardingPlanReadyContinueLabel,

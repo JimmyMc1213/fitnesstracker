@@ -108,15 +108,48 @@ describe("startFutureYouGeneration", () => {
 });
 
 describe("uploadFutureYouPhoto", () => {
-  it("parses upload response via invoke", async () => {
-    const invoke = vi.fn().mockResolvedValue({
-      data: { path: "users/u1/source/x.jpg", uploadId: "up-1", bucket: "future-you" },
-      error: null,
-    });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
-    const result = await uploadFutureYouPhoto(mockClient(invoke), "data:image/jpeg;base64,abc");
+  it("parses upload response via direct fetch", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ path: "users/u1/source/x.jpg", uploadId: "up-1", bucket: "future-you" }),
+      }),
+    );
+
+    const result = await uploadFutureYouPhoto(
+      mockClient(vi.fn()),
+      validEnv,
+      "data:image/jpeg;base64,abc",
+    );
 
     expect(result.path).toBe("users/u1/source/x.jpg");
+  });
+
+  it("uploads multipart FormData without forcing JSON content type", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ path: "users/u1/source/x.jpg", uploadId: "up-1", bucket: "future-you" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const formData = new FormData();
+    formData.append("file", new Blob(["abc"], { type: "image/jpeg" }), "future-you.jpg");
+
+    await uploadFutureYouPhoto(mockClient(vi.fn()), validEnv, formData);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://example.supabase.co/functions/v1/future-you-upload",
+      expect.objectContaining({
+        method: "POST",
+        body: formData,
+        headers: expect.not.objectContaining({ "Content-Type": expect.anything() }),
+      }),
+    );
   });
 });
 

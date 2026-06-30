@@ -31,6 +31,8 @@ export type FutureYouDraft = {
   motivationIsGeneric?: boolean;
   generationStatus?: FutureYouJobStatus | "idle";
   generationJobId?: string;
+  /** Stored job error string from the last failed generation (for recovery UI lead line). */
+  generationError?: string;
   /** ISO timestamp when the current preview job reached ready (for 2-week redo cadence). */
   generationReadyAt?: string;
   resultStoragePath?: string;

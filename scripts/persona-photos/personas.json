@@ -1,0 +1,82 @@
+[
+  {
+    "id": "m1",
+    "photo": "m1_cut.png",
+    "description": "Heavier man, shirtless, flexing (user)",
+    "motivationId": "cut_generic_lean",
+    "profile": { "goal": "cut", "gender": "male", "weightLbs": 235, "goalWeightLbs": 200 },
+    "timeline": "6 months"
+  },
+  {
+    "id": "m2",
+    "photo": "m2_bulk.png",
+    "description": "Lean young man, white tank + boxers (user)",
+    "motivationId": "bulk_m_arms",
+    "profile": { "goal": "bulk", "gender": "male", "weightLbs": 150, "goalWeightLbs": 165 },
+    "timeline": "6 months"
+  },
+  {
+    "id": "m3",
+    "photo": "m3_bulk.png",
+    "description": "Lean skinny man, shirtless (user)",
+    "motivationId": "bulk_generic_strong",
+    "profile": { "goal": "bulk", "gender": "male", "weightLbs": 160, "goalWeightLbs": 178 },
+    "timeline": "9 months"
+  },
+  {
+    "id": "m4",
+    "photo": "m4_cut.png",
+    "description": "Heavier man, compression tank (user)",
+    "motivationId": "cut_m_abs",
+    "profile": { "goal": "cut", "gender": "male", "weightLbs": 220, "goalWeightLbs": 190 },
+    "timeline": "6 months"
+  },
+  {
+    "id": "m5",
+    "photo": "m5_maintain.png",
+    "description": "Fit muscular man, shirtless beach (user)",
+    "motivationId": "maintain_m_definition",
+    "profile": { "goal": "maintain", "gender": "male", "weightLbs": 188 },
+    "timeline": "3 months"
+  },
+  {
+    "id": "f1",
+    "photo": "f1_cut.png",
+    "description": "Mirror selfie, fuller build (user)",
+    "motivationId": "cut_f_beach_ready",
+    "profile": { "goal": "cut", "gender": "female", "weightLbs": 195, "goalWeightLbs": 160 },
+    "timeline": "9 months"
+  },
+  {
+    "id": "f2",
+    "photo": "f2_cut.png",
+    "description": "Plus-size woman, outdoor activewear (user)",
+    "motivationId": "cut_f_toned_arms",
+    "profile": { "goal": "cut", "gender": "female", "weightLbs": 175, "goalWeightLbs": 145 },
+    "timeline": "6 months"
+  },
+  {
+    "id": "f3",
+    "photo": "f3_cut.jpg",
+    "description": "Average/softer woman with dumbbell (stock — user did not supply)",
+    "motivationId": "cut_generic_best",
+    "profile": { "goal": "cut", "gender": "female", "weightLbs": 185, "goalWeightLbs": 150 },
+    "timeline": "9 months"
+  },
+  {
+    "id": "f4",
+    "photo": "f4_bulk.jpg",
+    "description": "Slim woman, wall pose (stock — previously approved)",
+    "motivationId": "bulk_f_glutes",
+    "profile": { "goal": "bulk", "gender": "female", "weightLbs": 120, "goalWeightLbs": 133 },
+    "timeline": "6 months"
+  },
+  {
+    "id": "f5",
+    "photo": "f5_maintain.jpg",
+    "description": "Already fit woman at home (stock — previously approved)",
+    "motivationId": "maintain_f_definition",
+    "profile": { "goal": "maintain", "gender": "female", "weightLbs": 135 },
+    "timeline": "3 months"
+  }
+]

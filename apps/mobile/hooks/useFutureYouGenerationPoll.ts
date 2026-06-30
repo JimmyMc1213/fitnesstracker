@@ -1,5 +1,6 @@
 import {
   FUTURE_YOU_GENERATION_POLL_INTERVAL_MS,
+  FUTURE_YOU_JOB_STALE_ERROR,
   patchGenerationReadyAt,
   shouldPollFutureYouGeneration,
   isFutureYouJobStale,
@@ -70,15 +71,20 @@ export function useFutureYouGenerationPoll({
         const response = await pollFutureYouJobStatus(jobId);
         if (cancelled) return;
         let status = response.status;
+        let pollError = response.error?.trim() || undefined;
         if (isFutureYouJobStale(response.updatedAt, status)) {
           status = "failed";
+          pollError = pollError ?? FUTURE_YOU_JOB_STALE_ERROR;
         }
         onPatchRef.current({
           generationJobId: response.jobId,
           ...patchGenerationReadyAt(status, response.updatedAt),
+          ...(status === "failed"
+            ? { generationError: pollError }
+            : { generationError: undefined }),
         });
-        if (status === "failed" && response.error?.trim()) {
-          onGenerationFailedRef.current?.(response.error.trim());
+        if (status === "failed" && pollError) {
+          onGenerationFailedRef.current?.(pollError);
         }
         if (status === "ready") {
           const previewUrl = futureYouPollImageUrl(response, false);
@@ -98,6 +104,11 @@ export function useFutureYouGenerationPoll({
       } catch (error) {
         if (cancelled) return;
         if (error instanceof FutureYouPollError && error.code === "not_found") {
+          onPatchRef.current({
+            generationStatus: "failed",
+            generationError: "not_found",
+          });
+          onGenerationFailedRef.current?.("not_found");
           return;
         }
         timeoutId = setTimeout(pollOnce, FUTURE_YOU_GENERATION_POLL_INTERVAL_MS);

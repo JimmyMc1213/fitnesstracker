@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { FutureYouJobStatus } from "@newyouai/types";
 
 import { clientSupabaseKeyForFetch, type SupabaseEnv } from "../supabase/createSupabaseClient";
+import { fetchWithTimeout } from "../fetchWithTimeout";
 import { edgeFunctionErrorMessage } from "./edgeFunctionError";
 import { invokeErrorMessage } from "./invokeErrorMessage";
 import { invokeEdgeFunction } from "./invokeEdgeFunction";
@@ -295,6 +296,9 @@ function parseDeleteResponse(data: unknown): { removedObjects: number } {
 /** Image generation can take 60–120s; default invoke timeouts are too short. */
 const FUTURE_YOU_GENERATE_TIMEOUT_MS = 180_000;
 
+/** Compressed photos can still be several MB over JSON base64; allow headroom on mobile. */
+const FUTURE_YOU_UPLOAD_TIMEOUT_MS = 120_000;
+
 /** Queue Future You generation after step 10c. Caller must ensure auth. */
 export async function startFutureYouGeneration(
   client: SupabaseClient,
@@ -311,16 +315,27 @@ export async function startFutureYouGeneration(
   const baseUrl = envTrim(env.url).replace(/\/+$/, "");
   const url = `${baseUrl}/functions/v1/future-you-generate`;
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${session.access_token}`,
-      apikey: clientSupabaseKeyForFetch(env),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(request),
-    signal: AbortSignal.timeout(FUTURE_YOU_GENERATE_TIMEOUT_MS),
-  });
+  let response: Response;
+  try {
+    response = await fetchWithTimeout(
+      url,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: clientSupabaseKeyForFetch(env),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
+      },
+      FUTURE_YOU_GENERATE_TIMEOUT_MS,
+    );
+  } catch {
+    throw new FutureYouGenerateError(
+      "Could not start generation. Check your connection and try again.",
+      "unavailable",
+    );
+  }
 
   let data: unknown;
   try {
@@ -350,20 +365,59 @@ export async function startFutureYouGeneration(
   }
 }
 
-/** Upload a compressed JPEG data URL from onboarding step 10b. Caller must ensure auth. */
+/** Upload a Future You source photo (JSON data URL or multipart FormData). Caller must ensure auth. */
 export async function uploadFutureYouPhoto(
   client: SupabaseClient,
-  imageDataUrl: string,
+  env: SupabaseEnv,
+  input: string | FormData,
 ): Promise<FutureYouUploadResult> {
-  const { data, error } = await invokeEdgeFunction<unknown>(client, "future-you-upload", {
-    imageDataUrl,
-  });
+  const {
+    data: { session },
+  } = await client.auth.getSession();
+  if (!session) {
+    throw new FutureYouUploadError("Sign in to upload your photo.", "auth_required");
+  }
 
-  if (error) {
+  const baseUrl = envTrim(env.url).replace(/\/+$/, "");
+  const url = `${baseUrl}/functions/v1/future-you-upload`;
+  const isFormData = typeof FormData !== "undefined" && input instanceof FormData;
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${session.access_token}`,
+    apikey: clientSupabaseKeyForFetch(env),
+  };
+
+  let body: BodyInit;
+  if (isFormData) {
+    body = input;
+  } else {
+    headers["Content-Type"] = "application/json";
+    body = JSON.stringify({ imageDataUrl: input });
+  }
+
+  let response: Response;
+  try {
+    response = await fetchWithTimeout(url, { method: "POST", headers, body }, FUTURE_YOU_UPLOAD_TIMEOUT_MS);
+  } catch {
     throw new FutureYouUploadError(
-      invokeErrorMessage(error) || "Photo upload failed. Try again.",
+      "Photo upload failed. Check your connection and try again.",
       "unavailable",
     );
+  }
+
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch {
+    throw new FutureYouUploadError("Photo upload failed. Try again.", "unavailable");
+  }
+
+  if (!response.ok) {
+    const message =
+      data && typeof data === "object" && typeof (data as { error?: string }).error === "string"
+        ? (data as { error: string }).error.trim()
+        : "Photo upload failed. Try again.";
+    throw new FutureYouUploadError(message || "Photo upload failed. Try again.", "unavailable");
   }
 
   return parseUploadResponse(data);

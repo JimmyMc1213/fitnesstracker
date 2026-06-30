@@ -48,7 +48,7 @@ export function isFutureYouSuccessHeroVisible(
   return isFutureYouPaywallHeroVisible(futureYou, photoBlocked);
 }
 
-/** Step 28b only after stub subscribe; photo path also requires generation ready. */
+/** Step 28b only after stub subscribe; photo path requires ready, failed, or in-flight. */
 export function canAccessFutureYouSuccessScreen(
   futureYou: FutureYouDraft,
   photoBlocked: boolean,
@@ -57,6 +57,8 @@ export function canAccessFutureYouSuccessScreen(
 ): boolean {
   if (subscriptionTier !== "pro") return false;
   if (!isFutureYouSuccessHeroVisible(futureYou, photoBlocked)) return true;
+  if (status === "failed") return true;
+  if (status === "queued" || status === "generating") return true;
   return status === "ready";
 }
 

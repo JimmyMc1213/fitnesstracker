@@ -6,7 +6,7 @@ import {
 
 import { e2eMockFutureYouUpload } from "@/lib/e2e/futureYouMock";
 
-import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabase, getSupabaseEnv, isSupabaseConfigured } from "./supabaseClient";
 
 export type { FutureYouUploadResult };
 
@@ -39,7 +39,7 @@ async function requireAuthedClient() {
   return sb;
 }
 
-/** Read a compressed on-device JPEG and upload via Supabase invoke (works on React Native). */
+/** Read a compressed on-device JPEG as base64 and upload via the JSON data-URL path (RN-safe). */
 async function uploadFutureYouPhotoFromUri(localUri: string): Promise<FutureYouUploadResult> {
   const FileSystem = await import("expo-file-system/legacy");
   const base64 = await FileSystem.readAsStringAsync(localUri, {
@@ -50,7 +50,7 @@ async function uploadFutureYouPhotoFromUri(localUri: string): Promise<FutureYouU
   }
 
   const sb = await requireAuthedClient();
-  return uploadFutureYouPhotoApi(sb, `data:image/jpeg;base64,${base64}`);
+  return uploadFutureYouPhotoApi(sb, getSupabaseEnv(), `data:image/jpeg;base64,${base64}`);
 }
 
 /** Upload a compressed JPEG (local file URI or data URL). */
@@ -65,7 +65,7 @@ export async function uploadFutureYouPhoto(source: string): Promise<FutureYouUpl
 
   const sb = await requireAuthedClient();
   if (isFutureYouPhotoDataUrl(trimmed)) {
-    return uploadFutureYouPhotoApi(sb, trimmed);
+    return uploadFutureYouPhotoApi(sb, getSupabaseEnv(), trimmed);
   }
 
   throw new ApiFutureYouUploadError("Invalid photo. Choose another image.", "invalid");

@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Linking, ScrollView, Text, View } from "react-native";
+import { DevSettings } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { FutureYouDraft, FutureYouJobStatus, WeightUnit } from "@newyouai/types";
 
 import { OnboardingContentReveal } from "@/components/motion";
+import { FutureYouFailureRecovery } from "@/components/future-you/FutureYouFailureRecovery";
 import { OnboardingPaywallFutureYouHero } from "@/components/onboarding/OnboardingPaywallFutureYouHero";
 import { OnboardingPaywallPlanPicker } from "@/components/onboarding/OnboardingPaywallPlanPicker";
 import { OnboardingPaywallPlanSummary } from "@/components/onboarding/OnboardingPaywallPlanSummary";
@@ -14,6 +16,7 @@ import { FUTURE_YOU_PRIVACY_POLICY_URL, PAYWALL_TERMS_URL } from "@/lib/futureYo
 import {
   futureYouPaywallCtaLabel,
   isFutureYouPaywallCtaEnabled,
+  isFutureYouPaywallFailedVisible,
   isFutureYouPaywallHeroVisible,
 } from "@/lib/futureYouPaywallModel";
 import {
@@ -23,6 +26,10 @@ import {
 import type { OnboardingPlanSnapshot } from "@/lib/onboardingPlanSnapshot";
 import type { PaywallBillingPeriod } from "@/lib/paywallPlans";
 import { purchaseProSubscription, restorePurchases } from "@/lib/revenueCat";
+import {
+  isOnboardingDevResetEnabled,
+  seedPaywallFailedFutureYouState,
+} from "@/lib/onboardingDevTools";
 
 type Props = {
   onPurchaseStart: () => void;
@@ -34,6 +41,7 @@ type Props = {
   generationStatus: FutureYouJobStatus | "idle";
   photoBlocked: boolean;
   weightUnit: WeightUnit;
+  onReuploadFutureYou?: () => void;
 };
 
 export function OnboardingPaywall({
@@ -46,6 +54,7 @@ export function OnboardingPaywall({
   generationStatus,
   photoBlocked,
   weightUnit,
+  onReuploadFutureYou,
 }: Props) {
   const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
@@ -54,9 +63,16 @@ export function OnboardingPaywall({
   const [error, setError] = useState<string | null>(null);
 
   const heroVisible = isFutureYouPaywallHeroVisible(futureYou, photoBlocked);
+  const failedVisible = isFutureYouPaywallFailedVisible(futureYou, photoBlocked);
   const ctaEnabled = isFutureYouPaywallCtaEnabled(futureYou, generationStatus, photoBlocked) && !purchasing;
   const ctaLabel = futureYouPaywallCtaLabel(futureYou, generationStatus, photoBlocked, billingPeriod);
-  const footerStartStep = paywallFooterStartStep(heroVisible);
+  const footerStartStep = paywallFooterStartStep(heroVisible || failedVisible);
+  const showDevReset = isOnboardingDevResetEnabled();
+
+  async function handleDevResetFailedPaywall() {
+    await seedPaywallFailedFutureYouState();
+    DevSettings.reload();
+  }
 
   async function handlePurchase() {
     if (!ctaEnabled) return;
@@ -121,18 +137,59 @@ export function OnboardingPaywall({
         </Text>
       </PressableScale>
 
-      <View style={{ flex: 1, paddingTop: insets.top + (heroVisible ? 24 : 40), paddingHorizontal: 23 }}>
+      <View style={{ flex: 1, paddingTop: insets.top + (heroVisible || failedVisible ? 24 : 40), paddingHorizontal: 23 }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ gap: heroVisible ? 14 : 20, flexGrow: 1 }}
+        contentContainerStyle={{ gap: heroVisible || failedVisible ? 14 : 20, flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {!heroVisible ? (
+        {!heroVisible && !failedVisible ? (
           <OnboardingContentReveal delay={paywallRevealDelayMs(0)}>
             <Text className="text-center text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
               Unlock <Text style={{ color: ob.gold }}>NewYouAI</Text> to reach your goals faster.
             </Text>
+          </OnboardingContentReveal>
+        ) : null}
+
+        {failedVisible && onReuploadFutureYou ? (
+          <OnboardingContentReveal
+            delay={paywallRevealDelayMs(1)}
+            style={{ flex: 1, justifyContent: "center" }}
+          >
+            <View className="items-center gap-5">
+              <View className="items-center gap-2">
+                <Text
+                  className="text-center text-[34px] font-bold"
+                  style={{ color: ob.gold, letterSpacing: -0.5 }}
+                >
+                  Future You
+                </Text>
+                <Text
+                  className="text-center text-base"
+                  style={{ color: colors.textSecondary }}
+                >
+                  Let's get a photo that works.
+                </Text>
+              </View>
+              <FutureYouFailureRecovery
+                generationError={futureYou?.generationError}
+                onReupload={onReuploadFutureYou}
+                tone="onboarding"
+                testID="onboarding-paywall-future-you-failure"
+              />
+              {showDevReset ? (
+                <PressableScale
+                  onPress={() => void handleDevResetFailedPaywall()}
+                  testID="onboarding-paywall-dev-reset-failed"
+                  style={{ paddingVertical: 8, paddingHorizontal: 12 }}
+                >
+                  <Text className="text-center text-xs underline" style={{ color: colors.textTertiary }}>
+                    Reset to failed paywall (dev)
+                  </Text>
+                </PressableScale>
+              ) : null}
+            </View>
           </OnboardingContentReveal>
         ) : null}
 
@@ -145,11 +202,11 @@ export function OnboardingPaywall({
             status={generationStatus}
             gender={planSnapshot.profile.gender}
           />
-        ) : (
+        ) : !failedVisible ? (
           <OnboardingContentReveal delay={paywallRevealDelayMs(1)}>
             <OnboardingPaywallPlanSummary planSnapshot={planSnapshot} />
           </OnboardingContentReveal>
-        )}
+        ) : null}
       </ScrollView>
 
       <View style={{ marginTop: "auto", flexShrink: 0, width: "100%" }}>

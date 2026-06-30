@@ -5,9 +5,10 @@
   "main": "expo-router/entry",
   "scripts": {
     "build:device": "EXPO_APPLE_TEAM_ID=YJ77689737 eas build --profile development-device --platform ios",
-    "dev": "node ../../scripts/start-mobile-metro.mjs",
-    "dev:tunnel": "TUNNEL=1 node ../../scripts/start-mobile-metro.mjs",
-    "start": "node ../../scripts/start-mobile-metro.mjs",
+    "dev": "expo start --dev-client --port 8082",
+    "dev:phone": "node ../../scripts/start-mobile-metro.mjs",
+    "dev:tunnel": "KILL_PORT=1 PHONE=1 node ../../scripts/start-mobile-metro.mjs",
+    "start": "expo start --dev-client --port 8082",
     "android": "expo start --dev-client --android --port 8082",
     "ios": "expo start --dev-client --ios --port 8082",
     "dev:onboarding": "node ../../scripts/dev-onboarding-simulator.mjs",

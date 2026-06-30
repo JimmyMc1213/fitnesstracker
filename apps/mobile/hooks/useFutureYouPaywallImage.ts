@@ -1,6 +1,11 @@
 import type { FutureYouJobStatus } from "@newyouai/types";
 import { useEffect, useState } from "react";
 
+import {
+  cacheFutureYouPreviewUrl,
+  getCachedFutureYouPreviewUrl,
+  preloadFutureYouImage,
+} from "@/lib/futureYouImagePreload";
 import { FutureYouPollError, pollFutureYouJobStatus } from "@/lib/futureYouPollService";
 import { futureYouPollImageUrl } from "@/lib/futureYouStatus";
 
@@ -13,7 +18,11 @@ function isFutureYouHeroGenerating(status: FutureYouJobStatus | "idle"): boolean
   return status === "queued" || status === "generating";
 }
 
-/** Blurred Future You preview for paywall hero when generation is ready. */
+/**
+ * Blurred Future You preview for the paywall hero. Reuses the URL cached by the
+ * generation poll and decodes the image (Image.prefetch) before display so the
+ * hero swaps in instantly instead of loading when the paywall mounts.
+ */
 export function useFutureYouPaywallImage({ jobId, status }: Options): {
   imageUri: string | null;
   loading: boolean;
@@ -39,18 +48,39 @@ export function useFutureYouPaywallImage({ jobId, status }: Options): {
     setLoading(true);
 
     void (async () => {
+      async function showWhenPreloaded(url: string) {
+        cacheFutureYouPreviewUrl(trimmedJobId, url);
+        await preloadFutureYouImage(url);
+        if (cancelled) return;
+        setImageUri(url);
+        setLoading(false);
+      }
+
+      const cachedUrl = getCachedFutureYouPreviewUrl(trimmedJobId);
+      if (cachedUrl) {
+        try {
+          await showWhenPreloaded(cachedUrl);
+          return;
+        } catch {
+          if (cancelled) return;
+        }
+      }
+
       try {
         const response = await pollFutureYouJobStatus(trimmedJobId);
         if (cancelled) return;
         const url = futureYouPollImageUrl(response, false);
-        setImageUri(url ?? null);
+        if (!url) {
+          setLoading(false);
+          return;
+        }
+        await showWhenPreloaded(url);
       } catch (error) {
         if (cancelled) return;
         if (error instanceof FutureYouPollError && error.code === "not_found") {
           setImageUri(null);
         }
-      } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     })();
 

@@ -158,6 +158,7 @@ export function WheelPickerColumn({
 
   const pan = Gesture.Pan()
     .activeOffsetY([-6, 6])
+    .failOffsetX([-12, 12])
     .onBegin(() => {
       dragStart.value = translateY.value;
     })

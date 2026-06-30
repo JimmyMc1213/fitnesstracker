@@ -57,6 +57,12 @@ const MIN_CALORIES: Record<UserGender, number> = {
   other: 1500,
 };
 
+/** Heaviest body weight (lbs) used as the basis for the 1g/lb protein target. */
+const PROTEIN_BASIS_CAP_LBS = 215;
+
+/** Largest sustainable deficit as a fraction of TDEE (never cut more than 25%). */
+const MAX_DEFICIT_FRACTION = 0.25;
+
 function goalCalAdjust(input: NutritionCalcInput): number {
   if (input.goal === "maintain") return 0;
   const pace = input.pace ?? "balanced";
@@ -66,17 +72,23 @@ function goalCalAdjust(input: NutritionCalcInput): number {
 function proteinGrams(input: NutritionCalcInput): number {
   if (input.goal === "bulk") {
     const goalWeight = input.goalWeightLbs ?? input.weightLbs;
-    return goalWeight * 1.0;
+    return Math.min(goalWeight, PROTEIN_BASIS_CAP_LBS) * 1.0;
   }
-  if (input.goal === "cut") return input.weightLbs * 1.0;
-  return input.weightLbs * 0.85;
+  if (input.goal === "cut") return Math.min(input.weightLbs, PROTEIN_BASIS_CAP_LBS) * 1.0;
+  return Math.min(input.weightLbs, PROTEIN_BASIS_CAP_LBS) * 0.85;
 }
 
 export function calculateNutritionTargets(input: NutritionCalcInput): MacroTotals {
   const bmr = calculateBmr(input);
   const tdee = Math.round(bmr * ACTIVITY_MULTIPLIER[input.activityLevel]);
-  const minCal = MIN_CALORIES[input.gender];
-  const cal = Math.max(minCal, tdee + goalCalAdjust(input));
+  // Healthier floor: never eat below BMR, never run a deficit larger than
+  // MAX_DEFICIT_FRACTION of TDEE, and never below the gender minimum.
+  const safeFloor = Math.max(
+    MIN_CALORIES[input.gender],
+    Math.round(bmr),
+    Math.round(tdee * (1 - MAX_DEFICIT_FRACTION)),
+  );
+  const cal = Math.max(safeFloor, tdee + goalCalAdjust(input));
 
   const p = Math.min(300, Math.max(100, Math.round(proteinGrams(input))));
   const f = Math.max(40, Math.round((cal * 0.25) / 9));

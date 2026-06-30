@@ -93,19 +93,23 @@ export async function scheduleWorkoutReminder(state: AppState, permissionGranted
   if (!time) return;
 
   const payload = buildWorkoutNotificationPayload(state, now);
-  await Notifications.scheduleNotificationAsync({
-    identifier: WORKOUT_NOTIFICATION_ID,
-    content: {
-      title: payload.title,
-      body: payload.body,
-      data: { tag: payload.tag },
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour: time.hour,
-      minute: time.minute,
-    },
-  });
+  try {
+    await Notifications.scheduleNotificationAsync({
+      identifier: WORKOUT_NOTIFICATION_ID,
+      content: {
+        title: payload.title,
+        body: payload.body,
+        data: { tag: payload.tag },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+        hour: time.hour,
+        minute: time.minute,
+      },
+    });
+  } catch {
+    // Scheduling can throw on misconfigured triggers / unsupported environments; never crash.
+  }
 }
 
 export async function scheduleNutritionReminder(state: AppState, permissionGranted: boolean): Promise<void> {
@@ -121,19 +125,23 @@ export async function scheduleNutritionReminder(state: AppState, permissionGrant
   if (!time) return;
 
   const payload = buildNutritionNotificationPayload(state, now);
-  await Notifications.scheduleNotificationAsync({
-    identifier: NUTRITION_NOTIFICATION_ID,
-    content: {
-      title: payload.title,
-      body: payload.body,
-      data: { tag: payload.tag },
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour: time.hour,
-      minute: time.minute,
-    },
-  });
+  try {
+    await Notifications.scheduleNotificationAsync({
+      identifier: NUTRITION_NOTIFICATION_ID,
+      content: {
+        title: payload.title,
+        body: payload.body,
+        data: { tag: payload.tag },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+        hour: time.hour,
+        minute: time.minute,
+      },
+    });
+  } catch {
+    // Scheduling can throw on misconfigured triggers / unsupported environments; never crash.
+  }
 }
 
 export async function syncLocalNotifications(state: AppState, permissionGranted: boolean): Promise<void> {

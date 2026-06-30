@@ -26,7 +26,7 @@ describe("buildFutureYouPrompt", () => {
               : "maintain_generic_glow",
       });
       expect(prompt).toContain("Keep this exact person — same face, hair, skin, and pose.");
-      expect(prompt).toContain("Photorealistic, natural, not an idealized fitness model.");
+      expect(prompt).toContain("Photorealistic, same person — make the physique upgrade obvious and motivating");
       expect(prompt).toContain("Same lighting and setting.");
     }
   });
@@ -41,9 +41,9 @@ describe("buildFutureYouPrompt", () => {
       profile: { goal: "maintain", gender: "other", weightLbs: 170 },
       motivationId: "maintain_generic_glow",
     });
-    expect(cut).toContain("a leaner, more defined physique");
-    expect(bulk).toContain("a more muscular, fuller physique");
-    expect(maintain).toContain("a maintained, healthy physique");
+    expect(cut).toContain("a visibly leaner, tighter physique with less body fat and clear muscle definition");
+    expect(bulk).toContain("a noticeably bigger, more muscular physique with added lean mass");
+    expect(maintain).toContain("a tighter, more defined physique with less body fat and more visible muscle");
   });
 
   it("addresses the subject by gender", () => {

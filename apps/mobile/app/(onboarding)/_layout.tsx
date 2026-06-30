@@ -14,7 +14,10 @@ export default function OnboardingLayout() {
   return (
     <RequireSignedInSession>
       <OnboardingWizardProvider>
-        <Stack screenOptions={defaultStackScreenOptions} />
+        {/* Onboarding drives its own back button and internal slide transitions;
+            the native iOS swipe-back must stay off or a drag (e.g. on the reminder
+            time wheel) can pop/slide the whole route and leave it stuck off-screen. */}
+        <Stack screenOptions={{ ...defaultStackScreenOptions, gestureEnabled: false }} />
       </OnboardingWizardProvider>
     </RequireSignedInSession>
   );

@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, AppState, ScrollView, View } from "react-native";
 
 import { FutureYouDetailView } from "@/components/future-you/FutureYouDetailView";
+import { FutureYouFailureRecovery } from "@/components/future-you/FutureYouFailureRecovery";
 import { FutureYouGalleryView } from "@/components/future-you/FutureYouGalleryView";
 import { FutureYouReplaceDialog } from "@/components/future-you/FutureYouReplaceDialog";
 import {
@@ -339,6 +340,8 @@ export function FutureYouScreen() {
     onFutureYouPatch({
       photoUploaded: false,
       photoStoragePath: undefined,
+      generationJobId: undefined,
+      generationError: undefined,
       ...(draft.generationStatus === "failed" ? { generationStatus: "idle" as const } : {}),
     });
     setView("upload");
@@ -416,6 +419,7 @@ export function FutureYouScreen() {
           motivationIsGeneric: fromDraft.motivationIsGeneric,
           generationJobId: result.jobId,
           generationStatus: result.status,
+          generationError: undefined,
           photoSkipped: false,
         });
         if (result.status === "ready") {
@@ -570,16 +574,10 @@ export function FutureYouScreen() {
 
   useEffect(() => {
     if (generationStatus !== "failed") return;
-    if (view !== "detail" && view !== "upload") return;
-    // Motivation picker is shown before generate is tapped — don't surface a stale failed job.
-    if (view === "upload" && uploadStep === "motivation" && !generating && !generationActive) return;
-    setGenerateError((prev) => prev ?? FUTURE_YOU_GENERATION_FAILED_MESSAGE);
-    if (view === "detail") {
-      setView("upload");
-      setUploadStep("motivation");
-      setSelectedItemId(null);
-    }
-  }, [generationStatus, view, uploadStep, generating, generationActive]);
+    if (view !== "detail") return;
+    setView("gallery");
+    setSelectedItemId(null);
+  }, [generationStatus, view]);
 
   // Notify when generation finishes while the user has left the generating screen.
   const prevGenerationStatusRef = useRef(generationStatus);
@@ -657,7 +655,9 @@ export function FutureYouScreen() {
         photoUploaded: true,
         photoAiConsentAt: consentAt,
         photoStoragePath: result.path,
-        ...(draft.generationStatus === "failed" ? { generationStatus: "idle" as const } : {}),
+        ...(draft.generationStatus === "failed"
+          ? { generationStatus: "idle" as const, generationError: undefined, generationJobId: undefined }
+          : {}),
       });
       setPhotoPreview(null);
       setUploadStep("motivation");
@@ -709,6 +709,13 @@ export function FutureYouScreen() {
 
   const goal = profile?.goal ?? "cut";
   const effectiveGenerateError = generateError;
+
+  const showFailureRecovery =
+    generationStatus === "failed" &&
+    view === "gallery" &&
+    !photoBlocked &&
+    !generating &&
+    !generationActive;
 
   function renderBody() {
     if (view === "upload") {
@@ -762,7 +769,15 @@ export function FutureYouScreen() {
     }
 
     return (
-      <View className="mt-[18px]">
+      <View className="mt-[18px] gap-4">
+        {showFailureRecovery ? (
+          <FutureYouFailureRecovery
+            generationError={draft.generationError}
+            onReupload={openUploadPage}
+            tone="tab"
+            testID="future-you-tab-failure"
+          />
+        ) : null}
         <FutureYouGalleryView
           items={galleryItems}
           gender={gender}

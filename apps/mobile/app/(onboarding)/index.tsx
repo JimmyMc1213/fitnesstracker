@@ -40,7 +40,6 @@ import { OnboardingSplitReveal } from "@/components/onboarding/OnboardingSplitRe
 import { OnboardingDailyFuelPlan } from "@/components/onboarding/OnboardingDailyFuelPlan";
 import { OnboardingMacroEditConfirmSheet } from "@/components/onboarding/OnboardingMacroEditConfirmSheet";
 import { OnboardingPlanBuilding } from "@/components/onboarding/OnboardingPlanBuilding";
-import { OnboardingTemplateReview } from "@/components/onboarding/OnboardingTemplateReview";
 import { ReferralSourcePicker } from "@/components/onboarding/ReferralSourcePicker";
 import { UnitPreferencePicker } from "@/components/onboarding/UnitPreferencePicker";
 import { GradientCard } from "@/components/ui/GradientCard";
@@ -150,7 +149,6 @@ export default function OnboardingWizardScreen() {
     setEquipmentSetup,
     setSessionLength,
     draftTemplates,
-    setDraftTemplates,
     macros,
     setMacros,
     notificationPrefs,
@@ -173,7 +171,6 @@ export default function OnboardingWizardScreen() {
 
   const [goalWeightReinforcement, setGoalWeightReinforcement] = useState(false);
   const [scheduleReinforcement, setScheduleReinforcement] = useState(false);
-  const [templateReview, setTemplateReview] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<NavDirection>("forward");
   const [macroContinueConfirmOpen, setMacroContinueConfirmOpen] = useState(false);
   const dobAge = profile.dateOfBirth ? ageFromDateOfBirth(profile.dateOfBirth) : null;
@@ -244,9 +241,6 @@ export default function OnboardingWizardScreen() {
     }
     if (stepIndex === 15 && prevStep > 15) {
       setScheduleReinforcement(false);
-    }
-    if (stepIndex === 23 && prevStep > 23) {
-      setTemplateReview(false);
     }
   }, [stepIndex]);
 
@@ -922,31 +916,6 @@ export default function OnboardingWizardScreen() {
     );
   }
 
-  if (forStep === 23 && layerFlags.templateReview) {
-    const templates = draftTemplates ?? [];
-
-    return (
-      <OnboardingShell
-        step={forStep}
-        title="Review your workouts"
-        subtitle="Swap exercises or adjust sets before you continue."
-        onBack={() => {
-          setTransitionDirection("back");
-          setTemplateReview(false);
-        }}
-        onContinue={() => {
-          setTransitionDirection("forward");
-          setTemplateReview(false);
-        }}
-        continueDisabled={templates.length === 0}
-        generationPill={generationPill}
-        testID="onboarding-step-23-template-review"
-      >
-        <OnboardingTemplateReview templates={templates} onChange={setDraftTemplates} />
-      </OnboardingShell>
-    );
-  }
-
   if (forStep === 23) {
     const templates = draftTemplates ?? [];
 
@@ -954,18 +923,11 @@ export default function OnboardingWizardScreen() {
       <OnboardingShell
         step={forStep}
         title="Here's your training plan"
-        subtitle="NewYou built this from your schedule and experience. Looks good?"
+        subtitle="NewYou built this from your schedule and experience. You can edit your workouts anytime in the app."
         onBack={goBack}
         onContinue={goNext}
         continueDisabled={templates.length === 0}
         continueLabel="Let's go"
-        footerGhostAction={{
-          label: "Edit",
-          onPress: () => {
-            setTransitionDirection("forward");
-            setTemplateReview(true);
-          },
-        }}
         generationPill={generationPill}
         testID="onboarding-step-23"
       >
@@ -1084,6 +1046,9 @@ export default function OnboardingWizardScreen() {
         photoBlocked={futureYouBlocked}
         weightUnit={unitPreferences.weightUnit ?? "lbs"}
         onBack={goBack}
+        onReuploadFutureYou={() =>
+          futureYouFlow.startFutureYouReupload(ONBOARDING_STEP_PAYWALL)
+        }
         onPurchaseStart={() => {
           setPurchaseComplete(false);
           setShowPurchaseWelcomeSplash(true);
@@ -1162,6 +1127,9 @@ export default function OnboardingWizardScreen() {
         onBack={goBack}
         continuing={finishingOnboarding}
         onReported={(jobId) => patchFutureYou({ reportedJobId: jobId })}
+        onReupload={() =>
+          futureYouFlow.startFutureYouReupload(ONBOARDING_STEP_FUTURE_YOU_SUCCESS)
+        }
       />
     );
   }
@@ -1213,7 +1181,7 @@ export default function OnboardingWizardScreen() {
         activeKey={onboardingScreenKey(stepIndex, {
           goalWeightReinforcement,
           scheduleReinforcement,
-          templateReview,
+          templateReview: false,
         })}
         variant="stack"
         direction={transitionDirection}
