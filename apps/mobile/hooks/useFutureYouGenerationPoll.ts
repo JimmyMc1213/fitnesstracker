@@ -25,6 +25,9 @@ type Options = {
   pollEnabled: boolean;
   previewMode?: boolean;
   onGenerationFailed?: (message: string) => void;
+  /** Automatically queue one retry when the first job fails (onboarding). */
+  autoRetryOnFailure?: boolean;
+  onAutoRetry?: () => Promise<void>;
 };
 
 export function useFutureYouGenerationPoll({
@@ -33,6 +36,8 @@ export function useFutureYouGenerationPoll({
   pollEnabled,
   previewMode = false,
   onGenerationFailed,
+  autoRetryOnFailure = false,
+  onAutoRetry,
 }: Options): FutureYouJobStatus | "idle" {
   const status = futureYou.generationStatus ?? "idle";
   const jobId = futureYou.generationJobId?.trim() ?? "";
@@ -40,6 +45,12 @@ export function useFutureYouGenerationPoll({
   onPatchRef.current = onFutureYouPatch;
   const onGenerationFailedRef = useRef(onGenerationFailed);
   onGenerationFailedRef.current = onGenerationFailed;
+  const onAutoRetryRef = useRef(onAutoRetry);
+  onAutoRetryRef.current = onAutoRetry;
+  const futureYouRef = useRef(futureYou);
+  futureYouRef.current = futureYou;
+  const autoRetryOnFailureRef = useRef(autoRetryOnFailure);
+  autoRetryOnFailureRef.current = autoRetryOnFailure;
 
   const [previewReady, setPreviewReady] = useState(false);
 
@@ -65,28 +76,67 @@ export function useFutureYouGenerationPoll({
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
+    async function markTerminalFailure(pollError: string | undefined, updatedAt?: string) {
+      onPatchRef.current({
+        generationStatus: "failed",
+        generationRetrying: false,
+        ...(pollError ? { generationError: pollError } : {}),
+        ...patchGenerationReadyAt("failed", updatedAt),
+      });
+      if (pollError) {
+        onGenerationFailedRef.current?.(pollError);
+      }
+    }
+
+    async function attemptAutoRetry(pollError: string | undefined) {
+      const retry = onAutoRetryRef.current;
+      if (!autoRetryOnFailureRef.current || !retry || futureYouRef.current.generationAutoRetried) {
+        await markTerminalFailure(pollError);
+        return;
+      }
+
+      onPatchRef.current({
+        generationAutoRetried: true,
+        generationRetrying: true,
+        ...(pollError ? { generationError: pollError } : {}),
+      });
+
+      try {
+        await retry();
+        onPatchRef.current({
+          generationRetrying: false,
+          generationError: undefined,
+        });
+      } catch {
+        await markTerminalFailure(pollError);
+      }
+    }
+
     async function pollOnce() {
       if (cancelled || !jobId) return;
       try {
         const response = await pollFutureYouJobStatus(jobId);
         if (cancelled) return;
-        let status = response.status;
+        let nextStatus = response.status;
         let pollError = response.error?.trim() || undefined;
-        if (isFutureYouJobStale(response.updatedAt, status)) {
-          status = "failed";
+        if (isFutureYouJobStale(response.updatedAt, nextStatus)) {
+          nextStatus = "failed";
           pollError = pollError ?? FUTURE_YOU_JOB_STALE_ERROR;
         }
+
+        if (nextStatus === "failed") {
+          await attemptAutoRetry(pollError);
+          return;
+        }
+
         onPatchRef.current({
           generationJobId: response.jobId,
-          ...patchGenerationReadyAt(status, response.updatedAt),
-          ...(status === "failed"
-            ? { generationError: pollError }
-            : { generationError: undefined }),
+          ...patchGenerationReadyAt(nextStatus, response.updatedAt),
+          generationError: undefined,
+          generationRetrying: false,
         });
-        if (status === "failed" && pollError) {
-          onGenerationFailedRef.current?.(pollError);
-        }
-        if (status === "ready") {
+
+        if (nextStatus === "ready") {
           const previewUrl = futureYouPollImageUrl(response, false);
           if (previewUrl) {
             cacheFutureYouPreviewUrl(jobId, previewUrl);
@@ -98,17 +148,13 @@ export function useFutureYouGenerationPoll({
             void preloadFutureYouImage(resultUrl).catch(() => undefined);
           }
         }
-        if (status !== "ready" && status !== "failed") {
+        if (nextStatus !== "ready" && nextStatus !== "failed") {
           timeoutId = setTimeout(pollOnce, FUTURE_YOU_GENERATION_POLL_INTERVAL_MS);
         }
       } catch (error) {
         if (cancelled) return;
         if (error instanceof FutureYouPollError && error.code === "not_found") {
-          onPatchRef.current({
-            generationStatus: "failed",
-            generationError: "not_found",
-          });
-          onGenerationFailedRef.current?.("not_found");
+          await attemptAutoRetry("not_found");
           return;
         }
         timeoutId = setTimeout(pollOnce, FUTURE_YOU_GENERATION_POLL_INTERVAL_MS);

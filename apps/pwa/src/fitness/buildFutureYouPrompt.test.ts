@@ -97,6 +97,38 @@ describe("buildFutureYouPrompt", () => {
       }),
     ).toThrow(/Unknown Future You motivation/);
   });
+
+  it("softens cut prompts when starting weight is over 200 lbs", () => {
+    const heavyModestCut = buildFutureYouPrompt({
+      profile: { goal: "cut", gender: "male", weightLbs: 210, goalWeightLbs: 195 },
+      motivationId: "cut_generic_best",
+      timeline: "3 months",
+    });
+    const standardCut = buildFutureYouPrompt({
+      profile: { goal: "cut", gender: "male", weightLbs: 190, goalWeightLbs: 175 },
+      motivationId: "cut_generic_best",
+      timeline: "3 months",
+    });
+
+    expect(heavyModestCut).toContain("natural muscle tone — fit and strong without extreme leanness");
+    expect(heavyModestCut).toContain("about 15 pounds lost");
+    expect(heavyModestCut).toContain("Scale the visible change to reaching about 195 lbs from 210 lbs");
+    expect(heavyModestCut).toContain("not an idealized fitness model");
+    expect(heavyModestCut).not.toContain("sharper definition in chest, shoulders, arms, and legs");
+
+    expect(standardCut).toContain("clear muscle definition");
+    expect(standardCut).toContain("make the physique upgrade obvious and motivating");
+    expect(standardCut).not.toContain("about 15 pounds lost");
+  });
+
+  it("does not soften cut prompts at exactly 200 lbs", () => {
+    const atThreshold = buildFutureYouPrompt({
+      profile: { goal: "cut", gender: "male", weightLbs: 200, goalWeightLbs: 185 },
+      motivationId: "cut_generic_best",
+    });
+    expect(atThreshold).toContain("clear muscle definition");
+    expect(atThreshold).not.toContain("without extreme leanness");
+  });
 });
 
 describe("futureYouPromptProfileFromOnboarding", () => {

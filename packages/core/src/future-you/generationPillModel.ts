@@ -8,6 +8,7 @@ import {
 
 export const FUTURE_YOU_GENERATION_PILL_READY_LABEL = "Your Future You is ready — unlock at the end";
 export const FUTURE_YOU_GENERATION_PILL_CREATING_LABEL = "Creating your Future You…";
+export const FUTURE_YOU_GENERATION_PILL_RETRYING_LABEL = "Generation failed — trying again";
 export const FUTURE_YOU_GENERATION_PILL_FAILED_LABEL = "We couldn't generate this one";
 export const FUTURE_YOU_GENERATION_PILL_FAILED_SUBLINE = "Try a different photo from the NewYou tab";
 export const FUTURE_YOU_READY_BANNER_LABEL = "Your Future You is ready, keep going to unlock it.";
@@ -53,6 +54,7 @@ export function shouldPollFutureYouGeneration(
 ): boolean {
   if (!draft) return false;
   if (!enabled || !isFutureYouGenerationPillVisible(draft)) return false;
+  if (draft.generationRetrying) return false;
   // "ready" and "failed" are both terminal — never poll a resolved job.
   return draft.generationStatus !== "ready" && draft.generationStatus !== "failed";
 }
@@ -101,7 +103,16 @@ export function futureYouGenerationPillCopy(
   status: FutureYouJobStatus | "idle",
   phraseIndex: number,
   phrases: string[],
+  options?: { retrying?: boolean },
 ): FutureYouGenerationPillCopy {
+  if (options?.retrying) {
+    return {
+      headline: FUTURE_YOU_GENERATION_PILL_RETRYING_LABEL,
+      ready: false,
+      failed: false,
+    };
+  }
+
   if (status === "ready") {
     return {
       headline: FUTURE_YOU_GENERATION_PILL_READY_LABEL,

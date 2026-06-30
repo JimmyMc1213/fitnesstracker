@@ -167,6 +167,8 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
         generationStatus: result.status,
         generationError: undefined,
         generationReadyAt: undefined,
+        generationAutoRetried: false,
+        generationRetrying: false,
       });
       setPhotoPreview(null);
       goToStep(targetStep, { futureYou: nextFutureYou });
@@ -184,6 +186,37 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
     }
   }, [futureYou, generating, goToStep, patchFutureYou, photoPreview, profile]);
 
+  const retryFutureYouGeneration = useCallback(async () => {
+    const motivationId = futureYou?.motivationId?.trim();
+    if (!motivationId) {
+      throw new FutureYouGenerateError("Could not start generation. Try again.", "invalid");
+    }
+
+    const sourcePath = await resolveFutureYouSourcePath({
+      photoStoragePath: futureYou?.photoStoragePath,
+      photoPreview,
+    });
+    const generateProfile = buildFutureYouGenerateProfile(profile);
+    const timeline = futureYouTimelineFromProfile(profile);
+    const result = await startFutureYouGeneration({
+      sourcePath,
+      motivationId,
+      profile: generateProfile,
+      timeline,
+    });
+    patchFutureYou({
+      motivationId,
+      motivationIsGeneric: futureYou?.motivationIsGeneric,
+      photoStoragePath: sourcePath,
+      photoUploaded: true,
+      generationJobId: result.jobId,
+      generationStatus: result.status,
+      generationError: undefined,
+      generationReadyAt: undefined,
+      generationRetrying: false,
+    });
+  }, [futureYou, patchFutureYou, photoPreview, profile]);
+
   const startFutureYouReupload = useCallback(
     (returnStep: number) => {
       reuploadReturnStepRef.current = returnStep;
@@ -198,6 +231,8 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
         generationStatus: "idle",
         generationJobId: undefined,
         generationError: undefined,
+        generationAutoRetried: false,
+        generationRetrying: false,
         generationReadyAt: undefined,
         photoStoragePath: undefined,
         photoUploaded: false,
@@ -238,6 +273,7 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
     pickFromGallery,
     continueFutureYouPhoto,
     continueFutureYouMotivation,
+    retryFutureYouGeneration,
     startFutureYouReupload,
     clearPhoto,
     grantAiConsent,

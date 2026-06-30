@@ -33,6 +33,10 @@ export type FutureYouDraft = {
   generationJobId?: string;
   /** Stored job error string from the last failed generation (for recovery UI lead line). */
   generationError?: string;
+  /** True after the client auto-retried once following a failed job. */
+  generationAutoRetried?: boolean;
+  /** True while a failed job is being automatically re-queued (pill retry copy). */
+  generationRetrying?: boolean;
   /** ISO timestamp when the current preview job reached ready (for 2-week redo cadence). */
   generationReadyAt?: string;
   resultStoragePath?: string;

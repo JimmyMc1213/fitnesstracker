@@ -457,6 +457,8 @@ export function OnboardingFlow({
     futureYou,
     pollEnabled: pollFutureYouEnabled,
     previewMode,
+    autoRetryOnFailure: !previewMode,
+    onAutoRetry: retryFutureYouGeneration,
     onFutureYouPatch: (patch) => {
       setFutureYou((current) => {
         const next = mergeFutureYouDraft(current, patch);
@@ -486,6 +488,7 @@ export function OnboardingFlow({
     pollFutureYouEnabled ?
       <FutureYouGenerationPill
         status={generationPollStatus}
+        retrying={futureYou.generationRetrying}
         motivationId={futureYou.motivationId}
         goal={profile.goal ?? "cut"}
         gender={profile.gender ?? "other"}
@@ -602,6 +605,9 @@ export function OnboardingFlow({
         motivationIsGeneric: futureYou.motivationIsGeneric,
         generationJobId: result.jobId,
         generationStatus: result.status,
+        generationError: undefined,
+        generationAutoRetried: false,
+        generationRetrying: false,
       });
       setFutureYou(nextFutureYou);
       goToStep(ONBOARDING_STEP_ACTIVITY, { futureYou: nextFutureYou });
@@ -614,6 +620,39 @@ export function OnboardingFlow({
     } finally {
       setFutureYouGenerating(false);
     }
+  }
+
+  async function retryFutureYouGeneration() {
+    const motivationId = futureYou.motivationId?.trim();
+    if (!motivationId || !futureYou.photoStoragePath) {
+      throw new FutureYouGenerateError("Could not start generation. Try again.", "invalid");
+    }
+
+    const gender = profile.gender ?? "other";
+    const generateProfile = buildFutureYouGenerateProfile({
+      goal: profile.goal ?? "maintain",
+      gender,
+      weightLbs: profile.weightLbs,
+      goalWeightLbs: profile.goalWeightLbs,
+    });
+    const timeline = futureYouTimelineFromProfile(profileForCalc);
+    const result =
+      previewMode ?
+        { jobId: crypto.randomUUID(), status: "generating" as const }
+      : await startFutureYouGeneration({
+          sourcePath: futureYou.photoStoragePath,
+          motivationId,
+          profile: generateProfile,
+          timeline,
+        });
+    patchFutureYou({
+      motivationId,
+      motivationIsGeneric: futureYou.motivationIsGeneric,
+      generationJobId: result.jobId,
+      generationStatus: result.status,
+      generationError: undefined,
+      generationRetrying: false,
+    });
   }
 
   async function continueFutureYouPhoto(previewOverride?: string, consentAtOverride?: string) {

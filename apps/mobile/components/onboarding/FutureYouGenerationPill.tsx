@@ -12,13 +12,20 @@ import {
 
 type Props = {
   status: FutureYouJobStatus | "idle";
+  retrying?: boolean;
   motivationId?: string;
   goal: NutritionGoal;
   gender: UserGender;
 };
 
 /** Onboarding generation pill with rotating motivation phrases. */
-export function FutureYouGenerationPill({ status, motivationId, goal, gender }: Props) {
+export function FutureYouGenerationPill({
+  status,
+  retrying = false,
+  motivationId,
+  goal,
+  gender,
+}: Props) {
   const { ob } = useOnboardingTheme();
   const [phraseIndex, setPhraseIndex] = useState(0);
 
@@ -27,7 +34,7 @@ export function FutureYouGenerationPill({ status, motivationId, goal, gender }: 
     [motivationId, goal, gender],
   );
 
-  const copy = futureYouGenerationPillCopy(status, phraseIndex, phrases);
+  const copy = futureYouGenerationPillCopy(status, phraseIndex, phrases, { retrying });
   // Spin/rotate only while actively generating — both ready and failed are terminal.
   const isLoading = !copy.ready && !copy.failed;
 

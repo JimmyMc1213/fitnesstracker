@@ -31,10 +31,17 @@ describe("futureYouPaywallModel", () => {
     expect(isFutureYouPaywallHeroVisible({}, false)).toBe(false);
   });
 
-  it("shows failed recovery slot on photo path when job failed", () => {
-    expect(isFutureYouPaywallFailedVisible({ ...activeJob, generationStatus: "failed" }, false)).toBe(true);
+  it("shows failed recovery slot on photo path when job failed after auto-retry", () => {
+    const failedAfterRetry = {
+      ...activeJob,
+      generationStatus: "failed" as const,
+      generationAutoRetried: true,
+    };
+    expect(isFutureYouPaywallFailedVisible(failedAfterRetry, false)).toBe(true);
+    expect(isFutureYouPaywallFailedVisible({ ...activeJob, generationStatus: "failed" }, false)).toBe(false);
+    expect(isFutureYouPaywallFailedVisible({ ...failedAfterRetry, generationRetrying: true }, false)).toBe(false);
     expect(isFutureYouPaywallFailedVisible(activeJob, false)).toBe(false);
-    expect(isFutureYouPaywallFailedVisible({ ...activeJob, generationStatus: "failed" }, true)).toBe(false);
+    expect(isFutureYouPaywallFailedVisible({ ...failedAfterRetry, generationStatus: "failed" }, true)).toBe(false);
     expect(isFutureYouPaywallFailedVisible({ photoSkipped: true, generationStatus: "failed" }, false)).toBe(
       false,
     );
@@ -51,7 +58,7 @@ describe("futureYouPaywallModel", () => {
   it("enables CTA immediately on skip, blocked, or failed paths", () => {
     expect(isFutureYouPaywallCtaEnabled({ photoSkipped: true }, "idle", false)).toBe(true);
     expect(isFutureYouPaywallCtaEnabled(activeJob, "generating", true)).toBe(true);
-    expect(isFutureYouPaywallCtaEnabled({ ...activeJob, generationStatus: "failed" }, "failed", false)).toBe(
+    expect(isFutureYouPaywallCtaEnabled({ ...activeJob, generationStatus: "failed", generationAutoRetried: true }, "failed", false)).toBe(
       true,
     );
   });

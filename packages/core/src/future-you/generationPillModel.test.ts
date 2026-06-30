@@ -6,6 +6,7 @@ import {
   futureYouGenerationPillCopy,
   FUTURE_YOU_GENERATION_FAILED_MESSAGE,
   FUTURE_YOU_GENERATION_PILL_CREATING_LABEL,
+  FUTURE_YOU_GENERATION_PILL_RETRYING_LABEL,
   FUTURE_YOU_GENERATION_PILL_FAILED_LABEL,
   FUTURE_YOU_GENERATION_PILL_READY_LABEL,
   FUTURE_YOU_GENERATION_REFUSED_ERROR,
@@ -44,6 +45,16 @@ describe("futureYouGenerationPillModel", () => {
     ).toBe(true);
     expect(
       shouldPollFutureYouGeneration(
+        {
+          generationJobId: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+          generationStatus: "generating",
+          generationRetrying: true,
+        },
+        true,
+      ),
+    ).toBe(false);
+    expect(
+      shouldPollFutureYouGeneration(
         { generationJobId: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", generationStatus: "ready" },
         true,
       ),
@@ -75,6 +86,14 @@ describe("futureYouGenerationPillModel", () => {
     expect(copy.headline).toBe(FUTURE_YOU_GENERATION_PILL_FAILED_LABEL);
     expect(copy.ready).toBe(false);
     expect(copy.failed).toBe(true);
+  });
+
+  it("uses retrying copy while auto-retry is in flight", () => {
+    expect(futureYouGenerationPillCopy("generating", 0, ["A…"], { retrying: true })).toEqual({
+      headline: FUTURE_YOU_GENERATION_PILL_RETRYING_LABEL,
+      ready: false,
+      failed: false,
+    });
   });
 
   it("rotates creating sublines", () => {

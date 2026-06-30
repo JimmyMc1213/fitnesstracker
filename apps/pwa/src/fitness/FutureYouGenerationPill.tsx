@@ -12,6 +12,7 @@ import type { NutritionGoal, UserGender } from "./types";
 
 type Props = {
   status: FutureYouJobStatus | "idle";
+  retrying?: boolean;
   motivationId?: string;
   goal: NutritionGoal;
   gender: UserGender;
@@ -21,7 +22,13 @@ function PillSpinner() {
   return <span className="future-you-generation-pill__spinner" aria-hidden />;
 }
 
-export function FutureYouGenerationPill({ status, motivationId, goal, gender }: Props) {
+export function FutureYouGenerationPill({
+  status,
+  retrying = false,
+  motivationId,
+  goal,
+  gender,
+}: Props) {
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -32,7 +39,7 @@ export function FutureYouGenerationPill({ status, motivationId, goal, gender }: 
     [motivationId, goal, gender],
   );
 
-  const copy = futureYouGenerationPillCopy(status, phraseIndex, phrases);
+  const copy = futureYouGenerationPillCopy(status, phraseIndex, phrases, { retrying });
   const isReady = copy.ready;
   // Spin/rotate only while actively generating — both ready and failed are terminal.
   const isLoading = !copy.ready && !copy.failed;

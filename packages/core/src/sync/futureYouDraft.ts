@@ -82,6 +82,11 @@ export function normalizeFutureYouDraft(raw: unknown): FutureYouDraft | undefine
   if (typeof o.generationJobId === "string" && o.generationJobId.trim()) {
     draft.generationJobId = o.generationJobId.trim();
   }
+  if (typeof o.generationError === "string" && o.generationError.trim()) {
+    draft.generationError = o.generationError.trim();
+  }
+  if (o.generationAutoRetried === true) draft.generationAutoRetried = true;
+  if (o.generationRetrying === true) draft.generationRetrying = true;
   if (typeof o.generationReadyAt === "string" && o.generationReadyAt.trim()) {
     draft.generationReadyAt = o.generationReadyAt.trim();
   }

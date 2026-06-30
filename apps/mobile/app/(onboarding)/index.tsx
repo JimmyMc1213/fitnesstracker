@@ -199,6 +199,8 @@ export default function OnboardingWizardScreen() {
     futureYou: futureYou ?? {},
     pollEnabled: pollFutureYouEnabled,
     onFutureYouPatch: patchFutureYou,
+    autoRetryOnFailure: true,
+    onAutoRetry: futureYouFlow.retryFutureYouGeneration,
   });
 
   const generationPill = useMemo(() => {
@@ -208,12 +210,20 @@ export default function OnboardingWizardScreen() {
     return (
       <FutureYouGenerationPill
         status={generationPollStatus}
+        retrying={futureYou?.generationRetrying}
         motivationId={futureYou?.motivationId}
         goal={profile.goal ?? "maintain"}
         gender={profile.gender ?? "other"}
       />
     );
-  }, [pollFutureYouEnabled, generationPollStatus, futureYou?.motivationId, profile.goal, profile.gender]);
+  }, [
+    pollFutureYouEnabled,
+    generationPollStatus,
+    futureYou?.generationRetrying,
+    futureYou?.motivationId,
+    profile.goal,
+    profile.gender,
+  ]);
 
   const activeTheme = draftTheme ?? theme;
   const dobValid = isValidOnboardingDateOfBirth(profile.dateOfBirth);

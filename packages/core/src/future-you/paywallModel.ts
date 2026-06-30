@@ -20,7 +20,10 @@ export function isFutureYouPaywallFailedVisible(
   if (!futureYou || photoBlocked) return false;
   if (futureYou.photoSkipped) return false;
   if (!futureYou.generationJobId?.trim()) return false;
-  return (futureYou.generationStatus ?? "idle") === "failed";
+  if (futureYou.generationRetrying) return false;
+  if ((futureYou.generationStatus ?? "idle") !== "failed") return false;
+  // Hide recovery until the one automatic retry has finished.
+  return futureYou.generationAutoRetried === true;
 }
 
 /** Show blurred Future You hero on paywall (photo path with an active, non-failed job). */
