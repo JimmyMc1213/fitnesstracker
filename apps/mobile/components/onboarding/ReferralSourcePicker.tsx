@@ -72,7 +72,7 @@ function ReferralSourceIcon({
   }
 
   const Icon = GLYPH_ICONS[source] ?? IconMessageCircle;
-  const glyphColor = selected ? "#ffffff" : "#6B7280";
+  const glyphColor = selected ? "#111827" : "#6B7280";
   return (
     <ReferralSourceIconSlot>
       <Icon size={24} color={glyphColor} strokeWidth={2} />
