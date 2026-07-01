@@ -7,7 +7,9 @@ enabled = true
 site_url = "https://app.newyouai.app"
 additional_redirect_urls = [
   "http://localhost:5173/",
+  "http://localhost:3001/**",
   "https://app.newyouai.app/**",
+  "https://admin.newyouai.app/**",
   "newyouai://auth/callback",
   "exp://127.0.0.1:8081/--/auth/callback",
   "exp://127.0.0.1:8082/--/auth/callback",

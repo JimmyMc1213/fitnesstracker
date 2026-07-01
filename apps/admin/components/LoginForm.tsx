@@ -34,7 +34,8 @@ export function LoginForm({
     setStatus("sending");
     try {
       const supabase = createBrowserSupabase();
-      const redirectBase = adminSiteUrl.replace(/\/$/, "");
+      // Always redirect back to this origin (admin.newyouai.app in prod, :3001 locally).
+      const redirectBase = window.location.origin.replace(/\/$/, "");
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: { emailRedirectTo: `${redirectBase}/auth/callback` },

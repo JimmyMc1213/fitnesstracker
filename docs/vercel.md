@@ -35,7 +35,7 @@ Add **both** (different products):
 2. ~~Point existing Vercel project → `apps/pwa`.~~
 3. ~~Create web + admin projects.~~
 4. ~~DNS: apex + `app` + `admin` records.~~ (apex A → `76.76.21.21`; subdomains CNAME → `cname.vercel-dns.com`)
-5. Supabase Auth → add redirect URLs above.
+5. Supabase Auth → add redirect URLs above (including `https://admin.newyouai.app/**` for staff magic links).
 
 ## Rollback
 
