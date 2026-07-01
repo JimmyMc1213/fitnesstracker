@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { createBrowserSupabase, isBrowserAuthConfigured } from "../lib/supabase-browser";
 
@@ -10,41 +10,42 @@ type LoginFormProps = {
   authConfigured?: boolean;
   devBypass?: boolean;
   supabaseConfigured?: boolean;
-  /** Staff dashboard origin — always admin.newyouai.app in production, not app.newyouai.app. */
-  adminSiteUrl?: string;
 };
 
 export function LoginForm({
   authConfigured: authConfiguredProp,
   devBypass = false,
   supabaseConfigured = false,
-  adminSiteUrl = "https://admin.newyouai.app",
 }: LoginFormProps = {}) {
+  const router = useRouter();
   const params = useSearchParams();
   const denied = params.get("denied") === "1";
+  const from = params.get("from");
   const authConfigured = authConfiguredProp ?? isBrowserAuthConfigured();
 
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState<"idle" | "signing_in" | "error">("idle");
   const [message, setMessage] = useState("");
 
-  async function sendLink(e: React.FormEvent) {
+  async function signIn(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim()) return;
-    setStatus("sending");
+    if (!email.trim() || !password) return;
+    setStatus("signing_in");
+    setMessage("");
     try {
       const supabase = createBrowserSupabase();
-      // Always redirect back to this origin (admin.newyouai.app in prod, :3001 locally).
-      const redirectBase = window.location.origin.replace(/\/$/, "");
-      const { error } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
-        options: { emailRedirectTo: `${redirectBase}/auth/callback` },
+        password,
       });
       if (error) throw error;
-      setStatus("sent");
+      const redirectTo = from && from.startsWith("/") ? from : "/";
+      router.push(redirectTo);
+      router.refresh();
     } catch (err) {
       setStatus("error");
-      setMessage(err instanceof Error ? err.message : "Could not send the magic link.");
+      setMessage(err instanceof Error ? err.message : "Could not sign in.");
     }
   }
 
@@ -64,7 +65,7 @@ export function LoginForm({
 
       <h1 style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 6px" }}>Staff sign in</h1>
       <p className="muted" style={{ fontSize: 13, lineHeight: 1.5, margin: "0 0 20px" }}>
-        Enter your allowlisted email and we&apos;ll send a magic link. Access is restricted to{" "}
+        Sign in with your allowlisted email and password. Access is restricted to{" "}
         <code className="mono">ADMIN_ALLOWED_EMAILS</code>.
       </p>
 
@@ -88,13 +89,8 @@ export function LoginForm({
           <i className="ph ph-info" />
           Supabase auth env not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.
         </div>
-      ) : status === "sent" ? (
-        <div className="demobar" style={{ background: "#eaf3ec", borderColor: "#cfe3d4", color: "#3c7a4e" }}>
-          <i className="ph ph-paper-plane-tilt" />
-          Check {email} for a sign-in link.
-        </div>
       ) : (
-        <form onSubmit={sendLink}>
+        <form onSubmit={signIn}>
           <div className="field">
             <label htmlFor="email">Email</label>
             <input
@@ -107,14 +103,26 @@ export function LoginForm({
               style={{ fontFamily: "inherit" }}
             />
           </div>
+          <div className="field">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ fontFamily: "inherit" }}
+            />
+          </div>
           {status === "error" && (
             <p className="down" style={{ fontSize: 12.5, fontWeight: 600, margin: "0 0 12px" }}>
               {message}
             </p>
           )}
-          <button type="submit" className="btn dark" style={{ width: "100%", justifyContent: "center" }} disabled={status === "sending"}>
-            <i className="ph ph-paper-plane-tilt" />
-            {status === "sending" ? "Sending…" : "Send magic link"}
+          <button type="submit" className="btn dark" style={{ width: "100%", justifyContent: "center" }} disabled={status === "signing_in"}>
+            <i className="ph ph-sign-in" />
+            {status === "signing_in" ? "Signing in…" : "Sign in"}
           </button>
         </form>
       )}

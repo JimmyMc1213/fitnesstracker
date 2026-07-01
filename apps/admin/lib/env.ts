@@ -83,7 +83,7 @@ export function getAdminAllowlist(): string[] {
     .filter(Boolean);
 }
 
-/** Local dev without ADMIN_ALLOWED_EMAILS — skip magic-link gate (not for production). */
+/** Local dev without ADMIN_ALLOWED_EMAILS — skip auth gate (not for production). */
 export function isDevAuthBypass(): boolean {
   return getAdminAllowlist().length === 0 && env("VERCEL_ENV") !== "production";
 }
