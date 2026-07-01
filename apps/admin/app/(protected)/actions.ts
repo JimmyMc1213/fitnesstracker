@@ -43,6 +43,7 @@ export async function saveUserPayload(userId: string, payloadText: string): Prom
       .upsert({ user_id: userId, payload: parsed, updated_at_ms: updatedAtMs }, { onConflict: "user_id" });
     if (error) throw error;
     await logAudit({ action: "edit", targetType: "user", targetId: userId, detail: "raw JSON payload · updated_at_ms bumped", before: before?.payload, after: parsed });
+    bustAdminCache();
     revalidatePath(`/users/${userId}`);
     return { ok: true, message: "Payload saved · updated_at_ms bumped" };
   } catch (e) {
@@ -62,6 +63,7 @@ export async function overrideSubscription(userId: string, plan: "free" | "month
       .upsert({ user_id: userId, entitlement: "pro", is_active: isActive, product_id: productId, store: "admin_override", updated_at: new Date().toISOString() }, { onConflict: "user_id" });
     if (error) throw error;
     await logAudit({ action: "override", targetType: "user", targetId: userId, detail: `tier → ${plan} · server wins`, before, after: { plan, isActive } });
+    bustAdminCache();
     revalidatePath(`/users/${userId}`);
     return { ok: true, message: `Subscription overridden → ${plan}` };
   } catch (e) {

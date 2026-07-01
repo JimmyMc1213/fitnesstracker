@@ -3,6 +3,8 @@
 type SubRow = {
   is_active: boolean;
   product_id: string | null;
+  /** Extracted server-side from raw->event->>period_type to avoid transferring the full raw payload. */
+  period_type?: string | null;
   raw?: unknown;
   updated_at?: string;
 };
@@ -10,8 +12,9 @@ type SubRow = {
 export function isTrialSubscription(row: SubRow): boolean {
   const pid = row.product_id?.toLowerCase() ?? "";
   if (pid.includes("trial") || pid.includes("intro")) return true;
-  const event = (row.raw as { event?: { period_type?: string } } | null)?.event;
-  if (event?.period_type === "TRIAL") return true;
+  const periodType =
+    row.period_type ?? (row.raw as { event?: { period_type?: string } } | null)?.event?.period_type;
+  if (periodType === "TRIAL") return true;
   return false;
 }
 

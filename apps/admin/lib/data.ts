@@ -1,10 +1,13 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
+
 import { createAdminClient } from "./supabase-admin";
 import { isSupabaseConfigured } from "./env";
 import { EMPTY_DASHBOARD } from "./empty";
 import { getAuditLog } from "./audit";
 import {
+  ADMIN_CACHE_TAG,
   getAuthUserCount,
   getCachedAuthUsers,
   emailMapFromCache,
@@ -29,46 +32,53 @@ type SubRow = {
   user_id: string;
   is_active: boolean;
   product_id: string | null;
+  period_type?: string | null;
   raw?: unknown;
 };
 
-async function countJobStatus(status: string): Promise<number> {
+/** One round-trip: counts several job statuses at once instead of one query per status. */
+async function countJobStatuses(statuses: string[]): Promise<Record<string, number>> {
   const supabase = createAdminClient();
-  const { count } = await supabase
+  const tally: Record<string, number> = Object.fromEntries(statuses.map((s) => [s, 0]));
+  const { data } = await supabase
     .from("future_you_jobs")
-    .select("id", { count: "exact", head: true })
-    .eq("status", status);
-  return count ?? 0;
+    .select("status")
+    .in("status", statuses);
+  for (const row of data ?? []) {
+    const s = (row as { status: string }).status;
+    if (s in tally) tally[s] += 1;
+  }
+  return tally;
 }
 
-export async function getUsers(): Promise<Demoable<AdminUserRow[]>> {
+async function fetchUsers(): Promise<Demoable<AdminUserRow[]>> {
   if (!isSupabaseConfigured()) return { data: [], demo: true };
   try {
     const supabase = createAdminClient();
     const users = await getCachedAuthUsers();
+    // Select only the nested profile fields we render — not the full (potentially huge) payload JSONB.
     const [{ data: fitness }, { data: subs }] = await Promise.all([
-      supabase.from("fitness_user_data").select("user_id, payload, updated_at_ms"),
-      supabase.from("subscriptions").select("user_id, is_active, product_id, raw"),
+      supabase
+        .from("fitness_user_data")
+        .select("user_id, updated_at_ms, goal:payload->onboardingProfile->>goal, country:payload->onboardingProfile->>country"),
+      supabase.from("subscriptions").select("user_id, is_active, product_id, period_type:raw->event->>period_type"),
     ]);
     const fitnessById = new Map((fitness ?? []).map((f) => [f.user_id, f]));
-    const subById = new Map((subs ?? []).map((s) => [s.user_id, s]));
+    const subById = new Map((subs ?? []).map((s) => [s.user_id, s as SubRow]));
 
     const rows: AdminUserRow[] = users.map((u) => {
       const f = fitnessById.get(u.id);
       const sub = subById.get(u.id);
-      const profile = (f?.payload as Record<string, unknown> | undefined)?.onboardingProfile as
-        | Record<string, unknown>
-        | undefined;
       const status = subscriptionStatus(sub ?? null);
       return {
         id: u.id,
         email: u.email ?? u.id,
         createdAt: u.created_at ?? null,
-        goal: (profile?.goal as string) ?? null,
+        goal: (f?.goal as string | null) ?? null,
         plan: planLabelFromProduct(sub?.product_id ?? null, Boolean(sub?.is_active)),
         status,
         lastSyncMs: f?.updated_at_ms ?? null,
-        country: (profile?.country as string) ?? null,
+        country: (f?.country as string | null) ?? null,
       };
     });
     return { data: rows, demo: false };
@@ -76,6 +86,12 @@ export async function getUsers(): Promise<Demoable<AdminUserRow[]>> {
     return { data: [], demo: true };
   }
 }
+
+/** Cached 60s — the Users list always fetches all rows (search is client-side), so it's safe to share. */
+export const getUsers = unstable_cache(fetchUsers, ["admin-users-list"], {
+  revalidate: 60,
+  tags: [ADMIN_CACHE_TAG],
+});
 
 export async function getUserDetail(id: string): Promise<Demoable<AdminUserDetail | null>> {
   if (!isSupabaseConfigured()) return { data: null, demo: true };
@@ -125,7 +141,7 @@ export async function getUserDetail(id: string): Promise<Demoable<AdminUserDetai
   }
 }
 
-export async function getDashboard(): Promise<Demoable<DashboardData>> {
+async function fetchDashboard(): Promise<Demoable<DashboardData>> {
   const audit = await getAuditLog(5);
   if (!isSupabaseConfigured()) {
     return { data: { ...EMPTY_DASHBOARD, recentAudit: audit.data.slice(0, 4) }, demo: true };
@@ -139,24 +155,18 @@ export async function getDashboard(): Promise<Demoable<DashboardData>> {
       totalUsers,
       { data: subs },
       { count: activeSubscriptions },
-      ready,
-      queued,
-      generating,
-      failed,
+      jobCounts,
       { count: openFyReports },
       { count: openIssues },
     ] = await Promise.all([
       getCachedAuthUsers(),
       getAuthUserCount(),
-      supabase.from("subscriptions").select("is_active, product_id, raw"),
+      supabase.from("subscriptions").select("is_active, product_id, period_type:raw->event->>period_type"),
       supabase
         .from("subscriptions")
         .select("id", { count: "exact", head: true })
         .eq("is_active", true),
-      countJobStatus("ready"),
-      countJobStatus("queued"),
-      countJobStatus("generating"),
-      countJobStatus("failed"),
+      countJobStatuses(["ready", "queued", "generating", "failed"]),
       supabase
         .from("future_you_reports")
         .select("id", { count: "exact", head: true })
@@ -185,10 +195,10 @@ export async function getDashboard(): Promise<Demoable<DashboardData>> {
         },
         signups,
         jobBars: [
-          { label: "Ready", count: ready, color: "#3C7A4E" },
-          { label: "Queued", count: queued, color: "#CAA668" },
-          { label: "Generating", count: generating, color: "#3F6193" },
-          { label: "Failed", count: failed, color: "#A8493C" },
+          { label: "Ready", count: jobCounts.ready ?? 0, color: "#3C7A4E" },
+          { label: "Queued", count: jobCounts.queued ?? 0, color: "#CAA668" },
+          { label: "Generating", count: jobCounts.generating ?? 0, color: "#3F6193" },
+          { label: "Failed", count: jobCounts.failed ?? 0, color: "#A8493C" },
         ],
         conversion: computeConversionStats((subs ?? []) as SubRow[]),
         recentAudit: audit.data.slice(0, 4),
@@ -199,6 +209,12 @@ export async function getDashboard(): Promise<Demoable<DashboardData>> {
     return { data: { ...EMPTY_DASHBOARD, recentAudit: audit.data.slice(0, 4) }, demo: true };
   }
 }
+
+/** Cached 60s — the whole dashboard aggregate, so warm loads skip Supabase entirely. */
+export const getDashboard = unstable_cache(fetchDashboard, ["admin-dashboard"], {
+  revalidate: 60,
+  tags: [ADMIN_CACHE_TAG],
+});
 
 const FY_DURATION = (created: string | null, updated: string | null, status: string): string => {
   if (status !== "ready" || !created || !updated) return "—";
@@ -415,14 +431,14 @@ export async function getSubscriptionRows(): Promise<SubRow[]> {
   if (!isSupabaseConfigured()) return [];
   try {
     const supabase = createAdminClient();
-    const { data } = await supabase.from("subscriptions").select("user_id, is_active, product_id, raw");
+    const { data } = await supabase.from("subscriptions").select("user_id, is_active, product_id");
     return (data ?? []) as SubRow[];
   } catch {
     return [];
   }
 }
 
-export async function getNavBadges(): Promise<{ users: string; futureYou: string; issues: string }> {
+async function fetchNavBadges(): Promise<{ users: string; futureYou: string; issues: string }> {
   if (!isSupabaseConfigured()) return { users: "0", futureYou: "0", issues: "0" };
   try {
     const supabase = createAdminClient();
@@ -440,3 +456,9 @@ export async function getNavBadges(): Promise<{ users: string; futureYou: string
     return { users: "—", futureYou: "—", issues: "—" };
   }
 }
+
+/** Cached 60s — rendered in the layout on every page navigation. */
+export const getNavBadges = unstable_cache(fetchNavBadges, ["admin-nav-badges"], {
+  revalidate: 60,
+  tags: [ADMIN_CACHE_TAG],
+});

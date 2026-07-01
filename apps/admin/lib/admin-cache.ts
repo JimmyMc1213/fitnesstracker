@@ -52,7 +52,7 @@ export async function emailMapFromCache(): Promise<Map<string, string>> {
 }
 
 /** Head count when available; falls back to cached list length. */
-export async function getAuthUserCount(): Promise<number> {
+async function fetchAuthUserCount(): Promise<number> {
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1 });
@@ -64,3 +64,9 @@ export async function getAuthUserCount(): Promise<number> {
   }
   return (await getCachedAuthUsers()).length;
 }
+
+/** Cached 60s — called on every navigation (nav badges) and on the dashboard. */
+export const getAuthUserCount = unstable_cache(fetchAuthUserCount, ["admin-auth-count"], {
+  revalidate: REVALIDATE_SECONDS,
+  tags: [ADMIN_CACHE_TAG],
+});
