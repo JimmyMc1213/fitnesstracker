@@ -223,7 +223,7 @@ const FY_DURATION = (created: string | null, updated: string | null, status: str
   return `${Math.round(ms / 1000)}s`;
 };
 
-export async function getFutureYou(): Promise<Demoable<{ jobs: FutureYouJob[]; reports: FutureYouReport[] }>> {
+async function fetchFutureYou(): Promise<Demoable<{ jobs: FutureYouJob[]; reports: FutureYouReport[] }>> {
   if (!isSupabaseConfigured()) return { data: { jobs: [], reports: [] }, demo: true };
   try {
     const supabase = createAdminClient();
@@ -302,6 +302,12 @@ export async function getFutureYou(): Promise<Demoable<{ jobs: FutureYouJob[]; r
     return { data: { jobs: [], reports: [] }, demo: true };
   }
 }
+
+/** Cached 60s — the Future You jobs + reports read path (incl. signed URLs) runs once per window. */
+export const getFutureYou = unstable_cache(fetchFutureYou, ["admin-future-you"], {
+  revalidate: 60,
+  tags: [ADMIN_CACHE_TAG],
+});
 
 export async function signFutureYouPath(path: string | null, expiresIn = 3600): Promise<string | null> {
   if (!path || !isSupabaseConfigured()) return null;

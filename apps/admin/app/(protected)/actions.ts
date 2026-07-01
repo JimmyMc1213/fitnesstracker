@@ -117,6 +117,7 @@ export async function moderateReport(reportId: string, resolution: "resolved" | 
       .eq("id", reportId);
     if (error) throw error;
     await logAudit({ action: "resolve", targetType: "future_you_report", targetId: reportId, detail: `resolution: ${resolution}` });
+    bustAdminCache();
     revalidatePath("/future-you");
     return { ok: true, message: `Report ${resolution}` };
   } catch (e) {
@@ -131,6 +132,7 @@ export async function deleteReport(reportId: string): Promise<ActionResult> {
     const { error } = await supabase.from("future_you_reports").delete().eq("id", reportId);
     if (error) throw error;
     await logAudit({ action: "delete", targetType: "future_you_report", targetId: reportId, detail: "report deleted" });
+    bustAdminCache();
     revalidatePath("/future-you");
     return { ok: true, message: "Report deleted" };
   } catch (e) {

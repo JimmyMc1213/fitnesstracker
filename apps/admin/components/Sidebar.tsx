@@ -37,7 +37,7 @@ export function Sidebar({
           {group.items.map((item) => {
             const badge = badgeFor(item.badgeKey);
             return (
-              <Link key={item.href} href={item.href} className={isActive(item.href) ? "navitem on" : "navitem"}>
+              <Link key={item.href} href={item.href} prefetch className={isActive(item.href) ? "navitem on" : "navitem"}>
                 <i className={item.icon} />
                 {item.label}
                 {badge ? <span className="nbadge">{badge}</span> : null}
