@@ -3,7 +3,7 @@ import { DemoBanner } from "../../../components/DemoBanner";
 import { getFutureYou } from "../../../lib/data";
 import { relativeTime, statusChip } from "../../../lib/format";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function FutureYouPage() {
   const { data, demo } = await getFutureYou();

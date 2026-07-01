@@ -1,6 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+
+import { ADMIN_CACHE_TAG } from "../../lib/admin-cache";
 
 import { createAdminClient } from "../../lib/supabase-admin";
 import { isSupabaseConfigured } from "../../lib/env";
@@ -11,6 +13,10 @@ import type { ProviderId } from "../../lib/integrations/types";
 export type ActionResult = { ok: boolean; message: string; data?: Record<string, unknown> };
 
 const PWA_URL = process.env.NEXT_PUBLIC_PWA_URL ?? "https://app.newyouai.app";
+
+function bustAdminCache() {
+  revalidateTag(ADMIN_CACHE_TAG);
+}
 
 function notConfigured(): ActionResult {
   return {
@@ -71,6 +77,7 @@ export async function deleteUserAction(userId: string): Promise<ActionResult> {
     const { error } = await supabase.auth.admin.deleteUser(userId);
     if (error) throw error;
     await logAudit({ action: "delete", targetType: "user", targetId: userId, detail: "account + fitness_user_data deleted" });
+    bustAdminCache();
     revalidatePath("/users");
     return { ok: true, message: "User deleted" };
   } catch (e) {

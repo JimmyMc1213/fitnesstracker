@@ -5,6 +5,11 @@ import { isSupabaseConfigured } from "./env";
 import { EMPTY_DASHBOARD } from "./empty";
 import { getAuditLog } from "./audit";
 import {
+  getAuthUserCount,
+  getCachedAuthUsers,
+  emailMapFromCache,
+} from "./admin-cache";
+import {
   computeConversionStats,
   planLabelFromProduct,
   subscriptionStatus,
@@ -20,7 +25,6 @@ import type {
   IssueReport,
 } from "./types";
 
-type AuthUser = { id: string; email?: string | null; created_at?: string };
 type SubRow = {
   user_id: string;
   is_active: boolean;
@@ -28,31 +32,20 @@ type SubRow = {
   raw?: unknown;
 };
 
-async function listAuthUsers(limit = 1000): Promise<AuthUser[]> {
+async function countJobStatus(status: string): Promise<number> {
   const supabase = createAdminClient();
-  const users: AuthUser[] = [];
-  let page = 1;
-  const perPage = 200;
-  while (users.length < limit) {
-    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
-    if (error || !data?.users?.length) break;
-    users.push(...data.users.map((u) => ({ id: u.id, email: u.email, created_at: u.created_at })));
-    if (data.users.length < perPage) break;
-    page += 1;
-  }
-  return users;
-}
-
-async function emailMap(): Promise<Map<string, string>> {
-  const users = await listAuthUsers();
-  return new Map(users.map((u) => [u.id, u.email ?? u.id]));
+  const { count } = await supabase
+    .from("future_you_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("status", status);
+  return count ?? 0;
 }
 
 export async function getUsers(): Promise<Demoable<AdminUserRow[]>> {
   if (!isSupabaseConfigured()) return { data: [], demo: true };
   try {
     const supabase = createAdminClient();
-    const users = await listAuthUsers();
+    const users = await getCachedAuthUsers();
     const [{ data: fitness }, { data: subs }] = await Promise.all([
       supabase.from("fitness_user_data").select("user_id, payload, updated_at_ms"),
       supabase.from("subscriptions").select("user_id, is_active, product_id, raw"),
@@ -139,19 +132,31 @@ export async function getDashboard(): Promise<Demoable<DashboardData>> {
   }
   try {
     const supabase = createAdminClient();
-    const users = await listAuthUsers();
-    const totalUsers = users.length;
     const weekAgo = Date.now() - 7 * 86400000;
-    const newSignups7d = users.filter((u) => u.created_at && new Date(u.created_at).getTime() > weekAgo).length;
 
     const [
+      users,
+      totalUsers,
       { data: subs },
-      { data: jobStatuses },
+      { count: activeSubscriptions },
+      ready,
+      queued,
+      generating,
+      failed,
       { count: openFyReports },
       { count: openIssues },
     ] = await Promise.all([
+      getCachedAuthUsers(),
+      getAuthUserCount(),
       supabase.from("subscriptions").select("is_active, product_id, raw"),
-      supabase.from("future_you_jobs").select("status"),
+      supabase
+        .from("subscriptions")
+        .select("id", { count: "exact", head: true })
+        .eq("is_active", true),
+      countJobStatus("ready"),
+      countJobStatus("queued"),
+      countJobStatus("generating"),
+      countJobStatus("failed"),
       supabase
         .from("future_you_reports")
         .select("id", { count: "exact", head: true })
@@ -159,9 +164,9 @@ export async function getDashboard(): Promise<Demoable<DashboardData>> {
       supabase.from("issue_reports").select("id", { count: "exact", head: true }).eq("status", "open"),
     ]);
 
-    const activeSubscriptions = (subs ?? []).filter((s) => s.is_active).length;
-    const counts = { queued: 0, generating: 0, ready: 0, failed: 0 } as Record<string, number>;
-    for (const j of jobStatuses ?? []) counts[j.status] = (counts[j.status] ?? 0) + 1;
+    const newSignups7d = users.filter(
+      (u) => u.created_at && new Date(u.created_at).getTime() > weekAgo,
+    ).length;
 
     const signups = Array.from({ length: 12 }, () => 0);
     for (const u of users) {
@@ -174,16 +179,16 @@ export async function getDashboard(): Promise<Demoable<DashboardData>> {
       data: {
         kpis: {
           totalUsers,
-          activeSubscriptions,
+          activeSubscriptions: activeSubscriptions ?? 0,
           newSignups7d,
           openReports: (openFyReports ?? 0) + (openIssues ?? 0),
         },
         signups,
         jobBars: [
-          { label: "Ready", count: counts.ready, color: "#3C7A4E" },
-          { label: "Queued", count: counts.queued, color: "#CAA668" },
-          { label: "Generating", count: counts.generating, color: "#3F6193" },
-          { label: "Failed", count: counts.failed, color: "#A8493C" },
+          { label: "Ready", count: ready, color: "#3C7A4E" },
+          { label: "Queued", count: queued, color: "#CAA668" },
+          { label: "Generating", count: generating, color: "#3F6193" },
+          { label: "Failed", count: failed, color: "#A8493C" },
         ],
         conversion: computeConversionStats((subs ?? []) as SubRow[]),
         recentAudit: audit.data.slice(0, 4),
@@ -206,8 +211,8 @@ export async function getFutureYou(): Promise<Demoable<{ jobs: FutureYouJob[]; r
   if (!isSupabaseConfigured()) return { data: { jobs: [], reports: [] }, demo: true };
   try {
     const supabase = createAdminClient();
-    const emails = await emailMap();
-    const [{ data: jobsRaw }, { data: reportsRaw }] = await Promise.all([
+    const [emails, { data: jobsRaw }, { data: reportsRaw }] = await Promise.all([
+      emailMapFromCache(),
       supabase
         .from("future_you_jobs")
         .select(
@@ -246,29 +251,35 @@ export async function getFutureYou(): Promise<Demoable<{ jobs: FutureYouJob[]; r
       for (const j of relJobs ?? []) jobPaths.set(j.id, { source: j.source_photo_path, result: j.result_photo_path });
     }
 
-    const reports: FutureYouReport[] = await Promise.all(
-      (reportsRaw ?? []).map(async (r) => {
-        const paths = r.job_id ? jobPaths.get(r.job_id) : undefined;
-        const [sourceUrl, resultUrl] = await Promise.all([
-          signFutureYouPath(paths?.source ?? null),
-          signFutureYouPath(paths?.result ?? null),
-        ]);
-        return {
-          id: r.id,
-          userId: r.user_id,
-          userEmail: emails.get(r.user_id) ?? r.user_id,
-          jobId: r.job_id,
-          category: r.category,
-          context: r.context,
-          message: r.message,
-          status: r.status ?? "open",
-          createdAt: r.created_at,
-          sourceUrl,
-          resultUrl,
-          linearUrl: r.linear_issue_url,
-        };
-      }),
+    const signedByPath = await signFutureYouPaths(
+      Array.from(
+        new Set(
+          (reportsRaw ?? [])
+            .flatMap((r) => {
+              const paths = r.job_id ? jobPaths.get(r.job_id) : undefined;
+              return [paths?.source, paths?.result].filter(Boolean) as string[];
+            }),
+        ),
+      ),
     );
+
+    const reports: FutureYouReport[] = (reportsRaw ?? []).map((r) => {
+      const paths = r.job_id ? jobPaths.get(r.job_id) : undefined;
+      return {
+        id: r.id,
+        userId: r.user_id,
+        userEmail: emails.get(r.user_id) ?? r.user_id,
+        jobId: r.job_id,
+        category: r.category,
+        context: r.context,
+        message: r.message,
+        status: r.status ?? "open",
+        createdAt: r.created_at,
+        sourceUrl: paths?.source ? (signedByPath.get(paths.source) ?? null) : null,
+        resultUrl: paths?.result ? (signedByPath.get(paths.result) ?? null) : null,
+        linearUrl: r.linear_issue_url,
+      };
+    });
 
     return { data: { jobs, reports }, demo: false };
   } catch {
@@ -276,15 +287,26 @@ export async function getFutureYou(): Promise<Demoable<{ jobs: FutureYouJob[]; r
   }
 }
 
-export async function signFutureYouPath(path: string | null, expiresIn = 60): Promise<string | null> {
+export async function signFutureYouPath(path: string | null, expiresIn = 3600): Promise<string | null> {
   if (!path || !isSupabaseConfigured()) return null;
+  const map = await signFutureYouPaths([path], expiresIn);
+  return map.get(path) ?? null;
+}
+
+async function signFutureYouPaths(paths: string[], expiresIn = 3600): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (!paths.length || !isSupabaseConfigured()) return out;
   try {
     const supabase = createAdminClient();
-    const { data } = await supabase.storage.from("future-you").createSignedUrl(path, expiresIn);
-    return data?.signedUrl ?? null;
+    const { data, error } = await supabase.storage.from("future-you").createSignedUrls(paths, expiresIn);
+    if (error || !data) return out;
+    for (const item of data) {
+      if (item.path && item.signedUrl) out.set(item.path, item.signedUrl);
+    }
   } catch {
-    return null;
+    // ignore — thumbnails stay empty
   }
+  return out;
 }
 
 export async function getUserLatestFutureYou(
@@ -404,16 +426,16 @@ export async function getNavBadges(): Promise<{ users: string; futureYou: string
   if (!isSupabaseConfigured()) return { users: "0", futureYou: "0", issues: "0" };
   try {
     const supabase = createAdminClient();
-    const users = await listAuthUsers();
-    const [{ count: activeJobs }, { count: openIssues }] = await Promise.all([
+    const [{ count: activeJobs }, { count: openIssues }, totalUsers] = await Promise.all([
       supabase
         .from("future_you_jobs")
         .select("id", { count: "exact", head: true })
         .in("status", ["queued", "generating"]),
       supabase.from("issue_reports").select("id", { count: "exact", head: true }).eq("status", "open"),
+      getAuthUserCount(),
     ]);
     const fmt = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
-    return { users: fmt(users.length), futureYou: String(activeJobs ?? 0), issues: String(openIssues ?? 0) };
+    return { users: fmt(totalUsers), futureYou: String(activeJobs ?? 0), issues: String(openIssues ?? 0) };
   } catch {
     return { users: "—", futureYou: "—", issues: "—" };
   }

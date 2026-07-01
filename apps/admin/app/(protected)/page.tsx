@@ -7,7 +7,7 @@ import { getDashboard } from "../../lib/data";
 import { auditIcon } from "../../lib/audit-icons";
 import { compactNumber, numberWithCommas, relativeTime } from "../../lib/format";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function DashboardPage() {
   const { data, demo } = await getDashboard();

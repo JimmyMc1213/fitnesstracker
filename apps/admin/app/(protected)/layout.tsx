@@ -8,12 +8,11 @@ import { isAuthConfigured, isDevAuthBypass } from "../../lib/env";
 import { getNavBadges } from "../../lib/data";
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const session = await getAdminSession();
+  const [session, badges] = await Promise.all([getAdminSession(), getNavBadges()]);
   if (isAuthConfigured() && !session && !isDevAuthBypass()) {
     redirect("/login");
   }
 
-  const badges = await getNavBadges();
   const account = session ?? { name: "Owner", role: "owner" };
 
   return (
