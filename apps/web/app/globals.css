@@ -4,6 +4,10 @@
 
 @layer base {
   html {
-    @apply bg-background font-sans text-foreground antialiased;
+    @apply scroll-smooth bg-white text-ink antialiased;
+  }
+
+  a {
+    @apply no-underline text-inherit;
   }
 }
