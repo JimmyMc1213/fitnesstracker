@@ -42,6 +42,7 @@ type Props = {
   futureYou: FutureYouDraft | undefined;
   generationStatus: FutureYouJobStatus | "idle";
   photoBlocked: boolean;
+  regionBlocked?: boolean;
   weightUnit: WeightUnit;
   onReuploadFutureYou?: () => void;
 };
@@ -55,6 +56,7 @@ export function OnboardingPaywall({
   futureYou,
   generationStatus,
   photoBlocked,
+  regionBlocked = false,
   weightUnit,
   onReuploadFutureYou,
 }: Props) {
@@ -66,8 +68,8 @@ export function OnboardingPaywall({
   const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const heroVisible = isFutureYouPaywallHeroVisible(futureYou, photoBlocked);
-  const failedVisible = isFutureYouPaywallFailedVisible(futureYou, photoBlocked);
+  const heroVisible = isFutureYouPaywallHeroVisible(futureYou, photoBlocked, regionBlocked);
+  const failedVisible = isFutureYouPaywallFailedVisible(futureYou, photoBlocked, regionBlocked);
   const heroLayout = heroVisible
     ? paywallHeroLayoutTier(screenHeight, insets.top, insets.bottom)
     : null;
@@ -75,11 +77,17 @@ export function OnboardingPaywall({
   const storeReady = paywallOfferings.stub || paywallOfferings.ready;
   const storeError = !paywallOfferings.loading && !storeReady ? paywallOfferings.error : null;
   const ctaEnabled =
-    isFutureYouPaywallCtaEnabled(futureYou, generationStatus, photoBlocked) &&
+    isFutureYouPaywallCtaEnabled(futureYou, generationStatus, photoBlocked, regionBlocked) &&
     !purchasing &&
     !paywallOfferings.loading &&
     storeReady;
-  const ctaLabel = futureYouPaywallCtaLabel(futureYou, generationStatus, photoBlocked, billingPeriod);
+  const ctaLabel = futureYouPaywallCtaLabel(
+    futureYou,
+    generationStatus,
+    photoBlocked,
+    billingPeriod,
+    regionBlocked,
+  );
   const footerStartStep = paywallFooterStartStep(heroVisible || failedVisible);
   const showDevReset = isOnboardingDevResetEnabled();
 

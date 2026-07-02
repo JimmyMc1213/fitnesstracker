@@ -30,7 +30,6 @@ type AuthContextValue = {
   sessionResolved: boolean;
   signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
   signUpWithEmail: (email: string, password: string, name: string) => Promise<AuthResult>;
-  signInWithOAuth: (provider: "google") => Promise<{ error?: string }>;
   signInWithApple: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   completeOAuthFromUrl: (redirectUrl: string) => Promise<{ error?: string }>;
@@ -257,47 +256,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {};
   }, []);
 
-  const signInWithOAuth = useCallback(
-    async (provider: "google") => {
-      const sb = getSupabase();
-      if (!sb) return { error: "Add Supabase keys to sign in." };
-
-      let makeRedirectUri: (options: { scheme: string; path: string }) => string;
-      try {
-        ({ makeRedirectUri } = await import("expo-auth-session"));
-      } catch {
-        return {
-          error: "Google sign-in needs a dev client rebuild (expo-auth-session). Rebuild with EAS, then retry.",
-        };
-      }
-
-      const redirectTo = makeRedirectUri({ scheme: "newyouai", path: "auth/callback" });
-      const { data, error } = await sb.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo,
-          skipBrowserRedirect: true,
-        },
-      });
-
-      if (error) return { error: mapOAuthSessionError(error.message) };
-      if (!data?.url) return { error: "Could not start sign-in. Try again." };
-
-      try {
-        const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-        if (result.type === "cancel" || result.type === "dismiss") return {};
-        if (result.type !== "success") {
-          return { error: "Sign-in was interrupted. Try again." };
-        }
-        return completeOAuthRedirect(result.url);
-      } catch (e) {
-        const message = e instanceof Error ? e.message : "Sign-in failed.";
-        return { error: mapOAuthSessionError(message) };
-      }
-    },
-    [completeOAuthRedirect],
-  );
-
   const signInWithApple = useCallback(async () => {
     const sb = getSupabase();
     if (!sb) return { error: "Add Supabase keys to sign in." };
@@ -386,7 +344,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionResolved,
       signInWithPassword,
       signUpWithEmail,
-      signInWithOAuth,
       signInWithApple,
       signOut,
       completeOAuthFromUrl: completeOAuthRedirect,
@@ -399,7 +356,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionResolved,
       signInWithPassword,
       signUpWithEmail,
-      signInWithOAuth,
       signInWithApple,
       signOut,
       completeOAuthRedirect,

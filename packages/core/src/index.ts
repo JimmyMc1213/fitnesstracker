@@ -215,6 +215,7 @@ export {
   isGoalWeightOrPaceStep,
   nextStepAfterGoal,
   backStepFromFutureYouPhoto,
+  backStepFromResidency,
   resolveMaintainOnboardingStep,
   isOnboardingPastGoalEditZone,
   resolveGoalLockedOnboardingStep,
@@ -224,6 +225,7 @@ export {
 } from "./onboarding/routing";
 export {
   ONBOARDING_STEP_PACE,
+  ONBOARDING_STEP_RESIDENCY,
   ONBOARDING_STEP_FUTURE_YOU_PHOTO,
   ONBOARDING_STEP_FUTURE_YOU_MOTIVATION,
   ONBOARDING_STEP_ACTIVITY,
@@ -234,6 +236,16 @@ export {
   isOnboardingGoalLockStep,
   clampOnboardingStepIndex,
 } from "./onboarding/steps";
+export {
+  FUTURE_YOU_REGION_UNAVAILABLE_MESSAGE,
+  RESIDENCY_COUNTRIES,
+  US_REGIONS,
+  CA_REGIONS,
+  isFutureYouRegionBlocked,
+  isRegionAllowed,
+  regionsForCountry,
+  type ResidencyCountry,
+} from "./region/allowedRegion";
 export {
   localDateKey,
   formatDateKeyEyebrow,

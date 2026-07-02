@@ -12,7 +12,7 @@ export default function TermsPage() {
         <p>
           These Terms of Service (&quot;Terms&quot;) govern your use of the New You AI mobile
           application, the website at newyouai.app, and the web app at app.newyouai.app (together, the
-          &quot;Service&quot;), operated by <strong>[LEGAL NAME]</strong>, a sole proprietorship based
+          &quot;Service&quot;), operated by <strong>James R. McCarthy Jr.</strong>, a sole proprietorship based
           in Mesa, Arizona, United States (&quot;New You AI,&quot; &quot;we,&quot; &quot;us,&quot; or
           &quot;our&quot;). By using the Service, you agree to these Terms. If you do not agree, do not
           use the Service.

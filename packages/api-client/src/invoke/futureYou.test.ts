@@ -105,6 +105,25 @@ describe("startFutureYouGeneration", () => {
       }),
     ).rejects.toBeInstanceOf(FutureYouGenerateError);
   });
+
+  it("returns age block on 403 age_restricted", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: async () => ({ error: "age_restricted" }),
+      }),
+    );
+
+    const result = await startFutureYouGeneration(mockClient(vi.fn()), validEnv, {
+      sourcePath: "users/u1/source/a.jpg",
+      motivationId: "cut_m_veins",
+      profile: { goal: "cut", gender: "male", weightLbs: 190 },
+    });
+
+    expect(result).toEqual({ blocked: "age" });
+  });
 });
 
 describe("uploadFutureYouPhoto", () => {
@@ -150,6 +169,44 @@ describe("uploadFutureYouPhoto", () => {
         headers: expect.not.objectContaining({ "Content-Type": expect.anything() }),
       }),
     );
+  });
+
+  it("returns age block on 403 age_restricted", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: async () => ({ error: "age_restricted" }),
+      }),
+    );
+
+    const result = await uploadFutureYouPhoto(
+      mockClient(vi.fn()),
+      validEnv,
+      "data:image/jpeg;base64,abc",
+    );
+
+    expect(result).toEqual({ blocked: "age" });
+  });
+
+  it("returns region block on 403 region_restricted", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: async () => ({ error: "region_restricted" }),
+      }),
+    );
+
+    const result = await uploadFutureYouPhoto(
+      mockClient(vi.fn()),
+      validEnv,
+      "data:image/jpeg;base64,abc",
+    );
+
+    expect(result).toEqual({ blocked: "region" });
   });
 });
 

@@ -2,6 +2,7 @@ import {
   ONBOARDING_STEP_ACTIVITY,
   ONBOARDING_STEP_FUTURE_YOU_PHOTO,
   ONBOARDING_STEP_PACE,
+  ONBOARDING_STEP_RESIDENCY,
 } from "@newyouai/core";
 import { describe, expect, it } from "vitest";
 
@@ -20,18 +21,26 @@ const baseProfile = {
 describe("resolveWizardNextStep", () => {
   it("skips goal weight and pace for maintain from step 8", () => {
     const result = resolveWizardNextStep(8, { ...baseProfile, goal: "maintain" }, undefined);
-    expect(result?.next).toBe(ONBOARDING_STEP_FUTURE_YOU_PHOTO);
-    expect(result?.overrides?.futureYou?.onboardingGoalLocked).toBe(true);
+    expect(result?.next).toBe(ONBOARDING_STEP_RESIDENCY);
+    expect(result?.overrides?.futureYou?.onboardingGoalLocked).toBeUndefined();
   });
 
-  it("advances cut users through pace and locks goal before Future You", () => {
+  it("advances cut users through pace to residency and locks goal before Future You", () => {
     const pace = resolveWizardNextStep(
       ONBOARDING_STEP_PACE,
       { ...baseProfile, goal: "cut", goalWeightLbs: 165, pace: "balanced" },
       undefined,
     );
-    expect(pace?.next).toBe(ONBOARDING_STEP_FUTURE_YOU_PHOTO);
-    expect(pace?.overrides?.futureYou?.onboardingGoalLocked).toBe(true);
+    expect(pace?.next).toBe(ONBOARDING_STEP_RESIDENCY);
+    expect(pace?.overrides?.futureYou?.onboardingGoalLocked).toBeUndefined();
+
+    const residency = resolveWizardNextStep(
+      ONBOARDING_STEP_RESIDENCY,
+      { ...baseProfile, goal: "cut", goalWeightLbs: 165, pace: "balanced" },
+      undefined,
+    );
+    expect(residency?.next).toBe(ONBOARDING_STEP_FUTURE_YOU_PHOTO);
+    expect(residency?.overrides?.futureYou?.onboardingGoalLocked).toBe(true);
   });
 
   it("advances stale split reveal step to barriers survey", () => {
@@ -63,16 +72,16 @@ describe("resolveWizardBackStep", () => {
       { ...baseProfile, goal: "cut" },
       undefined,
     );
-    expect(prev).toBe(ONBOARDING_STEP_PACE);
+    expect(prev).toBe(ONBOARDING_STEP_RESIDENCY);
   });
 
-  it("allows wizard back navigation from Future You photo to pace", () => {
+  it("allows wizard back navigation from Future You photo to residency", () => {
     const prev = resolveWizardBackStep(
       ONBOARDING_STEP_FUTURE_YOU_PHOTO,
       { ...baseProfile, goal: "cut" },
       undefined,
     );
-    expect(prev).toBe(ONBOARDING_STEP_PACE);
+    expect(prev).toBe(ONBOARDING_STEP_RESIDENCY);
     expect(
       canNavigateWizardToStep(ONBOARDING_STEP_FUTURE_YOU_PHOTO, prev!, undefined),
     ).toBe(true);

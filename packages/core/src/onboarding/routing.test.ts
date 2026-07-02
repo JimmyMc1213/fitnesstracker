@@ -4,9 +4,11 @@ import {
   ONBOARDING_STEP_ACTIVITY,
   ONBOARDING_STEP_FUTURE_YOU_PHOTO,
   ONBOARDING_STEP_PACE,
+  ONBOARDING_STEP_RESIDENCY,
 } from "./steps";
 import {
   backStepFromFutureYouPhoto,
+  backStepFromResidency,
   isGoalWeightOrPaceStep,
   isMaintainGoal,
   isOnboardingGoalEditNavigationBlocked,
@@ -28,8 +30,8 @@ describe("onboardingRouting", () => {
     expect(isGoalWeightOrPaceStep(ONBOARDING_STEP_FUTURE_YOU_PHOTO)).toBe(false);
   });
 
-  it("routes maintain from step 8 to Future You photo (10b), not activity", () => {
-    expect(nextStepAfterGoal("maintain")).toBe(ONBOARDING_STEP_FUTURE_YOU_PHOTO);
+  it("routes maintain from step 8 to residency (10a), not activity", () => {
+    expect(nextStepAfterGoal("maintain")).toBe(ONBOARDING_STEP_RESIDENCY);
     expect(nextStepAfterGoal("maintain")).not.toBe(11);
   });
 
@@ -38,19 +40,15 @@ describe("onboardingRouting", () => {
     expect(nextStepAfterGoal("bulk")).toBe(9);
   });
 
-  it("returns maintain users from 10b back to step 8", () => {
-    expect(backStepFromFutureYouPhoto("maintain")).toBe(8);
-  });
-
-  it("returns cut/bulk users from 10b back to pace (10)", () => {
-    expect(backStepFromFutureYouPhoto("cut")).toBe(ONBOARDING_STEP_PACE);
-    expect(backStepFromFutureYouPhoto("bulk")).toBe(ONBOARDING_STEP_PACE);
+  it("returns all users from 10b back to residency (10a)", () => {
+    expect(backStepFromFutureYouPhoto("maintain")).toBe(ONBOARDING_STEP_RESIDENCY);
+    expect(backStepFromFutureYouPhoto("cut")).toBe(ONBOARDING_STEP_RESIDENCY);
   });
 
   it("redirects maintain users away from goal weight and pace steps", () => {
-    expect(resolveMaintainOnboardingStep(9, "maintain")).toBe(ONBOARDING_STEP_FUTURE_YOU_PHOTO);
+    expect(resolveMaintainOnboardingStep(9, "maintain")).toBe(ONBOARDING_STEP_RESIDENCY);
     expect(resolveMaintainOnboardingStep(ONBOARDING_STEP_PACE, "maintain")).toBe(
-      ONBOARDING_STEP_FUTURE_YOU_PHOTO,
+      ONBOARDING_STEP_RESIDENCY,
     );
     expect(resolveMaintainOnboardingStep(11, "maintain")).toBe(11);
     expect(resolveMaintainOnboardingStep(9, "cut")).toBe(9);
@@ -69,7 +67,7 @@ describe("onboardingRouting", () => {
 
   it("combines maintain and goal-lock redirects on draft restore", () => {
     expect(resolveOnboardingStepOnRestore(9, "maintain", { onboardingGoalLocked: true })).toBe(
-      ONBOARDING_STEP_FUTURE_YOU_PHOTO,
+      ONBOARDING_STEP_RESIDENCY,
     );
     expect(resolveOnboardingStepOnRestore(8, "cut", { onboardingGoalLocked: true })).toBe(
       ONBOARDING_STEP_ACTIVITY,

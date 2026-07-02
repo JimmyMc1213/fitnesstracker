@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import { isFutureYouPhotoBlocked } from "./futureYouAge";
+import { isFutureYouRegionBlocked } from "@newyouai/core";
 import { getHomeFutureYouEntryMode } from "./homeFutureYouModel";
 import { futureYouTimelineFromProfile } from "./futureYouTimeline";
 import { ageFromDateOfBirth } from "./onboardingProfile";
@@ -17,11 +18,13 @@ export function useFutureYouEntry(state: AppState, enabled = true) {
   }, [state.onboardingProfile]);
 
   const photoBlocked = isFutureYouPhotoBlocked(futureYouAge);
+  const regionBlocked = isFutureYouRegionBlocked(state.onboardingProfile);
   const mode =
     enabled ?
       getHomeFutureYouEntryMode(
         state.futureYou,
         photoBlocked,
+        regionBlocked,
         state.subscriptionTier,
         state.onboardingComplete,
       )
@@ -40,6 +43,7 @@ export function useFutureYouEntry(state: AppState, enabled = true) {
     mode,
     timeline,
     photoBlocked,
+    regionBlocked,
     futureYouAge,
     generationStatus,
     thumbnailSrc,

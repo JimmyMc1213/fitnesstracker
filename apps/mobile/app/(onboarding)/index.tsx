@@ -7,6 +7,8 @@ import {
   ONBOARDING_STEP_PACE,
   ONBOARDING_STEP_PAYWALL,
   ONBOARDING_STEP_FUTURE_YOU_SUCCESS,
+  ONBOARDING_STEP_RESIDENCY,
+  isFutureYouRegionBlocked,
 } from "@newyouai/core";
 import type { UserGender } from "@newyouai/types";
 import { router } from "expo-router";
@@ -20,6 +22,10 @@ import { OnboardingFutureYouSuccess } from "@/components/onboarding/OnboardingFu
 import { OnboardingPaywall } from "@/components/onboarding/OnboardingPaywall";
 import { OnboardingPurchaseWelcomeSplash } from "@/components/onboarding/OnboardingPurchaseWelcomeSplash";
 import { OnboardingPlanReady } from "@/components/onboarding/OnboardingPlanReady";
+import {
+  isOnboardingResidencyComplete,
+  OnboardingResidencyPicker,
+} from "@/components/onboarding/OnboardingResidencyPicker";
 import { FutureYouGenerationPill } from "@/components/onboarding/FutureYouGenerationPill";
 import { OnboardingFutureYouMotivation } from "@/components/onboarding/OnboardingFutureYouMotivation";
 import { OnboardingFutureYouPhoto } from "@/components/onboarding/OnboardingFutureYouPhoto";
@@ -174,6 +180,9 @@ export default function OnboardingWizardScreen() {
   const [transitionDirection, setTransitionDirection] = useState<NavDirection>("forward");
   const [macroContinueConfirmOpen, setMacroContinueConfirmOpen] = useState(false);
   const dobAge = profile.dateOfBirth ? ageFromDateOfBirth(profile.dateOfBirth) : null;
+  const regionBlocked = isFutureYouRegionBlocked(profile);
+  const photoBlocked = isFutureYouPhotoBlocked(dobAge);
+  const futureYouBlocked = photoBlocked || regionBlocked;
 
   const profileForCalc = useMemo(
     () => ({
@@ -267,11 +276,10 @@ export default function OnboardingWizardScreen() {
   useEffect(() => {
     if (stepIndex !== ONBOARDING_STEP_FUTURE_YOU_SUCCESS) return;
     const pollStatus = futureYou?.generationStatus ?? "idle";
-    const futureYouBlocked = isFutureYouPhotoBlocked(dobAge);
     if (!canAccessFutureYouSuccessScreen(futureYou, futureYouBlocked, pollStatus, subscriptionTier)) {
       goToStep(ONBOARDING_STEP_PAYWALL, { subscriptionTier: null });
     }
-  }, [stepIndex, futureYou, dobAge, subscriptionTier, goToStep]);
+  }, [stepIndex, futureYou, futureYouBlocked, subscriptionTier, goToStep]);
 
   useEffect(() => {
     if (!hydrated || activeTheme === theme) return;
@@ -551,6 +559,27 @@ export default function OnboardingWizardScreen() {
         <PacePicker
           value={profile.pace}
           onChange={(pace) => setProfile((p) => ({ ...p, pace }))}
+        />
+      </OnboardingShell>
+    );
+  }
+
+  if (forStep === ONBOARDING_STEP_RESIDENCY) {
+    return (
+      <OnboardingShell
+        step={forStep}
+        title="Where do you live?"
+        subtitle="New You AI is currently available in the United States and Canada (excluding Quebec)."
+        scrollEnabled={false}
+        onBack={goBack}
+        onContinue={goNext}
+        continueDisabled={!isOnboardingResidencyComplete(profile)}
+        hideContinue={regionBlocked && Boolean(profile.residencyRegion)}
+        testID="onboarding-step-99"
+      >
+        <OnboardingResidencyPicker
+          profile={profile}
+          onChange={(patch) => setProfile((p) => ({ ...p, ...patch }))}
         />
       </OnboardingShell>
     );
@@ -1005,7 +1034,6 @@ export default function OnboardingWizardScreen() {
     const name = displayName.trim() || "Friend";
     const templates = draftTemplates ?? [];
     const pollStatus = futureYou?.generationStatus ?? "idle";
-    const futureYouBlocked = isFutureYouPhotoBlocked(dobAge);
     const showFutureYouReadyBanner = isFutureYouReadyBannerVisible(futureYou, pollStatus);
     const planSnapshot = buildOnboardingPlanSnapshot({
       displayName: name,
@@ -1024,7 +1052,7 @@ export default function OnboardingWizardScreen() {
         subtitleClassName="mt-1 text-[16px] font-normal leading-snug"
         onBack={goBack}
         onContinue={() => goToStep(ONBOARDING_STEP_PAYWALL)}
-        continueLabel={onboardingPlanReadyContinueLabel(futureYou, futureYouBlocked)}
+        continueLabel={onboardingPlanReadyContinueLabel(futureYou, photoBlocked, regionBlocked)}
         continueTone="gold"
         compactFooter
         testID="onboarding-step-26"
@@ -1039,7 +1067,6 @@ export default function OnboardingWizardScreen() {
     const name = displayName.trim() || "Friend";
     const templates = draftTemplates ?? [];
     const pollStatus = futureYou?.generationStatus ?? "idle";
-    const futureYouBlocked = isFutureYouPhotoBlocked(dobAge);
     const planSnapshot = buildOnboardingPlanSnapshot({
       displayName: name,
       macros: activeMacros,
@@ -1053,7 +1080,8 @@ export default function OnboardingWizardScreen() {
         planSnapshot={planSnapshot}
         futureYou={futureYou}
         generationStatus={pollStatus}
-        photoBlocked={futureYouBlocked}
+        photoBlocked={photoBlocked}
+        regionBlocked={regionBlocked}
         weightUnit={unitPreferences.weightUnit ?? "lbs"}
         onBack={goBack}
         onReuploadFutureYou={() =>
@@ -1079,7 +1107,6 @@ export default function OnboardingWizardScreen() {
     const name = displayName.trim() || "Friend";
     const templates = draftTemplates ?? [];
     const pollStatus = futureYou?.generationStatus ?? "idle";
-    const futureYouBlocked = isFutureYouPhotoBlocked(dobAge);
     const planSnapshot = buildOnboardingPlanSnapshot({
       displayName: name,
       macros: activeMacros,
@@ -1129,7 +1156,8 @@ export default function OnboardingWizardScreen() {
         planSnapshot={planSnapshot}
         futureYou={futureYou}
         generationStatus={pollStatus}
-        photoBlocked={futureYouBlocked}
+        photoBlocked={photoBlocked}
+        regionBlocked={regionBlocked}
         subscriptionTier="pro"
         displayName={name}
         weightUnit={unitPreferences.weightUnit ?? "lbs"}

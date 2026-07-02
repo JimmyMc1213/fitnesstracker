@@ -13,10 +13,12 @@ export const HOME_FUTURE_YOU_UPLOAD_SUBTITLE = "Add a photo to unlock your previ
 export function getHomeFutureYouEntryMode(
   futureYou: FutureYouDraft | undefined,
   photoBlocked: boolean,
+  regionBlocked: boolean,
   subscriptionTier: SubscriptionTier | null | undefined,
   onboardingComplete: boolean,
 ): HomeFutureYouEntryMode | null {
   if (!onboardingComplete) return null;
+  if (regionBlocked) return null;
 
   const draft = futureYou ?? {};
   const subscribed = subscriptionTier === "pro";

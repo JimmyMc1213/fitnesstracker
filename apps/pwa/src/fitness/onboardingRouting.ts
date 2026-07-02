@@ -3,6 +3,7 @@ export {
   isGoalWeightOrPaceStep,
   nextStepAfterGoal,
   backStepFromFutureYouPhoto,
+  backStepFromResidency,
   resolveMaintainOnboardingStep,
   isOnboardingPastGoalEditZone,
   resolveGoalLockedOnboardingStep,

@@ -62,6 +62,7 @@ import {
 } from "../goalSettings";
 import { nutritionGoalLabel } from "../nutritionCalculator";
 import { isFutureYouPhotoBlocked } from "../futureYouAge";
+import { isFutureYouRegionBlocked } from "@newyouai/core";
 import { mergeFutureYouDraft } from "../futureYouDraft";
 import { shouldShowHomeNewYouHeaderButton } from "../futureYouHomeEntryModel";
 import { getHomeFutureYouEntryMode } from "../homeFutureYouModel";
@@ -222,9 +223,11 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
     const age =
       profile?.dateOfBirth ? ageFromDateOfBirth(profile.dateOfBirth) : (profile?.age ?? null);
     const photoBlocked = isFutureYouPhotoBlocked(age);
+    const regionBlocked = isFutureYouRegionBlocked(profile);
     const mode = getHomeFutureYouEntryMode(
       state.futureYou,
       photoBlocked,
+      regionBlocked,
       state.subscriptionTier,
       state.onboardingComplete,
     );

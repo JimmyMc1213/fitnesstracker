@@ -1,6 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
+import { enforceMinimumAge } from "../_shared/age/resolveUserAge.ts";
+import { enforceAllowedRegion } from "../_shared/region/resolveUserRegion.ts";
 import { buildFutureYouPrompt } from "../_shared/future-you/buildFutureYouPrompt.ts";
 import {
   FUTURE_YOU_BUCKET,
@@ -307,6 +309,16 @@ Deno.serve(async (req) => {
     const auth = await resolveAuthenticatedContext(req);
     if (!auth) {
       return unauthorizedResponse(corsHeaders);
+    }
+
+    const ageBlock = await enforceMinimumAge(auth.adminClient, auth.userId, corsHeaders);
+    if (ageBlock) {
+      return ageBlock;
+    }
+
+    const regionBlock = await enforceAllowedRegion(auth.adminClient, auth.userId, corsHeaders);
+    if (regionBlock) {
+      return regionBlock;
     }
 
     let provider: FutureYouImageProvider;

@@ -11,7 +11,7 @@ export type FitnessSyncContextValue = {
   /** False until session resolved and initial cloud pull completes (or timeout / no sync). */
   fitnessHydrated: boolean;
   signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
-  signInWithOAuth: (provider: "apple" | "google") => Promise<{ error?: string }>;
+  signInWithOAuth: (provider: "apple") => Promise<{ error?: string }>;
   signUpWithEmail: (email: string, password: string, name: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ error?: string }>;
   updateEmail: (newEmail: string) => Promise<{ error?: string }>;

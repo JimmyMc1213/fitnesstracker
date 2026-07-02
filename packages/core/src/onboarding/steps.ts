@@ -1,6 +1,8 @@
 /** Onboarding step indices used by routing (see future-you-onboarding-spec.md). */
 
 export const ONBOARDING_STEP_PACE = 10;
+/** Step 10a — residency (Future You regional availability). */
+export const ONBOARDING_STEP_RESIDENCY = 99;
 /** Step 10b — Future You photo upload. */
 export const ONBOARDING_STEP_FUTURE_YOU_PHOTO = 100;
 /** Step 10c — motivation picker (step 12 in build checklist). */
@@ -8,7 +10,11 @@ export const ONBOARDING_STEP_FUTURE_YOU_MOTIVATION = 101;
 export const ONBOARDING_STEP_ACTIVITY = 11;
 
 export function isFutureYouOnboardingStep(step: number): boolean {
-  return step === ONBOARDING_STEP_FUTURE_YOU_PHOTO || step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION;
+  return (
+    step === ONBOARDING_STEP_RESIDENCY ||
+    step === ONBOARDING_STEP_FUTURE_YOU_PHOTO ||
+    step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION
+  );
 }
 
 /** Steps where goal, goal weight, or pace can still be edited. */
@@ -22,6 +28,7 @@ export function isOnboardingGoalLockStep(step: number): boolean {
     step === 8 ||
     step === 9 ||
     step === ONBOARDING_STEP_PACE ||
+    step === ONBOARDING_STEP_RESIDENCY ||
     step === ONBOARDING_STEP_FUTURE_YOU_PHOTO ||
     step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION
   );

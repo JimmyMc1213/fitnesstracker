@@ -161,6 +161,11 @@ export function normalizeOnboardingProfile(raw: unknown): OnboardingProfile | nu
     migrateDietaryRestrictions(undefined, o.dietPreference);
   const trainingStyle = normalizeTrainingStyle(o.trainingStyle);
   const sessionDuration = normalizeSessionDuration(o.sessionDuration);
+  const residencyCountry = o.residencyCountry === "US" || o.residencyCountry === "CA" ? o.residencyCountry : undefined;
+  const residencyRegion =
+    typeof o.residencyRegion === "string" && o.residencyRegion.trim()
+      ? o.residencyRegion.trim().toUpperCase()
+      : undefined;
   return {
     goal,
     heightIn,
@@ -178,6 +183,8 @@ export function normalizeOnboardingProfile(raw: unknown): OnboardingProfile | nu
     barriers,
     dietaryRestrictions,
     trainingStyle,
+    residencyCountry,
+    residencyRegion,
   };
 }
 

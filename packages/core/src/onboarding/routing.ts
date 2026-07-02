@@ -5,6 +5,7 @@ import {
   ONBOARDING_STEP_ACTIVITY,
   ONBOARDING_STEP_FUTURE_YOU_PHOTO,
   ONBOARDING_STEP_PACE,
+  ONBOARDING_STEP_RESIDENCY,
   isFutureYouOnboardingStep,
   isOnboardingGoalEditStep,
   isOnboardingGoalLockStep,
@@ -21,12 +22,12 @@ export function isGoalWeightOrPaceStep(step: number): boolean {
 
 /** Forward from step 8 after the user picks a primary goal. */
 export function nextStepAfterGoal(goal: NutritionGoal | undefined): number {
-  return isMaintainGoal(goal) ? ONBOARDING_STEP_FUTURE_YOU_PHOTO : 9;
+  return isMaintainGoal(goal) ? ONBOARDING_STEP_RESIDENCY : 9;
 }
 
-/** Back from step 10b — maintain returns to goal; cut/bulk return to pace. */
-export function backStepFromFutureYouPhoto(goal: NutritionGoal | undefined): number {
-  return isMaintainGoal(goal) ? 8 : ONBOARDING_STEP_PACE;
+/** Back from step 10b — all goals return to residency (10a). */
+export function backStepFromFutureYouPhoto(_goal: NutritionGoal | undefined): number {
+  return ONBOARDING_STEP_RESIDENCY;
 }
 
 /**
@@ -35,7 +36,12 @@ export function backStepFromFutureYouPhoto(goal: NutritionGoal | undefined): num
  */
 export function resolveMaintainOnboardingStep(step: number, goal: NutritionGoal | undefined): number {
   if (!isMaintainGoal(goal) || !isGoalWeightOrPaceStep(step)) return step;
-  return ONBOARDING_STEP_FUTURE_YOU_PHOTO;
+  return ONBOARDING_STEP_RESIDENCY;
+}
+
+/** Back from residency — maintain returns to goal; cut/bulk return to pace. */
+export function backStepFromResidency(goal: NutritionGoal | undefined): number {
+  return isMaintainGoal(goal) ? 8 : ONBOARDING_STEP_PACE;
 }
 
 /** True once the user has reached activity (step 11) or later. */

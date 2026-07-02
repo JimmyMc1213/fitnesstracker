@@ -1,5 +1,6 @@
 import {
   backStepFromFutureYouPhoto,
+  backStepFromResidency,
   canRevisitFutureYouPhoto,
   clampOnboardingStepIndex,
   isGoalWeightOrPaceStep,
@@ -14,6 +15,7 @@ import {
   ONBOARDING_STEP_FUTURE_YOU_SUCCESS,
   ONBOARDING_STEP_PACE,
   ONBOARDING_STEP_PAYWALL,
+  ONBOARDING_STEP_RESIDENCY,
 } from "@newyouai/core";
 import type { FutureYouDraft, NutritionGoal, OnboardingProfile } from "@newyouai/types";
 
@@ -34,34 +36,34 @@ export function resolveWizardNextStep(
   futureYou: FutureYouDraft | undefined,
 ): { next: number; overrides?: WizardNavOverrides } | null {
   if (isGoalWeightOrPaceStep(step) && isMaintainGoal(profile.goal)) {
-    const goalLocked = mergeFutureYouDraft(futureYou, { onboardingGoalLocked: true });
-    return { next: ONBOARDING_STEP_FUTURE_YOU_PHOTO, overrides: { futureYou: goalLocked } };
+    return { next: ONBOARDING_STEP_RESIDENCY };
   }
 
   if (step === 8) {
     const overrides: WizardNavOverrides = {};
     if (isMaintainGoal(profile.goal)) {
-      overrides.futureYou = mergeFutureYouDraft(futureYou, { onboardingGoalLocked: true });
+      return { next: ONBOARDING_STEP_RESIDENCY, overrides };
     }
     return { next: nextStepAfterGoal(profile.goal), overrides };
   }
 
   if (step === ONBOARDING_STEP_PACE) {
     if (!profile.pace) return null;
-    return {
-      next: ONBOARDING_STEP_FUTURE_YOU_PHOTO,
-      overrides: { futureYou: mergeFutureYouDraft(futureYou, { onboardingGoalLocked: true }) },
-    };
+    return { next: ONBOARDING_STEP_RESIDENCY };
   }
 
   if (step === 9) {
     if (isMaintainGoal(profile.goal)) {
-      return {
-        next: ONBOARDING_STEP_FUTURE_YOU_PHOTO,
-        overrides: { futureYou: mergeFutureYouDraft(futureYou, { onboardingGoalLocked: true }) },
-      };
+      return { next: ONBOARDING_STEP_RESIDENCY };
     }
     return { next: ONBOARDING_STEP_PACE };
+  }
+
+  if (step === ONBOARDING_STEP_RESIDENCY) {
+    return {
+      next: ONBOARDING_STEP_FUTURE_YOU_PHOTO,
+      overrides: { futureYou: mergeFutureYouDraft(futureYou, { onboardingGoalLocked: true }) },
+    };
   }
 
   // Steps 10b/10c use custom handlers (upload confirm + generation start).
@@ -101,6 +103,10 @@ export function resolveWizardBackStep(
     return backStepFromFutureYouPhoto(profile.goal);
   }
 
+  if (step === ONBOARDING_STEP_RESIDENCY) {
+    return backStepFromResidency(profile.goal);
+  }
+
   if (step === 18) return 17;
   if (step === 17) return 15;
   if (step === 21) return 19;
@@ -137,6 +143,7 @@ export function stepTitleForPlaceholder(step: number, goal?: NutritionGoal): str
   if (step === 0) return "Welcome";
   if (step === 1) return "Theme";
   if (step === ONBOARDING_STEP_FUTURE_YOU_PHOTO) return "Future You photo";
+  if (step === ONBOARDING_STEP_RESIDENCY) return "Residency";
   if (step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION) return "Future You motivation";
   if (step === ONBOARDING_STEP_PAYWALL) return "Paywall";
   if (step === ONBOARDING_STEP_FUTURE_YOU_SUCCESS) return "Future You success";

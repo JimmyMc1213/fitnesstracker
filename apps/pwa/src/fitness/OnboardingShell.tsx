@@ -4,6 +4,7 @@ import {
   ONBOARDING_STEP_ACTIVITY,
   ONBOARDING_STEP_FUTURE_YOU_MOTIVATION,
   ONBOARDING_STEP_FUTURE_YOU_PHOTO,
+  ONBOARDING_STEP_RESIDENCY,
   ONBOARDING_STEP_FUTURE_YOU_SUCCESS,
   ONBOARDING_TOTAL_STEPS,
   onboardingProgressStep,
@@ -18,6 +19,7 @@ export function phaseForStep(step: number): { phaseLabel?: string } {
   if (step <= 7) return { phaseLabel: "About you" };
   if (
     step <= ONBOARDING_STEP_ACTIVITY ||
+    step === ONBOARDING_STEP_RESIDENCY ||
     step === ONBOARDING_STEP_FUTURE_YOU_PHOTO ||
     step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION
   ) {

@@ -291,7 +291,7 @@ export function useFitnessCloudSync(
     void signInWithPassword(email, password);
   }, [configured, sessionResolved, session?.user?.email, signInWithPassword]);
 
-  const signInWithOAuth = useCallback(async (provider: "apple" | "google") => {
+  const signInWithOAuth = useCallback(async (provider: "apple") => {
     const sb = getSupabase();
     if (!sb) return { error: "Add Supabase keys to sync." };
     const { error } = await sb.auth.signInWithOAuth({
