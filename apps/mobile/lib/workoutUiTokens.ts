@@ -6,9 +6,11 @@ import {
   FUTURE_YOU_GOLD_MID,
 } from "@/lib/futureYouTokens";
 
-/** Primary workout accent — brand gold (replaces legacy coach blue). */
+/** Primary coach accent — brand gold (legacy name kept for imports). */
 export const COACH_BLUE = FUTURE_YOU_GOLD;
 export const COACH_BLUE_LABEL = FUTURE_YOU_GOLD_MID;
+export const COACH_GOLD_BG_SUBTLE = "rgba(201, 168, 118, 0.06)";
+export const COACH_GOLD_BORDER_SOFT = "rgba(201, 168, 118, 0.22)";
 
 /** Workout tab link/accent — matches routine editor links and in-session titles. */
 export const WORKOUT_ACCENT = FUTURE_YOU_GOLD_MID;

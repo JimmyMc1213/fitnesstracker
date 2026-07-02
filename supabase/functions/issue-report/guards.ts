@@ -1,6 +1,6 @@
 /** Keep in sync with packages/core/src/issue-report/reportGuards.ts */
 
-export const ISSUE_REPORT_CATEGORIES = ["bug", "feature", "other"] as const;
+export const ISSUE_REPORT_CATEGORIES = ["bug", "feature", "other", "email-change"] as const;
 export type IssueReportCategory = (typeof ISSUE_REPORT_CATEGORIES)[number];
 
 export type IssueReportRequest = {

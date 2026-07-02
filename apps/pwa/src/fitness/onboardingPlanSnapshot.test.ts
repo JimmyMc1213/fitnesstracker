@@ -46,6 +46,18 @@ describe("buildOnboardingPlanSnapshot", () => {
     expect(snapshot.macros).toEqual({ cal: 2100, p: 160, c: 200, f: 60 });
   });
 
+  it("uses 80 oz hydration when weight is over 200 lbs", () => {
+    const snapshot = buildOnboardingPlanSnapshot({
+      displayName: "Alex",
+      macros: { cal: 2100, p: 160, c: 200, f: 60 },
+      profile: { ...profile, weightLbs: 205 },
+      templates,
+      volumeUnit: "oz",
+    });
+
+    expect(snapshot.waterDailyTargetOz).toBe(80);
+  });
+
   it("uses edited macros passed from step 21", () => {
     const edited = { cal: 1950, p: 170, c: 180, f: 55 };
     const snapshot = buildOnboardingPlanSnapshot({

@@ -7,6 +7,10 @@ type LinearIssueResult = {
 };
 
 function linearLabelsForCategory(category: string): string[] {
+  if (category === "email-change") {
+    return ["user-report", "email-change"];
+  }
+
   const categoryLabel =
     category === "bug" ? "Bug"
     : category === "feature" ? "Feature"
@@ -18,6 +22,7 @@ function issueTitle(category: string, message: string | undefined): string {
   const prefix =
     category === "bug" ? "Bug report"
     : category === "feature" ? "Feature request"
+    : category === "email-change" ? "Email change request"
     : "User report";
   if (message) {
     const snippet = message.length > 80 ? `${message.slice(0, 77)}…` : message;
@@ -35,8 +40,13 @@ function issueDescription(input: {
   platform?: string;
   deviceModel?: string;
 }): string {
+  const source =
+    input.category === "email-change"
+      ? "Submitted from the app (Settings → You → Email)."
+      : "Submitted from the mobile app (Settings → Report a problem).";
+
   const lines = [
-    "Submitted from the mobile app (Settings → Report a problem).",
+    source,
     "",
     `**Category:** ${input.category}`,
     `**Report ID:** ${input.reportId}`,

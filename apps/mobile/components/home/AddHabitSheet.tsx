@@ -1,12 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { BottomSheet } from "@/components/motion";
 import { AppTextField } from "@/components/ui/AppTextField";
@@ -93,142 +86,138 @@ export function AddHabitSheet({ open, currentTemplates, onAdd, onClose }: Props)
       onClose={handleClose}
       panelStyle={{ paddingHorizontal: 0, paddingBottom: bottomActionPadding, maxHeight: "85%" }}
     >
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <View
-          className="rounded-t-[20px] border px-5 pt-5"
-          style={{
-            borderColor: colors.border,
-            maxHeight: "85%",
-          }}
-        >
-            <Text className="mb-3 text-[17px] font-bold tracking-tight" style={{ color: colors.textPrimary }}>
-              Add habit
-            </Text>
+      <View className="px-5 pt-5">
+        <Text className="mb-3 text-[17px] font-bold tracking-tight" style={{ color: colors.textPrimary }}>
+          Add habit
+        </Text>
 
-            {!showCustomForm ? (
-              <>
-                <View className="relative mb-2.5">
-                  <View className="absolute left-3 top-3.5 z-10">
-                    <IconSearch size={16} stroke={1.6} color={colors.textTertiary} />
-                  </View>
-                  <AppTextField
-                    value={query}
-                    onChangeText={setQuery}
-                    placeholder="Search habits"
-                    accessibilityLabel="Search habits"
-                    shellStyle={{ paddingLeft: 36 }}
-                  />
-                </View>
-
-                <ScrollView style={{ maxHeight: 360 }} keyboardShouldPersistTaps="handled">
-                  <View style={{ gap: 8 }}>
-                    {available.map((habit) => {
-                      const IconComp = habitIconComponent(habit.icon);
-                      return (
-                        <Pressable
-                          key={habit.id}
-                          onPress={() => pick(habit)}
-                          className="flex-row items-center gap-3.5 rounded-xl border p-3.5"
-                          style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
-                        >
-                          <View
-                            className="h-9 w-9 items-center justify-center rounded-[10px]"
-                            style={{ backgroundColor: colors.backgroundTertiary }}
-                          >
-                            <IconComp size={16} stroke={1.6} color={colors.textTertiary} />
-                          </View>
-                          <View className="min-w-0 flex-1">
-                            <Text className="text-sm font-semibold tracking-tight" style={{ color: colors.textPrimary }}>
-                              {habit.name}
-                            </Text>
-                            {habit.subtitle ? (
-                              <Text className="mt-0.5 text-[11px]" style={{ color: colors.textTertiary }}>
-                                {habit.subtitle}
-                              </Text>
-                            ) : null}
-                          </View>
-                        </Pressable>
-                      );
-                    })}
-
-                    {showCustomRow ? (
-                      <Pressable
-                        onPress={() => setShowCustomForm(true)}
-                        className="flex-row items-center gap-3.5 rounded-xl border p-3.5"
-                        style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
-                      >
-                        <View
-                          className="h-9 w-9 items-center justify-center rounded-[10px]"
-                          style={{ backgroundColor: colors.backgroundTertiary }}
-                        >
-                          {(() => {
-                            const IconComp = habitIconComponent("bolt");
-                            return <IconComp size={16} stroke={1.6} color={colors.textTertiary} />;
-                          })()}
-                        </View>
-                        <View className="min-w-0 flex-1">
-                          <Text className="text-sm font-semibold tracking-tight" style={{ color: colors.textPrimary }}>
-                            Custom habit
-                          </Text>
-                          <Text className="mt-0.5 text-[11px]" style={{ color: colors.textTertiary }}>
-                            Name your own habit
-                          </Text>
-                        </View>
-                      </Pressable>
-                    ) : null}
-
-                    {available.length === 0 && !showCustomRow ? (
-                      <Text className="my-2 text-xs" style={{ color: colors.textSecondary }}>
-                        No matching habits to add.
-                      </Text>
-                    ) : null}
-                  </View>
-                </ScrollView>
-              </>
-            ) : (
-              <View style={{ gap: 12 }}>
-                <View>
-                  <Text
-                    className="mb-2 text-[11px] font-medium uppercase tracking-widest"
-                    style={{ color: colors.textTertiary }}
-                  >
-                    Habit name
-                  </Text>
-                  <AppTextField
-                    value={customName}
-                    maxLength={HABIT_NAME_MAX_LENGTH}
-                    onChangeText={(value) => setCustomName(sanitizeUserText(value))}
-                    placeholder="e.g. Meditate"
-                    accessibilityLabel="Habit name"
-                  />
-                </View>
-                <View>
-                  <Text
-                    className="mb-2 text-[11px] font-medium uppercase tracking-widest"
-                    style={{ color: colors.textTertiary }}
-                  >
-                    Description (optional)
-                  </Text>
-                  <AppTextField
-                    value={customDescription}
-                    maxLength={HABIT_DESCRIPTION_MAX_LENGTH}
-                    onChangeText={(value) => setCustomDescription(sanitizeUserText(value))}
-                    placeholder="Why this matters"
-                    accessibilityLabel="Habit description"
-                  />
-                </View>
-                <PrimaryButton block onPress={saveCustom} disabled={!customName.trim()}>
-                  Add custom habit
-                </PrimaryButton>
-                <Pressable onPress={() => setShowCustomForm(false)} className="items-center py-2.5">
-                  <Text className="text-[13px] font-semibold" style={{ color: colors.textTertiary }}>
-                    Back
-                  </Text>
-                </Pressable>
+        {!showCustomForm ? (
+          <>
+            <View className="relative mb-2.5">
+              <View className="absolute left-3 top-3.5 z-10">
+                <IconSearch size={16} stroke={1.6} color={colors.textTertiary} />
               </View>
-            )}
-        </View>
-      </KeyboardAvoidingView>
+              <AppTextField
+                value={query}
+                onChangeText={setQuery}
+                placeholder="Search habits"
+                accessibilityLabel="Search habits"
+                shellStyle={{ paddingLeft: 36 }}
+              />
+            </View>
+
+            <ScrollView
+              className="max-h-[360px]"
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={{ gap: 8 }}>
+                {available.map((habit) => {
+                  const IconComp = habitIconComponent(habit.icon);
+                  return (
+                    <Pressable
+                      key={habit.id}
+                      onPress={() => pick(habit)}
+                      className="flex-row items-center gap-3.5 rounded-xl border p-3.5"
+                      style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
+                    >
+                      <View
+                        className="h-9 w-9 items-center justify-center rounded-[10px]"
+                        style={{ backgroundColor: colors.backgroundTertiary }}
+                      >
+                        <IconComp size={16} stroke={1.6} color={colors.textTertiary} />
+                      </View>
+                      <View className="min-w-0 flex-1">
+                        <Text className="text-sm font-semibold tracking-tight" style={{ color: colors.textPrimary }}>
+                          {habit.name}
+                        </Text>
+                        {habit.subtitle ? (
+                          <Text className="mt-0.5 text-[11px]" style={{ color: colors.textTertiary }}>
+                            {habit.subtitle}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+
+                {showCustomRow ? (
+                  <Pressable
+                    onPress={() => setShowCustomForm(true)}
+                    className="flex-row items-center gap-3.5 rounded-xl border p-3.5"
+                    style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
+                  >
+                    <View
+                      className="h-9 w-9 items-center justify-center rounded-[10px]"
+                      style={{ backgroundColor: colors.backgroundTertiary }}
+                    >
+                      {(() => {
+                        const IconComp = habitIconComponent("bolt");
+                        return <IconComp size={16} stroke={1.6} color={colors.textTertiary} />;
+                      })()}
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <Text className="text-sm font-semibold tracking-tight" style={{ color: colors.textPrimary }}>
+                        Custom habit
+                      </Text>
+                      <Text className="mt-0.5 text-[11px]" style={{ color: colors.textTertiary }}>
+                        Name your own habit
+                      </Text>
+                    </View>
+                  </Pressable>
+                ) : null}
+
+                {available.length === 0 && !showCustomRow ? (
+                  <Text className="my-2 text-xs" style={{ color: colors.textSecondary }}>
+                    No matching habits to add.
+                  </Text>
+                ) : null}
+              </View>
+            </ScrollView>
+          </>
+        ) : (
+          <View style={{ gap: 12 }}>
+            <View>
+              <Text
+                className="mb-2 text-[11px] font-medium uppercase tracking-widest"
+                style={{ color: colors.textTertiary }}
+              >
+                Habit name
+              </Text>
+              <AppTextField
+                value={customName}
+                maxLength={HABIT_NAME_MAX_LENGTH}
+                onChangeText={(value) => setCustomName(sanitizeUserText(value))}
+                placeholder="e.g. Meditate"
+                accessibilityLabel="Habit name"
+              />
+            </View>
+            <View>
+              <Text
+                className="mb-2 text-[11px] font-medium uppercase tracking-widest"
+                style={{ color: colors.textTertiary }}
+              >
+                Description (optional)
+              </Text>
+              <AppTextField
+                value={customDescription}
+                maxLength={HABIT_DESCRIPTION_MAX_LENGTH}
+                onChangeText={(value) => setCustomDescription(sanitizeUserText(value))}
+                placeholder="Why this matters"
+                accessibilityLabel="Habit description"
+              />
+            </View>
+            <PrimaryButton block onPress={saveCustom} disabled={!customName.trim()}>
+              Add custom habit
+            </PrimaryButton>
+            <Pressable onPress={() => setShowCustomForm(false)} className="items-center py-2.5">
+              <Text className="text-[13px] font-semibold" style={{ color: colors.textTertiary }}>
+                Back
+              </Text>
+            </Pressable>
+          </View>
+        )}
+      </View>
     </BottomSheet>
   );
 }

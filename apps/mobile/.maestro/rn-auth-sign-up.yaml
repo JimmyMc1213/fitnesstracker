@@ -1,4 +1,5 @@
-# RN-2-02 email sign-up, requires Supabase + disposable test account
+# RN-2-02 email sign-up, requires Supabase + disposable test account + Metro on :8082
+# Metro: cd apps/mobile && EXPO_PUBLIC_MAESTRO_E2E_AUTH=true npx expo start --dev-client --port 8082
 # Run: MAESTRO_TEST_SIGNUP_NAME=... MAESTRO_TEST_SIGNUP_EMAIL=... MAESTRO_TEST_SIGNUP_PASSWORD=... \
 #      maestro test .maestro/rn-auth-sign-up.yaml
 appId: app.newyouai.mobile

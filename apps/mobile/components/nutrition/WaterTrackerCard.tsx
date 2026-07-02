@@ -13,7 +13,6 @@ import { Pressable, Text, View } from "react-native";
 import { AppTextField } from "@/components/ui/AppTextField";
 
 import { IconDroplet } from "@/components/icons/FitnessIcons";
-import { WorkoutConfirmSheet } from "@/components/workout/WorkoutConfirmSheet";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 const WATER_ACCENT = "rgba(10,132,255,0.85)";
@@ -55,8 +54,6 @@ export function WaterTrackerCard({
   const [customAmount, setCustomAmount] = useState("");
   const [customError, setCustomError] = useState<string | null>(null);
   const [showEarlier, setShowEarlier] = useState(false);
-  const [pendingRemoveEntryId, setPendingRemoveEntryId] = useState<string | null>(null);
-  const [pendingRemoveAll, setPendingRemoveAll] = useState(false);
 
   const total = totalWaterOzForDateKey({ [dateKey]: entries }, dateKey);
   const pct = targetOz > 0 ? Math.max(0, Math.min(1, total / targetOz)) : 0;
@@ -132,7 +129,7 @@ export function WaterTrackerCard({
             testID={`water-entry-remove-${entry.id}`}
             accessibilityRole="button"
             accessibilityLabel={`Remove ${displayAmount}`}
-            onPress={() => setPendingRemoveEntryId(entry.id)}
+            onPress={() => onRemoveEntry(entry.id)}
             className="rounded-lg px-2.5 py-1.5"
             style={{ backgroundColor: "rgba(255,80,80,0.12)" }}
           >
@@ -144,10 +141,6 @@ export function WaterTrackerCard({
       </View>
     );
   }
-
-  const pendingEntry = pendingRemoveEntryId
-    ? entries.find((entry) => entry.id === pendingRemoveEntryId)
-    : null;
 
   return (
     <View
@@ -217,7 +210,10 @@ export function WaterTrackerCard({
               {showEarlier && !readOnly && onRemoveAllEntries ? (
                 <Pressable
                   testID="water-remove-all"
-                  onPress={() => setPendingRemoveAll(true)}
+                  onPress={() => {
+                    onRemoveAllEntries();
+                    setShowEarlier(false);
+                  }}
                   accessibilityRole="button"
                   accessibilityLabel="Remove all water entries"
                   hitSlop={8}
@@ -299,42 +295,6 @@ export function WaterTrackerCard({
         </>
       ) : null}
 
-      {pendingRemoveAll && onRemoveAllEntries ? (
-        <WorkoutConfirmSheet
-          title="Remove all water entries?"
-          message={`Remove all ${sortedEntries.length} entries (${formatWaterVolume(total, volumeUnit)}) from today's log?`}
-          cancelLabel="Keep entries"
-          confirmLabel="Remove all"
-          confirmDestructive
-          sheetTestID="water-remove-all-confirm"
-          cancelTestID="water-remove-all-cancel"
-          confirmTestID="water-remove-all-confirm-action"
-          onCancel={() => setPendingRemoveAll(false)}
-          onConfirm={() => {
-            onRemoveAllEntries();
-            setPendingRemoveAll(false);
-            setShowEarlier(false);
-          }}
-        />
-      ) : null}
-
-      {pendingRemoveEntryId && onRemoveEntry && pendingEntry ? (
-        <WorkoutConfirmSheet
-          title="Remove water entry?"
-          message={`Remove ${formatWaterVolume(pendingEntry.amountOz, volumeUnit)} from today's log?`}
-          cancelLabel="Keep entry"
-          confirmLabel="Remove entry"
-          confirmDestructive
-          sheetTestID="water-remove-confirm"
-          cancelTestID="water-remove-cancel"
-          confirmTestID="water-remove-confirm-action"
-          onCancel={() => setPendingRemoveEntryId(null)}
-          onConfirm={() => {
-            onRemoveEntry(pendingRemoveEntryId);
-            setPendingRemoveEntryId(null);
-          }}
-        />
-      ) : null}
     </View>
   );
 }

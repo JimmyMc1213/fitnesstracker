@@ -1,0 +1,23 @@
+appId: app.newyouai.mobile
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: ../../apps/mobile/.maestro/subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 120000
+- tapOn:
+    id: home-settings
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    point: "93%,38%"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: settings-hub
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/14-settings-hub-light

@@ -31,6 +31,7 @@ type Props = {
   futureYou: FutureYouDraft | undefined;
   generationStatus: FutureYouJobStatus | "idle";
   photoBlocked: boolean;
+  regionBlocked?: boolean;
   subscriptionTier: SubscriptionTier;
   displayName: string;
   weightUnit: WeightUnit;
@@ -50,6 +51,7 @@ export function OnboardingFutureYouSuccess({
   futureYou,
   generationStatus,
   photoBlocked,
+  regionBlocked = false,
   subscriptionTier,
   displayName,
   weightUnit,
@@ -63,7 +65,7 @@ export function OnboardingFutureYouSuccess({
   const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
-  const failedVisible = isFutureYouPaywallFailedVisible(futureYou, photoBlocked);
+  const failedVisible = isFutureYouPaywallFailedVisible(futureYou, photoBlocked, regionBlocked);
   const heroVisible = isFutureYouSuccessHeroVisible(futureYou, photoBlocked);
   const { imageUri, loading } = useFutureYouRevealImage({
     jobId: futureYou?.generationJobId,

@@ -13,6 +13,7 @@ import { ProgressSectionLabel } from "@/components/progress/ProgressSectionLabel
 import { formatWeightFromLbs } from "@/lib/unitConversions";
 import { weightUnitLabel } from "@/lib/unitLabels";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { COACH_BLUE_LABEL, coachCardColors } from "@/lib/workoutUiTokens";
 
 const SUCCESS_GREEN = "#22c55e";
 const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"] as const;
@@ -176,7 +177,8 @@ function RecapDetailSheet({
   unitPreferences: UnitPreferences;
   onClose: () => void;
 }) {
-  const { colors } = useAppTheme();
+  const { colors, theme } = useAppTheme();
+  const coachCard = coachCardColors(theme);
   const bottomActionPadding = useBottomActionPadding();
   const safe = record ? coalesceSundayCheckInRecord(record) : null;
   const wUnit = unitPreferences.weightUnit;
@@ -229,9 +231,9 @@ function RecapDetailSheet({
               {safe.weightInsight ? (
                 <View
                   className="mt-3.5 rounded-xl border p-3"
-                  style={{ borderColor: `${colors.accent}38`, backgroundColor: `${colors.accent}14` }}
+                  style={{ borderColor: coachCard.border, backgroundColor: coachCard.background }}
                 >
-                  <Text className="mb-1.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: colors.textTertiary }}>
+                  <Text className="mb-1.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: COACH_BLUE_LABEL }}>
                     Coach
                   </Text>
                   <Text className="text-[13px] font-medium leading-[1.5]" style={{ color: colors.textSecondary }}>

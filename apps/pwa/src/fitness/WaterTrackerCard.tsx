@@ -1,6 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
 
-import { DeleteConfirmSheet } from "./DeleteConfirmSheet";
 import { IconDroplet } from "./icons";
 import {
   formatWaterVolume,
@@ -38,8 +37,6 @@ export function WaterTrackerCard({
   const [customAmount, setCustomAmount] = useState("");
   const [customError, setCustomError] = useState<string | null>(null);
   const [showEarlier, setShowEarlier] = useState(false);
-  const [pendingRemoveEntryId, setPendingRemoveEntryId] = useState<string | null>(null);
-  const [pendingRemoveAll, setPendingRemoveAll] = useState(false);
 
   const total = totalWaterOzForDateKey({ [dateKey]: entries }, dateKey);
   const pct = targetOz > 0 ? Math.max(0, Math.min(1, total / targetOz)) : 0;
@@ -88,7 +85,7 @@ export function WaterTrackerCard({
             type="button"
             className="tap"
             aria-label={`Remove ${displayAmount} logged at ${formatLoggedTime(entry.loggedAtMs)}`}
-            onClick={() => setPendingRemoveEntryId(entry.id)}
+            onClick={() => onRemoveEntry(entry.id)}
             style={{
               flexShrink: 0,
               fontSize: 12,
@@ -229,7 +226,10 @@ export function WaterTrackerCard({
                   type="button"
                   className="tap"
                   aria-label="Remove all water entries"
-                  onClick={() => setPendingRemoveAll(true)}
+                  onClick={() => {
+                    onRemoveAllEntries();
+                    setShowEarlier(false);
+                  }}
                   style={{
                     padding: 0,
                     border: "none",
@@ -323,52 +323,6 @@ export function WaterTrackerCard({
             </div>
           ) : null}
         </>
-      ) : null}
-      {pendingRemoveAll && onRemoveAllEntries ? (
-        <DeleteConfirmSheet
-          title="Remove all water entries?"
-          cancelLabel="Keep entries"
-          confirmLabel="Remove all"
-          message={
-            <>
-              Remove all{" "}
-              <strong style={{ color: "var(--text-primary)" }}>
-                {sortedEntries.length} entries ({formatWaterVolume(total, volumeUnit)})
-              </strong>{" "}
-              from today&apos;s log?
-            </>
-          }
-          onCancel={() => setPendingRemoveAll(false)}
-          onConfirm={() => {
-            onRemoveAllEntries();
-            setPendingRemoveAll(false);
-            setShowEarlier(false);
-          }}
-        />
-      ) : null}
-      {pendingRemoveEntryId && onRemoveEntry ? (
-        <DeleteConfirmSheet
-          title="Remove water entry?"
-          cancelLabel="Keep entry"
-          confirmLabel="Remove entry"
-          message={
-            <>
-              Remove{" "}
-              <strong style={{ color: "var(--text-primary)" }}>
-                {formatWaterVolume(
-                  entries.find((e) => e.id === pendingRemoveEntryId)?.amountOz ?? 0,
-                  volumeUnit,
-                )}
-              </strong>{" "}
-              from today&apos;s log?
-            </>
-          }
-          onCancel={() => setPendingRemoveEntryId(null)}
-          onConfirm={() => {
-            onRemoveEntry(pendingRemoveEntryId);
-            setPendingRemoveEntryId(null);
-          }}
-        />
       ) : null}
     </div>
   );

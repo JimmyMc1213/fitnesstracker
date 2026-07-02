@@ -14,6 +14,7 @@ import {
   normalizeWaterDailyTargetOz,
   normalizeWaterLogByDay,
   normalizeWaterLogEntry,
+  onboardingWaterDailyTargetOz,
   parseVolumeToOz,
   removeWaterLogEntry,
   totalWaterOzForDateKey,
@@ -88,6 +89,22 @@ describe("normalizeWaterDailyTargetOz", () => {
     expect(normalizeWaterDailyTargetOz(10)).toBe(16);
     expect(normalizeWaterDailyTargetOz(300)).toBe(256);
     expect(normalizeWaterDailyTargetOz(64.4)).toBe(64);
+  });
+});
+
+describe("onboardingWaterDailyTargetOz", () => {
+  it("uses 64 oz at or below 200 lbs", () => {
+    expect(onboardingWaterDailyTargetOz(200)).toBe(64);
+    expect(onboardingWaterDailyTargetOz(180)).toBe(64);
+  });
+
+  it("uses 80 oz above 200 lbs", () => {
+    expect(onboardingWaterDailyTargetOz(201)).toBe(80);
+    expect(onboardingWaterDailyTargetOz(250)).toBe(80);
+  });
+
+  it("falls back to default for invalid weight", () => {
+    expect(onboardingWaterDailyTargetOz(NaN)).toBe(DEFAULT_WATER_DAILY_TARGET_OZ);
   });
 });
 

@@ -9,7 +9,7 @@ import {
   MAX_REST_TIMER_SECONDS,
   MIN_REST_TIMER_SECONDS,
 } from "@/lib/workout/restTimerPreferences";
-import { COACH_BLUE } from "@/lib/workoutUiTokens";
+import { COACH_BLUE, COACH_GOLD_BG_SUBTLE } from "@/lib/workoutUiTokens";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 export type RestTimerPhase = "ready" | "running" | "complete" | "rested";
@@ -140,7 +140,7 @@ export function RestTimerSheet({
                 backgroundColor: isComplete
                   ? "rgba(48,209,88,0.12)"
                   : isRunning
-                    ? "rgba(10,132,255,0.06)"
+                    ? COACH_GOLD_BG_SUBTLE
                     : colors.backgroundSecondary,
               }}
             >

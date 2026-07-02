@@ -1,0 +1,37 @@
+# QA in-app exploration after auth — assumes signed in on Home.
+appId: app.newyouai.mobile
+---
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 5000
+- tapOn:
+    id: tab-bar-nutrition
+- extendedWaitUntil:
+    visible:
+      id: tab-nutrition
+    timeout: 15000
+- tapOn:
+    id: tab-bar-workout
+- extendedWaitUntil:
+    visible:
+      id: tab-workout
+    timeout: 15000
+- tapOn:
+    id: tab-bar-progress
+- extendedWaitUntil:
+    visible:
+      id: tab-progress
+    timeout: 15000
+- tapOn:
+    id: tab-bar-home
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 15000
+- tapOn:
+    id: home-settings
+- extendedWaitUntil:
+    visible:
+      id: settings-hub
+    timeout: 15000

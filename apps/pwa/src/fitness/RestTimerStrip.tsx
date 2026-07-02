@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { IconCheck } from "./icons";
-import { COACH_BLUE } from "./workoutUiTokens";
+import { COACH_BLUE, COACH_GOLD_TRACK } from "./workoutUiTokens";
 import { formatRestDuration } from "./restTimerPreferences";
 
 export type RestTimerPhase = "ready" | "running" | "complete" | "rested";
@@ -87,7 +87,7 @@ export function RestTimerStrip({
   const trackColor = isComplete
     ? "rgba(48,209,88,0.28)"
     : isRunning
-      ? "rgba(10,132,255,0.22)"
+      ? COACH_GOLD_TRACK
       : isRested
         ? "rgba(255,255,255,0.22)"
         : "var(--border)";

@@ -2,6 +2,18 @@ import type { AppState, VolumeUnit, WaterLogEntry } from "@newyouai/types";
 
 export const DEFAULT_WATER_DAILY_TARGET_OZ = 64;
 
+/** Onboarding hydration bump for users over this weight (lbs). */
+export const ONBOARDING_HEAVY_HYDRATION_WEIGHT_THRESHOLD_LBS = 200;
+
+export const ONBOARDING_HEAVY_WATER_DAILY_TARGET_OZ = 80;
+
+export function onboardingWaterDailyTargetOz(weightLbs: number): number {
+  if (Number.isFinite(weightLbs) && weightLbs > ONBOARDING_HEAVY_HYDRATION_WEIGHT_THRESHOLD_LBS) {
+    return ONBOARDING_HEAVY_WATER_DAILY_TARGET_OZ;
+  }
+  return DEFAULT_WATER_DAILY_TARGET_OZ;
+}
+
 export const WATER_QUICK_ADD_OZ = [8, 16] as const;
 
 export const WATER_QUICK_ADD_L = [0.25, 0.5] as const;

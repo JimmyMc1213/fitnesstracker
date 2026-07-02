@@ -7,12 +7,19 @@ export const PRIMARY_FILL = "var(--primary)";
 /** @deprecated use PRIMARY_FILL */
 export const PRIMARY_GREEN = PRIMARY_FILL;
 export const ACCENT_GREEN = PRIMARY_FILL;
-export const COACH_BLUE = "#0A84FF";
+/** Primary coach accent — brand gold (legacy name kept for imports). */
+export const COACH_BLUE = "#c9a876";
 export const PRESET_SELECTED_BORDER = "var(--border-strong)";
 export const PRESET_SELECTED_BG = "var(--surface-3)";
 export const PRESET_SELECTED_COLOR = "var(--text-primary)";
 export const COACH_BLUE_LABEL = "var(--coach-blue-label)";
-export const COACH_BLUE_MUTED = "rgba(10,132,255,0.65)";
+export const COACH_BLUE_MUTED = "rgba(201, 168, 118, 0.65)";
+export const COACH_GOLD_BG_SUBTLE = "rgba(201, 168, 118, 0.06)";
+export const COACH_GOLD_BG_SOFT = "rgba(201, 168, 118, 0.08)";
+export const COACH_GOLD_BORDER_SOFT = "rgba(201, 168, 118, 0.22)";
+export const COACH_GOLD_TRACK = "rgba(201, 168, 118, 0.22)";
+export const COACH_GOLD_GLOW =
+  "0 0 0 1px rgba(201, 168, 118, 0.2), 0 0 18px rgba(201, 168, 118, 0.35), 0 0 36px rgba(201, 168, 118, 0.12)";
 export const COACH_CARD_BG = "var(--coach-card-bg)";
 export const COACH_CARD_BORDER = "var(--coach-card-border)";
 

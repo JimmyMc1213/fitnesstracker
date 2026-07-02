@@ -10,7 +10,7 @@ import type { AppState } from "../types";
 import { NEW_ROUTINE_EDITOR_ID } from "../screens/WorkoutRoutineEditor";
 import { RenameRoutineSheet } from "./RenameRoutineSheet";
 import { WorkoutRoutineActionSheet } from "./WorkoutRoutineActionSheet";
-import { COACH_BLUE_LABEL, COACH_CARD_BG, COACH_CARD_BORDER } from "../workoutUiTokens";
+import { COACH_BLUE_LABEL, COACH_CARD_BG, COACH_CARD_BORDER, COACH_GOLD_BG_SUBTLE, COACH_GOLD_GLOW } from "../workoutUiTokens";
 
 function WorkoutHeaderActions({
   onBrowseTemplates,
@@ -227,9 +227,7 @@ export function WorkoutIdleDashboard({
                     overflow: "hidden",
                     border: isTodayWorkout ? `1px solid ${COACH_CARD_BORDER}` : "0.5px solid var(--border)",
                     background: isTodayWorkout ? COACH_CARD_BG : "var(--surface-2)",
-                    boxShadow: isTodayWorkout
-                      ? "0 0 0 1px rgba(10,132,255,0.2), 0 0 18px rgba(10,132,255,0.35), 0 0 36px rgba(10,132,255,0.12)"
-                      : undefined,
+                    boxShadow: isTodayWorkout ? COACH_GOLD_GLOW : undefined,
                   }}
                 >
                   <button
@@ -306,7 +304,7 @@ export function WorkoutIdleDashboard({
                       padding: "16px 14px",
                       border: "none",
                       borderLeft: isTodayWorkout ? `0.5px solid ${COACH_CARD_BORDER}` : "0.5px solid var(--border)",
-                      background: isTodayWorkout ? "rgba(10,132,255,0.06)" : "var(--surface-1)",
+                      background: isTodayWorkout ? COACH_GOLD_BG_SUBTLE : "var(--surface-1)",
                       color: "var(--text-muted-soft)",
                       display: "flex",
                       alignItems: "center",

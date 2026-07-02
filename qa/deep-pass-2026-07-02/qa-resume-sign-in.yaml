@@ -1,0 +1,8 @@
+appId: app.newyouai.mobile
+---
+- tapOn:
+    text: "Sign in"
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 120000

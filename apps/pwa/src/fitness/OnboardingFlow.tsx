@@ -56,7 +56,7 @@ import { OnboardingFutureYouSuccess } from "./OnboardingFutureYouSuccess";
 import { canAccessFutureYouSuccessScreen } from "./futureYouSuccessModel";
 import { mergeFutureYouDraft, canRevisitFutureYouPhoto } from "./futureYouDraft";
 import { isFutureYouPhotoBlocked } from "./futureYouAge";
-import { isFutureYouRegionBlocked } from "@newyouai/core";
+import { isFutureYouRegionBlocked, onboardingWaterDailyTargetOz } from "@newyouai/core";
 import {
   buildFutureYouGenerateProfile,
   FutureYouGenerateError,
@@ -895,7 +895,7 @@ export function OnboardingFlow({
     const progressGoal = progressGoalFromOnboarding(finalProfile);
     setState((s) => {
       const stepsTarget = s.stepsTarget;
-      const waterDailyTargetOz = s.waterDailyTargetOz;
+      const waterDailyTargetOz = onboardingWaterDailyTargetOz(finalProfile.weightLbs);
       const habitTemplates = ensureMobilityHabitTemplate(habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz, unitPreferences.volumeUnit));
       const templateIds = new Set(habitTemplates.map((h) => h.id));
       const habitsDoneByDay = pruneHabitsDoneByDay(s.habitsDoneByDay, templateIds);
@@ -922,6 +922,7 @@ export function OnboardingFlow({
         futureYou: Object.keys(futureYou).length > 0 ? { ...futureYou } : undefined,
         habitTemplates,
         habitsDoneByDay,
+        waterDailyTargetOz,
         habits: buildHabitsForDateKey(habitTemplates, habitsDoneByDay, todayKey, {
           weightLogged: s.weightLog.some((e) => e.dateKey === todayKey),
         }),

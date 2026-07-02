@@ -1,0 +1,29 @@
+# Log food modal only — screenshot + attempt close.
+appId: app.newyouai.mobile
+---
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 5000
+- tapOn:
+    id: tab-bar-nutrition
+- extendedWaitUntil:
+    visible:
+      id: tab-nutrition
+    timeout: 15000
+- tapOn:
+    id: open-log-food
+- extendedWaitUntil:
+    visible:
+      id: modal-log-food
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/11-log-food-modal-light
+- tapOn:
+    id: modal-close
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible:
+      id: tab-bar-nutrition
+    timeout: 20000
+    optional: true
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/11b-after-log-food-close

@@ -1,0 +1,301 @@
+# Deep QA pass — real account, signed-in app exploration.
+# Run:
+#   export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+#   MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... maestro test qa/deep-pass-2026-07-02/qa-deep-pass-real-account.yaml
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+  SCREENSHOT_DIR: ${QA_SCREENSHOT_DIR}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: ../../apps/mobile/.maestro/subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-screen
+    timeout: 90000
+- takeScreenshot: ${SCREENSHOT_DIR}/09-auth-welcome-live
+- runFlow: ../../apps/mobile/.maestro/subflows/auth-sign-in-credentials.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 120000
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: tab-home
+    commands:
+      - takeScreenshot: ${SCREENSHOT_DIR}/10-sign-in-stuck-or-onboarding
+      - extendedWaitUntil:
+          visible:
+            id: onboarding-step-2
+          timeout: 5000
+          optional: true
+      - runFlow:
+          when:
+            visible:
+              id: onboarding-step-2
+          commands:
+            - takeScreenshot: ${SCREENSHOT_DIR}/11-onboarding-instead-of-home
+            - stopApp
+- runFlow:
+    when:
+      visible:
+        id: tab-home
+    commands:
+      - takeScreenshot: ${SCREENSHOT_DIR}/12-home-light
+      - assertVisible:
+          id: home-settings
+      - tapOn:
+          id: tab-bar-nutrition
+      - extendedWaitUntil:
+          visible:
+            id: tab-nutrition
+          timeout: 15000
+      - takeScreenshot: ${SCREENSHOT_DIR}/13-nutrition-light
+      - tapOn:
+          id: open-log-food
+          optional: true
+      - extendedWaitUntil:
+          visible:
+            id: modal-log-food
+          timeout: 10000
+          optional: true
+      - runFlow:
+          when:
+            visible:
+              id: modal-log-food
+          commands:
+            - takeScreenshot: ${SCREENSHOT_DIR}/14-log-food-modal-light
+            - tapOn:
+                id: modal-close
+            - extendedWaitUntil:
+                visible:
+                  id: tab-nutrition
+                timeout: 15000
+      - tapOn:
+          id: tab-bar-workout
+      - extendedWaitUntil:
+          visible:
+            id: tab-workout
+          timeout: 15000
+      - takeScreenshot: ${SCREENSHOT_DIR}/15-workout-light
+      - tapOn:
+          id: tab-bar-progress
+      - extendedWaitUntil:
+          visible:
+            id: tab-progress
+          timeout: 15000
+      - takeScreenshot: ${SCREENSHOT_DIR}/16-progress-light
+      - tapOn:
+          id: tab-bar-home
+      - extendedWaitUntil:
+          visible:
+            id: tab-home
+          timeout: 15000
+      - tapOn:
+          id: home-settings
+      - extendedWaitUntil:
+          visible:
+            id: settings-hub
+          timeout: 15000
+      - takeScreenshot: ${SCREENSHOT_DIR}/17-settings-hub-light
+      - tapOn:
+          id: settings-row-appearance
+      - extendedWaitUntil:
+          visible:
+            id: settings-panel-appearance
+          timeout: 10000
+      - takeScreenshot: ${SCREENSHOT_DIR}/18-appearance-panel
+      - tapOn:
+          id: settings-appearance-light
+          optional: true
+      - tapOn:
+          id: settings-appearance-dark
+      - tapOn:
+          id: settings-panel-back
+      - extendedWaitUntil:
+          visible:
+            id: settings-hub
+          timeout: 10000
+      - takeScreenshot: ${SCREENSHOT_DIR}/19-settings-hub-dark
+      - tapOn:
+          id: settings-row-fuel-targets
+      - extendedWaitUntil:
+          visible:
+            id: settings-panel-fuel-targets
+          timeout: 10000
+      - takeScreenshot: ${SCREENSHOT_DIR}/20-fuel-targets-dark
+      - tapOn:
+          id: settings-panel-back
+      - tapOn:
+          id: settings-row-hydration
+      - extendedWaitUntil:
+          visible:
+            id: settings-panel-hydration
+          timeout: 10000
+      - takeScreenshot: ${SCREENSHOT_DIR}/21-hydration-dark
+      - tapOn:
+          id: settings-panel-back
+      - tapOn:
+          id: settings-row-units
+      - extendedWaitUntil:
+          visible:
+            id: settings-panel-units
+          timeout: 10000
+      - takeScreenshot: ${SCREENSHOT_DIR}/22-units-dark
+      - tapOn:
+          id: settings-panel-back
+      - tapOn:
+          id: settings-profile-card
+      - extendedWaitUntil:
+          visible:
+            id: settings-panel-you
+          timeout: 10000
+      - takeScreenshot: ${SCREENSHOT_DIR}/23-you-panel-dark
+      - tapOn:
+          id: settings-panel-back
+      - tapOn:
+          id: settings-row-reminders
+      - extendedWaitUntil:
+          visible:
+            id: settings-panel-reminders
+          timeout: 10000
+      - takeScreenshot: ${SCREENSHOT_DIR}/24-reminders-dark
+      - tapOn:
+          id: settings-panel-back
+      - tapOn:
+          id: settings-row-rest-timer
+      - extendedWaitUntil:
+          visible:
+            id: settings-panel-rest-timer
+          timeout: 10000
+      - takeScreenshot: ${SCREENSHOT_DIR}/25-rest-timer-dark
+      - tapOn:
+          id: settings-panel-back
+      - tapOn:
+          id: settings-row-equipment
+      - extendedWaitUntil:
+          visible:
+            id: settings-panel-equipment
+          timeout: 10000
+      - takeScreenshot: ${SCREENSHOT_DIR}/26-equipment-dark
+      - tapOn:
+          id: settings-panel-back
+      - tapOn:
+          id: settings-row-habits
+      - extendedWaitUntil:
+          visible:
+            id: settings-panel-habits
+          timeout: 10000
+      - takeScreenshot: ${SCREENSHOT_DIR}/27-habits-dark
+      - tapOn:
+          id: settings-panel-back
+      - tapOn:
+          id: settings-row-program
+      - extendedWaitUntil:
+          visible:
+            id: settings-panel-program
+          timeout: 10000
+      - takeScreenshot: ${SCREENSHOT_DIR}/28-program-dark
+      - tapOn:
+          id: settings-panel-back
+      - runFlow:
+          when:
+            visible:
+              id: settings-row-goal
+          commands:
+            - tapOn:
+                id: settings-row-goal
+            - extendedWaitUntil:
+                visible:
+                  id: settings-panel-goal
+                timeout: 10000
+            - takeScreenshot: ${SCREENSHOT_DIR}/29-goal-dark
+            - tapOn:
+                id: settings-panel-back
+      - tapOn:
+          id: settings-row-report-issue
+      - extendedWaitUntil:
+          visible:
+            text: "Report an issue"
+          timeout: 5000
+          optional: true
+      - takeScreenshot: ${SCREENSHOT_DIR}/30-report-issue-dialog
+      - tapOn:
+          text: "Cancel"
+          optional: true
+      - tapOn:
+          id: settings-row-request-feature
+      - extendedWaitUntil:
+          visible:
+            text: "Request a feature"
+          timeout: 5000
+          optional: true
+      - takeScreenshot: ${SCREENSHOT_DIR}/31-request-feature-dialog
+      - tapOn:
+          text: "Cancel"
+          optional: true
+      - scrollUntilVisible:
+          element:
+            id: settings-delete-account
+          direction: DOWN
+          timeout: 10000
+          optional: true
+      - takeScreenshot: ${SCREENSHOT_DIR}/32-settings-scrolled-dark
+      - tapOn:
+          id: settings-panel-back
+          optional: true
+      - tapOn:
+          text: "Back to home"
+          optional: true
+      - extendedWaitUntil:
+          visible:
+            id: tab-home
+          timeout: 15000
+      - takeScreenshot: ${SCREENSHOT_DIR}/33-home-dark
+      - tapOn:
+          id: tab-bar-workout
+      - extendedWaitUntil:
+          visible:
+            id: workout-idle
+          timeout: 15000
+          optional: true
+      - runFlow:
+          when:
+            visible:
+              id: workout-idle
+          commands:
+            - takeScreenshot: ${SCREENSHOT_DIR}/34-workout-idle-dark
+      - tapOn:
+          id: tab-bar-home
+      - extendedWaitUntil:
+          visible:
+            id: sunday-check-in-card
+          timeout: 5000
+          optional: true
+      - runFlow:
+          when:
+            visible:
+              id: sunday-check-in-card
+          commands:
+            - takeScreenshot: ${SCREENSHOT_DIR}/35-sunday-check-in-card
+            - tapOn:
+                id: sunday-check-in-card
+            - extendedWaitUntil:
+                visible:
+                  id: modal-sunday-check-in
+                timeout: 10000
+            - takeScreenshot: ${SCREENSHOT_DIR}/36-sunday-check-in-modal
+            - tapOn:
+                id: modal-close
+                optional: true
+            - tapOn:
+                text: "Close"
+                optional: true
+            - pressKey: back
+                optional: true

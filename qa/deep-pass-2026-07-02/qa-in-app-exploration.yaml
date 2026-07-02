@@ -1,0 +1,268 @@
+# Signed-in deep pass — uses dev auto sign-in (same credentials) when Maestro cannot
+# fill iOS secure password fields. Skips Future You tab and onboarding.
+appId: app.newyouai.mobile
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: ../../apps/mobile/.maestro/subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 120000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/09-home-after-real-account-signin
+- assertVisible:
+    id: home-settings
+- tapOn:
+    id: tab-bar-nutrition
+- extendedWaitUntil:
+    visible:
+      id: tab-nutrition
+    timeout: 15000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/10-nutrition-light
+- tapOn:
+    id: tab-bar-workout
+- extendedWaitUntil:
+    visible:
+      id: tab-workout
+    timeout: 15000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/12-workout-light
+- tapOn:
+    id: tab-bar-progress
+- extendedWaitUntil:
+    visible:
+      id: tab-progress
+    timeout: 15000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/13-progress-light
+- tapOn:
+    id: tab-bar-home
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 15000
+- tapOn:
+    id: home-settings
+- extendedWaitUntil:
+    visible:
+      id: settings-hub
+    timeout: 15000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/14-settings-hub-light
+- tapOn:
+    id: settings-row-appearance
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-appearance
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/15-appearance-panel
+- tapOn:
+    id: settings-appearance-dark
+- tapOn:
+    id: settings-panel-back
+- extendedWaitUntil:
+    visible:
+      id: settings-hub
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/16-settings-hub-dark
+- tapOn:
+    id: settings-row-fuel-targets
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-fuel-targets
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/17-fuel-targets-dark
+- tapOn:
+    id: settings-panel-back
+- tapOn:
+    id: settings-row-hydration
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-hydration
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/18-hydration-dark
+- tapOn:
+    id: settings-panel-back
+- tapOn:
+    id: settings-row-units
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-units
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/19-units-dark
+- tapOn:
+    id: settings-panel-back
+- tapOn:
+    id: settings-profile-card
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-you
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/20-you-panel-dark
+- tapOn:
+    id: settings-panel-back
+- tapOn:
+    id: settings-row-reminders
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-reminders
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/21-reminders-dark
+- tapOn:
+    id: settings-panel-back
+- tapOn:
+    id: settings-row-rest-timer
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-rest-timer
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/22-rest-timer-dark
+- tapOn:
+    id: settings-panel-back
+- tapOn:
+    id: settings-row-equipment
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-equipment
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/23-equipment-dark
+- tapOn:
+    id: settings-panel-back
+- tapOn:
+    id: settings-row-habits
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-habits
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/24-habits-dark
+- tapOn:
+    id: settings-panel-back
+- tapOn:
+    id: settings-row-program
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-program
+    timeout: 10000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/25-program-dark
+- tapOn:
+    id: settings-panel-back
+- runFlow:
+    when:
+      visible:
+        id: settings-row-goal
+    commands:
+      - tapOn:
+          id: settings-row-goal
+      - extendedWaitUntil:
+          visible:
+            id: settings-panel-goal
+          timeout: 10000
+      - takeScreenshot: qa/deep-pass-2026-07-02/screenshots/26-goal-dark
+      - tapOn:
+          id: settings-panel-back
+- tapOn:
+    id: settings-row-report-issue
+- extendedWaitUntil:
+    visible:
+      text: "Report an issue"
+    timeout: 8000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/27-report-issue-dialog
+- tapOn:
+    text: "Cancel"
+- tapOn:
+    id: settings-row-request-feature
+- extendedWaitUntil:
+    visible:
+      text: "Request a feature"
+    timeout: 8000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/28-request-feature-dialog
+- tapOn:
+    text: "Cancel"
+- scrollUntilVisible:
+    element:
+      id: settings-delete-account
+    direction: DOWN
+    timeout: 15000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/29-settings-scrolled-dark
+- tapOn:
+    text: "Back to home"
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 15000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/30-home-dark
+- tapOn:
+    id: home-settings
+- extendedWaitUntil:
+    visible:
+      id: settings-hub
+    timeout: 15000
+- tapOn:
+    id: settings-row-appearance
+- extendedWaitUntil:
+    visible:
+      id: settings-panel-appearance
+    timeout: 10000
+- tapOn:
+    id: settings-appearance-light
+- tapOn:
+    id: settings-panel-back
+- tapOn:
+    text: "Back to home"
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 15000
+- takeScreenshot: qa/deep-pass-2026-07-02/screenshots/31-home-light-restored
+- tapOn:
+    id: tab-bar-workout
+- extendedWaitUntil:
+    visible:
+      id: tab-workout
+    timeout: 15000
+- runFlow:
+    when:
+      visible:
+        id: workout-idle
+    commands:
+      - takeScreenshot: qa/deep-pass-2026-07-02/screenshots/32-workout-idle
+      - tapOn:
+          id: workout-routine-e2e-upper
+          optional: true
+      - runFlow:
+          when:
+            visible:
+              id: routine-preview-sheet
+          commands:
+            - takeScreenshot: qa/deep-pass-2026-07-02/screenshots/33-workout-routine-preview
+            - tapOn:
+                text: "Close"
+                optional: true
+            - tapOn:
+                id: routine-preview-close
+                optional: true
+- tapOn:
+    id: tab-bar-home
+- extendedWaitUntil:
+    visible:
+      id: sunday-check-in-card
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: sunday-check-in-card
+    commands:
+      - takeScreenshot: qa/deep-pass-2026-07-02/screenshots/34-sunday-check-in-card
+      - tapOn:
+          id: sunday-check-in-card
+      - extendedWaitUntil:
+          visible:
+            id: modal-sunday-check-in
+          timeout: 10000
+      - takeScreenshot: qa/deep-pass-2026-07-02/screenshots/35-sunday-check-in-modal
+      - tapOn:
+          id: modal-close
+          optional: true
+      - tapOn:
+          text: "Close"
+          optional: true

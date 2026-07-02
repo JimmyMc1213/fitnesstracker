@@ -1,7 +1,8 @@
+import { onboardingWaterDailyTargetOz } from "@newyouai/core";
+
 import { futureYouTimelineFromProfile } from "./futureYouTimeline";
 import { weekdayMonStartIndex } from "./trainingCalendar";
 import type { MacroTotals, OnboardingProfile, VolumeUnit, WorkoutRoutineTemplate } from "./types";
-import { DEFAULT_WATER_DAILY_TARGET_OZ } from "./waterIntake";
 
 export const ONBOARDING_PLAN_DEFAULT_STEPS_TARGET = 10_000;
 
@@ -33,7 +34,7 @@ export function buildOnboardingPlanSnapshot({
   profile,
   templates,
   volumeUnit,
-  waterDailyTargetOz = DEFAULT_WATER_DAILY_TARGET_OZ,
+  waterDailyTargetOz,
   stepsTarget = ONBOARDING_PLAN_DEFAULT_STEPS_TARGET,
 }: BuildInput): OnboardingPlanSnapshot {
   return {
@@ -42,7 +43,7 @@ export function buildOnboardingPlanSnapshot({
     profile,
     templates: templates.map((t) => ({ ...t, exercises: [...t.exercises] })),
     timeline: futureYouTimelineFromProfile(profile),
-    waterDailyTargetOz,
+    waterDailyTargetOz: waterDailyTargetOz ?? onboardingWaterDailyTargetOz(profile.weightLbs),
     stepsTarget,
     volumeUnit,
   };

@@ -104,9 +104,17 @@ const metroProbe = spawnSync("curl", ["-sf", "-o", "/dev/null", "http://127.0.0.
 if (metroProbe.status !== 0) {
   console.error(
     "Metro is not reachable on http://127.0.0.1:8082, start it first:\n" +
-      "  cd apps/mobile && npx expo start --dev-client --port 8082",
+      "  cd apps/mobile && EXPO_PUBLIC_MAESTRO_E2E_AUTH=true npx expo start --dev-client --port 8082",
   );
   process.exit(1);
+}
+
+if (process.env.EXPO_PUBLIC_MAESTRO_E2E_AUTH !== "true") {
+  console.warn(
+    "Warning: EXPO_PUBLIC_MAESTRO_E2E_AUTH is not true on Metro. Auth Maestro flows need it so\n" +
+      "password fields accept automation input. Restart Metro with:\n" +
+      "  EXPO_PUBLIC_MAESTRO_E2E_AUTH=true npx expo start --dev-client --port 8082",
+  );
 }
 
 const common = {

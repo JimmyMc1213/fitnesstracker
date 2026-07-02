@@ -2,6 +2,7 @@ import type { CoachAdjustment } from "@newyouai/core";
 import { greetingFirstName } from "@newyouai/core";
 import { Text, View } from "react-native";
 
+import { COACH_BLUE_LABEL } from "@/lib/workoutUiTokens";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
@@ -23,7 +24,7 @@ export function WeighInCoachReaction({ adjustment, displayName = "" }: Props) {
       accessibilityLiveRegion="polite"
     >
       <Text className="text-xs font-medium leading-[1.5]">
-        <Text style={{ color: "#60a5fa", fontWeight: "600" }}>Coach: </Text>
+        <Text style={{ color: COACH_BLUE_LABEL, fontWeight: "600" }}>Coach: </Text>
         <Text style={{ color: colors.textSecondary }}>{greeting}</Text>
       </Text>
       <Text className="mt-1.5 text-xs font-medium leading-[1.5]" style={{ color: colors.textSecondary }}>

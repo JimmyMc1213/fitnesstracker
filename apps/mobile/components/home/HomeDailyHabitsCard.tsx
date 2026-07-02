@@ -1,7 +1,15 @@
 import { planWeekIndex } from "@newyouai/core";
 import { SymbolView } from "expo-symbols";
-import { useCallback, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { LayoutAnimation, Platform, Pressable, Text, UIManager, View } from "react-native";
+import Animated, {
+  Easing,
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 import { AddHabitSheet } from "@/components/home/AddHabitSheet";
 import { EditHabitDialog } from "@/components/home/EditHabitDialog";
@@ -30,6 +38,22 @@ import { habitIconComponent } from "@/lib/habitIcons";
 import { mobilityColors } from "@/lib/workoutUiTokens";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { Habit, HabitTemplate } from "@newyouai/types";
+
+const REMOVE_ANIM_MS = 220;
+const REMOVE_EASING = Easing.out(Easing.cubic);
+
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+function configureRemoveLayoutAnimation() {
+  LayoutAnimation.configureNext({
+    duration: REMOVE_ANIM_MS,
+    create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+    update: { type: LayoutAnimation.Types.easeInEaseOut },
+    delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+  });
+}
 
 type Props = {
   habits: Habit[];
@@ -96,16 +120,27 @@ export function HomeDailyHabitsCard({
     [editDraft, onSaveHabitTemplates],
   );
 
+  const openAddHabit = useCallback(() => {
+    if (!editMode) {
+      setEditDraft(dailyHabitTemplates.map(normalizeHabitTemplate));
+      setRemovingIds(new Set());
+      setEditingHabitId(null);
+      setEditMode(true);
+    }
+    setAddSheetOpen(true);
+  }, [dailyHabitTemplates, editMode]);
+
   const removeHabit = useCallback((id: string) => {
     setRemovingIds((prev) => new Set(prev).add(id));
     setTimeout(() => {
+      configureRemoveLayoutAnimation();
       setEditDraft((draft) => draft.filter((h) => h.id !== id));
       setRemovingIds((prev) => {
         const next = new Set(prev);
         next.delete(id);
         return next;
       });
-    }, 250);
+    }, REMOVE_ANIM_MS);
   }, []);
 
   const updateHabitDetails = useCallback((id: string, name: string, description: string) => {
@@ -121,9 +156,10 @@ export function HomeDailyHabitsCard({
 
   const editingHabit = editingHabitId ? editDraft.find((h) => h.id === editingHabitId) ?? null : null;
 
-  if (habits.length === 0 && dailyHabitTemplates.length === 0) return null;
+  if (habits.length === 0 && dailyHabitTemplates.length === 0 && !canEdit) return null;
 
   const listHabits = editMode ? editHabits : displayHabits;
+  const showDailyHabitsSection = canEdit || listHabits.length > 0 || editMode;
 
   return (
     <>
@@ -140,7 +176,7 @@ export function HomeDailyHabitsCard({
           </View>
         ) : null}
 
-        {listHabits.length > 0 || editMode ? (
+        {showDailyHabitsSection ? (
           <View className={mobilityHabit ? "mt-[22px]" : "mt-7"}>
             <View className="mb-3 flex-row items-baseline justify-between gap-2">
               <Text
@@ -192,17 +228,10 @@ export function HomeDailyHabitsCard({
                     );
                   }}
                 />
-                <Pressable
-                  onPress={() => setAddSheetOpen(true)}
-                  className="mt-2 flex-row items-center gap-1.5 rounded-xl border border-dashed px-3.5 py-3.5"
-                  style={{ borderColor: colors.border }}
-                >
-                  <IconPlus size={13} stroke={2.5} color={colors.textSecondary} />
-                  <Text className="text-[13px] font-semibold" style={{ color: colors.textSecondary }}>
-                    Add habit
-                  </Text>
-                </Pressable>
+                <AddHabitButton onPress={openAddHabit} />
               </>
+            ) : displayHabits.length === 0 ? (
+              <AddHabitButton onPress={openAddHabit} />
             ) : (
               <View style={{ gap: 8 }}>
                 {displayHabits.map((habit) => (
@@ -242,6 +271,40 @@ export function HomeDailyHabitsCard({
       ) : null}
     </>
   );
+}
+
+function AddHabitButton({ onPress }: { onPress: () => void }) {
+  const { colors } = useAppTheme();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      className="mt-2 flex-row items-center gap-1.5 rounded-xl border border-dashed px-3.5 py-3.5"
+      style={{ borderColor: colors.border }}
+    >
+      <IconPlus size={13} stroke={2.5} color={colors.textSecondary} />
+      <Text className="text-[13px] font-semibold" style={{ color: colors.textSecondary }}>
+        Add habit
+      </Text>
+    </Pressable>
+  );
+}
+
+function AnimatedRemovingRow({ removing, children }: { removing?: boolean; children: ReactNode }) {
+  const progress = useSharedValue(removing ? 1 : 0);
+
+  useEffect(() => {
+    progress.value = withTiming(removing ? 1 : 0, { duration: REMOVE_ANIM_MS, easing: REMOVE_EASING });
+  }, [progress, removing]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 1], [1, 0], Extrapolation.CLAMP),
+    transform: [{ translateX: interpolate(progress.value, [0, 1], [0, -16], Extrapolation.CLAMP) }],
+    maxHeight: interpolate(progress.value, [0, 1], [120, 0], Extrapolation.CLAMP),
+    overflow: "hidden" as const,
+  }));
+
+  return <Animated.View style={animatedStyle}>{children}</Animated.View>;
 }
 
 function MobilityRoutineCard({
@@ -389,14 +452,12 @@ function HabitRowContent({
   const subtitle = habitSubtitle(habit, stepsTarget, progWeek);
   const editDescription = habit.subtitle?.trim() ? stripEmDash(habit.subtitle.trim()) : "";
 
-  return (
+  const row = (
     <View
       className="min-h-[64px] flex-row items-center gap-3 rounded-xl border p-3.5"
       style={{
         borderColor: colors.border,
         backgroundColor: colors.card,
-        opacity: removing ? 0 : 1,
-        transform: [{ translateX: removing ? -12 : 0 }],
       }}
     >
       {editMode ? (
@@ -474,6 +535,12 @@ function HabitRowContent({
       ) : null}
     </View>
   );
+
+  if (editMode) {
+    return <AnimatedRemovingRow removing={removing}>{row}</AnimatedRemovingRow>;
+  }
+
+  return row;
 }
 
 function HabitToggle({

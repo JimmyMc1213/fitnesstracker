@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { CenterDialog, bottomSheetPanelTheme } from "./motion";
 import { PrimaryButton } from "./shared";
-import { COACH_BLUE } from "./workoutUiTokens";
+import { COACH_BLUE, COACH_GOLD_BG_SUBTLE } from "./workoutUiTokens";
 import { RestTimerDurationPicker } from "./RestTimerDurationPicker";
 import { formatRestDuration, MAX_REST_TIMER_SECONDS, MIN_REST_TIMER_SECONDS } from "./restTimerPreferences";
 import type { RestTimerPhase } from "./RestTimerStrip";
@@ -149,7 +149,7 @@ export function RestTimerSheet({
             border: `3px solid ${isComplete ? "var(--primary)" : isRunning ? COACH_BLUE : "var(--border)"}`,
             display: "grid",
             placeItems: "center",
-            background: isComplete ? "rgba(48,209,88,0.12)" : isRunning ? "rgba(10,132,255,0.06)" : "var(--surface-2)",
+            background: isComplete ? "rgba(48,209,88,0.12)" : isRunning ? COACH_GOLD_BG_SUBTLE : "var(--surface-2)",
             transition: "border-color 0.25s ease, background 0.25s ease",
             boxShadow: isComplete ? "0 0 0 8px rgba(48,209,88,0.12)" : undefined,
           }}

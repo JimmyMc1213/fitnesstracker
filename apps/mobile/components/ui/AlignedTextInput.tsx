@@ -122,12 +122,16 @@ export function AlignedTextInput({
   onSubmitEditing,
   keyboardType,
   inputAccessoryViewID,
+  testID,
+  accessibilityLabel,
+  accessibilityHint,
   ...props
 }: Props) {
   const preset = SIZE_PRESETS[size];
   const color = inputStyle?.color;
   const fontWeight = inputStyle?.fontWeight ?? preset.fontWeight;
   const inputRef = useRef<TextInput>(null);
+  const shellAccessible = testID != null || accessibilityLabel != null;
 
   const resolvedReturnKeyType = returnKeyType ?? (multiline ? "default" : "done");
   const resolvedBlurOnSubmit = blurOnSubmit ?? !multiline;
@@ -214,6 +218,9 @@ export function AlignedTextInput({
 
   return (
     <Pressable
+      testID={testID}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
       style={[styles.shell, shellLayout, shellStyle]}
       onPress={() => inputRef.current?.focus()}
     >
@@ -221,6 +228,8 @@ export function AlignedTextInput({
         ref={inputRef}
         {...props}
         {...keyboardProps}
+        accessibilityElementsHidden={shellAccessible}
+        importantForAccessibility={shellAccessible ? "no-hide-descendants" : "auto"}
         style={[
           styles.input,
           styles.shellInput,

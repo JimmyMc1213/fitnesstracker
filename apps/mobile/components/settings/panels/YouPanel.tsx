@@ -3,16 +3,14 @@ import { useCallback, useState } from "react";
 import { Text, View } from "react-native";
 
 import { FutureYouDeleteConfirmSheet } from "@/components/future-you/FutureYouDeleteConfirmSheet";
+import { EmailAccountDialog } from "@/components/settings/EmailAccountDialog";
 import { IconLogout } from "@/components/icons/FitnessIcons";
 import {
   SettingsFormField,
-  SettingsFormMessage,
   SettingsHelper,
   SettingsHubSection,
-  SettingsPrimaryButton,
   SettingsProfileHeader,
   SettingsRow,
-  SettingsSecondaryButton,
   SettingsTextField,
 } from "@/components/settings/SettingsLayout";
 import { SettingsRowIcon } from "@/components/settings/SettingsRowIcon";
@@ -24,6 +22,7 @@ import { connectedAuthProviders } from "@/lib/accountAuth";
 import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
 import { sanitizeUserText } from "@/lib/userText";
 
+// @refresh reset
 function providerLabel(provider: string): string {
   if (provider === "apple") return "Apple Sign-In";
   if (provider === "google") return "Google";
@@ -33,13 +32,9 @@ function providerLabel(provider: string): string {
 
 export function YouPanel() {
   const { colors } = useAppTheme();
-  const { sessionEmail, session, updateEmail, signOut } = useAuth();
+  const { sessionEmail, session, signOut } = useAuth();
   const { state, setFitnessState } = useFitnessState();
-  const [emailEditing, setEmailEditing] = useState(false);
-  const [emailIn, setEmailIn] = useState(sessionEmail ?? "");
-  const [emailBusy, setEmailBusy] = useState(false);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [emailSuccess, setEmailSuccess] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
 
   const handleSignOut = useCallback(async () => {
@@ -51,13 +46,6 @@ export function YouPanel() {
   if (!state) return null;
 
   const providers = connectedAuthProviders(session);
-
-  const resetEmailEdit = () => {
-    setEmailEditing(false);
-    setEmailIn(sessionEmail ?? "");
-    setEmailError(null);
-    setEmailSuccess(false);
-  };
 
   return (
     <View className="gap-4">
@@ -87,71 +75,18 @@ export function YouPanel() {
       {sessionEmail ? (
         <>
           <SettingsHubSection title="Personal info">
-            {emailEditing ? (
-              <View className="px-4 py-4" style={{ gap: 14 }}>
-                <SettingsFormField label="Email">
-                  <SettingsTextField
-                    testID="settings-you-email-input"
-                    value={emailIn}
-                    onChangeText={(value) => {
-                      setEmailIn(value);
-                      setEmailError(null);
-                      setEmailSuccess(false);
-                    }}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                  />
-                </SettingsFormField>
-                {emailError ? <SettingsFormMessage tone="error">{emailError}</SettingsFormMessage> : null}
-                {emailSuccess ? (
-                  <SettingsFormMessage tone="success">
-                    A confirmation link has been sent to your new email. It won&apos;t update until you confirm.
-                  </SettingsFormMessage>
-                ) : null}
-                <View className="flex-row" style={{ gap: 10 }}>
-                  <SettingsPrimaryButton
-                    label="Save"
-                    expand
-                    disabled={emailBusy || !emailIn.includes("@")}
-                    onPress={async () => {
-                      setEmailBusy(true);
-                      setEmailError(null);
-                      setEmailSuccess(false);
-                      const result = await updateEmail(emailIn);
-                      setEmailBusy(false);
-                      if (result.error) {
-                        setEmailError(result.error);
-                        return;
-                      }
-                      setEmailSuccess(true);
-                    }}
-                  />
-                  <SettingsSecondaryButton label="Cancel" disabled={emailBusy} onPress={resetEmailEdit} />
-                </View>
-              </View>
-            ) : (
-              <>
-                <SettingsRow
-                  label="Email"
-                  trailing={sessionEmail}
-                  testID="settings-you-email-row"
-                  onPress={() => {
-                    setEmailIn(sessionEmail);
-                    setEmailEditing(true);
-                    setEmailError(null);
-                    setEmailSuccess(false);
-                  }}
-                />
-                <SettingsRow
-                  label="Change password"
-                  testID="settings-you-change-password-row"
-                  isLast
-                  onPress={() => router.push("/(tabs)/settings/you/change-password")}
-                />
-              </>
-            )}
+            <SettingsRow
+              label="Email"
+              trailing={sessionEmail}
+              testID="settings-you-email-row"
+              onPress={() => setShowEmailDialog(true)}
+            />
+            <SettingsRow
+              label="Change password"
+              testID="settings-you-change-password-row"
+              isLast
+              onPress={() => router.push("/(tabs)/settings/you/change-password")}
+            />
           </SettingsHubSection>
 
           <SettingsHubSection title="Connected accounts">
@@ -185,6 +120,14 @@ export function YouPanel() {
             />
           </SettingsHubSection>
         </>
+      ) : null}
+
+      {sessionEmail ? (
+        <EmailAccountDialog
+          open={showEmailDialog}
+          email={sessionEmail}
+          onClose={() => setShowEmailDialog(false)}
+        />
       ) : null}
 
       {showSignOutConfirm ? (

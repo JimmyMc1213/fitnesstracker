@@ -11,6 +11,8 @@ import { mobilityColors } from "./workoutUiTokens";
 import { useTheme } from "./ThemeContext";
 import type { Habit, HabitTemplate } from "./types";
 
+const REMOVE_ANIM_MS = 220;
+
 type Props = {
   habits: Habit[];
   dailyHabitTemplates: HabitTemplate[];
@@ -23,6 +25,55 @@ type Props = {
   onOpenWeighIn?: () => void;
   onSaveHabitTemplates?: (templates: HabitTemplate[]) => void;
 };
+
+function AddHabitButton({ onPress }: { onPress: () => void }) {
+  return (
+    <button
+      type="button"
+      className="tap"
+      onClick={onPress}
+      style={{
+        marginTop: 8,
+        border: "0.5px dashed var(--border)",
+        borderRadius: 12,
+        padding: 14,
+        fontSize: 13,
+        fontWeight: 600,
+        color: "var(--text-secondary)",
+        background: "transparent",
+        width: "100%",
+        textAlign: "left",
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+      }}
+    >
+      <IconPlus size={13} stroke={2.5} />
+      Add habit
+    </button>
+  );
+}
+
+function RemovingRowShell({ removing, children }: { removing?: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        width: "100%",
+        overflow: "hidden",
+        transition: `opacity ${REMOVE_ANIM_MS}ms cubic-bezier(0.33, 1, 0.68, 1), transform ${REMOVE_ANIM_MS}ms cubic-bezier(0.33, 1, 0.68, 1), max-height ${REMOVE_ANIM_MS}ms cubic-bezier(0.33, 1, 0.68, 1)`,
+        opacity: removing ? 0 : 1,
+        transform: removing ? "translateX(-16px)" : "translateX(0)",
+        maxHeight: removing ? 0 : 88,
+        pointerEvents: removing ? "none" : undefined,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
 function MobilityRoutineCard({
   habit,
@@ -241,7 +292,6 @@ function HabitRowContent({
   onActionPress,
   editMode,
   onRemove,
-  removing,
 }: {
   habit: Habit;
   stepsTarget: number;
@@ -251,7 +301,6 @@ function HabitRowContent({
   onActionPress?: (habit: Habit) => void;
   editMode?: boolean;
   onRemove?: (id: string) => void;
-  removing?: boolean;
 }) {
   const IconComp = habitIconComponent(habit.icon);
   const actionHabit = isActionHabit(habit);
@@ -327,13 +376,6 @@ function HabitRowContent({
     overflow: "hidden",
     width: "100%",
     ...(editMode ? { flex: 1, minWidth: 0 } : {}),
-    transition: "opacity 250ms ease, transform 250ms ease, max-height 250ms ease, margin 250ms ease, padding 250ms ease",
-    opacity: removing ? 0 : 1,
-    transform: removing ? "translateX(-12px)" : "translateX(0)",
-    maxHeight: removing ? 0 : 120,
-    marginTop: removing ? -8 : undefined,
-    paddingTop: removing ? 0 : undefined,
-    paddingBottom: removing ? 0 : undefined,
   } as const;
 
   if (actionHabit && interactive) {
@@ -392,6 +434,15 @@ export function HomeDailyHabitsCard({
     setEditMode(true);
   }, [dailyHabitTemplates]);
 
+  const openAddHabit = useCallback(() => {
+    if (!editMode) {
+      setEditDraft(dailyHabitTemplates);
+      setRemovingIds(new Set());
+      setEditMode(true);
+    }
+    setAddSheetOpen(true);
+  }, [dailyHabitTemplates, editMode]);
+
   const exitEditMode = useCallback(
     (save: boolean) => {
       if (save && onSaveHabitTemplates) {
@@ -414,17 +465,19 @@ export function HomeDailyHabitsCard({
         next.delete(id);
         return next;
       });
-    }, 250);
+    }, REMOVE_ANIM_MS);
   }, []);
 
   function handleActionPress(habit: Habit) {
     if (isWeighInActionHabit(habit)) onOpenWeighIn?.();
   }
 
-  if (habits.length === 0 && dailyHabitTemplates.length === 0) return null;
-
   const canEdit = !readOnly && Boolean(onSaveHabitTemplates);
+
+  if (habits.length === 0 && dailyHabitTemplates.length === 0 && !canEdit) return null;
+
   const listHabits = editMode ? editHabits : displayHabits;
+  const showDailyHabitsSection = canEdit || listHabits.length > 0 || editMode;
 
   return (
     <>
@@ -448,7 +501,7 @@ export function HomeDailyHabitsCard({
         </section>
       ) : null}
 
-      {listHabits.length > 0 || editMode ? (
+      {showDailyHabitsSection ? (
         <section style={{ marginTop: mobilityHabit ? 22 : 28 }}>
           <div className="between" style={{ alignItems: "baseline", marginBottom: 12, gap: 8 }}>
             <h2
@@ -503,71 +556,52 @@ export function HomeDailyHabitsCard({
                   };
                   const removing = removingIds.has(item.id);
                   return (
-                    <div data-slot="sortable-item-content" style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
-                      <HabitRowContent
-                        habit={habit}
-                        stepsTarget={stepsTarget}
-                        progWeek={progWeek}
-                        readOnly={readOnly}
-                        onToggle={onToggle}
-                        editMode
-                        onRemove={removeHabit}
-                        removing={removing}
-                      />
-                      {!removing ? (
-                        <button
-                          type="button"
-                          className="tap exercise-drag-handle"
-                          data-slot="sortable-item-handle"
-                          data-no-swipe
-                          aria-label={`Reorder ${item.name}`}
-                          style={{
-                            flexShrink: 0,
-                            display: "grid",
-                            placeItems: "center",
-                            width: 36,
-                            height: 36,
-                            padding: 0,
-                            border: "none",
-                            background: "transparent",
-                            color: "var(--text-ghost)",
-                            cursor: handle.isDragging ? "grabbing" : "grab",
-                            touchAction: "none",
-                          }}
-                          {...(handle.attributes ?? {})}
-                          {...(handle.listeners ?? {})}
-                        >
-                          <IconGrip size={18} />
-                        </button>
-                      ) : null}
-                    </div>
+                    <RemovingRowShell removing={removing}>
+                      <div data-slot="sortable-item-content" style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+                        <HabitRowContent
+                          habit={habit}
+                          stepsTarget={stepsTarget}
+                          progWeek={progWeek}
+                          readOnly={readOnly}
+                          onToggle={onToggle}
+                          editMode
+                          onRemove={removeHabit}
+                        />
+                        {!removing ? (
+                          <button
+                            type="button"
+                            className="tap exercise-drag-handle"
+                            data-slot="sortable-item-handle"
+                            data-no-swipe
+                            aria-label={`Reorder ${item.name}`}
+                            style={{
+                              flexShrink: 0,
+                              display: "grid",
+                              placeItems: "center",
+                              width: 36,
+                              height: 36,
+                              padding: 0,
+                              border: "none",
+                              background: "transparent",
+                              color: "var(--text-ghost)",
+                              cursor: handle.isDragging ? "grabbing" : "grab",
+                              touchAction: "none",
+                            }}
+                            {...(handle.attributes ?? {})}
+                            {...(handle.listeners ?? {})}
+                          >
+                            <IconGrip size={18} />
+                          </button>
+                        ) : null}
+                      </div>
+                    </RemovingRowShell>
                   );
                 }}
               />
-              <button
-                type="button"
-                className="tap"
-                onClick={() => setAddSheetOpen(true)}
-                style={{
-                  marginTop: 8,
-                  border: "0.5px dashed var(--border)",
-                  borderRadius: 12,
-                  padding: 14,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "var(--text-secondary)",
-                  background: "transparent",
-                  width: "100%",
-                  textAlign: "left",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <IconPlus size={13} stroke={2.5} />
-                Add habit
-              </button>
+              <AddHabitButton onPress={openAddHabit} />
             </>
+          ) : displayHabits.length === 0 ? (
+            <AddHabitButton onPress={openAddHabit} />
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {displayHabits.map((habit) => (

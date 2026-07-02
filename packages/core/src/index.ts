@@ -153,10 +153,13 @@ export { normalizeAppTheme } from "./sync/theme";
 export { DEFAULT_UNIT_PREFERENCES, normalizeUnitPreferences } from "./sync/unitPreferences";
 export {
   DEFAULT_WATER_DAILY_TARGET_OZ,
+  ONBOARDING_HEAVY_HYDRATION_WEIGHT_THRESHOLD_LBS,
+  ONBOARDING_HEAVY_WATER_DAILY_TARGET_OZ,
   mergeWaterLogByDay,
   normalizeWaterDailyTargetOz,
   normalizeWaterLogByDay,
   normalizeWaterLogEntry,
+  onboardingWaterDailyTargetOz,
 } from "./sync/waterIntake";
 export {
   WATER_QUICK_ADD_OZ,
@@ -660,6 +663,15 @@ export {
   FEATURE_REQUEST_INPUT_PLACEHOLDER,
   FEATURE_REQUEST_SUBMIT_LABEL,
   FEATURE_REQUEST_SUCCESS_MESSAGE,
+  EMAIL_ACCOUNT_SHEET_TITLE,
+  EMAIL_CHANGE_REQUEST_LINK,
+  EMAIL_CHANGE_REQUEST_TITLE,
+  EMAIL_CHANGE_REQUEST_BODY,
+  EMAIL_CHANGE_REQUEST_INPUT_LABEL,
+  EMAIL_CHANGE_REQUEST_INPUT_PLACEHOLDER,
+  EMAIL_CHANGE_REQUEST_SUBMIT_LABEL,
+  EMAIL_CHANGE_REQUEST_SUCCESS_MESSAGE,
+  formatEmailChangeRequestMessage,
 } from "./issue-report/reportModel";
 export {
   FUTURE_YOU_MOTIVATIONS,

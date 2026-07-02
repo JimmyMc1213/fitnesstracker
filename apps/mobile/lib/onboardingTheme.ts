@@ -65,7 +65,7 @@ export type OnboardingThemeTokens = {
   macroProtein: string;
   macroCarbs: string;
   macroFat: string;
-  /** `--coach-blue-label`. */
+  /** Coach label / accent (brand gold; legacy `--coach-blue-label`). */
   coachBlueLabel: string;
   /** `--ob-paywall-fy-reveal-hint-fg` on the blurred Future You teaser. */
   paywallRevealHintFg: string;
@@ -131,7 +131,7 @@ const darkOnboardingTheme: OnboardingThemeTokens = {
   macroProtein: "#c9a876",
   macroCarbs: "#e85d5d",
   macroFat: "#6db88a",
-  coachBlueLabel: "rgba(10, 132, 255, 0.75)",
+  coachBlueLabel: "#d4b88a",
   paywallRevealHintFg: "rgba(220, 220, 226, 0.94)",
   paywallRevealHintShadow: "rgba(0, 0, 0, 0.58)",
 };
@@ -190,7 +190,7 @@ const lightOnboardingTheme: OnboardingThemeTokens = {
   macroProtein: "#c9a876",
   macroCarbs: "#e85d5d",
   macroFat: "#6db88a",
-  coachBlueLabel: "rgba(10, 132, 255, 0.75)",
+  coachBlueLabel: "#8a6d2f",
   paywallRevealHintFg: "rgba(36, 36, 40, 0.84)",
   paywallRevealHintShadow: "rgba(255, 255, 255, 0.75)",
 };

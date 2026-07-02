@@ -1,4 +1,5 @@
-# RN-2-01 auth gate sign-in, requires Supabase + test account
+# RN-2-01 auth gate sign-in, requires Supabase + test account + Metro on :8082
+# Metro: cd apps/mobile && EXPO_PUBLIC_MAESTRO_E2E_AUTH=true npx expo start --dev-client --port 8082
 # Run: MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... maestro test .maestro/rn-auth-gate-sign-in.yaml
 appId: app.newyouai.mobile
 env:

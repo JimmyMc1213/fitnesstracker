@@ -24,6 +24,7 @@ import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
 import { weightUnitLabel } from "@/lib/unitLabels";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { coachCardColors } from "@/lib/workoutUiTokens";
 
 type Props = {
   data: SundayCheckInData;
@@ -52,7 +53,7 @@ function metricToneColor(tone: SundayCheckInMetric["tone"], colors: ReturnType<t
 }
 
 export function SundayWeeklyCheckInFlow({ data, unitPreferences, onClose, onComplete }: Props) {
-  const { colors } = useAppTheme();
+  const { colors, theme } = useAppTheme();
   const { width: windowWidth } = useWindowDimensions();
   const [step, setStep] = useState(0);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -171,6 +172,7 @@ export function SundayWeeklyCheckInFlow({ data, unitPreferences, onClose, onComp
             data={data}
             wUnit={wUnit}
             colors={colors}
+            theme={theme}
             chartW={chartW || Math.min(360, windowWidth - 72)}
             onChartLayout={(w) => setChartW(w)}
           />
@@ -324,12 +326,14 @@ function StepBodyWeight({
   data,
   wUnit,
   colors,
+  theme,
   chartW,
   onChartLayout,
 }: {
   data: SundayCheckInData;
   wUnit: UnitPreferences["weightUnit"];
   colors: ReturnType<typeof useAppTheme>["colors"];
+  theme: ReturnType<typeof useAppTheme>["theme"];
   chartW: number;
   onChartLayout: (w: number) => void;
 }) {
@@ -395,7 +399,7 @@ function StepBodyWeight({
           <StatPill label={`goal pace: ${data.goalPaceLabel}`} tone="neutral" colors={colors} />
         </View>
       </View>
-      <CoachNoteCard insight={data.weightInsight} colors={colors} />
+      <CoachNoteCard insight={data.weightInsight} colors={colors} theme={theme} />
     </>
   );
 }
@@ -690,14 +694,17 @@ function StatPill({
 function CoachNoteCard({
   insight,
   colors,
+  theme,
 }: {
   insight: string;
   colors: ReturnType<typeof useAppTheme>["colors"];
+  theme: ReturnType<typeof useAppTheme>["theme"];
 }) {
+  const coachCard = coachCardColors(theme);
   return (
     <View
       className="mt-3.5 rounded-xl border p-3.5"
-      style={{ borderColor: `${colors.accent}33`, backgroundColor: colors.card }}
+      style={{ borderColor: coachCard.border, backgroundColor: coachCard.background }}
     >
       <Text className="text-sm font-bold" style={{ color: colors.textPrimary }}>
         Coach

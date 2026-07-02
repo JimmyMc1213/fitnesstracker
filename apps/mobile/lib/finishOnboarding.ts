@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   FITNESS_LOCAL_STORAGE_KEY,
   loadPersistedSlice,
+  onboardingWaterDailyTargetOz,
   savePersistedSlice,
 } from "@newyouai/core";
 import type {
@@ -26,7 +27,6 @@ import { ensureMobilityHabitTemplate } from "@/lib/mobilityHabit";
 import { localDateKey, completeOnboardingProfile, progressGoalFromOnboarding, ageFromDateOfBirth } from "@/lib/onboardingProfile";
 import { clearOnboardingDraftStorage } from "@/lib/onboardingStorage";
 import { ONBOARDING_PLAN_DEFAULT_STEPS_TARGET } from "@/lib/onboardingPlanSnapshot";
-import { DEFAULT_WATER_DAILY_TARGET_OZ } from "@/lib/waterIntake";
 import { sessionDurationFromSessionLength } from "@/lib/workout/workoutSplitByDays";
 import { restSecondsForSessionLength } from "@/lib/workout/sessionLengthConfig";
 
@@ -97,7 +97,7 @@ export async function finishOnboarding(input: FinishOnboardingInput): Promise<Ap
     habitTemplates,
     habitsDoneByDay: {},
     stepsTarget: ONBOARDING_PLAN_DEFAULT_STEPS_TARGET,
-    waterDailyTargetOz: DEFAULT_WATER_DAILY_TARGET_OZ,
+    waterDailyTargetOz: onboardingWaterDailyTargetOz(finalProfile.weightLbs),
     restTimerDefaultSeconds: restSecondsForSessionLength(input.sessionLength),
   };
 

@@ -4,6 +4,7 @@ import { IconChevR, IconX } from "./icons";
 import { BottomSheet, bottomSheetPanelTheme } from "./motion";
 import { SectionLabel } from "./shared";
 import { coalesceSundayCheckInRecord } from "./sundayCheckInHistory";
+import { COACH_CARD_BG, COACH_CARD_BORDER } from "./workoutUiTokens";
 import { formatWeightFromLbs, weightUnitLabel } from "./unitPreferences";
 import type { SundayCheckInWeekRecord, UnitPreferences } from "./types";
 
@@ -268,8 +269,8 @@ function RecapDetailSheet({
                 marginTop: 14,
                 padding: 12,
                 borderRadius: 12,
-                background: "rgba(10,132,255,0.08)",
-                border: "0.5px solid rgba(10,132,255,0.22)",
+                background: COACH_CARD_BG,
+                border: `0.5px solid ${COACH_CARD_BORDER}`,
               }}
             >
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-ghost)", marginBottom: 6 }}>

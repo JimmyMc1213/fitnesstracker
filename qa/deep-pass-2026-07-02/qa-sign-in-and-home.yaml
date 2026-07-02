@@ -1,0 +1,37 @@
+# QA pass — sign in existing user and reach Home.
+appId: app.newyouai.mobile
+env:
+  TEST_EMAIL: ${MAESTRO_TEST_EMAIL}
+  TEST_PASSWORD: ${MAESTRO_TEST_PASSWORD}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: exp+newyouai-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082
+- runFlow: ../../apps/mobile/.maestro/subflows/dev-client-connect.yaml
+- extendedWaitUntil:
+    visible:
+      id: auth-welcome-screen
+    timeout: 60000
+- tapOn:
+    id: auth-get-started-button
+- waitForAnimationToEnd:
+    timeout: 2000
+- scrollUntilVisible:
+    element:
+      id: auth-sign-in-link
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: auth-sign-in-link
+- extendedWaitUntil:
+    visible:
+      id: auth-sign-in-title
+    timeout: 30000
+- runFlow: qa-sign-in-credentials-direct.yaml
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 90000
+- assertVisible:
+    id: home-title

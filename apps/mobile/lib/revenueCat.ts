@@ -9,14 +9,6 @@ import {
   sanitizeRevenueCatError,
 } from "@/lib/revenueCatMessages";
 
-export {
-  PAYWALL_STORE_SETUP_MESSAGE,
-  PAYWALL_STORE_UNAVAILABLE_MESSAGE,
-  REVENUECAT_ENTITLEMENT_ID,
-  REVENUECAT_PRODUCT_IDS,
-  sanitizeRevenueCatError,
-} from "@/lib/revenueCatMessages";
-
 const IOS_KEY = String(
   process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ??
     process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY ??

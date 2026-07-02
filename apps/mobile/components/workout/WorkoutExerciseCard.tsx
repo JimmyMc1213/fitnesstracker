@@ -9,6 +9,7 @@ import { ExerciseDragHandle, type ExerciseDragHandleProps } from "@/components/w
 import { setFieldSecondColumnLabel } from "@/lib/workout/exercisePrescriptionDefaults";
 import { formatLastSessionHint } from "@/lib/workout/formatLastSessionHint";
 import { setColumnLabel, setKindColors } from "@/lib/workout/workoutSetKind";
+import { COACH_BLUE_LABEL } from "@/lib/workoutUiTokens";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import {
   previousSetLinesForExercise,
@@ -106,7 +107,7 @@ export function WorkoutExerciseCard({
             </Text>
           ) : null}
           {coachCopy ? (
-            <Text className="mt-1.5 text-xs font-medium leading-[1.45]" style={{ color: colors.accent }}>
+            <Text className="mt-1.5 text-xs font-medium leading-[1.45]" style={{ color: COACH_BLUE_LABEL }}>
               {coachCopy}
             </Text>
           ) : null}
