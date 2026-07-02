@@ -43,8 +43,16 @@ console.log("");
 console.log("Rebuilding local dev client for iOS Simulator (live Metro, no stale bundle)");
 console.log(`Bundle marker: ${gitShortHead()}`);
 console.log("");
+console.log("Paywall / IAP: expo run:ios does NOT load StoreKit config — RevenueCat offerings");
+console.log("will fail on simulator. For sandbox purchases use:");
+console.log("  npm run dev:onboarding:xcode   (launch ▶ from Xcode, not sim home screen)");
+console.log("");
 
 bootSimulatorIfNeeded();
+spawnSync("node", [path.join(root, "scripts", "configure-ios-storekit.mjs")], {
+  cwd: root,
+  stdio: "inherit",
+});
 spawnSync("xcrun", ["simctl", "uninstall", "booted", bundleId], { stdio: "inherit" });
 killPort(port);
 

@@ -1,0 +1,21 @@
+---
+description: User's onboarding remaining to-do list — surface when they ask for their to-do list
+alwaysApply: true
+---
+
+# Onboarding To-Do List
+
+When the user asks for their to-do list (or similar: "what's left", "my todos", "onboarding tasks"), present this list.
+
+**Status:** Onboarding overall look and flow are complete. Remaining work is functional/integration only.
+
+## Remaining tasks
+
+1. **Splash page** — Update with an accurate picture from the app
+2. **Login** — Ensure login processes work end-to-end
+3. **Paywall** — Set up the paywall
+4. **New You** — Ensure the New You feature is connected and works properly
+5. **New You logo PNG** — Fix `newyou-logo.png` / `newyou-mark.png`: logo is positioned incorrectly, and the asset does not use a proper transparent background (renders as a black box unless explicitly exported with transparency). Affects mobile (`apps/mobile/assets/images/newyou-mark.png`, `NewYouSplashMark`, `TabBarDock`) and PWA (`apps/pwa/public/newyou-logo.png`, splash, favicon, notifications).
+6. **Leave a review** — Add a leave-a-review pop-up (onboarding or main app — decide placement)
+
+Do not start these tasks unless the user explicitly asks to work on one of them.

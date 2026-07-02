@@ -20,6 +20,7 @@
     "dev:onboarding": "node scripts/dev-onboarding-simulator.mjs",
     "dev:onboarding:clear": "DEV_ONBOARDING_CLEAR=1 node scripts/dev-onboarding-simulator.mjs",
     "dev:onboarding:rebuild": "node scripts/dev-onboarding-rebuild.mjs",
+    "dev:onboarding:xcode": "node scripts/dev-onboarding-xcode.mjs",
     "build": "turbo run build",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e --filter=@newyouai/pwa",
