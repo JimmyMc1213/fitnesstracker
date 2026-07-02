@@ -177,7 +177,7 @@ describe("notification payload builders", () => {
     expect(payload.body).toMatch(/streak|chain alive/i);
     expect(payload.body).not.toMatch(/open Fitcoach to start your session/i);
     expect(payload.tag).toBe("fitcoach-workout");
-    expect(payload.icon).toBe("/favicon.svg");
+    expect(payload.icon).toBe("/favicon.png");
 
     vi.useRealTimers();
   });
@@ -195,7 +195,7 @@ describe("notification payload builders", () => {
     expect(payload.body).toMatch(/180g protein/i);
     expect(payload.body).not.toMatch(/Log today's fuel in Fitcoach to stay on track with your targets/i);
     expect(payload.tag).toBe("fitcoach-nutrition");
-    expect(payload.icon).toBe("/favicon.svg");
+    expect(payload.icon).toBe("/favicon.png");
 
     vi.useRealTimers();
   });

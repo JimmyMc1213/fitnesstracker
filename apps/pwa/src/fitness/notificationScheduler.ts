@@ -13,7 +13,7 @@ import type { AppState, NotificationPreferences } from "./types";
 
 export { isTrainingDay } from "@newyouai/core";
 
-const NOTIFICATION_ICON = "/favicon.svg";
+const NOTIFICATION_ICON = "/favicon.png";
 
 export type NotificationPayload = CoreNotificationPayload & { icon: string };
 
