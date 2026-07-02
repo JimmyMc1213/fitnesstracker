@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { AppStoreBadge, AppStorePill } from "../components/marketing/AppStoreBadge";
+import { AppStorePill } from "../components/marketing/AppStoreBadge";
 import { MarketingFooter } from "../components/marketing/MarketingFooter";
 import { MarketingNav } from "../components/marketing/MarketingNav";
 import { HeroPhones, RevealPhone } from "../components/marketing/HeroPhones";
@@ -230,7 +230,7 @@ export default function HomePage() {
             you actually want.
           </p>
           <div className="mt-[30px] flex flex-wrap items-center justify-center gap-3.5">
-            <AppStoreBadge variant="light" />
+            <AppStorePill size="lg" label="Download the app" />
           </div>
         </div>
       </section>
