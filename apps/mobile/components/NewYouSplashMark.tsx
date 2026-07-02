@@ -7,16 +7,22 @@ const logoSource = require("@/assets/images/newyou-mark.png");
 export type NewYouSplashMarkProps = {
   /** Icon-only mark without the wordmark. */
   iconOnly?: boolean;
+  /** Logo width/height in px (default matches auth/onboarding splash). */
+  size?: number;
 };
 
-export function NewYouSplashMark({ iconOnly = false }: NewYouSplashMarkProps = {}) {
+export function NewYouSplashMark({ iconOnly = false, size = 56 }: NewYouSplashMarkProps = {}) {
   const { colors } = useAppTheme();
 
   return (
     <View style={styles.root} testID="splash-mark">
       <Image
         source={logoSource}
-        style={[styles.logo, iconOnly ? styles.logoIconOnly : null, { backgroundColor: "transparent" }]}
+        style={[
+          styles.logo,
+          iconOnly ? styles.logoIconOnly : null,
+          { width: size, height: size, backgroundColor: "transparent" },
+        ]}
         accessibilityElementsHidden
         accessibilityIgnoresInvertColors
       />
@@ -33,8 +39,6 @@ const styles = StyleSheet.create({
   },
   logo: {
     marginBottom: 12,
-    height: 56,
-    width: 56,
     resizeMode: "contain",
   },
   logoIconOnly: {

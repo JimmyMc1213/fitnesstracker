@@ -1,6 +1,8 @@
 import { router } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+
+import { NewYouSplashMark } from "@/components/NewYouSplashMark";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useWorkoutShell } from "@/context/WorkoutShellContext";
@@ -40,8 +42,6 @@ type TabBarDockProps = {
   descriptors: Record<string, TabDescriptor>;
   navigation: unknown;
 };
-
-const newYouLogoSource = require("@/assets/images/newyou-mark.png");
 
 const MAIN_TABS = [
   {
@@ -257,12 +257,7 @@ export function TabBarDock({ state, descriptors, navigation: navigationProp }: T
               elevation: 10,
             }}
           >
-            <Image
-              source={newYouLogoSource}
-              style={{ width: 26, height: 26, backgroundColor: "transparent" }}
-              resizeMode="contain"
-              accessibilityElementsHidden
-            />
+            <NewYouSplashMark iconOnly size={26} />
             <Text
               style={{
                 fontSize: 11,
