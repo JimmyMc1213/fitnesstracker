@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Linking, ScrollView, Text, View } from "react-native";
+import { Linking, Text, View } from "react-native";
 import { DevSettings } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -138,11 +138,9 @@ export function OnboardingPaywall({
       </PressableScale>
 
       <View style={{ flex: 1, paddingTop: insets.top + (heroVisible || failedVisible ? 24 : 40), paddingHorizontal: 23 }}>
-      <ScrollView
+      <View
         className="flex-1"
-        contentContainerStyle={{ gap: heroVisible || failedVisible ? 14 : 20, flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+        style={{ gap: heroVisible || failedVisible ? 14 : 20, flexGrow: 1 }}
       >
         {!heroVisible && !failedVisible ? (
           <OnboardingContentReveal delay={paywallRevealDelayMs(0)}>
@@ -207,7 +205,7 @@ export function OnboardingPaywall({
             <OnboardingPaywallPlanSummary planSnapshot={planSnapshot} />
           </OnboardingContentReveal>
         ) : null}
-      </ScrollView>
+      </View>
 
       <View style={{ marginTop: "auto", flexShrink: 0, width: "100%" }}>
         <View className="gap-3">

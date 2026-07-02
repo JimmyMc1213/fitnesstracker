@@ -7,6 +7,15 @@ const ANDROID_KEY = String(process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? "")
 /** Must match the entitlement Identifier in RevenueCat (Product catalog → Entitlements). */
 const PRO_ENTITLEMENT_ID = "New You AI Pro";
 
+/**
+ * Force the local stub purchase path (dev only). Set EXPO_PUBLIC_IAP_STUB=1 for the iOS
+ * Simulator, where real StoreKit products can't be fetched (Apple limitation). When on,
+ * RevenueCat is never configured, so its SDK never logs the "Error fetching offerings"
+ * console error, and purchase/restore resolve as a successful stub. Leave UNSET for real
+ * device / TestFlight builds so live App Store purchases run through RevenueCat.
+ */
+const FORCE_STUB = /^(1|true|yes)$/i.test(String(process.env.EXPO_PUBLIC_IAP_STUB ?? "").trim());
+
 let configured = false;
 let purchasesModuleUnavailable = false;
 
@@ -27,6 +36,7 @@ function loadPurchasesModule(): PurchasesModule | null {
 }
 
 export function isRevenueCatConfigured(): boolean {
+  if (FORCE_STUB) return false;
   if (Platform.OS === "ios") return IOS_KEY.length > 0;
   if (Platform.OS === "android") return ANDROID_KEY.length > 0;
   return false;
