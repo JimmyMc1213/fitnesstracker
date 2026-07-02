@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { AppStoreBadge } from "../components/marketing/AppStoreBadge";
+import { AppStoreBadge, AppStorePill } from "../components/marketing/AppStoreBadge";
 import { MarketingFooter } from "../components/marketing/MarketingFooter";
 import { MarketingNav } from "../components/marketing/MarketingNav";
 import { HeroPhones, RevealPhone } from "../components/marketing/HeroPhones";
@@ -82,7 +82,7 @@ export default function HomePage() {
               after. Yours.
             </p>
             <div id="download" className="mt-8 flex flex-wrap items-center gap-3.5">
-              <AppStoreBadge />
+              <AppStorePill size="lg" label="Download the app" />
               <Link
                 href="#future"
                 className="inline-flex items-center gap-2 px-4 py-3.5 text-[15px] font-bold text-ink"

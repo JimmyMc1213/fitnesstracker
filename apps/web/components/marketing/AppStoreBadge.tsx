@@ -39,26 +39,31 @@ export function AppStoreBadge({ variant = "dark", className = "" }: AppStoreBadg
   );
 }
 
-export function AppStorePill() {
+type AppStorePillProps = {
+  size?: "default" | "lg";
+  label?: string;
+};
+
+export function AppStorePill({ size = "default", label = "Get the app" }: AppStorePillProps) {
+  const className =
+    size === "lg"
+      ? "inline-flex items-center gap-2.5 rounded-full bg-ink px-6 py-4 text-base font-bold text-white"
+      : "inline-flex items-center gap-2 rounded-full bg-ink px-[18px] py-[11px] text-sm font-bold text-white";
+  const iconClass = size === "lg" ? "h-5 w-[16px]" : "h-4 w-[13px]";
+
   if (COMING_SOON) {
     return (
-      <Link
-        href="#download"
-        className="inline-flex items-center gap-2 rounded-full bg-ink px-[18px] py-[11px] text-sm font-bold text-white"
-      >
-        <AppleIcon className="h-4 w-[13px]" />
-        Get the app
+      <Link href="#download" className={className}>
+        <AppleIcon className={iconClass} />
+        {label}
       </Link>
     );
   }
 
   return (
-    <a
-      href={APP_STORE_URL}
-      className="inline-flex items-center gap-2 rounded-full bg-ink px-[18px] py-[11px] text-sm font-bold text-white"
-    >
-      <AppleIcon className="h-4 w-[13px]" />
-      Get the app
+    <a href={APP_STORE_URL} className={className}>
+      <AppleIcon className={iconClass} />
+      {label}
     </a>
   );
 }
