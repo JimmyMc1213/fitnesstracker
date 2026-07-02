@@ -1083,7 +1083,6 @@ export default function OnboardingWizardScreen() {
         photoBlocked={photoBlocked}
         regionBlocked={regionBlocked}
         weightUnit={unitPreferences.weightUnit ?? "lbs"}
-        onBack={goBack}
         onReuploadFutureYou={() =>
           futureYouFlow.startFutureYouReupload(ONBOARDING_STEP_PAYWALL)
         }

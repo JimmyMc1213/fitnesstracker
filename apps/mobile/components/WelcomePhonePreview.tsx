@@ -15,18 +15,24 @@ function usePreviewSize(size: "default" | "hero") {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   return useMemo(() => {
+    const fallbackHeight = size === "hero" ? 220 : 140;
+    if (screenWidth <= 0 || screenHeight <= 0) {
+      const height = fallbackHeight;
+      return { width: height * (9 / 16), height };
+    }
+
     if (size === "hero") {
       // Reserve space for logo, copy, CTA, and safe-area padding so the button stays on screen.
       const reservedVertical = 340;
-      const maxHeight = Math.max(180, screenHeight - reservedVertical);
-      const height = Math.min(Math.round(screenHeight * 0.36), maxHeight);
+      const maxHeight = Math.max(fallbackHeight, screenHeight - reservedVertical);
+      const height = Math.max(fallbackHeight, Math.min(Math.round(screenHeight * 0.36), maxHeight));
       const width = height * (9 / 16);
       return { width, height };
     }
 
     const widthCap = Math.min(176, Math.round(screenWidth * 0.46));
     const heightCap = Math.round(screenHeight * 0.18);
-    const height = Math.min(widthCap * (16 / 9), heightCap);
+    const height = Math.max(fallbackHeight, Math.min(widthCap * (16 / 9), heightCap));
     const width = height * (9 / 16);
 
     return { width, height };

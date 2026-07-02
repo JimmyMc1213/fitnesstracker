@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useState, type ReactNode } from "react";
-import { Pressable, ScrollView, Text, View, Platform } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
@@ -9,7 +9,6 @@ import { WelcomePhonePreview } from "@/components/WelcomePhonePreview";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { authLayout } from "@/lib/authLayoutStyles";
-import { startOnboardingPreview } from "@/lib/devPreviewOnboarding";
 
 type AuthWelcomePhase = "landing" | "auth";
 
@@ -145,20 +144,6 @@ export default function AuthWelcomeScreen() {
           <Text style={[authLayout.signInLink, { color: colors.textPrimary }]}>Sign in</Text>
         </Pressable>
 
-        {__DEV__ && Platform.OS === "web" ? (
-          <Pressable
-            onPress={() => {
-              startOnboardingPreview();
-              router.replace("/(onboarding)");
-            }}
-            testID="auth-preview-onboarding"
-            style={{ marginTop: 20, alignItems: "center", paddingVertical: 8 }}
-          >
-            <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textSecondary }}>
-              Preview onboarding (dev)
-            </Text>
-          </Pressable>
-        ) : null}
         </View>
       </View>
     </WelcomeShell>

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Linking, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { DevSettings } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { FutureYouDraft, FutureYouJobStatus, WeightUnit } from "@newyouai/types";
@@ -28,16 +27,11 @@ import type { PaywallBillingPeriod } from "@/lib/paywallPlans";
 import { paywallHeroLayoutTier } from "@/lib/paywallHeroLayout";
 import { usePaywallOfferings } from "@/hooks/usePaywallOfferings";
 import { purchaseProSubscription, restorePurchases } from "@/lib/revenueCat";
-import {
-  isOnboardingDevResetEnabled,
-  seedPaywallFailedFutureYouState,
-} from "@/lib/onboardingDevTools";
 
 type Props = {
   onPurchaseStart: () => void;
   onPurchaseSuccess: (tier: "pro") => void;
   onPurchaseError: (error: string) => void;
-  onBack: () => void;
   planSnapshot: OnboardingPlanSnapshot;
   futureYou: FutureYouDraft | undefined;
   generationStatus: FutureYouJobStatus | "idle";
@@ -51,7 +45,6 @@ export function OnboardingPaywall({
   onPurchaseStart,
   onPurchaseSuccess,
   onPurchaseError,
-  onBack,
   planSnapshot,
   futureYou,
   generationStatus,
@@ -89,12 +82,6 @@ export function OnboardingPaywall({
     regionBlocked,
   );
   const footerStartStep = paywallFooterStartStep(heroVisible || failedVisible);
-  const showDevReset = isOnboardingDevResetEnabled();
-
-  async function handleDevResetFailedPaywall() {
-    await seedPaywallFailedFutureYouState();
-    DevSettings.reload();
-  }
 
   async function handlePurchase() {
     if (!ctaEnabled) return;
@@ -134,31 +121,6 @@ export function OnboardingPaywall({
         backgroundColor: colors.background,
       }}
     >
-      {/* Dev-only back affordance. Tucked into the corner at low opacity so it stays
-          tappable for development without affecting the paywall composition. */}
-      <PressableScale
-        onPress={onBack}
-        accessibilityRole="button"
-        accessibilityLabel="Back"
-        testID="onboarding-back"
-        hitSlop={12}
-        style={{
-          position: "absolute",
-          top: insets.top - 2,
-          left: 4,
-          height: 30,
-          width: 30,
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: 0.18,
-          zIndex: 20,
-        }}
-      >
-        <Text className="text-2xl" style={{ color: colors.textPrimary }}>
-          ‹
-        </Text>
-      </PressableScale>
-
       <View style={{ flex: 1, paddingTop: insets.top + (heroVisible || failedVisible ? 16 : 40), paddingHorizontal: 23 }}>
       <ScrollView
         className="flex-1"
@@ -203,17 +165,6 @@ export function OnboardingPaywall({
                 tone="onboarding"
                 testID="onboarding-paywall-future-you-failure"
               />
-              {showDevReset ? (
-                <PressableScale
-                  onPress={() => void handleDevResetFailedPaywall()}
-                  testID="onboarding-paywall-dev-reset-failed"
-                  style={{ paddingVertical: 8, paddingHorizontal: 12 }}
-                >
-                  <Text className="text-center text-xs underline" style={{ color: colors.textTertiary }}>
-                    Reset to failed paywall (dev)
-                  </Text>
-                </PressableScale>
-              ) : null}
             </View>
           </OnboardingContentReveal>
         ) : null}

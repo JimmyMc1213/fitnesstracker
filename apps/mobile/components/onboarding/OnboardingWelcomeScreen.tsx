@@ -1,5 +1,4 @@
 import { ScrollView, Text, View } from "react-native";
-import { DevSettings } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
@@ -7,7 +6,6 @@ import { WelcomePhonePreview } from "@/components/WelcomePhonePreview";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { authLayout } from "@/lib/authLayoutStyles";
-import { isOnboardingDevToolsEnabled, resetOnboardingProgress } from "@/lib/onboardingDevTools";
 
 type OnboardingWelcomeScreenProps = {
   onGetStarted: () => void;
@@ -16,14 +14,6 @@ type OnboardingWelcomeScreenProps = {
 export function OnboardingWelcomeScreen({ onGetStarted }: OnboardingWelcomeScreenProps) {
   const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
-  const showDevTools = isOnboardingDevToolsEnabled();
-
-  const onStartFresh = () => {
-    void (async () => {
-      await resetOnboardingProgress();
-      DevSettings.reload();
-    })();
-  };
 
   return (
     <View
@@ -72,16 +62,6 @@ export function OnboardingWelcomeScreen({ onGetStarted }: OnboardingWelcomeScree
                 Get Started
               </Text>
             </PressableScale>
-            {showDevTools ? (
-              <PressableScale onPress={onStartFresh} testID="onboarding-start-fresh" style={{ marginTop: 12, paddingVertical: 8 }}>
-                <Text className="text-center text-sm" style={{ color: colors.textTertiary }}>
-                  Start fresh (dev)
-                  {process.env.EXPO_PUBLIC_BUNDLE_MARKER ?
-                    ` · ${process.env.EXPO_PUBLIC_BUNDLE_MARKER}`
-                  : ""}
-                </Text>
-              </PressableScale>
-            ) : null}
           </View>
         </View>
       </ScrollView>
