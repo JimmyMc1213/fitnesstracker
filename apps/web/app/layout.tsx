@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import "./globals.css";
@@ -39,7 +40,18 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={plusJakarta.variable}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        {process.env.NODE_ENV === "development" ? (
+          <Script
+            id="cursor-hydration-fix"
+            strategy="beforeInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `(function(){function strip(){document.querySelectorAll("[data-cursor-ref]").forEach(function(node){node.removeAttribute("data-cursor-ref");});}strip();var observer=new MutationObserver(function(mutations){mutations.forEach(function(mutation){if(mutation.type==="attributes"&&mutation.attributeName==="data-cursor-ref"){mutation.target.removeAttribute("data-cursor-ref");}});});observer.observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:["data-cursor-ref"]});window.addEventListener("load",function(){strip();window.setTimeout(function(){observer.disconnect();},3000);});})();`,
+            }}
+          />
+        ) : null}
+        {children}
+      </body>
     </html>
   );
 }

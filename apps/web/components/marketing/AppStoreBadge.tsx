@@ -42,13 +42,20 @@ export function AppStoreBadge({ variant = "dark", className = "" }: AppStoreBadg
 type AppStorePillProps = {
   size?: "default" | "lg";
   label?: string;
+  variant?: "dark" | "light";
 };
 
-export function AppStorePill({ size = "default", label = "Get the app" }: AppStorePillProps) {
+export function AppStorePill({
+  size = "default",
+  label = "Get the app",
+  variant = "dark",
+}: AppStorePillProps) {
+  const colors =
+    variant === "light" ? "bg-white text-ink" : "bg-ink text-white";
   const className =
     size === "lg"
-      ? "inline-flex items-center gap-2.5 rounded-full bg-ink px-6 py-4 text-base font-bold text-white"
-      : "inline-flex items-center gap-2 rounded-full bg-ink px-[18px] py-[11px] text-sm font-bold text-white";
+      ? `inline-flex items-center gap-2.5 rounded-full px-6 py-4 text-base font-bold ${colors}`
+      : `inline-flex items-center gap-2 rounded-full px-[18px] py-[11px] text-sm font-bold ${colors}`;
   const iconClass = size === "lg" ? "h-5 w-[16px]" : "h-4 w-[13px]";
 
   if (COMING_SOON) {

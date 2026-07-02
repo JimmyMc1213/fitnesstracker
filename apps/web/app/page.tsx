@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -34,28 +35,32 @@ const steps = [
   },
 ] as const;
 
-const features = [
+const features: {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  body: string;
+}[] = [
   {
-    icon: <BarbellIcon className="h-10 w-10 text-ink" />,
+    icon: BarbellIcon,
     title: "Workouts",
     body: "A personalized training plan that adapts to your level and the days you can actually train.",
   },
   {
-    icon: <KitchenIcon className="h-10 w-9 text-ink" />,
+    icon: KitchenIcon,
     title: "Macros",
     body: "Nutrition targets dialed to your goal. Log meals and watch protein, carbs, and fat fall into place.",
   },
   {
-    icon: <DropletIcon className="h-[38px] w-[43px] text-ink" />,
+    icon: DropletIcon,
     title: "Hydration",
     body: "A daily water target and gentle nudges so the easy thing to forget never slips.",
   },
   {
-    icon: <TrendIcon className="h-11 w-[37px] text-ink" />,
+    icon: TrendIcon,
     title: "Progress",
     body: "Weight, streaks, and milestones in clear charts, with coaching nudges right when you need them.",
   },
-] as const;
+];
 
 const revealPoints = [
   "Tied to your goal weight and pace, not a stock photo",
@@ -129,7 +134,7 @@ export default function HomePage() {
               key={step.n}
               className={
                 step.featured
-                  ? "rounded-[22px] border border-ink bg-[#21201E] p-7 text-white"
+                  ? "rounded-[22px] bg-surface-dark p-7 text-white"
                   : "rounded-[22px] border border-sand bg-white p-7"
               }
             >
@@ -158,7 +163,7 @@ export default function HomePage() {
       </section>
 
       <section id="future" className="relative mt-[60px]">
-        <div className="absolute inset-0 bg-[#161514]" />
+        <div className="absolute inset-0 bg-surface-dark" />
         <div className="relative mx-auto flex max-w-[1180px] flex-wrap items-center gap-14 px-7 py-[90px] text-white">
           <div className="min-w-[300px] flex-1 basis-[380px]">
             <div className="text-[13px] font-extrabold uppercase tracking-[0.08em] text-gold-light">
@@ -198,23 +203,28 @@ export default function HomePage() {
           </p>
         </div>
         <div className="mt-12 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-5">
-          {features.map((feature) => (
+          {features.map((feature) => {
+            const Icon = feature.icon;
+            return (
             <div
               key={feature.title}
               className="rounded-[22px] border border-sand bg-white p-[26px] shadow-[0_6px_20px_rgba(23,21,14,0.03)]"
             >
-              {feature.icon}
+              <div className="flex h-10 w-10 items-center justify-center text-ink">
+                <Icon className="h-8 w-8" />
+              </div>
               <div className="mt-[18px] text-[19px] font-extrabold tracking-tight">{feature.title}</div>
               <p className="mt-2 text-[14.5px] font-medium leading-relaxed text-ink-secondary">
                 {feature.body}
               </p>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
       <section className="mx-auto max-w-[1180px] px-7 pb-24 pt-[60px]">
-        <div className="relative overflow-hidden rounded-[30px] bg-[#1B1B19] px-[clamp(40px,6vw,72px)] py-[clamp(40px,6vw,72px)] text-center">
+        <div className="relative overflow-hidden rounded-[30px] bg-surface-dark px-[clamp(40px,6vw,72px)] py-[clamp(40px,6vw,72px)] text-center">
           <Image
             src="/assets/newyou-logo.png"
             alt=""
@@ -230,7 +240,7 @@ export default function HomePage() {
             you actually want.
           </p>
           <div className="mt-[30px] flex flex-wrap items-center justify-center gap-3.5">
-            <AppStorePill size="lg" label="Download the app" />
+            <AppStorePill size="lg" label="Download the app" variant="light" />
           </div>
         </div>
       </section>

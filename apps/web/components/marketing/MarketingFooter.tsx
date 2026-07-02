@@ -53,7 +53,7 @@ export function MarketingFooter() {
       </div>
       <div className="border-t border-sand">
         <div className="mx-auto flex max-w-[1180px] flex-wrap justify-between gap-3 px-7 py-5 text-[13px] font-semibold text-stone-light">
-          <span>© {new Date().getFullYear()} New You AI. All rights reserved.</span>
+          <span suppressHydrationWarning>© {new Date().getFullYear()} New You AI. All rights reserved.</span>
           <span>Made for people becoming someone new.</span>
         </div>
       </div>
@@ -71,7 +71,7 @@ export function LegalFooter() {
           <Link href="/terms">Terms</Link>
           <Link href="/support">Support</Link>
         </div>
-        <span>© {new Date().getFullYear()} New You AI</span>
+        <span suppressHydrationWarning>© {new Date().getFullYear()} New You AI</span>
       </div>
     </footer>
   );

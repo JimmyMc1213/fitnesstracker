@@ -24,6 +24,7 @@ const config: Config = {
           wash: "#FBF4E4",
         },
         sand: "#ECE8DE",
+        "surface-dark": "#161514",
       },
       fontFamily: {
         sans: ["var(--font-plus-jakarta)", "Plus Jakarta Sans", "system-ui", "sans-serif"],
