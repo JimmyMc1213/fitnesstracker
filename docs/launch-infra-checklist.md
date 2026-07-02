@@ -55,7 +55,7 @@ Apple Developer account: **active**.
 - [ ] Create RevenueCat project for New You AI
 - [ ] Add iOS App Store app · link shared secret / App Store Connect API
 - [ ] Map offerings to monthly + yearly product IDs
-- [ ] Set `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY` in mobile env (see `docs/env-matrix.md`)
+- [ ] Set `EXPO_PUBLIC_REVENUECAT_IOS_KEY` in mobile env (see `docs/env-matrix.md`)
 - [ ] Sandbox test: complete onboarding → pay → Future You unblurs
 - [ ] Production test: real purchase on your phone via TestFlight
 

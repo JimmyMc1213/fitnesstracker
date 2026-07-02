@@ -73,6 +73,23 @@ Without `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, paywall uses **stub purchase** (dev/Ma
 
 Same flow on TestFlight build with production StoreKit. Use a real Apple ID; cancel subscription after verifying unblur.
 
+### Troubleshooting: red configuration error on paywall
+
+If TestFlight shows *"There is a problem with your configuration"* or *"None of the products registered in the RevenueCat dashboard could be fetched"*:
+
+1. **App Store Connect products must exist** with exact IDs:
+   - `newyouai_pro_monthly` ($14.99/mo)
+   - `newyouai_pro_yearly` ($69.99/yr)
+   - Both in subscription group **New You Pro**, status **Ready to Submit** or approved
+2. **Attach subscriptions to the app version** you submitted to TestFlight (App Store Connect → app → version → In-App Purchases).
+3. **RevenueCat dashboard** → Products → confirm the same two IDs are linked to entitlement **`pro`**.
+4. **RevenueCat dashboard** → Offerings → default offering includes `$rc_monthly` + `$rc_annual` mapped to those products.
+5. **Paid Apps Agreement** signed in App Store Connect (Agreements, Tax, and Banking).
+6. **Bundle ID** in RevenueCat matches `app.newyouai.mobile`.
+7. Wait up to **24 hours** after creating new ASC products before they appear in sandbox/TestFlight.
+
+The app now preflights offerings on paywall load and shows a short setup message instead of the raw RevenueCat SDK error. Purchases stay disabled until StoreKit returns products.
+
 ---
 
 ## Paywall display (already in repo)

@@ -14,6 +14,10 @@ import {
 } from "@/lib/futureYouGoalSummary";
 import { futureYouSilhouettesForGender } from "@/lib/futureYouSilhouettes";
 import { splitFutureYouTimelineForPaywall } from "@/lib/futureYouTimeline";
+import {
+  paywallHeroImageBoxSize,
+  type PaywallHeroLayoutTier,
+} from "@/lib/paywallHeroLayout";
 import { paywallRevealDelayMs } from "@/lib/onboardingPaywallReveal";
 
 type Props = {
@@ -23,6 +27,8 @@ type Props = {
   jobId: string | undefined;
   status: FutureYouJobStatus | "idle";
   gender: UserGender | undefined;
+  layoutTier?: PaywallHeroLayoutTier;
+  availableHeight?: number;
 };
 
 /** Gold ring color = `--ob-gold` (#c9a876) at 0.75, matching PWA `__image-wrap`. */
@@ -69,10 +75,12 @@ export function OnboardingPaywallFutureYouHero({
   jobId,
   status,
   gender,
+  layoutTier = "regular",
+  availableHeight,
 }: Props) {
   const { colors } = useAppTheme();
   const { ob } = useOnboardingTheme();
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { imageUri, loading } = useFutureYouPaywallImage({ jobId, status });
   const preparing = status !== "ready" || loading;
 
@@ -85,13 +93,25 @@ export function OnboardingPaywallFutureYouHero({
   const silhouetteSource = futureYouSilhouettesForGender(gender)?.after ?? null;
   const teaserSource = imageUri ? { uri: imageUri } : silhouetteSource;
 
-  const boxWidth = Math.min(275, screenWidth * 0.72);
-  const boxHeight = (boxWidth * 4) / 3;
+  const tier = layoutTier;
+  const heroAvailableHeight = availableHeight ?? screenHeight * 0.52;
+  const { width: boxWidth, height: boxHeight } = paywallHeroImageBoxSize(
+    tier,
+    screenWidth,
+    heroAvailableHeight,
+  );
+  const isCompact = tier !== "regular";
+  const isTight = tier === "tight";
+  const titleSize = isTight ? 28 : isCompact ? 30 : 34;
+  const sectionGap = isTight ? 6 : isCompact ? 8 : 12;
 
   return (
-    <View testID="onboarding-paywall-future-you-hero" className="items-center gap-3">
+    <View testID="onboarding-paywall-future-you-hero" className="items-center" style={{ gap: sectionGap }}>
       <OnboardingContentReveal delay={paywallRevealDelayMs(1)} style={{ alignItems: "center", gap: 4 }}>
-        <Text className="text-center text-[34px] font-bold" style={{ color: ob.gold, letterSpacing: -0.5 }}>
+        <Text
+          className="text-center font-bold"
+          style={{ color: ob.gold, letterSpacing: -0.5, fontSize: titleSize, lineHeight: titleSize + 2 }}
+        >
           Future You
         </Text>
         <View
@@ -114,7 +134,7 @@ export function OnboardingPaywallFutureYouHero({
 
       <OnboardingContentReveal
         delay={paywallRevealDelayMs(2)}
-        style={{ alignItems: "center", justifyContent: "center", paddingVertical: 4 }}
+        style={{ alignItems: "center", justifyContent: "center", paddingVertical: isTight ? 0 : isCompact ? 2 : 4 }}
       >
         <View
           accessibilityState={{ busy: preparing }}
@@ -187,12 +207,36 @@ export function OnboardingPaywallFutureYouHero({
         </View>
       </OnboardingContentReveal>
 
-      <OnboardingContentReveal delay={paywallRevealDelayMs(3)} style={{ alignItems: "center", gap: 4 }}>
-        <Text className="text-center text-xl font-semibold" style={{ color: ob.gold }}>
+      <OnboardingContentReveal
+        delay={paywallRevealDelayMs(3)}
+        style={{
+          alignItems: "center",
+          gap: 2,
+          paddingBottom: isTight ? 10 : isCompact ? 12 : 14,
+          width: "100%",
+        }}
+      >
+        <Text
+          className="text-center font-semibold"
+          style={{
+            color: ob.gold,
+            fontSize: isTight ? 17 : isCompact ? 18 : 20,
+            lineHeight: isTight ? 21 : isCompact ? 22 : 24,
+          }}
+        >
           Goal - {goalLabel}
         </Text>
         {weightDeltaLabel ? (
-          <Text className="text-center text-lg font-semibold" style={{ color: colors.textPrimary }}>
+          <Text
+            testID="onboarding-paywall-weight-delta"
+            className="text-center font-semibold"
+            style={{
+              color: colors.textPrimary,
+              fontSize: isTight ? 15 : isCompact ? 16 : 18,
+              lineHeight: isTight ? 20 : isCompact ? 22 : 24,
+              paddingBottom: 4,
+            }}
+          >
             {weightDeltaLabel}
           </Text>
         ) : null}

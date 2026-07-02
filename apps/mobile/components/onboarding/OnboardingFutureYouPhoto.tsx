@@ -236,7 +236,8 @@ export function OnboardingFutureYouPhoto({
       {!blocked ? (
         <View>
           <Text className="mb-3 text-center text-sm" style={{ color: colors.textSecondary }}>
-            Your photo is only used to create your Future You, never shared or sold.
+            Your photo is only used to create your Future You. It is never sold, and never shared
+            except with the AI provider that generates your image.
           </Text>
 
           <PressableScale

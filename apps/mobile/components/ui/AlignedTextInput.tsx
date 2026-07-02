@@ -8,7 +8,8 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from "react-native";
-import { useRef } from "react";
+import { useRef, type NativeSyntheticEvent, type TextInputSubmitEditingEventData } from "react";
+import { dismissKeyboard, numericKeyboardAccessoryProps } from "@/lib/keyboard";
 
 export type AlignedTextInputSize = "field" | "sheet" | "onboarding" | "auth" | "compact" | "dense";
 
@@ -116,6 +117,11 @@ export function AlignedTextInput({
   style,
   multiline,
   className: _className,
+  returnKeyType,
+  blurOnSubmit,
+  onSubmitEditing,
+  keyboardType,
+  inputAccessoryViewID,
   ...props
 }: Props) {
   const preset = SIZE_PRESETS[size];
@@ -123,10 +129,31 @@ export function AlignedTextInput({
   const fontWeight = inputStyle?.fontWeight ?? preset.fontWeight;
   const inputRef = useRef<TextInput>(null);
 
+  const resolvedReturnKeyType = returnKeyType ?? (multiline ? "default" : "done");
+  const resolvedBlurOnSubmit = blurOnSubmit ?? !multiline;
+  const resolvedAccessoryProps = {
+    ...numericKeyboardAccessoryProps(keyboardType),
+    ...(inputAccessoryViewID ? { inputAccessoryViewID } : {}),
+  };
+
+  function handleSubmitEditing(event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) {
+    onSubmitEditing?.(event);
+    if (!multiline) dismissKeyboard();
+  }
+
+  const keyboardProps = {
+    returnKeyType: resolvedReturnKeyType,
+    blurOnSubmit: resolvedBlurOnSubmit,
+    onSubmitEditing: handleSubmitEditing,
+    keyboardType,
+    ...resolvedAccessoryProps,
+  };
+
   if (inline) {
     return (
       <TextInput
         {...props}
+        {...keyboardProps}
         multiline={multiline}
         style={[
           styles.input,
@@ -159,6 +186,7 @@ export function AlignedTextInput({
       >
         <TextInput
           {...props}
+          {...keyboardProps}
           multiline
           textAlignVertical="top"
           style={[
@@ -192,6 +220,7 @@ export function AlignedTextInput({
       <TextInput
         ref={inputRef}
         {...props}
+        {...keyboardProps}
         style={[
           styles.input,
           styles.shellInput,

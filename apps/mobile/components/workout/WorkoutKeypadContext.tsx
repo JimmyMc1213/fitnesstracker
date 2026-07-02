@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { parseSetWeightInput } from "@/lib/workout/parseSetWeightInput";
+import { dismissKeyboard } from "@/lib/keyboard";
 import {
   advanceWorkoutKeypad,
   appendKeypadDigit,
@@ -111,6 +112,7 @@ export function WorkoutKeypadProvider({
 
   const openField = useCallback(
     (target: WorkoutKeypadTarget) => {
+      dismissKeyboard();
       setActive(target);
       setDraft(draftForTarget(target));
     },

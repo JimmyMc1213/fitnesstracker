@@ -1,5 +1,14 @@
 import { type ReactNode } from "react";
-import { Modal, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -74,7 +83,10 @@ export function BottomSheet({
   if (placement === "bottom") {
     return (
       <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
-        <View style={styles.sheetRoot}>
+        <KeyboardAvoidingView
+          style={styles.sheetRoot}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button">
             <View style={[styles.backdrop, backdropStyle]} />
           </Pressable>
@@ -90,7 +102,7 @@ export function BottomSheet({
           >
             {children}
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     );
   }
@@ -120,7 +132,11 @@ export function CenterDialog({ open, onClose, panelStyle, backdropStyle, childre
 
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.dialogRoot} pointerEvents="box-none">
+      <KeyboardAvoidingView
+        style={styles.dialogRoot}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        pointerEvents="box-none"
+      >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button">
           <View style={[styles.backdrop, backdropStyle]} />
         </Pressable>
@@ -137,7 +153,7 @@ export function CenterDialog({ open, onClose, panelStyle, backdropStyle, childre
         >
           {children}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

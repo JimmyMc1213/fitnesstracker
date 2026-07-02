@@ -69,6 +69,8 @@ export function RoutineExerciseSearchSheet({
             value={query}
             onChangeText={setQuery}
             placeholder="Search exercises..."
+            autoFocus
+            returnKeyType="search"
             shellStyle={{ marginTop: 12 }}
           />
 

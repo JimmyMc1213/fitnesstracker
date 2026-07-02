@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Linking, ScrollView, Text, View } from "react-native";
+import { Linking, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { DevSettings } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -25,6 +25,8 @@ import {
 } from "@/lib/onboardingPaywallReveal";
 import type { OnboardingPlanSnapshot } from "@/lib/onboardingPlanSnapshot";
 import type { PaywallBillingPeriod } from "@/lib/paywallPlans";
+import { paywallHeroLayoutTier } from "@/lib/paywallHeroLayout";
+import { usePaywallOfferings } from "@/hooks/usePaywallOfferings";
 import { purchaseProSubscription, restorePurchases } from "@/lib/revenueCat";
 import {
   isOnboardingDevResetEnabled,
@@ -58,13 +60,25 @@ export function OnboardingPaywall({
 }: Props) {
   const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
+  const paywallOfferings = usePaywallOfferings();
   const [billingPeriod, setBillingPeriod] = useState<PaywallBillingPeriod>("yearly");
   const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const heroVisible = isFutureYouPaywallHeroVisible(futureYou, photoBlocked);
   const failedVisible = isFutureYouPaywallFailedVisible(futureYou, photoBlocked);
-  const ctaEnabled = isFutureYouPaywallCtaEnabled(futureYou, generationStatus, photoBlocked) && !purchasing;
+  const heroLayout = heroVisible
+    ? paywallHeroLayoutTier(screenHeight, insets.top, insets.bottom)
+    : null;
+  const compactHeroLayout = heroLayout != null && heroLayout.tier !== "regular";
+  const storeReady = paywallOfferings.stub || paywallOfferings.ready;
+  const storeError = !paywallOfferings.loading && !storeReady ? paywallOfferings.error : null;
+  const ctaEnabled =
+    isFutureYouPaywallCtaEnabled(futureYou, generationStatus, photoBlocked) &&
+    !purchasing &&
+    !paywallOfferings.loading &&
+    storeReady;
   const ctaLabel = futureYouPaywallCtaLabel(futureYou, generationStatus, photoBlocked, billingPeriod);
   const footerStartStep = paywallFooterStartStep(heroVisible || failedVisible);
   const showDevReset = isOnboardingDevResetEnabled();
@@ -137,10 +151,13 @@ export function OnboardingPaywall({
         </Text>
       </PressableScale>
 
-      <View style={{ flex: 1, paddingTop: insets.top + (heroVisible || failedVisible ? 24 : 40), paddingHorizontal: 23 }}>
+      <View style={{ flex: 1, paddingTop: insets.top + (heroVisible || failedVisible ? 16 : 40), paddingHorizontal: 23 }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ gap: heroVisible || failedVisible ? 14 : 20, flexGrow: 1 }}
+        contentContainerStyle={{
+          gap: heroVisible || failedVisible ? (compactHeroLayout ? 8 : 12) : 20,
+          paddingBottom: heroVisible || failedVisible ? (compactHeroLayout ? 20 : 16) : 24,
+        }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -201,6 +218,8 @@ export function OnboardingPaywall({
             jobId={futureYou?.generationJobId}
             status={generationStatus}
             gender={planSnapshot.profile.gender}
+            layoutTier={heroLayout?.tier}
+            availableHeight={heroLayout?.availableHeight}
           />
         ) : !failedVisible ? (
           <OnboardingContentReveal delay={paywallRevealDelayMs(1)}>
@@ -209,7 +228,14 @@ export function OnboardingPaywall({
         ) : null}
       </ScrollView>
 
-      <View style={{ marginTop: "auto", flexShrink: 0, width: "100%" }}>
+      <View
+        style={{
+          marginTop: heroVisible || failedVisible ? 8 : "auto",
+          flexShrink: 0,
+          width: "100%",
+          paddingTop: heroVisible || failedVisible ? 4 : 0,
+        }}
+      >
         <View className="gap-3">
           <OnboardingContentReveal delay={paywallRevealDelayMs(footerStartStep)}>
             <OnboardingPaywallPlanPicker value={billingPeriod} onChange={setBillingPeriod} />
@@ -235,9 +261,9 @@ export function OnboardingPaywall({
               </Text>
             </PressableScale>
           </OnboardingContentReveal>
-          {error ? (
-            <Text className="text-center text-sm" style={{ color: "#f87171" }}>
-              {error}
+          {storeError || error ? (
+            <Text className="text-center text-sm leading-5" style={{ color: "#f87171" }}>
+              {error ?? storeError}
             </Text>
           ) : null}
         </View>

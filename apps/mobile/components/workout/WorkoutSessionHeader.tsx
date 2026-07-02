@@ -3,6 +3,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { coreAlignedInputStyle } from "@/components/ui/AlignedTextInput";
+import { dismissKeyboard } from "@/lib/keyboard";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { formatWorkoutDuration, weekdayFullName } from "@newyouai/core";
 
@@ -72,6 +73,9 @@ export function WorkoutSessionHeader({
         onChangeText={onSessionTitleChange}
         placeholder="Workout name"
         placeholderTextColor={colors.textTertiary}
+        returnKeyType="done"
+        blurOnSubmit
+        onSubmitEditing={dismissKeyboard}
         className="mt-1.5 w-full font-bold tracking-tight"
         style={[
           coreAlignedInputStyle(stackedMeta ? 26 : 20),

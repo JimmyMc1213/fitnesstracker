@@ -158,7 +158,8 @@ export function OnboardingFutureYouPhoto({
       {!blocked ? (
         <div className="future-you-photo-step__actions">
         <p className="future-you-photo-step__trust">
-          Your photo is only used to create your Future You — never shared or sold.
+          Your photo is only used to create your Future You. It is never sold, and never shared
+          except with the AI provider that generates your image.
         </p>
 
         <label className="future-you-photo-step__consent">

@@ -3,6 +3,7 @@ import { Alert, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type DraggableFlatList from "react-native-draggable-flatlist";
 
+import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { CancelWorkoutConfirmSheet } from "@/components/workout/CancelWorkoutConfirmSheet";
 import { DeleteExerciseConfirmSheet } from "@/components/workout/DeleteExerciseConfirmSheet";
 import { EmptyFinishConfirmSheet } from "@/components/workout/EmptyFinishConfirmSheet";
@@ -35,6 +36,7 @@ import {
   restDurationForExercise,
 } from "@/lib/workout/restTimerPreferences";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { dismissKeyboard } from "@/lib/keyboard";
 import {
   buildSessionCoachNoteForExercise,
   buildSetCompletionPatch,
@@ -93,6 +95,13 @@ export function WorkoutLiftingSlot() {
   >({});
 
   restTimerRef.current = restTimer;
+
+  useEffect(() => {
+    if (state?.workout.sessionPhase === "lifting" && (state.workout.exercises.length ?? 0) === 0) {
+      dismissKeyboard();
+      setSearchOpen(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!restTimer || restTimer.completed || restTimer.paused) return;
@@ -726,13 +735,23 @@ export function WorkoutLiftingSlot() {
         ) : null}
 
         {workout.exercises.length === 0 ? (
-          <View
-            className="mt-4 rounded-xl border p-6"
-            style={{ borderColor: colors.border, backgroundColor: colors.card }}
-          >
-            <Text className="text-center text-sm font-medium leading-[1.5]" style={{ color: colors.textSecondary }}>
-              No exercises yet. Add exercises from a template next time.
-            </Text>
+          <View className="mt-4 flex-1">
+            <View
+              className="rounded-xl border p-6"
+              style={{ borderColor: colors.border, backgroundColor: colors.card }}
+            >
+              <Text className="text-center text-sm font-medium leading-[1.5]" style={{ color: colors.textSecondary }}>
+                No exercises yet. Tap Add exercise below or search the catalog.
+              </Text>
+            </View>
+            <PrimaryButton
+              block
+              testID="workout-add-exercise"
+              onPress={() => setSearchOpen(true)}
+              style={{ marginTop: 16 }}
+            >
+              Add exercise
+            </PrimaryButton>
           </View>
         ) : (
           <View className="mt-3 min-h-0 flex-1">
