@@ -123,7 +123,7 @@ export function OnboardingPurchaseConfirmingScreen({ confirmed, onMorphComplete 
         {confirmed ? "Purchase confirmed" : "Confirming your purchase"}
       </Text>
       <Text style={[styles.subtitle, { color: subtitleColor }]}>
-        {confirmed ? "Welcome to NewYouAI" : "Securing your membership…"}
+        {confirmed ? "Welcome to NewYou AI" : "Securing your membership…"}
       </Text>
     </View>
   );

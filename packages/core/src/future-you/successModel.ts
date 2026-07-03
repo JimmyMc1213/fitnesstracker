@@ -6,12 +6,12 @@ export const FUTURE_YOU_SUCCESS_AI_LABEL =
   "AI generated · Illustrative preview, not medical advice";
 
 export const FUTURE_YOU_SUCCESS_WELCOME_PREFIX = "Welcome to ";
-export const FUTURE_YOU_SUCCESS_WELCOME_BRAND = "NewYouAI";
+export const FUTURE_YOU_SUCCESS_WELCOME_BRAND = "NewYou AI";
 export const FUTURE_YOU_SUCCESS_TAGLINE = "Your new chapter starts today.";
 export const FUTURE_YOU_SUCCESS_CTA_LABEL = "Start My Journey";
 
 /** Post-purchase welcome splash — always black + gold regardless of app theme. */
-export const PURCHASE_WELCOME_HEADLINE = "Welcome to New You";
+export const PURCHASE_WELCOME_HEADLINE = "Welcome to NewYou";
 
 export const PURCHASE_WELCOME_SPLASH_THEME = {
   background: "#060608",

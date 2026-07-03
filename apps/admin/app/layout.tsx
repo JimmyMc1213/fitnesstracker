@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "New You AI Admin",
+  title: "NewYou AI Admin",
   robots: { index: false, follow: false },
 };
 

@@ -562,7 +562,7 @@ export default function OnboardingWizardScreen() {
         step={forStep}
         title={
           <Text className="text-[36px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
-            See your <Text style={{ color: ob.gold }}>New You</Text>
+            See your <Text style={{ color: ob.gold }}>NewYou</Text>
           </Text>
         }
         onBack={goBack}

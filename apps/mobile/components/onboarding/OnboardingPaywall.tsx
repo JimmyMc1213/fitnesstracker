@@ -126,7 +126,7 @@ export function OnboardingPaywall({
       {!heroVisible && !failedVisible ? (
         <OnboardingContentReveal delay={paywallRevealDelayMs(0)}>
           <Text className="text-center text-[28px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
-            Unlock <Text style={{ color: ob.gold }}>NewYouAI</Text> to reach your goals faster.
+            Unlock <Text style={{ color: ob.gold }}>NewYou AI</Text> to reach your goals faster.
           </Text>
         </OnboardingContentReveal>
       ) : null}

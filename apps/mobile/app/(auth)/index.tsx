@@ -89,7 +89,7 @@ export default function AuthWelcomeScreen() {
                   { color: ob.gold },
                 ]}
               >
-                New You
+                NewYou
               </Text>
             </View>
             <Text

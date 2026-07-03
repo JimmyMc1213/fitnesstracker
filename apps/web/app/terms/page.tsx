@@ -10,10 +10,10 @@ export default function TermsPage() {
 
       <section className="mt-8 space-y-4 text-muted leading-relaxed">
         <p>
-          These Terms of Service (&quot;Terms&quot;) govern your use of the New You AI mobile
+          These Terms of Service (&quot;Terms&quot;) govern your use of the NewYou AI mobile
           application, the website at newyouai.app, and the web app at app.newyouai.app (together, the
           &quot;Service&quot;), operated by <strong>James R. McCarthy Jr.</strong>, a sole proprietorship based
-          in Mesa, Arizona, United States (&quot;New You AI,&quot; &quot;we,&quot; &quot;us,&quot; or
+          in Mesa, Arizona, United States (&quot;NewYou AI,&quot; &quot;we,&quot; &quot;us,&quot; or
           &quot;our&quot;). By using the Service, you agree to these Terms. If you do not agree, do not
           use the Service.
         </p>
@@ -28,7 +28,7 @@ export default function TermsPage() {
 
         <h2 className="text-xl font-semibold text-foreground">2. The service</h2>
         <p>
-          New You AI provides fitness tracking (workouts, nutrition, habits, and progress) and an
+          NewYou AI provides fitness tracking (workouts, nutrition, habits, and progress) and an
           optional Future You feature that produces AI-generated imagery based on photos you upload.
           The Service is for personal wellness and motivation only and does <strong>not</strong>{" "}
           provide medical, nutritional, or professional advice. Always consult a qualified professional
@@ -95,7 +95,7 @@ export default function TermsPage() {
         <h2 className="text-xl font-semibold text-foreground">7. Intellectual property and your content</h2>
         <p>
           The Service, including its software, design, and content (excluding your content), is owned by
-          New You AI and protected by intellectual property laws. We grant you a limited, non-exclusive,
+          NewYou AI and protected by intellectual property laws. We grant you a limited, non-exclusive,
           non-transferable, revocable license to use the Service for personal, non-commercial purposes.
         </p>
         <p>
@@ -122,7 +122,7 @@ export default function TermsPage() {
 
         <h2 className="text-xl font-semibold text-foreground">10. Limitation of liability</h2>
         <p>
-          To the fullest extent permitted by law, New You AI will not be liable for any indirect,
+          To the fullest extent permitted by law, NewYou AI will not be liable for any indirect,
           incidental, special, consequential, or punitive damages, or for any loss of data, profits, or
           goodwill, arising from your use of or inability to use the Service or reliance on AI-generated
           imagery. To the extent liability cannot be excluded, our total liability is limited to the
@@ -132,7 +132,7 @@ export default function TermsPage() {
 
         <h2 className="text-xl font-semibold text-foreground">11. Indemnification</h2>
         <p>
-          You agree to indemnify and hold harmless New You AI from any claims, damages, liabilities, and
+          You agree to indemnify and hold harmless NewYou AI from any claims, damages, liabilities, and
           expenses (including reasonable legal fees) arising from your content, your use of the Service,
           or your violation of these Terms or applicable law.
         </p>

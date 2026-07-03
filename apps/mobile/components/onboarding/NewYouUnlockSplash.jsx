@@ -47,7 +47,7 @@ export default function NewYouUnlockSplash({
   gold = "#c9a876",
   goldHi = "#ecd8ac",
   goldDeep = "#9c8050",
-  headline = "New You",
+  headline = "NewYou",
   onFinish,
   /** When false, hold at progress 0 (dark backdrop only) until the confirming layer clears. */
   active = true,

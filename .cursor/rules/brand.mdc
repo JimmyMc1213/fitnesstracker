@@ -1,0 +1,38 @@
+---
+description: NewYou AI brand name spelling in all user-facing copy
+alwaysApply: true
+---
+
+# Brand name: NewYou AI
+
+The brand is **NewYou AI**. The accepted short form is **NewYou**. Never write the
+name as "New You" with a space between "New" and "You".
+
+## Normalization rules
+
+- `New You` (no AI)            -> `NewYou`
+- `New You AI`                 -> `NewYou AI`
+- `NewYouAI` (no space + AI)   -> `NewYou AI`
+
+Do not add "AI" where it was not already present. When shortening, use `NewYou`
+(one word), never `New You`.
+
+## Examples
+
+```tsx
+// BAD
+<Text>Discover a New You</Text>
+title: "New You AI Admin"
+"Welcome to NewYouAI"
+
+// GOOD
+<Text>Discover a NewYou</Text>
+title: "NewYou AI Admin"
+"Welcome to NewYou AI"
+```
+
+## Do not touch (these are technical identifiers, not the display name)
+
+- Package scope `@newyouai/*`, bundle/package id `app.newyouai.mobile`, scheme `newyouai://`
+- Domains/URLs (`newyouai.app`, `app.newyouai.app`, `support@newyouai.app`), social handles
+- Asset filenames (`newyou-mark.png`, `newyou-logo.png`), test emails `@newyouai.test`

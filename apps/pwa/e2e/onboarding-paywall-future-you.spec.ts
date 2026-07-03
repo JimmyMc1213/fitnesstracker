@@ -43,7 +43,7 @@ test("step 24: under-18 paywall shows plan summary without Future You hero", asy
   await page.goto("/");
   await page.getByRole("button", { name: "Unlock your plan" }).click();
   await expect(
-    page.getByRole("heading", { name: /Unlock NewYouAI to reach your goals faster\./i }),
+    page.getByRole("heading", { name: /Unlock NewYou AI to reach your goals faster\./i }),
   ).toBeVisible();
   await expect(page.locator(".onboarding-paywall-future-you")).toHaveCount(0);
   await expect(page.locator(".onboarding-paywall-plan-summary")).toBeVisible();
@@ -67,7 +67,7 @@ test("step 24: skip path completes paywall and lands on plan-only success", asyn
   await expect(page.getByText("64 oz")).toBeVisible();
   await expect(page.getByText("10,000")).toBeVisible();
   await expect(page.locator(".onboarding-fy-success-plan")).toBeVisible();
-  await expect(page.getByText("Welcome to NewYouAI")).toBeVisible();
+  await expect(page.getByText("Welcome to NewYou AI")).toBeVisible();
   await expect(page.getByText("AI generated")).toHaveCount(0);
   await page.getByRole("button", { name: "Start My Journey" }).click();
   await expect(page.getByText("Today's plan")).toBeVisible();

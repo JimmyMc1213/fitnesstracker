@@ -8,7 +8,7 @@ export default function HomePage() {
         Upload a photo. See your future self.
       </h1>
       <p className="mt-6 max-w-xl text-lg text-muted">
-        New You AI combines AI-powered Future You imagery with structured workouts, nutrition
+        NewYou AI combines AI-powered Future You imagery with structured workouts, nutrition
         tracking, and habit coaching — one app to stay motivated through your transformation.
       </p>
       <div className="mt-10 flex flex-wrap gap-4">

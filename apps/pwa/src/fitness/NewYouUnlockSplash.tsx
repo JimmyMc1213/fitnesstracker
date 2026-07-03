@@ -34,7 +34,7 @@ function clampLerp(keys: number[], values: number[], t: number): number {
   return lerp(keys, values, clamped);
 }
 
-export function NewYouUnlockSplash({ headline = "New You", onFinish }: Props) {
+export function NewYouUnlockSplash({ headline = "NewYou", onFinish }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const onFinishRef = useRef(onFinish);
   onFinishRef.current = onFinish;

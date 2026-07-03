@@ -4,8 +4,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "New You AI — See Your Future Self",
-    template: "%s · New You AI",
+    default: "NewYou AI — See Your Future Self",
+    template: "%s · NewYou AI",
   },
   description:
     "Upload a photo and see your Future You. AI-powered fitness coach with workouts, nutrition, and habits.",
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="border-b border-border">
           <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
             <a href="/" className="text-lg font-semibold tracking-tight">
-              New You AI
+              NewYou AI
             </a>
             <div className="flex gap-6 text-sm text-muted">
               <a href="/about" className="hover:text-foreground">
@@ -60,7 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 X
               </a>
             </div>
-            <p className="mt-4">© {new Date().getFullYear()} New You AI</p>
+            <p className="mt-4">© {new Date().getFullYear()} NewYou AI</p>
           </div>
         </footer>
       </body>

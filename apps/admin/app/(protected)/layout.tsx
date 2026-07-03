@@ -17,7 +17,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen">
       <header className="border-b border-border px-6 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <span className="font-semibold">New You AI Admin</span>
+          <span className="font-semibold">NewYou AI Admin</span>
           <nav className="flex gap-4 text-sm text-muted">
             {nav.map((item) => (
               <Link key={item.href} href={item.href} className="hover:text-foreground">

@@ -53,7 +53,7 @@ export default function SignUpScreen() {
           pathname: "/(auth)/sign-in",
           params: {
             email: email.trim(),
-            info: "Check your inbox and tap the confirmation link — it will open New You AI.",
+            info: "Check your inbox and tap the confirmation link — it will open NewYou AI.",
           },
         });
       }

@@ -100,12 +100,12 @@ export function OnboardingPaywall({
           <h1 className="onboarding-paywall__headline">
             {heroVisible ? (
               <>
-                Unlock <span className="onboarding-goal-weight-accent">NewYouAI</span> to see what you
+                Unlock <span className="onboarding-goal-weight-accent">NewYou AI</span> to see what you
                 can look like.
               </>
             ) : (
               <>
-                Unlock <span className="onboarding-goal-weight-accent">NewYouAI</span> to reach your
+                Unlock <span className="onboarding-goal-weight-accent">NewYou AI</span> to reach your
                 goals faster.
               </>
             )}

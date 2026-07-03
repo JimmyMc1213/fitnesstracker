@@ -1,7 +1,7 @@
 import type { ExpoConfig } from "expo/config";
 
 const config: ExpoConfig = {
-  name: "New You AI",
+  name: "NewYou AI",
   slug: "newyouai-mobile",
   version: "0.0.0",
   orientation: "portrait",
@@ -20,13 +20,13 @@ const config: ExpoConfig = {
         NSAllowsLocalNetworking: true,
       },
       NSCameraUsageDescription:
-        "New You AI uses your camera to scan food barcodes and capture photos for your Future You transformation preview.",
+        "NewYou AI uses your camera to scan food barcodes and capture photos for your Future You transformation preview.",
       NSPhotoLibraryUsageDescription:
-        "New You AI uses your photo library so you can choose a picture for your Future You preview.",
+        "NewYou AI uses your photo library so you can choose a picture for your Future You preview.",
       NSPhotoLibraryAddUsageDescription:
-        "New You AI saves your NewYou preview to your photo library when you tap Save to photos.",
+        "NewYou AI saves your NewYou preview to your photo library when you tap Save to photos.",
       NSUserNotificationsUsageDescription:
-        "New You AI sends workout and nutrition reminders you choose in Settings.",
+        "NewYou AI sends workout and nutrition reminders you choose in Settings.",
     },
   },
   android: {
@@ -54,7 +54,7 @@ const config: ExpoConfig = {
       "expo-camera",
       {
         cameraPermission:
-          "New You AI uses your camera to scan food barcodes and capture photos for your Future You preview.",
+          "NewYou AI uses your camera to scan food barcodes and capture photos for your Future You preview.",
         barcodeScannerEnabled: true,
       },
     ],
@@ -62,18 +62,18 @@ const config: ExpoConfig = {
       "expo-image-picker",
       {
         photosPermission:
-          "New You AI uses your photo library so you can choose a picture for your Future You preview.",
+          "NewYou AI uses your photo library so you can choose a picture for your Future You preview.",
         cameraPermission:
-          "New You AI uses your camera to scan food barcodes and capture photos for your Future You preview.",
+          "NewYou AI uses your camera to scan food barcodes and capture photos for your Future You preview.",
       },
     ],
     [
       "expo-media-library",
       {
         photosPermission:
-          "New You AI uses your photo library so you can choose a picture for your Future You preview.",
+          "NewYou AI uses your photo library so you can choose a picture for your Future You preview.",
         savePhotosPermission:
-          "New You AI saves your NewYou preview to your photo library when you tap Save to photos.",
+          "NewYou AI saves your NewYou preview to your photo library when you tap Save to photos.",
       },
     ],
     [

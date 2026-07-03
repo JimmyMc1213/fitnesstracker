@@ -11,9 +11,9 @@ export default function PrivacyPage() {
       <section className="mt-8 space-y-4 text-muted leading-relaxed">
         <p>
           This Privacy Policy explains how <strong>James R. McCarthy Jr.</strong>, a sole proprietorship based
-          in Mesa, Arizona, United States (&quot;New You AI,&quot; &quot;we,&quot; &quot;us,&quot; or
-          &quot;our&quot;), collects, uses, shares, and protects your information when you use the New
-          You AI mobile application, the website at newyouai.app, and the web app at app.newyouai.app
+          in Mesa, Arizona, United States (&quot;NewYou AI,&quot; &quot;we,&quot; &quot;us,&quot; or
+          &quot;our&quot;), collects, uses, shares, and protects your information when you use the
+          NewYou AI mobile application, the website at newyouai.app, and the web app at app.newyouai.app
           (together, the &quot;Service&quot;).
         </p>
         <p>
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
 
         <h2 className="text-xl font-semibold text-foreground">2. Scope</h2>
         <p>
-          This policy covers the New You AI iOS app, the marketing site (newyouai.app), and the
+          This policy covers the NewYou AI iOS app, the marketing site (newyouai.app), and the
           progressive web app (app.newyouai.app). It does not cover third-party services that have
           their own privacy policies, which we link to in Section 7.
         </p>

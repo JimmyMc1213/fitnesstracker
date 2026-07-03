@@ -149,7 +149,7 @@ export async function advanceToPaywallFromPlanReady(page: Page) {
   await page.getByRole("button", { name: /Unlock your plan|Continue to Future You/i }).click();
   await expect(
     page.getByRole("heading", {
-      name: /Unlock NewYouAI to see what you can look like\.|Unlock NewYouAI to reach your goals faster\./i,
+      name: /Unlock NewYou AI to see what you can look like\.|Unlock NewYou AI to reach your goals faster\./i,
     }),
   ).toBeVisible();
 }
