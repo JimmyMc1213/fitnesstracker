@@ -24,9 +24,8 @@ import type { WeightUnit, WorkoutExercise } from "@newyouai/types";
 
 export const WORKOUT_KEYPAD_HEIGHT = 248;
 
-type WorkoutKeypadContextValue = {
+type WorkoutKeypadControlContextValue = {
   active: WorkoutKeypadTarget | null;
-  draft: string;
   open: boolean;
   openField: (target: WorkoutKeypadTarget) => void;
   close: () => void;
@@ -37,12 +36,21 @@ type WorkoutKeypadContextValue = {
   isActive: (target: WorkoutKeypadTarget) => boolean;
 };
 
-const WorkoutKeypadContext = createContext<WorkoutKeypadContextValue | null>(null);
+const WorkoutKeypadControlContext = createContext<WorkoutKeypadControlContextValue | null>(null);
+const WorkoutKeypadDraftContext = createContext<string | undefined>(undefined);
 
 export function useWorkoutKeypad() {
-  const ctx = useContext(WorkoutKeypadContext);
+  const ctx = useContext(WorkoutKeypadControlContext);
   if (!ctx) throw new Error("useWorkoutKeypad must be used within WorkoutKeypadProvider");
   return ctx;
+}
+
+export function useWorkoutKeypadDraft() {
+  const draft = useContext(WorkoutKeypadDraftContext);
+  if (draft === undefined) {
+    throw new Error("useWorkoutKeypadDraft must be used within WorkoutKeypadProvider");
+  }
+  return draft;
 }
 
 export function fieldElementId(target: WorkoutKeypadTarget): string {
@@ -72,6 +80,11 @@ export function WorkoutKeypadProvider({
   const [draft, setDraft] = useState("");
   const keypadWasOpenRef = useRef(false);
   const liveSetValuesRef = useRef(new Map<string, { w: number; r: number }>());
+  const activeRef = useRef<WorkoutKeypadTarget | null>(null);
+  const draftRef = useRef("");
+
+  activeRef.current = active;
+  draftRef.current = draft;
 
   useEffect(() => {
     const next = new Map<string, { w: number; r: number }>();
@@ -83,18 +96,32 @@ export function WorkoutKeypadProvider({
     liveSetValuesRef.current = next;
   }, [exercises]);
 
-  const commit = useCallback(
+  const patchForValue = useCallback(
+    (target: WorkoutKeypadTarget, value: string) =>
+      target.field === "weight"
+        ? { w: parseSetWeightInput(value, weightUnit) }
+        : { r: parseInt(value, 10) || 0 },
+    [weightUnit],
+  );
+
+  // Update the in-memory mirror only; no global state write (keeps typing cheap).
+  const updateLiveValue = useCallback(
     (target: WorkoutKeypadTarget, value: string) => {
       const key = `${target.exerciseId}:${target.setIndex}`;
       const prev = liveSetValuesRef.current.get(key) ?? { w: 0, r: 0 };
-      const patch =
-        target.field === "weight"
-          ? { w: parseSetWeightInput(value, weightUnit) }
-          : { r: parseInt(value, 10) || 0 };
-      liveSetValuesRef.current.set(key, { ...prev, ...patch });
-      onUpdateSet(target.exerciseId, target.setIndex, patch);
+      liveSetValuesRef.current.set(key, { ...prev, ...patchForValue(target, value) });
     },
-    [onUpdateSet, weightUnit],
+    [patchForValue],
+  );
+
+  // Flush the draft into global fitness state. Called on field transitions
+  // (open another field / close / next), never on every keystroke.
+  const commit = useCallback(
+    (target: WorkoutKeypadTarget, value: string) => {
+      updateLiveValue(target, value);
+      onUpdateSet(target.exerciseId, target.setIndex, patchForValue(target, value));
+    },
+    [onUpdateSet, patchForValue, updateLiveValue],
   );
 
   const draftForTarget = useCallback(
@@ -110,19 +137,27 @@ export function WorkoutKeypadProvider({
     [exercises, weightUnit],
   );
 
+  const sameTarget = (a: WorkoutKeypadTarget | null, b: WorkoutKeypadTarget) =>
+    a != null && a.exerciseId === b.exerciseId && a.setIndex === b.setIndex && a.field === b.field;
+
   const openField = useCallback(
     (target: WorkoutKeypadTarget) => {
       dismissKeyboard();
+      const current = activeRef.current;
+      if (sameTarget(current, target)) return;
+      if (current) commit(current, draftRef.current);
       setActive(target);
       setDraft(draftForTarget(target));
     },
-    [draftForTarget],
+    [commit, draftForTarget],
   );
 
   const close = useCallback(() => {
+    const current = activeRef.current;
+    if (current) commit(current, draftRef.current);
     setActive(null);
     setDraft("");
-  }, []);
+  }, [commit]);
 
   useEffect(() => {
     if (!active) return;
@@ -150,39 +185,45 @@ export function WorkoutKeypadProvider({
 
   const applyDraft = useCallback(
     (nextDraft: string) => {
-      if (!active) return;
+      const current = activeRef.current;
+      if (!current) return;
       setDraft(nextDraft);
-      commit(active, nextDraft);
+      updateLiveValue(current, nextDraft);
     },
-    [active, commit],
+    [updateLiveValue],
   );
 
   const append = useCallback(
     (key: string) => {
-      if (!active) return;
-      const allowDecimal = active.field === "weight";
-      applyDraft(appendKeypadDigit(draft, key, allowDecimal));
+      const current = activeRef.current;
+      if (!current) return;
+      const allowDecimal = current.field === "weight";
+      applyDraft(appendKeypadDigit(draftRef.current, key, allowDecimal));
     },
-    [active, applyDraft, draft],
+    [applyDraft],
   );
 
   const backspace = useCallback(() => {
-    if (!active) return;
-    applyDraft(backspaceKeypadDraft(draft));
-  }, [active, applyDraft, draft]);
+    if (!activeRef.current) return;
+    applyDraft(backspaceKeypadDraft(draftRef.current));
+  }, [applyDraft]);
 
   const increment = useCallback(
     (delta: number) => {
-      if (!active) return;
-      applyDraft(applyKeypadIncrement(draft, active.field, delta, weightUnit));
+      const current = activeRef.current;
+      if (!current) return;
+      applyDraft(applyKeypadIncrement(draftRef.current, current.field, delta, weightUnit));
     },
-    [active, applyDraft, draft, weightUnit],
+    [applyDraft, weightUnit],
   );
 
   const next = useCallback(() => {
-    if (!active) return;
-    commit(active, draft);
-    const { completeSet, nextTarget } = advanceWorkoutKeypad(exercises, active);
+    const current = activeRef.current;
+    if (!current) return;
+    commit(current, draftRef.current);
+    // Already flushed; null the ref so close()/openField() below don't re-commit.
+    activeRef.current = null;
+    const { completeSet, nextTarget } = advanceWorkoutKeypad(exercises, current);
     if (completeSet) {
       const live = liveSetValuesRef.current.get(`${completeSet.exerciseId}:${completeSet.setIndex}`);
       const completed =
@@ -194,7 +235,18 @@ export function WorkoutKeypadProvider({
       return;
     }
     openField(nextTarget);
-  }, [active, close, commit, draft, exercises, onCompleteSet, openField]);
+  }, [close, commit, exercises, onCompleteSet, openField]);
+
+  // Flush any un-committed draft to global state when the provider unmounts.
+  const commitRef = useRef(commit);
+  commitRef.current = commit;
+  useEffect(
+    () => () => {
+      const current = activeRef.current;
+      if (current) commitRef.current(current, draftRef.current);
+    },
+    [],
+  );
 
   const isActive = useCallback(
     (target: WorkoutKeypadTarget) =>
@@ -202,10 +254,9 @@ export function WorkoutKeypadProvider({
     [active],
   );
 
-  const value = useMemo(
+  const controlValue = useMemo(
     () => ({
       active,
-      draft,
       open: active != null,
       openField,
       close,
@@ -215,8 +266,12 @@ export function WorkoutKeypadProvider({
       next,
       isActive,
     }),
-    [active, append, backspace, close, draft, increment, isActive, next, openField],
+    [active, append, backspace, close, increment, isActive, next, openField],
   );
 
-  return <WorkoutKeypadContext.Provider value={value}>{children}</WorkoutKeypadContext.Provider>;
+  return (
+    <WorkoutKeypadControlContext.Provider value={controlValue}>
+      <WorkoutKeypadDraftContext.Provider value={draft}>{children}</WorkoutKeypadDraftContext.Provider>
+    </WorkoutKeypadControlContext.Provider>
+  );
 }

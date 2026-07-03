@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { memo, useMemo, useState, type ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
 
 import { RestTimerStrip, type RestTimerStripPhase } from "@/components/workout/RestTimerStrip";
 import { SetKindPickerSheet } from "@/components/workout/SetKindPickerSheet";
 import { SwipeableWorkoutSetRow } from "@/components/workout/SwipeableWorkoutSetRow";
-import { WorkoutSetField } from "@/components/workout/WorkoutSetField";
 import { useWorkoutKeypad } from "@/components/workout/WorkoutKeypadContext";
+import { WorkoutSetField } from "@/components/workout/WorkoutSetField";
 import { ExerciseDragHandle, type ExerciseDragHandleProps } from "@/components/workout/SortableExerciseList";
 import { setFieldSecondColumnLabel } from "@/lib/workout/exercisePrescriptionDefaults";
 import { formatFlatExerciseTitle } from "@/lib/workout/workoutNewLook";
 import { restDurationForExercise } from "@/lib/workout/restTimerPreferences";
 import { setColumnLabel, setKindColors } from "@/lib/workout/workoutSetKind";
 import { WORKOUT_ACCENT, WORKOUT_ACCENT_BG, WORKOUT_ACCENT_BORDER } from "@/lib/workoutUiTokens";
+import { useWorkoutSetRejectShake, WORKOUT_SET_REJECT_COLOR } from "@/components/workout/useWorkoutSetRejectShake";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import {
   previousSetLinesForExercise,
@@ -40,6 +42,7 @@ type Props = {
   restTimerDefaultSeconds: number;
   restTimerSecondsByExerciseKey: Record<string, number>;
   restedRestSecByAfterSetIndex: Record<number, number>;
+  rejectShakeSet: { exerciseId: string; setIndex: number } | null;
   onToggleSetDone: (exercise: WorkoutExercise, setIndex: number) => void;
   onOpenActions?: () => void;
   onOpenRestSheet: (exerciseId: string) => void;
@@ -49,7 +52,7 @@ type Props = {
   swipeDisabled?: boolean;
 };
 
-export function WorkoutExerciseCardFlat({
+function WorkoutExerciseCardFlatComponent({
   exercise,
   workoutHistory,
   unitPreferences,
@@ -58,6 +61,7 @@ export function WorkoutExerciseCardFlat({
   restTimerDefaultSeconds,
   restTimerSecondsByExerciseKey,
   restedRestSecByAfterSetIndex,
+  rejectShakeSet,
   onToggleSetDone,
   onOpenActions,
   onOpenRestSheet,
@@ -67,17 +71,18 @@ export function WorkoutExerciseCardFlat({
   swipeDisabled,
 }: Props) {
   const { colors } = useAppTheme();
-  const keypad = useWorkoutKeypad();
+  const { close: closeKeypad } = useWorkoutKeypad();
   const weightUnit = unitPreferences.weightUnit;
   const [setKindPickerIndex, setSetKindPickerIndex] = useState<number | null>(null);
 
-  const previousSets = previousSetsForExercise(workoutHistory, exercise.name, exercise.label);
-  const previousLines = previousSetLinesForExercise(
-    workoutHistory,
-    exercise.name,
-    exercise.label,
-    exercise.sets.length,
-    weightUnit,
+  const setCount = exercise.sets.length;
+  const previousSets = useMemo(
+    () => previousSetsForExercise(workoutHistory, exercise.name, exercise.label),
+    [workoutHistory, exercise.name, exercise.label],
+  );
+  const previousLines = useMemo(
+    () => previousSetLinesForExercise(workoutHistory, exercise.name, exercise.label, setCount, weightUnit),
+    [workoutHistory, exercise.name, exercise.label, setCount, weightUnit],
   );
   const secondFieldLabel = setFieldSecondColumnLabel(exercise);
   const restPresetSec = restDurationForExercise(
@@ -108,7 +113,7 @@ export function WorkoutExerciseCardFlat({
     <View testID={`workout-exercise-flat-${exercise.id}`}>
       <View className="mb-3 flex-row items-start gap-2">
         {handle ? <ExerciseDragHandle handle={handle} tapSize={32} /> : null}
-        <Text className="min-w-0 flex-1 text-[17px] font-semibold leading-[1.25] tracking-tight" style={{ color: WORKOUT_ACCENT }}>
+        <Text className="min-w-0 flex-1 text-[17px] font-semibold leading-[1.25] tracking-tight" style={{ color: colors.textPrimary }}>
           {title}
         </Text>
         {onOpenActions ? (
@@ -156,111 +161,50 @@ export function WorkoutExerciseCardFlat({
             si,
             previousSets,
           );
+          const isRejectShake =
+            rejectShakeSet?.exerciseId === exercise.id && rejectShakeSet.setIndex === si;
 
           return (
-            <View key={`${exercise.id}-set-${si}`}>
-              <SwipeableWorkoutSetRow
-                deleteLabel={`Delete set ${si + 1}`}
-                disabled={swipeDisabled || !onRemoveSet}
-                testID={`workout-set-${exercise.id}-${si}-delete`}
-                onRemove={() => onRemoveSet?.(exercise.id, si)}
-              >
-                <View className="flex-row items-center gap-1.5 py-1">
-                <Pressable
-                  onPress={() => onUpdateSetKind && setSetKindPickerIndex(si)}
-                  accessibilityLabel={`Set ${si + 1} type`}
-                  className="h-8 w-8 items-center justify-center rounded-lg border"
-                  style={
-                    kind === "working"
-                      ? { borderColor: colors.border, backgroundColor: colors.backgroundSecondary }
-                      : {
-                          borderColor: kindVisual.border,
-                          backgroundColor: kindVisual.background,
-                        }
+            <FlatWorkoutSetBlock
+              key={`${exercise.id}-set-${si}`}
+              exercise={exercise}
+              setIndex={si}
+              set={st}
+              kind={kind}
+              kindVisual={kindVisual}
+              previousLine={previousLines[si]}
+              placeholderWeight={placeholderWeight}
+              placeholderReps={placeholderReps}
+              weightUnit={weightUnit}
+              secondFieldLabel={secondFieldLabel}
+              isRejectShake={isRejectShake}
+              swipeDisabled={swipeDisabled}
+              onRemoveSet={onRemoveSet}
+              onUpdateSetKind={onUpdateSetKind ? () => setSetKindPickerIndex(si) : undefined}
+              onToggleSetDone={() => {
+                closeKeypad();
+                onToggleSetDone(exercise, si);
+              }}
+              restTimerStrip={
+                <RestTimerStrip
+                  phase={stripPhase(si)}
+                  durationSec={
+                    isActiveRest && activeRestAfterSetIndex === si ? restTimer!.durationSec : restPresetSec
                   }
-                >
-                  <Text
-                    className="text-[13px] font-bold tabular-nums"
-                    style={{ color: kind === "working" ? colors.textPrimary : kindVisual.color }}
-                  >
-                    {setColumnLabel(exercise.sets, si)}
-                  </Text>
-                </Pressable>
-
-                <Text
-                  className="w-[72px] text-center text-[11px] font-medium tabular-nums leading-[1.25]"
-                  style={{ color: colors.textTertiary }}
-                >
-                  {previousLines[si]}
-                </Text>
-
-                <View className="flex-1">
-                  <WorkoutSetField
-                    exerciseId={exercise.id}
-                    setIndex={si}
-                    field="weight"
-                    weight={st.w}
-                    reps={st.r}
-                    placeholderWeight={placeholderWeight}
-                    placeholderReps={placeholderReps}
-                    weightUnit={weightUnit}
-                    onPress={() => keypad.openField({ exerciseId: exercise.id, setIndex: si, field: "weight" })}
-                  />
-                </View>
-
-                <View className="flex-1">
-                  <WorkoutSetField
-                    exerciseId={exercise.id}
-                    setIndex={si}
-                    field="reps"
-                    weight={st.w}
-                    reps={st.r}
-                    placeholderWeight={placeholderWeight}
-                    placeholderReps={placeholderReps}
-                    weightUnit={weightUnit}
-                    secondFieldLabel={secondFieldLabel}
-                    onPress={() => keypad.openField({ exerciseId: exercise.id, setIndex: si, field: "reps" })}
-                  />
-                </View>
-
-                <Pressable
-                  testID={`workout-set-${exercise.id}-${si}-done`}
-                  accessibilityLabel="Done"
-                  onPress={() => onToggleSetDone(exercise, si)}
-                  className="h-9 w-10 items-center justify-center rounded-lg border"
-                  style={{
-                    borderColor: st.done ? colors.accent : colors.border,
-                    backgroundColor: st.done ? colors.accent : colors.backgroundSecondary,
-                  }}
-                >
-                  <Text
-                    className="text-sm font-bold"
-                    style={{ color: st.done ? colors.background : colors.textTertiary }}
-                  >
-                    ✓
-                  </Text>
-                </Pressable>
-                </View>
-              </SwipeableWorkoutSetRow>
-
-              <RestTimerStrip
-                phase={stripPhase(si)}
-                durationSec={
-                  isActiveRest && activeRestAfterSetIndex === si ? restTimer!.durationSec : restPresetSec
-                }
-                endsAtMs={
-                  isActiveRest && activeRestAfterSetIndex === si && !restTimer!.completed
-                    ? restTimer!.endsAtMs
-                    : undefined
-                }
-                paused={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.paused : false}
-                pausedRemainingMs={
-                  isActiveRest && activeRestAfterSetIndex === si ? restTimer!.pausedRemainingMs : undefined
-                }
-                displayPresetSec={stripDisplaySec(si)}
-                onPress={() => onOpenRestSheet(exercise.id)}
-              />
-            </View>
+                  endsAtMs={
+                    isActiveRest && activeRestAfterSetIndex === si && !restTimer!.completed
+                      ? restTimer!.endsAtMs
+                      : undefined
+                  }
+                  paused={isActiveRest && activeRestAfterSetIndex === si ? restTimer!.paused : false}
+                  pausedRemainingMs={
+                    isActiveRest && activeRestAfterSetIndex === si ? restTimer!.pausedRemainingMs : undefined
+                  }
+                  displayPresetSec={stripDisplaySec(si)}
+                  onPress={() => onOpenRestSheet(exercise.id)}
+                />
+              }
+            />
           );
         })}
       </View>
@@ -292,6 +236,139 @@ export function WorkoutExerciseCardFlat({
           onClose={() => setSetKindPickerIndex(null)}
         />
       ) : null}
+    </View>
+  );
+}
+
+export const WorkoutExerciseCardFlat = memo(WorkoutExerciseCardFlatComponent);
+
+function FlatWorkoutSetBlock({
+  exercise,
+  setIndex,
+  set: st,
+  kind,
+  kindVisual,
+  previousLine,
+  placeholderWeight,
+  placeholderReps,
+  weightUnit,
+  secondFieldLabel,
+  isRejectShake,
+  swipeDisabled,
+  onRemoveSet,
+  onUpdateSetKind,
+  onToggleSetDone,
+  restTimerStrip,
+}: {
+  exercise: WorkoutExercise;
+  setIndex: number;
+  set: WorkoutExercise["sets"][number];
+  kind: WorkoutSetKind;
+  kindVisual: ReturnType<typeof setKindColors>;
+  previousLine: string;
+  placeholderWeight: number;
+  placeholderReps: number;
+  weightUnit: UnitPreferences["weightUnit"];
+  secondFieldLabel: "Reps" | "Sec";
+  isRejectShake: boolean;
+  swipeDisabled?: boolean;
+  onRemoveSet?: (exerciseId: string, setIndex: number) => void;
+  onUpdateSetKind?: () => void;
+  onToggleSetDone: () => void;
+  restTimerStrip: ReactNode;
+}) {
+  const { colors } = useAppTheme();
+  const { animatedStyle } = useWorkoutSetRejectShake(isRejectShake);
+
+  return (
+    <View>
+      <SwipeableWorkoutSetRow
+        deleteLabel={`Delete set ${setIndex + 1}`}
+        disabled={swipeDisabled || !onRemoveSet}
+        testID={`workout-set-${exercise.id}-${setIndex}-delete`}
+        onRemove={() => onRemoveSet?.(exercise.id, setIndex)}
+      >
+        <Animated.View className="flex-row items-center gap-1.5 py-1" style={animatedStyle}>
+          <Pressable
+            onPress={onUpdateSetKind}
+            accessibilityLabel={`Set ${setIndex + 1} type`}
+            className="h-8 w-8 items-center justify-center rounded-lg border"
+            style={
+              kind === "working"
+                ? { borderColor: colors.border, backgroundColor: colors.backgroundSecondary }
+                : {
+                    borderColor: kindVisual.border,
+                    backgroundColor: kindVisual.background,
+                  }
+            }
+          >
+            <Text
+              className="text-[13px] font-bold tabular-nums"
+              style={{ color: kind === "working" ? colors.textPrimary : kindVisual.color }}
+            >
+              {setColumnLabel(exercise.sets, setIndex)}
+            </Text>
+          </Pressable>
+
+          <Text
+            className="w-[72px] text-center text-[11px] font-medium tabular-nums leading-[1.25]"
+            style={{ color: colors.textTertiary }}
+          >
+            {previousLine}
+          </Text>
+
+          <View className="flex-1">
+            <WorkoutSetField
+              exerciseId={exercise.id}
+              setIndex={setIndex}
+              field="weight"
+              weight={st.w}
+              reps={st.r}
+              placeholderWeight={placeholderWeight}
+              placeholderReps={placeholderReps}
+              weightUnit={weightUnit}
+              rejecting={isRejectShake}
+            />
+          </View>
+
+          <View className="flex-1">
+            <WorkoutSetField
+              exerciseId={exercise.id}
+              setIndex={setIndex}
+              field="reps"
+              weight={st.w}
+              reps={st.r}
+              placeholderWeight={placeholderWeight}
+              placeholderReps={placeholderReps}
+              weightUnit={weightUnit}
+              secondFieldLabel={secondFieldLabel}
+              rejecting={isRejectShake}
+            />
+          </View>
+
+          <Pressable
+            testID={`workout-set-${exercise.id}-${setIndex}-done`}
+            accessibilityLabel="Done"
+            onPress={onToggleSetDone}
+            className="h-9 w-10 items-center justify-center rounded-lg border"
+            style={{
+              borderColor: isRejectShake ? WORKOUT_SET_REJECT_COLOR : st.done ? colors.textPrimary : colors.border,
+              backgroundColor: colors.backgroundSecondary,
+            }}
+          >
+            <Text
+              className="text-sm font-bold"
+              style={{
+                color: st.done ? colors.textPrimary : isRejectShake ? WORKOUT_SET_REJECT_COLOR : colors.textTertiary,
+              }}
+            >
+              ✓
+            </Text>
+          </Pressable>
+        </Animated.View>
+      </SwipeableWorkoutSetRow>
+
+      {restTimerStrip}
     </View>
   );
 }

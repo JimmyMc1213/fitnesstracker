@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ElementRef } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
+import { Pressable, Text, Vibration, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type DraggableFlatList from "react-native-draggable-flatlist";
 
@@ -12,7 +12,7 @@ import { ExerciseNotesEditSheet } from "@/components/workout/ExerciseNotesEditSh
 import { ExerciseSwapSheet } from "@/components/workout/ExerciseSwapSheet";
 import { RestTimerSheet, type RestTimerPhase } from "@/components/workout/RestTimerSheet";
 import { RoutineExerciseSearchSheet } from "@/components/workout/RoutineExerciseSearchSheet";
-import { SortableExerciseList } from "@/components/workout/SortableExerciseList";
+import { SortableExerciseList, type ExerciseDragHandleProps } from "@/components/workout/SortableExerciseList";
 import { WorkoutCoachCard } from "@/components/workout/WorkoutCoachCard";
 import { WorkoutExerciseCard } from "@/components/workout/WorkoutExerciseCard";
 import { WorkoutExerciseCardFlat } from "@/components/workout/WorkoutExerciseCardFlat";
@@ -22,7 +22,7 @@ import {
 } from "@/components/workout/WorkoutKeypadContext";
 import type { WorkoutKeypadTarget } from "@/lib/workout/workoutKeypadLogic";
 import { WorkoutNumericKeypad } from "@/components/workout/WorkoutNumericKeypad";
-import { WorkoutSessionHeader, useSessionElapsedSec } from "@/components/workout/WorkoutSessionHeader";
+import { WorkoutSessionHeader } from "@/components/workout/WorkoutSessionHeader";
 import { useFitnessState } from "@/context/FitnessContext";
 import { getExerciseNote, withExerciseNote } from "@/lib/workout/exerciseNotes";
 import { defaultExerciseTarget } from "@/lib/workout/exercisePrescriptionDefaults";
@@ -66,6 +66,107 @@ function newWorkoutExerciseId(): string {
   return `e${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+const EMPTY_RESTED_SEC: Record<number, number> = {};
+
+type LiftingExerciseRowProps = {
+  useNewLook: boolean;
+  exercise: WorkoutExercise;
+  index: number;
+  handle: ExerciseDragHandleProps;
+  swipeDisabled: boolean;
+  workoutHistory: CompletedWorkoutSession[] | undefined;
+  unitPreferences: UnitPreferences;
+  sessionCoachNote?: string;
+  restTimer: ActiveRestTimer | null;
+  restTimerDefaultSeconds: number;
+  restTimerSecondsByExerciseKey: Record<string, number>;
+  restedRestSecForExercise: Record<number, number> | undefined;
+  rejectShakeSet: { exerciseId: string; setIndex: number } | null;
+  onToggleSetDone: (
+    exercise: WorkoutExercise,
+    setIndex: number,
+    pendingPatch?: Partial<{ w: number; r: number }>,
+  ) => boolean;
+  onOpenExerciseActions: (exerciseId: string) => void;
+  onOpenRestSheet: (exerciseId: string) => void;
+  onAddSet: (exerciseId: string) => void;
+  onRemoveSet: (exerciseId: string, setIndex: number) => void;
+  onUpdateSetKind: (exerciseId: string, setIndex: number, kind: WorkoutSetKind) => void;
+};
+
+const LiftingExerciseRow = memo(function LiftingExerciseRow({
+  useNewLook,
+  exercise,
+  index,
+  handle,
+  swipeDisabled,
+  workoutHistory,
+  unitPreferences,
+  sessionCoachNote,
+  restTimer,
+  restTimerDefaultSeconds,
+  restTimerSecondsByExerciseKey,
+  restedRestSecForExercise,
+  rejectShakeSet,
+  onToggleSetDone,
+  onOpenExerciseActions,
+  onOpenRestSheet,
+  onAddSet,
+  onRemoveSet,
+  onUpdateSetKind,
+}: LiftingExerciseRowProps) {
+  const onOpenActions = useCallback(
+    () => onOpenExerciseActions(exercise.id),
+    [onOpenExerciseActions, exercise.id],
+  );
+  const restedRestSecByAfterSetIndex = restedRestSecForExercise ?? EMPTY_RESTED_SEC;
+
+  if (useNewLook) {
+    return (
+      <WorkoutExerciseCardFlat
+        exercise={exercise}
+        workoutHistory={workoutHistory}
+        unitPreferences={unitPreferences}
+        handle={handle}
+        restTimer={restTimer}
+        restTimerDefaultSeconds={restTimerDefaultSeconds}
+        restTimerSecondsByExerciseKey={restTimerSecondsByExerciseKey}
+        restedRestSecByAfterSetIndex={restedRestSecByAfterSetIndex}
+        rejectShakeSet={rejectShakeSet}
+        onToggleSetDone={onToggleSetDone}
+        onOpenActions={onOpenActions}
+        onOpenRestSheet={onOpenRestSheet}
+        onAddSet={onAddSet}
+        onRemoveSet={onRemoveSet}
+        onUpdateSetKind={onUpdateSetKind}
+        swipeDisabled={swipeDisabled}
+      />
+    );
+  }
+
+  return (
+    <WorkoutExerciseCard
+      exercise={exercise}
+      exerciseIndex={index}
+      workoutHistory={workoutHistory}
+      unitPreferences={unitPreferences}
+      sessionCoachNote={sessionCoachNote}
+      handle={handle}
+      restTimer={restTimer}
+      restTimerDefaultSeconds={restTimerDefaultSeconds}
+      restTimerSecondsByExerciseKey={restTimerSecondsByExerciseKey}
+      restedRestSecByAfterSetIndex={restedRestSecByAfterSetIndex}
+      rejectShakeSet={rejectShakeSet}
+      onToggleSetDone={onToggleSetDone}
+      onOpenActions={onOpenActions}
+      onOpenRestSheet={onOpenRestSheet}
+      onRemoveSet={onRemoveSet}
+      onUpdateSetKind={onUpdateSetKind}
+      swipeDisabled={swipeDisabled}
+    />
+  );
+});
+
 export function WorkoutLiftingSlot() {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
@@ -93,6 +194,10 @@ export function WorkoutLiftingSlot() {
   const [restedRestSecByExerciseId, setRestedRestSecByExerciseId] = useState<
     Record<string, Record<number, number>>
   >({});
+  const [rejectShakeSet, setRejectShakeSet] = useState<{ exerciseId: string; setIndex: number } | null>(
+    null,
+  );
+  const rejectShakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   restTimerRef.current = restTimer;
 
@@ -117,7 +222,6 @@ export function WorkoutLiftingSlot() {
   }, [restTimer?.exerciseId, restTimer?.endsAtMs, restTimer?.completed, restTimer?.paused]);
 
   const w = state?.workout;
-  const elapsedSec = useSessionElapsedSec(w?.sessionStartedAtMs ?? null, w?.sessionPhase === "lifting");
   const preWorkoutCoach = useMemo(
     () => (state ? buildPreWorkoutCoachBrief(state) : null),
     [state],
@@ -138,8 +242,301 @@ export function WorkoutLiftingSlot() {
   );
 
   const listExtraData = useMemo(
-    () => (useNewLook ? [liftingDoneSets, restTimer, restedRestSecByExerciseId] : liftingDoneSets),
-    [useNewLook, liftingDoneSets, restTimer, restedRestSecByExerciseId],
+    () => [liftingDoneSets, restTimer, restedRestSecByExerciseId, rejectShakeSet],
+    [liftingDoneSets, restTimer, restedRestSecByExerciseId, rejectShakeSet],
+  );
+
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const exercisesRef = useRef(w?.exercises ?? []);
+  exercisesRef.current = w?.exercises ?? [];
+
+  const updateSet = useCallback(
+    (exerciseId: string, setIndex: number, patch: Partial<{ w: number; r: number; done: boolean }>) => {
+      setFitnessState((prev) => ({
+        ...prev,
+        workout: {
+          ...prev.workout,
+          exercises: prev.workout.exercises.map((ex) =>
+            ex.id === exerciseId
+              ? {
+                  ...ex,
+                  sets: ex.sets.map((st, i) => (i === setIndex ? { ...st, ...patch } : st)),
+                }
+              : ex,
+          ),
+        },
+      }));
+    },
+    [setFitnessState],
+  );
+
+  const clearRestTimer = useCallback(() => {
+    setRestTimer(null);
+  }, []);
+
+  const markRestedAfterSet = useCallback((exerciseId: string, afterSetIndex: number, durationSec: number) => {
+    setRestedRestSecByExerciseId((prev) => {
+      const existing = prev[exerciseId] ?? {};
+      if (existing[afterSetIndex] != null) return prev;
+      return {
+        ...prev,
+        [exerciseId]: { ...existing, [afterSetIndex]: durationSec },
+      };
+    });
+  }, []);
+
+  const unmarkRestedFromSet = useCallback((exerciseId: string, fromSetIndex: number) => {
+    setRestedRestSecByExerciseId((prev) => {
+      const existing = prev[exerciseId];
+      if (!existing) return prev;
+      const next: Record<number, number> = {};
+      let changed = false;
+      for (const [key, sec] of Object.entries(existing)) {
+        const idx = Number(key);
+        if (idx < fromSetIndex) next[idx] = sec;
+        else changed = true;
+      }
+      if (!changed) return prev;
+      if (Object.keys(next).length === 0) {
+        const { [exerciseId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [exerciseId]: next };
+    });
+  }, []);
+
+  const startRestTimer = useCallback(
+    (exercise: WorkoutExercise, afterSetIndex: number) => {
+      const previous = restTimerRef.current;
+      const currentState = stateRef.current;
+      if (!currentState) return;
+      const { restTimerDefaultSeconds, restTimerSecondsByExerciseKey } = currentState;
+
+      function durationForCompletedGap(gapIndex: number): number {
+        if (previous?.exerciseId === exercise.id && previous.afterSetIndex === gapIndex) {
+          return previous.durationSec;
+        }
+        return restDurationForExercise(
+          exercise.name,
+          exercise.label,
+          restTimerDefaultSeconds,
+          restTimerSecondsByExerciseKey,
+        );
+      }
+
+      if (afterSetIndex > 0) {
+        markRestedAfterSet(exercise.id, afterSetIndex - 1, durationForCompletedGap(afterSetIndex - 1));
+      }
+      if (previous?.exerciseId === exercise.id && previous.afterSetIndex !== afterSetIndex) {
+        markRestedAfterSet(exercise.id, previous.afterSetIndex, previous.durationSec);
+      }
+
+      const durationSec = restDurationForExercise(
+        exercise.name,
+        exercise.label,
+        restTimerDefaultSeconds,
+        restTimerSecondsByExerciseKey,
+      );
+      setRestTimer({
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        exerciseLabel: exercise.label,
+        endsAtMs: Date.now() + durationSec * 1000,
+        durationSec,
+        completed: false,
+        afterSetIndex,
+        paused: false,
+      });
+    },
+    [markRestedAfterSet],
+  );
+
+  const rejectSetCompletion = useCallback((exerciseId: string, setIndex: number) => {
+    if (rejectShakeTimerRef.current != null) {
+      clearTimeout(rejectShakeTimerRef.current);
+    }
+    setRejectShakeSet({ exerciseId, setIndex });
+    Vibration.vibrate([12, 40, 12]);
+    rejectShakeTimerRef.current = setTimeout(() => {
+      setRejectShakeSet(null);
+      rejectShakeTimerRef.current = null;
+    }, 450);
+  }, []);
+
+  const dismissCompletedRest = useCallback(() => {
+    const current = restTimerRef.current;
+    if (current?.completed) {
+      markRestedAfterSet(current.exerciseId, current.afterSetIndex, current.durationSec);
+    }
+    setRestTimer(null);
+  }, [markRestedAfterSet]);
+
+  const toggleSetDone = useCallback(
+    (
+      exercise: WorkoutExercise,
+      setIndex: number,
+      pendingPatch?: Partial<{ w: number; r: number }>,
+    ): boolean => {
+      const set = exercise.sets[setIndex];
+      if (!set) return false;
+
+      const historySets = previousSetsForExercise(
+        stateRef.current?.workoutHistory,
+        exercise.name,
+        exercise.label,
+      );
+      const effective = pendingPatch ? { ...set, ...pendingPatch } : set;
+      const willDone = !set.done;
+
+      if (willDone) {
+        if (!canCompleteSet(effective, exercise.sets, setIndex, historySets)) {
+          rejectSetCompletion(exercise.id, setIndex);
+          return false;
+        }
+        setFitnessState((prev) => ({
+          ...prev,
+          workout: {
+            ...prev.workout,
+            exercises: prev.workout.exercises.map((ex) =>
+              ex.id === exercise.id
+                ? {
+                    ...ex,
+                    sets: ex.sets.map((st, i) =>
+                      i === setIndex
+                        ? { ...st, ...buildSetCompletionPatch(effective, ex.sets, setIndex, historySets) }
+                        : st,
+                    ),
+                  }
+                : ex,
+            ),
+          },
+        }));
+        startRestTimer(exercise, setIndex);
+        return true;
+      }
+
+      setFitnessState((prev) => ({
+        ...prev,
+        workout: {
+          ...prev.workout,
+          exercises: prev.workout.exercises.map((ex) =>
+            ex.id === exercise.id
+              ? {
+                  ...ex,
+                  sets: ex.sets.map((st, i) => (i === setIndex ? { ...st, done: false } : st)),
+                }
+              : ex,
+          ),
+        },
+      }));
+      if (restTimerRef.current?.exerciseId === exercise.id) clearRestTimer();
+      unmarkRestedFromSet(exercise.id, setIndex);
+      return true;
+    },
+    [clearRestTimer, rejectSetCompletion, setFitnessState, startRestTimer, unmarkRestedFromSet],
+  );
+
+  const addSet = useCallback(
+    (exerciseId: string) => {
+      setFitnessState((prev) => ({
+        ...prev,
+        workout: {
+          ...prev.workout,
+          exercises: prev.workout.exercises.map((exercise) =>
+            exercise.id === exerciseId
+              ? { ...exercise, sets: [...exercise.sets, { w: 0, r: 0, done: false }] }
+              : exercise,
+          ),
+        },
+      }));
+    },
+    [setFitnessState],
+  );
+
+  const removeSet = useCallback(
+    (exerciseId: string, setIndex: number) => {
+      const current = restTimerRef.current;
+      if (current?.exerciseId === exerciseId) {
+        if (current.afterSetIndex === setIndex) {
+          clearRestTimer();
+        } else if (current.afterSetIndex > setIndex) {
+          setRestTimer((rt) => (rt ? { ...rt, afterSetIndex: rt.afterSetIndex - 1 } : null));
+        }
+      }
+      setFitnessState((prev) => ({
+        ...prev,
+        workout: {
+          ...prev.workout,
+          exercises: prev.workout.exercises.map((exercise) =>
+            exercise.id === exerciseId
+              ? { ...exercise, sets: exercise.sets.filter((_, i) => i !== setIndex) }
+              : exercise,
+          ),
+        },
+      }));
+    },
+    [clearRestTimer, setFitnessState],
+  );
+
+  const updateSetKind = useCallback(
+    (exerciseId: string, setIndex: number, kind: WorkoutSetKind) => {
+      setFitnessState((prev) => ({
+        ...prev,
+        workout: {
+          ...prev.workout,
+          exercises: prev.workout.exercises.map((exercise) =>
+            exercise.id === exerciseId
+              ? {
+                  ...exercise,
+                  sets: exercise.sets.map((st, i) => {
+                    if (i !== setIndex) return st;
+                    if (kind === "working") {
+                      const { kind: _k, ...rest } = st;
+                      return rest;
+                    }
+                    return { ...st, kind };
+                  }),
+                }
+              : exercise,
+          ),
+        },
+      }));
+    },
+    [setFitnessState],
+  );
+
+  const openRestSheet = useCallback(
+    (exerciseId: string) => {
+      const current = restTimerRef.current;
+      if (current?.exerciseId === exerciseId && current.completed) {
+        dismissCompletedRest();
+        return;
+      }
+      setRestSheetExerciseId(exerciseId);
+    },
+    [dismissCompletedRest],
+  );
+
+  const openExerciseActions = useCallback((exerciseId: string) => {
+    setExerciseActionId(exerciseId);
+  }, []);
+
+  const scrollToField = useCallback((target: WorkoutKeypadTarget) => {
+    const exerciseIndex = exercisesRef.current.findIndex((e) => e.id === target.exerciseId);
+    if (exerciseIndex < 0) return;
+    listRef.current?.scrollToIndex({ index: exerciseIndex, animated: true, viewOffset: WORKOUT_KEYPAD_HEIGHT + 24 });
+  }, []);
+
+  const completeSet = useCallback(
+    (exerciseId: string, setIndex: number, pendingPatch?: Partial<{ w: number; r: number }>) => {
+      const exercise = exercisesRef.current.find((e) => e.id === exerciseId);
+      if (!exercise) return false;
+      const st = exercise.sets[setIndex];
+      if (!st || st.done) return false;
+      return toggleSetDone(exercise, setIndex, pendingPatch);
+    },
+    [toggleSetDone],
   );
 
   if (!state || !w) return null;
@@ -184,98 +581,6 @@ export function WorkoutLiftingSlot() {
     }));
   }
 
-  function updateSet(exerciseId: string, setIndex: number, patch: Partial<{ w: number; r: number; done: boolean }>) {
-    setFitnessState((prev) => ({
-      ...prev,
-      workout: {
-        ...prev.workout,
-        exercises: prev.workout.exercises.map((ex) =>
-          ex.id === exerciseId
-            ? {
-                ...ex,
-                sets: ex.sets.map((st, i) => (i === setIndex ? { ...st, ...patch } : st)),
-              }
-            : ex,
-        ),
-      },
-    }));
-  }
-
-  function clearRestTimer() {
-    setRestTimer(null);
-  }
-
-  function markRestedAfterSet(exerciseId: string, afterSetIndex: number, durationSec: number) {
-    setRestedRestSecByExerciseId((prev) => {
-      const existing = prev[exerciseId] ?? {};
-      if (existing[afterSetIndex] != null) return prev;
-      return {
-        ...prev,
-        [exerciseId]: { ...existing, [afterSetIndex]: durationSec },
-      };
-    });
-  }
-
-  function unmarkRestedFromSet(exerciseId: string, fromSetIndex: number) {
-    setRestedRestSecByExerciseId((prev) => {
-      const existing = prev[exerciseId];
-      if (!existing) return prev;
-      const next: Record<number, number> = {};
-      let changed = false;
-      for (const [key, sec] of Object.entries(existing)) {
-        const idx = Number(key);
-        if (idx < fromSetIndex) next[idx] = sec;
-        else changed = true;
-      }
-      if (!changed) return prev;
-      if (Object.keys(next).length === 0) {
-        const { [exerciseId]: _, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, [exerciseId]: next };
-    });
-  }
-
-  function startRestTimer(exercise: WorkoutExercise, afterSetIndex: number) {
-    const previous = restTimerRef.current;
-
-    function durationForCompletedGap(gapIndex: number): number {
-      if (previous?.exerciseId === exercise.id && previous.afterSetIndex === gapIndex) {
-        return previous.durationSec;
-      }
-      return restDurationForExercise(
-        exercise.name,
-        exercise.label,
-        state!.restTimerDefaultSeconds,
-        state!.restTimerSecondsByExerciseKey,
-      );
-    }
-
-    if (afterSetIndex > 0) {
-      markRestedAfterSet(exercise.id, afterSetIndex - 1, durationForCompletedGap(afterSetIndex - 1));
-    }
-    if (previous?.exerciseId === exercise.id && previous.afterSetIndex !== afterSetIndex) {
-      markRestedAfterSet(exercise.id, previous.afterSetIndex, previous.durationSec);
-    }
-
-    const durationSec = restDurationForExercise(
-      exercise.name,
-      exercise.label,
-      state!.restTimerDefaultSeconds,
-      state!.restTimerSecondsByExerciseKey,
-    );
-    setRestTimer({
-      exerciseId: exercise.id,
-      exerciseName: exercise.name,
-      exerciseLabel: exercise.label,
-      endsAtMs: Date.now() + durationSec * 1000,
-      durationSec,
-      completed: false,
-      afterSetIndex,
-      paused: false,
-    });
-  }
-
   function completeRestTimer() {
     setRestTimer((current) => {
       if (!current) return current;
@@ -287,140 +592,6 @@ export function WorkoutLiftingSlot() {
         endsAtMs: Date.now(),
       };
     });
-  }
-
-  function dismissCompletedRest() {
-    if (restTimer?.completed) {
-      markRestedAfterSet(restTimer.exerciseId, restTimer.afterSetIndex, restTimer.durationSec);
-    }
-    setRestTimer(null);
-  }
-
-  function openRestSheet(exerciseId: string) {
-    if (restTimer?.exerciseId === exerciseId && restTimer.completed) {
-      dismissCompletedRest();
-      return;
-    }
-    setRestSheetExerciseId(exerciseId);
-  }
-
-  function toggleSetDone(
-    exercise: WorkoutExercise,
-    setIndex: number,
-    pendingPatch?: Partial<{ w: number; r: number }>,
-  ): boolean {
-    const set = exercise.sets[setIndex];
-    if (!set) return false;
-
-    const historySets = previousSetsForExercise(state!.workoutHistory, exercise.name, exercise.label);
-    const effective = pendingPatch ? { ...set, ...pendingPatch } : set;
-    const willDone = !set.done;
-
-    if (willDone) {
-      if (!canCompleteSet(effective, exercise.sets, setIndex, historySets)) {
-        Alert.alert("Empty set", "Enter weight or reps before marking this set done.");
-        return false;
-      }
-      setFitnessState((prev) => ({
-        ...prev,
-        workout: {
-          ...prev.workout,
-          exercises: prev.workout.exercises.map((ex) =>
-            ex.id === exercise.id
-              ? {
-                  ...ex,
-                  sets: ex.sets.map((st, i) =>
-                    i === setIndex
-                      ? { ...st, ...buildSetCompletionPatch(effective, ex.sets, setIndex, historySets) }
-                      : st,
-                  ),
-                }
-              : ex,
-          ),
-        },
-      }));
-      startRestTimer(exercise, setIndex);
-      return true;
-    }
-
-    setFitnessState((prev) => ({
-      ...prev,
-      workout: {
-        ...prev.workout,
-        exercises: prev.workout.exercises.map((ex) =>
-          ex.id === exercise.id
-            ? {
-                ...ex,
-                sets: ex.sets.map((st, i) => (i === setIndex ? { ...st, done: false } : st)),
-              }
-            : ex,
-        ),
-      },
-    }));
-    if (restTimer?.exerciseId === exercise.id) clearRestTimer();
-    unmarkRestedFromSet(exercise.id, setIndex);
-    return true;
-  }
-
-  function addSet(exerciseId: string) {
-    setFitnessState((prev) => ({
-      ...prev,
-      workout: {
-        ...prev.workout,
-        exercises: prev.workout.exercises.map((exercise) =>
-          exercise.id === exerciseId
-            ? { ...exercise, sets: [...exercise.sets, { w: 0, r: 0, done: false }] }
-            : exercise,
-        ),
-      },
-    }));
-  }
-
-  function removeSet(exerciseId: string, setIndex: number) {
-    if (restTimer?.exerciseId === exerciseId) {
-      if (restTimer.afterSetIndex === setIndex) {
-        clearRestTimer();
-      } else if (restTimer.afterSetIndex > setIndex) {
-        setRestTimer((current) =>
-          current ? { ...current, afterSetIndex: current.afterSetIndex - 1 } : null,
-        );
-      }
-    }
-    setFitnessState((prev) => ({
-      ...prev,
-      workout: {
-        ...prev.workout,
-        exercises: prev.workout.exercises.map((exercise) =>
-          exercise.id === exerciseId
-            ? { ...exercise, sets: exercise.sets.filter((_, i) => i !== setIndex) }
-            : exercise,
-        ),
-      },
-    }));
-  }
-
-  function updateSetKind(exerciseId: string, setIndex: number, kind: WorkoutSetKind) {
-    setFitnessState((prev) => ({
-      ...prev,
-      workout: {
-        ...prev.workout,
-        exercises: prev.workout.exercises.map((exercise) =>
-          exercise.id === exerciseId
-            ? {
-                ...exercise,
-                sets: exercise.sets.map((st, i) => {
-                  if (i !== setIndex) return st;
-                  if (kind === "working") {
-                    const { kind: _k, ...rest } = st;
-                    return rest;
-                  }
-                  return { ...st, kind };
-                }),
-              }
-            : exercise,
-        ),
-      },
-    }));
   }
 
   function setRestPreset(exercise: WorkoutExercise, seconds: number) {
@@ -643,12 +814,6 @@ export function WorkoutLiftingSlot() {
     endSessionToIdle(true);
   }
 
-  function scrollToField(target: WorkoutKeypadTarget) {
-    const exerciseIndex = workout.exercises.findIndex((e) => e.id === target.exerciseId);
-    if (exerciseIndex < 0) return;
-    listRef.current?.scrollToIndex({ index: exerciseIndex, animated: true, viewOffset: WORKOUT_KEYPAD_HEIGHT + 24 });
-  }
-
   const swapExercise = swapExerciseId ? workout.exercises.find((e) => e.id === swapExerciseId) : null;
   const actionExercise = exerciseActionId ? workout.exercises.find((e) => e.id === exerciseActionId) : null;
 
@@ -676,18 +841,13 @@ export function WorkoutLiftingSlot() {
       weightUnit={weightUnit}
       onUpdateSet={updateSet}
       onScrollToField={scrollToField}
-      onCompleteSet={(exerciseId, setIndex, pendingPatch) => {
-        const exercise = workout.exercises.find((e) => e.id === exerciseId);
-        if (!exercise) return false;
-        const st = exercise.sets[setIndex];
-        if (!st || st.done) return false;
-        return toggleSetDone(exercise, setIndex, pendingPatch);
-      }}
+      onCompleteSet={completeSet}
     >
       <View testID={useNewLook ? "workout-lifting-newlook" : "workout-lifting"} className="flex-1">
         <View className="shrink-0">
           <WorkoutSessionHeader
-            elapsedSec={elapsedSec}
+            sessionStartedAtMs={workout.sessionStartedAtMs ?? null}
+            sessionActive={workout.sessionPhase === "lifting"}
             sessionTitle={workout.sessionTitle}
             onSessionTitleChange={updateSessionTitle}
             startedAt={workout.startedAt}
@@ -771,41 +931,29 @@ export function WorkoutLiftingSlot() {
                 paddingBottom: WORKOUT_KEYPAD_HEIGHT + insets.bottom + 32,
                 ...(useNewLook ? { gap: 28 } : {}),
               }}
-              renderItem={(exercise, index, handle, ctx) =>
-                useNewLook ? (
-                  <WorkoutExerciseCardFlat
-                    exercise={exercise}
-                    workoutHistory={state.workoutHistory}
-                    unitPreferences={state.unitPreferences}
-                    handle={handle}
-                    restTimer={restTimer}
-                    restTimerDefaultSeconds={state.restTimerDefaultSeconds}
-                    restTimerSecondsByExerciseKey={state.restTimerSecondsByExerciseKey}
-                    restedRestSecByAfterSetIndex={restedRestSecByExerciseId[exercise.id] ?? {}}
-                    onToggleSetDone={toggleSetDone}
-                    onOpenActions={() => setExerciseActionId(exercise.id)}
-                    onOpenRestSheet={openRestSheet}
-                    onAddSet={addSet}
-                    onRemoveSet={removeSet}
-                    onUpdateSetKind={updateSetKind}
-                    swipeDisabled={ctx.isListDragging || handle.isDragging}
-                  />
-                ) : (
-                  <WorkoutExerciseCard
-                    exercise={exercise}
-                    exerciseIndex={index}
-                    workoutHistory={state.workoutHistory}
-                    unitPreferences={state.unitPreferences}
-                    sessionCoachNote={workout.sessionCoachNotesByExerciseId?.[exercise.id]}
-                    handle={handle}
-                    onToggleSetDone={toggleSetDone}
-                    onOpenActions={() => setExerciseActionId(exercise.id)}
-                    onRemoveSet={removeSet}
-                    onUpdateSetKind={updateSetKind}
-                    swipeDisabled={ctx.isListDragging || handle.isDragging}
-                  />
-                )
-              }
+              renderItem={(exercise, index, handle, ctx) => (
+                <LiftingExerciseRow
+                  useNewLook={useNewLook}
+                  exercise={exercise}
+                  index={index}
+                  handle={handle}
+                  swipeDisabled={ctx.isListDragging || handle.isDragging}
+                  workoutHistory={state.workoutHistory}
+                  unitPreferences={state.unitPreferences}
+                  sessionCoachNote={workout.sessionCoachNotesByExerciseId?.[exercise.id]}
+                  restTimer={restTimer}
+                  restTimerDefaultSeconds={state.restTimerDefaultSeconds}
+                  restTimerSecondsByExerciseKey={state.restTimerSecondsByExerciseKey}
+                  restedRestSecForExercise={restedRestSecByExerciseId[exercise.id]}
+                  rejectShakeSet={rejectShakeSet}
+                  onToggleSetDone={toggleSetDone}
+                  onOpenExerciseActions={openExerciseActions}
+                  onOpenRestSheet={openRestSheet}
+                  onAddSet={addSet}
+                  onRemoveSet={removeSet}
+                  onUpdateSetKind={updateSetKind}
+                />
+              )}
             />
           </View>
         )}

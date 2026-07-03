@@ -71,17 +71,16 @@ export function RestTimerStrip({
   const isRunning = phase === "running";
   const isComplete = phase === "complete";
   const isRested = phase === "rested";
-  const isActive = isRunning || isComplete;
 
   const trackColor = isComplete
-    ? "rgba(48,209,88,0.28)"
+    ? colors.border
     : isRunning
       ? WORKOUT_ACCENT_TRACK
       : isRested
         ? "rgba(255,255,255,0.22)"
         : colors.border;
-  const fillColor = isComplete ? colors.accent : isRunning ? WORKOUT_ACCENT : "rgba(255,255,255,0.55)";
-  const trackHeight = isActive ? 6 : isRested ? 3 : 2;
+  const fillColor = isComplete ? colors.border : isRunning ? WORKOUT_ACCENT : "rgba(255,255,255,0.55)";
+  const trackHeight = isRunning ? 6 : isRested ? 3 : 2;
   const label = formatRestDuration(isRested ? displayPresetSec : displaySec);
 
   return (
@@ -89,7 +88,7 @@ export function RestTimerStrip({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Rest ${label}, tap to adjust`}
-      className="my-0.5 h-5 w-full items-center justify-center"
+      className={`my-0.5 w-full items-center justify-center ${isComplete ? "h-8" : "h-5"}`}
     >
       <View
         pointerEvents="none"
@@ -117,10 +116,10 @@ export function RestTimerStrip({
 
       {isComplete ? (
         <View
-          className="z-10 min-w-[72px] flex-row items-center justify-center gap-1 rounded-full px-3.5 py-1"
-          style={{ backgroundColor: colors.accent, borderWidth: 1, borderColor: colors.accent }}
+          className="z-10 min-w-[72px] flex-row items-center justify-center gap-1 rounded-full px-3.5 py-0.5"
+          style={{ backgroundColor: colors.background, borderWidth: 1, borderColor: colors.textPrimary }}
         >
-          <Text className="text-xs font-bold" style={{ color: colors.background }}>
+          <Text className="text-xs font-bold leading-4" style={{ color: colors.textPrimary }}>
             ✓ Go!
           </Text>
         </View>
