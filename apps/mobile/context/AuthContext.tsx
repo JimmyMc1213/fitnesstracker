@@ -12,6 +12,7 @@ import {
 import { AppState, Platform, type AppStateStatus } from "react-native";
 
 import { mapOAuthSessionError, parseOAuthRedirectUrl } from "@/lib/authOAuth";
+import { createAppleAuthNonce } from "@/lib/appleAuthNonce";
 import { changeUserPassword, updateUserEmail } from "@/lib/accountAuth";
 import { enforceAuthGenerationIfNeeded } from "@/lib/authEnforcement";
 import { authenticatedUserEmail } from "@/lib/authSession";
@@ -274,11 +275,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const available = await AppleAuthentication.isAvailableAsync();
       if (!available) return { error: "Apple Sign-In is not available on this device." };
 
+      const { rawNonce, hashedNonce } = await createAppleAuthNonce();
+
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
+        nonce: hashedNonce,
       });
 
       if (!credential.identityToken) {
@@ -292,16 +296,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .filter(Boolean)
         .join(" ")
         .trim();
+      const givenName = credential.fullName?.givenName?.trim() ?? "";
+      const familyName = credential.fullName?.familyName?.trim() ?? "";
 
       const { data: authData, error } = await sb.auth.signInWithIdToken({
         provider: "apple",
         token: credential.identityToken,
+        nonce: rawNonce,
       });
-      if (error) return { error: mapOAuthSessionError(error.message) };
+      if (error) return { error: mapOAuthSessionError(error.message, "apple") };
 
-      if (fullName && authData.user && !authData.user.user_metadata?.full_name) {
-        await sb.auth.updateUser({ data: { full_name: fullName } });
+      if (authData.session) {
+        setSession(authData.session);
+        setSessionResolved(true);
       }
+
+      if (authData.user && (fullName || givenName || familyName)) {
+        const existingMeta = authData.user.user_metadata ?? {};
+        if (!existingMeta.full_name) {
+          await sb.auth.updateUser({
+            data: {
+              first_name: givenName || undefined,
+              last_name: familyName || undefined,
+              full_name: fullName || undefined,
+            },
+          });
+        }
+      }
+
+      const resolvedName = fullName || displayNameFromUser(authData.user);
+      if (resolvedName) await seedPersistedDisplayName(resolvedName);
       return {};
     } catch (e) {
       if (e && typeof e === "object" && "code" in e) {
@@ -309,7 +333,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (code === "ERR_REQUEST_CANCELED") return {};
       }
       const message = e instanceof Error ? e.message : "Apple Sign-In failed.";
-      return { error: mapOAuthSessionError(message) };
+      return { error: mapOAuthSessionError(message, "apple") };
     }
   }, []);
 

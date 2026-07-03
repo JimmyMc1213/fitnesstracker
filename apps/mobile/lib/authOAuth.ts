@@ -42,13 +42,16 @@ export function parseOAuthRedirectUrl(url: string): OAuthRedirectParseResult {
   };
 }
 
-export function mapOAuthSessionError(message: string): string {
+export function mapOAuthSessionError(message: string, context?: "apple"): string {
   const lower = message.toLowerCase();
   if (lower.includes("redirect") || lower.includes("uri")) {
     return "OAuth redirect is misconfigured. Check Supabase redirect URLs and the app scheme.";
   }
   if (lower.includes("provider") && lower.includes("not enabled")) {
-    return "This sign-in provider is not enabled for the project.";
+    return "Apple Sign-In isn't available right now. Please sign up with email instead.";
+  }
+  if (context === "apple") {
+    return "Couldn't sign in with Apple. Try email sign-up instead.";
   }
   return message;
 }
