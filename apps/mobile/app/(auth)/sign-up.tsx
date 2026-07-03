@@ -30,12 +30,10 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
     setError(null);
-    setInfo(null);
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
       setError("Fill in all fields.");
       return;
@@ -51,7 +49,13 @@ export default function SignUpScreen() {
       if (result.error) {
         setError(result.error);
       } else if (result.needsConfirmation) {
-        setInfo("Check your inbox and click the confirmation link, then come back and sign in.");
+        router.replace({
+          pathname: "/(auth)/sign-in",
+          params: {
+            email: email.trim(),
+            info: "Check your inbox and tap the confirmation link — it will open New You AI.",
+          },
+        });
       }
     } catch {
       setError("Something went wrong. Try again.");
@@ -66,12 +70,6 @@ export default function SignUpScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <AuthNotice message={error} variant="error" testID="auth-sign-up-error" />
-      <AuthNotice
-        message={info}
-        variant="info"
-        testID="auth-sign-up-info"
-        onDismiss={() => setInfo(null)}
-      />
 
       <ScrollView
         keyboardShouldPersistTaps="handled"

@@ -86,10 +86,6 @@ export default function RootLayout() {
     });
   }, []);
 
-  if (!loaded) {
-    return <View style={{ flex: 1, backgroundColor: "#0a0a0a" }} />;
-  }
-
   return (
     <GestureHandlerRootView
       style={{
@@ -101,19 +97,23 @@ export default function RootLayout() {
     >
       <ThemeShell>
         <AuthProvider>
-          <FitnessProvider>
-            <FitnessSyncProvider>
-              <NotificationSchedulerProvider>
-                <View style={{ flex: 1 }}>
-                  <RootLayoutNav />
-                  <NumericKeyboardAccessory />
-                  {bootSplashVisible && !isVisualParityWebFrame() ? (
-                    <BootSplash onComplete={() => setBootSplashVisible(false)} />
-                  ) : null}
-                </View>
-              </NotificationSchedulerProvider>
-            </FitnessSyncProvider>
-          </FitnessProvider>
+          {!loaded ? (
+            <View style={{ flex: 1, backgroundColor: "#0a0a0a" }} />
+          ) : (
+            <FitnessProvider>
+              <FitnessSyncProvider>
+                <NotificationSchedulerProvider>
+                  <View style={{ flex: 1 }}>
+                    <RootLayoutNav />
+                    <NumericKeyboardAccessory />
+                    {bootSplashVisible && !isVisualParityWebFrame() ? (
+                      <BootSplash onComplete={() => setBootSplashVisible(false)} />
+                    ) : null}
+                  </View>
+                </NotificationSchedulerProvider>
+              </FitnessSyncProvider>
+            </FitnessProvider>
+          )}
         </AuthProvider>
       </ThemeShell>
     </GestureHandlerRootView>

@@ -1,17 +1,11 @@
 import type { Session } from "@supabase/supabase-js";
 import * as WebBrowser from "expo-web-browser";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { AppState, Platform, type AppStateStatus } from "react-native";
 
+import { AuthContext, type AuthContextValue } from "@/context/auth-context";
 import { mapOAuthSessionError, parseOAuthRedirectUrl } from "@/lib/authOAuth";
+import { authEmailRedirectUrl } from "@/lib/authRedirect";
 import { createAppleAuthNonce } from "@/lib/appleAuthNonce";
 import { changeUserPassword, updateUserEmail } from "@/lib/accountAuth";
 import { enforceAuthGenerationIfNeeded } from "@/lib/authEnforcement";
@@ -22,29 +16,6 @@ import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
 
 WebBrowser.maybeCompleteAuthSession();
 
-type AuthResult = { error?: string; needsConfirmation?: boolean };
-
-type AuthContextValue = {
-  configured: boolean;
-  session: Session | null;
-  sessionEmail: string | null;
-  sessionResolved: boolean;
-  signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
-  signUpWithEmail: (
-    email: string,
-    password: string,
-    firstName: string,
-    lastName: string,
-  ) => Promise<AuthResult>;
-  signInWithApple: () => Promise<{ error?: string }>;
-  signOut: () => Promise<void>;
-  completeOAuthFromUrl: (redirectUrl: string) => Promise<{ error?: string }>;
-  updateEmail: (newEmail: string) => Promise<{ error?: string }>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<{ error?: string }>;
-};
-
-const AuthContext = createContext<AuthContextValue | null>(null);
-
 const DUPLICATE_EMAIL_PATTERNS = ["already registered", "already exists", "user already"];
 
 /** Never leave the app on a spinner if Supabase or SecureStore is slow/unreachable. */
@@ -54,6 +25,14 @@ function isDuplicateEmailError(message: string | undefined): boolean {
   if (!message) return false;
   const lower = message.toLowerCase();
   return DUPLICATE_EMAIL_PATTERNS.some((pattern) => lower.includes(pattern));
+}
+
+function mapSignInError(message: string): string {
+  const lower = message.toLowerCase();
+  if (lower.includes("email not confirmed")) {
+    return "Confirm your email first — check your inbox for the link we sent you.";
+  }
+  return message;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -172,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sb = getSupabase();
     if (!sb) return { error: "Add Supabase keys to sign in." };
     const { data, error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
-    if (error) return { error: error.message };
+    if (error) return { error: mapSignInError(error.message) };
     if (data.session) setSession(data.session);
     setSessionResolved(true);
     return {};
@@ -207,6 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: trimmedEmail,
       password,
       options: {
+        emailRedirectTo: authEmailRedirectUrl(),
         data: {
           first_name: trimmedFirst,
           last_name: trimmedLast,
@@ -264,11 +244,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: mapOAuthSessionError(parsed.error) };
     }
 
-    const { error } = await sb.auth.setSession({
+    const { data, error } = await sb.auth.setSession({
       access_token: parsed.tokens.accessToken,
       refresh_token: parsed.tokens.refreshToken,
     });
     if (error) return { error: mapOAuthSessionError(error.message) };
+
+    const resolvedName = displayNameFromUser(data.session?.user);
+    if (resolvedName) await seedPersistedDisplayName(resolvedName);
+    if (data.session) {
+      setSession(data.session);
+      setSessionResolved(true);
+    }
     return {};
   }, []);
 
@@ -406,8 +393,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth(): AuthContextValue {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
-}
+export { useAuth } from "@/context/auth-context";
+export type { AuthContextValue, AuthResult } from "@/context/auth-context";

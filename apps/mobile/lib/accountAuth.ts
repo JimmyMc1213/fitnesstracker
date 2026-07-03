@@ -1,4 +1,5 @@
 import { getSupabase } from "@/lib/supabaseClient";
+import { authEmailRedirectUrl } from "@/lib/authRedirect";
 
 export async function updateUserEmail(
   currentEmail: string | null | undefined,
@@ -14,7 +15,10 @@ export async function updateUserEmail(
     return { error: "That's already your email." };
   }
 
-  const { error } = await sb.auth.updateUser({ email: trimmed });
+  const { error } = await sb.auth.updateUser(
+    { email: trimmed },
+    { emailRedirectTo: authEmailRedirectUrl() },
+  );
   if (error) return { error: error.message };
   return {};
 }
@@ -40,4 +44,10 @@ export function connectedAuthProviders(session: { user: { identities?: { provide
   const identities = session?.user.identities ?? [];
   const providers = identities.map((id) => id.provider);
   return [...new Set(providers)];
+}
+
+/** True when the user signed in with Apple and has no email/password identity. */
+export function isAppleSignInOnly(session: { user: { identities?: { provider: string }[] } } | null): boolean {
+  const providers = connectedAuthProviders(session);
+  return providers.includes("apple") && !providers.includes("email");
 }

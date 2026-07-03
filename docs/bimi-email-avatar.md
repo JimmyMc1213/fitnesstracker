@@ -23,25 +23,36 @@ curl -I https://newyouai.app/bimi/newyou-logo.svg
 
 ---
 
-## 2. Cloudflare DNS (sending domain `mail.newyouai.app`)
+## 2. GoDaddy DNS (sending domain `mail.newyouai.app`)
 
-Add these in **Cloudflare → newyouai.app → DNS** (DNS only / grey cloud for TXT).
+Add TXT records wherever **`newyouai.app` DNS is managed** (usually GoDaddy if that’s your registrar).
+
+**GoDaddy:** [My Products](https://account.godaddy.com/products) → **Domains** → **newyouai.app** → **DNS** → **Add New Record**
+
+For each record below:
+
+- **Type:** TXT  
+- **TTL:** 1 Hour (default is fine)  
+- **Name:** use the value in the table (GoDaddy appends `.newyouai.app` automatically — do **not** type the full domain twice)  
+- **Value:** paste exactly as shown (no extra quotes unless GoDaddy adds them for you)
 
 ### DMARC (required before BIMI)
 
-| Type | Name | Content |
-|------|------|---------|
-| TXT | `_dmarc.mail` | `v=DMARC1; p=quarantine; pct=100; rua=mailto:support@newyouai.app` |
+| Name | Value |
+|------|-------|
+| `_dmarc.mail` | `v=DMARC1; p=quarantine; pct=100; rua=mailto:support@newyouai.app` |
 
-After a few weeks of clean delivery, tighten to `p=reject`.
+After a few weeks of clean delivery, change to `p=reject`.
 
 ### BIMI (logo in inbox)
 
-| Type | Name | Content |
-|------|------|---------|
-| TXT | `default._bimi.mail` | `v=BIMI1; l=https://newyouai.app/bimi/newyou-logo.svg;` |
+| Name | Value |
+|------|-------|
+| `default._bimi.mail` | `v=BIMI1; l=https://newyouai.app/bimi/newyou-logo.svg;` |
 
-Resend SPF/DKIM on `mail.newyouai.app` should already be set from domain verification.
+Resend SPF/DKIM on `mail.newyouai.app` should already be set from domain verification (those TXT records also live in GoDaddy DNS from when you verified the domain in Resend).
+
+**Nameservers:** If `newyouai.app` uses Vercel nameservers instead of GoDaddy, add these same TXT records in the **Vercel** DNS panel for the domain, not GoDaddy.
 
 ---
 

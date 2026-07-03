@@ -18,8 +18,11 @@ import { GradientCard } from "@/components/ui/GradientCard";
 import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { connectedAuthProviders } from "@/lib/accountAuth";
+import { connectedAuthProviders, isAppleSignInOnly } from "@/lib/accountAuth";
 import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
+import { deleteUserAccount, isDeleteAccountDryRunEnabled } from "@/lib/deleteUserAccount";
+import { resetLocalAfterAccountDelete } from "@/lib/resetAfterAccountDelete";
+import { getSupabase } from "@/lib/supabaseClient";
 import { sanitizeUserText } from "@/lib/userText";
 
 // @refresh reset
@@ -33,9 +36,13 @@ function providerLabel(provider: string): string {
 export function YouPanel() {
   const { colors } = useAppTheme();
   const { sessionEmail, session, signOut } = useAuth();
-  const { state, setFitnessState } = useFitnessState();
+  const { state, setFitnessState, replaceFitnessState } = useFitnessState();
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [deleteAccountStep, setDeleteAccountStep] = useState<null | "warn" | "final">(null);
+  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
+  const [deleteAccountNotice, setDeleteAccountNotice] = useState<string | null>(null);
+  const [deleteAccountBusy, setDeleteAccountBusy] = useState(false);
 
   const handleSignOut = useCallback(async () => {
     stopOnboardingPreview();
@@ -43,9 +50,48 @@ export function YouPanel() {
     router.replace("/(auth)");
   }, [signOut]);
 
+  const handleDeleteAccount = useCallback(async () => {
+    const sb = getSupabase();
+    if (!sb) {
+      setDeleteAccountError("Add Supabase keys to sync.");
+      return;
+    }
+
+    setDeleteAccountError(null);
+    setDeleteAccountNotice(null);
+    setDeleteAccountBusy(true);
+
+    const dryRun = isDeleteAccountDryRunEnabled();
+    const result = await deleteUserAccount({
+      confirmed: true,
+      userId: session?.user?.id,
+      dryRun,
+      invokeDeleteUser: (body) => sb.functions.invoke("delete-user", { method: "POST", body }),
+      signOut,
+      onDeleted: async () => {
+        const next = await resetLocalAfterAccountDelete();
+        replaceFitnessState(next);
+      },
+    });
+
+    setDeleteAccountBusy(false);
+
+    if (result.error) {
+      setDeleteAccountError(result.error);
+      return;
+    }
+
+    setDeleteAccountStep(null);
+    if (result.dryRun) {
+      setDeleteAccountNotice("Dry run OK, your account was not deleted.");
+    }
+  }, [replaceFitnessState, session?.user?.id, signOut]);
+
   if (!state) return null;
 
   const providers = connectedAuthProviders(session);
+  const appleOnly = isAppleSignInOnly(session);
+  const showEmailPassword = Boolean(sessionEmail) && !appleOnly;
 
   return (
     <View className="gap-4">
@@ -75,17 +121,48 @@ export function YouPanel() {
       {sessionEmail ? (
         <>
           <SettingsHubSection title="Personal info">
+            {deleteAccountNotice ? (
+              <View className="px-4 pt-3">
+                <Text className="text-[13px]" style={{ color: colors.textSecondary }}>
+                  {deleteAccountNotice}
+                </Text>
+              </View>
+            ) : null}
+            {deleteAccountError ? (
+              <View className="px-4 pt-3">
+                <Text className="text-[13px]" style={{ color: "#f87171" }}>
+                  {deleteAccountError}
+                </Text>
+              </View>
+            ) : null}
+            {showEmailPassword ? (
+              <>
+                <SettingsRow
+                  label="Email"
+                  trailing={sessionEmail}
+                  testID="settings-you-email-row"
+                  onPress={() => setShowEmailDialog(true)}
+                />
+                <SettingsRow
+                  label="Change password"
+                  testID="settings-you-change-password-row"
+                  onPress={() => router.push("/(tabs)/settings/you/change-password")}
+                />
+              </>
+            ) : null}
             <SettingsRow
-              label="Email"
-              trailing={sessionEmail}
-              testID="settings-you-email-row"
-              onPress={() => setShowEmailDialog(true)}
-            />
-            <SettingsRow
-              label="Change password"
-              testID="settings-you-change-password-row"
+              label="Delete account"
+              labelColor="#f87171"
+              trailing=""
+              testID="settings-delete-account"
               isLast
-              onPress={() => router.push("/(tabs)/settings/you/change-password")}
+              disabled={deleteAccountBusy}
+              onPress={() => {
+                if (deleteAccountBusy) return;
+                setDeleteAccountError(null);
+                setDeleteAccountNotice(null);
+                setDeleteAccountStep("warn");
+              }}
             />
           </SettingsHubSection>
 
@@ -122,10 +199,10 @@ export function YouPanel() {
         </>
       ) : null}
 
-      {sessionEmail ? (
+      {showEmailPassword ? (
         <EmailAccountDialog
           open={showEmailDialog}
-          email={sessionEmail}
+          email={sessionEmail!}
           onClose={() => setShowEmailDialog(false)}
         />
       ) : null}
@@ -143,6 +220,40 @@ export function YouPanel() {
           onConfirm={() => {
             setShowSignOutConfirm(false);
             void handleSignOut();
+          }}
+        />
+      ) : null}
+
+      {deleteAccountStep === "warn" ? (
+        <FutureYouDeleteConfirmSheet
+          title="Delete account?"
+          cancelLabel="Cancel"
+          confirmLabel="Continue"
+          message="This will permanently delete your account and all data stored in the cloud. You can cancel now if you only meant to sign out."
+          sheetTestID="settings-delete-account-warn-sheet"
+          cancelTestID="settings-delete-account-warn-cancel"
+          confirmTestID="settings-delete-account-warn-continue"
+          onCancel={() => setDeleteAccountStep(null)}
+          onConfirm={() => setDeleteAccountStep("final")}
+        />
+      ) : null}
+
+      {deleteAccountStep === "final" ? (
+        <FutureYouDeleteConfirmSheet
+          title="Delete account permanently?"
+          cancelLabel="Cancel"
+          confirmLabel="Delete account"
+          confirmBusy={deleteAccountBusy}
+          message="This will permanently delete your account and all your data. This cannot be undone."
+          sheetTestID="settings-delete-account-final-sheet"
+          cancelTestID="settings-delete-account-final-cancel"
+          confirmTestID="settings-delete-account-final-confirm"
+          onCancel={() => {
+            if (!deleteAccountBusy) setDeleteAccountStep(null);
+          }}
+          onConfirm={() => {
+            if (deleteAccountBusy) return;
+            void handleDeleteAccount();
           }}
         />
       ) : null}

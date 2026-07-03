@@ -1,5 +1,5 @@
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -21,6 +21,7 @@ import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { authLayout } from "@/lib/authLayoutStyles";
 
 export default function SignInScreen() {
+  const params = useLocalSearchParams<{ email?: string; info?: string }>();
   const { colors } = useAppTheme();
   const { ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
@@ -28,7 +29,17 @@ export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (typeof params.email === "string" && params.email.trim()) {
+      setEmail(params.email.trim());
+    }
+    if (typeof params.info === "string" && params.info.trim()) {
+      setInfo(params.info.trim());
+    }
+  }, [params.email, params.info]);
 
   const handleSignIn = async () => {
     setError(null);
@@ -56,6 +67,12 @@ export default function SignInScreen() {
       testID="auth-sign-in-screen"
     >
       <AuthNotice message={error} variant="error" testID="auth-sign-in-error" />
+      <AuthNotice
+        message={info}
+        variant="info"
+        testID="auth-sign-in-info"
+        onDismiss={() => setInfo(null)}
+      />
 
       <ScrollView
         keyboardShouldPersistTaps="handled"

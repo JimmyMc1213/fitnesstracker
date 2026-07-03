@@ -12,10 +12,13 @@ export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promis
   const shellInput = useAppShellRoutingInput();
   const { configured, sessionResolved } = useAuth();
   const { onboardingStubHydrated } = useOnboardingStub();
-  const pendingUrlRef = useRef<string | null>(null);
+  const pendingOAuthUrlRef = useRef<string | null>(null);
+  const pendingNavigateUrlRef = useRef<string | null>(null);
+
+  const authBootstrapReady = !configured || sessionResolved;
 
   const shellReady =
-    (!configured || sessionResolved) &&
+    authBootstrapReady &&
     (!configured || !shellInput.sessionEmail || onboardingStubHydrated) &&
     !isAppShellLoading(shellInput) &&
     resolveAppShellMainView(shellInput) === "app";
@@ -23,15 +26,19 @@ export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promis
   const handleUrl = async (url: string | null) => {
     if (!url) return;
 
-    if (!shellReady) {
-      pendingUrlRef.current = url;
-      return;
-    }
-
     const action = resolveDeepLink(url);
 
     if (action.type === "oauth") {
+      if (!authBootstrapReady) {
+        pendingOAuthUrlRef.current = url;
+        return;
+      }
       await completeOAuthFromUrl(action.url);
+      return;
+    }
+
+    if (!shellReady) {
+      pendingNavigateUrlRef.current = url;
       return;
     }
 
@@ -48,9 +55,16 @@ export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promis
   };
 
   useEffect(() => {
-    if (!shellReady || !pendingUrlRef.current) return;
-    const url = pendingUrlRef.current;
-    pendingUrlRef.current = null;
+    if (!authBootstrapReady || !pendingOAuthUrlRef.current) return;
+    const url = pendingOAuthUrlRef.current;
+    pendingOAuthUrlRef.current = null;
+    void completeOAuthFromUrl(url);
+  }, [authBootstrapReady, completeOAuthFromUrl]);
+
+  useEffect(() => {
+    if (!shellReady || !pendingNavigateUrlRef.current) return;
+    const url = pendingNavigateUrlRef.current;
+    pendingNavigateUrlRef.current = null;
     void handleUrl(url);
   }, [shellReady]);
 
@@ -62,5 +76,5 @@ export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promis
     });
 
     return () => subscription.remove();
-  }, [shellReady, completeOAuthFromUrl]);
+  }, [authBootstrapReady, shellReady, completeOAuthFromUrl]);
 }

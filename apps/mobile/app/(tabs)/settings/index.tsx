@@ -1,6 +1,6 @@
 import { router } from "expo-router";
-import { useCallback, useState, type ReactNode } from "react";
-import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { useState, type ReactNode } from "react";
+import { Image, Linking, ScrollView, Text, View } from "react-native";
 import {
   formatVolumeFromOz,
   FEATURE_REQUEST_SETTINGS_LABEL,
@@ -9,7 +9,6 @@ import {
   nutritionGoalSettingsLabel,
 } from "@newyouai/core";
 
-import { FutureYouDeleteConfirmSheet } from "@/components/future-you/FutureYouDeleteConfirmSheet";
 import { TabScreenFade } from "@/components/motion/TabScreenFade";
 import { ReportIssueDialog } from "@/components/settings/ReportIssueDialog";
 import { RequestFeatureDialog } from "@/components/settings/RequestFeatureDialog";
@@ -32,12 +31,9 @@ import {
   IconToolsKitchen2,
 } from "@/components/icons/FitnessIcons";
 import { SettingsRowIcon } from "@/components/settings/SettingsRowIcon";
-import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { deleteUserAccount, isDeleteAccountDryRunEnabled } from "@/lib/deleteUserAccount";
 import { EQUIPMENT_SETUP_LABELS } from "@/lib/equipmentSetup";
-import { resetLocalAfterAccountDelete } from "@/lib/resetAfterAccountDelete";
 import type { SettingsPanelId } from "@/lib/settingsPanelRegistry";
 import {
   SETTINGS_PRIVACY_POLICY_URL,
@@ -45,7 +41,6 @@ import {
   SETTINGS_TERMS_URL,
 } from "@/lib/settingsLinks";
 import { settingsGoldIconColors } from "@/lib/settingsUiTokens";
-import { getSupabase } from "@/lib/supabaseClient";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
 import { volumeUnitLabel, weightUnitLabel } from "@/lib/unitLabels";
 import {
@@ -87,52 +82,10 @@ async function openExternalUrl(url: string) {
 export default function SettingsHubScreen() {
   const { colors, theme } = useAppTheme();
   const { contentPaddingBottom } = useTabScreenInsets();
-  const { session, sessionEmail, signOut } = useAuth();
-  const { state, replaceFitnessState } = useFitnessState();
+  const { state } = useFitnessState();
 
-  const [deleteAccountStep, setDeleteAccountStep] = useState<null | "warn" | "final">(null);
-  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
-  const [deleteAccountNotice, setDeleteAccountNotice] = useState<string | null>(null);
-  const [deleteAccountBusy, setDeleteAccountBusy] = useState(false);
   const [reportIssueOpen, setReportIssueOpen] = useState(false);
   const [featureRequestOpen, setFeatureRequestOpen] = useState(false);
-
-  const handleDeleteAccount = useCallback(async () => {
-    const sb = getSupabase();
-    if (!sb) {
-      setDeleteAccountError("Add Supabase keys to sync.");
-      return;
-    }
-
-    setDeleteAccountError(null);
-    setDeleteAccountNotice(null);
-    setDeleteAccountBusy(true);
-
-    const dryRun = isDeleteAccountDryRunEnabled();
-    const result = await deleteUserAccount({
-      confirmed: true,
-      userId: session?.user?.id,
-      dryRun,
-      invokeDeleteUser: (body) => sb.functions.invoke("delete-user", { method: "POST", body }),
-      signOut,
-      onDeleted: async () => {
-        const next = await resetLocalAfterAccountDelete();
-        replaceFitnessState(next);
-      },
-    });
-
-    setDeleteAccountBusy(false);
-
-    if (result.error) {
-      setDeleteAccountError(result.error);
-      return;
-    }
-
-    setDeleteAccountStep(null);
-    if (result.dryRun) {
-      setDeleteAccountNotice("Dry run OK, your account was not deleted.");
-    }
-  }, [replaceFitnessState, session?.user?.id, signOut]);
 
   if (!state) {
     return (
@@ -315,76 +268,12 @@ export default function SettingsHubScreen() {
             isLast
           />
         </SettingsHubSection>
-
-        {sessionEmail ? (
-          <View className="mt-2">
-            {deleteAccountNotice ? (
-              <Text className="mb-2 text-center text-[13px]" style={{ color: colors.textSecondary }}>
-                {deleteAccountNotice}
-              </Text>
-            ) : null}
-            {deleteAccountError ? (
-              <Text className="mb-2 text-center text-[13px]" style={{ color: "#f87171" }}>
-                {deleteAccountError}
-              </Text>
-            ) : null}
-            <Pressable
-              disabled={deleteAccountBusy}
-              className="items-center rounded-xl border px-4 py-3.5"
-              style={{ borderColor: colors.border, opacity: deleteAccountBusy ? 0.55 : 1 }}
-              testID="settings-delete-account"
-              onPress={() => {
-                setDeleteAccountError(null);
-                setDeleteAccountNotice(null);
-                setDeleteAccountStep("warn");
-              }}
-            >
-              <Text className="text-[15px] font-semibold" style={{ color: "#f87171" }}>
-                Delete Account
-              </Text>
-            </Pressable>
-          </View>
-        ) : null}
         </ScrollView>
       </SettingsScreenChrome>
       </TabScreenFade>
 
       <ReportIssueDialog open={reportIssueOpen} onClose={() => setReportIssueOpen(false)} />
       <RequestFeatureDialog open={featureRequestOpen} onClose={() => setFeatureRequestOpen(false)} />
-
-      {deleteAccountStep === "warn" ? (
-        <FutureYouDeleteConfirmSheet
-          title="Delete account?"
-          cancelLabel="Cancel"
-          confirmLabel="Continue"
-          message="This will permanently delete your account and all data stored in the cloud. You can cancel now if you only meant to sign out."
-          sheetTestID="settings-delete-account-warn-sheet"
-          cancelTestID="settings-delete-account-warn-cancel"
-          confirmTestID="settings-delete-account-warn-continue"
-          onCancel={() => setDeleteAccountStep(null)}
-          onConfirm={() => setDeleteAccountStep("final")}
-        />
-      ) : null}
-
-      {deleteAccountStep === "final" ? (
-        <FutureYouDeleteConfirmSheet
-          title="Delete account permanently?"
-          cancelLabel="Cancel"
-          confirmLabel="Delete account"
-          confirmBusy={deleteAccountBusy}
-          message="This will permanently delete your account and all your data. This cannot be undone."
-          sheetTestID="settings-delete-account-final-sheet"
-          cancelTestID="settings-delete-account-final-cancel"
-          confirmTestID="settings-delete-account-final-confirm"
-          onCancel={() => {
-            if (!deleteAccountBusy) setDeleteAccountStep(null);
-          }}
-          onConfirm={() => {
-            if (deleteAccountBusy) return;
-            void handleDeleteAccount();
-          }}
-        />
-      ) : null}
     </>
   );
 }
