@@ -1,10 +1,14 @@
 export type PaywallHeroLayoutTier = "regular" | "compact" | "tight";
 
 /** Space consumed by billing footer (picker + CTA + legal links). */
-const PAYWALL_FOOTER_RESERVE_PX = 236;
+const PAYWALL_FOOTER_RESERVE_BASE_PX = 236;
 
 /** Title block above the hero image ("Future You" + timeline row). */
-const PAYWALL_HERO_HEADER_RESERVE_PX = 56;
+const PAYWALL_HERO_HEADER_RESERVE_BASE_PX = 56;
+
+function scaledPx(base: number, fontScale: number, cap = 1.5): number {
+  return Math.round(base * Math.min(fontScale, cap));
+}
 
 /** Goal label + weight delta + gaps below the image. */
 const PAYWALL_HERO_GOAL_RESERVE_BY_TIER: Record<PaywallHeroLayoutTier, number> = {
@@ -17,12 +21,13 @@ export function paywallHeroLayoutTier(
   screenHeight: number,
   safeAreaTop: number,
   safeAreaBottom: number,
+  fontScale = 1,
 ): { tier: PaywallHeroLayoutTier; availableHeight: number } {
   const availableHeight =
     screenHeight -
     safeAreaTop -
-    PAYWALL_HERO_HEADER_RESERVE_PX -
-    PAYWALL_FOOTER_RESERVE_PX -
+    scaledPx(PAYWALL_HERO_HEADER_RESERVE_BASE_PX, fontScale) -
+    scaledPx(PAYWALL_FOOTER_RESERVE_BASE_PX, fontScale) -
     Math.max(safeAreaBottom, 8);
 
   if (availableHeight < 340) {
@@ -38,6 +43,7 @@ export function paywallHeroImageBoxSize(
   tier: PaywallHeroLayoutTier,
   screenWidth: number,
   availableHeight: number,
+  fontScale = 1,
 ): { width: number; height: number } {
   const maxWidth =
     tier === "regular" ? 275 : tier === "compact" ? 220 : 196;
@@ -46,7 +52,7 @@ export function paywallHeroImageBoxSize(
 
   const width = Math.min(maxWidth, screenWidth * widthRatio);
   const naturalHeight = (width * heightRatio) / 3;
-  const goalReserve = PAYWALL_HERO_GOAL_RESERVE_BY_TIER[tier];
+  const goalReserve = scaledPx(PAYWALL_HERO_GOAL_RESERVE_BY_TIER[tier], fontScale, 1.4);
   const maxImageHeight = Math.max(160, availableHeight - goalReserve);
   const height = Math.min(naturalHeight, maxImageHeight);
   const adjustedWidth = height < naturalHeight ? (height * 3) / heightRatio : width;

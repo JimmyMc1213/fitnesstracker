@@ -5,8 +5,14 @@ export function displayNameFromUser(user: Session["user"] | User | null | undefi
   if (!user) return null;
   const meta = user.user_metadata;
   if (!meta || typeof meta !== "object") return null;
-  const raw = meta.full_name ?? meta.name;
-  if (typeof raw !== "string") return null;
-  const trimmed = raw.trim();
-  return trimmed.length > 0 ? trimmed : null;
+  const fullName = typeof meta.full_name === "string" ? meta.full_name.trim() : "";
+  if (fullName) return fullName;
+
+  const firstName = typeof meta.first_name === "string" ? meta.first_name.trim() : "";
+  const lastName = typeof meta.last_name === "string" ? meta.last_name.trim() : "";
+  if (firstName && lastName) return `${firstName} ${lastName}`;
+  if (firstName) return firstName;
+
+  const legacyName = typeof meta.name === "string" ? meta.name.trim() : "";
+  return legacyName.length > 0 ? legacyName : null;
 }

@@ -124,7 +124,7 @@ With Supabase configured in `apps/mobile/.env`, auth flows use `clearState`/`cle
 npm run test:e2e:auth
 npm run test:e2e:auth-all        # epic RN-2 sweep (provisions test user + runs all 4 flows)
 MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:auth-sign-in
-MAESTRO_TEST_SIGNUP_NAME=... MAESTRO_TEST_SIGNUP_EMAIL=... MAESTRO_TEST_SIGNUP_PASSWORD=... npm run test:e2e:auth-sign-up
+MAESTRO_TEST_SIGNUP_FIRST_NAME=... MAESTRO_TEST_SIGNUP_LAST_NAME=... MAESTRO_TEST_SIGNUP_EMAIL=... MAESTRO_TEST_SIGNUP_PASSWORD=... npm run test:e2e:auth-sign-up
 MAESTRO_TEST_EMAIL=... MAESTRO_TEST_PASSWORD=... npm run test:e2e:auth-sign-out
 ```
 

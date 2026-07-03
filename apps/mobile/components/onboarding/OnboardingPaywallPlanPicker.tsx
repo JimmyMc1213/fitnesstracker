@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
+import { useLargeTextEnabled } from "@/lib/fontScale";
 
 type Props = {
   value: PaywallBillingPeriod;
@@ -13,12 +14,15 @@ function PlanCard({
   period,
   selected,
   onSelect,
+  stacked = false,
 }: {
   period: PaywallBillingPeriod;
   selected: boolean;
   onSelect: () => void;
+  stacked?: boolean;
 }) {
   const { colors, ob } = useOnboardingTheme();
+  const largeText = useLargeTextEnabled();
   const plan = PAYWALL_PLANS[period];
   const isYearly = period === "yearly";
 
@@ -31,9 +35,11 @@ function PlanCard({
       activeScale={0.97}
       style={{
         position: "relative",
-        flex: 1,
+        flex: stacked ? undefined : 1,
+        width: stacked ? "100%" : undefined,
         borderRadius: 16,
         padding: 16,
+        paddingRight: 36,
         borderWidth: 2,
         borderColor: selected ? ob.gold : colors.border,
         backgroundColor: "rgba(255, 255, 255, 0.04)",
@@ -70,13 +76,17 @@ function PlanCard({
         {plan.displayPerMonth}
       </Text>
       <Text
-        className="mt-1 text-[10px] leading-tight"
+        className="mt-1 text-[10px] leading-snug"
         style={{ color: colors.textSecondary }}
-        numberOfLines={1}
+        numberOfLines={largeText ? undefined : 2}
       >
         {plan.trialNote}
       </Text>
-      <Text className="mt-0.5 text-[11px] leading-tight" style={{ color: colors.textTertiary }}>
+      <Text
+        className="mt-0.5 text-[11px] leading-snug"
+        style={{ color: colors.textTertiary }}
+        numberOfLines={largeText ? undefined : 2}
+      >
         {plan.billingNote}
       </Text>
     </PressableScale>
@@ -84,10 +94,27 @@ function PlanCard({
 }
 
 export function OnboardingPaywallPlanPicker({ value, onChange }: Props) {
+  const largeText = useLargeTextEnabled();
+
   return (
-    <View testID="onboarding-paywall-plan-picker" className="flex-row gap-3">
-      <PlanCard period="yearly" selected={value === "yearly"} onSelect={() => onChange("yearly")} />
-      <PlanCard period="monthly" selected={value === "monthly"} onSelect={() => onChange("monthly")} />
+    <View
+      testID="onboarding-paywall-plan-picker"
+      className={largeText ? "gap-3" : "flex-row gap-3"}
+      accessibilityRole="radiogroup"
+      accessibilityLabel="Subscription plan"
+    >
+      <PlanCard
+        period="yearly"
+        selected={value === "yearly"}
+        onSelect={() => onChange("yearly")}
+        stacked={largeText}
+      />
+      <PlanCard
+        period="monthly"
+        selected={value === "monthly"}
+        onSelect={() => onChange("monthly")}
+        stacked={largeText}
+      />
     </View>
   );
 }

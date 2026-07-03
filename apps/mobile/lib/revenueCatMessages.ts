@@ -6,6 +6,34 @@ export const REVENUECAT_PRODUCT_IDS = {
 
 export const REVENUECAT_ENTITLEMENT_ID = "pro";
 
+const REVENUECAT_PRODUCT_ID_SET = new Set<string>(Object.values(REVENUECAT_PRODUCT_IDS));
+
+export function isKnownProProductId(productId: string): boolean {
+  return REVENUECAT_PRODUCT_ID_SET.has(productId);
+}
+
+export const PAYWALL_ENTITLEMENT_NOT_GRANTED_MESSAGE =
+  "We couldn't confirm your subscription. Try Restore Purchases, or email support@newyouai.app if you were charged.";
+
+/** True when RevenueCat reports pro access via entitlement, active sub, or unexpired product. */
+export function customerInfoGrantsPro(
+  activeEntitlementIds: readonly string[],
+  activeSubscriptionIds: readonly string[],
+  expirationDatesByProductId: Readonly<Record<string, string | null>> = {},
+): boolean {
+  if (activeEntitlementIds.includes(REVENUECAT_ENTITLEMENT_ID)) return true;
+
+  if (activeSubscriptionIds.some((id) => isKnownProProductId(id))) return true;
+
+  const now = Date.now();
+  for (const productId of Object.values(REVENUECAT_PRODUCT_IDS)) {
+    const expiresAt = expirationDatesByProductId[productId];
+    if (expiresAt && new Date(expiresAt).getTime() > now) return true;
+  }
+
+  return false;
+}
+
 /** User-facing copy when StoreKit / RevenueCat products are unavailable. */
 export const PAYWALL_STORE_UNAVAILABLE_MESSAGE =
   "Subscriptions aren't available right now. Make sure you're online and try again in a few minutes.";

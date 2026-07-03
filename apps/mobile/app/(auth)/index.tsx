@@ -3,6 +3,7 @@ import { useState, type ReactNode } from "react";
 import { Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AuthNotice } from "@/components/AuthNotice";
 import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
 import { FutureYouPhonePreview } from "@/components/FutureYouPhonePreview";
@@ -120,6 +121,12 @@ export default function AuthWelcomeScreen() {
 
   return (
     <WelcomeShell compact={compact} insets={insets} phase="auth" testID="auth-welcome-screen">
+      <AuthNotice
+        message={oauthError}
+        variant="error"
+        testID="auth-welcome-oauth-error"
+      />
+
       <View style={authLayout.welcomeBottom}>
         <View style={authLayout.copyBlock}>
           <Text
@@ -155,15 +162,6 @@ export default function AuthWelcomeScreen() {
         </Pressable>
 
         <AuthOAuthButtons onError={setOauthError} />
-
-        {oauthError ? (
-          <Text
-            style={{ color: "#ef4444", textAlign: "center", fontSize: 14 }}
-            testID="auth-welcome-oauth-error"
-          >
-            {oauthError}
-          </Text>
-        ) : null}
 
         <Pressable
           testID="auth-sign-in-link"

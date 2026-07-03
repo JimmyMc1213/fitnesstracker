@@ -5,11 +5,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AuthNotice } from "@/components/AuthNotice";
 import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
 import { AuthTextField } from "@/components/ui/AuthTextField";
@@ -53,104 +55,104 @@ export default function SignInScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       testID="auth-sign-in-screen"
     >
-      <View
-        style={[
-          authLayout.screenPadding,
-          {
-            paddingTop: insets.top + 16,
-            paddingBottom: insets.bottom + 24,
-          },
-        ]}
+      <AuthNotice message={error} variant="error" testID="auth-sign-in-error" />
+
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }}
+        bounces={false}
       >
-        <Pressable onPress={() => router.back()} testID="auth-sign-in-back">
-          <Text style={{ color: colors.textPrimary, fontSize: 16 }}>Back</Text>
-        </Pressable>
-
-        <View style={{ marginTop: 24, alignItems: "center" }}>
-          <NewYouSplashMark />
-        </View>
-
-        <Text
+        <View
           style={[
-            authLayout.headline,
-            { marginTop: 32, color: colors.textPrimary, fontSize: 26 },
+            authLayout.screenPadding,
+            {
+              flexGrow: 1,
+              paddingTop: insets.top + 16,
+              paddingBottom: insets.bottom + 24,
+            },
           ]}
-          testID="auth-sign-in-title"
         >
-          Welcome back
-        </Text>
+          <Pressable onPress={() => router.back()} testID="auth-sign-in-back">
+            <Text style={{ color: colors.textPrimary, fontSize: 16 }}>Back</Text>
+          </Pressable>
 
-        <View style={authLayout.inputStack}>
-          <AuthTextField
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            onEndEditing={(event) => setEmail(event.nativeEvent.text.trim())}
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            textContentType="emailAddress"
-            accessibilityLabel="Email"
-            testID="auth-sign-in-email"
-          />
-          <AuthTextField
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            onEndEditing={(event) => setPassword(event.nativeEvent.text)}
-            secureTextEntry
-            autoComplete="password"
-            textContentType="password"
-            accessibilityLabel="Password"
-            testID="auth-sign-in-password"
-            onSubmitEditing={() => void handleSignIn()}
-          />
-        </View>
+          <View style={{ marginTop: 24, alignItems: "center" }}>
+            <NewYouSplashMark />
+          </View>
 
-        <View style={{ marginTop: 16 }}>
-          <AuthOAuthButtons onError={setError} />
-        </View>
-
-        {error ? (
           <Text
-            style={{ marginTop: 16, textAlign: "center", fontSize: 14, color: "#ef4444" }}
-            testID="auth-sign-in-error"
-          >
-            {error}
-          </Text>
-        ) : null}
-
-        <View style={authLayout.footerActions}>
-          <Pressable
             style={[
-              authLayout.primaryButton,
-              { backgroundColor: ob.gold, opacity: loading ? 0.7 : 1 },
+              authLayout.headline,
+              { marginTop: 32, color: colors.textPrimary, fontSize: 26 },
             ]}
-            onPress={() => void handleSignIn()}
-            disabled={loading}
-            testID="auth-sign-in-submit"
+            testID="auth-sign-in-title"
           >
-            {loading ? (
-              <ActivityIndicator color={ob.goldOn} />
-            ) : (
-              <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
-                Sign In
-              </Text>
-            )}
-          </Pressable>
+            Welcome back
+          </Text>
 
-          <Pressable
-            style={{ alignItems: "center", paddingVertical: 8 }}
-            onPress={() => router.replace("/(auth)/sign-up")}
-            testID="auth-sign-in-to-sign-up"
-          >
-            <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-              Don&apos;t have an account?{" "}
-              <Text style={{ color: colors.textPrimary, fontWeight: "600" }}>Sign up</Text>
-            </Text>
-          </Pressable>
+          <View style={authLayout.inputStack}>
+            <AuthTextField
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              onEndEditing={(event) => setEmail(event.nativeEvent.text.trim())}
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              accessibilityLabel="Email"
+              testID="auth-sign-in-email"
+            />
+            <AuthTextField
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              onEndEditing={(event) => setPassword(event.nativeEvent.text)}
+              secureTextEntry
+              autoComplete="password"
+              textContentType="password"
+              accessibilityLabel="Password"
+              testID="auth-sign-in-password"
+              onSubmitEditing={() => void handleSignIn()}
+            />
+          </View>
+
+          <View style={{ marginTop: 16 }}>
+            <AuthOAuthButtons onError={setError} />
+          </View>
+
+          <View style={authLayout.footerActions}>
+            <Pressable
+              style={[
+                authLayout.primaryButton,
+                { backgroundColor: ob.gold, opacity: loading ? 0.7 : 1 },
+              ]}
+              onPress={() => void handleSignIn()}
+              disabled={loading}
+              testID="auth-sign-in-submit"
+            >
+              {loading ? (
+                <ActivityIndicator color={ob.goldOn} />
+              ) : (
+                <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
+                  Sign In
+                </Text>
+              )}
+            </Pressable>
+
+            <Pressable
+              style={{ alignItems: "center", paddingVertical: 8 }}
+              onPress={() => router.replace("/(auth)/sign-up")}
+              testID="auth-sign-in-to-sign-up"
+            >
+              <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                Don&apos;t have an account?{" "}
+                <Text style={{ color: colors.textPrimary, fontWeight: "600" }}>Sign up</Text>
+              </Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

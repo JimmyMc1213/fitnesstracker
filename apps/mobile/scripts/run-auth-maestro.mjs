@@ -93,7 +93,8 @@ const creds = await provisionTestUser(sb);
 const signUpOnly = {
   email: `maestro.rn2.signup.${Date.now()}@newyouai.test`,
   password: `MaestroRn2Up${String(Date.now()).slice(-8)}`,
-  name: "Maestro RN2 SignUp",
+  firstName: "Maestro",
+  lastName: "RN2 SignUp",
 };
 
 console.log(`Maestro auth sweep, sign-in user ${creds.email}, sign-up user ${signUpOnly.email}`);
@@ -120,7 +121,8 @@ if (process.env.EXPO_PUBLIC_MAESTRO_E2E_AUTH !== "true") {
 const common = {
   MAESTRO_TEST_EMAIL: creds.email,
   MAESTRO_TEST_PASSWORD: creds.password,
-  MAESTRO_TEST_SIGNUP_NAME: signUpOnly.name,
+  MAESTRO_TEST_SIGNUP_FIRST_NAME: signUpOnly.firstName,
+  MAESTRO_TEST_SIGNUP_LAST_NAME: signUpOnly.lastName,
   MAESTRO_TEST_SIGNUP_EMAIL: signUpOnly.email,
   MAESTRO_TEST_SIGNUP_PASSWORD: signUpOnly.password,
 };

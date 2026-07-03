@@ -30,10 +30,14 @@ function displayNameFromUser(user: Session["user"] | null | undefined): string |
   if (!user) return null;
   const meta = user.user_metadata;
   if (!meta || typeof meta !== "object") return null;
-  const raw = meta.full_name ?? meta.name;
-  if (typeof raw !== "string") return null;
-  const trimmed = raw.trim();
-  return trimmed.length > 0 ? trimmed : null;
+  const fullName = typeof meta.full_name === "string" ? meta.full_name.trim() : "";
+  if (fullName) return fullName;
+  const firstName = typeof meta.first_name === "string" ? meta.first_name.trim() : "";
+  const lastName = typeof meta.last_name === "string" ? meta.last_name.trim() : "";
+  if (firstName && lastName) return `${firstName} ${lastName}`;
+  if (firstName) return firstName;
+  const legacyName = typeof meta.name === "string" ? meta.name.trim() : "";
+  return legacyName.length > 0 ? legacyName : null;
 }
 
 function persistSliceWithMigration(slice: PersistedFitnessSlice): PersistedFitnessSlice {
@@ -304,13 +308,23 @@ export function useFitnessCloudSync(
     return {};
   }, []);
 
-  const signUpWithEmail = useCallback(async (email: string, password: string, name: string) => {
+  const signUpWithEmail = useCallback(
+    async (email: string, password: string, firstName: string, lastName: string) => {
     const sb = getSupabase();
     if (!sb) return { error: "Add Supabase keys to sync." };
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
+    const fullName = [trimmedFirst, trimmedLast].filter(Boolean).join(" ");
     const { data, error } = await sb.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: name.trim() } },
+      options: {
+        data: {
+          first_name: trimmedFirst,
+          last_name: trimmedLast,
+          full_name: fullName,
+        },
+      },
     });
 
     // Account already exists, try signing in with the supplied password.

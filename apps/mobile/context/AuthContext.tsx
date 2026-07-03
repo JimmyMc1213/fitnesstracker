@@ -30,7 +30,12 @@ type AuthContextValue = {
   sessionEmail: string | null;
   sessionResolved: boolean;
   signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
-  signUpWithEmail: (email: string, password: string, name: string) => Promise<AuthResult>;
+  signUpWithEmail: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+  ) => Promise<AuthResult>;
   signInWithApple: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   completeOAuthFromUrl: (redirectUrl: string) => Promise<{ error?: string }>;
@@ -183,22 +188,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void signInWithPassword(email, password);
   }, [configured, sessionResolved, session?.user?.email, signInWithPassword]);
 
-  const signUpWithEmail = useCallback(async (email: string, password: string, name: string) => {
+  const signUpWithEmail = useCallback(
+    async (email: string, password: string, firstName: string, lastName: string) => {
     const sb = getSupabase();
     if (!sb) return { error: "Add Supabase keys to sign up." };
 
     const trimmedEmail = email.trim();
-    const trimmedName = name.trim();
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
+    const fullName = [trimmedFirst, trimmedLast].filter(Boolean).join(" ");
 
     const seedNameFromSession = async (session: Session | null) => {
-      const resolved = displayNameFromUser(session?.user) ?? trimmedName;
+      const resolved = displayNameFromUser(session?.user) ?? fullName;
       if (resolved) await seedPersistedDisplayName(resolved);
     };
 
     const { data, error } = await sb.auth.signUp({
       email: trimmedEmail,
       password,
-      options: { data: { full_name: trimmedName } },
+      options: {
+        data: {
+          first_name: trimmedFirst,
+          last_name: trimmedLast,
+          full_name: fullName,
+        },
+      },
     });
 
     if (isDuplicateEmailError(error?.message)) {
@@ -237,7 +251,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return {};
     }
     return { needsConfirmation: true };
-  }, []);
+  },
+  []);
 
   const completeOAuthRedirect = useCallback(async (redirectUrl: string) => {
     const sb = getSupabase();

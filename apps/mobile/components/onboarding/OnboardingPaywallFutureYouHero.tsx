@@ -19,6 +19,7 @@ import {
   type PaywallHeroLayoutTier,
 } from "@/lib/paywallHeroLayout";
 import { paywallRevealDelayMs } from "@/lib/onboardingPaywallReveal";
+import { useLargeTextEnabled, useFontScale } from "@/lib/fontScale";
 
 type Props = {
   timeline: string;
@@ -80,6 +81,8 @@ export function OnboardingPaywallFutureYouHero({
 }: Props) {
   const { colors } = useAppTheme();
   const { ob } = useOnboardingTheme();
+  const largeText = useLargeTextEnabled();
+  const fontScale = useFontScale();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { imageUri, loading } = useFutureYouPaywallImage({ jobId, status });
   const preparing = status !== "ready" || loading;
@@ -87,7 +90,7 @@ export function OnboardingPaywallFutureYouHero({
   const goalLabel = futureYouGoalLabel(profile.goal);
   const weightDeltaLabel = futureYouWeightDeltaLabel(profile, weightUnit);
   const { value: timelineValue, unit: timelineUnit } = splitFutureYouTimelineForPaywall(timeline);
-  const timelineFontSize = 20;
+  const timelineFontSize = largeText ? 18 : 20;
 
   // Blurred gendered silhouette stands in until the real Future You photo lands.
   const silhouetteSource = futureYouSilhouettesForGender(gender)?.after ?? null;
@@ -99,6 +102,7 @@ export function OnboardingPaywallFutureYouHero({
     tier,
     screenWidth,
     heroAvailableHeight,
+    fontScale,
   );
   const isCompact = tier !== "regular";
   const isTight = tier === "tight";
@@ -115,7 +119,7 @@ export function OnboardingPaywallFutureYouHero({
           Future You
         </Text>
         <View
-          className="flex-row items-center justify-center"
+          className="flex-row flex-wrap items-center justify-center"
           accessibilityLabel={`You in ${timeline}`}
         >
           <Text className="text-xl font-medium" style={{ color: colors.textSecondary }}>
@@ -189,6 +193,7 @@ export function OnboardingPaywallFutureYouHero({
               textShadowOffset: { width: 0, height: 1 },
               textShadowRadius: 4,
             }}
+            numberOfLines={largeText ? undefined : 2}
           >
             Subscribe to reveal your transformation
           </Text>

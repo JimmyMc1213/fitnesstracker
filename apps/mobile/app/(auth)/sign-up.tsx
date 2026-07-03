@@ -5,11 +5,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AuthNotice } from "@/components/AuthNotice";
 import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
 import { AuthTextField } from "@/components/ui/AuthTextField";
@@ -23,7 +25,8 @@ export default function SignUpScreen() {
   const { ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
   const { signUpWithEmail } = useAuth();
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +36,7 @@ export default function SignUpScreen() {
   const handleSignUp = async () => {
     setError(null);
     setInfo(null);
-    if (!name.trim() || !email.trim() || !password.trim()) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
       setError("Fill in all fields.");
       return;
     }
@@ -44,7 +47,7 @@ export default function SignUpScreen() {
 
     setLoading(true);
     try {
-      const result = await signUpWithEmail(email, password, name);
+      const result = await signUpWithEmail(email, password, firstName, lastName);
       if (result.error) {
         setError(result.error);
       } else if (result.needsConfirmation) {
@@ -62,120 +65,132 @@ export default function SignUpScreen() {
       style={[authLayout.screen, { backgroundColor: colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View
-        style={[
-          authLayout.screenPadding,
-          {
-            paddingTop: insets.top + 16,
-            paddingBottom: insets.bottom + 24,
-          },
-        ]}
-        testID="auth-sign-up-screen"
+      <AuthNotice message={error} variant="error" testID="auth-sign-up-error" />
+      <AuthNotice
+        message={info}
+        variant="info"
+        testID="auth-sign-up-info"
+        onDismiss={() => setInfo(null)}
+      />
+
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }}
+        bounces={false}
       >
-        <Pressable onPress={() => router.back()} testID="auth-sign-up-back">
-          <Text style={{ color: colors.textPrimary, fontSize: 16 }}>Back</Text>
-        </Pressable>
-
-        <View style={{ marginTop: 24, alignItems: "center" }}>
-          <NewYouSplashMark />
-        </View>
-
-        <Text
+        <View
           style={[
-            authLayout.headline,
-            { marginTop: 32, color: colors.textPrimary, fontSize: 26 },
+            authLayout.screenPadding,
+            {
+              flexGrow: 1,
+              paddingTop: insets.top + 16,
+              paddingBottom: insets.bottom + 24,
+            },
           ]}
-          testID="auth-sign-up-title"
+          testID="auth-sign-up-screen"
         >
-          Create your account
-        </Text>
+          <Pressable onPress={() => router.back()} testID="auth-sign-up-back">
+            <Text style={{ color: colors.textPrimary, fontSize: 16 }}>Back</Text>
+          </Pressable>
 
-        <View style={authLayout.inputStack}>
-          <AuthTextField
-            placeholder="Name"
-            value={name}
-            onChangeText={setName}
-            autoComplete="name"
-            textContentType="name"
-            accessibilityLabel="Name"
-            testID="auth-sign-up-name"
-          />
-          <AuthTextField
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            textContentType="emailAddress"
-            accessibilityLabel="Email"
-            testID="auth-sign-up-email"
-          />
-          <AuthTextField
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoComplete="new-password"
-            textContentType="newPassword"
-            accessibilityLabel="Password"
-            testID="auth-sign-up-password"
-          />
-        </View>
+          <View style={{ marginTop: 24, alignItems: "center" }}>
+            <NewYouSplashMark />
+          </View>
 
-        <View style={{ marginTop: 16 }}>
-          <AuthOAuthButtons onError={setError} />
-        </View>
-
-        {error ? (
           <Text
-            style={{ marginTop: 16, textAlign: "center", fontSize: 14, color: "#ef4444" }}
-            testID="auth-sign-up-error"
-          >
-            {error}
-          </Text>
-        ) : null}
-
-        {info ? (
-          <Text
-            style={{ marginTop: 16, textAlign: "center", fontSize: 14, color: colors.textSecondary }}
-            testID="auth-sign-up-info"
-          >
-            {info}
-          </Text>
-        ) : null}
-
-        <View style={authLayout.footerActions}>
-          <Pressable
             style={[
-              authLayout.primaryButton,
-              { backgroundColor: ob.gold, opacity: loading ? 0.7 : 1 },
+              authLayout.headline,
+              { marginTop: 32, color: colors.textPrimary, fontSize: 26 },
             ]}
-            onPress={() => void handleSignUp()}
-            disabled={loading}
-            testID="auth-sign-up-submit"
+            testID="auth-sign-up-title"
           >
-            {loading ? (
-              <ActivityIndicator color={ob.goldOn} />
-            ) : (
-              <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
-                Create Account
-              </Text>
-            )}
-          </Pressable>
+            Create your account
+          </Text>
 
-          <Pressable
-            style={{ alignItems: "center", paddingVertical: 8 }}
-            onPress={() => router.replace("/(auth)/sign-in")}
-            testID="auth-sign-up-to-sign-in"
-          >
-            <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-              Already have an account?{" "}
-              <Text style={{ color: colors.textPrimary, fontWeight: "600" }}>Sign in</Text>
-            </Text>
-          </Pressable>
+          <View style={authLayout.inputStack}>
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <AuthTextField
+                  placeholder="First name"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  autoComplete="given-name"
+                  textContentType="givenName"
+                  accessibilityLabel="First name"
+                  testID="auth-sign-up-first-name"
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <AuthTextField
+                  placeholder="Last name"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  autoComplete="family-name"
+                  textContentType="familyName"
+                  accessibilityLabel="Last name"
+                  testID="auth-sign-up-last-name"
+                />
+              </View>
+            </View>
+            <AuthTextField
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              accessibilityLabel="Email"
+              testID="auth-sign-up-email"
+            />
+            <AuthTextField
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoComplete="new-password"
+              textContentType="newPassword"
+              accessibilityLabel="Password"
+              testID="auth-sign-up-password"
+            />
+          </View>
+
+          <View style={{ marginTop: 16 }}>
+            <AuthOAuthButtons onError={setError} />
+          </View>
+
+          <View style={authLayout.footerActions}>
+            <Pressable
+              style={[
+                authLayout.primaryButton,
+                { backgroundColor: ob.gold, opacity: loading ? 0.7 : 1 },
+              ]}
+              onPress={() => void handleSignUp()}
+              disabled={loading}
+              testID="auth-sign-up-submit"
+            >
+              {loading ? (
+                <ActivityIndicator color={ob.goldOn} />
+              ) : (
+                <Text style={[authLayout.primaryButtonText, { color: ob.goldOn, fontWeight: "700" }]}>
+                  Create Account
+                </Text>
+              )}
+            </Pressable>
+
+            <Pressable
+              style={{ alignItems: "center", paddingVertical: 8 }}
+              onPress={() => router.replace("/(auth)/sign-in")}
+              testID="auth-sign-up-to-sign-in"
+            >
+              <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                Already have an account?{" "}
+                <Text style={{ color: colors.textPrimary, fontWeight: "600" }}>Sign in</Text>
+              </Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

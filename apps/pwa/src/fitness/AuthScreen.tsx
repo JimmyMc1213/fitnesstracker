@@ -47,6 +47,17 @@ function AppleSignInPlaceholder() {
   );
 }
 
+function AuthNoticeBanner({ message, variant }: { message: string; variant: "error" | "info" }) {
+  return (
+    <p
+      className={variant === "error" ? "auth-screen__notice auth-screen__notice--error" : "auth-screen__notice auth-screen__notice--info"}
+      role="alert"
+    >
+      {message}
+    </p>
+  );
+}
+
 function AuthFormShell({
   viewKey,
   title,
@@ -76,6 +87,7 @@ function AuthFormShell({
 }) {
   return (
     <div className="auth-screen">
+      {messages}
       <div key={viewKey} className="auth-screen__panel auth-screen__panel--form motion-step">
         {onBack ? (
           <button type="button" className="auth-screen__back tap" onClick={onBack}>
@@ -89,7 +101,6 @@ function AuthFormShell({
           <div className="auth-screen__form">{fields}</div>
           <AuthDivider />
           <AppleSignInPlaceholder />
-          {messages}
         </div>
 
         <div className="auth-screen__footer">
@@ -120,7 +131,8 @@ export function AuthScreen({
 }: AuthScreenProps) {
   const sync = useFitnessSync();
   const [view, setView] = useState<View>(initialView);
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -130,10 +142,12 @@ export function AuthScreen({
   const handleSignUp = async () => {
     setError(null);
     setInfo(null);
-    if (!name || !email || !password) return setError("Fill in all fields.");
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
+      return setError("Fill in all fields.");
+    }
     if (password.length < 6) return setError("Password must be at least 6 characters.");
     setLoading(true);
-    const r = await sync.signUpWithEmail(email, password, name);
+    const r = await sync.signUpWithEmail(email, password, firstName, lastName);
     setLoading(false);
     if (r.error) setError(r.error);
     else if (r.needsConfirmation) setInfo("Check your inbox and click the confirmation link, then come back and sign in.");
@@ -159,14 +173,24 @@ export function AuthScreen({
         onBack={backToWelcome}
         fields={
           <>
-            <input
-              className="onboarding-input-pill"
-              placeholder="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoComplete="name"
-              aria-label="Name"
-            />
+            <div className="auth-screen__name-row">
+              <input
+                className="onboarding-input-pill"
+                placeholder="First name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                autoComplete="given-name"
+                aria-label="First name"
+              />
+              <input
+                className="onboarding-input-pill"
+                placeholder="Last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                autoComplete="family-name"
+                aria-label="Last name"
+              />
+            </div>
             <input
               className="onboarding-input-pill"
               placeholder="Email"
@@ -186,8 +210,8 @@ export function AuthScreen({
         }
         messages={
           <>
-            {error ? <p className="auth-screen__error">{error}</p> : null}
-            {info ? <p className="auth-screen__info">{info}</p> : null}
+            {error ? <AuthNoticeBanner message={error} variant="error" /> : null}
+            {info ? <AuthNoticeBanner message={info} variant="info" /> : null}
           </>
         }
         primaryLabel="Create Account"
@@ -229,7 +253,7 @@ export function AuthScreen({
           />
         </>
       }
-      messages={error || externalError ? <p className="auth-screen__error">{error ?? externalError}</p> : null}
+      messages={error || externalError ? <AuthNoticeBanner message={error ?? externalError ?? ""} variant="error" /> : null}
       primaryLabel="Sign In"
       primaryLoadingLabel="Signing in…"
       onPrimary={() => void handleSignIn()}

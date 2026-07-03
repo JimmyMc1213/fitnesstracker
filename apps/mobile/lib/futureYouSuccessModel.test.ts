@@ -32,6 +32,22 @@ describe("futureYouSuccessModel", () => {
         "generating",
         "pro",
       ),
+    ).toBe(true);
+    expect(
+      canAccessFutureYouSuccessScreen(
+        { ...activeJob, generationStatus: "failed" },
+        false,
+        "failed",
+        "pro",
+      ),
+    ).toBe(true);
+    expect(
+      canAccessFutureYouSuccessScreen(
+        { ...activeJob, generationStatus: "generating" },
+        false,
+        "idle",
+        "pro",
+      ),
     ).toBe(false);
   });
 

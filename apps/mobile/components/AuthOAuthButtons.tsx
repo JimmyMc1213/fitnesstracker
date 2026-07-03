@@ -1,6 +1,6 @@
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
-import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Keyboard, Platform, Pressable, Text, View } from "react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -38,6 +38,7 @@ export function AuthOAuthButtons({ onError, showDivider = true }: AuthOAuthButto
 
   const handleApple = async () => {
     setAppleBusy(true);
+    Keyboard.dismiss();
     try {
       const result = await signInWithApple();
       if (result.error) onError?.(result.error);

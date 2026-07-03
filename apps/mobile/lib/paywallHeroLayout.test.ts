@@ -17,6 +17,13 @@ describe("paywallHeroLayoutTier", () => {
     const { tier } = paywallHeroLayoutTier(667, 50, 34);
     expect(tier).toBe("tight");
   });
+
+  it("uses a tighter tier when accessibility text is enlarged", () => {
+    const normal = paywallHeroLayoutTier(844, 59, 34, 1);
+    const large = paywallHeroLayoutTier(844, 59, 34, 1.35);
+    expect(large.tier).not.toBe("regular");
+    expect(large.availableHeight).toBeLessThan(normal.availableHeight);
+  });
 });
 
 describe("paywallHeroImageBoxSize", () => {

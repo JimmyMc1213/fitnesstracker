@@ -12,7 +12,12 @@ export type FitnessSyncContextValue = {
   fitnessHydrated: boolean;
   signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
   signInWithOAuth: (provider: "apple") => Promise<{ error?: string }>;
-  signUpWithEmail: (email: string, password: string, name: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
+  signUpWithEmail: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+  ) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ error?: string }>;
   updateEmail: (newEmail: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;

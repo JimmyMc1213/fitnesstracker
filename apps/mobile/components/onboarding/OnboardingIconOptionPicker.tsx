@@ -2,6 +2,7 @@ import { Text, View } from "react-native";
 
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
+import { useLargeTextEnabled } from "@/lib/fontScale";
 import { onboardingPillColors, ONBOARDING_PILL_MIN_HEIGHT } from "@/lib/onboardingTheme";
 import type { TablerIcon } from "@/lib/tablerIcon";
 
@@ -23,6 +24,7 @@ export function OnboardingIconOptionPicker<T extends string>({
   multi?: boolean;
 }) {
   const { ob } = useOnboardingTheme();
+  const largeText = useLargeTextEnabled();
 
   function isSelected(id: T): boolean {
     if (multi) {
@@ -44,9 +46,9 @@ export function OnboardingIconOptionPicker<T extends string>({
             accessibilityState={{ selected: on }}
             activeScale={0.97}
             style={{
-              minHeight: 56,
+              minHeight: ONBOARDING_PILL_MIN_HEIGHT + 4,
               flexDirection: "row",
-              alignItems: "center",
+              alignItems: largeText ? "flex-start" : "center",
               gap: 12,
               borderRadius: 9999,
               borderWidth: 1,

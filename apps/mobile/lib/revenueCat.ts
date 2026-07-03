@@ -2,9 +2,11 @@ import { Platform } from "react-native";
 
 import type { PaywallBillingPeriod } from "@/lib/paywallPlans";
 import {
+  customerInfoGrantsPro,
+  isKnownProProductId,
+  PAYWALL_ENTITLEMENT_NOT_GRANTED_MESSAGE,
   PAYWALL_STORE_SETUP_MESSAGE,
   PAYWALL_STORE_UNAVAILABLE_MESSAGE,
-  REVENUECAT_ENTITLEMENT_ID,
   REVENUECAT_PRODUCT_IDS,
   sanitizeRevenueCatError,
 } from "@/lib/revenueCatMessages";
@@ -123,10 +125,63 @@ function storeProductForBillingPeriod(
   return products.find((product) => product.identifier === productId);
 }
 
-function hasProEntitlement(
-  customerInfo: import("react-native-purchases").CustomerInfo,
-): boolean {
-  return Boolean(customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_ID]);
+type CustomerInfo = import("react-native-purchases").CustomerInfo;
+type PurchasesClient = NonNullable<ReturnType<typeof loadPurchasesModule>>["default"];
+
+function hasProEntitlement(customerInfo: CustomerInfo): boolean {
+  return customerInfoGrantsPro(
+    Object.keys(customerInfo.entitlements.active),
+    customerInfo.activeSubscriptions,
+    customerInfo.allExpirationDates,
+  );
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function refreshCustomerInfo(Purchases: PurchasesClient): Promise<CustomerInfo> {
+  try {
+    let latest = await Purchases.getCustomerInfo();
+    if (hasProEntitlement(latest)) return latest;
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await sleep(800);
+      latest = await Purchases.getCustomerInfo();
+      if (hasProEntitlement(latest)) return latest;
+    }
+
+    return latest;
+  } catch {
+    return await Purchases.getCustomerInfo();
+  }
+}
+
+async function resolveProAccessAfterPurchase(
+  Purchases: PurchasesClient,
+  initial: CustomerInfo,
+  purchasedProductId: string,
+): Promise<PurchaseProResult> {
+  if (hasProEntitlement(initial)) {
+    return { ok: true, stub: false };
+  }
+
+  const refreshed = await refreshCustomerInfo(Purchases);
+  if (hasProEntitlement(refreshed)) {
+    return { ok: true, stub: false };
+  }
+
+  // StoreKit completed — unlock even when RevenueCat entitlement mapping is missing.
+  if (isKnownProProductId(purchasedProductId)) {
+    console.warn("[RevenueCat] Unlocking from completed StoreKit purchase", {
+      purchasedProductId,
+      activeEntitlements: Object.keys(refreshed.entitlements.active),
+      activeSubscriptions: refreshed.activeSubscriptions,
+    });
+    return { ok: true, stub: false };
+  }
+
+  return { ok: false, error: PAYWALL_ENTITLEMENT_NOT_GRANTED_MESSAGE };
 }
 
 function isNativeModuleError(message: string): boolean {
@@ -208,11 +263,8 @@ export async function purchaseProSubscription(period: PaywallBillingPeriod): Pro
     const pkg = packageForBillingPeriod(available, period);
 
     if (pkg) {
-      const { customerInfo } = await Purchases.purchasePackage(pkg);
-      if (!hasProEntitlement(customerInfo)) {
-        return { ok: false, error: "Purchase did not grant pro entitlement" };
-      }
-      return { ok: true, stub: false };
+      const { customerInfo: purchased } = await Purchases.purchasePackage(pkg);
+      return resolveProAccessAfterPurchase(Purchases, purchased, pkg.product.identifier);
     }
 
     const products = await Purchases.getProducts(Object.values(REVENUECAT_PRODUCT_IDS));
@@ -221,11 +273,8 @@ export async function purchaseProSubscription(period: PaywallBillingPeriod): Pro
       return { ok: false, error: PAYWALL_STORE_SETUP_MESSAGE };
     }
 
-    const { customerInfo } = await Purchases.purchaseStoreProduct(product);
-    if (!hasProEntitlement(customerInfo)) {
-      return { ok: false, error: "Purchase did not grant pro entitlement" };
-    }
-    return { ok: true, stub: false };
+    const { customerInfo: purchased } = await Purchases.purchaseStoreProduct(product);
+    return resolveProAccessAfterPurchase(Purchases, purchased, product.identifier);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Purchase failed";
     if (isNativeModuleError(message)) {
@@ -256,7 +305,10 @@ export async function restorePurchases(): Promise<PurchaseProResult> {
       return { ok: true, stub: true };
     }
 
-    const customerInfo = await Purchases.restorePurchases();
+    const restored = await Purchases.restorePurchases();
+    const customerInfo = hasProEntitlement(restored)
+      ? restored
+      : await refreshCustomerInfo(Purchases);
     const hasPro = hasProEntitlement(customerInfo);
     return hasPro ? { ok: true, stub: false } : { ok: false, error: "No active subscription found" };
   } catch (error) {

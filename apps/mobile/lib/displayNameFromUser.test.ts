@@ -21,6 +21,15 @@ describe("displayNameFromUser", () => {
     ).toBe("Jordan");
   });
 
+  it("joins first_name and last_name when full_name is missing", () => {
+    expect(
+      displayNameFromUser({
+        id: "1",
+        user_metadata: { first_name: "Jim", last_name: "McCarthy" },
+      } as never),
+    ).toBe("Jim McCarthy");
+  });
+
   it("returns null when metadata is missing", () => {
     expect(displayNameFromUser(null)).toBeNull();
     expect(displayNameFromUser({ id: "1", user_metadata: {} } as never)).toBeNull();
