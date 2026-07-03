@@ -18,8 +18,10 @@ export const authLayout = StyleSheet.create({
   },
   heroRow: {
     alignItems: "center",
-    flexShrink: 0,
-    marginTop: 16,
+    flex: 1,
+    justifyContent: "center",
+    marginTop: 8,
+    minHeight: 0,
   },
   copyBlock: {
     flexShrink: 0,
@@ -27,8 +29,7 @@ export const authLayout = StyleSheet.create({
   },
   welcomeBottom: {
     flexShrink: 0,
-    marginTop: "auto",
-    gap: 12,
+    gap: 8,
   },
   headline: {
     fontSize: 28,
@@ -37,17 +38,27 @@ export const authLayout = StyleSheet.create({
     textAlign: "center",
   },
   welcomeHeadline: {
-    fontSize: 26,
+    fontSize: 32,
     fontWeight: "700",
-    lineHeight: 32,
+    lineHeight: 36,
     textAlign: "center",
+    maxWidth: 320,
   },
   welcomeHeadlineEmphasis: {
     fontSize: 40,
     fontWeight: "700",
-    lineHeight: 46,
+    lineHeight: 44,
     textAlign: "center",
-    marginTop: 2,
+    marginTop: -2,
+  },
+  welcomeHeadlineCompact: {
+    fontSize: 26,
+    lineHeight: 30,
+  },
+  welcomeHeadlineEmphasisCompact: {
+    fontSize: 34,
+    lineHeight: 38,
+    marginTop: -2,
   },
   subline: {
     marginTop: 10,
@@ -55,9 +66,14 @@ export const authLayout = StyleSheet.create({
     lineHeight: 21,
     textAlign: "center",
   },
+  sublineCompact: {
+    marginTop: 6,
+    fontSize: 14,
+    lineHeight: 19,
+  },
   actions: {
     flexShrink: 0,
-    marginTop: 16,
+    marginTop: 12,
     gap: 10,
   },
   oauthStack: {
@@ -120,11 +136,11 @@ export const authLayout = StyleSheet.create({
     fontWeight: "600",
   },
   welcomeLanding: {
-    flexGrow: 1,
-    gap: 2,
-    minHeight: "100%",
-    paddingTop: 4,
-    paddingBottom: 12,
+    flex: 1,
+    gap: 0,
+    minHeight: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   authEntryLanding: {
     flexGrow: 1,

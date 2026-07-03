@@ -17,7 +17,12 @@ import {
   startFutureYouGeneration,
 } from "@/lib/futureYouGenerateService";
 import { futureYouTimelineFromProfile } from "@/lib/futureYouTimeline";
-import { FutureYouUploadError, resolveFutureYouSourcePath, uploadFutureYouPhoto } from "@/lib/futureYouUploadService";
+import {
+  FutureYouUploadError,
+  prepareFutureYouUploadProfile,
+  resolveFutureYouSourcePath,
+  uploadFutureYouPhoto,
+} from "@/lib/futureYouUploadService";
 
 type WizardNav = {
   goToStep: (next: number, overrides?: { futureYou?: FutureYouDraft }) => void;
@@ -105,6 +110,7 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
       setUploadError(null);
       setUploading(true);
       try {
+        await prepareFutureYouUploadProfile(profile);
         const uploaded = await uploadFutureYouPhoto(preview);
         const nextFutureYou = mergeFutureYouDraft(futureYou, {
           photoSkipped: false,
@@ -124,7 +130,7 @@ export function useFutureYouOnboarding({ goToStep, patchFutureYou, futureYou, pr
         setUploading(false);
       }
     },
-    [futureYou, goToStep, photoPreview],
+    [futureYou, goToStep, photoPreview, profile],
   );
 
   const continueFutureYouMotivation = useCallback(async (returnStep?: number) => {

@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useState, type ReactNode } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
@@ -9,6 +9,7 @@ import { FutureYouPhonePreview } from "@/components/FutureYouPhonePreview";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { authLayout } from "@/lib/authLayoutStyles";
+import { isWelcomeCompactLayout } from "@/lib/welcomeHeroLayout";
 
 type AuthWelcomePhase = "landing" | "auth";
 
@@ -16,10 +17,14 @@ function WelcomeShell({
   children,
   insets,
   testID,
+  compact,
+  phase,
 }: {
   children: ReactNode;
   insets: { top: number; bottom: number };
   testID: string;
+  compact: boolean;
+  phase: AuthWelcomePhase;
 }) {
   const { colors } = useAppTheme();
 
@@ -29,29 +34,25 @@ function WelcomeShell({
         authLayout.screen,
         {
           backgroundColor: colors.background,
-          paddingTop: insets.top + 16,
-          paddingBottom: insets.bottom + 24,
+          paddingTop: insets.top + (compact ? 8 : 12),
+          paddingBottom: insets.bottom + (compact ? 12 : 16),
           paddingHorizontal: 23,
+          overflow: "hidden",
         },
       ]}
       testID={testID}
     >
-      <ScrollView
-        style={authLayout.screen}
-        contentContainerStyle={authLayout.welcomeLanding}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={authLayout.welcomeLanding}>
         <View style={authLayout.brandRow}>
-          <NewYouSplashMark />
+          <NewYouSplashMark iconOnly size={compact ? 44 : 48} />
         </View>
 
         <View style={authLayout.heroRow}>
-          <FutureYouPhonePreview size="hero" />
+          <FutureYouPhonePreview size="hero" welcomePhase={phase} />
         </View>
 
         {children}
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -60,21 +61,43 @@ export default function AuthWelcomeScreen() {
   const { colors } = useAppTheme();
   const { ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
   const [phase, setPhase] = useState<AuthWelcomePhase>("landing");
   const [oauthError, setOauthError] = useState<string | null>(null);
+  const compact = isWelcomeCompactLayout(screenHeight, insets, phase);
 
   if (phase === "landing") {
     return (
-      <WelcomeShell insets={insets} testID="auth-welcome-screen">
+      <WelcomeShell compact={compact} insets={insets} phase="landing" testID="auth-welcome-screen">
         <View style={authLayout.welcomeBottom}>
           <View style={authLayout.copyBlock}>
             <View style={{ alignItems: "center" }} testID="auth-welcome-headline">
-              <Text style={[authLayout.welcomeHeadline, { color: colors.textPrimary }]}>
-                Discover a new version of
+              <Text
+                style={[
+                  authLayout.welcomeHeadline,
+                  compact ? authLayout.welcomeHeadlineCompact : null,
+                  { color: colors.textPrimary },
+                ]}
+              >
+                Discover a
               </Text>
-              <Text style={[authLayout.welcomeHeadlineEmphasis, { color: ob.gold }]}>You</Text>
+              <Text
+                style={[
+                  authLayout.welcomeHeadlineEmphasis,
+                  compact ? authLayout.welcomeHeadlineEmphasisCompact : null,
+                  { color: ob.gold },
+                ]}
+              >
+                New You
+              </Text>
             </View>
-            <Text style={[authLayout.subline, { color: colors.textSecondary }]}>
+            <Text
+              style={[
+                authLayout.subline,
+                compact ? authLayout.sublineCompact : null,
+                { color: colors.textSecondary },
+              ]}
+            >
               Progressive training and nutrition, built around you.
             </Text>
           </View>
@@ -96,16 +119,26 @@ export default function AuthWelcomeScreen() {
   }
 
   return (
-    <WelcomeShell insets={insets} testID="auth-welcome-screen">
+    <WelcomeShell compact={compact} insets={insets} phase="auth" testID="auth-welcome-screen">
       <View style={authLayout.welcomeBottom}>
         <View style={authLayout.copyBlock}>
           <Text
-            style={[authLayout.welcomeHeadline, { color: colors.textPrimary }]}
+            style={[
+              authLayout.welcomeHeadline,
+              compact ? authLayout.welcomeHeadlineCompact : null,
+              { color: colors.textPrimary },
+            ]}
             testID="auth-entry-headline"
           >
             Create your account
           </Text>
-          <Text style={[authLayout.subline, { color: colors.textSecondary }]}>
+          <Text
+            style={[
+              authLayout.subline,
+              compact ? authLayout.sublineCompact : null,
+              { color: colors.textSecondary },
+            ]}
+          >
             Sign up with email or Apple to get started.
           </Text>
         </View>

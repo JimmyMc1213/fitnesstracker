@@ -1,37 +1,43 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Image, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconLock } from "@/components/icons/FitnessIcons";
+import { futureYouSilhouettesForGender } from "@/lib/futureYouSilhouettes";
+import { isWelcomeCompactLayout, welcomePhoneScale, WELCOME_PHONE_COMPACT_INNER_HEIGHT, WELCOME_PHONE_INNER_HEIGHT } from "@/lib/welcomeHeroLayout";
 
 const BASE_WIDTH = 270;
 const GOLD_LIGHT = "#CAA668";
 const SCREEN_BG = "#0F0E0A";
 const SUBTITLE = "#8A8780";
 
-const BLUR_IMAGE = require("@/assets/images/futureyou-blur.jpg");
+/** Fit Future You demo portrait (blurred at render time for the locked teaser). */
+const PREVIEW_IMAGE = require("@/assets/images/futureyou-welcome-preview.png");
+/** Legacy pre-blurred square crop — fallback only. */
+const BLUR_IMAGE = require("@/assets/images/futureyou-blur.png");
+const FALLBACK_SILHOUETTE = futureYouSilhouettesForGender("male")?.after;
 
 type FutureYouPhonePreviewProps = {
   /** Large centered hero for welcome landing screens. */
   size?: "default" | "hero";
+  /** Auth welcome shows more CTAs — shrink the mockup further. */
+  welcomePhase?: "landing" | "auth";
 };
 
-function usePhoneScale(size: "default" | "hero") {
+function usePhoneScale(size: "default" | "hero", welcomePhase: "landing" | "auth", compact: boolean) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
-  return useMemo(() => {
-    const fallbackWidth = size === "hero" ? 240 : 176;
-    if (screenWidth <= 0 || screenHeight <= 0) {
-      return fallbackWidth / BASE_WIDTH;
-    }
-
-    const widthCap = size === "hero" ? Math.min(BASE_WIDTH, screenWidth * 0.72) : Math.min(176, screenWidth * 0.46);
-    const heightCap = size === "hero" ? screenHeight * 0.42 : screenHeight * 0.22;
-    const scaledHeight = (widthCap / BASE_WIDTH) * 570;
-    const width =
-      scaledHeight > heightCap && heightCap > 0 ? (heightCap / 570) * BASE_WIDTH : widthCap;
-
-    return Math.max(size === "hero" ? 0.82 : 0.65, width / BASE_WIDTH);
-  }, [screenHeight, screenWidth, size]);
+  return useMemo(
+    () =>
+      welcomePhoneScale(screenWidth, screenHeight, insets, size, {
+        phase: welcomePhase,
+        compact,
+        iconOnlyBrand: true,
+        singleLineHeadline: false,
+      }),
+    [compact, insets.bottom, insets.top, screenHeight, screenWidth, size, welcomePhase],
+  );
 }
 
 function BatteryIcon({ scale }: { scale: number }) {
@@ -86,10 +92,24 @@ function PhoneSideButtons({ scale }: { scale: number }) {
 }
 
 /** Marketing-site Future You phone mockup (apps/web/components/marketing/PhoneMockups). */
-export function FutureYouPhonePreview({ size = "hero" }: FutureYouPhonePreviewProps) {
-  const scale = usePhoneScale(size);
+export function FutureYouPhonePreview({
+  size = "hero",
+  welcomePhase = "landing",
+}: FutureYouPhonePreviewProps) {
+  const { height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const compact = isWelcomeCompactLayout(screenHeight, insets, welcomePhase);
+  const scale = usePhoneScale(size, welcomePhase, compact);
   const s = (n: number) => n * scale;
   const width = s(BASE_WIDTH);
+  const innerScreenHeight = compact ? WELCOME_PHONE_COMPACT_INNER_HEIGHT : WELCOME_PHONE_INNER_HEIGHT;
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const handlePreviewError = useCallback(() => {
+    // Image onError can fire synchronously during the first commit — defer past mount.
+    queueMicrotask(() => setPreviewFailed(true));
+  }, []);
+  const previewSource = previewFailed ? (FALLBACK_SILHOUETTE ?? BLUR_IMAGE) : PREVIEW_IMAGE;
+  const previewBlurRadius = previewFailed && FALLBACK_SILHOUETTE != null ? 14 : 18;
 
   return (
     <View
@@ -100,7 +120,7 @@ export function FutureYouPhonePreview({ size = "hero" }: FutureYouPhonePreviewPr
       <PhoneSideButtons scale={scale} />
       <View style={[styles.outerRail, { width, borderRadius: s(56), padding: s(4), backgroundColor: "#3c3c3e" }]}>
         <View style={[styles.bezel, { borderRadius: s(52), padding: s(10), backgroundColor: "#050505" }]}>
-          <View style={[styles.screen, { height: s(546), borderRadius: s(43), backgroundColor: SCREEN_BG }]}>
+          <View style={[styles.screen, { height: s(innerScreenHeight), borderRadius: s(43), backgroundColor: SCREEN_BG }]}>
             <View
               style={{
                 position: "absolute",
@@ -149,7 +169,7 @@ export function FutureYouPhonePreview({ size = "hero" }: FutureYouPhonePreviewPr
                   marginTop: s(8),
                   textAlign: "center",
                   color: GOLD_LIGHT,
-                  fontSize: s(27),
+                  fontSize: s(compact ? 23 : 27),
                   fontWeight: "800",
                   letterSpacing: -0.3,
                 }}
@@ -171,29 +191,28 @@ export function FutureYouPhonePreview({ size = "hero" }: FutureYouPhonePreviewPr
               <View
                 style={{
                   flex: 1,
-                  marginTop: s(14),
+                  minHeight: s(120),
+                  marginTop: s(10),
                   borderRadius: s(18),
                   overflow: "hidden",
                   borderWidth: StyleSheet.hairlineWidth * 2,
                   borderColor: "rgba(202, 166, 104, 0.5)",
-                  backgroundColor: "#3a342c",
+                  backgroundColor: "#1a1814",
                 }}
               >
-                <Image source={BLUR_IMAGE} style={StyleSheet.absoluteFill} resizeMode="cover" />
-                <View
-                  style={{
-                    ...StyleSheet.absoluteFill,
-                    backgroundColor: "rgba(20, 18, 12, 0.28)",
-                  }}
+                <Image
+                  source={previewSource}
+                  style={styles.previewImage}
+                  resizeMode="cover"
+                  blurRadius={previewBlurRadius}
+                  onError={handlePreviewError}
+                  accessibilityIgnoresInvertColors
                 />
                 <View
+                  pointerEvents="none"
                   style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: "48%",
-                    backgroundColor: "rgba(20, 18, 12, 0.62)",
+                    ...StyleSheet.absoluteFill,
+                    backgroundColor: "rgba(20, 18, 12, 0.18)",
                   }}
                 />
                 <View
@@ -217,10 +236,10 @@ export function FutureYouPhonePreview({ size = "hero" }: FutureYouPhonePreviewPr
 
               <Text
                 style={{
-                  marginTop: s(14),
+                  marginTop: s(compact ? 16 : 20),
                   textAlign: "center",
                   color: GOLD_LIGHT,
-                  fontSize: s(17),
+                  fontSize: s(compact ? 15 : 17),
                   fontWeight: "800",
                   letterSpacing: -0.2,
                 }}
@@ -229,7 +248,7 @@ export function FutureYouPhonePreview({ size = "hero" }: FutureYouPhonePreviewPr
               </Text>
               <Text
                 style={{
-                  marginTop: s(2),
+                  marginTop: s(4),
                   marginBottom: s(2),
                   textAlign: "center",
                   color: "#ffffff",
@@ -248,10 +267,16 @@ export function FutureYouPhonePreview({ size = "hero" }: FutureYouPhonePreviewPr
 }
 
 const styles = StyleSheet.create({
+  previewImage: {
+    ...StyleSheet.absoluteFill,
+    width: "100%",
+    height: "100%",
+  },
   root: {
     alignSelf: "center",
     position: "relative",
-    flexShrink: 0,
+    flexShrink: 1,
+    minHeight: 0,
   },
   sideButton: {
     position: "absolute",
