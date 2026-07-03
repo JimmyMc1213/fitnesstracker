@@ -1,18 +1,92 @@
 import {
+  FITNESS_LOCAL_STORAGE_KEY,
+  loadPersistedSlice,
+  loadSyncMeta,
+  pullRemoteMergeAlways,
+  savePersistedSlice,
+  saveSyncMeta,
+  tryPush,
+} from "@newyouai/core";
+import type { OnboardingProfile } from "@newyouai/types";
+import * as FileSystem from "expo-file-system/legacy";
+
+import {
   FutureYouUploadError as ApiFutureYouUploadError,
   uploadFutureYouPhoto as uploadFutureYouPhotoApi,
   type FutureYouUploadResult,
 } from "@newyouai/api-client";
 
 import { e2eMockFutureYouUpload } from "@/lib/e2e/futureYouMock";
+import { createAsyncStorageAdapter } from "@/lib/createAsyncStorageAdapter";
+import { createSupabaseSyncClient } from "@/lib/fitness/createSupabaseSyncClient";
+import { ageFromDateOfBirth } from "@/lib/onboardingProfile";
 
 import { getSupabase, getSupabaseEnv, isSupabaseConfigured } from "./supabaseClient";
+
+import { isFutureYouPhotoDataUrl, isLocalFutureYouPhotoUri } from "@/lib/futureYouPhotoUri";
 
 export type { FutureYouUploadResult };
 
 export { ApiFutureYouUploadError as FutureYouUploadError };
 
-import { isFutureYouPhotoDataUrl, isLocalFutureYouPhotoUri } from "@/lib/futureYouPhotoUri";
+const storageAdapter = createAsyncStorageAdapter();
+
+/** Edge upload age checks read onboardingProfile.dateOfBirth from fitness_user_data. */
+export async function prepareFutureYouUploadProfile(
+  profile: Pick<OnboardingProfile, "dateOfBirth" | "age" | "heightIn" | "weightLbs" | "gender" | "goal">,
+): Promise<void> {
+  const dateOfBirth = profile.dateOfBirth?.trim();
+  if (!dateOfBirth || !isSupabaseConfigured()) return;
+
+  const sb = getSupabase();
+  const {
+    data: { session },
+  } = await sb?.auth.getSession() ?? { data: { session: null } };
+  const uid = session?.user?.id;
+  const client = createSupabaseSyncClient();
+  if (!uid || !client) return;
+
+  const localSlice =
+    (await loadPersistedSlice(storageAdapter, FITNESS_LOCAL_STORAGE_KEY)) ?? {};
+  const existingProfile = localSlice.onboardingProfile;
+
+  const age = ageFromDateOfBirth(dateOfBirth) ?? profile.age ?? existingProfile?.age ?? 0;
+  const nextSlice = {
+    ...localSlice,
+    onboardingProfile: {
+      ...(existingProfile ?? {}),
+      dateOfBirth,
+      age,
+      heightIn: profile.heightIn ?? existingProfile?.heightIn ?? 0,
+      weightLbs: profile.weightLbs ?? existingProfile?.weightLbs ?? 0,
+      gender: profile.gender ?? existingProfile?.gender,
+      goal: profile.goal ?? existingProfile?.goal,
+    },
+  };
+
+  let meta = await loadSyncMeta(storageAdapter);
+  let slice = nextSlice;
+  let result = await tryPush(client, uid, slice, meta);
+
+  for (let retries = 0; "conflict" in result && result.conflict && retries < 3; retries++) {
+    const merged = await pullRemoteMergeAlways(client, uid, slice);
+    if (merged) {
+      slice = {
+        ...merged.mergedSlice,
+        onboardingProfile: nextSlice.onboardingProfile,
+      };
+      meta = merged.meta;
+    } else {
+      meta = await loadSyncMeta(storageAdapter);
+    }
+    result = await tryPush(client, uid, slice, meta);
+  }
+
+  if ("ok" in result && result.ok) {
+    await saveSyncMeta(storageAdapter, result.meta);
+    await savePersistedSlice(storageAdapter, FITNESS_LOCAL_STORAGE_KEY, slice);
+  }
+}
 
 async function requireAuthedClient() {
   if (!isSupabaseConfigured()) {
@@ -41,7 +115,6 @@ async function requireAuthedClient() {
 
 /** Read a compressed on-device JPEG as base64 and upload via the JSON data-URL path (RN-safe). */
 async function uploadFutureYouPhotoFromUri(localUri: string): Promise<FutureYouUploadResult> {
-  const FileSystem = await import("expo-file-system/legacy");
   const base64 = await FileSystem.readAsStringAsync(localUri, {
     encoding: FileSystem.EncodingType.Base64,
   });

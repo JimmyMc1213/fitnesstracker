@@ -71,17 +71,26 @@ export default function AuthWelcomeScreen() {
       <WelcomeShell compact={compact} insets={insets} phase="landing" testID="auth-welcome-screen">
         <View style={authLayout.welcomeBottom}>
           <View style={authLayout.copyBlock}>
-            <Text
-              style={[
-                authLayout.welcomeHeadline,
-                compact ? authLayout.welcomeHeadlineCompact : null,
-                { color: colors.textPrimary },
-              ]}
-              testID="auth-welcome-headline"
-            >
-              Smarter training for a{" "}
-              <Text style={{ color: ob.gold }}>stronger you.</Text>
-            </Text>
+            <View style={{ alignItems: "center" }} testID="auth-welcome-headline">
+              <Text
+                style={[
+                  authLayout.welcomeHeadline,
+                  compact ? authLayout.welcomeHeadlineCompact : null,
+                  { color: colors.textPrimary },
+                ]}
+              >
+                Discover a
+              </Text>
+              <Text
+                style={[
+                  authLayout.welcomeHeadlineEmphasis,
+                  compact ? authLayout.welcomeHeadlineEmphasisCompact : null,
+                  { color: ob.gold },
+                ]}
+              >
+                New You
+              </Text>
+            </View>
             <Text
               style={[
                 authLayout.subline,

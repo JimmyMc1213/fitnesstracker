@@ -120,6 +120,15 @@ function envTrim(raw: string | undefined): string {
   return String(raw).trim().replace(/^["']|["']$/g, "");
 }
 
+function futureYouUploadErrorMessage(raw: string): string {
+  const trimmed = raw.trim();
+  // Legacy edge gate codes — no longer enforced; avoid surfacing stale server strings in UI.
+  if (trimmed === "age_restricted" || trimmed === "region_restricted") {
+    return "Photo upload failed. Try again.";
+  }
+  return trimmed;
+}
+
 function parseStatus(value: string | undefined): FutureYouJobStatus | undefined {
   if (value === "queued" || value === "generating" || value === "ready" || value === "failed") {
     return value;
@@ -175,7 +184,7 @@ function parseUploadResponse(data: unknown): FutureYouUploadResult {
   }
   const err = data as { error?: string };
   if (typeof err.error === "string" && err.error.trim()) {
-    throw new FutureYouUploadError(err.error.trim(), "invalid");
+    throw new FutureYouUploadError(futureYouUploadErrorMessage(err.error), "invalid");
   }
   const body = data as Partial<FutureYouUploadResult>;
   if (typeof body.path !== "string" || !body.path.trim()) {
@@ -413,11 +422,14 @@ export async function uploadFutureYouPhoto(
   }
 
   if (!response.ok) {
-    const message =
+    const raw =
       data && typeof data === "object" && typeof (data as { error?: string }).error === "string"
         ? (data as { error: string }).error.trim()
         : "Photo upload failed. Try again.";
-    throw new FutureYouUploadError(message || "Photo upload failed. Try again.", "unavailable");
+    throw new FutureYouUploadError(
+      futureYouUploadErrorMessage(raw) || "Photo upload failed. Try again.",
+      "unavailable",
+    );
   }
 
   return parseUploadResponse(data);

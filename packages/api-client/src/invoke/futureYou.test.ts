@@ -130,6 +130,23 @@ describe("uploadFutureYouPhoto", () => {
     expect(result.path).toBe("users/u1/source/x.jpg");
   });
 
+  it("maps age_restricted to a user-facing upload error", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: async () => ({ error: "age_restricted" }),
+      }),
+    );
+
+    await expect(
+      uploadFutureYouPhoto(mockClient(vi.fn()), validEnv, "data:image/jpeg;base64,abc"),
+    ).rejects.toMatchObject({
+      message: "Photo upload failed. Try again.",
+    });
+  });
+
   it("uploads multipart FormData without forcing JSON content type", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
