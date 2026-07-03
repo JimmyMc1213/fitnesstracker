@@ -58,7 +58,7 @@ export function MacroRing({
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={colors.accent}
+          stroke={colors.textPrimary}
           strokeWidth={stroke}
           fill="none"
           strokeLinecap="round"

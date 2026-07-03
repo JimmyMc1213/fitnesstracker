@@ -74,7 +74,7 @@ export function MacroRing({
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="var(--chart-stroke)"
+          stroke="var(--ring-fill)"
           strokeWidth={stroke}
           fill="none"
           strokeLinecap="round"
