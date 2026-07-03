@@ -53,6 +53,26 @@ export function isFutureYouAccessBlocked(
   return typeof outcome === "object" && outcome !== null && "blocked" in outcome;
 }
 
+export function unwrapFutureYouGenerateOutcome(outcome: FutureYouGenerateOutcome): FutureYouGenerateResult {
+  if (isFutureYouAccessBlocked(outcome)) {
+    if (isFutureYouAgeBlocked(outcome)) {
+      throw new FutureYouGenerateError("Future You is not available for your age.", "invalid");
+    }
+    throw new FutureYouGenerateError("Future You is not available in your region.", "invalid");
+  }
+  return outcome;
+}
+
+export function unwrapFutureYouUploadOutcome(outcome: FutureYouUploadOutcome): FutureYouUploadResult {
+  if (isFutureYouAccessBlocked(outcome)) {
+    if (isFutureYouAgeBlocked(outcome)) {
+      throw new FutureYouUploadError("Future You is not available for your age.", "invalid");
+    }
+    throw new FutureYouUploadError("Future You is not available in your region.", "invalid");
+  }
+  return outcome;
+}
+
 export class FutureYouGenerateError extends Error {
   constructor(
     message: string,

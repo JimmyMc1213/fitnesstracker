@@ -18,7 +18,7 @@ export async function seedPersistedDisplayName(name: string): Promise<void> {
 
   const existingSlice =
     (await loadPersistedSlice<PersistedFitnessSlice>(storageAdapter, FITNESS_LOCAL_STORAGE_KEY)) ?? {};
-  const nextSlice: PersistedFitnessSlice = { ...existingSlice };
+  const nextSlice: Partial<PersistedFitnessSlice> = { ...existingSlice };
   let sliceDirty = false;
 
   if (!nextSlice.displayName?.trim()) {

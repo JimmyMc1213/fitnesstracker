@@ -7,8 +7,10 @@ import {
   type TextStyle,
   type TextInputProps,
   type ViewStyle,
+  type NativeSyntheticEvent,
+  type TextInputSubmitEditingEventData,
 } from "react-native";
-import { useRef, type NativeSyntheticEvent, type TextInputSubmitEditingEventData } from "react";
+import { useRef } from "react";
 import { dismissKeyboard, numericKeyboardAccessoryProps } from "@/lib/keyboard";
 
 export type AlignedTextInputSize = "field" | "sheet" | "onboarding" | "auth" | "compact" | "dense";

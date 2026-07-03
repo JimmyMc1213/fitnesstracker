@@ -28,6 +28,8 @@ export {
   startFutureYouGeneration,
   submitFutureYouReport,
   uploadFutureYouPhoto,
+  unwrapFutureYouGenerateOutcome,
+  unwrapFutureYouUploadOutcome,
   type FutureYouAccessBlock,
   type FutureYouAgeBlock,
   type FutureYouRegionBlock,

@@ -1,6 +1,7 @@
 import {
   FutureYouGenerateError as ApiFutureYouGenerateError,
   startFutureYouGeneration as startFutureYouGenerationApi,
+  unwrapFutureYouGenerateOutcome,
   type FutureYouGenerateResult,
 } from "@newyouai/api-client";
 import type { NutritionGoal, OnboardingProfile, UserGender } from "@newyouai/types";
@@ -62,5 +63,5 @@ export async function startFutureYouGeneration(
     throw new ApiFutureYouGenerateError("Sign in to create your Future You.", "auth_required");
   }
 
-  return startFutureYouGenerationApi(sb, getSupabaseEnv(), request);
+  return unwrapFutureYouGenerateOutcome(await startFutureYouGenerationApi(sb, getSupabaseEnv(), request));
 }
