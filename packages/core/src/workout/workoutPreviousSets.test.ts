@@ -62,6 +62,19 @@ describe("workoutPreviousSets", () => {
     expect(setFieldPlaceholder(sets, 1, history)).toEqual({ w: 140, r: 6 });
   });
 
+  it("propagates in-session values to all subsequent sets", () => {
+    const history = [{ w: 100, r: 10, done: false }];
+    const sets = [
+      { w: 145, r: 0, done: false },
+      { w: 0, r: 0, done: false },
+      { w: 0, r: 0, done: false },
+      { w: 0, r: 0, done: false },
+    ];
+    expect(setFieldPlaceholder(sets, 1, history)).toEqual({ w: 145, r: 0 });
+    expect(setFieldPlaceholder(sets, 2, history)).toEqual({ w: 145, r: 0 });
+    expect(setFieldPlaceholder(sets, 3, history)).toEqual({ w: 145, r: 0 });
+  });
+
   it("inherits placeholder from the previous row for added sets", () => {
     const history = [
       { w: 135, r: 8, done: false },

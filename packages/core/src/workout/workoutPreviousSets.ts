@@ -47,16 +47,18 @@ export function previousSetLinesForExercise(
   });
 }
 
-/** Placeholder w/r for an in-session set row (history for set 1; prior set when added or logged). */
+/** Placeholder w/r for an in-session set row (history for set 1; nearest prior logged set in session). */
 export function setFieldPlaceholder(
   sets: WorkoutSet[],
   setIndex: number,
   historySets: WorkoutSet[] | null | undefined,
 ): { w: number; r: number } {
   if (setIndex > 0) {
-    const prev = sets[setIndex - 1];
-    if (prev && (prev.w > 0 || prev.r > 0)) {
-      return { w: prev.w, r: prev.r };
+    for (let i = setIndex - 1; i >= 0; i--) {
+      const s = sets[i];
+      if (s && (s.w > 0 || s.r > 0)) {
+        return { w: s.w, r: s.r };
+      }
     }
     if (historySets && setIndex >= historySets.length) {
       return setFieldPlaceholder(sets, setIndex - 1, historySets);

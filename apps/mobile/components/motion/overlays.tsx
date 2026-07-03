@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { KEYBOARD_OPEN_THRESHOLD, useKeyboardHeight } from "@/lib/keyboard";
 
 type FullScreenOverlayProps = {
   open: boolean;
@@ -65,6 +66,8 @@ type BottomSheetProps = {
   onClose?: () => void;
   /** Centered modal by default; use `bottom` for the pre-workout routine preview. */
   placement?: "center" | "bottom";
+  /** Resize/realign centered sheets when the keyboard is open. */
+  keyboardAware?: boolean;
   panelStyle?: StyleProp<ViewStyle>;
   backdropStyle?: StyleProp<ViewStyle>;
   children: ReactNode;
@@ -74,6 +77,7 @@ export function BottomSheet({
   open,
   onClose,
   placement = "center",
+  keyboardAware = false,
   panelStyle,
   backdropStyle,
   children,
@@ -111,6 +115,7 @@ export function BottomSheet({
     <CenterDialog
       open={open}
       onClose={onClose}
+      keyboardAware={keyboardAware}
       backdropStyle={backdropStyle}
       panelStyle={[styles.sheetAsDialogPanel, panelStyle]}
     >
@@ -122,19 +127,29 @@ export function BottomSheet({
 type CenterDialogProps = {
   open: boolean;
   onClose?: () => void;
+  keyboardAware?: boolean;
   panelStyle?: StyleProp<ViewStyle>;
   backdropStyle?: StyleProp<ViewStyle>;
   children: ReactNode;
 };
 
-export function CenterDialog({ open, onClose, panelStyle, backdropStyle, children }: CenterDialogProps) {
+export function CenterDialog({
+  open,
+  onClose,
+  keyboardAware = false,
+  panelStyle,
+  backdropStyle,
+  children,
+}: CenterDialogProps) {
   const { colors } = useAppTheme();
+  const keyboardHeight = useKeyboardHeight();
+  const keyboardOpen = keyboardAware && keyboardHeight >= KEYBOARD_OPEN_THRESHOLD;
 
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView
-        style={styles.dialogRoot}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={[styles.dialogRoot, keyboardOpen ? styles.dialogRootKeyboardOpen : null]}
+        behavior={keyboardAware ? undefined : Platform.OS === "ios" ? "padding" : undefined}
         pointerEvents="box-none"
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button">
@@ -173,6 +188,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
+  },
+  dialogRootKeyboardOpen: {
+    justifyContent: "flex-start",
+    paddingTop: 12,
   },
   backdrop: {
     ...StyleSheet.absoluteFill,

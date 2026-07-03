@@ -149,7 +149,7 @@ export default function WorkoutHistoryScreen() {
           onPress={() => router.back()}
           className="-ml-2 mb-1 p-2"
         >
-          <Text className="text-[15px] font-semibold" style={{ color: colors.accent }}>
+          <Text className="text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
             ← Back
           </Text>
         </Pressable>

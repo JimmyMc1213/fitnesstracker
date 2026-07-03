@@ -23,8 +23,6 @@ import {
 import { groupSessionsByMonth, monthGroupLabel } from "../workoutHistorySessionStats";
 import type { CompletedWorkoutSession, ScreenProps } from "../types";
 
-const ACCENT_BLUE = "var(--accent)";
-
 type Props = ScreenProps & {
   onBack: () => void;
   onWorkoutStarted?: () => void;
@@ -124,7 +122,7 @@ export function ScreenWorkoutHistory({ state, setState, onBack, onWorkoutStarted
           className="tap"
           onClick={onBack}
           aria-label="Back to workout"
-          style={{ color: ACCENT_BLUE, fontSize: 15, fontWeight: 600, padding: 8, marginLeft: -8 }}
+          style={{ color: "var(--text-primary)", fontSize: 15, fontWeight: 600, padding: 8, marginLeft: -8 }}
         >
           ← Back
         </button>

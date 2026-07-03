@@ -8,7 +8,8 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { formatWorkoutDuration, weekdayFullName } from "@newyouai/core";
 
 type Props = {
-  elapsedSec: number;
+  sessionStartedAtMs: number | null;
+  sessionActive: boolean;
   sessionTitle: string;
   onSessionTitleChange: (text: string) => void;
   startedAt: string;
@@ -20,8 +21,30 @@ type Props = {
   metaLayout?: "inline" | "stacked";
 };
 
+/**
+ * Owns the 1s ticking state so only this small text node re-renders each second,
+ * instead of the whole workout screen.
+ */
+function SessionElapsedClock({
+  sessionStartedAtMs,
+  sessionActive,
+  color,
+}: {
+  sessionStartedAtMs: number | null;
+  sessionActive: boolean;
+  color: string;
+}) {
+  const elapsedSec = useSessionElapsedSec(sessionStartedAtMs, sessionActive);
+  return (
+    <Text className="text-xl font-bold tabular-nums tracking-tight" style={{ color }}>
+      {formatWorkoutDuration(elapsedSec)}
+    </Text>
+  );
+}
+
 export function WorkoutSessionHeader({
-  elapsedSec,
+  sessionStartedAtMs,
+  sessionActive,
   sessionTitle,
   onSessionTitleChange,
   startedAt,
@@ -43,12 +66,11 @@ export function WorkoutSessionHeader({
           <Text style={{ fontSize: 20, lineHeight: 1 }} accessibilityElementsHidden>
             ⏱
           </Text>
-          <Text
-            className="text-xl font-bold tabular-nums tracking-tight"
-            style={{ color: colors.textPrimary }}
-          >
-            {formatWorkoutDuration(elapsedSec)}
-          </Text>
+          <SessionElapsedClock
+            sessionStartedAtMs={sessionStartedAtMs}
+            sessionActive={sessionActive}
+            color={colors.textPrimary}
+          />
         </View>
         <View className="flex-row items-center gap-2">
           {onCancel ? (

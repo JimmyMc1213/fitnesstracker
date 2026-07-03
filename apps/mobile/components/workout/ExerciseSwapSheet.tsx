@@ -13,6 +13,7 @@ import {
   filterCatalogExercises,
 } from "@/lib/workout/exerciseCatalogSearch";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useExerciseSearchSheetSizing } from "@/lib/keyboard";
 import type { CustomExerciseTemplate, EquipmentSetup } from "@newyouai/types";
 
 type Props = {
@@ -35,6 +36,7 @@ export function ExerciseSwapSheet({
   onClose,
 }: Props) {
   const { colors } = useAppTheme();
+  const { panelStyle, bodyStyle, listStyle } = useExerciseSearchSheetSizing();
   const [query, setQuery] = useState("");
 
   const catalog = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
@@ -54,8 +56,8 @@ export function ExerciseSwapSheet({
   }
 
   return (
-    <BottomSheet open={open} onClose={onClose} panelStyle={{ paddingHorizontal: 0, paddingBottom: 32, maxHeight: "82%" }}>
-      <View testID="exercise-swap-sheet" className="max-h-[82%] rounded-t-2xl px-5 pb-8 pt-5">
+    <BottomSheet open={open} onClose={onClose} keyboardAware panelStyle={panelStyle}>
+      <View testID="exercise-swap-sheet" style={bodyStyle} className="rounded-t-2xl px-5 pb-8 pt-5">
           <Text className="text-lg font-bold tracking-tight" style={{ color: colors.textPrimary }}>
             Swap exercise
           </Text>
@@ -74,7 +76,12 @@ export function ExerciseSwapSheet({
             shellStyle={{ marginTop: 12 }}
           />
 
-          <ScrollView className="mt-3 max-h-[360px]" keyboardShouldPersistTaps="handled">
+          <ScrollView
+            style={listStyle}
+            className="mt-3"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             {filteredCustom.length > 0 ? (
               <>
                 <ExerciseSearchSectionHeader title="Your exercises" />
