@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Image, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconLock } from "@/components/icons/FitnessIcons";
 import { futureYouSilhouettesForGender } from "@/lib/futureYouSilhouettes";
-import { welcomePhoneScale } from "@/lib/welcomeHeroLayout";
+import { isWelcomeCompactLayout, welcomePhoneScale, WELCOME_PHONE_COMPACT_INNER_HEIGHT, WELCOME_PHONE_INNER_HEIGHT } from "@/lib/welcomeHeroLayout";
 
 const BASE_WIDTH = 270;
 const GOLD_LIGHT = "#CAA668";
@@ -22,13 +22,19 @@ type FutureYouPhonePreviewProps = {
   welcomePhase?: "landing" | "auth";
 };
 
-function usePhoneScale(size: "default" | "hero", welcomePhase: "landing" | "auth") {
+function usePhoneScale(size: "default" | "hero", welcomePhase: "landing" | "auth", compact: boolean) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
   return useMemo(
-    () => welcomePhoneScale(screenWidth, screenHeight, insets, size, welcomePhase),
-    [insets.bottom, insets.top, screenHeight, screenWidth, size, welcomePhase],
+    () =>
+      welcomePhoneScale(screenWidth, screenHeight, insets, size, {
+        phase: welcomePhase,
+        compact,
+        iconOnlyBrand: true,
+        singleLineHeadline: true,
+      }),
+    [compact, insets.bottom, insets.top, screenHeight, screenWidth, size, welcomePhase],
   );
 }
 
@@ -88,12 +94,15 @@ export function FutureYouPhonePreview({
   size = "hero",
   welcomePhase = "landing",
 }: FutureYouPhonePreviewProps) {
-  const scale = usePhoneScale(size, welcomePhase);
+  const { height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const compact = isWelcomeCompactLayout(screenHeight, insets, welcomePhase);
+  const scale = usePhoneScale(size, welcomePhase, compact);
   const s = (n: number) => n * scale;
   const width = s(BASE_WIDTH);
-  const [blurImageFailed, setBlurImageFailed] = useState(false);
-  const previewSource = blurImageFailed && FALLBACK_SILHOUETTE ? FALLBACK_SILHOUETTE : BLUR_IMAGE;
-  const previewBlurRadius = blurImageFailed ? 14 : 0;
+  const innerScreenHeight = compact ? WELCOME_PHONE_COMPACT_INNER_HEIGHT : WELCOME_PHONE_INNER_HEIGHT;
+  const previewHeight = s(compact ? 176 : 204);
+  const previewSource = FALLBACK_SILHOUETTE ?? BLUR_IMAGE;
 
   return (
     <View
@@ -104,7 +113,7 @@ export function FutureYouPhonePreview({
       <PhoneSideButtons scale={scale} />
       <View style={[styles.outerRail, { width, borderRadius: s(56), padding: s(4), backgroundColor: "#3c3c3e" }]}>
         <View style={[styles.bezel, { borderRadius: s(52), padding: s(10), backgroundColor: "#050505" }]}>
-          <View style={[styles.screen, { height: s(546), borderRadius: s(43), backgroundColor: SCREEN_BG }]}>
+          <View style={[styles.screen, { height: s(innerScreenHeight), borderRadius: s(43), backgroundColor: SCREEN_BG }]}>
             <View
               style={{
                 position: "absolute",
@@ -153,7 +162,7 @@ export function FutureYouPhonePreview({
                   marginTop: s(8),
                   textAlign: "center",
                   color: GOLD_LIGHT,
-                  fontSize: s(27),
+                  fontSize: s(compact ? 23 : 27),
                   fontWeight: "800",
                   letterSpacing: -0.3,
                 }}
@@ -174,7 +183,7 @@ export function FutureYouPhonePreview({
 
               <View
                 style={{
-                  flex: 1,
+                  height: previewHeight,
                   marginTop: s(14),
                   borderRadius: s(18),
                   overflow: "hidden",
@@ -187,15 +196,14 @@ export function FutureYouPhonePreview({
                   source={previewSource}
                   style={styles.previewImage}
                   resizeMode="cover"
-                  blurRadius={previewBlurRadius}
-                  onError={() => setBlurImageFailed(true)}
+                  blurRadius={18}
                   accessibilityIgnoresInvertColors
                 />
                 <View
                   pointerEvents="none"
                   style={{
                     ...StyleSheet.absoluteFillObject,
-                    backgroundColor: "rgba(20, 18, 12, 0.22)",
+                    backgroundColor: "rgba(20, 18, 12, 0.18)",
                   }}
                 />
                 <View
@@ -219,10 +227,10 @@ export function FutureYouPhonePreview({
 
               <Text
                 style={{
-                  marginTop: s(14),
+                  marginTop: s(10),
                   textAlign: "center",
                   color: GOLD_LIGHT,
-                  fontSize: s(17),
+                  fontSize: s(compact ? 15 : 17),
                   fontWeight: "800",
                   letterSpacing: -0.2,
                 }}
@@ -251,7 +259,6 @@ export function FutureYouPhonePreview({
 
 const styles = StyleSheet.create({
   previewImage: {
-    ...StyleSheet.absoluteFillObject,
     width: "100%",
     height: "100%",
   },

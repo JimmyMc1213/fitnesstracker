@@ -42,6 +42,7 @@ export const authLayout = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 32,
     textAlign: "center",
+    maxWidth: 320,
   },
   welcomeHeadlineEmphasis: {
     fontSize: 40,
@@ -72,7 +73,7 @@ export const authLayout = StyleSheet.create({
   },
   actions: {
     flexShrink: 0,
-    marginTop: 16,
+    marginTop: 12,
     gap: 10,
   },
   oauthStack: {

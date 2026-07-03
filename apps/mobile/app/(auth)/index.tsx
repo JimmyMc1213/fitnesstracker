@@ -37,13 +37,14 @@ function WelcomeShell({
           paddingTop: insets.top + (compact ? 8 : 12),
           paddingBottom: insets.bottom + (compact ? 12 : 16),
           paddingHorizontal: 23,
+          overflow: "hidden",
         },
       ]}
       testID={testID}
     >
       <View style={authLayout.welcomeLanding}>
         <View style={authLayout.brandRow}>
-          <NewYouSplashMark size={compact ? 48 : 56} />
+          <NewYouSplashMark iconOnly size={compact ? 44 : 48} />
         </View>
 
         <View style={authLayout.heroRow}>
@@ -70,26 +71,17 @@ export default function AuthWelcomeScreen() {
       <WelcomeShell compact={compact} insets={insets} phase="landing" testID="auth-welcome-screen">
         <View style={authLayout.welcomeBottom}>
           <View style={authLayout.copyBlock}>
-            <View style={{ alignItems: "center" }} testID="auth-welcome-headline">
-              <Text
-                style={[
-                  authLayout.welcomeHeadline,
-                  compact ? authLayout.welcomeHeadlineCompact : null,
-                  { color: colors.textPrimary },
-                ]}
-              >
-                Discover a new version of
-              </Text>
-              <Text
-                style={[
-                  authLayout.welcomeHeadlineEmphasis,
-                  compact ? authLayout.welcomeHeadlineEmphasisCompact : null,
-                  { color: ob.gold },
-                ]}
-              >
-                You
-              </Text>
-            </View>
+            <Text
+              style={[
+                authLayout.welcomeHeadline,
+                compact ? authLayout.welcomeHeadlineCompact : null,
+                { color: colors.textPrimary },
+              ]}
+              testID="auth-welcome-headline"
+            >
+              Smarter training for a{" "}
+              <Text style={{ color: ob.gold }}>stronger you.</Text>
+            </Text>
             <Text
               style={[
                 authLayout.subline,
