@@ -1,8 +1,14 @@
 import {
   FutureYouUploadError as ApiFutureYouUploadError,
+  isFutureYouAccessBlocked,
+  isFutureYouAgeBlocked,
   uploadFutureYouPhoto as uploadFutureYouPhotoApi,
   type FutureYouUploadResult,
 } from "@newyouai/api-client";
+import {
+  FUTURE_YOU_PAGE_BLOCKED_LEDE,
+  FUTURE_YOU_REGION_UNAVAILABLE_MESSAGE,
+} from "@newyouai/core";
 import { getSupabase, getSupabaseEnv, isSupabaseConfigured } from "./supabaseClient";
 
 export type { FutureYouUploadResult };
@@ -26,5 +32,12 @@ export async function uploadFutureYouPhoto(imageDataUrl: string): Promise<Future
     throw new ApiFutureYouUploadError("Sign in to upload your photo.", "auth_required");
   }
 
-  return uploadFutureYouPhotoApi(sb, getSupabaseEnv(), imageDataUrl);
+  const outcome = await uploadFutureYouPhotoApi(sb, getSupabaseEnv(), imageDataUrl);
+  if (isFutureYouAccessBlocked(outcome)) {
+    if (isFutureYouAgeBlocked(outcome)) {
+      throw new ApiFutureYouUploadError(FUTURE_YOU_PAGE_BLOCKED_LEDE, "invalid");
+    }
+    throw new ApiFutureYouUploadError(FUTURE_YOU_REGION_UNAVAILABLE_MESSAGE, "invalid");
+  }
+  return outcome;
 }

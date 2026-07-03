@@ -23,6 +23,7 @@ type Props = {
   generationStatus: FutureYouJobStatus | "idle";
   gender: UserGender | undefined;
   photoBlocked: boolean;
+  regionBlocked?: boolean;
   subscriptionTier: SubscriptionTier;
   displayName: string;
   previewMode?: boolean;
@@ -37,13 +38,14 @@ export function OnboardingFutureYouSuccess({
   generationStatus,
   gender,
   photoBlocked,
+  regionBlocked = false,
   subscriptionTier,
   displayName,
   previewMode = false,
   onContinue,
   onReported,
 }: Props) {
-  const heroVisible = isFutureYouSuccessHeroVisible(futureYou, photoBlocked);
+  const heroVisible = isFutureYouSuccessHeroVisible(futureYou, photoBlocked || regionBlocked);
   const { imageSrc, loading } = useFutureYouRevealImage({
     jobId: futureYou.generationJobId,
     gender,

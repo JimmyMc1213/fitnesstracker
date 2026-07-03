@@ -1,8 +1,14 @@
 import {
   FutureYouGenerateError as ApiFutureYouGenerateError,
+  isFutureYouAccessBlocked,
+  isFutureYouAgeBlocked,
   startFutureYouGeneration as startFutureYouGenerationApi,
   type FutureYouGenerateResult,
 } from "@newyouai/api-client";
+import {
+  FUTURE_YOU_PAGE_BLOCKED_LEDE,
+  FUTURE_YOU_REGION_UNAVAILABLE_MESSAGE,
+} from "@newyouai/core";
 import type { FutureYouGenerateProfile, FutureYouGenerateRequest } from "./futureYouGenerateGuards";
 import { getSupabase, getSupabaseEnv, isSupabaseConfigured } from "./supabaseClient";
 
@@ -41,5 +47,12 @@ export async function startFutureYouGeneration(
     throw new ApiFutureYouGenerateError("Sign in to create your Future You.", "auth_required");
   }
 
-  return startFutureYouGenerationApi(sb, getSupabaseEnv(), request);
+  const outcome = await startFutureYouGenerationApi(sb, getSupabaseEnv(), request);
+  if (isFutureYouAccessBlocked(outcome)) {
+    if (isFutureYouAgeBlocked(outcome)) {
+      throw new ApiFutureYouGenerateError(FUTURE_YOU_PAGE_BLOCKED_LEDE, "invalid");
+    }
+    throw new ApiFutureYouGenerateError(FUTURE_YOU_REGION_UNAVAILABLE_MESSAGE, "invalid");
+  }
+  return outcome;
 }

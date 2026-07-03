@@ -3,7 +3,6 @@ import type { FutureYouDraft, NutritionGoal } from "@newyouai/types";
 import { canRevisitFutureYouPhoto } from "./future-you-routing";
 import {
   ONBOARDING_STEP_ACTIVITY,
-  ONBOARDING_STEP_FUTURE_YOU_PHOTO,
   ONBOARDING_STEP_PACE,
   ONBOARDING_STEP_RESIDENCY,
   isFutureYouOnboardingStep,
