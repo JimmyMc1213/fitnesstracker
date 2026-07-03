@@ -1,37 +1,35 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Image, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconLock } from "@/components/icons/FitnessIcons";
+import { futureYouSilhouettesForGender } from "@/lib/futureYouSilhouettes";
+import { welcomePhoneScale } from "@/lib/welcomeHeroLayout";
 
 const BASE_WIDTH = 270;
 const GOLD_LIGHT = "#CAA668";
 const SCREEN_BG = "#0F0E0A";
 const SUBTITLE = "#8A8780";
 
-const BLUR_IMAGE = require("@/assets/images/futureyou-blur.jpg");
+/** Asset is PNG; keep the extension accurate so native decoders load it reliably. */
+const BLUR_IMAGE = require("@/assets/images/futureyou-blur.png");
+const FALLBACK_SILHOUETTE = futureYouSilhouettesForGender("male")?.after;
 
 type FutureYouPhonePreviewProps = {
   /** Large centered hero for welcome landing screens. */
   size?: "default" | "hero";
+  /** Auth welcome shows more CTAs — shrink the mockup further. */
+  welcomePhase?: "landing" | "auth";
 };
 
-function usePhoneScale(size: "default" | "hero") {
+function usePhoneScale(size: "default" | "hero", welcomePhase: "landing" | "auth") {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
-  return useMemo(() => {
-    const fallbackWidth = size === "hero" ? 240 : 176;
-    if (screenWidth <= 0 || screenHeight <= 0) {
-      return fallbackWidth / BASE_WIDTH;
-    }
-
-    const widthCap = size === "hero" ? Math.min(BASE_WIDTH, screenWidth * 0.72) : Math.min(176, screenWidth * 0.46);
-    const heightCap = size === "hero" ? screenHeight * 0.42 : screenHeight * 0.22;
-    const scaledHeight = (widthCap / BASE_WIDTH) * 570;
-    const width =
-      scaledHeight > heightCap && heightCap > 0 ? (heightCap / 570) * BASE_WIDTH : widthCap;
-
-    return Math.max(size === "hero" ? 0.82 : 0.65, width / BASE_WIDTH);
-  }, [screenHeight, screenWidth, size]);
+  return useMemo(
+    () => welcomePhoneScale(screenWidth, screenHeight, insets, size, welcomePhase),
+    [insets.bottom, insets.top, screenHeight, screenWidth, size, welcomePhase],
+  );
 }
 
 function BatteryIcon({ scale }: { scale: number }) {
@@ -86,10 +84,16 @@ function PhoneSideButtons({ scale }: { scale: number }) {
 }
 
 /** Marketing-site Future You phone mockup (apps/web/components/marketing/PhoneMockups). */
-export function FutureYouPhonePreview({ size = "hero" }: FutureYouPhonePreviewProps) {
-  const scale = usePhoneScale(size);
+export function FutureYouPhonePreview({
+  size = "hero",
+  welcomePhase = "landing",
+}: FutureYouPhonePreviewProps) {
+  const scale = usePhoneScale(size, welcomePhase);
   const s = (n: number) => n * scale;
   const width = s(BASE_WIDTH);
+  const [blurImageFailed, setBlurImageFailed] = useState(false);
+  const previewSource = blurImageFailed && FALLBACK_SILHOUETTE ? FALLBACK_SILHOUETTE : BLUR_IMAGE;
+  const previewBlurRadius = blurImageFailed ? 14 : 0;
 
   return (
     <View
@@ -176,24 +180,22 @@ export function FutureYouPhonePreview({ size = "hero" }: FutureYouPhonePreviewPr
                   overflow: "hidden",
                   borderWidth: StyleSheet.hairlineWidth * 2,
                   borderColor: "rgba(202, 166, 104, 0.5)",
-                  backgroundColor: "#3a342c",
+                  backgroundColor: "#1a1814",
                 }}
               >
-                <Image source={BLUR_IMAGE} style={StyleSheet.absoluteFill} resizeMode="cover" />
-                <View
-                  style={{
-                    ...StyleSheet.absoluteFill,
-                    backgroundColor: "rgba(20, 18, 12, 0.28)",
-                  }}
+                <Image
+                  source={previewSource}
+                  style={styles.previewImage}
+                  resizeMode="cover"
+                  blurRadius={previewBlurRadius}
+                  onError={() => setBlurImageFailed(true)}
+                  accessibilityIgnoresInvertColors
                 />
                 <View
+                  pointerEvents="none"
                   style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: "48%",
-                    backgroundColor: "rgba(20, 18, 12, 0.62)",
+                    ...StyleSheet.absoluteFillObject,
+                    backgroundColor: "rgba(20, 18, 12, 0.22)",
                   }}
                 />
                 <View
@@ -248,10 +250,16 @@ export function FutureYouPhonePreview({ size = "hero" }: FutureYouPhonePreviewPr
 }
 
 const styles = StyleSheet.create({
+  previewImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: "100%",
+    height: "100%",
+  },
   root: {
     alignSelf: "center",
     position: "relative",
-    flexShrink: 0,
+    flexShrink: 1,
+    minHeight: 0,
   },
   sideButton: {
     position: "absolute",
