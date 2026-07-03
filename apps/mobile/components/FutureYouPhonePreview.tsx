@@ -202,7 +202,7 @@ export function FutureYouPhonePreview({
                 <View
                   pointerEvents="none"
                   style={{
-                    ...StyleSheet.absoluteFillObject,
+                    ...StyleSheet.absoluteFill,
                     backgroundColor: "rgba(20, 18, 12, 0.18)",
                   }}
                 />
