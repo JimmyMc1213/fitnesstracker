@@ -14,35 +14,29 @@ const readyJob = {
 
 describe("homeFutureYouModel", () => {
   it("shows reveal entry after subscribe with a ready Future You job", () => {
-    expect(getHomeFutureYouEntryMode(readyJob, false, false, "pro", true)).toBe("reveal");
+    expect(getHomeFutureYouEntryMode(readyJob, false, "pro", true)).toBe("reveal");
   });
 
   it("shows upload prompt for skip-photo users after subscribe", () => {
-    expect(getHomeFutureYouEntryMode({ photoSkipped: true }, false, false, "pro", true)).toBe(
-      "upload_prompt",
-    );
+    expect(getHomeFutureYouEntryMode({ photoSkipped: true }, false, "pro", true)).toBe("upload_prompt");
   });
 
   it("shows upload prompt for under-18 after subscribe", () => {
-    expect(getHomeFutureYouEntryMode({}, true, false, "pro", true)).toBe("upload_prompt");
-  });
-
-  it("hides entry for region-blocked users", () => {
-    expect(getHomeFutureYouEntryMode(readyJob, false, true, "pro", true)).toBeNull();
+    expect(getHomeFutureYouEntryMode({}, true, "pro", true)).toBe("upload_prompt");
   });
 
   it("hides entry before onboarding completes or without pro tier", () => {
-    expect(getHomeFutureYouEntryMode(readyJob, false, false, "pro", false)).toBeNull();
-    expect(getHomeFutureYouEntryMode(undefined, false, false, "free", true)).toBeNull();
-    expect(getHomeFutureYouEntryMode(undefined, false, false, null, true)).toBeNull();
+    expect(getHomeFutureYouEntryMode(readyJob, false, "pro", false)).toBeNull();
+    expect(getHomeFutureYouEntryMode(undefined, false, "free", true)).toBeNull();
+    expect(getHomeFutureYouEntryMode(undefined, false, null, true)).toBeNull();
   });
 
   it("shows upload prompt for subscribed users without saved future you", () => {
-    expect(getHomeFutureYouEntryMode(undefined, false, false, "pro", true)).toBe("upload_prompt");
+    expect(getHomeFutureYouEntryMode(undefined, false, "pro", true)).toBe("upload_prompt");
   });
 
   it("shows reveal when future you data exists even if tier flag is missing", () => {
-    expect(getHomeFutureYouEntryMode(readyJob, false, false, null, true)).toBe("reveal");
+    expect(getHomeFutureYouEntryMode(readyJob, false, null, true)).toBe("reveal");
   });
 
   it("formats card subtitle with timeline and motivation", () => {
@@ -62,7 +56,7 @@ describe("homeFutureYouModel", () => {
       ...readyJob,
       onboardingGoalLocked: true,
     });
-    expect(getHomeFutureYouEntryMode(cleared, false, false, "pro", true)).toBe("upload_prompt");
-    expect(getHomeFutureYouEntryMode(undefined, false, false, "pro", true)).toBe("upload_prompt");
+    expect(getHomeFutureYouEntryMode(cleared, false, "pro", true)).toBe("upload_prompt");
+    expect(getHomeFutureYouEntryMode(undefined, false, "pro", true)).toBe("upload_prompt");
   });
 });

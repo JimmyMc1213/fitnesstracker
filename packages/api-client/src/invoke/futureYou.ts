@@ -21,57 +21,10 @@ export type FutureYouGenerateRequest = {
   timeline?: string;
 };
 
-export type FutureYouAgeBlock = { blocked: "age" };
-export type FutureYouRegionBlock = { blocked: "region" };
-export type FutureYouAccessBlock = FutureYouAgeBlock | FutureYouRegionBlock;
-
 export type FutureYouGenerateResult = {
   jobId: string;
   status: FutureYouJobStatus;
 };
-
-export type FutureYouUploadResult = {
-  path: string;
-  uploadId: string;
-  bucket: string;
-};
-
-export type FutureYouGenerateOutcome = FutureYouGenerateResult | FutureYouAccessBlock;
-export type FutureYouUploadOutcome = FutureYouUploadResult | FutureYouAccessBlock;
-
-export function isFutureYouAgeBlocked(outcome: FutureYouAccessBlock): outcome is FutureYouAgeBlock {
-  return outcome.blocked === "age";
-}
-
-export function isFutureYouRegionBlocked(outcome: FutureYouAccessBlock): outcome is FutureYouRegionBlock {
-  return outcome.blocked === "region";
-}
-
-export function isFutureYouAccessBlocked(
-  outcome: FutureYouGenerateOutcome | FutureYouUploadOutcome,
-): outcome is FutureYouAccessBlock {
-  return typeof outcome === "object" && outcome !== null && "blocked" in outcome;
-}
-
-export function unwrapFutureYouGenerateOutcome(outcome: FutureYouGenerateOutcome): FutureYouGenerateResult {
-  if (isFutureYouAccessBlocked(outcome)) {
-    if (isFutureYouAgeBlocked(outcome)) {
-      throw new FutureYouGenerateError("Future You is not available for your age.", "invalid");
-    }
-    throw new FutureYouGenerateError("Future You is not available in your region.", "invalid");
-  }
-  return outcome;
-}
-
-export function unwrapFutureYouUploadOutcome(outcome: FutureYouUploadOutcome): FutureYouUploadResult {
-  if (isFutureYouAccessBlocked(outcome)) {
-    if (isFutureYouAgeBlocked(outcome)) {
-      throw new FutureYouUploadError("Future You is not available for your age.", "invalid");
-    }
-    throw new FutureYouUploadError("Future You is not available in your region.", "invalid");
-  }
-  return outcome;
-}
 
 export class FutureYouGenerateError extends Error {
   constructor(
@@ -84,6 +37,12 @@ export class FutureYouGenerateError extends Error {
     this.name = "FutureYouGenerateError";
   }
 }
+
+export type FutureYouUploadResult = {
+  path: string;
+  uploadId: string;
+  bucket: string;
+};
 
 export class FutureYouUploadError extends Error {
   constructor(
@@ -159,14 +118,6 @@ export function isFutureYouJobId(value: string): boolean {
 function envTrim(raw: string | undefined): string {
   if (raw === undefined || raw === null) return "";
   return String(raw).trim().replace(/^["']|["']$/g, "");
-}
-
-function parseFutureYouAccessBlock(data: unknown, status: number): FutureYouAccessBlock | null {
-  if (status !== 403 || !data || typeof data !== "object") return null;
-  const error = (data as { error?: string }).error;
-  if (error === "age_restricted") return { blocked: "age" };
-  if (error === "region_restricted") return { blocked: "region" };
-  return null;
 }
 
 function parseStatus(value: string | undefined): FutureYouJobStatus | undefined {
@@ -353,7 +304,7 @@ export async function startFutureYouGeneration(
   client: SupabaseClient,
   env: SupabaseEnv,
   request: FutureYouGenerateRequest,
-): Promise<FutureYouGenerateOutcome> {
+): Promise<FutureYouGenerateResult> {
   const {
     data: { session },
   } = await client.auth.getSession();
@@ -394,10 +345,6 @@ export async function startFutureYouGeneration(
   }
 
   if (!response.ok) {
-    const accessBlock = parseFutureYouAccessBlock(data, response.status);
-    if (accessBlock) {
-      return accessBlock;
-    }
     const message =
       data && typeof data === "object" && typeof (data as { error?: string }).error === "string"
         ? (data as { error: string }).error.trim()
@@ -423,7 +370,7 @@ export async function uploadFutureYouPhoto(
   client: SupabaseClient,
   env: SupabaseEnv,
   input: string | FormData,
-): Promise<FutureYouUploadOutcome> {
+): Promise<FutureYouUploadResult> {
   const {
     data: { session },
   } = await client.auth.getSession();
@@ -466,10 +413,6 @@ export async function uploadFutureYouPhoto(
   }
 
   if (!response.ok) {
-    const accessBlock = parseFutureYouAccessBlock(data, response.status);
-    if (accessBlock) {
-      return accessBlock;
-    }
     const message =
       data && typeof data === "object" && typeof (data as { error?: string }).error === "string"
         ? (data as { error: string }).error.trim()

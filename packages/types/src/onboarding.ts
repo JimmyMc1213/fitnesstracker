@@ -59,8 +59,6 @@ export type TrainingSessionDuration =
 
 export type SubscriptionTier = "free" | "pro";
 
-export type ResidencyCountry = "US" | "CA";
-
 /** Stats and preferences collected during full onboarding (FTI-14). */
 export type OnboardingProfile = {
   /** Unset until the user picks a goal during onboarding. */
@@ -92,10 +90,6 @@ export type OnboardingProfile = {
   dietaryRestrictions?: DietaryRestriction[];
   /** How the user prefers coach guidance during workouts. */
   trainingStyle?: TrainingStyle;
-  /** Self-reported country for Future You regional availability. */
-  residencyCountry?: ResidencyCountry;
-  /** US state or Canadian province/territory code (e.g. CA, QC). */
-  residencyRegion?: string;
 };
 
 /** Session length bucket from the workout plan engine (`splitTemplates.ts`). */

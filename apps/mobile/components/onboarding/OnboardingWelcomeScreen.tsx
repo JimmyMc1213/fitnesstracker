@@ -2,7 +2,7 @@ import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
-import { WelcomePhonePreview } from "@/components/WelcomePhonePreview";
+import { FutureYouPhonePreview } from "@/components/FutureYouPhonePreview";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { authLayout } from "@/lib/authLayoutStyles";
@@ -39,7 +39,7 @@ export function OnboardingWelcomeScreen({ onGetStarted }: OnboardingWelcomeScree
         </View>
 
         <View style={authLayout.heroRow}>
-          <WelcomePhonePreview size="hero" useBrandGold />
+          <FutureYouPhonePreview size="hero" />
         </View>
 
         <View style={authLayout.welcomeBottom}>

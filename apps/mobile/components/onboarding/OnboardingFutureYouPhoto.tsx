@@ -39,12 +39,16 @@ type Props = {
   confirmTestID?: string;
 };
 
+/** Room for trust copy, consent, buttons, legal line, and shell skip footer. */
+const FIXED_BELOW_HERO = 360;
+
 function panelMaxHeight(windowHeight: number) {
-  return Math.min(320, Math.max(220, windowHeight * 0.42));
+  const heroBudget = windowHeight - FIXED_BELOW_HERO;
+  return Math.min(320, Math.max(160, Math.min(heroBudget * 0.9, windowHeight * 0.32)));
 }
 
 /** Floor so the aspect-ratio panel never collapses inside a flex/scroll host. */
-const PANEL_MIN_HEIGHT = 200;
+const PANEL_MIN_HEIGHT = 160;
 
 const PANEL_RADIUS = 14;
 
@@ -177,8 +181,8 @@ export function OnboardingFutureYouPhoto({
   }
 
   return (
-    <View className="flex-1">
-      <View className="flex-1 justify-center gap-6 pt-3">
+    <View className="min-h-0 flex-1">
+      <View className="min-h-0 flex-1 justify-center pt-3">
         <View className="relative pb-9">
           <View className={`flex-row items-center gap-2.5${blocked ? " opacity-40" : ""}`}>
             <View className="relative min-w-0 flex-1">
@@ -224,7 +228,7 @@ export function OnboardingFutureYouPhoto({
           {uploadError ? (
             <Text
               accessibilityRole="alert"
-              className="absolute bottom-0 left-0 right-0 text-center text-sm px-1"
+              className="absolute bottom-0 left-0 right-0 px-1 text-center text-sm"
               style={{ color: "#f87171" }}
               pointerEvents="none"
             >
@@ -232,10 +236,14 @@ export function OnboardingFutureYouPhoto({
             </Text>
           ) : null}
         </View>
+      </View>
 
       {!blocked ? (
-        <View>
-          <Text className="mb-3 text-center text-sm" style={{ color: colors.textSecondary }}>
+        <View className="mt-5 shrink-0">
+          <Text
+            className="mb-3.5 text-center text-[10px] leading-[1.4]"
+            style={{ color: colors.textSecondary }}
+          >
             Your photo is only used to create your Future You. It is never sold, and never shared
             except with the AI provider that generates your image.
           </Text>
@@ -248,22 +256,22 @@ export function OnboardingFutureYouPhoto({
               if (checked) onGrantAiConsent();
             }}
             disabled={uploading}
-            style={{ marginBottom: 16, flexDirection: "row", alignItems: "flex-start", gap: 12 }}
+            style={{ marginBottom: 18, flexDirection: "row", alignItems: "flex-start", gap: 8 }}
           >
             <View
-              className="mt-0.5 h-5 w-5 items-center justify-center rounded border"
+              className="mt-px h-4 w-4 items-center justify-center rounded border"
               style={{
                 borderColor: aiConsentChecked ? ob.gold : colors.border,
                 backgroundColor: aiConsentChecked ? ob.gold : "transparent",
               }}
             >
               {aiConsentChecked ? (
-                <Text className="text-xs font-bold" style={{ color: ob.goldOn }}>
+                <Text className="text-[10px] font-bold" style={{ color: ob.goldOn }}>
                   ✓
                 </Text>
               ) : null}
             </View>
-            <Text className="flex-1 text-sm leading-5" style={{ color: colors.textPrimary }}>
+            <Text className="flex-1 text-[10px] leading-[1.4]" style={{ color: colors.textSecondary }}>
               My photo will be processed by AI to generate my transformation.{" "}
               <Text
                 style={{ color: ob.gold }}
@@ -276,7 +284,7 @@ export function OnboardingFutureYouPhoto({
                 Terms
               </Text>
             </Text>
-            </PressableScale>
+          </PressableScale>
 
           {canRetry ? (
             <PressableScale
@@ -285,7 +293,7 @@ export function OnboardingFutureYouPhoto({
               style={{
                 alignItems: "center",
                 borderRadius: 9999,
-                paddingVertical: 16,
+                paddingVertical: 13,
                 backgroundColor: canUpload ? ob.gold : colors.border,
               }}
             >
@@ -301,7 +309,7 @@ export function OnboardingFutureYouPhoto({
               style={{
                 alignItems: "center",
                 borderRadius: 9999,
-                paddingVertical: 16,
+                paddingVertical: 13,
                 backgroundColor: canUpload && confirmReady ? ob.gold : colors.border,
                 opacity: canUpload && confirmReady ? 1 : 0.6,
               }}
@@ -318,7 +326,7 @@ export function OnboardingFutureYouPhoto({
                 style={{
                   alignItems: "center",
                   borderRadius: 9999,
-                  paddingVertical: 16,
+                  paddingVertical: 13,
                   backgroundColor: canUpload ? ob.gold : colors.border,
                 }}
               >
@@ -333,7 +341,7 @@ export function OnboardingFutureYouPhoto({
                   alignItems: "center",
                   borderRadius: 9999,
                   borderWidth: 1,
-                  paddingVertical: 16,
+                  paddingVertical: 13,
                   borderColor: colors.border,
                 }}
               >
@@ -345,9 +353,8 @@ export function OnboardingFutureYouPhoto({
           )}
         </View>
       ) : null}
-      </View>
 
-      <FutureYouLegalFooter className="pt-5 shrink-0" accentColor={colors.textPrimary} />
+      <FutureYouLegalFooter className="mt-4 shrink-0" compact accentColor={colors.textPrimary} />
     </View>
   );
 }

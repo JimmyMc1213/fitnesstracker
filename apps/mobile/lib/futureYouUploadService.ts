@@ -1,7 +1,6 @@
 import {
   FutureYouUploadError as ApiFutureYouUploadError,
   uploadFutureYouPhoto as uploadFutureYouPhotoApi,
-  unwrapFutureYouUploadOutcome,
   type FutureYouUploadResult,
 } from "@newyouai/api-client";
 
@@ -51,9 +50,7 @@ async function uploadFutureYouPhotoFromUri(localUri: string): Promise<FutureYouU
   }
 
   const sb = await requireAuthedClient();
-  return unwrapFutureYouUploadOutcome(
-    await uploadFutureYouPhotoApi(sb, getSupabaseEnv(), `data:image/jpeg;base64,${base64}`),
-  );
+  return uploadFutureYouPhotoApi(sb, getSupabaseEnv(), `data:image/jpeg;base64,${base64}`);
 }
 
 /** Upload a compressed JPEG (local file URI or data URL). */
@@ -68,7 +65,7 @@ export async function uploadFutureYouPhoto(source: string): Promise<FutureYouUpl
 
   const sb = await requireAuthedClient();
   if (isFutureYouPhotoDataUrl(trimmed)) {
-    return unwrapFutureYouUploadOutcome(await uploadFutureYouPhotoApi(sb, getSupabaseEnv(), trimmed));
+    return uploadFutureYouPhotoApi(sb, getSupabaseEnv(), trimmed);
   }
 
   throw new ApiFutureYouUploadError("Invalid photo. Choose another image.", "invalid");

@@ -27,7 +27,6 @@ export type {
   OnboardingDraft,
   OnboardingProfile,
   ReferralSource,
-  ResidencyCountry,
   SessionLength,
   SubscriptionTier,
   TrainingSessionDuration,

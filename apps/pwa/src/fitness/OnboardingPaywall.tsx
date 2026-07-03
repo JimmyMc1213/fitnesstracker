@@ -27,7 +27,6 @@ type Props = {
   generationStatus: FutureYouJobStatus | "idle";
   gender: UserGender | undefined;
   photoBlocked: boolean;
-  regionBlocked?: boolean;
   previewMode?: boolean;
 };
 
@@ -62,23 +61,16 @@ export function OnboardingPaywall({
   generationStatus,
   gender,
   photoBlocked,
-  regionBlocked = false,
   previewMode = false,
 }: Props) {
   const [billingPeriod, setBillingPeriod] = useState<PaywallBillingPeriod>("yearly");
-  const heroVisible = isFutureYouPaywallHeroVisible(futureYou, photoBlocked, regionBlocked);
-  const ctaEnabled = isFutureYouPaywallCtaEnabled(
-    futureYou,
-    generationStatus,
-    photoBlocked,
-    regionBlocked,
-  );
+  const heroVisible = isFutureYouPaywallHeroVisible(futureYou, photoBlocked);
+  const ctaEnabled = isFutureYouPaywallCtaEnabled(futureYou, generationStatus, photoBlocked);
   const ctaLabel = futureYouPaywallCtaLabel(
     futureYou,
     generationStatus,
     photoBlocked,
     billingPeriod,
-    regionBlocked,
   );
   const footerStartStep = paywallFooterStartStep(heroVisible);
 

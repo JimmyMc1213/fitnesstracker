@@ -4,7 +4,6 @@ import type { FutureYouDraft, FutureYouPreview } from "./futureYouDraft";
 import { futureYouUploadSnapshot, mergeFutureYouDraft } from "./futureYouDraft";
 import { useFutureYouGalleryImages } from "./useFutureYouGalleryImages";
 import { isFutureYouPhotoBlocked } from "./futureYouAge";
-import { isFutureYouRegionBlocked } from "@newyouai/core";
 import {
   buildFutureYouGenerateProfile,
   FutureYouGenerateError,
@@ -88,15 +87,8 @@ export function FutureYouPageContent({
   const [uploadStep, setUploadStep] = useState<FutureYouNewPicStep>("photo");
 
   const photoBlocked = isFutureYouPhotoBlocked(age);
-  const regionBlocked = isFutureYouRegionBlocked(profile);
   const draft = futureYou ?? {};
-  const mode = getHomeFutureYouEntryMode(
-    draft,
-    photoBlocked,
-    regionBlocked,
-    subscriptionTier,
-    onboardingComplete,
-  );
+  const mode = getHomeFutureYouEntryMode(draft, photoBlocked, subscriptionTier, onboardingComplete);
   const timeline = futureYouTimelineFromProfile(profile);
   const motivationLabel = homeFutureYouMotivationLabel(draft.motivationId);
 

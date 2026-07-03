@@ -31,12 +31,11 @@ export function futureYouPaywallCtaLabel(
   status: FutureYouJobStatus | "idle",
   photoBlocked: boolean,
   _billingPeriod: PaywallBillingPeriod = "yearly",
-  regionBlocked: boolean = false,
 ): string {
-  if (isFutureYouPaywallHeroVisible(futureYou, photoBlocked, regionBlocked) && status !== "ready") {
+  if (isFutureYouPaywallHeroVisible(futureYou, photoBlocked) && status !== "ready") {
     return FUTURE_YOU_PAYWALL_CTA_PREPARING;
   }
-  if (isPlanOnlyPaywallPath(futureYou, photoBlocked, regionBlocked)) {
+  if (isPlanOnlyPaywallPath(futureYou, photoBlocked)) {
     return PAYWALL_CTA_START_MY_JOURNEY;
   }
   return PAYWALL_CTA_UNLOCK_NEWYOU;

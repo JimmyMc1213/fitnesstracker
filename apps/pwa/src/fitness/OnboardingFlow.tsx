@@ -45,10 +45,6 @@ import { useTheme } from "./ThemeContext";
 import { readStoredTheme, type AppTheme } from "./theme";
 import { OnboardingFutureYouMotivation } from "./OnboardingFutureYouMotivation";
 import { OnboardingFutureYouPhoto } from "./OnboardingFutureYouPhoto";
-import {
-  isOnboardingResidencyComplete,
-  OnboardingResidencyPicker,
-} from "./OnboardingResidencyPicker";
 import { OnboardingPaywall } from "./OnboardingPaywall";
 import { OnboardingPurchaseWelcomeSplash } from "./OnboardingPurchaseWelcomeSplash";
 import { onboardingPlanReadyContinueLabel } from "./futureYouPaywallModel";
@@ -56,7 +52,7 @@ import { OnboardingFutureYouSuccess } from "./OnboardingFutureYouSuccess";
 import { canAccessFutureYouSuccessScreen } from "./futureYouSuccessModel";
 import { mergeFutureYouDraft, canRevisitFutureYouPhoto } from "./futureYouDraft";
 import { isFutureYouPhotoBlocked } from "./futureYouAge";
-import { isFutureYouRegionBlocked, onboardingWaterDailyTargetOz } from "@newyouai/core";
+import { onboardingWaterDailyTargetOz } from "@newyouai/core";
 import {
   buildFutureYouGenerateProfile,
   FutureYouGenerateError,
@@ -86,11 +82,9 @@ import {
   ONBOARDING_STEP_FUTURE_YOU_SUCCESS,
   ONBOARDING_STEP_PAYWALL,
   ONBOARDING_STEP_PACE,
-  ONBOARDING_STEP_RESIDENCY,
 } from "./onboardingSteps";
 import {
   backStepFromFutureYouPhoto,
-  backStepFromResidency,
   isGoalWeightOrPaceStep,
   isMaintainGoal,
   isOnboardingGoalEditNavigationBlocked,
@@ -204,7 +198,6 @@ function migrateOnboardingStepIndex(stepIndex: number): number {
 
 function onboardingScreenKey(step: number, goalWeightReinforcement: boolean): string {
   if (step === 9 && goalWeightReinforcement) return "9-reinforcement";
-  if (step === ONBOARDING_STEP_RESIDENCY) return "10a-residency";
   if (step === ONBOARDING_STEP_FUTURE_YOU_PHOTO) return "10b-photo";
   if (step === ONBOARDING_STEP_FUTURE_YOU_MOTIVATION) return "10c-motivation";
   return String(step);
@@ -362,9 +355,7 @@ export function OnboardingFlow({
   const weightStepValid = isValidWeighInLbs(profile.weightLbs);
   const dobValid = dobAge != null && dobAge >= 13 && dobAge <= 100;
   const paceValid = profile.goal === "maintain" || profile.pace != null;
-  const photoBlocked = isFutureYouPhotoBlocked(dobAge);
-  const regionBlocked = isFutureYouRegionBlocked(profile);
-  const futureYouBlocked = photoBlocked || regionBlocked;
+  const futureYouBlocked = isFutureYouPhotoBlocked(dobAge);
 
   const formRef = useRef({
     step,
@@ -709,22 +700,25 @@ export function OnboardingFlow({
     const overrides: Partial<OnboardingDraftInput> = {};
 
     if (isGoalWeightOrPaceStep(step) && isMaintainGoal(profile.goal)) {
-      goToStep(ONBOARDING_STEP_RESIDENCY, overrides);
+      const goalLocked = mergeFutureYouDraft(futureYou, { onboardingGoalLocked: true });
+      patchFutureYou({ onboardingGoalLocked: true });
+      overrides.futureYou = goalLocked;
+      goToStep(ONBOARDING_STEP_FUTURE_YOU_PHOTO, overrides);
       return;
     }
 
     if (step === 8) {
+      if (isMaintainGoal(profile.goal)) {
+        const goalLocked = mergeFutureYouDraft(futureYou, { onboardingGoalLocked: true });
+        patchFutureYou({ onboardingGoalLocked: true });
+        overrides.futureYou = goalLocked;
+      }
       goToStep(nextStepAfterGoal(profile.goal), overrides);
       return;
     }
 
     if (step === ONBOARDING_STEP_PACE) {
       if (!paceValid) return;
-      goToStep(ONBOARDING_STEP_RESIDENCY, overrides);
-      return;
-    }
-
-    if (step === ONBOARDING_STEP_RESIDENCY) {
       const goalLocked = mergeFutureYouDraft(futureYou, { onboardingGoalLocked: true });
       patchFutureYou({ onboardingGoalLocked: true });
       overrides.futureYou = goalLocked;
@@ -828,10 +822,6 @@ export function OnboardingFlow({
         return;
       }
       goToStep(backStepFromFutureYouPhoto(profile.goal));
-      return;
-    }
-    if (step === ONBOARDING_STEP_RESIDENCY) {
-      goToStep(backStepFromResidency(profile.goal));
       return;
     }
     if (step === 21) {
@@ -1196,25 +1186,6 @@ export function OnboardingFlow({
             </div>
           ))}
         </OnboardingPillStack>
-      </OnboardingShell>
-    );
-  }
-
-  if (step === ONBOARDING_STEP_RESIDENCY) {
-    return (
-      <OnboardingShell
-        step={step}
-        title="Where do you live?"
-        subtitle="New You AI is currently available in the United States and Canada (excluding Quebec)."
-        onBack={goBack}
-        onContinue={goNext}
-        continueDisabled={!isOnboardingResidencyComplete(profile)}
-        hideContinue={regionBlocked && Boolean(profile.residencyRegion)}
-      >
-        <OnboardingResidencyPicker
-          profile={profile}
-          onChange={(patch) => setProfile((p) => ({ ...p, ...patch }))}
-        />
       </OnboardingShell>
     );
   }
@@ -1615,7 +1586,7 @@ export function OnboardingFlow({
         hideGenerationPill
         onBack={goBack}
         onContinue={goNext}
-        continueLabel={onboardingPlanReadyContinueLabel(futureYou, photoBlocked, regionBlocked)}
+        continueLabel={onboardingPlanReadyContinueLabel(futureYou, futureYouBlocked)}
         continueTone="gold"
         compactFooter
         contentClassName="onboarding-shell__content--plan-ready"
@@ -1632,8 +1603,7 @@ export function OnboardingFlow({
         futureYou={futureYou}
         generationStatus={generationPollStatus}
         gender={profile.gender}
-        photoBlocked={photoBlocked}
-        regionBlocked={regionBlocked}
+        photoBlocked={futureYouBlocked}
         previewMode={previewMode}
         onSelectTier={handlePaywallSubscribe}
         onBack={goBack}
@@ -1649,8 +1619,7 @@ export function OnboardingFlow({
         futureYou={futureYou}
         generationStatus={generationPollStatus}
         gender={profile.gender}
-        photoBlocked={photoBlocked}
-        regionBlocked={regionBlocked}
+        photoBlocked={futureYouBlocked}
         subscriptionTier={pendingSubscriptionTier}
         displayName={displayName}
         previewMode={previewMode}

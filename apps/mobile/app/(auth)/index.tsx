@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AuthOAuthButtons } from "@/components/AuthOAuthButtons";
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
-import { WelcomePhonePreview } from "@/components/WelcomePhonePreview";
+import { FutureYouPhonePreview } from "@/components/FutureYouPhonePreview";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { authLayout } from "@/lib/authLayoutStyles";
@@ -47,7 +47,7 @@ function WelcomeShell({
         </View>
 
         <View style={authLayout.heroRow}>
-          <WelcomePhonePreview size="hero" useBrandGold />
+          <FutureYouPhonePreview size="hero" />
         </View>
 
         {children}

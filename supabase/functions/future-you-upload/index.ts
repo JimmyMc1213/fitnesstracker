@@ -1,8 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-import { enforceMinimumAge } from "../_shared/age/resolveUserAge.ts";
-import { enforceAllowedRegion } from "../_shared/region/resolveUserRegion.ts";
 import {
   FUTURE_YOU_BUCKET,
   badUploadResponse,
@@ -114,16 +112,6 @@ Deno.serve(async (req) => {
       return unauthorizedResponse(corsHeaders);
     }
     const { userId, adminClient } = auth;
-
-    const ageBlock = await enforceMinimumAge(adminClient, userId, corsHeaders);
-    if (ageBlock) {
-      return ageBlock;
-    }
-
-    const regionBlock = await enforceAllowedRegion(adminClient, userId, corsHeaders);
-    if (regionBlock) {
-      return regionBlock;
-    }
 
     const validated = await readUploadFromRequest(req);
     if (validated instanceof Response) {
