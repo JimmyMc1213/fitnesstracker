@@ -164,7 +164,7 @@ export function ScreenProgressPicsGallery({ state, setFitnessState, onBack }: Pr
             onPress={onBack}
             className="-ml-2 p-2"
           >
-            <Text className="text-[15px] font-semibold" style={{ color: colors.accent }}>
+            <Text className="text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
               ← Back
             </Text>
           </Pressable>
@@ -179,10 +179,10 @@ export function ScreenProgressPicsGallery({ state, setFitnessState, onBack }: Pr
               >
                 <SymbolView
                   name={{ ios: "plus", android: "add", web: "add" }}
-                  tintColor={colors.accent}
+                  tintColor={colors.textPrimary}
                   size={13}
                 />
-                <Text className="text-[13px] font-semibold" style={{ color: colors.accent }}>
+                <Text className="text-[13px] font-semibold" style={{ color: colors.textPrimary }}>
                   Add
                 </Text>
               </Pressable>
@@ -212,7 +212,7 @@ export function ScreenProgressPicsGallery({ state, setFitnessState, onBack }: Pr
                     ? { ios: "lock.fill", android: "lock", web: "lock" }
                     : { ios: "lock.open.fill", android: "lock_open", web: "lock_open" }
                 }
-                tintColor={isLocked ? colors.accent : colors.textTertiary}
+                tintColor={isLocked ? colors.textPrimary : colors.textTertiary}
                 size={16}
               />
             </Pressable>
@@ -328,7 +328,7 @@ export function ScreenProgressPicsGallery({ state, setFitnessState, onBack }: Pr
           >
             <View className="mb-3 flex-row items-center justify-between">
               <Pressable onPress={() => setViewerItem(null)} className="p-2">
-                <Text className="text-sm font-semibold" style={{ color: colors.accent }}>
+                <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
                   Done
                 </Text>
               </Pressable>
@@ -381,7 +381,7 @@ export function ScreenProgressPicsGallery({ state, setFitnessState, onBack }: Pr
                       width: 56,
                       height: 74,
                       borderWidth: item.key === viewerItem.key ? 2 : 0.5,
-                      borderColor: item.key === viewerItem.key ? colors.accent : colors.border,
+                      borderColor: item.key === viewerItem.key ? colors.textPrimary : colors.border,
                       opacity: item.key === viewerItem.key ? 1 : 0.7,
                     }}
                   >

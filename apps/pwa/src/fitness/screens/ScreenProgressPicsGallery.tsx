@@ -219,7 +219,7 @@ export function ScreenProgressPicsGallery({ state, setState, onBack }: Props) {
             className="tap"
             onClick={onBack}
             aria-label="Back to progress"
-            style={{ color: "var(--accent)", fontSize: 15, fontWeight: 600, padding: 8, marginLeft: -8 }}
+            style={{ color: "var(--text-primary)", fontSize: 15, fontWeight: 600, padding: 8, marginLeft: -8 }}
           >
             ← Back
           </button>
@@ -250,7 +250,7 @@ export function ScreenProgressPicsGallery({ state, setState, onBack }: Props) {
                     padding: "8px 10px",
                     fontSize: 13,
                     fontWeight: 600,
-                    color: "var(--accent)",
+                    color: "var(--text-primary)",
                     background: "transparent",
                   }}
                 >
@@ -272,7 +272,7 @@ export function ScreenProgressPicsGallery({ state, setState, onBack }: Props) {
                 height: 36,
                 borderRadius: 8,
                 border: "0.5px solid var(--border)",
-                color: isLocked && !unlocked ? "var(--accent)" : "var(--text-tertiary)",
+                color: isLocked && !unlocked ? "var(--text-primary)" : "var(--text-tertiary)",
                 background: "transparent",
               }}
             >
@@ -408,7 +408,7 @@ export function ScreenProgressPicsGallery({ state, setState, onBack }: Props) {
                 type="button"
                 className="tap"
                 onClick={() => setViewerItem(null)}
-                style={{ fontSize: 14, fontWeight: 600, color: "var(--accent)", border: "none", background: "transparent", padding: 8 }}
+                style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", border: "none", background: "transparent", padding: 8 }}
               >
                 Done
               </button>
@@ -470,7 +470,7 @@ export function ScreenProgressPicsGallery({ state, setState, onBack }: Props) {
                       height: 74,
                       borderRadius: 8,
                       overflow: "hidden",
-                      border: item.key === viewerItem.key ? "2px solid var(--accent)" : "0.5px solid var(--border)",
+                      border: item.key === viewerItem.key ? "2px solid var(--text-primary)" : "0.5px solid var(--border)",
                       padding: 0,
                       opacity: item.key === viewerItem.key ? 1 : 0.7,
                     }}
