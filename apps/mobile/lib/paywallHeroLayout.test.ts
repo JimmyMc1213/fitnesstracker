@@ -27,11 +27,14 @@ describe("paywallHeroLayoutTier", () => {
 });
 
 describe("paywallHeroImageBoxSize", () => {
-  it("caps image height so goal and weight delta fit on compact screens", () => {
+  it("keeps a portrait hero within the hero cluster on compact screens", () => {
     const { availableHeight, tier } = paywallHeroLayoutTier(844, 59, 34);
     expect(tier).toBe("compact");
 
-    const { height } = paywallHeroImageBoxSize(tier, 390, availableHeight);
-    expect(height).toBeLessThanOrEqual(availableHeight - 112);
+    const { width, height } = paywallHeroImageBoxSize(tier, 390, availableHeight);
+    expect(width).toBeGreaterThan(215);
+    expect(width).toBeLessThan(295);
+    expect(height).toBeGreaterThan(width);
+    expect(height + 64 + 88).toBeLessThanOrEqual(availableHeight);
   });
 });

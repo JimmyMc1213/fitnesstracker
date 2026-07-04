@@ -250,6 +250,14 @@ export function OnboardingPaywall({
   );
 
   const scrollGap = heroVisible || failedVisible ? (compactHeroLayout ? 8 : 12) : 20;
+  const planOnly = !heroVisible && !failedVisible;
+
+  const footerWrapStyle = {
+    marginTop: largeText ? 0 : planOnly ? ("auto" as const) : heroVisible || failedVisible ? 8 : ("auto" as const),
+    flexShrink: 0,
+    width: "100%" as const,
+    paddingTop: largeText ? 8 : heroVisible || failedVisible ? 4 : 0,
+  };
 
   return (
     <View
@@ -296,35 +304,13 @@ export function OnboardingPaywall({
             keyboardShouldPersistTaps="handled"
           >
             {heroScrollContent}
-            <View style={{ paddingTop: heroVisible || failedVisible ? 8 : 0, gap: 0 }}>
-              {checkoutFooter}
-            </View>
+            <View style={footerWrapStyle}>{checkoutFooter}</View>
           </ScrollView>
         ) : (
-          <>
-            <ScrollView
-              className="flex-1"
-              contentContainerStyle={{
-                gap: scrollGap,
-                paddingBottom: heroVisible || failedVisible ? (compactHeroLayout ? 20 : 16) : 24,
-              }}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              {heroScrollContent}
-            </ScrollView>
-
-            <View
-              style={{
-                marginTop: heroVisible || failedVisible ? 8 : "auto",
-                flexShrink: 0,
-                width: "100%",
-                paddingTop: heroVisible || failedVisible ? 4 : 0,
-              }}
-            >
-              {checkoutFooter}
-            </View>
-          </>
+          <View className="flex-1">
+            <View style={{ flex: 1, gap: scrollGap }}>{heroScrollContent}</View>
+            <View style={footerWrapStyle}>{checkoutFooter}</View>
+          </View>
         )}
       </View>
     </View>

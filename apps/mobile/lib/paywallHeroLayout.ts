@@ -12,10 +12,23 @@ function scaledPx(base: number, fontScale: number, cap = 1.5): number {
 
 /** Goal label + weight delta + gaps below the image. */
 const PAYWALL_HERO_GOAL_RESERVE_BY_TIER: Record<PaywallHeroLayoutTier, number> = {
-  regular: 128,
-  compact: 112,
-  tight: 100,
+  regular: 96,
+  compact: 88,
+  tight: 80,
 };
+
+/** "Future You" title + blurred timeline row above the image. */
+const PAYWALL_HERO_TITLE_RESERVE_BY_TIER: Record<PaywallHeroLayoutTier, number> = {
+  regular: 68,
+  compact: 64,
+  tight: 58,
+};
+
+/** Portrait hero aspect (width:height = 3:4), matching the pre-layout paywall hero. */
+const PORTRAIT_HEIGHT_PER_WIDTH = 4 / 3;
+
+/** Horizontal padding on `OnboardingPaywall` (23px each side). */
+const PAYWALL_HORIZONTAL_PADDING_PX = 46;
 
 export function paywallHeroLayoutTier(
   screenHeight: number,
@@ -45,17 +58,25 @@ export function paywallHeroImageBoxSize(
   availableHeight: number,
   fontScale = 1,
 ): { width: number; height: number } {
+  const contentWidth = Math.max(0, screenWidth - PAYWALL_HORIZONTAL_PADDING_PX);
   const maxWidth =
-    tier === "regular" ? 275 : tier === "compact" ? 220 : 196;
-  const widthRatio = tier === "regular" ? 0.72 : tier === "compact" ? 0.62 : 0.56;
-  const heightRatio = tier === "regular" ? 4 / 3 : tier === "compact" ? 3.5 / 3 : 3.2 / 3;
+    tier === "regular"
+      ? Math.min(contentWidth, 310)
+      : tier === "compact"
+        ? Math.min(contentWidth, 292)
+        : Math.min(contentWidth, 260);
+  const widthRatio = tier === "regular" ? 0.87 : tier === "compact" ? 0.84 : 0.78;
 
   const width = Math.min(maxWidth, screenWidth * widthRatio);
-  const naturalHeight = (width * heightRatio) / 3;
+  const naturalHeight = width * PORTRAIT_HEIGHT_PER_WIDTH;
   const goalReserve = scaledPx(PAYWALL_HERO_GOAL_RESERVE_BY_TIER[tier], fontScale, 1.4);
-  const maxImageHeight = Math.max(160, availableHeight - goalReserve);
+  const titleReserve = scaledPx(PAYWALL_HERO_TITLE_RESERVE_BY_TIER[tier], fontScale, 1.35);
+  const maxImageHeight = Math.max(
+    160,
+    availableHeight - goalReserve - titleReserve,
+  );
   const height = Math.min(naturalHeight, maxImageHeight);
-  const adjustedWidth = height < naturalHeight ? (height * 3) / heightRatio : width;
+  const adjustedWidth = height < naturalHeight ? (height * 3) / 4 : width;
 
   return { width: adjustedWidth, height };
 }
