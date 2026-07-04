@@ -6,12 +6,26 @@ type FutureYouPhoneProps = {
   className?: string;
   style?: React.CSSProperties;
   onClick?: () => void;
+  /** Desktop hero swap animation; disabled on mobile to avoid glitches. */
+  animate?: boolean;
+  /** Nudge phones lower on mobile so the pair fits the hero without clipping. */
+  compactLayout?: boolean;
 };
 
-export function FutureYouPhone({ className = "", style, onClick }: FutureYouPhoneProps) {
+export function FutureYouPhone({
+  className = "",
+  style,
+  onClick,
+  animate = true,
+  compactLayout = false,
+}: FutureYouPhoneProps) {
   return (
     <div
-      className={`absolute left-1/2 top-1/2 cursor-pointer transition-[transform,filter] duration-[600ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${className}`}
+      className={`absolute left-1/2 ${compactLayout ? "top-[48%]" : "top-1/2"} ${onClick ? "cursor-pointer" : ""} ${
+        animate
+          ? "transition-[transform,filter] duration-[600ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+          : ""
+      } ${className}`}
       style={style}
       onClick={onClick}
       onKeyDown={(e) => {
@@ -38,10 +52,10 @@ export function FutureYouPhone({ className = "", style, onClick }: FutureYouPhon
               <div className="mt-0.5 text-center text-sm font-semibold text-[#8A8780]">You in 3 months</div>
               <div className="relative mt-3.5 min-h-0 flex-1 overflow-hidden rounded-[18px] border border-gold-light/50 bg-[#3a342c]">
                 <Image
-                  src="/assets/futureyou-blur.jpg"
+                  src="/assets/futureyou-welcome-preview.png"
                   alt=""
                   fill
-                  className="object-cover object-[50%_22%]"
+                  className="scale-110 object-cover object-center blur-[11px]"
                   sizes="270px"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent from-[52%] to-[rgba(20,18,12,0.62)]" />
@@ -62,10 +76,20 @@ export function FutureYouPhone({ className = "", style, onClick }: FutureYouPhon
   );
 }
 
-export function PlanPhone({ className = "", style, onClick }: FutureYouPhoneProps) {
+export function PlanPhone({
+  className = "",
+  style,
+  onClick,
+  animate = true,
+  compactLayout = false,
+}: FutureYouPhoneProps) {
   return (
     <div
-      className={`absolute left-1/2 top-1/2 cursor-pointer transition-[transform,filter] duration-[600ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${className}`}
+      className={`absolute left-1/2 ${compactLayout ? "top-[48%]" : "top-1/2"} ${onClick ? "cursor-pointer" : ""} ${
+        animate
+          ? "transition-[transform,filter] duration-[600ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+          : ""
+      } ${className}`}
       style={style}
       onClick={onClick}
       onKeyDown={(e) => {

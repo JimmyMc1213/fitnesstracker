@@ -74,7 +74,7 @@ export default function HomePage() {
       <MarketingNav />
 
       <section id="top" className="relative">
-        <div className="mx-auto flex max-w-[1180px] flex-wrap items-center gap-12 px-7 pb-20 pt-16">
+        <div className="mx-auto flex max-w-[1180px] min-w-0 flex-wrap items-center gap-12 px-7 pb-20 pt-16 max-md:gap-8">
           <div className="min-w-[320px] flex-1 basis-[440px]">
             <h1 className="mt-6 text-[clamp(40px,6vw,68px)] font-extrabold leading-[1.02] tracking-[-0.035em]">
               New You.
@@ -96,7 +96,7 @@ export default function HomePage() {
                 <span className="translate-y-px">→</span>
               </Link>
             </div>
-            <div className="mt-[30px] flex flex-wrap items-center gap-6">
+            <div className="mt-[30px] flex flex-col gap-0 md:flex-row md:flex-wrap md:items-center md:gap-6">
               <Stat label="Private" sub="your photos stay yours" />
               <Divider />
               <Stat label="1 app" sub="train, eat & track" />
@@ -252,7 +252,7 @@ export default function HomePage() {
 
 function Stat({ label, sub }: { label: string; sub: string }) {
   return (
-    <div>
+    <div className="py-3.5 md:py-0">
       <div className="text-[22px] font-extrabold tracking-tight">{label}</div>
       <div className="text-[13px] font-semibold text-stone">{sub}</div>
     </div>
@@ -260,5 +260,10 @@ function Stat({ label, sub }: { label: string; sub: string }) {
 }
 
 function Divider() {
-  return <div className="hidden h-[34px] w-px bg-sand sm:block" />;
+  return (
+    <>
+      <div className="h-px w-full bg-sand md:hidden" aria-hidden />
+      <div className="hidden h-[34px] w-px shrink-0 bg-sand md:block" aria-hidden />
+    </>
+  );
 }
