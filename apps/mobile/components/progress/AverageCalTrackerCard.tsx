@@ -5,8 +5,8 @@ import {
 } from "@newyouai/core";
 import type { AppState } from "@newyouai/types";
 import { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 import { MACRO_COLORS } from "@/lib/macroColors";

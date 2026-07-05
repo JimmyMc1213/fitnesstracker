@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { AppState, Pressable, Text, View } from "react-native";
-
+import { AppState, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { CenterDialog } from "@/components/motion";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { RestTimerDurationPicker } from "@/components/workout/RestTimerDurationPicker";

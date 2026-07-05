@@ -1,7 +1,7 @@
 import { buildCoachContext, getWeighInReaction, localDateKey } from "@newyouai/core";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Image, Pressable, Text, View } from "react-native";
-
+import { Alert, Image, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { BottomSheet } from "@/components/motion";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { AlignedTextInput } from "@/components/ui/AlignedTextInput";

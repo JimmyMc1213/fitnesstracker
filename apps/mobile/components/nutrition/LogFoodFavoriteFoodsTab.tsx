@@ -1,8 +1,8 @@
 import { isNutritionFavorite } from "@newyouai/core";
 import type { AppState, NutritionPreset, NutritionUserFood } from "@newyouai/types";
 import { useMemo } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { FavoriteStarButton } from "@/components/nutrition/FavoriteStarButton";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useLogFoodAccent } from "@/hooks/useLogFoodAccent";

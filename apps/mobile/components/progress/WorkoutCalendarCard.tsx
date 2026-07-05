@@ -1,8 +1,8 @@
 import { localDateKey } from "@newyouai/core";
 import type { AppState, CompletedWorkoutSession } from "@newyouai/types";
 import { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { WorkoutSessionPreviewSheet } from "@/components/workout/WorkoutSessionPreviewSheet";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { getWorkoutsForDay, workoutDaysInMonth } from "@/lib/workout/workoutHistory";

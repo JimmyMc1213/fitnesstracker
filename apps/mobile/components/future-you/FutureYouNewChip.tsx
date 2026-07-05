@@ -1,6 +1,6 @@
 import { FUTURE_YOU_PAGE_NEW_CHIP_ARIA_LABEL, FUTURE_YOU_PAGE_NEW_CHIP_LABEL } from "@newyouai/core";
-import { Pressable, Text } from "react-native";
-
+import { Text } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { FUTURE_YOU_CALLOUT_BG, FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
 

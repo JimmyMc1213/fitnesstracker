@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, Text, type View } from "react-native";
-
+import { Text, type View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useReducedMotion } from "@/components/motion/useReducedMotion";
 import { WORKOUT_SET_REJECT_COLOR } from "@/components/workout/useWorkoutSetRejectShake";
 import { WORKOUT_ACCENT } from "@/lib/workoutUiTokens";

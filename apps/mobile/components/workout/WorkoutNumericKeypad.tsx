@@ -1,11 +1,11 @@
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 
 import { useWorkoutKeypad } from "@/components/workout/WorkoutKeypadContext";
 import { keypadIncrementStep } from "@/lib/workout/workoutKeypadLogic";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { hapticSelection } from "@/lib/haptics";
 import type { WeightUnit } from "@newyouai/types";
 
 const DIGIT_ROWS = [
@@ -45,10 +45,7 @@ function KeypadKey({
   return (
     <Pressable
       testID={testID}
-      onPress={() => {
-        hapticSelection();
-        onPress();
-      }}
+      onPress={onPress}
       disabled={disabled}
       className="min-h-[52px] flex-1 items-center justify-center rounded-xl"
       style={{

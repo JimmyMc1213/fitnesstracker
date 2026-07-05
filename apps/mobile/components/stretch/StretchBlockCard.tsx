@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { IconCheck, IconChevR } from "@/components/icons/FitnessIcons";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { StretchBlock } from "@/lib/stretchRoutine";

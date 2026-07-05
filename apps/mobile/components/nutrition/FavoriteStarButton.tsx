@@ -1,5 +1,5 @@
-import { Pressable, Text } from "react-native";
-
+import { Text } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {

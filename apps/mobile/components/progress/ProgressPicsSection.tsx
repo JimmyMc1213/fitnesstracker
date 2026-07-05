@@ -2,8 +2,8 @@ import { collectProgressPicGalleryItems, formatProgressPicDate } from "@newyouai
 import type { AppState } from "@newyouai/types";
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
-import { Image, Pressable, Text, View } from "react-native";
-
+import { Image, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {

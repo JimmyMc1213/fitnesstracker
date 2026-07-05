@@ -1,6 +1,6 @@
 import type { CoachTask, HomeCoachPlan } from "@newyouai/core";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { coachTaskCtaLabel, coachTaskHasAction } from "@/lib/coachTaskActions";
 import { useAppTheme } from "@/hooks/useAppTheme";

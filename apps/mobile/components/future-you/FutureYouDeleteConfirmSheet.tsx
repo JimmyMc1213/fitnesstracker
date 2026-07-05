@@ -1,4 +1,5 @@
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import type { ReactNode } from "react";
 
 import { CenterDialog } from "@/components/motion";

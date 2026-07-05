@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Platform, StyleSheet, Text, TextInput, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import Animated, {
   interpolateColor,
   useAnimatedStyle,

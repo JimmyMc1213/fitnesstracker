@@ -1,5 +1,5 @@
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { SettingsDetailCard, SettingsHelper } from "@/components/settings/SettingsLayout";
 import { useAppTheme } from "@/hooks/useAppTheme";
 

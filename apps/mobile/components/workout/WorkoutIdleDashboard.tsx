@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { CreateWeeklyRoutineSheet } from "@/components/workout/CreateWeeklyRoutineSheet";
@@ -104,7 +104,7 @@ function SecondaryButton({
 export function WorkoutIdleDashboard() {
   const { colors, theme } = useAppTheme();
   const { state, setFitnessState } = useFitnessState();
-  const { setRoutineEditorOpen } = useWorkoutShell();
+  const { setRoutineEditorOpen, setWorkoutSessionExpanded } = useWorkoutShell();
   const coachCard = coachCardColors(theme);
 
   const [previewRoutineId, setPreviewRoutineId] = useState<string | null>(null);
@@ -221,6 +221,7 @@ export function WorkoutIdleDashboard() {
     }
     setPendingStart(null);
     setPreviewRoutineId(null);
+    setWorkoutSessionExpanded(true);
   }
 
   function duplicateRoutine(templateId: string) {
@@ -506,9 +507,14 @@ export function WorkoutIdleDashboard() {
       {pendingStart ? (
         <ReplaceActiveWorkoutConfirmSheet
           open
-          workoutTitle={pendingStart.kind === "empty" ? "an empty workout" : pendingStart.title}
-          onKeepCurrent={() => setPendingStart(null)}
-          onStartNew={confirmReplaceActiveWorkout}
+          pendingWorkoutTitle={pendingStart.kind === "empty" ? "an empty workout" : pendingStart.title}
+          currentWorkoutTitle={state.workout.sessionTitle}
+          onResume={() => {
+            setPendingStart(null);
+            setWorkoutSessionExpanded(true);
+          }}
+          onDiscardAndStart={confirmReplaceActiveWorkout}
+          onCancel={() => setPendingStart(null)}
         />
       ) : null}
 

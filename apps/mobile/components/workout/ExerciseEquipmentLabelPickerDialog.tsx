@@ -1,5 +1,5 @@
-import { Pressable, ScrollView, Text, View } from "react-native";
-
+import { ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { CenterDialog } from "@/components/motion";
 import { EXERCISE_EQUIPMENT_LABELS, type ExerciseEquipmentLabel } from "@/lib/workout/exerciseLabels";
 import { useAppTheme } from "@/hooks/useAppTheme";

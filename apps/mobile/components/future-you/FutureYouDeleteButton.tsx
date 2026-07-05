@@ -13,8 +13,8 @@ import {
 } from "@newyouai/core";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { FutureYouDeleteConfirmSheet } from "@/components/future-you/FutureYouDeleteConfirmSheet";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { deleteFutureYou } from "@/lib/futureYouDeleteService";

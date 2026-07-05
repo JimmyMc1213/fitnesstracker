@@ -1,7 +1,6 @@
-import { Pressable, Text, View } from "react-native";
-
-import { BottomSheet } from "@/components/motion";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
+import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
@@ -46,10 +45,10 @@ export function ExerciseActionSheet({
   const { colors } = useAppTheme();
 
   return (
-    <BottomSheet open={open} onClose={onClose} panelStyle={{ paddingHorizontal: 0, paddingBottom: 32 }}>
-      <View testID="exercise-action-sheet" className="rounded-t-2xl px-2 pb-8 pt-3">
+    <CenterDialog open={open} onClose={onClose} panelStyle={{ padding: 0, maxWidth: 320 }}>
+      <View testID="exercise-action-sheet" className="w-full rounded-2xl px-2 py-2">
           <Text
-            className="mx-2 mb-2 mt-1 text-[13px] font-semibold uppercase tracking-widest"
+            className="mx-2 mb-1 mt-1 text-[13px] font-semibold uppercase tracking-widest"
             style={{ color: colors.textTertiary }}
           >
             {exerciseName}
@@ -84,6 +83,6 @@ export function ExerciseActionSheet({
             }}
           />
       </View>
-    </BottomSheet>
+    </CenterDialog>
   );
 }

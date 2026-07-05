@@ -1,8 +1,8 @@
 import { LBS_PER_KG, localDateKey, weightDeltaSentiment, weightUnitLabel } from "@newyouai/core";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-
+import { ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { FullScreenOverlay } from "@/components/motion";
 import { TabScreenFade } from "@/components/motion/TabScreenFade";
 

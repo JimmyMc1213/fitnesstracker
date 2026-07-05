@@ -5,8 +5,8 @@ import {
   FUTURE_YOU_REPLACE_DIALOG_TITLE,
   FUTURE_YOU_REPLACE_KEEP_LABEL,
 } from "@newyouai/core";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
-
+import { ActivityIndicator, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { FUTURE_YOU_CALLOUT_BG, FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";

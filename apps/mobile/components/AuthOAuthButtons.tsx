@@ -1,7 +1,7 @@
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
-import { ActivityIndicator, Keyboard, Platform, Pressable, Text, View } from "react-native";
-
+import { ActivityIndicator, Keyboard, Platform, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useAuth } from "@/context/AuthContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { authLayout } from "@/lib/authLayoutStyles";

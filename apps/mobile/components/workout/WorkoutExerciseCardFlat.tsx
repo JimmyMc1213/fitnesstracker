@@ -1,5 +1,6 @@
 import { memo, useMemo, useState, type ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import Animated from "react-native-reanimated";
 
 import { RestTimerStrip, type RestTimerStripPhase } from "@/components/workout/RestTimerStrip";

@@ -22,6 +22,39 @@ export function isMetroRunning(port = SIMULATOR_METRO_PORT) {
   return out.status === 0 && out.stdout.includes("running");
 }
 
+export function getMetroPackagerHostname(port = SIMULATOR_METRO_PORT) {
+  const out = spawnSync("lsof", ["-ti", `:${port}`], { encoding: "utf8" });
+  const pid = out.stdout.trim().split(/\s+/).filter(Boolean)[0];
+  if (!pid) return null;
+  const ps = spawnSync("ps", ["eww", "-p", pid], { encoding: "utf8" });
+  const match = ps.stdout.match(/REACT_NATIVE_PACKAGER_HOSTNAME=(\S+)/);
+  return match?.[1] ?? null;
+}
+
+export function isSimulatorMetroRunning(port = SIMULATOR_METRO_PORT) {
+  if (!isMetroRunning(port)) return false;
+  const hostname = getMetroPackagerHostname(port);
+  return hostname === "127.0.0.1" || hostname === "localhost";
+}
+
+/** LAN Metro on :8082 — phone (Wi‑Fi) and simulator can share this instance. */
+export function isSharedLanMetroRunning(port = SIMULATOR_METRO_PORT) {
+  if (!isMetroRunning(port)) return false;
+  const hostname = getMetroPackagerHostname(port);
+  if (!hostname || hostname.includes("trycloudflare.com")) return false;
+  return hostname === "127.0.0.1" || hostname === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(hostname);
+}
+
+export function isPhoneTunnelMetroRunning(port = SIMULATOR_METRO_PORT) {
+  if (!isMetroRunning(port)) return false;
+  const hostname = getMetroPackagerHostname(port);
+  return Boolean(hostname?.includes("trycloudflare.com"));
+}
+
+export function killCloudflared() {
+  spawnSync("pkill", ["-9", "-f", "cloudflared tunnel --url http://"], { stdio: "ignore" });
+}
+
 /** Soft reload — keeps JS state when the dev client is still connected. */
 export function reloadMetroClients(port = SIMULATOR_METRO_PORT) {
   spawnSync("curl", ["-sf", "-X", "POST", `${simulatorMetroUrl(port)}/reload`], { encoding: "utf8" });
@@ -84,8 +117,11 @@ export function attachMetroChildHandlers(child, { onReady, port = SIMULATOR_METR
   let readyTimer = null;
   let recoveryTimer = null;
 
-  child.stdout?.on("data", (chunk) => {
-    process.stdout.write(chunk);
+  // Metro prints "ready" banners to stdout but bundling errors (SyntaxError,
+  // Unable to resolve, TransformError) to stderr. Watch BOTH so a failed bundle
+  // is detected — otherwise the recover-and-reload below never fires and the
+  // sim stays stranded on the error/stale screen after a save.
+  const ingest = (chunk) => {
     const text = chunk.toString();
 
     if (
@@ -112,6 +148,16 @@ export function attachMetroChildHandlers(child, { onReady, port = SIMULATOR_METR
         reloadMetroClients(port);
       }, 500);
     }
+  };
+
+  child.stdout?.on("data", (chunk) => {
+    process.stdout.write(chunk);
+    ingest(chunk);
+  });
+
+  child.stderr?.on("data", (chunk) => {
+    process.stderr.write(chunk);
+    ingest(chunk);
   });
 }
 

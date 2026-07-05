@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { WorkoutWarmupGroups } from "@/components/workout/WorkoutWarmupGroups";
 import type { WorkoutWarmupGroup } from "@/lib/workout/workoutWarmup";
 import { COACH_BLUE_LABEL, coachCardColors } from "@/lib/workoutUiTokens";

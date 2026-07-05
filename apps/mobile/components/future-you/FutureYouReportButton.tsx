@@ -11,8 +11,8 @@ import {
   type FutureYouReportContext,
 } from "@newyouai/core";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
-
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { CenterDialog } from "@/components/motion";
 import { AlignedTextInput } from "@/components/ui/AlignedTextInput";
 import { OnboardingContinueButton } from "@/components/onboarding/OnboardingContinueButton";

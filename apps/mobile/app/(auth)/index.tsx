@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { useState, type ReactNode } from "react";
-import { Pressable, Text, useWindowDimensions, View } from "react-native";
+import { Text, useWindowDimensions, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AuthNotice } from "@/components/AuthNotice";

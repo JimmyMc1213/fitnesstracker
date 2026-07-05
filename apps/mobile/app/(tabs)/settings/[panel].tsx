@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-
+import { ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { AppearancePanel } from "@/components/settings/panels/AppearancePanel";
 import { EquipmentPanel } from "@/components/settings/panels/EquipmentPanel";
 import { FuelTargetsPanel } from "@/components/settings/panels/FuelTargetsPanel";

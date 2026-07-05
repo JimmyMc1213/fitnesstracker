@@ -17,6 +17,8 @@ import {
   bootSimulatorIfNeeded,
   gitShortHead,
   isDevClientInstalled,
+  isPhoneTunnelMetroRunning,
+  isSharedLanMetroRunning,
   isMetroRunning,
   killPort,
   openSimulatorOnMetro,
@@ -56,10 +58,15 @@ console.log("");
 
 bootSimulatorIfNeeded();
 
-if (isMetroRunning() && !forceRestart) {
-  console.log("Metro is already running on 127.0.0.1:8082 — connecting simulator…");
+if (isSharedLanMetroRunning() && !forceRestart) {
+  console.log("Metro is already running on :8082 — connecting simulator…");
   openSimulatorOnMetro();
   process.exit(0);
+}
+
+if (isPhoneTunnelMetroRunning()) {
+  console.log("Cloudflared tunnel Metro is on :8082 — restarting for sim + LAN phone.");
+  console.log("");
 }
 
 spawnSync("node", [path.join(root, "scripts", "sync-welcome-preview.mjs")], {
@@ -75,7 +82,7 @@ if (!isDevClientInstalled()) {
   console.log("");
 }
 
-if (forceRestart || !isMetroRunning()) {
+if (forceRestart || isPhoneTunnelMetroRunning() || !isMetroRunning()) {
   killPort(SIMULATOR_METRO_PORT);
 }
 
@@ -85,7 +92,7 @@ if (clearCache) expoArgs.push("--clear");
 
 const child = spawn("npx", expoArgs, {
   cwd: mobileDir,
-  stdio: ["inherit", "pipe", "inherit"],
+  stdio: ["inherit", "pipe", "pipe"],
   env: {
     ...process.env,
     REACT_NATIVE_PACKAGER_HOSTNAME: "127.0.0.1",

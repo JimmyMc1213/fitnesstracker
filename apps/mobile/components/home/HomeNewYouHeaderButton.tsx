@@ -1,5 +1,5 @@
-import { Pressable, Text } from "react-native";
-
+import { Text } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { FUTURE_YOU_HOME_HEADER_ARIA, FUTURE_YOU_HOME_HEADER_LABEL } from "@/lib/futureYouHomeEntryModel";
 import {
   FUTURE_YOU_CALLOUT_BG,
