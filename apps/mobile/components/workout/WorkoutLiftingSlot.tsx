@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
 import { Pressable, Text, Vibration, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -854,6 +855,10 @@ export function WorkoutLiftingSlot() {
             splitDay={splitDay}
             exerciseCount={workout.exercises.length}
             onFinishWorkout={requestFinishWorkout}
+            onBack={() => {
+              dismissKeyboard();
+              router.push("/(tabs)/home");
+            }}
             onCancel={() => setShowCancelWorkoutConfirm(true)}
             metaLayout={useNewLook ? "stacked" : "inline"}
           />

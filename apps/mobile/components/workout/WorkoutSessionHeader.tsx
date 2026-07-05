@@ -1,3 +1,4 @@
+import { SymbolView } from "expo-symbols";
 import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
@@ -16,6 +17,7 @@ type Props = {
   splitDay?: string;
   exerciseCount: number;
   onFinishWorkout: () => void;
+  onBack?: () => void;
   onCancel?: () => void;
   /** Stacked metadata lines for flat workout pilot. */
   metaLayout?: "inline" | "stacked";
@@ -51,6 +53,7 @@ export function WorkoutSessionHeader({
   splitDay,
   exerciseCount,
   onFinishWorkout,
+  onBack,
   onCancel,
   metaLayout = "inline",
 }: Props) {
@@ -63,6 +66,21 @@ export function WorkoutSessionHeader({
     <View testID="workout-session-header" className="pt-2">
       <View className="mb-1 flex-row items-center justify-between">
         <View className="min-w-0 flex-1 flex-row items-center gap-2">
+          {onBack ? (
+            <Pressable
+              testID="workout-back"
+              onPress={onBack}
+              accessibilityLabel="Back"
+              className="h-10 w-10 items-center justify-center rounded-[10px] border"
+              style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
+            >
+              <SymbolView
+                name={{ ios: "chevron.left", android: "arrow_back", web: "arrow_back" }}
+                tintColor={colors.textSecondary}
+                size={18}
+              />
+            </Pressable>
+          ) : null}
           <Text style={{ fontSize: 20, lineHeight: 1 }} accessibilityElementsHidden>
             ⏱
           </Text>
