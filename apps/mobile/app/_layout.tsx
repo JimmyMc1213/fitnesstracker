@@ -22,6 +22,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { FitnessProvider } from "@/context/FitnessContext";
 import { FitnessSyncProvider } from "@/context/FitnessSyncContext";
 import { NotificationSchedulerProvider } from "@/context/NotificationSchedulerContext";
+import { WorkoutShellProvider } from "@/context/WorkoutShellContext";
 import { useAppShellGate, useAppShellRoutingInput } from "@/hooks/useAppShellGate";
 import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
 import { useOnboardingStub } from "@/hooks/useOnboardingStub";
@@ -169,17 +170,19 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={navigationTheme(colorScheme)}>
       <AppShellLoadingGate signedOut={signedOut}>
-        <AuthSessionRedirect />
-        <DeepLinkListener />
-        <Stack screenOptions={defaultStackScreenOptions}>
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(onboarding)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="(modals)" options={modalStackScreenOptions} />
-          <Stack.Screen name="log-food" options={pushStackScreenOptions} />
-          <Stack.Screen name="workout" options={pushStackScreenOptions} />
-          <Stack.Screen name="progress" options={pushStackScreenOptions} />
-        </Stack>
+        <WorkoutShellProvider>
+          <AuthSessionRedirect />
+          <DeepLinkListener />
+          <Stack screenOptions={defaultStackScreenOptions}>
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(onboarding)" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(modals)" options={modalStackScreenOptions} />
+            <Stack.Screen name="log-food" options={pushStackScreenOptions} />
+            <Stack.Screen name="workout" options={pushStackScreenOptions} />
+            <Stack.Screen name="progress" options={pushStackScreenOptions} />
+          </Stack>
+        </WorkoutShellProvider>
       </AppShellLoadingGate>
     </ThemeProvider>
   );

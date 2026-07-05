@@ -4,7 +4,6 @@ import { View } from "react-native";
 import { AppAtmosphere } from "@/components/AppAtmosphere";
 import { AppShellErrorBoundary } from "@/components/AppShellErrorBoundary";
 import { TabBarDock } from "@/components/TabBarDock";
-import { WorkoutShellProvider } from "@/context/WorkoutShellContext";
 import { RequireSignedInSession } from "@/hooks/useRequireSignedInSession";
 import { useAuth } from "@/context/AuthContext";
 import { hasAuthenticatedUser } from "@/lib/authSession";
@@ -22,7 +21,6 @@ export default function TabLayout() {
         router.replace(hasAuthenticatedUser(session) ? "/(tabs)/home" : "/(auth)");
       }}
     >
-      <WorkoutShellProvider>
       <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppAtmosphere />
       <Tabs
@@ -52,7 +50,6 @@ export default function TabLayout() {
       <Tabs.Screen name="future-you" options={{ href: null, title: "NewYou" }} />
     </Tabs>
       </View>
-      </WorkoutShellProvider>
     </AppShellErrorBoundary>
     </RequireSignedInSession>
   );

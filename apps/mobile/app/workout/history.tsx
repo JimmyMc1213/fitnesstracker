@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useRef, useState } from "react";
-import { ScrollView, Text, View, Pressable } from "react-native";
-
+import { ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { ReplaceActiveWorkoutConfirmSheet } from "@/components/workout/ReplaceActiveWorkoutConfirmSheet";
 import { SaveHistoryWorkoutSheet } from "@/components/workout/SaveHistoryWorkoutSheet";
@@ -11,6 +11,7 @@ import { WorkoutHistorySessionActionSheet } from "@/components/workout/WorkoutHi
 import { WorkoutHistorySessionCard } from "@/components/workout/WorkoutHistorySessionCard";
 import { WorkoutSessionPreviewSheet } from "@/components/workout/WorkoutSessionPreviewSheet";
 import { useFitnessState } from "@/context/FitnessContext";
+import { useWorkoutShell } from "@/context/WorkoutShellContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import {
   formatWorkoutHistoryDate,
@@ -33,6 +34,7 @@ export default function WorkoutHistoryScreen() {
   const { colors } = useAppTheme();
   const { paddingTop, paddingBottom } = useTabScreenInsets({ tabBarHidden: true });
   const { state, hydrated, setFitnessState } = useFitnessState();
+  const { setWorkoutSessionExpanded } = useWorkoutShell();
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -85,6 +87,7 @@ export default function WorkoutHistoryScreen() {
     setPendingStartSession(null);
     setSaveSession(null);
     setPendingReplaceTemplateId(null);
+    setWorkoutSessionExpanded(true);
     router.back();
   }
 
@@ -244,9 +247,15 @@ export default function WorkoutHistoryScreen() {
 
       {pendingStartSession ? (
         <ReplaceActiveWorkoutConfirmSheet
-          workoutTitle={pendingStartSession.title}
-          onKeepCurrent={() => setPendingStartSession(null)}
-          onStartNew={() => executeStart(pendingStartSession)}
+          pendingWorkoutTitle={pendingStartSession.title}
+          currentWorkoutTitle={state.workout.sessionTitle}
+          onResume={() => {
+            setPendingStartSession(null);
+            setWorkoutSessionExpanded(true);
+            router.back();
+          }}
+          onDiscardAndStart={() => executeStart(pendingStartSession)}
+          onCancel={() => setPendingStartSession(null)}
         />
       ) : null}
 

@@ -2,7 +2,8 @@ import { USER_EDITABLE_MAX_SETS, weekdayFullName } from "@newyouai/core";
 import type { CustomExerciseTemplate, EquipmentSetup, WorkoutExercise, WorkoutRoutineTemplate } from "@newyouai/types";
 import { IconTrash } from "@tabler/icons-react-native";
 import { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Text, TextInput, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FullScreenOverlay } from "@/components/motion";
@@ -611,6 +612,7 @@ export function WorkoutRoutineEditor({
         <RoutineExerciseSearchSheet
           open
           title={searchSheet.kind === "add" ? "Add exercise" : "Swap exercise"}
+          confirmLabel={searchSheet.kind === "add" ? "Add" : "Swap"}
           equipmentSetup={equipmentSetup}
           customExercises={customExercises}
           onSelect={handleExerciseSelect}

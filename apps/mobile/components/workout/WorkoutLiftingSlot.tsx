@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type DraggableFlatList from "react-native-draggable-flatlist";
 
@@ -24,6 +25,7 @@ import { scrollWorkoutFieldIntoView } from "@/lib/workout/scrollWorkoutFieldInto
 import { WorkoutNumericKeypad } from "@/components/workout/WorkoutNumericKeypad";
 import { WorkoutSessionHeader } from "@/components/workout/WorkoutSessionHeader";
 import { useFitnessState } from "@/context/FitnessContext";
+import { useWorkoutShell } from "@/context/WorkoutShellContext";
 import { getExerciseNote, withExerciseNote } from "@/lib/workout/exerciseNotes";
 import { defaultExerciseTarget } from "@/lib/workout/exercisePrescriptionDefaults";
 import { buildPreWorkoutCoachBrief, shouldDefaultExpandCoachCard } from "@/lib/preWorkoutCoachBrief";
@@ -171,6 +173,7 @@ const LiftingExerciseRow = memo(function LiftingExerciseRow({
 export function WorkoutLiftingSlot() {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
+  const { setWorkoutSessionExpanded } = useWorkoutShell();
   const { state, setFitnessState } = useFitnessState();
   const listRef = useRef<ElementRef<typeof DraggableFlatList<WorkoutExercise>> | null>(null);
   const scrollOffsetRef = useRef(0);
@@ -878,6 +881,10 @@ export function WorkoutLiftingSlot() {
             splitDay={splitDay}
             exerciseCount={workout.exercises.length}
             onFinishWorkout={requestFinishWorkout}
+            onBack={() => {
+              dismissKeyboard();
+              setWorkoutSessionExpanded(false);
+            }}
             onCancel={() => setShowCancelWorkoutConfirm(true)}
             metaLayout={useNewLook ? "stacked" : "inline"}
           />
@@ -998,8 +1005,6 @@ export function WorkoutLiftingSlot() {
           customExercises={state.customExercises}
           onSelect={(name, label) => addExerciseToSession(name, label)}
           onClose={() => setSearchOpen(false)}
-          closeOnSelect={false}
-          closeLabel="Done"
         />
       ) : null}
 
