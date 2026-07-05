@@ -107,7 +107,7 @@ export function PlanPhone({
             </div>
             <Image
               src="/images/plan-screenshot.png"
-              alt="New You AI training plan"
+              alt="NewYou AI training plan"
               fill
               className="object-fill"
               sizes="258px"

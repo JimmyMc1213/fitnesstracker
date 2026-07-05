@@ -13,8 +13,8 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "New You AI — See Your Future Self",
-    template: "%s · New You AI",
+    default: "NewYou AI — See Your Future Self",
+    template: "%s · NewYou AI",
   },
   description:
     "Upload a photo and see your Future You. One app to train, eat, and track toward the body you want.",
@@ -28,8 +28,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    siteName: "New You AI",
-    images: [{ url: "/assets/newyou-logo.png", width: 953, height: 1024, alt: "New You AI" }],
+    siteName: "NewYou AI",
+    images: [{ url: "/assets/newyou-logo.png", width: 953, height: 1024, alt: "NewYou AI" }],
   },
   twitter: {
     card: "summary",

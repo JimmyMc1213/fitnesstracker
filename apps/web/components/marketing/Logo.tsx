@@ -15,7 +15,7 @@ export function Logo({ size = "md", href = "/", showWordmark = true }: LogoProps
     <>
       <Image
         src="/assets/newyou-logo.png"
-        alt="New You AI"
+        alt="NewYou AI"
         width={Math.round(height * 1.2)}
         height={height}
         className="h-auto w-auto"
@@ -24,7 +24,7 @@ export function Logo({ size = "md", href = "/", showWordmark = true }: LogoProps
       />
       {showWordmark ? (
         <span className="text-lg font-extrabold tracking-tight text-ink md:text-[19px]">
-          New You<span className="text-gold"> AI</span>
+          NewYou<span className="text-gold"> AI</span>
         </span>
       ) : null}
     </>

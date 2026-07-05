@@ -18,7 +18,7 @@ const steps = [
   {
     n: "1",
     title: "Upload a selfie",
-    body: "A single photo during onboarding. That's all New You needs to get started.",
+    body: "A single photo during onboarding. That's all NewYou needs to get started.",
     featured: false,
   },
   {
@@ -64,8 +64,8 @@ const features: {
 
 const revealPoints = [
   "Tied to your goal weight and pace, not a stock photo",
-  "A New You preview as you progress",
-  "Saved alongside your real plan on the New You tab",
+  "A NewYou preview as you progress",
+  "Saved alongside your real plan on the NewYou tab",
 ] as const;
 
 export default function HomePage() {
@@ -77,7 +77,7 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-[1180px] min-w-0 flex-wrap items-center gap-12 px-7 pb-20 pt-16 max-md:gap-8">
           <div className="min-w-[320px] flex-1 basis-[440px]">
             <h1 className="mt-6 text-[clamp(40px,6vw,68px)] font-extrabold leading-[1.02] tracking-[-0.035em]">
-              New You.
+              NewYou.
               <br />
               <span className="text-gold">See your Future You.</span>
             </h1>
@@ -114,7 +114,7 @@ export default function HomePage() {
             Stop juggling a workout app, a food app, and a tracker.
           </span>
           <span className="text-[15px] font-extrabold text-ink">
-            New You AI is all of it, pointed at one goal.
+            NewYou AI is all of it, pointed at one goal.
           </span>
         </div>
       </section>
@@ -236,7 +236,7 @@ export default function HomePage() {
             Your Future You is already waiting. Go meet them.
           </h2>
           <p className="mx-auto mt-3.5 max-w-[460px] text-[17px] font-medium text-[#C9C6BC]">
-            Download New You AI, upload one photo, and start building toward the version of you that
+            Download NewYou AI, upload one photo, and start building toward the version of you that
             you actually want.
           </p>
           <div className="mt-[30px] flex flex-wrap items-center justify-center gap-3.5">

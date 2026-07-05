@@ -8,7 +8,7 @@ import { LegalNav } from "../../components/marketing/MarketingNav";
 const faqs = [
   {
     q: "How does the Future You preview work?",
-    a: "During onboarding you upload one selfie and pick what you're working toward. New You generates an illustrated preview of you at your goal, tied to a realistic timeline based on your goal weight and pace. You get a blurred teaser first, and the full image unlocks once you subscribe.",
+    a: "During onboarding you upload one selfie and pick what you're working toward. NewYou generates an illustrated preview of you at your goal, tied to a realistic timeline based on your goal weight and pace. You get a blurred teaser first, and the full image unlocks once you subscribe.",
   },
   {
     q: "Is the Future You image a guarantee of results?",
@@ -16,7 +16,7 @@ const faqs = [
   },
   {
     q: "How often can I generate a new preview?",
-    a: "You can generate a fresh You in 3 months preview every couple of weeks as you progress, and revisit past previews anytime from the New You tab.",
+    a: "You can generate a fresh You in 3 months preview every couple of weeks as you progress, and revisit past previews anytime from the NewYou tab.",
   },
   {
     q: "What's included in a subscription?",
@@ -24,7 +24,7 @@ const faqs = [
   },
   {
     q: "How do I cancel?",
-    a: "Open your Apple account settings, tap Subscriptions, choose New You AI, and cancel. You'll keep access until the end of your current billing period.",
+    a: "Open your Apple account settings, tap Subscriptions, choose NewYou AI, and cancel. You'll keep access until the end of your current billing period.",
   },
   {
     q: "Are my photos private?",
