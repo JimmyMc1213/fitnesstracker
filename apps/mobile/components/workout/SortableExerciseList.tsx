@@ -8,15 +8,8 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  LayoutAnimation,
-  Platform,
-  Pressable,
-  Text,
-  UIManager,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { LayoutAnimation, Platform, Text, UIManager, View, type ViewStyle } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import Animated, {
   Easing,
   Extrapolation,
@@ -87,6 +80,7 @@ type SortableExerciseListProps<T extends { id: string; name: string }> = {
     ctx: SortableListContext,
   ) => ReactNode;
   listFooter?: ReactNode;
+  listHeader?: ReactNode;
   listRef?: RefObject<ElementRef<typeof DraggableFlatList<T>> | null>;
   contentContainerStyle?: ViewStyle;
   extraData?: unknown;
@@ -294,6 +288,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   getDragSubtitle,
   renderItem,
   listFooter,
+  listHeader,
   listRef,
   contentContainerStyle,
   extraData,
@@ -385,6 +380,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
       keyboardShouldPersistTaps="handled"
       onScrollOffsetChange={onScrollOffsetChange}
       onScrollToIndexFailed={onScrollToIndexFailed}
+      ListHeaderComponent={listHeader ? () => <>{listHeader}</> : undefined}
       ListFooterComponent={listFooter && !reorderActive ? () => <>{listFooter}</> : undefined}
       {...(reorderActive
         ? {
