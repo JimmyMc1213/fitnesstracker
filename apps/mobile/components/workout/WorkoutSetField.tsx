@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
-import { Pressable, Text } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Pressable, Text, type View } from "react-native";
 
 import { useReducedMotion } from "@/components/motion/useReducedMotion";
 import { WORKOUT_SET_REJECT_COLOR } from "@/components/workout/useWorkoutSetRejectShake";
 import { WORKOUT_ACCENT } from "@/lib/workoutUiTokens";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { WorkoutKeypadField } from "@/lib/workout/workoutKeypadLogic";
+import { registerWorkoutSetFieldRef } from "@/lib/workout/workoutSetFieldRefs";
 import { formatSetWeight } from "@newyouai/core";
 import type { WeightUnit } from "@newyouai/types";
 
@@ -104,8 +105,14 @@ export function WorkoutSetField({
   const accessibilityLabel =
     field === "weight" ? `Weight for set ${setIndex + 1}` : `${secondFieldLabel} for set ${setIndex + 1}`;
 
+  const registerFieldRef = useCallback(
+    (node: View | null) => registerWorkoutSetFieldRef({ exerciseId, setIndex, field }, node),
+    [exerciseId, setIndex, field],
+  );
+
   return (
     <Pressable
+      ref={registerFieldRef}
       testID={testID}
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected }}

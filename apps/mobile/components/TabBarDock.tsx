@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useWorkoutShell } from "@/context/WorkoutShellContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { hapticSelection } from "@/lib/haptics";
 import {
   FUTURE_YOU_GOLD,
   TAB_ACTIVE_BG_DARK,
@@ -150,6 +151,7 @@ export function TabBarDock({ state, descriptors, navigation: navigationProp }: T
             const tint = focused ? colors.textPrimary : tabInactiveFg;
 
             const onPress = () => {
+              hapticSelection();
               const event = navigation.emit({
                 type: "tabPress",
                 target: route.key,
@@ -204,7 +206,10 @@ export function TabBarDock({ state, descriptors, navigation: navigationProp }: T
             accessibilityRole="button"
             accessibilityLabel="Log food"
             testID="open-log-food"
-            onPress={() => router.push("/log-food")}
+            onPress={() => {
+              hapticSelection();
+              router.push("/log-food");
+            }}
             style={{
               alignItems: "center",
               justifyContent: "center",
@@ -235,7 +240,10 @@ export function TabBarDock({ state, descriptors, navigation: navigationProp }: T
             accessibilityState={isFutureYouFocused ? { selected: true } : {}}
             accessibilityLabel="NewYou"
             testID="tab-fab-future-you"
-            onPress={() => navigation.navigate("future-you")}
+            onPress={() => {
+              hapticSelection();
+              navigation.navigate("future-you");
+            }}
             style={{
               alignItems: "center",
               justifyContent: "center",

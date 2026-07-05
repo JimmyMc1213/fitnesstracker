@@ -92,6 +92,8 @@ type SortableExerciseListProps<T extends { id: string; name: string }> = {
   extraData?: unknown;
   /** Disable list scrolling so the list can live inside a parent ScrollView without VirtualizedList warnings. */
   nestedInScrollView?: boolean;
+  /** Live scroll offset from the underlying draggable list (used to keep focused fields above the keypad). */
+  onScrollOffsetChange?: (scrollOffset: number) => void;
   onScrollToIndexFailed?: (info: { index: number; averageItemLength: number; highestMeasuredFrameIndex: number }) => void;
 };
 
@@ -296,6 +298,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
   contentContainerStyle,
   extraData,
   nestedInScrollView = false,
+  onScrollOffsetChange,
   onScrollToIndexFailed,
 }: SortableExerciseListProps<T>) {
   const canReorder = items.length >= 2;
@@ -380,6 +383,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
         ...(reorderActive ? { paddingBottom: 24 } : null),
       }}
       keyboardShouldPersistTaps="handled"
+      onScrollOffsetChange={onScrollOffsetChange}
       onScrollToIndexFailed={onScrollToIndexFailed}
       ListFooterComponent={listFooter && !reorderActive ? () => <>{listFooter}</> : undefined}
       {...(reorderActive

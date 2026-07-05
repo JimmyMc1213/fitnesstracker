@@ -1,9 +1,11 @@
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
 
 import { useWorkoutKeypad } from "@/components/workout/WorkoutKeypadContext";
 import { keypadIncrementStep } from "@/lib/workout/workoutKeypadLogic";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { hapticSelection } from "@/lib/haptics";
 import type { WeightUnit } from "@newyouai/types";
 
 const DIGIT_ROWS = [
@@ -14,40 +16,55 @@ const DIGIT_ROWS = [
 
 function KeypadKey({
   label,
+  icon,
+  iconSize = 22,
   onPress,
   disabled,
   testID,
   action,
-  accent,
+  primary,
 }: {
-  label: string;
+  label?: string;
+  icon?: SymbolViewProps["name"];
+  iconSize?: number;
   onPress: () => void;
   disabled?: boolean;
   testID?: string;
   action?: boolean;
-  accent?: boolean;
+  primary?: boolean;
 }) {
   const { colors } = useAppTheme();
+
+  const backgroundColor = primary
+    ? colors.buttonPrimary
+    : action
+      ? colors.backgroundSecondary
+      : colors.card;
+  const foregroundColor = primary ? colors.buttonPrimaryText : colors.textPrimary;
 
   return (
     <Pressable
       testID={testID}
-      onPress={onPress}
+      onPress={() => {
+        hapticSelection();
+        onPress();
+      }}
       disabled={disabled}
       className="min-h-[52px] flex-1 items-center justify-center rounded-xl"
       style={{
-        backgroundColor: accent ? colors.accent : action ? colors.backgroundSecondary : colors.card,
+        backgroundColor,
         borderWidth: 0.5,
         borderColor: colors.border,
         opacity: disabled ? 0.35 : 1,
       }}
     >
-      <Text
-        className="text-lg font-semibold"
-        style={{ color: accent ? colors.background : colors.textPrimary }}
-      >
-        {label}
-      </Text>
+      {icon ? (
+        <SymbolView name={icon} size={iconSize} tintColor={foregroundColor} resizeMode="scaleAspectFit" />
+      ) : (
+        <Text className="text-lg font-semibold" style={{ color: foregroundColor }}>
+          {label}
+        </Text>
+      )}
     </Pressable>
   );
 }
@@ -83,7 +100,7 @@ export function WorkoutNumericKeypad({ weightUnit }: { weightUnit: WeightUnit })
             />
           ))}
           {rowIndex === 0 ? (
-            <KeypadKey label="⌨" onPress={close} action />
+            <KeypadKey icon="chevron.down" iconSize={17} onPress={close} action />
           ) : null}
           {rowIndex === 1 ? (
             <KeypadKey label="+" onPress={() => increment(step)} action />
@@ -101,7 +118,7 @@ export function WorkoutNumericKeypad({ weightUnit }: { weightUnit: WeightUnit })
         <KeypadKey label="." onPress={() => append(".")} disabled={!allowDecimal} />
         <KeypadKey testID="workout-keypad-digit-0" label="0" onPress={() => append("0")} />
         <KeypadKey label="⌫" onPress={backspace} action />
-        <KeypadKey testID="workout-keypad-done" label="Next" onPress={next} accent />
+        <KeypadKey testID="workout-keypad-done" label="Next" onPress={next} primary />
       </View>
     </View>
   );

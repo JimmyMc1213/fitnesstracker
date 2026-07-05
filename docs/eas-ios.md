@@ -52,14 +52,17 @@ When the build finishes, install the `.app` on your simulator (EAS dashboard →
 **Daily dev (after dev client is installed on simulator):**
 
 ```bash
-# from repo root
+# from repo root — starts Metro and deep-links the sim to 127.0.0.1:8082
 npm run dev:mobile:client
 
-# or from apps/mobile
-npm run ios
+# onboarding walkthrough (same connect behavior + onboarding env)
+npm run dev:onboarding
+
+# if Metro is already running but the sim looks stale
+npm run connect:sim
 ```
 
-Press `i` if the simulator does not open automatically.
+Do **not** launch New You AI from the sim home screen — that shows the native dev-client shell until Metro connects. Always use one of the commands above (they open the dev-client deep link automatically).
 
 ## Monorepo
 

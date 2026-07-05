@@ -46,7 +46,16 @@ const config: ExpoConfig = {
     favicon: "./assets/images/favicon.png",
   },
   plugins: [
-    "expo-dev-client",
+    [
+      "expo-dev-client",
+      {
+        launchMode: "most-recent",
+        defaultLaunchURL: "http://127.0.0.1:8082",
+        ios: {
+          defaultLaunchURL: "http://127.0.0.1:8082",
+        },
+      },
+    ],
     "expo-router",
     "expo-secure-store",
     "expo-apple-authentication",

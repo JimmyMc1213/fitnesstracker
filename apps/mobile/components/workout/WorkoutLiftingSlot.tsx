@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
-import { Pressable, Text, Vibration, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type DraggableFlatList from "react-native-draggable-flatlist";
 
@@ -21,6 +21,7 @@ import {
   WorkoutKeypadProvider,
 } from "@/components/workout/WorkoutKeypadContext";
 import type { WorkoutKeypadTarget } from "@/lib/workout/workoutKeypadLogic";
+import { scrollWorkoutFieldIntoView } from "@/lib/workout/scrollWorkoutFieldIntoView";
 import { WorkoutNumericKeypad } from "@/components/workout/WorkoutNumericKeypad";
 import { WorkoutSessionHeader } from "@/components/workout/WorkoutSessionHeader";
 import { useFitnessState } from "@/context/FitnessContext";
@@ -36,6 +37,7 @@ import {
   restDurationForExercise,
 } from "@/lib/workout/restTimerPreferences";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { hapticError, hapticSelection, hapticSoft, hapticSuccess } from "@/lib/haptics";
 import { dismissKeyboard } from "@/lib/keyboard";
 import {
   buildSessionCoachNoteForExercise,
@@ -172,6 +174,7 @@ export function WorkoutLiftingSlot() {
   const { colors } = useAppTheme();
   const { state, setFitnessState } = useFitnessState();
   const listRef = useRef<ElementRef<typeof DraggableFlatList<WorkoutExercise>> | null>(null);
+  const scrollOffsetRef = useRef(0);
   const restTimerRef = useRef<ActiveRestTimer | null>(null);
   const isWorkoutSessionE2e =
     typeof __DEV__ !== "undefined" &&
@@ -220,6 +223,19 @@ export function WorkoutLiftingSlot() {
     }, remainingMs);
     return () => clearTimeout(id);
   }, [restTimer?.exerciseId, restTimer?.endsAtMs, restTimer?.completed, restTimer?.paused]);
+
+  // Fire exactly one success haptic on the rest timer's false->true completion,
+  // regardless of which code path set `completed` (natural expiry, explicit
+  // complete, or adjust-to-zero). Observing the transition here keeps the side
+  // effect out of the setRestTimer updater functions, which React may re-invoke.
+  const restTimerCompletedRef = useRef(false);
+  useEffect(() => {
+    const completed = restTimer?.completed ?? false;
+    if (completed && !restTimerCompletedRef.current) {
+      hapticSuccess();
+    }
+    restTimerCompletedRef.current = completed;
+  }, [restTimer?.completed]);
 
   const w = state?.workout;
   const preWorkoutCoach = useMemo(
@@ -357,7 +373,7 @@ export function WorkoutLiftingSlot() {
       clearTimeout(rejectShakeTimerRef.current);
     }
     setRejectShakeSet({ exerciseId, setIndex });
-    Vibration.vibrate([12, 40, 12]);
+    hapticError();
     rejectShakeTimerRef.current = setTimeout(() => {
       setRejectShakeSet(null);
       rejectShakeTimerRef.current = null;
@@ -412,6 +428,7 @@ export function WorkoutLiftingSlot() {
             ),
           },
         }));
+        hapticSoft();
         startRestTimer(exercise, setIndex);
         return true;
       }
@@ -439,6 +456,7 @@ export function WorkoutLiftingSlot() {
 
   const addSet = useCallback(
     (exerciseId: string) => {
+      hapticSelection();
       setFitnessState((prev) => ({
         ...prev,
         workout: {
@@ -522,11 +540,17 @@ export function WorkoutLiftingSlot() {
     setExerciseActionId(exerciseId);
   }, []);
 
-  const scrollToField = useCallback((target: WorkoutKeypadTarget) => {
-    const exerciseIndex = exercisesRef.current.findIndex((e) => e.id === target.exerciseId);
-    if (exerciseIndex < 0) return;
-    listRef.current?.scrollToIndex({ index: exerciseIndex, animated: true, viewOffset: WORKOUT_KEYPAD_HEIGHT + 24 });
-  }, []);
+  const scrollToField = useCallback(
+    (target: WorkoutKeypadTarget) => {
+      scrollWorkoutFieldIntoView({
+        target,
+        getScrollOffset: () => scrollOffsetRef.current,
+        scrollToOffset: (offset) => listRef.current?.scrollToOffset({ offset, animated: true }),
+        keypadHeight: WORKOUT_KEYPAD_HEIGHT + insets.bottom,
+      });
+    },
+    [insets.bottom],
+  );
 
   const completeSet = useCallback(
     (exerciseId: string, setIndex: number, pendingPatch?: Partial<{ w: number; r: number }>) => {
@@ -731,6 +755,7 @@ export function WorkoutLiftingSlot() {
   }
 
   function addExerciseToSession(name: string, label?: string) {
+    hapticSelection();
     const trimmedLabel = label?.trim();
     setFitnessState((prev) => {
       const newExercise: WorkoutExercise = {
@@ -921,6 +946,9 @@ export function WorkoutLiftingSlot() {
               onReorder={reorderExercises}
               listFooter={listFooter}
               extraData={listExtraData}
+              onScrollOffsetChange={(offset) => {
+                scrollOffsetRef.current = offset;
+              }}
               onScrollToIndexFailed={({ index, averageItemLength }) => {
                 listRef.current?.scrollToOffset({
                   offset: Math.max(0, averageItemLength * index),
