@@ -6,6 +6,7 @@ import {
   MOBILITY_HABIT_ID,
   applyStretchSessionComplete,
   ensureMobilityHabitTemplate,
+  mobilityHabitTemplate,
 } from "./mobilityHabit";
 import type { AppState } from "@newyouai/types";
 
@@ -13,13 +14,13 @@ describe("ensureMobilityHabitTemplate", () => {
   it("appends mobility habit to onboarding defaults", () => {
     const templates = ensureMobilityHabitTemplate(defaultHabitTemplatesFromOnboarding());
     expect(templates.some((t) => t.id === MOBILITY_HABIT_ID)).toBe(true);
-    expect(templates.length).toBe(8);
+    expect(templates.length).toBe(5);
   });
 });
 
 describe("applyStretchSessionComplete", () => {
   it("marks mobility habit done when stretch session finishes", () => {
-    const templates = ensureMobilityHabitTemplate(defaultHabitTemplatesFromOnboarding());
+    const templates = [...defaultHabitTemplatesFromOnboarding(), mobilityHabitTemplate()];
     const base = {
       habitTemplates: templates,
       habitsDoneByDay: {},

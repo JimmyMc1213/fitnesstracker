@@ -15,7 +15,6 @@ import { AuthSessionRedirect } from "@/components/AuthSessionRedirect";
 import { AppShellErrorFallback } from "@/components/AppShellErrorFallback";
 import { AppShellLoading } from "@/components/AppShellLoading";
 import { BootSplash } from "@/components/BootSplash";
-import { NumericKeyboardAccessory } from "@/components/ui/NumericKeyboardAccessory";
 import { ThemeShell } from "@/components/ThemeShell";
 import { useColorScheme } from "@/components/useColorScheme";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
@@ -106,7 +105,6 @@ export default function RootLayout() {
                 <NotificationSchedulerProvider>
                   <View style={{ flex: 1 }}>
                     <RootLayoutNav />
-                    <NumericKeyboardAccessory />
                     {bootSplashVisible && !isVisualParityWebFrame() ? (
                       <BootSplash onComplete={() => setBootSplashVisible(false)} />
                     ) : null}

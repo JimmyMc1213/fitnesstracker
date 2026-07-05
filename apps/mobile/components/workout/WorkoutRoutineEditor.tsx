@@ -3,8 +3,8 @@ import type { CustomExerciseTemplate, EquipmentSetup, WorkoutExercise, WorkoutRo
 import { IconTrash } from "@tabler/icons-react-native";
 import { useEffect, useState } from "react";
 import { Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FullScreenOverlay } from "@/components/motion";
 import { GradientPill } from "@/components/ui/GradientPill";
@@ -12,7 +12,7 @@ import { coreAlignedInputStyle } from "@/components/ui/AlignedTextInput";
 
 import { useBottomActionPadding } from "@/lib/screenInsets";
 
-import { PrimaryButton } from "@/components/home/PrimaryButton";
+import { PressableScale } from "@/components/ui/PressableScale";
 import { ExerciseEquipmentLabelPickerDialog } from "@/components/workout/ExerciseEquipmentLabelPickerDialog";
 import { ExerciseDragHandle, SortableExerciseList } from "@/components/workout/SortableExerciseList";
 import { RoutineExerciseSearchSheet } from "@/components/workout/RoutineExerciseSearchSheet";
@@ -56,6 +56,7 @@ type WorkoutRoutineEditorProps = {
   onDelete: ((id: string) => void) | null;
   onClose: () => void;
   embedded?: boolean;
+  hideDayTag?: boolean;
   saveLabel?: string;
   title?: string;
   progressLabel?: string;
@@ -278,12 +279,12 @@ export function WorkoutRoutineEditor({
   onDelete,
   onClose,
   embedded = false,
+  hideDayTag = false,
   saveLabel = "Save workout",
   title,
   progressLabel,
 }: WorkoutRoutineEditorProps) {
   const { colors, theme } = useAppTheme();
-  const insets = useSafeAreaInsets();
   const bottomActionPadding = useBottomActionPadding();
 
   const [name, setName] = useState("");
@@ -399,10 +400,11 @@ export function WorkoutRoutineEditor({
   const accentLabel = workoutAccentLabel(theme);
 
   const body = (
-    <View
+    <SafeAreaView
       testID="workout-routine-editor"
+      edges={["top"]}
       className="flex-1"
-      style={{ backgroundColor: colors.background, paddingTop: embedded ? 0 : insets.top }}
+      style={{ backgroundColor: colors.background }}
     >
       <View className="px-screen-x pb-3 pt-2">
         <Pressable onPress={onClose} className="self-start py-2">
@@ -423,35 +425,39 @@ export function WorkoutRoutineEditor({
           style={[coreAlignedInputStyle(26), { color: colors.textPrimary, fontWeight: "700" }]}
         />
 
-        <Text className="mb-1.5 mt-4 text-[11px] font-semibold uppercase tracking-widest" style={{ color: colors.textTertiary }}>
-          Day tag
-        </Text>
-        <View className="flex-row flex-wrap gap-1.5">
-          {DAY_PRESETS.map((d) => {
-            const selected = dayLabel === d;
-            return (
-              <Pressable
-                key={d}
-                onPress={() => setDayLabel(d)}
-                className="rounded-lg px-3 py-1.5"
-                style={{
-                  backgroundColor: selected ? COACH_BLUE : "transparent",
-                  borderWidth: selected ? 0 : 0.5,
-                  borderColor: colors.border,
-                }}
-              >
-                <Text
-                  className="text-xs font-semibold"
-                  style={{ color: selected ? WORKOUT_ACCENT_ON : colors.textSecondary }}
-                >
-                  {d}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        {!hideDayTag ? (
+          <>
+            <Text className="mb-1.5 mt-4 text-[11px] font-semibold uppercase tracking-widest" style={{ color: colors.textTertiary }}>
+              Day tag
+            </Text>
+            <View className="flex-row flex-wrap gap-1.5">
+              {DAY_PRESETS.map((d) => {
+                const selected = dayLabel === d;
+                return (
+                  <Pressable
+                    key={d}
+                    onPress={() => setDayLabel(d)}
+                    className="rounded-lg px-3 py-1.5"
+                    style={{
+                      backgroundColor: selected ? COACH_BLUE : "transparent",
+                      borderWidth: selected ? 0 : 0.5,
+                      borderColor: colors.border,
+                    }}
+                  >
+                    <Text
+                      className="text-xs font-semibold"
+                      style={{ color: selected ? WORKOUT_ACCENT_ON : colors.textSecondary }}
+                    >
+                      {d}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
+        ) : null}
 
-        <View className="mb-2.5 mt-6 flex-row items-center justify-between">
+        <View className={`mb-2.5 flex-row items-center justify-between ${hideDayTag ? "mt-4" : "mt-6"}`}>
           <Text className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: colors.textTertiary }}>
             Exercises
           </Text>
@@ -584,9 +590,23 @@ export function WorkoutRoutineEditor({
             + Add exercise to workout
           </Text>
         </Pressable>
-        <PrimaryButton block onPress={handleSaveClick}>
-          {saveLabel}
-        </PrimaryButton>
+        <PressableScale
+          onPress={handleSaveClick}
+          style={{
+            minHeight: 44,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 12,
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            width: "100%",
+            backgroundColor: COACH_BLUE,
+          }}
+        >
+          <Text className="text-[15px] font-semibold" style={{ color: WORKOUT_ACCENT_ON }}>
+            {saveLabel}
+          </Text>
+        </PressableScale>
         {onDelete && template?.id ? (
           <Pressable onPress={() => setPendingRoutineDelete(true)} className="items-center py-2">
             <Text className="text-[13px] font-medium underline" style={{ color: colors.textTertiary }}>
@@ -640,7 +660,7 @@ export function WorkoutRoutineEditor({
           onConfirm={confirmDeleteRoutine}
         />
       ) : null}
-    </View>
+    </SafeAreaView>
   );
 
   if (embedded) {

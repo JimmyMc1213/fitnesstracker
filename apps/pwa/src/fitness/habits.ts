@@ -17,7 +17,8 @@ export type HabitDefinition = {
   action?: HabitAction;
 };
 
-export const DEFAULT_HABITS: HabitDefinition[] = [
+/** Habits assigned automatically when onboarding completes. */
+export const ONBOARDING_HABITS: HabitDefinition[] = [
   {
     id: "water",
     name: "Drink water target",
@@ -30,13 +31,6 @@ export const DEFAULT_HABITS: HabitDefinition[] = [
     name: "10,000 steps",
     subtitle: "Weekends especially burn fat without touching recovery",
     icon: "run",
-    type: "manual",
-  },
-  {
-    id: "creatine",
-    name: "Take creatine (3-5g)",
-    subtitle: "Every day, including rest days",
-    icon: "pill",
     type: "manual",
   },
   {
@@ -54,6 +48,21 @@ export const DEFAULT_HABITS: HabitDefinition[] = [
     type: "action",
     action: "openWeighIn",
   },
+];
+
+/** @deprecated Use `ONBOARDING_HABITS`. */
+export const DEFAULT_HABITS = ONBOARDING_HABITS;
+
+/** Habits available in the add sheet (excluding custom). Includes onboarding habits so users can re-add after removal. */
+export const ADDABLE_HABITS_CATALOG: HabitDefinition[] = [
+  ...ONBOARDING_HABITS,
+  {
+    id: "creatine",
+    name: "Take creatine (3-5g)",
+    subtitle: "Every day, including rest days",
+    icon: "pill",
+    type: "manual",
+  },
   {
     id: "sunlight",
     name: "Sunlight first thing",
@@ -61,17 +70,6 @@ export const DEFAULT_HABITS: HabitDefinition[] = [
     icon: "sun",
     type: "manual",
   },
-  {
-    id: "no_alcohol",
-    name: "No alcohol",
-    subtitle: "Simple daily accountability",
-    icon: "ban",
-    type: "manual",
-  },
-];
-
-/** Habits available in the add sheet (excluding custom). */
-export const ADDABLE_HABITS_CATALOG: HabitDefinition[] = [
   {
     id: "no_alcohol",
     name: "No alcohol",
@@ -141,8 +139,12 @@ export function definitionToTemplate(def: HabitDefinition): HabitTemplate {
   };
 }
 
+export function onboardingHabitTemplates(): HabitTemplate[] {
+  return ONBOARDING_HABITS.map(definitionToTemplate);
+}
+
 export function defaultDailyHabitTemplates(): HabitTemplate[] {
-  return DEFAULT_HABITS.map(definitionToTemplate);
+  return onboardingHabitTemplates();
 }
 
 /** True for legacy auto-assigned nutrition habits (e.g. "Track every meal", "Hit 175g protein"). */

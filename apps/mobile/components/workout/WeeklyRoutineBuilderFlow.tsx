@@ -295,6 +295,7 @@ export function WeeklyRoutineBuilderFlow({
         <WorkoutRoutineEditor
           key={`${manualEditorTemplate.id}-${editingDayIndex}`}
           embedded
+          hideDayTag
           template={manualEditorTemplate}
           customExercises={state.customExercises}
           equipmentSetup={state.equipmentSetup ?? "full_gym"}

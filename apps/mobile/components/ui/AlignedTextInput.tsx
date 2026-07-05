@@ -1,7 +1,7 @@
 import { Platform, StyleSheet, TextInput, View, type TextStyle, type TextInputProps, type ViewStyle, type NativeSyntheticEvent, type TextInputSubmitEditingEventData } from "react-native";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useRef } from "react";
-import { dismissKeyboard, numericKeyboardAccessoryProps } from "@/lib/keyboard";
+import { dismissKeyboard } from "@/lib/keyboard";
 
 export type AlignedTextInputSize = "field" | "sheet" | "onboarding" | "auth" | "compact" | "dense";
 
@@ -127,10 +127,7 @@ export function AlignedTextInput({
 
   const resolvedReturnKeyType = returnKeyType ?? (multiline ? "default" : "done");
   const resolvedBlurOnSubmit = blurOnSubmit ?? !multiline;
-  const resolvedAccessoryProps = {
-    ...numericKeyboardAccessoryProps(keyboardType),
-    ...(inputAccessoryViewID ? { inputAccessoryViewID } : {}),
-  };
+  const resolvedAccessoryProps = inputAccessoryViewID ? { inputAccessoryViewID } : {};
 
   function handleSubmitEditing(event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) {
     onSubmitEditing?.(event);
@@ -153,8 +150,8 @@ export function AlignedTextInput({
         multiline={multiline}
         style={[
           styles.input,
-          coreAlignedInputStyle(preset.fontSize, multiline),
-          { fontWeight, color, flex: 1 },
+          multiline ? coreAlignedInputStyle(preset.fontSize, true) : styles.shellInput,
+          { fontSize: preset.fontSize, fontWeight, color, flex: 1 },
           style,
         ]}
       />

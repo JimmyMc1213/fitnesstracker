@@ -123,7 +123,7 @@ export function EditHabitDialog({
               className="flex-1 items-center py-3.5"
               style={{ opacity: name.trim() ? 1 : 0.45 }}
             >
-              <Text className="text-[15px] font-semibold" style={{ color: colors.accent }}>
+              <Text className="text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
                 Save
               </Text>
             </Pressable>

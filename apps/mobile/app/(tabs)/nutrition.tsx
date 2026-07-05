@@ -16,6 +16,7 @@ import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { takeNutritionLogToast } from "@/lib/nutritionLogToast";
+import { KEYBOARD_OPEN_THRESHOLD, scrollFieldAboveKeyboard, useKeyboardHeight } from "@/lib/keyboard";
 import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 
 const PROTEIN_PRIORITY_ACCENT = "#ffc878";
@@ -33,6 +34,11 @@ export default function NutritionScreen() {
   const [toastUndoTestId, setToastUndoTestId] = useState("food-added-toast-undo");
   const [hydrationConfettiKey, setHydrationConfettiKey] = useState(0);
   const hydrationConfettiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollOffsetRef = useRef(0);
+  const customInputRowRef = useRef<View>(null);
+  const pendingCustomInputScrollRef = useRef(false);
+  const keyboardHeight = useKeyboardHeight();
 
   const todayKey = useMemo(() => localDateKey(new Date()), []);
   const todayFoodItems = useMemo(
@@ -70,6 +76,31 @@ export default function NutritionScreen() {
       if (hydrationConfettiTimerRef.current) clearTimeout(hydrationConfettiTimerRef.current);
     };
   }, []);
+
+  const scrollCustomInputIntoView = useCallback(() => {
+    scrollFieldAboveKeyboard({
+      fieldRef: customInputRowRef,
+      getScrollOffset: () => scrollOffsetRef.current,
+      scrollToOffset: (offset) => scrollRef.current?.scrollTo({ y: offset, animated: true }),
+      keyboardHeight,
+    });
+  }, [keyboardHeight]);
+
+  const handleCustomInputFocus = useCallback(() => {
+    pendingCustomInputScrollRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!pendingCustomInputScrollRef.current || keyboardHeight < KEYBOARD_OPEN_THRESHOLD) return;
+    pendingCustomInputScrollRef.current = false;
+    requestAnimationFrame(() => scrollCustomInputIntoView());
+  }, [keyboardHeight, scrollCustomInputIntoView]);
+
+  const scrollPaddingBottom = useMemo(
+    () =>
+      paddingBottom + (keyboardHeight >= KEYBOARD_OPEN_THRESHOLD ? keyboardHeight : 0),
+    [paddingBottom, keyboardHeight],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -134,9 +165,15 @@ export default function NutritionScreen() {
     <View testID="tab-nutrition" style={{ flex: 1, backgroundColor: "transparent" }}>
       <TabScreenFade>
       <ScrollView
+        ref={scrollRef}
         className="flex-1 px-screen-x"
-        contentContainerStyle={{ paddingBottom, paddingTop }}
+        contentContainerStyle={{ paddingBottom: scrollPaddingBottom, paddingTop }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        onScroll={(event) => {
+          scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={16}
       >
         <ScreenHeader
           eyebrow={formatDateKeyEyebrow(todayKey)}
@@ -201,6 +238,8 @@ export default function NutritionScreen() {
               setFitnessState((prev) => clearWaterLogForDateKey(prev, todayKey))
             }
             onGoalReached={handleHydrationGoalReached}
+            customInputRowRef={customInputRowRef}
+            onCustomInputFocus={handleCustomInputFocus}
           />
         ) : null}
 

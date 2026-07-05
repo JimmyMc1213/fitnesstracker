@@ -19,12 +19,14 @@ import { DeleteConfirmSheet } from "../DeleteConfirmSheet";
 import { DeleteExerciseConfirmSheet } from "../workout/DeleteExerciseConfirmSheet";
 import { SaveWorkoutConfirmSheet } from "../workout/SaveWorkoutConfirmSheet";
 import { templateFocusFromExercises } from "../routineTemplateFocus";
+import { PrimaryButton } from "../shared";
 import { CARD_PADDING, EDITOR_LIST_GAP, labelStyle, SECONDARY_ACTION_COLOR, workoutFieldInputStyle } from "../workoutUiTokens";
 
 /** Pass as `editingRoutineId` to open the editor for a brand-new routine. */
 export const NEW_ROUTINE_EDITOR_ID = "__new__";
 
-const ACCENT_BLUE = "#3B82F6";
+const WORKOUT_CTA_BG = "var(--ob-gold)";
+const WORKOUT_CTA_FG = "var(--ob-gold-on)";
 const BUTTON_RADIUS = 14;
 const DAY_PRESETS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
@@ -123,6 +125,7 @@ type WorkoutRoutineEditorProps = {
   onDelete: ((id: string) => void) | null;
   onClose: () => void;
   embedded?: boolean;
+  hideDayTag?: boolean;
   saveLabel?: string;
   title?: string;
   progressLabel?: string;
@@ -390,6 +393,7 @@ export function WorkoutRoutineEditor({
   onDelete,
   onClose,
   embedded = false,
+  hideDayTag = false,
   saveLabel = "Save workout",
   title,
   progressLabel,
@@ -602,37 +606,39 @@ export function WorkoutRoutineEditor({
           </div>
         </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
-            <div>
-              <div style={fieldLabelStyle}>DAY TAG</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {DAY_PRESETS.map((d) => {
-                  const selected = dayLabel === d;
-                  return (
-                    <button
-                      key={d}
-                      type="button"
-                      className="tap"
-                      onClick={() => setDayLabel(d)}
-                      style={{
-                        padding: "6px 12px",
-                        borderRadius: 8,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        border: selected ? "none" : "0.5px solid var(--border)",
-                        background: selected ? ACCENT_BLUE : "transparent",
-                        color: selected ? "#fff" : "var(--text-soft)",
-                      }}
-                    >
-                      {d}
-                    </button>
-                  );
-                })}
+          {!hideDayTag ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
+              <div>
+                <div style={fieldLabelStyle}>DAY TAG</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {DAY_PRESETS.map((d) => {
+                    const selected = dayLabel === d;
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        className="tap"
+                        onClick={() => setDayLabel(d)}
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: 8,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          border: selected ? "none" : "0.5px solid var(--border)",
+                          background: selected ? WORKOUT_CTA_BG : "transparent",
+                          color: selected ? WORKOUT_CTA_FG : "var(--text-soft)",
+                        }}
+                      >
+                        {d}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
+          ) : null}
 
-          <div className="between" style={{ marginTop: 24, marginBottom: 10 }}>
+          <div className="between" style={{ marginTop: hideDayTag ? 16 : 24, marginBottom: 10 }}>
             <span className="label">Exercises</span>
             <span style={{ fontSize: 12, color: "var(--text-ghost)" }}>
               {exercises.length} move{exercises.length === 1 ? "" : "s"} · hold grip to reorder
@@ -798,23 +804,19 @@ export function WorkoutRoutineEditor({
             <IconPlus size={16} stroke={2} /> Add exercise to workout
           </button>
 
-          <button
-            type="button"
-            className="tap"
+          <PrimaryButton
+            block
             onClick={handleSaveClick}
             style={{
-              width: "100%",
-              background: ACCENT_BLUE,
-              border: "none",
               borderRadius: BUTTON_RADIUS,
               padding: 14,
-              color: "#fff",
-              fontSize: 15,
               fontWeight: 700,
+              background: WORKOUT_CTA_BG,
+              color: WORKOUT_CTA_FG,
             }}
           >
             {saveLabel}
-          </button>
+          </PrimaryButton>
 
           {onDelete && template?.id ? (
             <button

@@ -886,7 +886,9 @@ export function OnboardingFlow({
     setState((s) => {
       const stepsTarget = s.stepsTarget;
       const waterDailyTargetOz = onboardingWaterDailyTargetOz(finalProfile.weightLbs);
-      const habitTemplates = ensureMobilityHabitTemplate(habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz, unitPreferences.volumeUnit));
+      const habitTemplates = ensureMobilityHabitTemplate(
+        habitTemplatesFromOnboarding(stepsTarget, waterDailyTargetOz, unitPreferences.volumeUnit),
+      );
       const templateIds = new Set(habitTemplates.map((h) => h.id));
       const habitsDoneByDay = pruneHabitsDoneByDay(s.habitsDoneByDay, templateIds);
       const todayKey = localDateKey(new Date());

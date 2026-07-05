@@ -2,7 +2,7 @@ import type { HabitTemplate } from "@newyouai/types";
 
 import { WEIGH_IN_HABIT_ID } from "@/lib/habits";
 
-/** Default daily habits after onboarding (matches PWA `DEFAULT_HABITS`). */
+/** Default daily habits after onboarding (matches PWA `ONBOARDING_HABITS`). */
 export function defaultHabitTemplatesFromOnboarding(): HabitTemplate[] {
   return [
     {
@@ -20,13 +20,6 @@ export function defaultHabitTemplatesFromOnboarding(): HabitTemplate[] {
       type: "manual",
     },
     {
-      id: "creatine",
-      name: "Take creatine (3-5g)",
-      subtitle: "Every day, including rest days",
-      icon: "pill",
-      type: "manual",
-    },
-    {
       id: "sleep",
       name: "Sleep 7-8 hours",
       subtitle: "You build muscle while you sleep, not while you lift",
@@ -40,20 +33,6 @@ export function defaultHabitTemplatesFromOnboarding(): HabitTemplate[] {
       icon: "scale",
       type: "action",
       action: "openWeighIn",
-    },
-    {
-      id: "sunlight",
-      name: "Sunlight first thing",
-      subtitle: "Sets your circadian rhythm and boosts energy",
-      icon: "sun",
-      type: "manual",
-    },
-    {
-      id: "no_alcohol",
-      name: "No alcohol",
-      subtitle: "Simple daily accountability",
-      icon: "ban",
-      type: "manual",
     },
   ];
 }

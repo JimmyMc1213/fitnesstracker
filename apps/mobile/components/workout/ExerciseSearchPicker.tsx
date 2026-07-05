@@ -8,6 +8,8 @@ import {
   ExerciseSearchResultRow,
   ExerciseSearchSectionHeader,
 } from "@/components/workout/ExerciseSearchResultRow";
+import { CustomExerciseCreateForm } from "@/components/workout/CustomExerciseCreateForm";
+import type { ExerciseEquipmentLabel } from "@/lib/workout/exerciseLabels";
 import {
   catalogExercisesForEquipment,
   filterCatalogExercises,
@@ -16,7 +18,6 @@ import {
 } from "@/lib/workout/exerciseCatalogSearch";
 import type { MuscleGroup } from "@/lib/workout/exerciseLibrary";
 import { useExerciseSearchSheetSizing } from "@/lib/keyboard";
-import { FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { CustomExerciseTemplate, EquipmentSetup } from "@newyouai/types";
 
@@ -27,6 +28,7 @@ type Props = {
   equipmentSetup: EquipmentSetup;
   customExercises: CustomExerciseTemplate[];
   onSelect: (name: string, label?: string) => void;
+  onSaveCustomAndAdd?: (name: string, label: string) => void;
   onClose: () => void;
   closeOnSelect?: boolean;
   confirmLabel?: string;
@@ -44,6 +46,7 @@ export function ExerciseSearchPicker({
   equipmentSetup,
   customExercises,
   onSelect,
+  onSaveCustomAndAdd,
   onClose,
   closeOnSelect = true,
   confirmLabel = "Add",
@@ -54,12 +57,22 @@ export function ExerciseSearchPicker({
   const [query, setQuery] = useState("");
   const [muscleGroup, setMuscleGroup] = useState<MuscleGroup | null>(null);
   const [selected, setSelected] = useState<{ name: string; label?: string } | null>(null);
+  const [showCreateCard, setShowCreateCard] = useState(false);
+  const [draftExName, setDraftExName] = useState("");
+  const [draftExLabel, setDraftExLabel] = useState<ExerciseEquipmentLabel | null>(null);
+
+  function resetCreateDraft() {
+    setShowCreateCard(false);
+    setDraftExName("");
+    setDraftExLabel(null);
+  }
 
   useEffect(() => {
     if (!open) return;
     setQuery("");
     setMuscleGroup(null);
     setSelected(null);
+    resetCreateDraft();
   }, [open]);
 
   const catalog = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
@@ -89,6 +102,14 @@ export function ExerciseSearchPicker({
     setSelected(null);
   }
 
+  function handleSaveCustomAndAdd() {
+    const n = draftExName.trim();
+    if (!n || !draftExLabel || !onSaveCustomAndAdd) return;
+    onSaveCustomAndAdd(n, draftExLabel);
+    resetCreateDraft();
+    if (closeOnSelect) onClose();
+  }
+
   return (
     <BottomSheet open={open} onClose={onClose} keyboardAware panelStyle={panelStyle}>
       <View testID={testID} style={bodyStyle}>
@@ -105,23 +126,44 @@ export function ExerciseSearchPicker({
             </Text>
           </Pressable>
 
-          <Pressable
-            testID="exercise-search-add"
-            onPress={confirm}
-            disabled={!selected}
-            haptic={!!selected}
-            accessibilityRole="button"
-            accessibilityLabel={title}
-            accessibilityState={{ disabled: !selected }}
-            hitSlop={12}
-          >
-            <Text
-              className="text-[17px] font-bold leading-none tracking-tight"
-              style={{ color: selected ? FUTURE_YOU_GOLD : colors.textTertiary }}
+          <View className="flex-row items-center gap-3">
+            {onSaveCustomAndAdd && !showCreateCard ? (
+              <Pressable
+                testID="exercise-search-create-new"
+                onPress={() => setShowCreateCard(true)}
+                accessibilityRole="button"
+                accessibilityLabel="New exercise"
+                hitSlop={12}
+              >
+                <Text
+                  className="text-[17px] font-bold leading-none tracking-tight"
+                  style={{ color: colors.textPrimary }}
+                >
+                  New
+                </Text>
+              </Pressable>
+            ) : null}
+
+            <Pressable
+              testID="exercise-search-add"
+              onPress={confirm}
+              disabled={!selected || showCreateCard}
+              haptic={!!selected && !showCreateCard}
+              accessibilityRole="button"
+              accessibilityLabel={confirmLabel}
+              accessibilityState={{ disabled: !selected || showCreateCard }}
+              hitSlop={12}
             >
-              {confirmLabel}
-            </Text>
-          </Pressable>
+              <Text
+                className="text-[17px] font-bold leading-none tracking-tight"
+                style={{
+                  color: selected && !showCreateCard ? colors.textPrimary : colors.textTertiary,
+                }}
+              >
+                {confirmLabel}
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         <View className="min-h-0 flex-1 px-5">
@@ -133,6 +175,23 @@ export function ExerciseSearchPicker({
             placeholder="Search exercises..."
             returnKeyType="search"
           />
+
+          {onSaveCustomAndAdd && showCreateCard ? (
+            <View
+              className="mt-3 rounded-xl border p-3.5"
+              style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
+            >
+              <CustomExerciseCreateForm
+                name={draftExName}
+                selectedLabel={draftExLabel}
+                saveButtonLabel="Save to my list & add to workout"
+                onNameChange={setDraftExName}
+                onLabelChange={setDraftExLabel}
+                onSave={handleSaveCustomAndAdd}
+                onCancel={resetCreateDraft}
+              />
+            </View>
+          ) : null}
 
           {availableMuscleGroups.length > 0 ? (
             <ScrollView

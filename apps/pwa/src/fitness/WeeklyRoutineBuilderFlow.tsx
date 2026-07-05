@@ -274,6 +274,7 @@ export function WeeklyRoutineBuilderFlow({ mode, state, onApply, onSaveCustomExe
         <WorkoutRoutineEditor
           key={`${manualEditorTemplate.id}-${editingDayIndex}`}
           embedded
+          hideDayTag
           template={manualEditorTemplate}
           customExercises={state.customExercises}
           equipmentSetup={state.equipmentSetup ?? DEFAULT_EQUIPMENT_SETUP}

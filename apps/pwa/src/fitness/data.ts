@@ -6,7 +6,12 @@ import {
   clampProgrammedSetCount,
   clampUserEditableSetCount,
 } from "@newyouai/core";
-import { buildHabitsForDateKey as buildHabitsForDateKeyFromTemplates, defaultDailyHabitTemplates, isLegacyDefaultHabitTemplates } from "./habits";
+import {
+  buildHabitsForDateKey as buildHabitsForDateKeyFromTemplates,
+  defaultDailyHabitTemplates,
+  isLegacyDefaultHabitTemplates,
+  onboardingHabitTemplates,
+} from "./habits";
 import { DEFAULT_WATER_DAILY_TARGET_OZ } from "./waterIntake";
 
 /** Fallback macros before onboarding sets personalized targets. */
@@ -108,7 +113,7 @@ export function habitTemplatesFromOnboarding(
   _waterDailyTargetOz: number = DEFAULT_WATER_DAILY_TARGET_OZ,
   _volumeUnit: VolumeUnit = "oz",
 ): HabitTemplate[] {
-  return defaultDailyHabitTemplates();
+  return onboardingHabitTemplates();
 }
 
 export function isDefaultSeedHabitTemplates(templates: HabitTemplate[]): boolean {

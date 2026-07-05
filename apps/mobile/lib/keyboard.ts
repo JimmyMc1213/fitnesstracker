@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import { Keyboard, Platform, useWindowDimensions, type TextInputProps, type ViewStyle } from "react-native";
+import { useEffect, useMemo, useState, type RefObject } from "react";
+import { Dimensions, Keyboard, Platform, useWindowDimensions, type TextInputProps, type View, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export const NUMERIC_KEYBOARD_ACCESSORY_ID = "newyou-numeric-keyboard-done";
 export const KEYBOARD_OPEN_THRESHOLD = 48;
 
 const EXERCISE_SEARCH_KEYBOARD_BOTTOM_CHROME = 12;
@@ -75,14 +74,34 @@ export function dismissKeyboard() {
   Keyboard.dismiss();
 }
 
-export function isNumericKeyboardType(keyboardType?: TextInputProps["keyboardType"]): boolean {
-  return keyboardType === "number-pad" || keyboardType === "decimal-pad" || keyboardType === "numeric";
-}
+/** Scroll a ScrollView just enough to keep a field above the on-screen keyboard. */
+export function scrollFieldAboveKeyboard({
+  fieldRef,
+  getScrollOffset,
+  scrollToOffset,
+  keyboardHeight,
+  clearance = 12,
+  bottomInset = 0,
+}: {
+  fieldRef: RefObject<View | null>;
+  getScrollOffset: () => number;
+  scrollToOffset: (offset: number) => void;
+  keyboardHeight: number;
+  clearance?: number;
+  bottomInset?: number;
+}) {
+  const field = fieldRef.current;
+  if (!field || keyboardHeight < KEYBOARD_OPEN_THRESHOLD) return;
 
-/** Attach to TextInput when using a pad keyboard on iOS so users can dismiss it. */
-export function numericKeyboardAccessoryProps(
-  keyboardType?: TextInputProps["keyboardType"],
-): Pick<TextInputProps, "inputAccessoryViewID"> {
-  if (Platform.OS !== "ios" || !isNumericKeyboardType(keyboardType)) return {};
-  return { inputAccessoryViewID: NUMERIC_KEYBOARD_ACCESSORY_ID };
+  field.measureInWindow((_x, y, _width, height) => {
+    if (height === 0) return;
+
+    const windowHeight = Dimensions.get("window").height;
+    const keyboardTop = windowHeight - keyboardHeight - bottomInset;
+    const targetBottom = keyboardTop - clearance;
+    const fieldBottom = y + height;
+    if (fieldBottom <= targetBottom) return;
+
+    scrollToOffset(getScrollOffset() + (fieldBottom - targetBottom));
+  });
 }

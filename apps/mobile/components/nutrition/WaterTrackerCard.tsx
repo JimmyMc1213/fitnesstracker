@@ -7,7 +7,7 @@ import {
   waterQuickAddPresets,
 } from "@newyouai/core";
 import type { VolumeUnit, WaterLogEntry } from "@newyouai/types";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { Text, View } from "react-native";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { AppTextField } from "@/components/ui/AppTextField";
@@ -30,6 +30,8 @@ type Props = {
   onRemoveAllEntries?: () => void;
   /** Fires when today's total crosses from below target to at/above target. */
   onGoalReached?: () => void;
+  customInputRowRef?: RefObject<View | null>;
+  onCustomInputFocus?: () => void;
 };
 
 function formatLoggedTime(ms: number): string {
@@ -47,6 +49,8 @@ export function WaterTrackerCard({
   onRemoveEntry,
   onRemoveAllEntries,
   onGoalReached,
+  customInputRowRef,
+  onCustomInputFocus,
 }: Props) {
   const { colors } = useAppTheme();
   const prevTotalRef = useRef<number | null>(null);
@@ -251,25 +255,22 @@ export function WaterTrackerCard({
             })}
           </View>
 
-          <View className="mt-2.5 flex-row items-stretch gap-2">
-            <View
-              className="min-w-0 flex-1 flex-row items-center rounded-[10px] border px-3"
-              style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
-            >
-              <AppTextField
-                inline
-                value={customAmount}
-                onChangeText={(raw) => {
-                  setCustomAmount(raw);
-                  if (customError) setCustomError(null);
-                }}
-                testID="water-custom-amount"
-                accessibilityLabel={volumeUnit === "L" ? "Custom water amount in liters" : "Custom water amount in ounces"}
-                placeholder={volumeUnit === "L" ? "Custom L" : "Custom oz"}
-                keyboardType="decimal-pad"
-                style={{ flex: 1, fontSize: 13, fontVariant: ["tabular-nums"] }}
-              />
-            </View>
+          <View ref={customInputRowRef} className="mt-2.5 flex-row items-stretch gap-2">
+            <AppTextField
+              size="dense"
+              value={customAmount}
+              onChangeText={(raw) => {
+                setCustomAmount(raw);
+                if (customError) setCustomError(null);
+              }}
+              onFocus={onCustomInputFocus}
+              testID="water-custom-amount"
+              accessibilityLabel={volumeUnit === "L" ? "Custom water amount in liters" : "Custom water amount in ounces"}
+              placeholder={volumeUnit === "L" ? "Custom L" : "Custom oz"}
+              keyboardType="decimal-pad"
+              shellStyle={{ flex: 1, minWidth: 0, borderRadius: 10 }}
+              style={{ fontVariant: ["tabular-nums"] }}
+            />
             <Pressable
               testID="water-custom-add"
               onPress={handleCustomAdd}

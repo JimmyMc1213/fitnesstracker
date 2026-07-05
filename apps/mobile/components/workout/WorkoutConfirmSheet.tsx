@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { workoutAccentLabel } from "@/lib/workoutUiTokens";
 
 type Props = {
   open?: boolean;
@@ -34,9 +35,13 @@ export function WorkoutConfirmSheet({
   confirmTestID,
   sheetTestID,
 }: Props) {
-  const { colors } = useAppTheme();
+  const { colors, theme } = useAppTheme();
 
-  const confirmColor = confirmDestructive ? "#FF453A" : confirmPrimary ? colors.accent : colors.textPrimary;
+  const confirmColor = confirmDestructive
+    ? "#FF453A"
+    : confirmPrimary
+      ? workoutAccentLabel(theme)
+      : colors.textPrimary;
 
   return (
     <CenterDialog open={open} onClose={onCancel} panelStyle={{ padding: 0, maxWidth: 384 }}>

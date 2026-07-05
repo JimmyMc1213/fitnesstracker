@@ -779,6 +779,27 @@ export function WorkoutLiftingSlot() {
     });
   }
 
+  function saveCustomExercise(name: string, label: string) {
+    const n = name.trim();
+    if (!n) return;
+    const lb = label.trim();
+    setFitnessState((prev) => ({
+      ...prev,
+      customExercises: [
+        ...prev.customExercises,
+        { id: `c${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: n, label: lb },
+      ],
+    }));
+  }
+
+  function saveCustomAndAddToSession(name: string, label: string) {
+    const n = name.trim();
+    if (!n) return;
+    const lb = label.trim();
+    saveCustomExercise(n, lb);
+    addExerciseToSession(n, lb || undefined);
+  }
+
   function saveExerciseNote(name: string, label: string | undefined, note: string) {
     setFitnessState((prev) => ({
       ...prev,
@@ -1002,6 +1023,7 @@ export function WorkoutLiftingSlot() {
           equipmentSetup={state.equipmentSetup}
           customExercises={state.customExercises}
           onSelect={(name, label) => addExerciseToSession(name, label)}
+          onSaveCustomAndAdd={saveCustomAndAddToSession}
           onClose={() => setSearchOpen(false)}
         />
       ) : null}

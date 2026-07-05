@@ -10,7 +10,6 @@ import Animated, {
 
 import { useReducedMotion } from "@/components/motion/useReducedMotion";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
-import { numericKeyboardAccessoryProps } from "@/lib/keyboard";
 
 const TRANSPARENT = "rgba(0, 0, 0, 0)";
 
@@ -104,7 +103,6 @@ export function EditableNumber({ value, label, unit, variant = "row", onChange, 
             onSubmitEditing={commitDraft}
             keyboardType="number-pad"
             returnKeyType="done"
-            {...numericKeyboardAccessoryProps("number-pad")}
             selectTextOnFocus
             autoFocus
             style={[numberStyle, hero ? styles.heroInput : styles.rowInput]}

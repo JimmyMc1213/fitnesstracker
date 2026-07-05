@@ -346,6 +346,94 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
 
   const listExtraData = useMemo(() => [extraData, reorderActive], [extraData, reorderActive]);
 
+  const listContentStyle = useMemo(
+    (): ViewStyle => ({
+      paddingBottom: 24,
+      ...contentContainerStyle,
+      gap: listGap,
+      ...(reorderActive ? { paddingBottom: 24 } : null),
+    }),
+    [contentContainerStyle, listGap, reorderActive],
+  );
+
+  const renderListRow = useCallback(
+    (item: T, index: number, drag?: () => void, isActive = false) => {
+      const label = itemLabel(item, getDragLabel);
+      const subtitle = dragSubtitleForItem(item, getDragSubtitle);
+      const marginBottom = index < items.length - 1 ? listGap : 0;
+
+      const handle: ExerciseDragHandleProps = {
+        isDragging: isActive,
+        onLongPress: canReorder ? () => (drag ? onGripLongPress(drag) : enterReorder()) : undefined,
+        disabled: !canReorder,
+      };
+
+      const full = (
+        <View testID={`workout-exercise-${item.id}`}>
+          {renderItem(item, index, handle, ctx)}
+        </View>
+      );
+
+      if (!canReorder) {
+        return <View style={{ marginBottom }}>{full}</View>;
+      }
+
+      if (isActive && reorderActive && isDraggingCellRef.current) {
+        return (
+          <ShadowDecorator elevation={10} opacity={0.3} radius={14}>
+            <ScaleDecorator activeScale={1}>
+              <View style={{ height: COMPACT_ROW_HEIGHT, marginBottom }}>
+                <CompactDragCard label={label} subtitle={subtitle} handle={handle} lifted />
+              </View>
+            </ScaleDecorator>
+          </ShadowDecorator>
+        );
+      }
+
+      return (
+        <ExerciseReorderSlot
+          collapseProgress={collapseProgress}
+          reorderActive={reorderActive}
+          marginBottom={marginBottom}
+          full={full}
+          label={label}
+          subtitle={subtitle}
+          handle={handle}
+        />
+      );
+    },
+    [
+      canReorder,
+      collapseProgress,
+      ctx,
+      enterReorder,
+      getDragLabel,
+      getDragSubtitle,
+      items.length,
+      listGap,
+      onGripLongPress,
+      renderItem,
+      reorderActive,
+    ],
+  );
+
+  // NestableDraggableFlatList captures vertical pans even with scrollEnabled=false,
+  // which blocks the parent NestableScrollContainer. Render static rows until the
+  // user enters compact reorder mode, then mount the draggable list for drag-and-drop.
+  if (nestedInScrollView && !reorderActive) {
+    return (
+      <View testID="workout-exercise-list">
+        {listHeader}
+        <View style={listContentStyle}>
+          {items.map((item, index) => (
+            <View key={item.id}>{renderListRow(item, index)}</View>
+          ))}
+        </View>
+        {listFooter}
+      </View>
+    );
+  }
+
   const ListComponent = nestedInScrollView ? NestableDraggableFlatList : DraggableFlatList;
 
   return (
@@ -371,12 +459,7 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
       scrollEnabled={!nestedInScrollView}
       nestedScrollEnabled={nestedInScrollView}
       containerStyle={nestedInScrollView ? undefined : { flex: 1 }}
-      contentContainerStyle={{
-        paddingBottom: 24,
-        ...contentContainerStyle,
-        gap: listGap,
-        ...(reorderActive ? { paddingBottom: 24 } : null),
-      }}
+      contentContainerStyle={listContentStyle}
       keyboardShouldPersistTaps="handled"
       onScrollOffsetChange={onScrollOffsetChange}
       onScrollToIndexFailed={onScrollToIndexFailed}
@@ -388,59 +471,20 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
             renderPlaceholder: () => <DragPlaceholder />,
           }
         : null)}
-      renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<T>) => {
-        const index = getIndex() ?? 0;
-        const label = itemLabel(item, getDragLabel);
-        const subtitle = dragSubtitleForItem(item, getDragSubtitle);
-        const marginBottom = index < items.length - 1 ? listGap : 0;
-
-        const handle: ExerciseDragHandleProps = {
-          isDragging: isActive,
-          onLongPress: canReorder ? () => onGripLongPress(drag) : undefined,
-          disabled: !canReorder,
-        };
-
-        const full = (
-          <View testID={`workout-exercise-${item.id}`}>
-            {renderItem(item, index, handle, ctx)}
-          </View>
-        );
-
-        if (!canReorder) {
-          return <View style={{ marginBottom }}>{full}</View>;
-        }
-
-        if (isActive && reorderActive && isDraggingCellRef.current) {
-          return (
-            <ShadowDecorator elevation={10} opacity={0.3} radius={14}>
-              <ScaleDecorator activeScale={1}>
-                <View style={{ height: COMPACT_ROW_HEIGHT, marginBottom }}>
-                  <CompactDragCard label={label} subtitle={subtitle} handle={handle} lifted />
-                </View>
-              </ScaleDecorator>
-            </ShadowDecorator>
-          );
-        }
-
-        return (
-          <ExerciseReorderSlot
-            collapseProgress={collapseProgress}
-            reorderActive={reorderActive}
-            marginBottom={marginBottom}
-            full={full}
-            label={label}
-            subtitle={subtitle}
-            handle={handle}
-          />
-        );
-      }}
+      renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<T>) =>
+        renderListRow(item, getIndex() ?? 0, drag, isActive)
+      }
     />
-      {reorderActive ? <ReorderDoneButton onPress={exitReorder} /> : null}
+      {reorderActive ? <ReorderDoneButton neutral={nestedInScrollView} onPress={exitReorder} /> : null}
     </View>
   );
 }
 
-function ReorderDoneButton({ onPress }: { onPress: () => void }) {
+function ReorderDoneButton({ onPress, neutral = false }: { onPress: () => void; neutral?: boolean }) {
+  const { colors } = useAppTheme();
+  const backgroundColor = neutral ? colors.buttonPrimary : WORKOUT_ACCENT;
+  const foregroundColor = neutral ? colors.buttonPrimaryText : "#fff";
+
   return (
     <View
       pointerEvents="box-none"
@@ -458,7 +502,7 @@ function ReorderDoneButton({ onPress }: { onPress: () => void }) {
           paddingHorizontal: 18,
           height: 44,
           borderRadius: 22,
-          backgroundColor: WORKOUT_ACCENT,
+          backgroundColor,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 6 },
           shadowOpacity: 0.3,
@@ -466,8 +510,8 @@ function ReorderDoneButton({ onPress }: { onPress: () => void }) {
           elevation: 8,
         }}
       >
-        <SymbolView name="checkmark" tintColor="#fff" size={15} />
-        <Text style={{ color: "#fff", fontSize: 15, fontWeight: "700" }}>Done</Text>
+        <SymbolView name="checkmark" tintColor={foregroundColor} size={15} />
+        <Text style={{ color: foregroundColor, fontSize: 15, fontWeight: "700" }}>Done</Text>
       </Pressable>
     </View>
   );

@@ -7,6 +7,7 @@ import {
   ensureMobilityHabitTemplate,
   isMobilityHabit,
   migrateMobilityHabitCompletion,
+  mobilityHabitTemplate,
 } from "./mobilityHabit";
 import type { AppState } from "./types";
 
@@ -21,6 +22,7 @@ describe("mobilityHabit", () => {
     const templates = ensureMobilityHabitTemplate(habitTemplatesFromOnboarding());
     expect(templates.some((t) => t.id === MOBILITY_HABIT_ID)).toBe(true);
     expect(templates.some((t) => t.id === "h4")).toBe(false);
+    expect(templates).toHaveLength(5);
   });
 
   it("migrates legacy h4 completion to mobility", () => {
@@ -31,7 +33,7 @@ describe("mobilityHabit", () => {
   });
 
   it("marks mobility habit done when stretch session finishes", () => {
-    const templates = ensureMobilityHabitTemplate(habitTemplatesFromOnboarding());
+    const templates = [...habitTemplatesFromOnboarding(), mobilityHabitTemplate()];
     const base = {
       habitTemplates: templates,
       habitsDoneByDay: {},

@@ -5,8 +5,8 @@ import { BottomSheet } from "@/components/motion";
 import { AppTextField } from "@/components/ui/AppTextField";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
-import { useBottomActionPadding } from "@/lib/screenInsets";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useExerciseSearchSheetSizing } from "@/lib/keyboard";
 import { COACH_BLUE_LABEL } from "@/lib/workoutUiTokens";
 import {
   buildRoutineTemplatesFromStarter,
@@ -142,7 +142,7 @@ export function WorkoutStarterTemplatesSheet({
   onUseProgram,
 }: WorkoutStarterTemplatesSheetProps) {
   const { colors } = useAppTheme();
-  const bottomActionPadding = useBottomActionPadding();
+  const { panelStyle, bodyStyle, listStyle } = useExerciseSearchSheetSizing();
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -186,12 +186,9 @@ export function WorkoutStarterTemplatesSheet({
   }
 
   return (
-    <BottomSheet
-      open={open}
-      onClose={handleClose}
-      panelStyle={{ paddingHorizontal: 0, paddingBottom: bottomActionPadding, maxHeight: "86%" }}
-    >
-      <View testID="workout-starter-templates-sheet" className="max-h-[86%] rounded-t-2xl px-4 pt-5">
+    <BottomSheet open={open} onClose={handleClose} keyboardAware panelStyle={panelStyle}>
+      <View testID="workout-starter-templates-sheet" style={bodyStyle}>
+        <View className="min-h-0 flex-1 px-4 pt-5">
           <Text className="text-xl font-bold tracking-tight" style={{ color: colors.textPrimary }}>
             Workout templates
           </Text>
@@ -208,7 +205,13 @@ export function WorkoutStarterTemplatesSheet({
             />
           ) : null}
 
-          <ScrollView className="mt-3.5" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={listStyle}
+            className="mt-3.5"
+            contentContainerStyle={{ paddingBottom: 8 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             {selected ? (
               <TemplateDetail
                 template={selected}
@@ -238,6 +241,7 @@ export function WorkoutStarterTemplatesSheet({
               ))
             )}
           </ScrollView>
+        </View>
       </View>
     </BottomSheet>
   );

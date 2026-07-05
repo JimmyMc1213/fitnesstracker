@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildAppStateFromPersisted } from "./buildAppState";
 import { buildHabitsForDateKey, dedupeHabitTemplates, defaultHabitTemplates, habitTemplatesFromOnboarding, isDefaultSeedHabitTemplates } from "./data";
-import { DEFAULT_HABITS, WEIGH_IN_HABIT_ID, isNutritionProgrammingHabit, isWeighInActionHabit, markWeighInHabitDone, stripNutritionProgrammingHabits } from "./habits";
+import { DEFAULT_HABITS, ONBOARDING_HABITS, WEIGH_IN_HABIT_ID, isNutritionProgrammingHabit, isWeighInActionHabit, markWeighInHabitDone, stripNutritionProgrammingHabits } from "./habits";
 import { dailyHabitTemplatesFromState } from "./HomeDailyHabitsCard";
 import { isMobilityHabit } from "./mobilityHabit";
 import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
@@ -16,7 +16,7 @@ describe("stripNutritionProgrammingHabits", () => {
       { id: "custom-protein", name: "Protein goal", icon: "bolt" },
     ];
     const stripped = stripNutritionProgrammingHabits(templates);
-    expect(stripped).toHaveLength(7);
+    expect(stripped).toHaveLength(4);
     expect(stripped.some((h) => h.id === "habit-track" || h.id === "habit-protein")).toBe(false);
     expect(stripped.some((h) => /protein goal|track every meal/i.test(h.name))).toBe(false);
   });
@@ -56,11 +56,12 @@ describe("buildAppStateFromPersisted nutrition habits", () => {
   });
 });
 
-describe("DEFAULT_HABITS", () => {
-  it("defines seven daily habits without mobility", () => {
-    expect(DEFAULT_HABITS).toHaveLength(7);
-    expect(DEFAULT_HABITS.some((h) => /mobility|stretch/i.test(h.name))).toBe(false);
-    expect(DEFAULT_HABITS.find((h) => h.id === WEIGH_IN_HABIT_ID)).toMatchObject({
+describe("ONBOARDING_HABITS", () => {
+  it("defines four core daily habits without mobility", () => {
+    expect(ONBOARDING_HABITS).toHaveLength(4);
+    expect(DEFAULT_HABITS).toHaveLength(4);
+    expect(ONBOARDING_HABITS.some((h) => /mobility|stretch/i.test(h.name))).toBe(false);
+    expect(ONBOARDING_HABITS.find((h) => h.id === WEIGH_IN_HABIT_ID)).toMatchObject({
       type: "action",
       action: "openWeighIn",
     });
@@ -68,9 +69,9 @@ describe("DEFAULT_HABITS", () => {
 });
 
 describe("habitTemplatesFromOnboarding", () => {
-  it("uses the default daily habit templates", () => {
+  it("uses the onboarding daily habit templates", () => {
     const templates = habitTemplatesFromOnboarding(10_000, 64);
-    expect(templates).toHaveLength(7);
+    expect(templates).toHaveLength(4);
     expect(templates[0]).toMatchObject({ id: "water", icon: "drop", name: "Drink water target" });
     expect(templates[1]).toMatchObject({ id: "steps", icon: "run" });
     expect(templates.find((h) => h.id === WEIGH_IN_HABIT_ID)).toMatchObject({ type: "action", action: "openWeighIn" });
@@ -108,7 +109,7 @@ describe("dailyHabitTemplatesFromState", () => {
     const templates = [...defaultHabitTemplates(), { id: "habit-mobility", name: "Mobility", icon: "bolt" }];
     const daily = dailyHabitTemplatesFromState(templates);
     expect(daily.every((t) => !isMobilityHabit(t.id))).toBe(true);
-    expect(daily).toHaveLength(7);
+    expect(daily).toHaveLength(4);
   });
 });
 

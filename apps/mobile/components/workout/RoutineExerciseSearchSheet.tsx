@@ -19,7 +19,7 @@ export function RoutineExerciseSearchSheet({
   equipmentSetup,
   customExercises,
   onSelect,
-  onSaveCustomAndAdd: _onSaveCustomAndAdd,
+  onSaveCustomAndAdd,
   onClose,
   closeOnSelect = true,
   confirmLabel = "Add",
@@ -31,6 +31,7 @@ export function RoutineExerciseSearchSheet({
       equipmentSetup={equipmentSetup}
       customExercises={customExercises}
       onSelect={onSelect}
+      onSaveCustomAndAdd={onSaveCustomAndAdd}
       onClose={onClose}
       closeOnSelect={closeOnSelect}
       confirmLabel={confirmLabel}

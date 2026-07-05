@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { KeyboardAvoidingView, Modal, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { initialWindowMetrics, SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { KEYBOARD_OPEN_THRESHOLD, useKeyboardHeight } from "@/lib/keyboard";
@@ -37,18 +37,20 @@ export function FullScreenOverlay({
       presentationStyle="fullScreen"
       onRequestClose={onRequestClose}
     >
-      <View
-        style={[
-          styles.root,
-          {
-            backgroundColor: colors.background,
-            paddingTop: edgeToEdge ? 0 : undefined,
-          },
-          style,
-        ]}
-      >
-        {children}
-      </View>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <View
+          style={[
+            styles.root,
+            {
+              backgroundColor: colors.background,
+              paddingTop: edgeToEdge ? 0 : undefined,
+            },
+            style,
+          ]}
+        >
+          {children}
+        </View>
+      </SafeAreaProvider>
     </Modal>
   );
 }
