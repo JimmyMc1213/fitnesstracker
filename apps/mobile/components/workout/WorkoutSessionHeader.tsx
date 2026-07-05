@@ -1,7 +1,7 @@
 import { SymbolView } from "expo-symbols";
 import { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
-
+import { Text, TextInput, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { coreAlignedInputStyle } from "@/components/ui/AlignedTextInput";
 import { dismissKeyboard } from "@/lib/keyboard";
@@ -70,7 +70,7 @@ export function WorkoutSessionHeader({
             <Pressable
               testID="workout-back"
               onPress={onBack}
-              accessibilityLabel="Back"
+              accessibilityLabel="Back to workouts"
               className="h-10 w-10 items-center justify-center rounded-[10px] border"
               style={{ borderColor: colors.border, backgroundColor: colors.backgroundSecondary }}
             >

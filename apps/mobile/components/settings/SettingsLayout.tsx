@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Pressable, Text, View, type TextInputProps } from "react-native";
-
+import { Text, View, type TextInputProps } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { AppTextField } from "@/components/ui/AppTextField";
 import { GradientCard } from "@/components/ui/GradientCard";
 import { useAppTheme } from "@/hooks/useAppTheme";

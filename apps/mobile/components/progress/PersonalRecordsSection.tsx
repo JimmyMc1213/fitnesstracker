@@ -8,8 +8,8 @@ import {
 import type { AppState, WeightUnit } from "@newyouai/types";
 import { IconTrophy } from "@tabler/icons-react-native";
 import { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 const PR_GOLD = "#FFD60A";

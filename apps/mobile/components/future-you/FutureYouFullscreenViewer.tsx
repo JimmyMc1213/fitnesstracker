@@ -1,5 +1,6 @@
 import { FUTURE_YOU_FULLSCREEN_DONE_LABEL } from "@newyouai/core";
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FullScreenOverlay } from "@/components/motion";

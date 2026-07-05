@@ -21,8 +21,8 @@ import {
 } from "@newyouai/core";
 import type { FutureYouDraft, FutureYouJobStatus, NutritionGoal, UserGender } from "@newyouai/types";
 import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 type Props = {
   item: FutureYouGalleryItem;
   goal: NutritionGoal;

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { formatRestDuration } from "@/lib/workout/restTimerPreferences";
 import { WORKOUT_ACCENT, WORKOUT_ACCENT_TRACK } from "@/lib/workoutUiTokens";
 import { useAppTheme } from "@/hooks/useAppTheme";

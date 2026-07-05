@@ -1,8 +1,8 @@
 import { getRecentlyLoggedFoods } from "@newyouai/core";
 import type { AppState, FoodSearchResult, NutritionLoggedItem } from "@newyouai/types";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { FoodSearchSkeletonList } from "@/components/nutrition/FoodSearchSkeletonList";
 import { AppTextField } from "@/components/ui/AppTextField";
 import {

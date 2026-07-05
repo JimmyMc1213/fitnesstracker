@@ -8,8 +8,8 @@ import {
 } from "@newyouai/core";
 import type { VolumeUnit, WaterLogEntry } from "@newyouai/types";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { AppTextField } from "@/components/ui/AppTextField";
 
 import { IconDroplet } from "@/components/icons/FitnessIcons";

@@ -8,8 +8,8 @@ import {
   waterTargetPresets,
 } from "@newyouai/core";
 import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { IconDroplet } from "@/components/icons/FitnessIcons";
 import { OnboardingFieldGroup } from "@/components/onboarding/OnboardingInputField";
 import { SettingsHelper } from "@/components/settings/SettingsLayout";

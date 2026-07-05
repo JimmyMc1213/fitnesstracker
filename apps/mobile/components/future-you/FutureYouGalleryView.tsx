@@ -6,7 +6,8 @@ import {
   type FutureYouGalleryItem,
 } from "@newyouai/core";
 import type { UserGender } from "@newyouai/types";
-import { ActivityIndicator, Image, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Image, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import type { ImageSourcePropType } from "react-native";
 
 import { useAppTheme } from "@/hooks/useAppTheme";

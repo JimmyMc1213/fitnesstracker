@@ -1,5 +1,5 @@
 import { useSegments } from "expo-router";
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { useFitnessState } from "@/context/FitnessContext";
 
@@ -20,6 +20,9 @@ type WorkoutShellContextValue = {
   setFutureYouFlowOpen: (open: boolean) => void;
   mobilitySessionOpen: boolean;
   setMobilitySessionOpen: (open: boolean) => void;
+  /** When false, an in-progress lifting session shows the idle dashboard instead. */
+  workoutSessionExpanded: boolean;
+  setWorkoutSessionExpanded: (expanded: boolean) => void;
   hideTabBar: boolean;
 };
 
@@ -30,14 +33,28 @@ export function WorkoutShellProvider({ children }: { children: ReactNode }) {
   const [routineEditorOpen, setRoutineEditorOpen] = useState(false);
   const [futureYouFlowOpen, setFutureYouFlowOpen] = useState(false);
   const [mobilitySessionOpen, setMobilitySessionOpen] = useState(false);
+  const [workoutSessionExpanded, setWorkoutSessionExpanded] = useState(true);
+  const sessionPhaseRef = useRef(state?.workout.sessionPhase);
   const segments = useSegments();
   const onWorkoutTab = activeTabRoute(segments) === "workout";
   const onHomeTab = activeTabRoute(segments) === "home";
+  const sessionPhase = state?.workout.sessionPhase ?? "idle";
+
+  useEffect(() => {
+    const prevPhase = sessionPhaseRef.current;
+    if (prevPhase === "idle" && sessionPhase === "lifting") {
+      setWorkoutSessionExpanded(true);
+    }
+    if (sessionPhase === "idle") {
+      setWorkoutSessionExpanded(true);
+    }
+    sessionPhaseRef.current = sessionPhase;
+  }, [sessionPhase]);
 
   const hideTabBar =
     futureYouFlowOpen ||
     (onHomeTab && mobilitySessionOpen) ||
-    (onWorkoutTab && state?.workout.sessionPhase === "lifting") ||
+    (onWorkoutTab && sessionPhase === "lifting" && workoutSessionExpanded) ||
     (onWorkoutTab && routineEditorOpen);
 
   const value = useMemo(
@@ -48,9 +65,11 @@ export function WorkoutShellProvider({ children }: { children: ReactNode }) {
       setFutureYouFlowOpen,
       mobilitySessionOpen,
       setMobilitySessionOpen,
+      workoutSessionExpanded,
+      setWorkoutSessionExpanded,
       hideTabBar,
     }),
-    [routineEditorOpen, futureYouFlowOpen, mobilitySessionOpen, hideTabBar],
+    [routineEditorOpen, futureYouFlowOpen, mobilitySessionOpen, workoutSessionExpanded, hideTabBar],
   );
 
   return <WorkoutShellContext.Provider value={value}>{children}</WorkoutShellContext.Provider>;

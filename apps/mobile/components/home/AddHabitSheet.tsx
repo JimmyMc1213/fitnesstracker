@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-
+import { ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { BottomSheet } from "@/components/motion";
 import { AppTextField } from "@/components/ui/AppTextField";
 

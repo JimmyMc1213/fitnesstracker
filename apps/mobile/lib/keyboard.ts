@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Keyboard, Platform, useWindowDimensions, type TextInputProps, type ViewStyle } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export const NUMERIC_KEYBOARD_ACCESSORY_ID = "newyou-numeric-keyboard-done";
 export const KEYBOARD_OPEN_THRESHOLD = 48;
 
-const EXERCISE_SEARCH_DIALOG_BACKDROP_CHROME = 40;
+const EXERCISE_SEARCH_KEYBOARD_BOTTOM_CHROME = 12;
+const EXERCISE_SEARCH_KEYBOARD_TOP_CHROME = 8;
 const EXERCISE_SEARCH_PANEL_MAX_HEIGHT = 560;
 
 export function useKeyboardHeight(): number {
@@ -38,19 +40,22 @@ export function useExerciseSearchSheetSizing(): {
   listStyle: ViewStyle;
 } {
   const { height: windowHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const keyboardHeight = useKeyboardHeight();
   const keyboardOpen = keyboardHeight >= KEYBOARD_OPEN_THRESHOLD;
 
   return useMemo(() => {
+    const keyboardChrome = keyboardOpen
+      ? insets.top + EXERCISE_SEARCH_KEYBOARD_TOP_CHROME + EXERCISE_SEARCH_KEYBOARD_BOTTOM_CHROME
+      : 0;
     const panelHeight = keyboardOpen
-      ? Math.max(240, windowHeight - keyboardHeight - EXERCISE_SEARCH_DIALOG_BACKDROP_CHROME)
+      ? Math.max(240, windowHeight - keyboardHeight - keyboardChrome)
       : Math.min(EXERCISE_SEARCH_PANEL_MAX_HEIGHT, Math.round(windowHeight * 0.82));
 
     return {
       keyboardOpen,
       panelStyle: {
-        paddingHorizontal: 0,
-        paddingBottom: 32,
+        padding: 0,
         height: panelHeight,
         maxHeight: panelHeight,
       },
@@ -63,7 +68,7 @@ export function useExerciseSearchSheetSizing(): {
         minHeight: 0,
       },
     };
-  }, [keyboardOpen, keyboardHeight, windowHeight]);
+  }, [keyboardOpen, keyboardHeight, windowHeight, insets.top]);
 }
 
 export function dismissKeyboard() {

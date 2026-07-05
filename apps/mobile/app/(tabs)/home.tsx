@@ -13,7 +13,8 @@ import {
 import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { TabScreenFade } from "@/components/motion/TabScreenFade";
 import { useAuth } from "@/context/AuthContext";

@@ -2,8 +2,8 @@ import { coalesceSundayCheckInRecord } from "@newyouai/core";
 import type { SundayCheckInWeekRecord, UnitPreferences } from "@newyouai/types";
 import { IconAlertTriangle, IconCircleCheck } from "@tabler/icons-react-native";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-
+import { ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import type { TablerIcon } from "@/lib/tablerIcon";
 
 import { BottomSheet } from "@/components/motion";

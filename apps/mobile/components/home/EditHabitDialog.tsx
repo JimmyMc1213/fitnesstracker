@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, Text, View } from "react-native";
-
+import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { CenterDialog } from "@/components/motion";
 import { AppTextField } from "@/components/ui/AppTextField";
 import {

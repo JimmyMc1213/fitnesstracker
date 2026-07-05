@@ -1,5 +1,5 @@
-import { InputAccessoryView, Platform, Pressable, Text, View } from "react-native";
-
+import { InputAccessoryView, Platform, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { dismissKeyboard, NUMERIC_KEYBOARD_ACCESSORY_ID } from "@/lib/keyboard";
 import { useAppTheme } from "@/hooks/useAppTheme";
 

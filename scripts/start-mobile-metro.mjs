@@ -2,8 +2,10 @@
 /**
  * Start Metro for New You mobile dev-client.
  *
- * Phone (default for npm run dev:mobile:phone):
- *   cloudflared HTTPS tunnel — works on physical iPhone without same Wi‑Fi.
+ * Phone (npm run dev:mobile:phone — same Wi‑Fi as Mac):
+ *   http://<mac-lan-ip>:8082 — building JS on your Mac, loads on phone.
+ * Off-Wi‑Fi phone (npm run dev:mobile:tunnel):
+ *   cloudflared HTTPS tunnel.
  * Simulator (npm run dev:onboarding):
  *   127.0.0.1:8082 — opened automatically.
  * LAN (--lan):
@@ -38,7 +40,7 @@ function killPort(p) {
 }
 
 function killCloudflared() {
-  spawnSync("pkill", ["-9", "-f", "cloudflared tunnel --url http://127.0.0.1"], { stdio: "ignore" });
+  spawnSync("pkill", ["-9", "-f", "cloudflared tunnel --url http://"], { stdio: "ignore" });
 }
 
 function copyToClipboard(text) {
@@ -135,7 +137,7 @@ async function startCloudflaredTunnel() {
 
   const child = spawn(
     "cloudflared",
-    ["tunnel", "--url", `http://127.0.0.1:${port}`, "--no-autoupdate"],
+    ["tunnel", "--url", `http://localhost:${port}`, "--no-autoupdate"],
     { stdio: ["ignore", "pipe", "pipe"] },
   );
 
@@ -171,7 +173,9 @@ if (usePhone) {
   const tunnel = await startCloudflaredTunnel();
   cloudflaredChild = tunnel.child;
   metroUrl = tunnel.url;
-  packagerHost = tunnel.hostname;
+  // Metro serves bundle URLs using this hostname so the phone loads assets over the
+  // HTTPS tunnel (not http://127.0.0.1:8082, which points at the phone itself).
+  packagerHost = new URL(metroUrl).hostname;
 
   console.log(`Tunnel:  ${metroUrl}`);
   console.log("Metro will bind locally; phone loads JS over HTTPS.");
@@ -189,13 +193,15 @@ if (usePhone) {
 const deepLink = buildDeepLink(metroUrl);
 
 console.log("");
-console.log("Phone deep link:");
+console.log("Connect on your iPhone (New You dev client, not Expo Go):");
+console.log(`  Enter URL manually → paste exactly:`);
+console.log(`  ${metroUrl}`);
+console.log("");
+console.log("  Or tap this deep link in Notes/Messages (do NOT scan with Camera):");
 console.log(deepLink);
 console.log("");
-console.log("How to connect:");
-console.log("  1. Force-quit New You on your iPhone if it is open");
-console.log("  2. Paste the link above into Notes or Messages and TAP it");
-console.log("  3. Use the New You dev client — not Expo Go");
+console.log("  1. Force-quit New You if it is open");
+console.log("  2. Connect using one of the URLs above");
 console.log("");
 console.log("Simulator: npm run dev:onboarding");
 console.log("");
@@ -205,7 +211,9 @@ if (copyToClipboard(deepLink)) {
   console.log("");
 }
 
-const expoArgs = ["expo", "start", "--dev-client", "--port", String(port), "--host", "lan"];
+// Phone tunnel proxies localhost; simulator uses 127.0.0.1 — never run both at once on :8082.
+const expoHost = usePhone ? "localhost" : "lan";
+const expoArgs = ["expo", "start", "--dev-client", "--port", String(port), "--host", expoHost];
 if (clearCache) expoArgs.push("--clear");
 
 const childEnv = {

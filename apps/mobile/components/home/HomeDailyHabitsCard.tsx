@@ -1,7 +1,8 @@
 import { planWeekIndex } from "@newyouai/core";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { LayoutAnimation, Platform, Pressable, Text, UIManager, View } from "react-native";
+import { LayoutAnimation, Platform, Text, UIManager, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import Animated, {
   Easing,
   Extrapolation,

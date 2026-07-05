@@ -1,4 +1,5 @@
-import { Text, View, Pressable } from "react-native";
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { SymbolView } from "expo-symbols";
 
 import type { SundayCheckInData } from "@newyouai/core";

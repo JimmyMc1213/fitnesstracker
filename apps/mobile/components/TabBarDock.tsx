@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-
+import { Platform, StyleSheet, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { NewYouSplashMark } from "@/components/NewYouSplashMark";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 

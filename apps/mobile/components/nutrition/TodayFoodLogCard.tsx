@@ -1,8 +1,8 @@
 import { MAX_NUTRITION_ITEMS_PER_DAY } from "@newyouai/core";
 import type { NutritionLoggedItem } from "@newyouai/types";
 import { useRef } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { SwipeToDelete } from "@/components/SwipeToDelete";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { displayFoodName, formatGramsInLabel } from "@/lib/foodDisplay";

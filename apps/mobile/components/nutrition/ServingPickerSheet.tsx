@@ -5,8 +5,8 @@ import {
 } from "@newyouai/core";
 import type { FoodMeasurement, FoodSearchResult } from "@newyouai/types";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-
+import { ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { AppTextField } from "@/components/ui/AppTextField";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 

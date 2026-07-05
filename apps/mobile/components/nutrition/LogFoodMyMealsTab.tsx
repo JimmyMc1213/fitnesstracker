@@ -1,7 +1,7 @@
 import { formatMealServingLabel, sumMealMacros } from "@newyouai/core";
 import type { AppState, NutritionMeal } from "@newyouai/types";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { NutritionDeleteConfirmSheet } from "@/components/nutrition/NutritionDeleteConfirmSheet";
 import { useAppTheme } from "@/hooks/useAppTheme";
 

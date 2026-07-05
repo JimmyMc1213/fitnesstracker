@@ -1,15 +1,7 @@
 import { type ReactNode } from "react";
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from "react-native";
-
+import { KeyboardAvoidingView, Modal, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { KEYBOARD_OPEN_THRESHOLD, useKeyboardHeight } from "@/lib/keyboard";
 
@@ -142,13 +134,23 @@ export function CenterDialog({
   children,
 }: CenterDialogProps) {
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const keyboardHeight = useKeyboardHeight();
   const keyboardOpen = keyboardAware && keyboardHeight >= KEYBOARD_OPEN_THRESHOLD;
 
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView
-        style={[styles.dialogRoot, keyboardOpen ? styles.dialogRootKeyboardOpen : null]}
+        style={[
+          styles.dialogRoot,
+          keyboardOpen
+            ? {
+                justifyContent: "flex-end",
+                paddingTop: insets.top + 8,
+                paddingBottom: keyboardHeight + 12,
+              }
+            : null,
+        ]}
         behavior={keyboardAware ? undefined : Platform.OS === "ios" ? "padding" : undefined}
         pointerEvents="box-none"
       >
@@ -188,10 +190,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
-  },
-  dialogRootKeyboardOpen: {
-    justifyContent: "flex-start",
-    paddingTop: 12,
   },
   backdrop: {
     ...StyleSheet.absoluteFill,

@@ -7,14 +7,8 @@ import {
 import type { UnitPreferences, WeekFocusCommitment } from "@newyouai/types";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { Alert, ScrollView, Text, View, useWindowDimensions } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BottomActionBar } from "@/components/BottomActionBar";

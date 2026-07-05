@@ -1,7 +1,7 @@
 import { SymbolView } from "expo-symbols";
 import type { ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useTabScreenInsets } from "@/lib/tabScreenInsets";
 

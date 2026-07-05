@@ -32,14 +32,8 @@ import type {
 } from "@newyouai/types";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useBottomActionPadding } from "@/lib/screenInsets";

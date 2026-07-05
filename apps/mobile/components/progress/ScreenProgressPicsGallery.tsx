@@ -8,7 +8,8 @@ import {
 import type { AppState } from "@newyouai/types";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useMemo, useState } from "react";
-import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Image, ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FullScreenOverlay } from "@/components/motion";

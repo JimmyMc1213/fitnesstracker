@@ -1,12 +1,7 @@
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
 import { useCallback, useRef, useState, type ReactNode } from "react";
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Platform, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";

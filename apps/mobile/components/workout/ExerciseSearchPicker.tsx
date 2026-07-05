@@ -1,0 +1,241 @@
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
+
+import { BottomSheet } from "@/components/motion";
+import { AppTextField } from "@/components/ui/AppTextField";
+import {
+  ExerciseSearchResultRow,
+  ExerciseSearchSectionHeader,
+} from "@/components/workout/ExerciseSearchResultRow";
+import {
+  catalogExercisesForEquipment,
+  filterCatalogExercises,
+  muscleGroupDisplayName,
+  muscleGroupsInCatalog,
+} from "@/lib/workout/exerciseCatalogSearch";
+import type { MuscleGroup } from "@/lib/workout/exerciseLibrary";
+import { useExerciseSearchSheetSizing } from "@/lib/keyboard";
+import { FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import type { CustomExerciseTemplate, EquipmentSetup } from "@newyouai/types";
+
+type Props = {
+  open?: boolean;
+  title: string;
+  subtitle?: ReactNode;
+  equipmentSetup: EquipmentSetup;
+  customExercises: CustomExerciseTemplate[];
+  onSelect: (name: string, label?: string) => void;
+  onClose: () => void;
+  closeOnSelect?: boolean;
+  confirmLabel?: string;
+  testID?: string;
+};
+
+function selectionKey(name: string, label?: string): string {
+  return `${name}__${label ?? ""}`;
+}
+
+export function ExerciseSearchPicker({
+  open = true,
+  title,
+  subtitle,
+  equipmentSetup,
+  customExercises,
+  onSelect,
+  onClose,
+  closeOnSelect = true,
+  confirmLabel = "Add",
+  testID,
+}: Props) {
+  const { colors } = useAppTheme();
+  const { panelStyle, bodyStyle, listStyle } = useExerciseSearchSheetSizing();
+  const [query, setQuery] = useState("");
+  const [muscleGroup, setMuscleGroup] = useState<MuscleGroup | null>(null);
+  const [selected, setSelected] = useState<{ name: string; label?: string } | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setQuery("");
+    setMuscleGroup(null);
+    setSelected(null);
+  }, [open]);
+
+  const catalog = useMemo(() => catalogExercisesForEquipment(equipmentSetup), [equipmentSetup]);
+  const availableMuscleGroups = useMemo(() => muscleGroupsInCatalog(catalog), [catalog]);
+  const filteredCatalog = useMemo(
+    () => filterCatalogExercises(catalog, query, muscleGroup),
+    [catalog, query, muscleGroup],
+  );
+  const filteredCustom = useMemo(
+    () =>
+      filterCatalogExercises(
+        customExercises.map((c) => ({ name: c.name, label: c.label })),
+        query,
+      ),
+    [customExercises, query],
+  );
+
+  const selectedKey = selected ? selectionKey(selected.name, selected.label) : null;
+
+  function confirm() {
+    if (!selected) return;
+    onSelect(selected.name, selected.label?.trim() || undefined);
+    if (closeOnSelect) {
+      onClose();
+      return;
+    }
+    setSelected(null);
+  }
+
+  return (
+    <BottomSheet open={open} onClose={onClose} keyboardAware panelStyle={panelStyle}>
+      <View testID={testID} style={bodyStyle}>
+        <View className="flex-row items-center justify-between px-3 pt-4 pb-1">
+          <Pressable
+            testID="exercise-search-close"
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+            hitSlop={12}
+          >
+            <Text className="text-[17px] font-bold leading-none" style={{ color: colors.textTertiary }}>
+              {"\u00D7"}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            testID="exercise-search-add"
+            onPress={confirm}
+            disabled={!selected}
+            haptic={!!selected}
+            accessibilityRole="button"
+            accessibilityLabel={title}
+            accessibilityState={{ disabled: !selected }}
+            hitSlop={12}
+          >
+            <Text
+              className="text-[17px] font-bold leading-none tracking-tight"
+              style={{ color: selected ? FUTURE_YOU_GOLD : colors.textTertiary }}
+            >
+              {confirmLabel}
+            </Text>
+          </Pressable>
+        </View>
+
+        <View className="min-h-0 flex-1 px-5">
+          {subtitle ? <View className="mb-1">{subtitle}</View> : null}
+
+          <AppTextField
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search exercises..."
+            returnKeyType="search"
+          />
+
+          {availableMuscleGroups.length > 0 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="mt-3"
+              style={{ flexGrow: 0, flexShrink: 0 }}
+              contentContainerStyle={{ gap: 6, alignItems: "center" }}
+              keyboardShouldPersistTaps="handled"
+            >
+              <MuscleGroupChip
+                label="All"
+                selected={muscleGroup == null}
+                onPress={() => setMuscleGroup(null)}
+              />
+              {availableMuscleGroups.map((group) => (
+                <MuscleGroupChip
+                  key={group}
+                  label={muscleGroupDisplayName(group)}
+                  selected={muscleGroup === group}
+                  onPress={() => setMuscleGroup(group)}
+                />
+              ))}
+            </ScrollView>
+          ) : null}
+
+          <ScrollView
+            style={listStyle}
+            className="mt-3"
+            contentContainerStyle={{ paddingBottom: 8 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {filteredCustom.length > 0 ? (
+              <>
+                <ExerciseSearchSectionHeader title="Your exercises" />
+                {filteredCustom.map((c, i) => (
+                  <ExerciseSearchResultRow
+                    key={`custom-${c.name}-${c.label}`}
+                    name={c.name}
+                    label={c.label}
+                    selected={selectedKey === selectionKey(c.name, c.label)}
+                    divider={i < filteredCustom.length - 1}
+                    onPick={() => setSelected({ name: c.name, label: c.label })}
+                  />
+                ))}
+              </>
+            ) : null}
+            {filteredCatalog.length > 0 ? (
+              <>
+                <ExerciseSearchSectionHeader title="Catalog" />
+                {filteredCatalog.map((c, i) => (
+                  <ExerciseSearchResultRow
+                    key={`${c.name}-${c.label}`}
+                    name={c.name}
+                    label={c.label}
+                    selected={selectedKey === selectionKey(c.name, c.label)}
+                    divider={i < filteredCatalog.length - 1}
+                    onPick={() => setSelected({ name: c.name, label: c.label })}
+                  />
+                ))}
+              </>
+            ) : null}
+            {filteredCustom.length === 0 && filteredCatalog.length === 0 ? (
+              <Text className="py-4 text-center text-sm font-medium" style={{ color: colors.textTertiary }}>
+                No matches
+              </Text>
+            ) : null}
+          </ScrollView>
+        </View>
+      </View>
+    </BottomSheet>
+  );
+}
+
+function MuscleGroupChip({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const { colors } = useAppTheme();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      className="self-center rounded-full border px-3 py-1"
+      style={{
+        borderColor: selected ? colors.textPrimary : colors.border,
+        backgroundColor: selected ? colors.textPrimary : "transparent",
+      }}
+    >
+      <Text
+        className="text-xs font-bold"
+        style={{ color: selected ? colors.background : colors.textSecondary }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}

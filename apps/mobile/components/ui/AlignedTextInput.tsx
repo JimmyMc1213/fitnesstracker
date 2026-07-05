@@ -1,15 +1,5 @@
-import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-  type TextStyle,
-  type TextInputProps,
-  type ViewStyle,
-  type NativeSyntheticEvent,
-  type TextInputSubmitEditingEventData,
-} from "react-native";
+import { Platform, StyleSheet, TextInput, View, type TextStyle, type TextInputProps, type ViewStyle, type NativeSyntheticEvent, type TextInputSubmitEditingEventData } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useRef } from "react";
 import { dismissKeyboard, numericKeyboardAccessoryProps } from "@/lib/keyboard";
 

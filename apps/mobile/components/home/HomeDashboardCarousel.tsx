@@ -5,16 +5,8 @@ import {
 } from "@newyouai/core";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useMemo, useState } from "react";
-import {
-  Dimensions,
-  ScrollView,
-  Pressable,
-  Text,
-  View,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from "react-native";
-
+import { Dimensions, ScrollView, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { MacroBar } from "@/components/home/MacroBar";
 import { MacroRing } from "@/components/home/MacroRing";
 import { MACRO_COLORS } from "@/lib/macroColors";

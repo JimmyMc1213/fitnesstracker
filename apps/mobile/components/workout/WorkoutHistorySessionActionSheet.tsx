@@ -1,6 +1,6 @@
 import { IconBolt, IconBook, IconTrash } from "@tabler/icons-react-native";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { CenterDialog } from "@/components/motion";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { TablerIcon } from "@/lib/tablerIcon";

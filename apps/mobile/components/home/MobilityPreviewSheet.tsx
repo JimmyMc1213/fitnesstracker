@@ -1,5 +1,5 @@
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-
+import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { BottomSheet } from "@/components/motion";
 
 import { BottomActionBar } from "@/components/BottomActionBar";

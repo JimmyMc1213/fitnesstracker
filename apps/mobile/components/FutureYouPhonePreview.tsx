@@ -12,6 +12,7 @@ const SCREEN_BG = "#0F0E0A";
 const SUBTITLE = "#8A8780";
 
 /** Fit Future You demo portrait (blurred at render time for the locked teaser). */
+/** Keep in sync with apps/web/public/assets/futureyou-welcome-preview.png (`npm run sync:welcome-preview`). */
 const PREVIEW_IMAGE = require("@/assets/images/futureyou-welcome-preview.png");
 /** Legacy pre-blurred square crop — fallback only. */
 const BLUR_IMAGE = require("@/assets/images/futureyou-blur.png");

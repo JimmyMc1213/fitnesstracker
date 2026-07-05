@@ -5,8 +5,8 @@ import {
   FUTURE_YOU_PAGE_SHEET_TITLE_PHOTO,
 } from "@newyouai/core";
 import type { FutureYouJobStatus, NutritionGoal, UserGender } from "@newyouai/types";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { FutureYouGenerationLoadingView } from "@/components/future-you/FutureYouGenerationLoadingView";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { OnboardingFutureYouMotivation } from "@/components/onboarding/OnboardingFutureYouMotivation";

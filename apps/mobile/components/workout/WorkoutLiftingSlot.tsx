@@ -1,12 +1,10 @@
-import { router } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
-import { Pressable, Text, Vibration, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type DraggableFlatList from "react-native-draggable-flatlist";
 
-import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { CancelWorkoutConfirmSheet } from "@/components/workout/CancelWorkoutConfirmSheet";
-import { DeleteExerciseConfirmSheet } from "@/components/workout/DeleteExerciseConfirmSheet";
 import { EmptyFinishConfirmSheet } from "@/components/workout/EmptyFinishConfirmSheet";
 import { ExerciseActionSheet } from "@/components/workout/ExerciseActionSheet";
 import { ExerciseNotesEditSheet } from "@/components/workout/ExerciseNotesEditSheet";
@@ -22,9 +20,11 @@ import {
   WorkoutKeypadProvider,
 } from "@/components/workout/WorkoutKeypadContext";
 import type { WorkoutKeypadTarget } from "@/lib/workout/workoutKeypadLogic";
+import { scrollWorkoutFieldIntoView } from "@/lib/workout/scrollWorkoutFieldIntoView";
 import { WorkoutNumericKeypad } from "@/components/workout/WorkoutNumericKeypad";
 import { WorkoutSessionHeader } from "@/components/workout/WorkoutSessionHeader";
 import { useFitnessState } from "@/context/FitnessContext";
+import { useWorkoutShell } from "@/context/WorkoutShellContext";
 import { getExerciseNote, withExerciseNote } from "@/lib/workout/exerciseNotes";
 import { defaultExerciseTarget } from "@/lib/workout/exercisePrescriptionDefaults";
 import { buildPreWorkoutCoachBrief, shouldDefaultExpandCoachCard } from "@/lib/preWorkoutCoachBrief";
@@ -37,6 +37,7 @@ import {
   restDurationForExercise,
 } from "@/lib/workout/restTimerPreferences";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { hapticError, hapticSelection, hapticSoft, hapticSuccess } from "@/lib/haptics";
 import { dismissKeyboard } from "@/lib/keyboard";
 import {
   buildSessionCoachNoteForExercise,
@@ -171,8 +172,10 @@ const LiftingExerciseRow = memo(function LiftingExerciseRow({
 export function WorkoutLiftingSlot() {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
+  const { setWorkoutSessionExpanded } = useWorkoutShell();
   const { state, setFitnessState } = useFitnessState();
   const listRef = useRef<ElementRef<typeof DraggableFlatList<WorkoutExercise>> | null>(null);
+  const scrollOffsetRef = useRef(0);
   const restTimerRef = useRef<ActiveRestTimer | null>(null);
   const isWorkoutSessionE2e =
     typeof __DEV__ !== "undefined" &&
@@ -183,11 +186,6 @@ export function WorkoutLiftingSlot() {
   const [swapExerciseId, setSwapExerciseId] = useState<string | null>(null);
   const [exerciseActionId, setExerciseActionId] = useState<string | null>(null);
   const [notesEdit, setNotesEdit] = useState<{ name: string; label?: string } | null>(null);
-  const [pendingExerciseDelete, setPendingExerciseDelete] = useState<{
-    id: string;
-    name: string;
-    label?: string;
-  } | null>(null);
   const [showEmptyFinishConfirm, setShowEmptyFinishConfirm] = useState(false);
   const [showCancelWorkoutConfirm, setShowCancelWorkoutConfirm] = useState(false);
   const [restTimer, setRestTimer] = useState<ActiveRestTimer | null>(null);
@@ -221,6 +219,19 @@ export function WorkoutLiftingSlot() {
     }, remainingMs);
     return () => clearTimeout(id);
   }, [restTimer?.exerciseId, restTimer?.endsAtMs, restTimer?.completed, restTimer?.paused]);
+
+  // Fire exactly one success haptic on the rest timer's false->true completion,
+  // regardless of which code path set `completed` (natural expiry, explicit
+  // complete, or adjust-to-zero). Observing the transition here keeps the side
+  // effect out of the setRestTimer updater functions, which React may re-invoke.
+  const restTimerCompletedRef = useRef(false);
+  useEffect(() => {
+    const completed = restTimer?.completed ?? false;
+    if (completed && !restTimerCompletedRef.current) {
+      hapticSuccess();
+    }
+    restTimerCompletedRef.current = completed;
+  }, [restTimer?.completed]);
 
   const w = state?.workout;
   const preWorkoutCoach = useMemo(
@@ -358,7 +369,7 @@ export function WorkoutLiftingSlot() {
       clearTimeout(rejectShakeTimerRef.current);
     }
     setRejectShakeSet({ exerciseId, setIndex });
-    Vibration.vibrate([12, 40, 12]);
+    hapticError();
     rejectShakeTimerRef.current = setTimeout(() => {
       setRejectShakeSet(null);
       rejectShakeTimerRef.current = null;
@@ -413,6 +424,7 @@ export function WorkoutLiftingSlot() {
             ),
           },
         }));
+        hapticSoft();
         startRestTimer(exercise, setIndex);
         return true;
       }
@@ -440,6 +452,7 @@ export function WorkoutLiftingSlot() {
 
   const addSet = useCallback(
     (exerciseId: string) => {
+      hapticSelection();
       setFitnessState((prev) => ({
         ...prev,
         workout: {
@@ -523,11 +536,17 @@ export function WorkoutLiftingSlot() {
     setExerciseActionId(exerciseId);
   }, []);
 
-  const scrollToField = useCallback((target: WorkoutKeypadTarget) => {
-    const exerciseIndex = exercisesRef.current.findIndex((e) => e.id === target.exerciseId);
-    if (exerciseIndex < 0) return;
-    listRef.current?.scrollToIndex({ index: exerciseIndex, animated: true, viewOffset: WORKOUT_KEYPAD_HEIGHT + 24 });
-  }, []);
+  const scrollToField = useCallback(
+    (target: WorkoutKeypadTarget) => {
+      scrollWorkoutFieldIntoView({
+        target,
+        getScrollOffset: () => scrollOffsetRef.current,
+        scrollToOffset: (offset) => listRef.current?.scrollToOffset({ offset, animated: true }),
+        keypadHeight: WORKOUT_KEYPAD_HEIGHT + insets.bottom,
+      });
+    },
+    [insets.bottom],
+  );
 
   const completeSet = useCallback(
     (exerciseId: string, setIndex: number, pendingPatch?: Partial<{ w: number; r: number }>) => {
@@ -732,6 +751,7 @@ export function WorkoutLiftingSlot() {
   }
 
   function addExerciseToSession(name: string, label?: string) {
+    hapticSelection();
     const trimmedLabel = label?.trim();
     setFitnessState((prev) => {
       const newExercise: WorkoutExercise = {
@@ -799,7 +819,6 @@ export function WorkoutLiftingSlot() {
     setSwapExerciseId(null);
     setExerciseActionId(null);
     setNotesEdit(null);
-    setPendingExerciseDelete(null);
     setShowEmptyFinishConfirm(false);
     setShowCancelWorkoutConfirm(false);
     clearRestTimer();
@@ -826,7 +845,7 @@ export function WorkoutLiftingSlot() {
         className="items-center rounded-xl border px-4 py-3"
         style={{ borderColor: colors.border, backgroundColor: colors.card }}
       >
-        <Text className="text-sm font-semibold" style={{ color: colors.accent }}>
+        <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
           Add exercise
         </Text>
       </Pressable>
@@ -835,6 +854,23 @@ export function WorkoutLiftingSlot() {
       </Text>
     </View>
   );
+
+  const coachCard = !useNewLook ? (
+    <WorkoutCoachCard
+      overloadTip={overloadTip}
+      sessionTip={activeRoutine?.sessionTip}
+      warmupGroups={sessionWarmup.groups}
+      warmupTip={sessionWarmup.tip}
+      defaultExpanded={
+        !isWorkoutSessionE2e &&
+        shouldDefaultExpandCoachCard(
+          Boolean(preWorkoutCoach),
+          workout.splitId,
+          preWorkoutCoach?.todayTemplateId,
+        )
+      }
+    />
+  ) : null;
 
   return (
     <WorkoutKeypadProvider
@@ -857,7 +893,7 @@ export function WorkoutLiftingSlot() {
             onFinishWorkout={requestFinishWorkout}
             onBack={() => {
               dismissKeyboard();
-              router.push("/(tabs)/home");
+              setWorkoutSessionExpanded(false);
             }}
             onCancel={() => setShowCancelWorkoutConfirm(true)}
             metaLayout={useNewLook ? "stacked" : "inline"}
@@ -880,52 +916,45 @@ export function WorkoutLiftingSlot() {
           </Pressable>
         ) : null}
 
-        {!useNewLook ? (
-          <View className="shrink-0">
-            <WorkoutCoachCard
-              overloadTip={overloadTip}
-              sessionTip={activeRoutine?.sessionTip}
-              warmupGroups={sessionWarmup.groups}
-              warmupTip={sessionWarmup.tip}
-              defaultExpanded={
-                !isWorkoutSessionE2e &&
-                shouldDefaultExpandCoachCard(
-                  Boolean(preWorkoutCoach),
-                  workout.splitId,
-                  preWorkoutCoach?.todayTemplateId,
-                )
-              }
-            />
-          </View>
-        ) : null}
-
         {workout.exercises.length === 0 ? (
-          <View className="mt-4 flex-1">
+          <ScrollView
+            className="mt-4 flex-1"
+            contentContainerStyle={{ paddingBottom: WORKOUT_KEYPAD_HEIGHT + insets.bottom + 32 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {coachCard}
             <View
-              className="rounded-xl border p-6"
+              className="mt-4 rounded-xl border p-6"
               style={{ borderColor: colors.border, backgroundColor: colors.card }}
             >
               <Text className="text-center text-sm font-medium leading-[1.5]" style={{ color: colors.textSecondary }}>
                 No exercises yet. Tap Add exercise below or search the catalog.
               </Text>
             </View>
-            <PrimaryButton
-              block
+            <Pressable
               testID="workout-add-exercise"
               onPress={() => setSearchOpen(true)}
-              style={{ marginTop: 16 }}
+              className="mt-4 items-center rounded-xl border px-4 py-3"
+              style={{ borderColor: colors.border, backgroundColor: colors.card }}
             >
-              Add exercise
-            </PrimaryButton>
-          </View>
+              <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
+                Add exercise
+              </Text>
+            </Pressable>
+          </ScrollView>
         ) : (
           <View className="mt-3 min-h-0 flex-1">
             <SortableExerciseList
               listRef={listRef}
               items={workout.exercises}
               onReorder={reorderExercises}
+              listHeader={coachCard ? <View className="mb-3">{coachCard}</View> : undefined}
               listFooter={listFooter}
               extraData={listExtraData}
+              onScrollOffsetChange={(offset) => {
+                scrollOffsetRef.current = offset;
+              }}
               onScrollToIndexFailed={({ index, averageItemLength }) => {
                 listRef.current?.scrollToOffset({
                   offset: Math.max(0, averageItemLength * index),
@@ -974,8 +1003,6 @@ export function WorkoutLiftingSlot() {
           customExercises={state.customExercises}
           onSelect={(name, label) => addExerciseToSession(name, label)}
           onClose={() => setSearchOpen(false)}
-          closeOnSelect={false}
-          closeLabel="Done"
         />
       ) : null}
 
@@ -1000,13 +1027,7 @@ export function WorkoutLiftingSlot() {
           }
           onEditRest={() => openRestSheet(actionExercise.id)}
           onReplace={() => setSwapExerciseId(actionExercise.id)}
-          onRemove={() =>
-            setPendingExerciseDelete({
-              id: actionExercise.id,
-              name: actionExercise.name,
-              label: actionExercise.label,
-            })
-          }
+          onRemove={() => removeExerciseFromSession(actionExercise.id)}
           onClose={() => setExerciseActionId(null)}
         />
       ) : null}
@@ -1040,19 +1061,6 @@ export function WorkoutLiftingSlot() {
           onRestart={restartRestTimer}
           onSkip={completeRestTimer}
           onDismiss={dismissCompletedRest}
-        />
-      ) : null}
-
-      {pendingExerciseDelete ? (
-        <DeleteExerciseConfirmSheet
-          open
-          exerciseName={pendingExerciseDelete.name}
-          exerciseLabel={pendingExerciseDelete.label}
-          onCancel={() => setPendingExerciseDelete(null)}
-          onConfirm={() => {
-            removeExerciseFromSession(pendingExerciseDelete.id);
-            setPendingExerciseDelete(null);
-          }}
         />
       ) : null}
 

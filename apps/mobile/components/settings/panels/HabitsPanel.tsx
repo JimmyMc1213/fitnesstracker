@@ -1,8 +1,8 @@
 import { localDateKey } from "@newyouai/core";
 import type { HabitTemplate } from "@newyouai/types";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
-
+import { Text, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { habitIconComponent } from "@/lib/habitIcons";
 import { SettingsHelper } from "@/components/settings/SettingsLayout";
 import { AppTextField } from "@/components/ui/AppTextField";

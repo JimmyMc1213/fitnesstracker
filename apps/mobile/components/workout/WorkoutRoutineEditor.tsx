@@ -2,7 +2,8 @@ import { USER_EDITABLE_MAX_SETS, weekdayFullName } from "@newyouai/core";
 import type { CustomExerciseTemplate, EquipmentSetup, WorkoutExercise, WorkoutRoutineTemplate } from "@newyouai/types";
 import { IconTrash } from "@tabler/icons-react-native";
 import { useEffect, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Text, TextInput, View } from "react-native";
+import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FullScreenOverlay } from "@/components/motion";
@@ -12,7 +13,6 @@ import { coreAlignedInputStyle } from "@/components/ui/AlignedTextInput";
 import { useBottomActionPadding } from "@/lib/screenInsets";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
-import { DeleteExerciseConfirmSheet } from "@/components/workout/DeleteExerciseConfirmSheet";
 import { ExerciseEquipmentLabelPickerDialog } from "@/components/workout/ExerciseEquipmentLabelPickerDialog";
 import { ExerciseDragHandle, SortableExerciseList } from "@/components/workout/SortableExerciseList";
 import { RoutineExerciseSearchSheet } from "@/components/workout/RoutineExerciseSearchSheet";
@@ -290,11 +290,6 @@ export function WorkoutRoutineEditor({
   const [dayLabel, setDayLabel] = useState("");
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [searchSheet, setSearchSheet] = useState<SearchSheetMode | null>(null);
-  const [pendingExerciseDelete, setPendingExerciseDelete] = useState<{
-    id: string;
-    name: string;
-    label?: string;
-  } | null>(null);
   const [pendingRoutineDelete, setPendingRoutineDelete] = useState(false);
   const [pendingSaveConfirm, setPendingSaveConfirm] = useState(false);
   const [equipmentLabelPickerExerciseId, setEquipmentLabelPickerExerciseId] = useState<string | null>(null);
@@ -505,13 +500,7 @@ export function WorkoutRoutineEditor({
                       </Pressable>
                       <Pressable
                         disabled={ctx.isListDragging}
-                        onPress={() =>
-                          setPendingExerciseDelete({
-                            id: row.id,
-                            name: row.name.trim() || "Untitled exercise",
-                            label: row.label,
-                          })
-                        }
+                        onPress={() => removeExercise(row.id)}
                         className="h-9 w-9 items-center justify-center"
                       >
                         <IconTrash size={16} color="#FF6961" strokeWidth={2} />
@@ -611,6 +600,7 @@ export function WorkoutRoutineEditor({
         <RoutineExerciseSearchSheet
           open
           title={searchSheet.kind === "add" ? "Add exercise" : "Swap exercise"}
+          confirmLabel={searchSheet.kind === "add" ? "Add" : "Swap"}
           equipmentSetup={equipmentSetup}
           customExercises={customExercises}
           onSelect={handleExerciseSelect}
@@ -624,18 +614,6 @@ export function WorkoutRoutineEditor({
           selected={exercises.find((e) => e.id === equipmentLabelPickerExerciseId)?.label}
           onSelect={(label) => patchExercise(equipmentLabelPickerExerciseId, { label })}
           onClose={() => setEquipmentLabelPickerExerciseId(null)}
-        />
-      ) : null}
-
-      {pendingExerciseDelete ? (
-        <DeleteExerciseConfirmSheet
-          exerciseName={pendingExerciseDelete.name}
-          exerciseLabel={pendingExerciseDelete.label}
-          onCancel={() => setPendingExerciseDelete(null)}
-          onConfirm={() => {
-            removeExercise(pendingExerciseDelete.id);
-            setPendingExerciseDelete(null);
-          }}
         />
       ) : null}
 
