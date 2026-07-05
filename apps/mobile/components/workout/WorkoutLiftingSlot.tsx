@@ -3,7 +3,6 @@ import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type DraggableFlatList from "react-native-draggable-flatlist";
 
-import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { CancelWorkoutConfirmSheet } from "@/components/workout/CancelWorkoutConfirmSheet";
 import { DeleteExerciseConfirmSheet } from "@/components/workout/DeleteExerciseConfirmSheet";
 import { EmptyFinishConfirmSheet } from "@/components/workout/EmptyFinishConfirmSheet";
@@ -850,7 +849,7 @@ export function WorkoutLiftingSlot() {
         className="items-center rounded-xl border px-4 py-3"
         style={{ borderColor: colors.border, backgroundColor: colors.card }}
       >
-        <Text className="text-sm font-semibold" style={{ color: colors.accent }}>
+        <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
           Add exercise
         </Text>
       </Pressable>
@@ -929,14 +928,16 @@ export function WorkoutLiftingSlot() {
                 No exercises yet. Tap Add exercise below or search the catalog.
               </Text>
             </View>
-            <PrimaryButton
-              block
+            <Pressable
               testID="workout-add-exercise"
               onPress={() => setSearchOpen(true)}
-              style={{ marginTop: 16 }}
+              className="mt-4 items-center rounded-xl border px-4 py-3"
+              style={{ borderColor: colors.border, backgroundColor: colors.card }}
             >
-              Add exercise
-            </PrimaryButton>
+              <Text className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
+                Add exercise
+              </Text>
+            </Pressable>
           </View>
         ) : (
           <View className="mt-3 min-h-0 flex-1">
