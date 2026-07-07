@@ -3,6 +3,7 @@ import type { NutritionLoggedItem } from "@newyouai/types";
 import { useRef } from "react";
 import { Text, View } from "react-native";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
+import { GradientCard } from "@/components/ui/GradientCard";
 import { SwipeToDelete } from "@/components/SwipeToDelete";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { displayFoodName, formatGramsInLabel } from "@/lib/foodDisplay";
@@ -75,6 +76,7 @@ function SwipeableFoodLogRow({ item, onEdit, onRemove, showDivider }: SwipeableF
     <View
       className="overflow-hidden"
       style={{
+        paddingHorizontal: 16,
         paddingBottom: showDivider ? 12 : 0,
         borderBottomWidth: showDivider ? 1 : 0,
         borderBottomColor: colors.border,
@@ -87,7 +89,7 @@ function SwipeableFoodLogRow({ item, onEdit, onRemove, showDivider }: SwipeableF
       >
         <Pressable
           onPress={() => onEdit(item)}
-          className="py-1"
+          className="py-3"
           accessibilityRole="button"
           accessibilityLabel={`Edit ${displayName}`}
           testID={`today-food-log-edit-${item.id}`}
@@ -157,22 +159,24 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
           </Text>
         </View>
       ) : (
-        <View className="gap-3">
-          {sorted.map((item, idx) => (
-            <SwipeableFoodLogRow
-              key={item.id}
-              item={item}
-              onEdit={onEdit}
-              onRemove={() => handleRemove(item.id)}
-              showDivider={idx < sorted.length - 1}
-            />
-          ))}
+        <>
+          <GradientCard padding={0} testID="today-food-log-list">
+            {sorted.map((item, idx) => (
+              <SwipeableFoodLogRow
+                key={item.id}
+                item={item}
+                onEdit={onEdit}
+                onRemove={() => handleRemove(item.id)}
+                showDivider={idx < sorted.length - 1}
+              />
+            ))}
+          </GradientCard>
           {atDailyCap ? (
-            <Text className="mt-1 text-xs font-medium leading-5" style={{ color: colors.textSecondary }}>
+            <Text className="mt-2 text-xs font-medium leading-5" style={{ color: colors.textSecondary }}>
               Daily log limit reached ({MAX_NUTRITION_ITEMS_PER_DAY} items). Remove an entry to add more.
             </Text>
           ) : null}
-        </View>
+        </>
       )}
     </View>
   );

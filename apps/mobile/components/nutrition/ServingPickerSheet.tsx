@@ -118,8 +118,8 @@ export function ServingPickerSheet({
   return (
     <View testID="serving-picker" style={{ flex: 1 }}>
       <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
+        className="flex-1 px-screen-x"
+        contentContainerStyle={{ paddingTop: 20, paddingBottom: insets.bottom + 120 }}
         keyboardShouldPersistTaps="handled"
       >
         <View

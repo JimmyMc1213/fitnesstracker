@@ -3,6 +3,7 @@ import type { AppState, FoodSearchResult, NutritionLoggedItem } from "@newyouai/
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Text, View } from "react-native";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
+import { GradientCard } from "@/components/ui/GradientCard";
 import { FoodSearchSkeletonList } from "@/components/nutrition/FoodSearchSkeletonList";
 import { AppTextField } from "@/components/ui/AppTextField";
 import {
@@ -258,11 +259,11 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
               No recent foods yet.
             </Text>
           ) : (
-            <FoodListCard>
+            <GradientCard padding={0} testID="log-food-recently-logged-list">
               {recentlyLogged.map((item, idx) => (
                 <View
                   key={`${item.id}-${item.name}`}
-                  className="flex-row items-center gap-2"
+                  className="flex-row items-center gap-2 px-3.5"
                   style={{ borderBottomWidth: idx === recentlyLogged.length - 1 ? 0 : 1, borderBottomColor: colors.border }}
                 >
                   <Pressable
@@ -300,7 +301,7 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
                   </Pressable>
                 </View>
               ))}
-            </FoodListCard>
+            </GradientCard>
           )}
         </>
       )}

@@ -526,12 +526,37 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   const showBottomChrome =
     !pickerFood && !manualOpen && !(mealEditorOpen && mealAddMode !== "none" && mealAddMode !== "manual");
 
+  const keyboardAvoidingBehavior = Platform.OS === "ios" ? "padding" : undefined;
+
+  const servingPickerOverlay =
+    pickerFood == null ? null : (
+      <View
+        className="absolute inset-0 z-10"
+        style={{ backgroundColor: colors.background }}
+      >
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={keyboardAvoidingBehavior}>
+          <ServingPickerSheet
+            food={pickerFood}
+            curated={pickerCurated}
+            dayLogAtCapacity={dayLogAtCapacity}
+            mode={pickerMode}
+            editing={Boolean(editingLoggedItemId)}
+            initialMeasurementId={pickerInitialMeasurementId}
+            initialQuantity={pickerInitialQuantity}
+            logButtonLabel={editingLoggedItemId ? "Save" : undefined}
+            onBack={closePicker}
+            onLog={logFromPicker}
+            onSaveToMyFoods={pickerMode === "log" && !editingLoggedItemId ? savePickerToMyFoods : undefined}
+          />
+        </KeyboardAvoidingView>
+      </View>
+    );
+
   return (
     <PageTransition>
-    <KeyboardAvoidingView
+    <View
       testID="modal-log-food"
       style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View
         className="flex-row items-center gap-3 border-b px-screen-x py-3"
@@ -563,12 +588,12 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
           <Pressable
             onPress={handleScanPress}
             testID="log-food-scan"
-            accessibilityLabel="Scan barcode"
+            accessibilityLabel="Barcode"
             className="flex-row items-center gap-1.5 rounded-full border px-3.5 py-2"
             style={{ borderColor: accent, backgroundColor: accent }}
           >
             <Text className="text-[13px] font-bold" style={{ color: accentText }}>
-              Scan
+              Barcode
             </Text>
           </Pressable>
         ) : (
@@ -576,21 +601,9 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
         )}
       </View>
 
-      {pickerFood ? (
-        <ServingPickerSheet
-          food={pickerFood}
-          curated={pickerCurated}
-          dayLogAtCapacity={dayLogAtCapacity}
-          mode={pickerMode}
-          editing={Boolean(editingLoggedItemId)}
-          initialMeasurementId={pickerInitialMeasurementId}
-          initialQuantity={pickerInitialQuantity}
-          logButtonLabel={editingLoggedItemId ? "Save" : undefined}
-          onBack={closePicker}
-          onLog={logFromPicker}
-          onSaveToMyFoods={pickerMode === "log" && !editingLoggedItemId ? savePickerToMyFoods : undefined}
-        />
-      ) : mealEditorOpen ? (
+      {mealEditorOpen ? (
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={keyboardAvoidingBehavior}>
+        <View className="flex-1">
         <View className="flex-1 px-screen-x pt-4">
           <MealEditorFlow
             state={state}
@@ -605,8 +618,13 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
             onAddModeChange={setMealAddMode}
           />
         </View>
+        {servingPickerOverlay}
+        </View>
+        </KeyboardAvoidingView>
       ) : manualOpen ? (
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={keyboardAvoidingBehavior}>
         <ManualFoodEntryPanel dayLogAtCapacity={dayLogAtCapacity} onLog={logManualFood} />
+        </KeyboardAvoidingView>
       ) : (
         <View className="flex-1">
           {showTabs ? (
@@ -720,6 +738,8 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
               </PrimaryButton>
             </View>
           ) : null}
+
+          {servingPickerOverlay}
         </View>
       )}
 
@@ -734,7 +754,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
           <BarcodeScannerGate onScan={handleBarcodeScan} onClose={() => setScannerOpen(false)} />
         </View>
       ) : null}
-    </KeyboardAvoidingView>
+    </View>
     </PageTransition>
   );
 }
