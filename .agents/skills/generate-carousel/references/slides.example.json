@@ -1,0 +1,46 @@
+{
+  "id": "example-carousel",
+  "slides": [
+    {
+      "id": "01-title",
+      "image": "title.png",
+      "headline": "How to become the best version of yourself.",
+      "top": "24%"
+    },
+    {
+      "id": "02-lift",
+      "image": "gym.png",
+      "headline": "1. Lift Heavy",
+      "subline": "at least three times a week",
+      "top": "44%",
+      "imagePosition": "center top"
+    },
+    {
+      "id": "03-fuel",
+      "image": "food.png",
+      "headline": "2. Fuel Your Body",
+      "subline": "Eat clean 80 to 90% of the time",
+      "top": "44%"
+    },
+    {
+      "id": "04-phone",
+      "image": "phone.png",
+      "headline": "3. See your potential",
+      "badge": "\u201cNewYou AI\u201d app",
+      "top": "20%"
+    },
+    {
+      "id": "05-recovery",
+      "image": "sauna.png",
+      "headline": "4. Prioritize Recovery",
+      "subline": "Rest, Sauna, and Sleep",
+      "top": "44%"
+    },
+    {
+      "id": "06-steps",
+      "image": "street.png",
+      "headline": "5. Get 10,000 steps a day",
+      "top": "44%"
+    }
+  ]
+}
