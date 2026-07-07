@@ -19,6 +19,7 @@ import { WorkoutCalendarCard } from "@/components/progress/WorkoutCalendarCard";
 import { CHART_PAD_LEFT, CHART_PAD_RIGHT, WeightLineChart } from "@/components/progress/WeightLineChart";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
 import { deltaColorForTheme } from "@/lib/progress/weightDeltaColors";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
 import { useTabScreenInsets } from "@/lib/tabScreenInsets";
@@ -28,7 +29,7 @@ function shortChartDate(dateKey: string): string {
 }
 
 export default function ProgressScreen() {
-  const { colors } = useAppTheme();
+  const { colors, scheme } = useAppTheme();
   const { paddingTop, paddingBottom } = useTabScreenInsets();
   const { state, setFitnessState } = useFitnessState();
   const [weighInOpen, setWeighInOpen] = useState(false);
@@ -151,9 +152,9 @@ export default function ProgressScreen() {
                   data={chartSeries}
                   width={chartW}
                   height={140}
-                  stroke={colors.accent}
+                  stroke={FUTURE_YOU_GOLD}
                   gridColor={colors.border}
-                  fillColor={`${colors.accent}22`}
+                  fillColor={scheme === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}
                   tickColor={colors.textTertiary}
                   padLeft={CHART_PAD_LEFT}
                   padRight={CHART_PAD_RIGHT}

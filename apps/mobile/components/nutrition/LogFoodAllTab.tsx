@@ -285,6 +285,7 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
                   <Pressable
                     testID={`log-food-relog-${item.id}`}
                     accessibilityLabel={`Log again ${item.name.trim() || "food"}`}
+                    haptic={false}
                     onPress={() => onRelogItem(item)}
                     disabled={dayLogAtCapacity}
                     className="h-9 w-9 items-center justify-center rounded-full border"

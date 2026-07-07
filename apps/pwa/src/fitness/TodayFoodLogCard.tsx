@@ -89,18 +89,24 @@ type SwipeableFoodLogRowProps = {
   item: NutritionLoggedItem;
   onEdit: (item: NutritionLoggedItem) => void;
   onRemove: () => void;
+  showDivider: boolean;
 };
 
-function SwipeableFoodLogRow({ item, onEdit, onRemove }: SwipeableFoodLogRowProps) {
+function SwipeableFoodLogRow({ item, onEdit, onRemove, showDivider }: SwipeableFoodLogRowProps) {
   const displayName = displayFoodName(item);
 
   return (
-    <div className="card" style={{ overflow: "hidden", padding: 0 }}>
+    <div
+      style={{
+        overflow: "hidden",
+        borderBottom: showDivider ? "1px solid var(--divider-subtle)" : "none",
+      }}
+    >
       <SwipeToDelete
         deleteLabel={`Delete ${displayName}`}
         onDelete={onRemove}
         onTap={() => onEdit(item)}
-        borderRadius={16}
+        borderRadius={0}
       >
         <div
           role="button"
@@ -114,7 +120,6 @@ function SwipeableFoodLogRow({ item, onEdit, onRemove }: SwipeableFoodLogRowProp
           }}
           style={{
             padding: "14px 16px",
-            background: "var(--card-gradient-bg)",
             cursor: "pointer",
           }}
         >
@@ -182,25 +187,28 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
       </div>
 
       {sorted.length === 0 ? (
-        <div className="card" style={{ padding: "18px 16px" }}>
+        <div className="onboarding-gradient-card">
           <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)", lineHeight: 1.5, fontWeight: 400 }}>
             Tap the + to add food.
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {sorted.map((item) => (
-            <SwipeableFoodLogRow
-              key={item.id}
-              item={item}
-              onEdit={onEdit}
-              onRemove={() => onRemove(item.id)}
-            />
-          ))}
+        <>
+          <div className="onboarding-gradient-card" style={{ padding: 0, overflow: "hidden" }}>
+            {sorted.map((item, idx) => (
+              <SwipeableFoodLogRow
+                key={item.id}
+                item={item}
+                onEdit={onEdit}
+                onRemove={() => onRemove(item.id)}
+                showDivider={idx < sorted.length - 1}
+              />
+            ))}
+          </div>
           {atDailyCap ? (
             <p
               style={{
-                margin: "4px 0 0",
+                margin: "8px 0 0",
                 fontSize: 12,
                 lineHeight: 1.45,
                 color: "var(--text-faint-soft)",
@@ -210,7 +218,7 @@ export function TodayFoodLogCard({ items, onRemove, onEdit }: Props) {
               Daily log limit reached ({MAX_NUTRITION_ITEMS_PER_DAY} items). Remove an entry to add more.
             </p>
           ) : null}
-        </div>
+        </>
       )}
     </div>
   );

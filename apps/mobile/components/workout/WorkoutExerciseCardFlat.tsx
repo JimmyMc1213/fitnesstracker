@@ -44,7 +44,11 @@ type Props = {
   restTimerSecondsByExerciseKey: Record<string, number>;
   restedRestSecByAfterSetIndex: Record<number, number>;
   rejectShakeSet: { exerciseId: string; setIndex: number } | null;
-  onToggleSetDone: (exercise: WorkoutExercise, setIndex: number) => void;
+  onToggleSetDone: (
+    exercise: WorkoutExercise,
+    setIndex: number,
+    pendingPatch?: Partial<{ w: number; r: number }>,
+  ) => void;
   onOpenActions?: () => void;
   onOpenRestSheet: (exerciseId: string) => void;
   onAddSet: (exerciseId: string) => void;
@@ -72,7 +76,7 @@ function WorkoutExerciseCardFlatComponent({
   swipeDisabled,
 }: Props) {
   const { colors } = useAppTheme();
-  const { close: closeKeypad } = useWorkoutKeypad();
+  const { flushSetEntry } = useWorkoutKeypad();
   const weightUnit = unitPreferences.weightUnit;
   const [setKindPickerIndex, setSetKindPickerIndex] = useState<number | null>(null);
 
@@ -183,8 +187,8 @@ function WorkoutExerciseCardFlatComponent({
               onRemoveSet={onRemoveSet}
               onUpdateSetKind={onUpdateSetKind ? () => setSetKindPickerIndex(si) : undefined}
               onToggleSetDone={() => {
-                closeKeypad();
-                onToggleSetDone(exercise, si);
+                const pendingPatch = flushSetEntry(exercise.id, si);
+                onToggleSetDone(exercise, si, pendingPatch);
               }}
               restTimerStrip={
                 <RestTimerStrip

@@ -20,7 +20,6 @@ import {
   getBaseGrams,
   pickerServingLabel,
 } from "@/lib/nutritionPickerMeasurements";
-import { useBottomActionPadding } from "@/lib/screenInsets";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { MACRO_COLORS } from "@/lib/macroColors";
 
@@ -64,7 +63,8 @@ export function ServingPickerSheet({
     logButtonLabel ?? (isMealIngredient ? "Add ingredient" : "Log food");
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const bottomActionPadding = useBottomActionPadding();
+  const bottomInset = insets.bottom || 0;
+  const footerBottomPadding = bottomInset + 8;
   const bundle = useMemo(() => buildPickerMeasurements(food, curated), [food, curated]);
   const [measurementId, setMeasurementId] = useState(bundle.measurements[0]?.id ?? "g");
   const [quantity, setQuantity] = useState("");
@@ -118,8 +118,8 @@ export function ServingPickerSheet({
   return (
     <View testID="serving-picker" style={{ flex: 1 }}>
       <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
+        className="flex-1 px-screen-x pt-4"
+        contentContainerStyle={{ paddingBottom: footerBottomPadding + 132 }}
         keyboardShouldPersistTaps="handled"
       >
         <View
@@ -250,15 +250,16 @@ export function ServingPickerSheet({
       </ScrollView>
 
       <View
-        className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-3"
+        className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-2"
         style={{
           borderTopColor: colors.border,
           backgroundColor: colors.background,
-          paddingBottom: bottomActionPadding,
+          paddingBottom: footerBottomPadding,
         }}
       >
         <PrimaryButton
           block
+          haptic={isMealIngredient}
           testID={isMealIngredient ? "serving-picker-add-ingredient" : "serving-picker-log-food"}
           onPress={handleLog}
           disabled={!canLog}
@@ -270,7 +271,7 @@ export function ServingPickerSheet({
             testID="serving-picker-save-my-foods"
             onPress={handleSaveToMyFoods}
             disabled={!canSave}
-            className="mt-3 items-center rounded-xl border py-3"
+            className="mt-2 items-center rounded-xl border py-2.5"
             style={{
               borderColor: colors.border,
               opacity: canSave ? 1 : 0.5,
@@ -282,7 +283,7 @@ export function ServingPickerSheet({
             </Text>
           </Pressable>
         ) : null}
-        <Pressable onPress={onBack} className="mt-3 items-center py-2" accessibilityRole="button">
+        <Pressable onPress={onBack} className="mt-2 items-center py-1" accessibilityRole="button">
           <Text className="text-sm font-semibold" style={{ color: colors.textSecondary }}>
             Back
           </Text>

@@ -29,6 +29,8 @@ type WorkoutKeypadControlContextValue = {
   open: boolean;
   openField: (target: WorkoutKeypadTarget) => void;
   close: () => void;
+  /** Commit the active field for this set (if any) and return logged w/r for completion. */
+  flushSetEntry: (exerciseId: string, setIndex: number) => Partial<{ w: number; r: number }> | undefined;
   append: (key: string) => void;
   backspace: () => void;
   increment: (delta: number) => void;
@@ -159,6 +161,25 @@ export function WorkoutKeypadProvider({
     setDraft("");
   }, [commit]);
 
+  const flushSetEntry = useCallback(
+    (exerciseId: string, setIndex: number): Partial<{ w: number; r: number }> | undefined => {
+      const current = activeRef.current;
+      if (current?.exerciseId === exerciseId && current.setIndex === setIndex) {
+        commit(current, draftRef.current);
+        activeRef.current = null;
+        setActive(null);
+        setDraft("");
+      }
+      const live = liveSetValuesRef.current.get(`${exerciseId}:${setIndex}`);
+      if (!live) return undefined;
+      const patch: Partial<{ w: number; r: number }> = {};
+      if (live.w > 0) patch.w = live.w;
+      if (live.r > 0) patch.r = live.r;
+      return Object.keys(patch).length > 0 ? patch : undefined;
+    },
+    [commit],
+  );
+
   useEffect(() => {
     if (!active) return;
     const exercise = exercises.find((e) => e.id === active.exerciseId);
@@ -260,13 +281,14 @@ export function WorkoutKeypadProvider({
       open: active != null,
       openField,
       close,
+      flushSetEntry,
       append,
       backspace,
       increment,
       next,
       isActive,
     }),
-    [active, append, backspace, close, increment, isActive, next, openField],
+    [active, append, backspace, close, flushSetEntry, increment, isActive, next, openField],
   );
 
   return (

@@ -258,6 +258,54 @@ export function WorkoutLiftingSlot() {
     [liftingDoneSets, restTimer, restedRestSecByExerciseId, rejectShakeSet],
   );
 
+  const coachShouldDefaultExpand = useMemo(
+    () =>
+      !isWorkoutSessionE2e &&
+      Boolean(preWorkoutCoach) &&
+      shouldDefaultExpandCoachCard(
+        Boolean(preWorkoutCoach),
+        w?.splitId ?? "",
+        preWorkoutCoach?.todayTemplateId,
+      ),
+    [isWorkoutSessionE2e, preWorkoutCoach, w?.splitId],
+  );
+  const [coachCardExpanded, setCoachCardExpanded] = useState<boolean | null>(null);
+  const coachExpanded = coachCardExpanded ?? coachShouldDefaultExpand;
+
+  const overloadTip = useMemo(
+    () => (state && w ? getFirstSessionCoachNote(state, w) ?? progressiveOverloadInsight(w) : ""),
+    [state, w],
+  );
+  const activeRoutine = useMemo(
+    () => (state && w ? state.workoutTemplates.find((t) => t.id === w.splitId) : undefined),
+    [state, w],
+  );
+  const coachCard = useMemo(
+    () =>
+      !useNewLook ? (
+        <WorkoutCoachCard
+          overloadTip={overloadTip}
+          sessionTip={activeRoutine?.sessionTip}
+          warmupGroups={sessionWarmup.groups}
+          warmupTip={sessionWarmup.tip}
+          expanded={coachExpanded}
+          onExpandedChange={setCoachCardExpanded}
+        />
+      ) : null,
+    [
+      useNewLook,
+      overloadTip,
+      activeRoutine?.sessionTip,
+      sessionWarmup.groups,
+      sessionWarmup.tip,
+      coachExpanded,
+    ],
+  );
+  const listHeader = useMemo(
+    () => (coachCard ? <View className="mb-3">{coachCard}</View> : undefined),
+    [coachCard],
+  );
+
   const stateRef = useRef(state);
   stateRef.current = state;
   const exercisesRef = useRef(w?.exercises ?? []);
@@ -563,11 +611,9 @@ export function WorkoutLiftingSlot() {
 
   const workout = w;
 
-  const activeRoutine = state.workoutTemplates.find((t) => t.id === workout.splitId);
   const splitDay = activeRoutine?.dayLabel;
   const weightUnit = state.unitPreferences.weightUnit;
   const doneSets = liftingDoneSets;
-  const overloadTip = getFirstSessionCoachNote(state, workout) ?? progressiveOverloadInsight(workout);
 
   const restSheetExercise = restSheetExerciseId
     ? workout.exercises.find((e) => e.id === restSheetExerciseId)
@@ -844,6 +890,7 @@ export function WorkoutLiftingSlot() {
     setShowCancelWorkoutConfirm(false);
     clearRestTimer();
     setRestSheetExerciseId(null);
+    setCoachCardExpanded(null);
     setRestedRestSecByExerciseId({});
   }
 
@@ -875,23 +922,6 @@ export function WorkoutLiftingSlot() {
       </Text>
     </View>
   );
-
-  const coachCard = !useNewLook ? (
-    <WorkoutCoachCard
-      overloadTip={overloadTip}
-      sessionTip={activeRoutine?.sessionTip}
-      warmupGroups={sessionWarmup.groups}
-      warmupTip={sessionWarmup.tip}
-      defaultExpanded={
-        !isWorkoutSessionE2e &&
-        shouldDefaultExpandCoachCard(
-          Boolean(preWorkoutCoach),
-          workout.splitId,
-          preWorkoutCoach?.todayTemplateId,
-        )
-      }
-    />
-  ) : null;
 
   return (
     <WorkoutKeypadProvider
@@ -970,7 +1000,7 @@ export function WorkoutLiftingSlot() {
               listRef={listRef}
               items={workout.exercises}
               onReorder={reorderExercises}
-              listHeader={coachCard ? <View className="mb-3">{coachCard}</View> : undefined}
+              listHeader={listHeader}
               listFooter={listFooter}
               extraData={listExtraData}
               onScrollOffsetChange={(offset) => {

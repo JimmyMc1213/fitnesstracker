@@ -214,6 +214,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
   );
 
   const sync = useFitnessSync();
+  const showEmailPassword = Boolean(sync.sessionEmail) && !sync.isAppleSignInOnly;
   const { theme, setTheme } = useTheme();
 
   const futureYouReminderSettingVisible = useMemo(() => {
@@ -713,6 +714,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
         </div>
         {sync.sessionEmail ? (
           <>
+            {showEmailPassword ? (
             <SettingsHubSection title="Personal info">
             {emailEditing ? (
               <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
@@ -803,6 +805,7 @@ export function ScreenSettings({ state, setState, navigate }: ScreenProps) {
               onClick={() => openYouSubPanel("change-password")}
             />
           </SettingsHubSection>
+            ) : null}
           <SettingsHubSection title="Connected accounts">
             <SettingsComingSoonRow
               icon={rowIcon(<AppleSignInIcon />)}

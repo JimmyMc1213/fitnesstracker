@@ -20,9 +20,11 @@ import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { connectedAuthProviders, isAppleSignInOnly } from "@/lib/accountAuth";
 import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
+import { invokeDeleteUserAccount } from "@newyouai/api-client";
+
 import { deleteUserAccount, isDeleteAccountDryRunEnabled } from "@/lib/deleteUserAccount";
 import { resetLocalAfterAccountDelete } from "@/lib/resetAfterAccountDelete";
-import { getSupabase } from "@/lib/supabaseClient";
+import { getSupabase, getSupabaseEnv } from "@/lib/supabaseClient";
 import { sanitizeUserText } from "@/lib/userText";
 
 // @refresh reset
@@ -66,7 +68,7 @@ export function YouPanel() {
       confirmed: true,
       userId: session?.user?.id,
       dryRun,
-      invokeDeleteUser: (body) => sb.functions.invoke("delete-user", { method: "POST", body }),
+      invokeDeleteUser: (body) => invokeDeleteUserAccount(sb, getSupabaseEnv(), body),
       signOut,
       onDeleted: async () => {
         const next = await resetLocalAfterAccountDelete();

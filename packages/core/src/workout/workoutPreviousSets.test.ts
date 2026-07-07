@@ -104,6 +104,14 @@ describe("workoutPreviousSets", () => {
     expect(buildSetCompletionPatch(sets[0]!, sets, 0, history)).toEqual({ done: true });
   });
 
+  it("preserves lower reps on later sets instead of inheriting the previous set", () => {
+    const sets = [
+      { w: 135, r: 8, done: true },
+      { w: 135, r: 6, done: false },
+    ];
+    expect(buildSetCompletionPatch(sets[1]!, sets, 1, null)).toEqual({ done: true });
+  });
+
   it("fills only missing fields from placeholder", () => {
     const history = [{ w: 135, r: 8, done: false }];
     const sets = [{ w: 140, r: 0, done: false }];

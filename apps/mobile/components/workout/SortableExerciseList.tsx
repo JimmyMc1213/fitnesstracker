@@ -346,6 +346,20 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
 
   const listExtraData = useMemo(() => [extraData, reorderActive], [extraData, reorderActive]);
 
+  const ListHeader = useMemo(() => {
+    if (!listHeader) return undefined;
+    return function WorkoutListHeader() {
+      return <>{listHeader}</>;
+    };
+  }, [listHeader]);
+
+  const ListFooter = useMemo(() => {
+    if (!listFooter) return undefined;
+    return function WorkoutListFooter() {
+      return <>{listFooter}</>;
+    };
+  }, [listFooter]);
+
   const listContentStyle = useMemo(
     (): ViewStyle => ({
       paddingBottom: 24,
@@ -463,8 +477,8 @@ export function SortableExerciseList<T extends { id: string; name: string }>({
       keyboardShouldPersistTaps="handled"
       onScrollOffsetChange={onScrollOffsetChange}
       onScrollToIndexFailed={onScrollToIndexFailed}
-      ListHeaderComponent={listHeader ? () => <>{listHeader}</> : undefined}
-      ListFooterComponent={listFooter && !reorderActive ? () => <>{listFooter}</> : undefined}
+      ListHeaderComponent={ListHeader}
+      ListFooterComponent={ListFooter && !reorderActive ? ListFooter : undefined}
       {...(reorderActive
         ? {
             initialNumToRender: items.length,

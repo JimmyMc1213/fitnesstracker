@@ -3,6 +3,8 @@ import { createContext, useContext } from "react";
 export type FitnessSyncContextValue = {
   configured: boolean;
   sessionEmail: string | null;
+  /** True when signed in with Apple and no email/password identity. */
+  isAppleSignInOnly: boolean;
   /** False until Supabase getSession() finishes (or sync is disabled). */
   sessionResolved: boolean;
   busy: boolean;
@@ -33,6 +35,7 @@ export type FitnessSyncContextValue = {
 const disabledSync: FitnessSyncContextValue = {
   configured: false,
   sessionEmail: null,
+  isAppleSignInOnly: false,
   sessionResolved: true,
   busy: false,
   lastError: null,

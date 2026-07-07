@@ -2,7 +2,7 @@ import { ScreenHeader } from "../shared";
 import { SundayCheckInHistoryList } from "../SundayCheckInHistorySection";
 import type { ScreenProps } from "../types";
 
-const ACCENT_BLUE = "var(--accent)";
+const ACCENT_GOLD = "var(--ob-gold)";
 
 type Props = ScreenProps & {
   onBack: () => void;
@@ -20,7 +20,7 @@ export function ScreenSundayCheckInHistory({ state, onBack }: Props) {
           className="tap"
           onClick={onBack}
           aria-label="Back to progress"
-          style={{ color: ACCENT_BLUE, fontSize: 15, fontWeight: 600, padding: 8, marginLeft: -8 }}
+          style={{ color: ACCENT_GOLD, fontSize: 15, fontWeight: 600, padding: 8, marginLeft: -8 }}
         >
           ← Back
         </button>

@@ -17,9 +17,14 @@ export function hapticSelection(): void {
   run(() => Haptics.selectionAsync());
 }
 
-/** Gentle soft impact — routine confirmations (e.g. completing a set). */
+/** Gentle soft impact — routine confirmations (e.g. completing a set, logging food). */
 export function hapticSoft(): void {
   run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft));
+}
+
+/** Light impact — one step above selection for meaningful taps without feeling heavy. */
+export function hapticLight(): void {
+  run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
 }
 
 /** Success notification — reserved for big moments only (full workout finish, PR hits). */

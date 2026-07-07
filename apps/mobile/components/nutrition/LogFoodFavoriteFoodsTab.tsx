@@ -97,6 +97,7 @@ export function LogFoodFavoriteFoodsTab({
             <Pressable
               testID={`favorite-log-${preset.id}`}
               accessibilityLabel={`Log ${preset.name.trim() || "food"}`}
+              haptic={false}
               onPress={() => onLogPreset(preset)}
               disabled={dayLogAtCapacity}
               className="h-9 w-9 items-center justify-center rounded-full border"
@@ -148,6 +149,7 @@ export function LogFoodFavoriteFoodsTab({
             <Pressable
               testID={`favorite-user-log-${food.id}`}
               accessibilityLabel={`Log ${food.name}`}
+              haptic={false}
               onPress={() => onLogUserFood(food)}
               disabled={dayLogAtCapacity}
               className="h-9 w-9 items-center justify-center rounded-full border"

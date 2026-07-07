@@ -61,6 +61,7 @@ import {
   computeServingMultiplier,
   getBaseGrams,
 } from "@/lib/nutritionPickerMeasurements";
+import { hapticLight } from "@/lib/haptics";
 import { queueNutritionLogToast } from "@/lib/nutritionLogToast";
 
 export type LogFoodTab = "all" | "myFoods" | "myMeals" | "saved";
@@ -312,6 +313,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   }, [editItem?.id]);
 
   function finishLoggedFood(itemId: string) {
+    hapticLight();
     closePicker();
     queueNutritionLogToast({ itemId, dateKey: activeDateKey });
     router.back();
@@ -563,12 +565,12 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
           <Pressable
             onPress={handleScanPress}
             testID="log-food-scan"
-            accessibilityLabel="Scan barcode"
+            accessibilityLabel="Barcode"
             className="flex-row items-center gap-1.5 rounded-full border px-3.5 py-2"
             style={{ borderColor: accent, backgroundColor: accent }}
           >
             <Text className="text-[13px] font-bold" style={{ color: accentText }}>
-              Scan
+              Barcode
             </Text>
           </Pressable>
         ) : (

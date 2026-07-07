@@ -28,7 +28,7 @@ function shortChartDate(dateKey: string): string {
   return shortWeekEnding(dateKey);
 }
 
-const BODY_WEIGHT_CHART_STROKE = "var(--accent)";
+const BODY_WEIGHT_CHART_STROKE = "var(--ob-gold)";
 const CHART_PAD_LEFT = 12;
 const CHART_PAD_RIGHT = 36;
 

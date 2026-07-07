@@ -16,6 +16,7 @@ import { AppTextField } from "@/components/ui/AppTextField";
 import { CHART_PAD_LEFT, CHART_PAD_RIGHT, WeightLineChart } from "@/components/progress/WeightLineChart";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { formatWeightFromLbs } from "@/lib/unitConversions";
+import { FUTURE_YOU_CALLOUT_BG, FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
 import { weightUnitLabel } from "@/lib/unitLabels";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { coachCardColors } from "@/lib/workoutUiTokens";
@@ -30,6 +31,8 @@ type Props = {
 const SUCCESS_GREEN = "#22c55e";
 const WARNING_AMBER = "#fbbf24";
 const DANGER_RED = "#ef4444";
+const SUNDAY_GOLD = FUTURE_YOU_GOLD;
+const SUNDAY_GOLD_ON = FUTURE_YOU_CALLOUT_BG;
 
 function metricToneColor(tone: SundayCheckInMetric["tone"], colors: ReturnType<typeof useAppTheme>["colors"]): string {
   switch (tone) {
@@ -40,7 +43,7 @@ function metricToneColor(tone: SundayCheckInMetric["tone"], colors: ReturnType<t
     case "danger":
       return DANGER_RED;
     case "accent":
-      return colors.accent;
+      return SUNDAY_GOLD;
     default:
       return colors.textTertiary;
   }
@@ -189,6 +192,7 @@ export function SundayWeeklyCheckInFlow({ data, unitPreferences, onClose, onComp
       <BottomActionBar>
         <PrimaryButton
           block
+          tone="gold"
           testID="sunday-check-in-continue"
           disabled={step === 3 && !lockedIn && selectedIds.size === 0}
           onPress={handleContinue}
@@ -270,7 +274,7 @@ function FlowHeader({
             key={i}
             className="h-1 flex-1 rounded-full"
             style={{
-              backgroundColor: i <= step ? colors.accent : colors.border,
+              backgroundColor: i <= step ? SUNDAY_GOLD : colors.border,
               opacity: i <= step ? 1 : 0.65,
             }}
           />
@@ -360,9 +364,9 @@ function StepBodyWeight({
               data={chartValues}
               width={chartW}
               height={140}
-              stroke={colors.accent}
+              stroke={SUNDAY_GOLD}
               gridColor={colors.border}
-              fillColor={`${colors.accent}22`}
+              fillColor={`${SUNDAY_GOLD}22`}
               tickColor={colors.textTertiary}
               padLeft={CHART_PAD_LEFT}
               padRight={CHART_PAD_RIGHT}
@@ -515,6 +519,7 @@ function StepCommitments({
               <View className="mt-3 flex-row gap-2">
                 <PrimaryButton
                   block
+                  tone="gold"
                   disabled={!customDraft.trim()}
                   testID="sunday-check-in-custom-add"
                   onPress={submitCustom}
@@ -553,7 +558,7 @@ function StepCommitments({
         <View
           testID="sunday-check-in-locked"
           className="mt-4 rounded-xl border p-4"
-          style={{ borderColor: `${colors.accent}33`, backgroundColor: colors.card }}
+          style={{ borderColor: `${SUNDAY_GOLD}33`, backgroundColor: colors.card }}
         >
           <Text className="text-[15px] font-bold" style={{ color: colors.textPrimary }}>
             Week {data.nextWeekNumber} is live.
@@ -654,7 +659,7 @@ function WeightEndpoint({
       </Text>
       <Text
         className="mt-1 text-base font-extrabold tabular-nums"
-        style={{ color: accent ? colors.accent : colors.textPrimary }}
+        style={{ color: accent ? SUNDAY_GOLD : colors.textPrimary }}
       >
         {value}
       </Text>
@@ -780,8 +785,8 @@ function CommitmentOptionRow({
       testID={`sunday-commitment-${option.id}`}
       className="rounded-xl border p-3.5"
       style={{
-        borderColor: selected ? `${colors.accent}73` : colors.border,
-        backgroundColor: selected ? `${colors.accent}14` : colors.card,
+        borderColor: selected ? `${SUNDAY_GOLD}73` : colors.border,
+        backgroundColor: selected ? `${SUNDAY_GOLD}14` : colors.card,
         opacity: lockedIn && !selected ? 0.55 : 1,
       }}
     >
@@ -791,11 +796,11 @@ function CommitmentOptionRow({
           style={{
             borderWidth: selected ? 0 : 1,
             borderColor: colors.border,
-            backgroundColor: selected ? colors.accent : "transparent",
+            backgroundColor: selected ? SUNDAY_GOLD : "transparent",
           }}
         >
           {selected ? (
-            <Text className="text-[10px] font-bold" style={{ color: colors.accentText }}>
+            <Text className="text-[10px] font-bold" style={{ color: SUNDAY_GOLD_ON }}>
               ✓
             </Text>
           ) : null}
