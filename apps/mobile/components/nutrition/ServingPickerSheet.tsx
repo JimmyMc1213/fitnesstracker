@@ -4,11 +4,11 @@ import {
   scaleMacros,
 } from "@newyouai/core";
 import type { FoodMeasurement, FoodSearchResult } from "@newyouai/types";
+import { IconBookmark } from "@tabler/icons-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { AppTextField } from "@/components/ui/AppTextField";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import type { CuratedFood } from "@/lib/curatedFoods";
@@ -20,6 +20,7 @@ import {
   getBaseGrams,
   pickerServingLabel,
 } from "@/lib/nutritionPickerMeasurements";
+import { useBottomActionPadding } from "@/lib/screenInsets";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { MACRO_COLORS } from "@/lib/macroColors";
 
@@ -34,7 +35,6 @@ type Props = {
   initialMeasurementId?: string;
   initialQuantity?: string;
   logButtonLabel?: string;
-  onBack: () => void;
   onLog: (args: {
     macros: { cal: number; p: number; c: number; f: number };
     servingLabel: string;
@@ -54,7 +54,6 @@ export function ServingPickerSheet({
   initialMeasurementId,
   initialQuantity,
   logButtonLabel,
-  onBack,
   onLog,
   onSaveToMyFoods,
 }: Props) {
@@ -62,9 +61,7 @@ export function ServingPickerSheet({
   const primaryActionLabel =
     logButtonLabel ?? (isMealIngredient ? "Add ingredient" : "Log food");
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
-  const bottomInset = insets.bottom || 0;
-  const footerBottomPadding = bottomInset + 8;
+  const bottomActionPadding = useBottomActionPadding();
   const bundle = useMemo(() => buildPickerMeasurements(food, curated), [food, curated]);
   const [measurementId, setMeasurementId] = useState(bundle.measurements[0]?.id ?? "g");
   const [quantity, setQuantity] = useState("");
@@ -118,25 +115,46 @@ export function ServingPickerSheet({
   return (
     <View testID="serving-picker" style={{ flex: 1 }}>
       <ScrollView
-        className="flex-1 px-screen-x pt-4"
-        contentContainerStyle={{ paddingBottom: footerBottomPadding + 132 }}
+        className="flex-1 px-screen-x"
+        contentContainerStyle={{ paddingTop: 20, paddingBottom: bottomActionPadding + 72 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View
-          className="rounded-[14px] border p-4"
-          style={{ borderColor: colors.border, backgroundColor: colors.card }}
-        >
-          <Text className="text-[17px] font-bold leading-6 tracking-tight" style={{ color: colors.textPrimary }}>
-            {displayFoodName(food.name, food.source)}
-          </Text>
+        <View className="mb-5">
+          <View className="flex-row items-center gap-3">
+            <Text
+              className="min-w-0 flex-1 text-[20px] font-bold leading-7 tracking-tight"
+              style={{ color: colors.textPrimary }}
+            >
+              {displayFoodName(food.name, food.source)}
+            </Text>
+            {!isMealIngredient && onSaveToMyFoods ? (
+              <Pressable
+                testID="serving-picker-save-my-foods"
+                onPress={handleSaveToMyFoods}
+                disabled={!canSave}
+                accessibilityRole="button"
+                accessibilityLabel="Save to My foods"
+                hitSlop={10}
+                className="shrink-0 p-0.5"
+                style={{ opacity: canSave ? 1 : 0.35 }}
+              >
+                <IconBookmark size={22} strokeWidth={1.75} color={colors.textPrimary} />
+              </Pressable>
+            ) : null}
+          </View>
           {food.brand ? (
             <Text className="mt-1.5 text-[13px] font-medium" style={{ color: colors.textSecondary }}>
               {food.brand}
             </Text>
           ) : null}
+        </View>
 
+        <View
+          className="rounded-[14px] border p-4"
+          style={{ borderColor: colors.border, backgroundColor: colors.card }}
+        >
           <Text
-            className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-widest"
+            className="mb-2 text-[11px] font-semibold uppercase tracking-widest"
             style={{ color: colors.textTertiary }}
           >
             Unit
@@ -250,11 +268,11 @@ export function ServingPickerSheet({
       </ScrollView>
 
       <View
-        className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-2"
+        className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-3"
         style={{
           borderTopColor: colors.border,
           backgroundColor: colors.background,
-          paddingBottom: footerBottomPadding,
+          paddingBottom: bottomActionPadding,
         }}
       >
         <PrimaryButton
@@ -266,28 +284,6 @@ export function ServingPickerSheet({
         >
           {primaryActionLabel}
         </PrimaryButton>
-        {!isMealIngredient && onSaveToMyFoods ? (
-          <Pressable
-            testID="serving-picker-save-my-foods"
-            onPress={handleSaveToMyFoods}
-            disabled={!canSave}
-            className="mt-2 items-center rounded-xl border py-2.5"
-            style={{
-              borderColor: colors.border,
-              opacity: canSave ? 1 : 0.5,
-            }}
-            accessibilityRole="button"
-          >
-            <Text className="text-sm font-semibold" style={{ color: colors.textSecondary }}>
-              Save to My foods
-            </Text>
-          </Pressable>
-        ) : null}
-        <Pressable onPress={onBack} className="mt-2 items-center py-1" accessibilityRole="button">
-          <Text className="text-sm font-semibold" style={{ color: colors.textSecondary }}>
-            Back
-          </Text>
-        </Pressable>
       </View>
     </View>
   );
