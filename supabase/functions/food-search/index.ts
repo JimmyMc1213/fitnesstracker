@@ -137,6 +137,23 @@ function offNum(raw: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+function round1(n: number): number {
+  return Math.round(n * 10) / 10;
+}
+
+/**
+ * Open Food Facts records nutriments either per 100g/100ml or per serving
+ * (`nutrition_data_per`). When it is "serving", the `_value` fields already hold
+ * per-serving numbers — and OFF frequently mirrors that same per-serving number
+ * into the `_100g` slot. Scaling that by baseGrams/100 triple-counts a drink
+ * (e.g. a 330 ml coconut water at 60 kcal reports 198).
+ */
+function offIsPerServingBasis(raw: Record<string, unknown>): boolean {
+  const basis =
+    typeof raw.nutrition_data_per === "string" ? raw.nutrition_data_per.trim().toLowerCase() : "";
+  return basis === "serving";
+}
+
 function parseServingLabel(label: string): { quantity: number; unit: string; grams: number | null } | null {
   const trimmed = label.trim();
   if (!trimmed) return null;
@@ -224,32 +241,50 @@ function resolveOffServing(raw: Record<string, unknown>): { defaultServing: stri
 function resolveOffMacros(
   nutriments: Record<string, unknown>,
   baseGrams: number,
+  perServingBasis: boolean,
 ): { cal: number; p: number; c: number; f: number } {
   const calServing = offNum(nutriments["energy-kcal_serving"]) || offNum(nutriments.energy_kcal_serving);
   const pServing = offNum(nutriments.proteins_serving);
   const cServing = offNum(nutriments.carbohydrates_serving);
   const fServing = offNum(nutriments.fat_serving);
 
+  // 1. Explicit per-serving nutriments are always the most reliable.
+  if (calServing > 0) {
+    return {
+      cal: Math.round(calServing),
+      p: round1(pServing),
+      c: round1(cServing),
+      f: round1(fServing),
+    };
+  }
+
+  // 2. No explicit per-serving fields, but OFF says the data is entered per
+  //    serving: the `_value` (raw entered) fields are per serving. Do NOT scale
+  //    them by baseGrams/100 — that is the source of the ~3x inflation.
+  if (perServingBasis) {
+    const calValue = offNum(nutriments["energy-kcal_value"]) || offNum(nutriments["energy-kcal"]);
+    if (calValue > 0) {
+      return {
+        cal: Math.round(calValue),
+        p: round1(offNum(nutriments.proteins_value) || offNum(nutriments.proteins)),
+        c: round1(offNum(nutriments.carbohydrates_value) || offNum(nutriments.carbohydrates)),
+        f: round1(offNum(nutriments.fat_value) || offNum(nutriments.fat)),
+      };
+    }
+  }
+
+  // 3. Genuine per-100g/100ml data: scale to the serving weight.
   const cal100 = offNum(nutriments["energy-kcal_100g"]) || offNum(nutriments.energy_kcal_100g);
   const p100 = offNum(nutriments.proteins_100g);
   const c100 = offNum(nutriments.carbohydrates_100g);
   const f100 = offNum(nutriments.fat_100g);
 
-  if (calServing > 0) {
-    return {
-      cal: Math.round(calServing),
-      p: Math.round(pServing * 10) / 10,
-      c: Math.round(cServing * 10) / 10,
-      f: Math.round(fServing * 10) / 10,
-    };
-  }
-
   const mult = baseGrams / 100;
   return {
     cal: Math.round(cal100 * mult),
-    p: Math.round(p100 * mult * 10) / 10,
-    c: Math.round(c100 * mult * 10) / 10,
-    f: Math.round(f100 * mult * 10) / 10,
+    p: round1(p100 * mult),
+    c: round1(c100 * mult),
+    f: round1(f100 * mult),
   };
 }
 
@@ -278,9 +313,14 @@ function mapOffProduct(raw: Record<string, unknown>): FoodSearchResult | null {
   const brand = brandsRaw ? brandsRaw.split(",")[0]?.trim() : undefined;
 
   const nutriments = (raw.nutriments ?? {}) as Record<string, unknown>;
+  const perServingBasis = offIsPerServingBasis(raw);
   const { defaultServing, baseGrams: servingGrams } = resolveOffServing(raw);
   const baseGrams = inferOffBaseGrams(nutriments, servingGrams);
-  const { cal: servingCal, p: servingP, c: servingC, f: servingF } = resolveOffMacros(nutriments, baseGrams);
+  const { cal: servingCal, p: servingP, c: servingC, f: servingF } = resolveOffMacros(
+    nutriments,
+    baseGrams,
+    perServingBasis,
+  );
 
   const servings: FoodServing[] = [
     { label: `½ ${defaultServing}`, multiplier: 0.5 },
@@ -341,7 +381,7 @@ async function searchOff(query: string): Promise<FoodSearchResult[]> {
   const url = new URL("https://world.openfoodfacts.org/api/v2/search");
   url.searchParams.set("search_terms", query);
   url.searchParams.set("page_size", "20");
-  url.searchParams.set("fields", "code,product_name,product_name_en,brands,serving_size,serving_quantity,serving_quantity_unit,nutriments");
+  url.searchParams.set("fields", "code,product_name,product_name_en,brands,serving_size,serving_quantity,serving_quantity_unit,nutrition_data_per,nutriments");
 
   const offRes = await fetch(url.toString(), {
     headers: { "User-Agent": "Fitcoach/1.0 (nutrition food search)" },
