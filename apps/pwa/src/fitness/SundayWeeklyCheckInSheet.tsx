@@ -193,7 +193,7 @@ export function SundayWeeklyCheckInContent({
         </p>
       )}
 
-      <PrimaryButton block onClick={onDismiss} style={{ marginTop: 16 }}>
+      <PrimaryButton block onClick={onDismiss} style={{ marginTop: 16, background: "var(--ob-gold)", color: "var(--ob-gold-on)" }}>
         Continue
       </PrimaryButton>
     </>

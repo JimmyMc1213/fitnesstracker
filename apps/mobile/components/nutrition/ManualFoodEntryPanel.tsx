@@ -163,6 +163,7 @@ export function ManualFoodEntryPanel({ dayLogAtCapacity, onLog }: Props) {
       >
         <PrimaryButton
           block
+          haptic={false}
           testID="manual-food-log"
           onPress={logManualFood}
           disabled={dayLogAtCapacity}

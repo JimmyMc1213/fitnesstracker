@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenHeader } from "@/components/home/ScreenHeader";
 import { SundayCheckInHistoryList } from "@/components/progress/SundayCheckInHistorySection";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
 
 type Props = {
   state: AppState;
@@ -51,8 +52,6 @@ export function ScreenSundayCheckInHistory({ state, onBack }: Props) {
 }
 
 function PressableBack({ onBack }: { onBack: () => void }) {
-  const { colors } = useAppTheme();
-
   return (
     <View className="mb-2 mt-1">
       <Pressable
@@ -62,7 +61,7 @@ function PressableBack({ onBack }: { onBack: () => void }) {
         accessibilityLabel="Back to progress"
         className="self-start py-2"
       >
-        <Text className="text-[15px] font-semibold" style={{ color: colors.accent }}>
+        <Text className="text-[15px] font-semibold" style={{ color: FUTURE_YOU_GOLD }}>
           ← Back
         </Text>
       </Pressable>

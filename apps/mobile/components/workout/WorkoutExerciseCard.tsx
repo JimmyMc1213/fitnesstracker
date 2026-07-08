@@ -47,7 +47,11 @@ type Props = {
   restTimerSecondsByExerciseKey: Record<string, number>;
   restedRestSecByAfterSetIndex: Record<number, number>;
   rejectShakeSet: { exerciseId: string; setIndex: number } | null;
-  onToggleSetDone: (exercise: WorkoutExercise, setIndex: number) => void;
+  onToggleSetDone: (
+    exercise: WorkoutExercise,
+    setIndex: number,
+    pendingPatch?: Partial<{ w: number; r: number }>,
+  ) => void;
   onOpenActions?: () => void;
   onOpenRestSheet: (exerciseId: string) => void;
   onRemoveSet?: (exerciseId: string, setIndex: number) => void;
@@ -225,7 +229,7 @@ function WorkoutExerciseCardComponent({
               swipeDisabled={swipeDisabled}
               onRemoveSet={onRemoveSet}
               onUpdateSetKind={onUpdateSetKind ? () => setSetKindPickerIndex(si) : undefined}
-              onToggleSetDone={() => onToggleSetDone(exercise, si)}
+              onToggleSetDone={(pendingPatch) => onToggleSetDone(exercise, si, pendingPatch)}
               restTimerStrip={
                 <RestTimerStrip
                   phase={stripPhase(si)}
@@ -296,7 +300,7 @@ function WorkoutSetRow({
   swipeDisabled?: boolean;
   onRemoveSet?: (exerciseId: string, setIndex: number) => void;
   onUpdateSetKind?: () => void;
-  onToggleSetDone: () => void;
+  onToggleSetDone: (pendingPatch?: Partial<{ w: number; r: number }>) => void;
   restTimerStrip: ReactNode;
 }) {
   const { colors } = useAppTheme();
@@ -404,10 +408,10 @@ function SetDoneButton({
   setIndex: number;
   done: boolean;
   rejecting?: boolean;
-  onPress: () => void;
+  onPress: (pendingPatch?: Partial<{ w: number; r: number }>) => void;
 }) {
   const { colors } = useAppTheme();
-  const { isActive, close } = useWorkoutKeypad();
+  const { isActive, flushSetEntry } = useWorkoutKeypad();
   const rowActive =
     isActive({ exerciseId, setIndex, field: "weight" }) ||
     isActive({ exerciseId, setIndex, field: "reps" });
@@ -418,8 +422,8 @@ function SetDoneButton({
       testID={`workout-set-${exerciseId}-${setIndex}-done`}
       accessibilityLabel="Done"
       onPress={() => {
-        close();
-        onPress();
+        const pendingPatch = flushSetEntry(exerciseId, setIndex);
+        onPress(pendingPatch);
       }}
       className="h-9 w-11 items-center justify-center rounded-full border"
       style={{

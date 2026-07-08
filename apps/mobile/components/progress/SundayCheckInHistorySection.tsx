@@ -13,6 +13,7 @@ import { ProgressSectionLabel } from "@/components/progress/ProgressSectionLabel
 import { formatWeightFromLbs } from "@/lib/unitConversions";
 import { weightUnitLabel } from "@/lib/unitLabels";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { FUTURE_YOU_GOLD } from "@/lib/futureYouTokens";
 import { COACH_BLUE_LABEL, coachCardColors } from "@/lib/workoutUiTokens";
 
 const SUCCESS_GREEN = "#22c55e";
@@ -98,7 +99,7 @@ export function SundayCheckInHistorySection({ history, unitPreferences, onShowPr
           className="mt-2.5"
           accessibilityRole="button"
         >
-          <Text className="text-[13px] font-semibold" style={{ color: colors.accent }}>
+          <Text className="text-[13px] font-semibold" style={{ color: FUTURE_YOU_GOLD }}>
             Show previous weeks
           </Text>
         </Pressable>
@@ -368,8 +369,8 @@ function MiniDayCell({ flag, label }: { flag: string; label: string }) {
       <View
         className="aspect-square w-full max-w-[24px] rounded-md border"
         style={{
-          backgroundColor: workout ? colors.accent : colors.backgroundSecondary,
-          borderColor: workout ? colors.accent : colors.border,
+          backgroundColor: workout ? FUTURE_YOU_GOLD : colors.backgroundSecondary,
+          borderColor: workout ? FUTURE_YOU_GOLD : colors.border,
         }}
       />
       <View

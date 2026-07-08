@@ -26,11 +26,12 @@ export async function deleteUserAccount(opts: {
   }
 
   const { data, error } = await opts.invokeDeleteUser(opts.dryRun ? { dryRun: true } : {});
+  const body = data as { error?: string; ok?: boolean; dryRun?: boolean } | null;
   if (error) {
-    return { error: error.message || "Account deletion failed. Try again." };
+    const serverError = body?.error?.trim();
+    return { error: serverError || error.message || "Account deletion failed. Try again." };
   }
 
-  const body = data as { error?: string; ok?: boolean; dryRun?: boolean } | null;
   if (body && typeof body.error === "string" && body.error.trim()) {
     return { error: body.error.trim() };
   }

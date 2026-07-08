@@ -82,7 +82,7 @@ export function SundayCheckInHistorySection({ history, unitPreferences, onShowPr
             background: "transparent",
             fontSize: 13,
             fontWeight: 600,
-            color: "var(--accent)",
+            color: "var(--ob-gold)",
           }}
         >
           Show previous weeks
@@ -417,7 +417,7 @@ function MiniDayCell({ flag, label }: { flag: string; label: string }) {
           maxWidth: 24,
           aspectRatio: "1",
           borderRadius: 6,
-          background: workout ? "var(--primary)" : "var(--surface-1)",
+          background: workout ? "var(--ob-gold)" : "var(--surface-1)",
           border: workout ? "none" : "0.5px solid var(--divider-subtle)",
         }}
       />

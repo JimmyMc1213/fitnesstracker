@@ -43,13 +43,20 @@ type Props = {
   onPresentChange?: (present: boolean) => void;
 };
 
-const ACCENT = "rgba(96,165,250,0.9)";
+const GOLD = "var(--ob-gold)";
+const GOLD_ON = "var(--ob-gold-on)";
+const GOLD_SOFT = "rgba(201, 168, 118, 0.9)";
+const GOLD_SHADOW = "rgba(201, 168, 118, 0.22)";
+const GOLD_BORDER_20 = "rgba(201, 168, 118, 0.2)";
+const GOLD_FILL_14 = "rgba(201, 168, 118, 0.14)";
+const GOLD_BORDER_45 = "rgba(201, 168, 118, 0.45)";
+const GOLD_FILL_08 = "rgba(201, 168, 118, 0.08)";
 const SUCCESS_GREEN = "#22c55e";
 const WARNING_AMBER = "#fbbf24";
 const DANGER_RED = "#ef4444";
 
 const METRIC_ICON_COLORS: Record<SundayCheckInMetric["icon"], string> = {
-  workout: ACCENT,
+  workout: GOLD_SOFT,
   protein: "#fb923c",
   weight: "#4ade80",
   mobility: "#2dd4bf",
@@ -308,7 +315,7 @@ function FlowHeader({
               flex: 1,
               height: 4,
               borderRadius: 999,
-              background: i <= step ? "var(--primary)" : "var(--surface-2)",
+              background: i <= step ? GOLD : "var(--surface-2)",
               opacity: i <= step ? 1 : 0.65,
               transition: "background 0.25s ease, opacity 0.25s ease",
             }}
@@ -350,7 +357,9 @@ function FlowFooter({
           borderRadius: 999,
           padding: "15px 16px",
           fontSize: 15,
-          boxShadow: canContinue ? "0 8px 28px rgba(96,165,250,0.22)" : undefined,
+          background: canContinue ? GOLD : undefined,
+          color: canContinue ? GOLD_ON : undefined,
+          boxShadow: canContinue ? `0 8px 28px ${GOLD_SHADOW}` : undefined,
         }}
       >
         <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -458,7 +467,7 @@ function StepBodyWeight({ data, unitPreferences }: { data: SundayCheckInData; un
         </div>
 
         {chartValues.length >= 2 ? (
-          <LineChart data={chartValues} width={chartWidth} height={140} stroke="var(--primary)" />
+          <LineChart data={chartValues} width={chartWidth} height={140} stroke={GOLD} />
         ) : (
           <div
             style={{
@@ -682,8 +691,8 @@ function StepCommitments({
                     padding: "11px 12px",
                     borderRadius: 999,
                     border: "none",
-                    background: customDraft.trim() ? "var(--primary)" : "var(--surface-3)",
-                    color: customDraft.trim() ? "var(--primary-fg)" : "var(--text-ghost)",
+                    background: customDraft.trim() ? GOLD : "var(--surface-3)",
+                    color: customDraft.trim() ? GOLD_ON : "var(--text-ghost)",
                     fontSize: 14,
                     fontWeight: 600,
                   }}
@@ -745,7 +754,7 @@ function StepCommitments({
             marginTop: 16,
             padding: 16,
             background: "var(--surface-1)",
-            borderColor: "rgba(96,165,250,0.2)",
+            borderColor: GOLD_BORDER_20,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -754,10 +763,10 @@ function StepCommitments({
                 width: 40,
                 height: 40,
                 borderRadius: 999,
-                background: "rgba(96,165,250,0.14)",
+                background: GOLD_FILL_14,
                 display: "grid",
                 placeItems: "center",
-                color: ACCENT,
+                color: GOLD,
               }}
             >
               <IconCheck size={18} stroke={2.5} />
@@ -800,8 +809,8 @@ function CommitmentOptionRow({
         textAlign: "left",
         padding: "14px 14px",
         borderRadius: 14,
-        border: selected ? "0.5px solid rgba(96,165,250,0.45)" : "0.5px solid var(--border)",
-        background: selected ? "rgba(96,165,250,0.08)" : "var(--surface-1)",
+        border: selected ? `0.5px solid ${GOLD_BORDER_45}` : "0.5px solid var(--border)",
+        background: selected ? GOLD_FILL_08 : "var(--surface-1)",
         color: "inherit",
         opacity: lockedIn && !selected ? 0.55 : 1,
         transition: "border-color 0.2s ease, background 0.2s ease, opacity 0.2s ease",
@@ -814,10 +823,10 @@ function CommitmentOptionRow({
             height: 22,
             borderRadius: 999,
             border: selected ? "none" : "0.5px solid var(--border-strong)",
-            background: selected ? "var(--primary)" : "transparent",
+            background: selected ? GOLD : "transparent",
             display: "grid",
             placeItems: "center",
-            color: selected ? "var(--primary-fg)" : "var(--text-ghost)",
+            color: selected ? GOLD_ON : "var(--text-ghost)",
             flexShrink: 0,
             marginTop: 1,
             transition: "background 0.2s ease, border-color 0.2s ease",
@@ -930,7 +939,7 @@ function statToneColor(tone: SundayCheckInMetric["tone"]): string {
     case "danger":
       return DANGER_RED;
     case "accent":
-      return ACCENT;
+      return GOLD_SOFT;
     default:
       return "var(--text-ghost)";
   }
@@ -1015,7 +1024,7 @@ function WeightEndpoint({ label, value, accent }: { label: string; value: string
           marginTop: 4,
           fontSize: 16,
           fontWeight: 800,
-          color: accent ? "var(--primary)" : "var(--text-primary)",
+          color: accent ? GOLD : "var(--text-primary)",
           fontVariantNumeric: "tabular-nums",
         }}
       >

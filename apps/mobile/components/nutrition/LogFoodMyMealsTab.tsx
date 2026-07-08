@@ -69,6 +69,7 @@ export function LogFoodMyMealsTab({
                 testID={`my-meal-row-${meal.id}`}
                 accessibilityRole="button"
                 accessibilityLabel={`${meal.name} ${calRounded} cal`}
+                haptic={false}
                 onPress={() => onLogMeal(meal)}
                 disabled={dayLogAtCapacity}
                 className="min-w-0 flex-1 flex-row items-center py-3"

@@ -1305,7 +1305,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             type="button"
             className="tap"
             onClick={() => setScannerOpen(true)}
-            aria-label="Scan barcode"
+            aria-label="Barcode"
             style={{
               flexShrink: 0,
               display: "flex",
@@ -1323,7 +1323,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             }}
           >
             <IconScan size={17} stroke={2.25} />
-            Scan
+            Barcode
           </button>
         ) : null}
       </div>
