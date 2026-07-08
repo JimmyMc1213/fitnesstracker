@@ -1,0 +1,168 @@
+{
+  "carousels": [
+    {
+      "id": "holding-back",
+      "slides": [
+        { "id": "holding-back__01-title", "image": "ref-02.jpg", "headline": "5 things holding you back in the gym", "top": "24%" },
+        { "id": "holding-back__02-gym", "image": "gym-01.jpg", "headline": "1. No progressive overload", "subline": "train harder than last week", "top": "44%", "imagePosition": "center top" },
+        { "id": "holding-back__03-food", "image": "food-02.jpg", "headline": "2. Not eating enough protein", "subline": "fuel for growth", "top": "44%" },
+        { "id": "holding-back__04-phone", "image": "phone.png", "headline": "3. See your potential", "badge": "\u201cNewYou AI\u201d app", "top": "20%" },
+        { "id": "holding-back__05-sauna", "image": "sauna-01.jpg", "headline": "4. Skipping recovery", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "holding-back__06-walk", "image": "walk-01.jpg", "headline": "5. Being sedentary outside the gym", "subline": "Get 10,000 steps a day", "top": "44%" }
+      ]
+    },
+    {
+      "id": "avoid-muscle",
+      "slides": [
+        { "id": "avoid-muscle__01-title", "image": "ref-05.jpg", "headline": "5 things to AVOID if you want to gain muscle", "top": "24%" },
+        { "id": "avoid-muscle__02-food", "image": "food-03.jpg", "headline": "1. Eating like a bird", "top": "44%" },
+        { "id": "avoid-muscle__03-gym", "image": "gym-02.jpg", "headline": "2. Only training arms", "top": "44%" },
+        { "id": "avoid-muscle__04-phone", "image": "phone.png", "headline": "3. Stay accountable", "badge": "\u201cNewYou AI\u201d app", "top": "20%" },
+        { "id": "avoid-muscle__05-sauna", "image": "sauna-02.jpg", "headline": "4. Sleeping 5 hours", "top": "44%" },
+        { "id": "avoid-muscle__06-walk", "image": "walk-02.jpg", "headline": "5. Zero daily movement", "top": "44%" }
+      ]
+    },
+    {
+      "id": "dream-physique",
+      "slides": [
+        { "id": "dream-physique__01-title", "image": "ref-03.jpg", "headline": "How to get your dream physique", "top": "24%" },
+        { "id": "dream-physique__02-gym", "image": "gym-03.jpg", "headline": "1. Train with intent", "top": "44%" },
+        { "id": "dream-physique__03-food", "image": "food-01.jpg", "headline": "2. Hit your protein target", "top": "44%" },
+        { "id": "dream-physique__04-phone", "image": "phone.png", "headline": "3. See your future self", "badge": "\u201cNewYou AI\u201d app", "top": "20%" },
+        { "id": "dream-physique__05-sauna", "image": "sauna-01.jpg", "headline": "4. Recover like an athlete", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "dream-physique__06-walk", "image": "walk-01.jpg", "headline": "5. Stay active every day", "top": "44%" }
+      ]
+    },
+    {
+      "id": "dream-fast",
+      "slides": [
+        { "id": "dream-fast__01-title", "image": "ref-04.jpg", "headline": "4 tips to get your dream physique FAST", "top": "24%" },
+        { "id": "dream-fast__02-gym", "image": "gym-01.jpg", "headline": "1. Lift 4 to 5 days a week", "top": "44%", "imagePosition": "center top" },
+        { "id": "dream-fast__03-food", "image": "food-02.jpg", "headline": "2. Meal prep on Sundays", "top": "44%" },
+        { "id": "dream-fast__04-phone", "image": "phone.png", "headline": "3. Track your transformation", "badge": "\u201cNewYou AI\u201d app", "top": "20%" },
+        { "id": "dream-fast__05-walk", "image": "walk-02.jpg", "headline": "4. Walk after every meal", "top": "44%" }
+      ]
+    },
+    {
+      "id": "quick-progress",
+      "slides": [
+        { "id": "quick-progress__01-title", "image": "ref-07.jpg", "headline": "5 ways to make quick progress in the gym", "top": "24%" },
+        { "id": "quick-progress__02-gym", "image": "gym-02.jpg", "headline": "1. Track your lifts", "top": "44%" },
+        { "id": "quick-progress__03-food", "image": "food-03.jpg", "headline": "2. Eat in a slight surplus", "top": "44%" },
+        { "id": "quick-progress__04-sauna", "image": "sauna-02.jpg", "headline": "3. Sleep 8 plus hours", "top": "44%" },
+        { "id": "quick-progress__05-walk", "image": "walk-01.jpg", "headline": "4. Hit your step goal", "top": "44%" },
+        { "id": "quick-progress__06-phone", "image": "phone.png", "headline": "5. Stay locked in", "badge": "\u201cNewYou AI\u201d app", "top": "20%" }
+      ]
+    },
+    {
+      "id": "started-over",
+      "slides": [
+        { "id": "started-over__01-title", "image": "ref-06.jpg", "headline": "What I'd do if I started over", "top": "24%" },
+        { "id": "started-over__02-gym", "image": "gym-03.jpg", "headline": "1. Master the basics first", "top": "44%" },
+        { "id": "started-over__03-food", "image": "food-01.jpg", "headline": "2. Learn to cook 5 meals", "top": "44%" },
+        { "id": "started-over__04-phone", "image": "phone.png", "headline": "3. Picture where you're headed", "badge": "\u201cNewYou AI\u201d app", "top": "20%" },
+        { "id": "started-over__05-sauna", "image": "sauna-01.jpg", "headline": "4. Take rest seriously", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "started-over__06-walk", "image": "walk-02.jpg", "headline": "5. Walk every single day", "top": "44%" }
+      ]
+    },
+    {
+      "id": "improve-physique",
+      "slides": [
+        { "id": "improve-physique__01-title", "image": "ref-01.jpg", "headline": "5 tips to improve your physique", "top": "24%" },
+        { "id": "improve-physique__02-gym", "image": "gym-01.jpg", "headline": "1. Lift Heavy", "subline": "at least three times a week", "top": "44%", "imagePosition": "center top" },
+        { "id": "improve-physique__03-food", "image": "food-01.jpg", "headline": "2. Fuel Your Body", "subline": "Eat clean 80 to 90% of the time", "top": "44%" },
+        { "id": "improve-physique__04-phone", "image": "phone.png", "headline": "3. See your potential", "badge": "\u201cNewYou AI\u201d app", "top": "20%" },
+        { "id": "improve-physique__05-sauna", "image": "sauna-02.jpg", "headline": "4. Prioritize Recovery", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "improve-physique__06-walk", "image": "walk-01.jpg", "headline": "5. Get 10,000 steps a day", "top": "44%" }
+      ]
+    },
+    {
+      "id": "change-yourself",
+      "slides": [
+        { "id": "change-yourself__01-title", "image": "ref-02.jpg", "headline": "5 ways to change yourself", "top": "24%" },
+        { "id": "change-yourself__02-gym", "image": "gym-02.jpg", "headline": "1. Fix your training", "subline": "show up even when you don't feel like it", "top": "44%" },
+        { "id": "change-yourself__03-food", "image": "food-03.jpg", "headline": "2. Fix your diet", "subline": "protein first, every meal", "top": "44%" },
+        { "id": "change-yourself__04-sauna", "image": "sauna-01.jpg", "headline": "3. Fix your stress", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "change-yourself__05-walk", "image": "walk-02.jpg", "headline": "4. Fix your discipline", "subline": "walk when nobody's watching", "top": "44%" },
+        { "id": "change-yourself__06-phone", "image": "phone.png", "headline": "5. Track every win", "badge": "\u201cNewYou AI\u201d app", "top": "20%" }
+      ]
+    },
+    {
+      "id": "best-version",
+      "slides": [
+        { "id": "best-version__01-title", "image": "ref-03.jpg", "headline": "How to become the best version of yourself.", "top": "24%" },
+        { "id": "best-version__02-gym", "image": "gym-03.jpg", "headline": "1. Lift Heavy", "subline": "at least three times a week", "top": "44%" },
+        { "id": "best-version__03-food", "image": "food-02.jpg", "headline": "2. Fuel Your Body", "subline": "Eat clean 80 to 90% of the time", "top": "44%" },
+        { "id": "best-version__04-phone", "image": "phone.png", "headline": "3. See your potential", "badge": "\u201cNewYou AI\u201d app", "top": "20%" },
+        { "id": "best-version__05-sauna", "image": "sauna-02.jpg", "headline": "4. Prioritize Recovery", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "best-version__06-walk", "image": "walk-01.jpg", "headline": "5. Get 10,000 steps a day", "top": "44%" }
+      ]
+    },
+    {
+      "id": "quiet-lifestyle",
+      "slides": [
+        { "id": "quiet-lifestyle__01-title", "image": "ref-06.jpg", "headline": "How to improve your life without telling anyone", "top": "24%" },
+        { "id": "quiet-lifestyle__02-gym", "image": "gym-01.jpg", "headline": "1. Wake up early", "subline": "train before the world wakes up", "top": "44%", "imagePosition": "center top" },
+        { "id": "quiet-lifestyle__03-food", "image": "food-01.jpg", "headline": "2. Cook at home", "subline": "Eat clean 80 to 90% of the time", "top": "44%" },
+        { "id": "quiet-lifestyle__04-sauna", "image": "sauna-01.jpg", "headline": "3. Prioritize Recovery", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "quiet-lifestyle__05-walk", "image": "walk-02.jpg", "headline": "4. Walk alone", "subline": "no audience needed", "top": "44%" },
+        { "id": "quiet-lifestyle__06-phone", "image": "phone.png", "headline": "5. Log it. Watch it add up.", "badge": "\u201cNewYou AI\u201d app", "top": "20%" }
+      ]
+    },
+    {
+      "id": "tshirt-summer",
+      "slides": [
+        { "id": "tshirt-summer__01-title", "image": "ref-07.jpg", "headline": "5 ways to get a T-shirt physique this summer", "top": "24%" },
+        { "id": "tshirt-summer__02-gym", "image": "gym-02.jpg", "headline": "1. Cut the excuses", "subline": "Lift Heavy at least 3 times a week", "top": "44%" },
+        { "id": "tshirt-summer__03-food", "image": "food-02.jpg", "headline": "2. Fuel Your Body", "subline": "Eat clean 80 to 90% of the time", "top": "44%" },
+        { "id": "tshirt-summer__04-sauna", "image": "sauna-02.jpg", "headline": "3. Sleep more", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "tshirt-summer__05-walk", "image": "walk-01.jpg", "headline": "4. Stay moving", "subline": "Get 10,000 steps a day", "top": "44%" },
+        { "id": "tshirt-summer__06-phone", "image": "phone.png", "headline": "5. See your potential", "badge": "\u201cNewYou AI\u201d app", "top": "20%" }
+      ]
+    },
+    {
+      "id": "stay-locked-in",
+      "slides": [
+        { "id": "stay-locked-in__01-title", "image": "ref-05.jpg", "headline": "5 habits of guys who stay locked in", "top": "24%" },
+        { "id": "stay-locked-in__02-gym", "image": "gym-03.jpg", "headline": "1. Show up on bad days", "top": "44%" },
+        { "id": "stay-locked-in__03-food", "image": "food-01.jpg", "headline": "2. Never miss protein", "top": "44%" },
+        { "id": "stay-locked-in__04-sauna", "image": "sauna-02.jpg", "headline": "3. Recover on purpose", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "stay-locked-in__05-walk", "image": "walk-02.jpg", "headline": "4. Walk daily", "subline": "Get 10,000 steps a day", "top": "44%" },
+        { "id": "stay-locked-in__06-phone", "image": "phone.png", "headline": "5. Stay accountable", "badge": "\u201cNewYou AI\u201d app", "top": "20%" }
+      ]
+    },
+    {
+      "id": "consistency",
+      "slides": [
+        { "id": "consistency__01-title", "image": "ref-08.png", "headline": "The only thing that matters is consistency", "top": "24%" },
+        { "id": "consistency__02-gym", "image": "gym-02.jpg", "headline": "1. Lift Heavy", "subline": "at least three times a week", "top": "44%" },
+        { "id": "consistency__03-food", "image": "food-03.jpg", "headline": "2. Fuel Your Body", "subline": "Eat clean 80 to 90% of the time", "top": "44%" },
+        { "id": "consistency__04-sauna", "image": "sauna-01.jpg", "headline": "3. Prioritize Recovery", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "consistency__05-walk", "image": "walk-01.jpg", "headline": "4. Get 10,000 steps a day", "top": "44%" },
+        { "id": "consistency__06-phone", "image": "phone.png", "headline": "5. See your future self", "badge": "\u201cNewYou AI\u201d app", "top": "20%" }
+      ]
+    },
+    {
+      "id": "gym-mistakes",
+      "slides": [
+        { "id": "gym-mistakes__01-title", "image": "ref-04.jpg", "headline": "5 gym mistakes killing your progress", "top": "24%" },
+        { "id": "gym-mistakes__02-gym", "image": "gym-03.jpg", "headline": "1. Skipping leg day", "top": "44%" },
+        { "id": "gym-mistakes__03-food", "image": "food-02.jpg", "headline": "2. Under-eating on training days", "top": "44%" },
+        { "id": "gym-mistakes__04-phone", "image": "phone.png", "headline": "3. No way to track progress", "badge": "\u201cNewYou AI\u201d app", "top": "20%" },
+        { "id": "gym-mistakes__05-sauna", "image": "sauna-02.jpg", "headline": "4. Ignoring recovery", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "gym-mistakes__06-walk", "image": "walk-02.jpg", "headline": "5. All gym, no movement", "subline": "Get 10,000 steps a day", "top": "44%" }
+      ]
+    },
+    {
+      "id": "level-up",
+      "slides": [
+        { "id": "level-up__01-title", "image": "ref-01.jpg", "headline": "5 ways to level up this month", "top": "24%" },
+        { "id": "level-up__02-gym", "image": "gym-02.jpg", "headline": "1. Add one more training day", "top": "44%" },
+        { "id": "level-up__03-food", "image": "food-03.jpg", "headline": "2. Meal prep twice a week", "top": "44%" },
+        { "id": "level-up__04-sauna", "image": "sauna-01.jpg", "headline": "3. Prioritize Recovery", "subline": "Rest, Sauna, and Sleep", "top": "44%" },
+        { "id": "level-up__05-walk", "image": "walk-01.jpg", "headline": "4. Walk 30 minutes daily", "top": "44%" },
+        { "id": "level-up__06-phone", "image": "phone.png", "headline": "5. Track your transformation", "badge": "\u201cNewYou AI\u201d app", "top": "20%" }
+      ]
+    }
+  ]
+}
