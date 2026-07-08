@@ -36,7 +36,6 @@ import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-na
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useBottomActionPadding } from "@/lib/screenInsets";
 import { dismissKeyboard } from "@/lib/keyboard";
 import { PageTransition } from "@/components/motion";
 import { EditUserFoodSheet } from "@/components/nutrition/EditUserFoodSheet";
@@ -93,7 +92,6 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   const { colors } = useAppTheme();
   const { accent, accentText } = useLogFoodAccent();
   const insets = useSafeAreaInsets();
-  const bottomActionPadding = useBottomActionPadding();
   const { state, setFitnessState } = useFitnessState();
   const [tab, setTab] = useState<LogFoodTab>("all");
   const [pickerFood, setPickerFood] = useState<FoodSearchResult | null>(null);
@@ -686,7 +684,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
           <ScrollView
             className="flex-1 px-screen-x"
             accessibilityLabel={`Log food for ${activeDateKey}`}
-            contentContainerStyle={{ flexGrow: 1, paddingTop: 20, paddingBottom: insets.bottom + 128 }}
+            contentContainerStyle={{ flexGrow: 1, paddingTop: 20, paddingBottom: insets.bottom + 96 }}
             keyboardShouldPersistTaps="handled"
           >
             {tab === "all" ? (
@@ -733,17 +731,18 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
 
           {showBottomChrome ? (
             <View
-              className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-5"
+              className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-2.5"
               style={{
                 borderTopColor: colors.border,
                 backgroundColor: colors.background,
-                paddingBottom: bottomActionPadding + 4,
+                paddingBottom: Math.max(insets.bottom, 8) + 8,
               }}
             >
               <PrimaryButton
                 block
                 testID={tab === "myMeals" ? "log-food-create-meal" : "log-food-manual-add"}
                 onPress={handleBottomAction}
+                style={{ minHeight: 40, paddingVertical: 10 }}
               >
                 {bottomActionLabel}
               </PrimaryButton>

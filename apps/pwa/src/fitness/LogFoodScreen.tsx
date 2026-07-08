@@ -1197,21 +1197,6 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       whiteSpace: "nowrap",
     }) as const;
 
-  const unitPill = (active: boolean) =>
-    ({
-      flexShrink: 0,
-      padding: "8px 14px",
-      borderRadius: 10,
-      border: "none",
-      fontWeight: 600,
-      fontSize: 13,
-      letterSpacing: "-0.02em",
-      cursor: "pointer",
-      background: active ? "var(--surface-4)" : "transparent",
-      color: active ? "var(--text-primary)" : "var(--text-faint-soft)",
-      whiteSpace: "nowrap",
-    }) as const;
-
   const foodRowStyle = {
     display: "flex",
     alignItems: "center" as const,
@@ -1337,75 +1322,79 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       {pickerFood ? (
         <>
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px 100px", WebkitOverflowScrolling: "touch" }}>
-            <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16, marginBottom: 12 }}>
-              <div>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.02em", lineHeight: 1.25 }}>
-                      {displayFoodName(pickerFood.name, pickerFood.source)}
-                    </div>
-                    {pickerFood.brand ? (
-                      <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-faint-soft)", fontWeight: 500 }}>
-                        {pickerFood.brand}
-                      </div>
-                    ) : null}
+            <div className="card" style={{ padding: "16px 18px", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.02em", lineHeight: 1.25 }}>
+                    {displayFoodName(pickerFood.name, pickerFood.source)}
                   </div>
-                  {pickerMacros
-                    ? renderFavoriteButton(
-                        {
-                          name: pickerFood.name,
-                          ...pickerMacros,
-                          servingLabel: pickerServingLabel(pickerMeasurement!, pickerQuantityNum, pickerFixedLabels),
-                        },
-                        pickerFood.name,
-                      )
-                    : null}
+                  {pickerFood.brand ? (
+                    <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-faint-soft)", fontWeight: 500 }}>
+                      {pickerFood.brand}
+                    </div>
+                  ) : null}
                 </div>
+                {pickerMacros
+                  ? renderFavoriteButton(
+                      {
+                        name: pickerFood.name,
+                        ...pickerMacros,
+                        servingLabel: pickerServingLabel(pickerMeasurement!, pickerQuantityNum, pickerFixedLabels),
+                      },
+                      pickerFood.name,
+                    )
+                  : null}
               </div>
+            </div>
 
-              <div>
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: "var(--text-ghost)",
-                    fontWeight: 500,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    marginBottom: 8,
-                  }}
-                >
-                  Unit
-                </div>
-                <div
-                  role="tablist"
-                  aria-label="Serving unit"
-                  style={{
-                    display: "flex",
-                    gap: 4,
-                    padding: 4,
-                    borderRadius: 12,
-                    background: "var(--surface-3)",
-                    overflowX: "auto",
-                    WebkitOverflowScrolling: "touch",
-                  }}
-                >
-                  {pickerMeasurements.map((m) => {
-                    const active = pickerMeasurement?.id === m.id;
-                    return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={active}
-                        className="tap"
-                        onClick={() => selectPickerMeasurement(m)}
-                        style={unitPill(active)}
-                      >
-                        {m.label}
-                      </button>
-                    );
-                  })}
-                </div>
+            <div style={{ marginBottom: 12 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "var(--text-ghost)",
+                  fontWeight: 500,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  marginBottom: 8,
+                }}
+              >
+                Unit
+              </div>
+              <div
+                role="tablist"
+                aria-label="Serving unit"
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  overflowX: "auto",
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
+                {pickerMeasurements.map((m) => {
+                  const active = pickerMeasurement?.id === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      className="tap card"
+                      onClick={() => selectPickerMeasurement(m)}
+                      style={{
+                        flexShrink: 0,
+                        padding: "14px 16px",
+                        borderColor: active ? "var(--text-primary)" : undefined,
+                        fontWeight: 600,
+                        fontSize: 13,
+                        letterSpacing: "-0.02em",
+                        color: active ? "var(--text-primary)" : "var(--text-faint-soft)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

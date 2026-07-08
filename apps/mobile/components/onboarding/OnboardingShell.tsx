@@ -8,7 +8,6 @@ import {
 } from "@/components/onboarding/OnboardingContinueButton";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
-import { useLargeTextEnabled } from "@/lib/fontScale";
 import {
   ONBOARDING_PADDING_X,
   type OnboardingContinueTone,
@@ -121,12 +120,11 @@ export function OnboardingShell({
 }: OnboardingShellProps) {
   const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
-  const largeText = useLargeTextEnabled();
   const { phaseLabel } = phaseForStep(step);
   const progressStep = onboardingProgressStep(step);
   const pct = Math.round(((progressStep + 1) / totalSteps) * 100);
   const scrollEnabled = scrollEnabledProp ?? !contentCentered;
-  const useStaticContent = !largeText && (contentFill || !scrollEnabled);
+  const useStaticContent = contentFill || !scrollEnabled;
   const contentMarginTop = contentCentered ? 0 : compactFooter ? 12 : 24;
   const scrollBottomPadding = compactFooter ? 4 : 12;
 
@@ -218,51 +216,33 @@ export function OnboardingShell({
 
       {progressBar}
 
-      {largeText ? (
-        <ScrollView
-          style={{ flex: 1, minHeight: 0 }}
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingBottom: scrollBottomPadding + 8,
+      {generationPill}
+
+      {titleBlock}
+
+      {useStaticContent ? (
+        <View
+          style={{
+            flex: 1,
+            marginTop: contentMarginTop,
+            minHeight: 0,
+            ...(contentCentered ? { justifyContent: "center" as const } : null),
           }}
+        >
+          {children}
+        </View>
+      ) : (
+        <ScrollView
+          style={{ flex: 1, marginTop: contentMarginTop }}
+          contentContainerStyle={[
+            { flexGrow: 1, paddingBottom: scrollBottomPadding },
+            contentCentered ? { justifyContent: "center" } : null,
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {generationPill}
-          {titleBlock}
-          <View style={{ marginTop: contentMarginTop }}>{children}</View>
+          {children}
         </ScrollView>
-      ) : (
-        <>
-          {generationPill}
-
-          {titleBlock}
-
-          {useStaticContent ? (
-            <View
-              style={{
-                flex: 1,
-                marginTop: contentMarginTop,
-                minHeight: 0,
-                ...(contentCentered ? { justifyContent: "center" as const } : null),
-              }}
-            >
-              {children}
-            </View>
-          ) : (
-            <ScrollView
-              style={{ flex: 1, marginTop: contentMarginTop }}
-              contentContainerStyle={[
-                { flexGrow: 1, paddingBottom: scrollBottomPadding },
-                contentCentered ? { justifyContent: "center" } : null,
-              ]}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              {children}
-            </ScrollView>
-          )}
-        </>
       )}
 
       {footer}

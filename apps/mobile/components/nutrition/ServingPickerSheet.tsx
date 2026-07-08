@@ -149,46 +149,40 @@ export function ServingPickerSheet({
           ) : null}
         </View>
 
-        <View
-          className="rounded-[14px] border p-4"
-          style={{ borderColor: colors.border, backgroundColor: colors.card }}
+        <Text
+          className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-widest"
+          style={{ color: colors.textTertiary }}
         >
-          <Text
-            className="mb-2 text-[11px] font-semibold uppercase tracking-widest"
-            style={{ color: colors.textTertiary }}
-          >
-            Unit
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="tablist">
-            <View className="flex-row gap-1 rounded-xl p-1" style={{ backgroundColor: colors.backgroundSecondary }}>
-              {bundle.measurements.map((m) => {
-                const active = measurement?.id === m.id;
-                return (
-                  <Pressable
-                    key={m.id}
-                    testID={`serving-unit-${m.id}`}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: active }}
-                    onPress={() => selectMeasurement(m)}
-                    className="rounded-lg px-3.5 py-2"
-                    style={{
-                      backgroundColor: active ? colors.card : "transparent",
-                      borderWidth: active ? 1 : 0,
-                      borderColor: colors.border,
-                    }}
+          Unit
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="tablist">
+          <View className="flex-row gap-2.5">
+            {bundle.measurements.map((m) => {
+              const active = measurement?.id === m.id;
+              return (
+                <Pressable
+                  key={m.id}
+                  testID={`serving-unit-${m.id}`}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: active }}
+                  onPress={() => selectMeasurement(m)}
+                  className="rounded-[14px] border px-4 py-3.5"
+                  style={{
+                    borderColor: active ? colors.textPrimary : colors.border,
+                    backgroundColor: colors.card,
+                  }}
+                >
+                  <Text
+                    className="text-[13px] font-semibold"
+                    style={{ color: active ? colors.textPrimary : colors.textSecondary }}
                   >
-                    <Text
-                      className="text-[13px] font-semibold"
-                      style={{ color: active ? colors.textPrimary : colors.textSecondary }}
-                    >
-                      {m.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </ScrollView>
-        </View>
+                    {m.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </ScrollView>
 
         <Text
           className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-widest"
