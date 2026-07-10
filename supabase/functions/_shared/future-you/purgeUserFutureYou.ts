@@ -43,7 +43,7 @@ async function collectFutureYouStoragePaths(
   const paths = new Set<string>();
   const prefix = futureYouUserPrefix(userId);
 
-  for (const subfolder of ["source", "result"]) {
+  for (const subfolder of ["source", "result", "preview"]) {
     const folderPath = `${prefix}${subfolder}`;
     const listed = await listObjectsUnderFolder(adminClient, folderPath);
     for (const path of listed) {

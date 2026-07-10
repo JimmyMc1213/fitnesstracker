@@ -145,7 +145,7 @@ export function AuthScreen({
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
       return setError("Fill in all fields.");
     }
-    if (password.length < 6) return setError("Password must be at least 6 characters.");
+    if (password.length < 8) return setError("Password must be at least 8 characters.");
     setLoading(true);
     const r = await sync.signUpWithEmail(email, password, firstName, lastName);
     setLoading(false);

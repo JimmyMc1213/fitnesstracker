@@ -1,7 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
-import { FUTURE_YOU_BUCKET } from "../_shared/future-you/paths.ts";
+import {
+  FUTURE_YOU_BUCKET,
+  buildFutureYouPreviewPath,
+} from "../_shared/future-you/paths.ts";
 import {
   FUTURE_YOU_JOB_STALE_ERROR,
   isFutureYouJobStale,
@@ -99,16 +102,16 @@ async function loadJob(
   return data as FutureYouPollJobRow | null;
 }
 
-async function createResultSignedUrl(
+async function createStorageSignedUrl(
   adminClient: SupabaseClient,
-  resultPath: string,
+  path: string,
 ): Promise<string | null> {
   const { data, error } = await adminClient.storage
     .from(FUTURE_YOU_BUCKET)
-    .createSignedUrl(resultPath, 3600);
+    .createSignedUrl(path, 3600);
 
   if (error || !data?.signedUrl) {
-    console.error("future-you-status: signed URL failed", { resultPath, error });
+    console.error("future-you-status: signed URL failed", { path, error });
     return null;
   }
 
@@ -190,11 +193,16 @@ Deno.serve(async (req) => {
     let resultSignedUrl: string | null = null;
 
     if (job.status === "ready" && job.result_photo_path) {
-      const signedUrl = await createResultSignedUrl(auth.adminClient, job.result_photo_path);
       if (entitled) {
-        resultSignedUrl = signedUrl;
+        // Entitled users receive the full-resolution result.
+        resultSignedUrl = await createStorageSignedUrl(auth.adminClient, job.result_photo_path);
       } else {
-        previewSignedUrl = signedUrl;
+        // Non-entitled users only ever receive the low-resolution teaser — never
+        // a URL that resolves to the full-resolution result object. If the teaser
+        // is missing (e.g. a job generated before previews existed), no image URL
+        // is returned rather than falling back to the paid asset.
+        const previewPath = buildFutureYouPreviewPath(auth.userId, job.id);
+        previewSignedUrl = await createStorageSignedUrl(auth.adminClient, previewPath);
       }
     }
 

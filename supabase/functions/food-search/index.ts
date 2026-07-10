@@ -4,6 +4,9 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import {
   badQueryResponse,
   checkFoodSearchRateLimit,
+  FOOD_SEARCH_RATE_LIMIT_MAX,
+  FOOD_SEARCH_RATE_LIMIT_WINDOW_MS,
+  type FoodSearchRateLimitResult,
   rateLimitedResponse,
   sanitizeFoodSearchQuery,
   unauthorizedResponse,
@@ -464,6 +467,31 @@ async function searchCommunityFoods(
   return results;
 }
 
+/**
+ * Durable, cross-instance rate limit backed by Postgres (migration 013). Falls
+ * back to the per-instance in-memory limiter if the DB function is unavailable,
+ * so a transient DB issue can never hard-fail food search.
+ */
+async function enforceFoodSearchRateLimit(
+  userClient: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<FoodSearchRateLimitResult> {
+  try {
+    const { data, error } = await userClient.rpc("check_food_search_rate_limit", {
+      p_max: FOOD_SEARCH_RATE_LIMIT_MAX,
+      p_window_ms: FOOD_SEARCH_RATE_LIMIT_WINDOW_MS,
+    });
+    if (error) throw error;
+    if (data === false) {
+      return { allowed: false, retryAfterSec: Math.ceil(FOOD_SEARCH_RATE_LIMIT_WINDOW_MS / 1000) };
+    }
+    return { allowed: true };
+  } catch (e) {
+    console.error("food-search: durable rate limit unavailable, using in-memory", e);
+    return checkFoodSearchRateLimit(userId);
+  }
+}
+
 async function resolveAuthenticatedUserClient(
   req: Request,
 ): Promise<{ userId: string; client: ReturnType<typeof createClient> } | null> {
@@ -502,7 +530,7 @@ Deno.serve(async (req) => {
     }
     const { userId, client: userClient } = auth;
 
-    const rateLimit = checkFoodSearchRateLimit(userId);
+    const rateLimit = await enforceFoodSearchRateLimit(userClient, userId);
     if (!rateLimit.allowed) {
       return rateLimitedResponse(rateLimit.retryAfterSec, corsHeaders);
     }

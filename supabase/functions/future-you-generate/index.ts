@@ -1,9 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
+import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
+
 import { buildFutureYouPrompt } from "../_shared/future-you/buildFutureYouPrompt.ts";
 import {
   FUTURE_YOU_BUCKET,
+  buildFutureYouPreviewPath,
   buildFutureYouResultPath,
 } from "../_shared/future-you/paths.ts";
 import {
@@ -212,6 +215,46 @@ function detectImageMime(bytes: Uint8Array): string {
   return "image/jpeg";
 }
 
+/** Long edge (px) of the paywall teaser. Small enough that the full-resolution
+ * result cannot be reconstructed, large enough to read as a blurred silhouette
+ * once the client applies its paywall blur. */
+const PREVIEW_MAX_EDGE_PX = 128;
+
+/**
+ * Build and store a heavily downscaled teaser next to the result. Best-effort:
+ * any failure is logged and swallowed so it can never fail the generation. When
+ * the preview is missing, the status endpoint simply returns no preview URL
+ * (never the full-resolution result) for non-entitled users.
+ */
+async function uploadPreviewImage(
+  adminClient: SupabaseClient,
+  userId: string,
+  jobId: string,
+  imageBytes: Uint8Array,
+): Promise<void> {
+  try {
+    const image = await Image.decode(imageBytes);
+    const longEdge = Math.max(image.width, image.height);
+    if (longEdge > PREVIEW_MAX_EDGE_PX) {
+      const scale = PREVIEW_MAX_EDGE_PX / longEdge;
+      image.resize(
+        Math.max(1, Math.round(image.width * scale)),
+        Math.max(1, Math.round(image.height * scale)),
+      );
+    }
+    const previewBytes = await image.encode();
+    const previewPath = buildFutureYouPreviewPath(userId, jobId);
+    const { error } = await adminClient.storage
+      .from(FUTURE_YOU_BUCKET)
+      .upload(previewPath, previewBytes, { contentType: "image/png", upsert: true });
+    if (error) {
+      console.error("future-you-generate: preview upload failed", { jobId, error });
+    }
+  } catch (error) {
+    console.error("future-you-generate: preview generation failed", { jobId, error });
+  }
+}
+
 async function downloadSourcePhoto(
   adminClient: SupabaseClient,
   sourcePath: string,
@@ -273,6 +316,8 @@ async function runGenerationJob(
     if (uploadError) {
       throw new Error("Could not save generated image.");
     }
+
+    await uploadPreviewImage(adminClient, userId, jobId, imageBytes);
 
     await markJobReady(adminClient, jobId, userId, resultPath, revisedPrompt);
   } catch (error) {

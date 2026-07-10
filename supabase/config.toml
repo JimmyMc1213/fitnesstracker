@@ -9,6 +9,7 @@ additional_redirect_urls = [
   "http://localhost:5173/",
   "http://localhost:3001/**",
   "https://app.newyouai.app/**",
+  "https://app.newyouai.app/auth/callback",
   "https://admin.newyouai.app/**",
   "newyouai://auth/callback",
   "exp://127.0.0.1:8081/--/auth/callback",
@@ -20,12 +21,13 @@ refresh_token_reuse_interval = 10
 enable_signup = true
 enable_anonymous_sign_ins = false
 enable_manual_linking = false
-minimum_password_length = 6
+minimum_password_length = 8
 
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = true
+# Keep false when using resetPasswordForEmail — recovery links must update password without a nonce.
 secure_password_change = false
 max_frequency = "1m0s"
 otp_length = 8
