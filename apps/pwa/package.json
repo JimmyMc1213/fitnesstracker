@@ -8,6 +8,7 @@
     "dev": "vite",
     "dev:visual-parity": "VITE_VISUAL_PARITY=true VITE_VISUAL_PARITY_SEED=coach-nutrition vite --port 5173 --strictPort",
     "build": "tsc -b && vite build",
+    "build:sunset": "rm -rf dist && mkdir -p dist && cp -r sunset/* dist/",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

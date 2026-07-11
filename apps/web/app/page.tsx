@@ -13,14 +13,8 @@ export default function HomePage() {
       </p>
       <div className="mt-10 flex flex-wrap gap-4">
         <a
-          href="https://app.newyouai.app"
-          className="rounded-full bg-accent px-6 py-3 font-semibold text-white hover:opacity-90"
-        >
-          Try the app
-        </a>
-        <a
           href="/pricing"
-          className="rounded-full border border-border px-6 py-3 font-semibold hover:border-foreground"
+          className="rounded-full bg-accent px-6 py-3 font-semibold text-white hover:opacity-90"
         >
           View pricing
         </a>

@@ -12,7 +12,7 @@ import {
 import { AppState, Platform, type AppStateStatus } from "react-native";
 
 import { mapOAuthSessionError, parseOAuthRedirectUrl } from "@/lib/authOAuth";
-import { changeUserPassword, updateUserEmail } from "@/lib/accountAuth";
+import { changeUserPassword, requestPasswordReset, setPasswordFromRecovery, updateUserEmail } from "@/lib/accountAuth";
 import { enforceAuthGenerationIfNeeded } from "@/lib/authEnforcement";
 import { authenticatedUserEmail } from "@/lib/authSession";
 import { displayNameFromUser } from "@/lib/displayNameFromUser";
@@ -34,9 +34,11 @@ type AuthContextValue = {
   signInWithOAuth: (provider: "google") => Promise<{ error?: string }>;
   signInWithApple: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
-  completeOAuthFromUrl: (redirectUrl: string) => Promise<{ error?: string }>;
+  completeOAuthFromUrl: (redirectUrl: string) => Promise<{ error?: string; recovery?: boolean }>;
   updateEmail: (newEmail: string) => Promise<{ error?: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ error?: string }>;
+  requestPasswordReset: (email: string) => Promise<{ error?: string }>;
+  setPasswordFromRecovery: (newPassword: string) => Promise<{ error?: string }>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -267,7 +269,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refresh_token: parsed.tokens.refreshToken,
     });
     if (error) return { error: mapOAuthSessionError(error.message) };
-    return {};
+    return { recovery: parsed.tokens.type === "recovery" };
   }, []);
 
   const signInWithOAuth = useCallback(
@@ -392,6 +394,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [session?.user?.email],
   );
 
+  const requestPasswordResetEmail = useCallback(
+    async (email: string) => requestPasswordReset(email),
+    [],
+  );
+
+  const setPasswordFromRecoverySession = useCallback(
+    async (newPassword: string) => setPasswordFromRecovery(newPassword),
+    [],
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       configured,
@@ -406,6 +418,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeOAuthFromUrl: completeOAuthRedirect,
       updateEmail,
       changePassword,
+      requestPasswordReset: requestPasswordResetEmail,
+      setPasswordFromRecovery: setPasswordFromRecoverySession,
     }),
     [
       configured,
@@ -419,6 +433,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeOAuthRedirect,
       updateEmail,
       changePassword,
+      requestPasswordResetEmail,
+      setPasswordFromRecoverySession,
     ],
   );
 

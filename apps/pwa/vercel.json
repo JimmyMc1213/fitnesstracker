@@ -1,6 +1,9 @@
 {
-  "buildCommand": "cd ../.. && npx turbo run build --filter=@newyouai/pwa",
+  "buildCommand": "npm run build:sunset",
   "outputDirectory": "dist",
-  "installCommand": "cd ../.. && npm ci",
-  "ignoreCommand": "cd ../.. && npx turbo-ignore @newyouai/pwa"
+  "installCommand": "echo 'PWA retired — redirect only'",
+  "ignoreCommand": "exit 1",
+  "rewrites": [
+    { "source": "/auth/callback", "destination": "/auth/callback/index.html" }
+  ]
 }

@@ -1,4 +1,9 @@
 import { getSupabase } from "@/lib/supabaseClient";
+import { MOBILE_AUTH_CALLBACK_URL } from "@/lib/authRedirect";
+import {
+  isPasswordResetRateLimited,
+  passwordResetRateLimitMessage,
+} from "@/lib/passwordResetEmail";
 
 export async function updateUserEmail(
   currentEmail: string | null | undefined,
@@ -30,6 +35,34 @@ export async function changeUserPassword(
 
   const { error: verifyError } = await sb.auth.signInWithPassword({ email, password: currentPassword });
   if (verifyError) return { error: "Current password is incorrect." };
+
+  const { error } = await sb.auth.updateUser({ password: newPassword });
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function requestPasswordReset(email: string): Promise<{ error?: string }> {
+  const sb = getSupabase();
+  if (!sb) return { error: "Add Supabase keys to sign in." };
+
+  const trimmed = email.trim();
+  if (!trimmed.includes("@")) return { error: "Enter a valid email address." };
+
+  const { error } = await sb.auth.resetPasswordForEmail(trimmed, {
+    redirectTo: MOBILE_AUTH_CALLBACK_URL,
+  });
+  if (error) {
+    if (isPasswordResetRateLimited(error.message)) {
+      return { error: passwordResetRateLimitMessage() };
+    }
+    return { error: error.message };
+  }
+  return {};
+}
+
+export async function setPasswordFromRecovery(newPassword: string): Promise<{ error?: string }> {
+  const sb = getSupabase();
+  if (!sb) return { error: "Add Supabase keys to sign in." };
 
   const { error } = await sb.auth.updateUser({ password: newPassword });
   if (error) return { error: error.message };

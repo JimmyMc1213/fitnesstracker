@@ -13,7 +13,7 @@ import type { ProviderId } from "../../lib/integrations/types";
 
 export type ActionResult = { ok: boolean; message: string; data?: Record<string, unknown> };
 
-const PWA_URL = process.env.NEXT_PUBLIC_PWA_URL ?? "https://app.newyouai.app";
+const MOBILE_AUTH_CALLBACK_URL = process.env.NEXT_PUBLIC_MOBILE_AUTH_CALLBACK_URL ?? "https://newyouai.app/auth/callback";
 
 function bustAdminCache() {
   revalidateTag(ADMIN_CACHE_TAG);
@@ -112,11 +112,11 @@ export async function impersonateUser(userId: string): Promise<ActionResult> {
     const { data, error } = await supabase.auth.admin.generateLink({
       type: "magiclink",
       email,
-      options: { redirectTo: PWA_URL },
+      options: { redirectTo: MOBILE_AUTH_CALLBACK_URL },
     });
     if (error) throw error;
-    await logAudit({ action: "impersonate", targetType: "user", targetId: userId, detail: `generateLink → ${PWA_URL}` });
-    return { ok: true, message: "Login link generated", data: { url: data.properties?.action_link ?? PWA_URL } };
+    await logAudit({ action: "impersonate", targetType: "user", targetId: userId, detail: `generateLink → ${MOBILE_AUTH_CALLBACK_URL}` });
+    return { ok: true, message: "Login link generated", data: { url: data.properties?.action_link ?? MOBILE_AUTH_CALLBACK_URL } };
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : "Could not generate link." };
   }

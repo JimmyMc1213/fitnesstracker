@@ -4,11 +4,12 @@
 
 [auth]
 enabled = true
-site_url = "https://app.newyouai.app"
+site_url = "https://newyouai.app/auth/callback"
 additional_redirect_urls = [
   "http://localhost:5173/",
   "http://localhost:3001/**",
-  "https://app.newyouai.app/**",
+  "https://newyouai.app/auth/callback",
+  "https://newyouai.app/auth/callback/**",
   "https://admin.newyouai.app/**",
   "newyouai://auth/callback",
   "exp://127.0.0.1:8081/--/auth/callback",
@@ -30,6 +31,11 @@ secure_password_change = false
 max_frequency = "1m0s"
 otp_length = 8
 otp_expiry = 3600
+
+# Fixed subject keeps back-to-back recovery emails in the same inbox thread.
+[auth.email.template.recovery]
+subject = "New You AI password reset"
+content_path = "./supabase/templates/recovery.html"
 
 [auth.mfa]
 max_enrolled_factors = 10

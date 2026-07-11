@@ -6,16 +6,21 @@ import { useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useAppShellRoutingInput } from "@/hooks/useAppShellGate";
 import { useOnboardingStub } from "@/hooks/useOnboardingStub";
+import { parseOAuthRedirectUrl } from "@/lib/authOAuth";
 import { resolveDeepLink } from "@/lib/deepLinkRouter";
 
-export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promise<{ error?: string }>) {
+export function useDeepLinkHandler(
+  completeOAuthFromUrl: (url: string) => Promise<{ error?: string; recovery?: boolean }>,
+) {
   const shellInput = useAppShellRoutingInput();
   const { configured, sessionResolved } = useAuth();
   const { onboardingStubHydrated } = useOnboardingStub();
   const pendingUrlRef = useRef<string | null>(null);
 
+  const oauthReady = !configured || sessionResolved;
+
   const shellReady =
-    (!configured || sessionResolved) &&
+    oauthReady &&
     (!configured || !shellInput.sessionEmail || onboardingStubHydrated) &&
     !isAppShellLoading(shellInput) &&
     resolveAppShellMainView(shellInput) === "app";
@@ -23,15 +28,26 @@ export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promis
   const handleUrl = async (url: string | null) => {
     if (!url) return;
 
-    if (!shellReady) {
-      pendingUrlRef.current = url;
-      return;
-    }
-
     const action = resolveDeepLink(url);
 
     if (action.type === "oauth") {
-      await completeOAuthFromUrl(action.url);
+      if (!oauthReady) {
+        pendingUrlRef.current = url;
+        return;
+      }
+
+      const parsed = parseOAuthRedirectUrl(action.url);
+      const result = await completeOAuthFromUrl(action.url);
+      if (result.error) return;
+      if (parsed.ok && (parsed.tokens.type === "recovery" || result.recovery)) {
+        router.push("/(auth)/reset-password");
+        return;
+      }
+      return;
+    }
+
+    if (!shellReady) {
+      pendingUrlRef.current = url;
       return;
     }
 
@@ -48,11 +64,11 @@ export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promis
   };
 
   useEffect(() => {
-    if (!shellReady || !pendingUrlRef.current) return;
+    if (!oauthReady || !pendingUrlRef.current) return;
     const url = pendingUrlRef.current;
     pendingUrlRef.current = null;
     void handleUrl(url);
-  }, [shellReady]);
+  }, [oauthReady, shellReady]);
 
   useEffect(() => {
     void Linking.getInitialURL().then((url) => handleUrl(url));
@@ -62,5 +78,5 @@ export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promis
     });
 
     return () => subscription.remove();
-  }, [shellReady, completeOAuthFromUrl]);
+  }, [oauthReady, shellReady, completeOAuthFromUrl]);
 }

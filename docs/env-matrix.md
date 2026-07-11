@@ -88,7 +88,7 @@ supabase config push --yes
 
 | Environment | Redirect URL |
 |-------------|--------------|
-| PWA production | `https://app.newyouai.app/**` |
+| PWA production (auth bridge) | `https://newyouai.app/auth/callback` |
 | PWA local dev | `http://localhost:5173/` |
 | iOS dev client | `newyouai://auth/callback` |
 | Expo Go (if used) | `exp://127.0.0.1:8081/--/auth/callback`, `exp://127.0.0.1:8082/--/auth/callback` |

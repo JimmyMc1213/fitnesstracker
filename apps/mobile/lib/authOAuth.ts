@@ -3,6 +3,7 @@
 export type OAuthRedirectTokens = {
   accessToken: string;
   refreshToken: string;
+  type?: string;
 };
 
 export type OAuthRedirectParseResult =
@@ -38,7 +39,11 @@ export function parseOAuthRedirectUrl(url: string): OAuthRedirectParseResult {
 
   return {
     ok: true,
-    tokens: { accessToken, refreshToken },
+    tokens: {
+      accessToken,
+      refreshToken,
+      type: params.type,
+    },
   };
 }
 

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Redirecting…</title>
+  </head>
+  <body>
+    <script>
+      window.location.replace(
+        "https://newyouai.app/auth/callback" + (window.location.search || "") + (window.location.hash || ""),
+      );
+    </script>
+    <p><a id="fallback" href="https://newyouai.app/auth/callback">Continue on newyouai.app</a></p>
+  </body>
+</html>

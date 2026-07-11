@@ -34,12 +34,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/pricing" className="hover:text-foreground">
                 Pricing
               </a>
-              <a
-                href="https://app.newyouai.app"
-                className="rounded-full bg-accent px-4 py-2 font-medium text-white hover:opacity-90"
-              >
-                Open app
-              </a>
             </div>
           </nav>
         </header>
