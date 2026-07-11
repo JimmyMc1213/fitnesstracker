@@ -28,7 +28,8 @@
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e --filter=@newyouai/pwa",
     "typecheck": "turbo run typecheck",
-    "future-you:clear-stuck": "node scripts/futureYouClearStuckJobs.mjs"
+    "future-you:clear-stuck": "node scripts/futureYouClearStuckJobs.mjs",
+    "users:purge-except": "node scripts/purgeUsersExcept.mjs"
   },
   "devDependencies": {
     "turbo": "^2.5.4"
