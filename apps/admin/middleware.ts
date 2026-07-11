@@ -22,26 +22,42 @@ function allowlist(): string[] {
     .filter(Boolean);
 }
 
+function isDeployedEnv(): boolean {
+  return process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview";
+}
+
 function isAllowed(email: string | null | undefined): boolean {
   if (!email) return false;
   const allow = allowlist();
-  if (allow.length === 0) return process.env.VERCEL_ENV !== "production";
+  if (allow.length === 0) return !isDeployedEnv();
   return allow.includes(email.toLowerCase());
+}
+
+function redirectToLogin(request: NextRequest, pathname: string, denied = false): NextResponse {
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = "/login";
+  redirectUrl.searchParams.set("from", pathname);
+  if (denied) redirectUrl.searchParams.set("denied", "1");
+  return NextResponse.redirect(redirectUrl);
 }
 
 export async function middleware(request: NextRequest) {
   const url = supabaseUrl();
   const anon = anonKey();
-
-  if (!url || !anon) return NextResponse.next();
-
   const { pathname } = request.nextUrl;
+
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
-  // Local dev without an allowlist: skip auth gate (same as pre-auth prototype).
-  if (allowlist().length === 0 && process.env.VERCEL_ENV !== "production") {
+  // Deployed builds must have auth env configured — fail closed instead of passing through.
+  if (!url || !anon) {
+    if (isDeployedEnv()) return redirectToLogin(request, pathname);
+    return NextResponse.next();
+  }
+
+  // Local dev without an allowlist: skip auth gate (not for production or preview).
+  if (allowlist().length === 0 && !isDeployedEnv()) {
     return NextResponse.next();
   }
 
@@ -64,11 +80,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user || !isAllowed(user.email)) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/login";
-    redirectUrl.searchParams.set("from", pathname);
-    if (user && !isAllowed(user.email)) redirectUrl.searchParams.set("denied", "1");
-    return NextResponse.redirect(redirectUrl);
+    return redirectToLogin(request, pathname, Boolean(user && !isAllowed(user.email)));
   }
 
   return response;

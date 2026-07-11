@@ -24,6 +24,14 @@ export async function createServerSupabase() {
   });
 }
 
+/** Reject open redirects — only same-site relative paths are allowed. */
+export function safeRedirectPath(path: string | null | undefined): string {
+  if (!path || !path.startsWith("/") || path.startsWith("//") || path.includes("://")) {
+    return "/";
+  }
+  return path;
+}
+
 export function isAllowedEmail(email: string | null | undefined): boolean {
   if (!email) return false;
   const allow = getAdminAllowlist();
@@ -58,4 +66,13 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     return { email: DEV_ADMIN.email, name: DEV_ADMIN.name, role: DEV_ADMIN.role };
   }
   return null;
+}
+
+const UNAUTHORIZED = { ok: false as const, message: "Unauthorized" };
+
+/** Server actions must call this before using the service-role client. */
+export async function assertAdminSession(): Promise<{ ok: true } | { ok: false; message: string }> {
+  const session = await getAdminSession();
+  if (!session) return UNAUTHORIZED;
+  return { ok: true };
 }

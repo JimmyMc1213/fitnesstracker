@@ -5,6 +5,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { ADMIN_CACHE_TAG } from "../../lib/admin-cache";
 
 import { createAdminClient } from "../../lib/supabase-admin";
+import { assertAdminSession } from "../../lib/auth";
 import { isSupabaseConfigured } from "../../lib/env";
 import { logAudit } from "../../lib/audit";
 import { isProviderConnected } from "../../lib/integrations/store";
@@ -25,8 +26,16 @@ function notConfigured(): ActionResult {
   };
 }
 
+async function requireAdmin(): Promise<ActionResult | null> {
+  const auth = await assertAdminSession();
+  if (!auth.ok) return { ok: false, message: auth.message };
+  return null;
+}
+
 /** Save a user's full JSONB payload, bumping updated_at_ms so the server wins on next device sync. */
 export async function saveUserPayload(userId: string, payloadText: string): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   let parsed: Record<string, unknown>;
   try {
     parsed = JSON.parse(payloadText);
@@ -52,6 +61,8 @@ export async function saveUserPayload(userId: string, payloadText: string): Prom
 }
 
 export async function overrideSubscription(userId: string, plan: "free" | "monthly" | "annual"): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   if (!isSupabaseConfigured()) return notConfigured();
   try {
     const supabase = createAdminClient();
@@ -72,6 +83,8 @@ export async function overrideSubscription(userId: string, plan: "free" | "month
 }
 
 export async function deleteUserAction(userId: string): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   if (!isSupabaseConfigured()) return notConfigured();
   try {
     const supabase = createAdminClient();
@@ -88,6 +101,8 @@ export async function deleteUserAction(userId: string): Promise<ActionResult> {
 }
 
 export async function impersonateUser(userId: string): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   if (!isSupabaseConfigured()) return notConfigured();
   try {
     const supabase = createAdminClient();
@@ -108,6 +123,8 @@ export async function impersonateUser(userId: string): Promise<ActionResult> {
 }
 
 export async function moderateReport(reportId: string, resolution: "resolved" | "dismissed"): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   if (!isSupabaseConfigured()) return notConfigured();
   try {
     const supabase = createAdminClient();
@@ -126,6 +143,8 @@ export async function moderateReport(reportId: string, resolution: "resolved" | 
 }
 
 export async function deleteReport(reportId: string): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   if (!isSupabaseConfigured()) return notConfigured();
   try {
     const supabase = createAdminClient();
@@ -144,6 +163,8 @@ export async function updateFood(
   barcode: string,
   fields: { name: string; brand: string; cal: number; protein: number; carbs: number; fat: number },
 ): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   if (!isSupabaseConfigured()) return notConfigured();
   try {
     const supabase = createAdminClient();
@@ -162,6 +183,8 @@ export async function updateFood(
 }
 
 export async function deleteFoods(barcodes: string[]): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   if (barcodes.length === 0) return { ok: false, message: "Nothing selected." };
   if (!isSupabaseConfigured()) return notConfigured();
   try {
@@ -177,6 +200,8 @@ export async function deleteFoods(barcodes: string[]): Promise<ActionResult> {
 }
 
 export async function resolveIssue(issueId: string, status: "resolved" | "open"): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   if (!isSupabaseConfigured()) return notConfigured();
   try {
     const supabase = createAdminClient();
@@ -198,6 +223,8 @@ export async function saveIntegration(
   credentials: Record<string, string>,
   enabled: boolean,
 ): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   if (!isSupabaseConfigured()) return notConfigured();
   try {
     const supabase = createAdminClient();
@@ -220,6 +247,8 @@ export async function saveIntegration(
 }
 
 export async function testIntegration(provider: ProviderId): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   if (!isSupabaseConfigured()) return { ok: false, message: "Configure Supabase to store + test credentials." };
   try {
     const connected = await isProviderConnected(provider);
@@ -232,6 +261,8 @@ export async function testIntegration(provider: ProviderId): Promise<ActionResul
 }
 
 export async function toggleIntegration(provider: ProviderId, enabled: boolean): Promise<ActionResult> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   if (!isSupabaseConfigured()) return notConfigured();
   try {
     const supabase = createAdminClient();

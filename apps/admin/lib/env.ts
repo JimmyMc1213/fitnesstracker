@@ -83,7 +83,9 @@ export function getAdminAllowlist(): string[] {
     .filter(Boolean);
 }
 
-/** Local dev without ADMIN_ALLOWED_EMAILS — skip auth gate (not for production). */
+/** Local dev without ADMIN_ALLOWED_EMAILS — skip auth gate (not for deployed envs). */
 export function isDevAuthBypass(): boolean {
-  return getAdminAllowlist().length === 0 && env("VERCEL_ENV") !== "production";
+  const vercelEnv = env("VERCEL_ENV");
+  const deployed = vercelEnv === "production" || vercelEnv === "preview";
+  return getAdminAllowlist().length === 0 && !deployed;
 }
