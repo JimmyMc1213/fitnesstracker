@@ -37,8 +37,22 @@ export function useDeepLinkHandler(
       }
 
       const parsed = parseOAuthRedirectUrl(action.url);
+      if (!parsed.ok) {
+        router.push({
+          pathname: "/(auth)/sign-in",
+          params: { linkError: parsed.error },
+        });
+        return;
+      }
+
       const result = await completeOAuthFromUrl(action.url);
-      if (result.error) return;
+      if (result.error) {
+        router.push({
+          pathname: "/(auth)/sign-in",
+          params: { linkError: result.error },
+        });
+        return;
+      }
       if (parsed.ok && (parsed.tokens.type === "recovery" || result.recovery)) {
         router.push("/(auth)/reset-password");
         return;

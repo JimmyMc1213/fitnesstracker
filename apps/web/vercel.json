@@ -1,5 +1,8 @@
 {
   "buildCommand": "cd ../.. && npx turbo run build --filter=@newyouai/web",
   "installCommand": "cd ../.. && npm ci",
-  "ignoreCommand": "cd ../.. && npx turbo-ignore @newyouai/web"
+  "ignoreCommand": "exit 1",
+  "rewrites": [
+    { "source": "/auth/callback", "destination": "/auth/callback/index.html" }
+  ]
 }

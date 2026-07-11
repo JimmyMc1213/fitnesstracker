@@ -20,15 +20,30 @@ function parseParamsFromUrl(url: string): Record<string, string> {
   return Object.fromEntries(new URLSearchParams(hash).entries());
 }
 
+export function mapAuthLinkError(params: Record<string, string>): string | null {
+  const description = (params.error_description ?? "").replace(/\+/g, " ");
+  const code = params.error_code ?? params.error ?? "";
+
+  if (code === "otp_expired" || description.toLowerCase().includes("expired")) {
+    return "This reset link expired. Request a new one from the sign-in screen.";
+  }
+
+  if (params.error === "access_denied" && description) {
+    return decodeURIComponent(description);
+  }
+
+  if (params.error) {
+    return decodeURIComponent((params.error_description ?? params.error).replace(/\+/g, " "));
+  }
+
+  return null;
+}
+
 export function parseOAuthRedirectUrl(url: string): OAuthRedirectParseResult {
   const params = parseParamsFromUrl(url);
-  const error = params.error_description ?? params.error;
-  if (error) {
-    const message = decodeURIComponent(error.replace(/\+/g, " "));
-    if (params.error === "access_denied") {
-      return { ok: false, error: message, cancelled: true };
-    }
-    return { ok: false, error: message };
+  const linkError = mapAuthLinkError(params);
+  if (linkError) {
+    return { ok: false, error: linkError };
   }
 
   const accessToken = params.access_token;

@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -25,6 +25,7 @@ import {
 } from "@/lib/passwordResetEmail";
 
 export default function SignInScreen() {
+  const { linkError } = useLocalSearchParams<{ linkError?: string | string[] }>();
   const { colors } = useAppTheme();
   const { ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
@@ -38,6 +39,14 @@ export default function SignInScreen() {
   const [resetSentAt, setResetSentAt] = useState<number | null>(null);
   const [resetCooldownRemainingMs, setResetCooldownRemainingMs] = useState(0);
   const resetSentAtRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const message = Array.isArray(linkError) ? linkError[0] : linkError;
+    if (message) {
+      setError(message);
+      setInfo(null);
+    }
+  }, [linkError]);
 
   useEffect(() => {
     resetSentAtRef.current = resetSentAt;
