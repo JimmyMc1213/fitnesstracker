@@ -39,7 +39,7 @@ export function WorkoutCoachCard({
     >
       <Pressable
         testID="workout-coach-card-toggle"
-        onPress={() => setOpen((v) => !v)}
+        onPress={() => setOpen(!open)}
         accessibilityRole="button"
         accessibilityLabel={open ? "Coach tips, tap to collapse" : "Coach tips, tap to expand"}
         className="flex-row items-center justify-between gap-3 px-4 py-3.5"

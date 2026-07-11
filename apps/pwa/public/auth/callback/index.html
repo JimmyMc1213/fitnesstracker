@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Opening New You…</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: #0a0a0a;
+        color: #ffffff;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(100%, 360px);
+        text-align: center;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      p {
+        margin: 0 0 20px;
+        font-size: 15px;
+        line-height: 1.5;
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      a,
+      button {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        border: 0;
+        border-radius: 999px;
+        padding: 14px 18px;
+        background: #d4a017;
+        color: #0a0a0a;
+        font-size: 16px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .error {
+        color: #f87171;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Opening New You…</h1>
+      <p id="status">Sending you back to the app to finish updating your password.</p>
+      <a id="open-app" href="#">Open New You</a>
+    </main>
+    <script>
+      (function () {
+        var APP_SCHEME = "newyouai://auth/callback";
+        var status = document.getElementById("status");
+        var link = document.getElementById("open-app");
+
+        function readParams() {
+          var search = window.location.search || "";
+          var hash = window.location.hash || "";
+          return search + hash;
+        }
+
+        function buildAppUrl() {
+          return APP_SCHEME + readParams();
+        }
+
+        function showError(message) {
+          status.textContent = message;
+          status.className = "error";
+        }
+
+        var params = readParams();
+        if (!params || params === "?") {
+          showError("This link is missing sign-in details. Request a new password reset email and try again.");
+          link.textContent = "Back to New You";
+          link.href = "https://app.newyouai.app/";
+          return;
+        }
+
+        var target = buildAppUrl();
+        link.href = target;
+
+        function openApp() {
+          window.location.href = target;
+        }
+
+        link.addEventListener("click", function (event) {
+          event.preventDefault();
+          openApp();
+        });
+
+        openApp();
+
+        window.setTimeout(function () {
+          status.textContent =
+            "If New You did not open automatically, tap Open New You to continue in the app.";
+        }, 1500);
+      })();
+    </script>
+  </body>
+</html>

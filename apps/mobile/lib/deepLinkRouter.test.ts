@@ -10,6 +10,15 @@ describe("resolveDeepLink", () => {
     });
   });
 
+  it("delegates recovery callback URLs with tokens", () => {
+    expect(
+      resolveDeepLink("newyouai://auth/callback#access_token=abc&refresh_token=def&type=recovery"),
+    ).toEqual({
+      type: "oauth",
+      url: "newyouai://auth/callback#access_token=abc&refresh_token=def&type=recovery",
+    });
+  });
+
   it("routes home path", () => {
     expect(resolveDeepLink("newyouai://home")).toEqual({
       type: "navigate",

@@ -74,3 +74,8 @@ verify_jwt = true
 
 [functions.issue-report]
 verify_jwt = true
+
+# RevenueCat posts subscription events with a shared-secret Authorization header, not a
+# Supabase JWT, so JWT verification must be disabled and enforced inside the function.
+[functions.revenuecat-webhook]
+verify_jwt = false

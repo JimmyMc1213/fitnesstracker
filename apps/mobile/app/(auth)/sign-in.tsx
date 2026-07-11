@@ -11,7 +11,13 @@ import { AuthTextField } from "@/components/ui/AuthTextField";
 import { useAuth } from "@/context/AuthContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
+import { requestPasswordResetEmail } from "@/lib/accountAuth";
 import { authLayout } from "@/lib/authLayoutStyles";
+import {
+  formatPasswordChangeSentMessage,
+  PASSWORD_FORGOT_EMAIL_REQUIRED,
+  PASSWORD_FORGOT_LABEL,
+} from "@newyouai/core";
 
 export default function SignInScreen() {
   const params = useLocalSearchParams<{ email?: string; info?: string }>();
@@ -24,6 +30,7 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [forgotBusy, setForgotBusy] = useState(false);
 
   useEffect(() => {
     if (typeof params.email === "string" && params.email.trim()) {
@@ -50,6 +57,29 @@ export default function SignInScreen() {
       setError("Something went wrong. Try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    setError(null);
+    setInfo(null);
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError(PASSWORD_FORGOT_EMAIL_REQUIRED);
+      return;
+    }
+    setForgotBusy(true);
+    try {
+      const result = await requestPasswordResetEmail(trimmedEmail);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setInfo(formatPasswordChangeSentMessage(trimmedEmail));
+    } catch {
+      setError("Something went wrong. Try again.");
+    } finally {
+      setForgotBusy(false);
     }
   };
 
@@ -125,6 +155,16 @@ export default function SignInScreen() {
               testID="auth-sign-in-password"
               onSubmitEditing={() => void handleSignIn()}
             />
+            <Pressable
+              style={{ alignSelf: "flex-end", paddingVertical: 4 }}
+              onPress={() => void handleForgotPassword()}
+              disabled={forgotBusy || loading}
+              testID="auth-sign-in-forgot-password"
+            >
+              <Text style={{ fontSize: 14, color: colors.textSecondary, fontWeight: "600" }}>
+                {forgotBusy ? "Sending…" : PASSWORD_FORGOT_LABEL}
+              </Text>
+            </Pressable>
           </View>
 
           <View style={{ marginTop: 16 }}>

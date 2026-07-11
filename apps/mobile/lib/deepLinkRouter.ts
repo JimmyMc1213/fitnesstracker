@@ -16,7 +16,14 @@ export type DeepLinkAction =
   | { type: "fallback" };
 
 function isOAuthUrl(url: string): boolean {
-  if (url.includes("access_token=") || url.includes("refresh_token=")) return true;
+  if (
+    url.includes("access_token=") ||
+    url.includes("refresh_token=") ||
+    url.includes("token_hash=") ||
+    url.includes("code=")
+  ) {
+    return true;
+  }
   try {
     const parsed = new URL(url);
     const path = parsed.pathname.replace(/^\/+/, "");

@@ -1,9 +1,13 @@
 import type { ExpoConfig } from "expo/config";
 
+const isDevClientBuild =
+  process.env.EAS_BUILD_PROFILE === "development" ||
+  process.env.EAS_BUILD_PROFILE === "development-device";
+
 const config: ExpoConfig = {
   name: "New You AI",
   slug: "newyouai-mobile",
-  version: "0.0.0",
+  version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "newyouai",
@@ -15,10 +19,14 @@ const config: ExpoConfig = {
     usesAppleSignIn: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
-      NSAppTransportSecurity: {
-        NSAllowsArbitraryLoads: true,
-        NSAllowsLocalNetworking: true,
-      },
+      ...(isDevClientBuild
+        ? {
+            NSAppTransportSecurity: {
+              NSAllowsArbitraryLoads: true,
+              NSAllowsLocalNetworking: true,
+            },
+          }
+        : {}),
       NSCameraUsageDescription:
         "New You AI uses your camera to scan food barcodes and capture photos for your Future You transformation preview.",
       NSPhotoLibraryUsageDescription:

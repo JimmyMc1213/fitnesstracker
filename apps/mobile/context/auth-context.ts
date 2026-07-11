@@ -8,6 +8,7 @@ export type AuthContextValue = {
   session: Session | null;
   sessionEmail: string | null;
   sessionResolved: boolean;
+  passwordRecoveryPending: boolean;
   signInWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
   signUpWithEmail: (
     email: string,
@@ -17,9 +18,10 @@ export type AuthContextValue = {
   ) => Promise<AuthResult>;
   signInWithApple: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
-  completeOAuthFromUrl: (redirectUrl: string) => Promise<{ error?: string }>;
+  completeOAuthFromUrl: (redirectUrl: string) => Promise<{ error?: string; recovery?: boolean }>;
   updateEmail: (newEmail: string) => Promise<{ error?: string }>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<{ error?: string }>;
+  requestPasswordChangeEmail: () => Promise<{ error?: string }>;
+  completePasswordReset: (newPassword: string) => Promise<{ error?: string }>;
 };
 
 /** Kept in its own module so Fast Refresh does not recreate the context when AuthProvider edits hot reload. */

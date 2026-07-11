@@ -61,11 +61,14 @@ export type AlignedTextInputShellStyle = Pick<
   | "borderColor"
   | "backgroundColor"
   | "borderWidth"
+  | "borderRadius"
   | "paddingLeft"
   | "paddingRight"
   | "paddingHorizontal"
   | "marginTop"
   | "marginBottom"
+  | "flex"
+  | "minWidth"
 >;
 
 type Props = TextInputProps & {

@@ -10,6 +10,7 @@ import { Platform } from "react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { hasAuthenticatedUser, routingSessionEmail } from "@/lib/authSession";
+import { isPasswordRecoveryRoute } from "@/lib/authOAuth";
 import { useFitnessSync } from "@/context/FitnessSyncContext";
 import { useOnboardingState } from "@/hooks/useOnboardingState";
 import { isOnboardingPreviewActive } from "@/lib/devPreviewOnboarding";
@@ -22,7 +23,7 @@ function authGateConfigured(configured: boolean): boolean {
 }
 
 /** Root stack screens outside `(tabs)` that should not trigger shell redirect to home. */
-const APP_STACK_ROUTES_OUTSIDE_TABS = new Set(["log-food", "workout", "progress"]);
+const APP_STACK_ROUTES_OUTSIDE_TABS = new Set(["log-food", "workout", "progress", "reset-password"]);
 
 function buildShellRoutingInput(
   auth: Pick<
@@ -64,6 +65,11 @@ export function useAppShellGate() {
     const inTabsGroup = segments[0] === "(tabs)";
     const inModalsGroup = segments[0] === "(modals)";
     const inAppStackRoute = APP_STACK_ROUTES_OUTSIDE_TABS.has(segments[0] ?? "");
+    const inPasswordRecovery = isPasswordRecoveryRoute(segments);
+
+    if (inPasswordRecovery) {
+      return;
+    }
 
     if (authGateActive && auth.sessionResolved && !hasAuthenticatedUser(auth.session)) {
       if (!inAuthGroup) router.replace("/(auth)");
@@ -82,7 +88,7 @@ export function useAppShellGate() {
     }
 
     if (authGateActive && !auth.sessionResolved) return;
-    if (authGateActive && auth.sessionEmail && !onboardingHydrated) return;
+    if (authGateActive && auth.sessionEmail && !onboardingHydrated && !auth.passwordRecoveryPending) return;
 
     if (isAppShellLoading(shellInput)) return;
 
@@ -113,7 +119,7 @@ export function useAppShellGate() {
   }, [
     auth.session,
     auth.sessionResolved,
-    auth.sessionEmail,
+    auth.passwordRecoveryPending,
     onboardingComplete,
     onboardingHydrated,
     segments,

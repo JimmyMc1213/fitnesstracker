@@ -90,7 +90,8 @@ supabase config push --yes
 |-------------|--------------|
 | PWA production | `https://app.newyouai.app/**` |
 | PWA local dev | `http://localhost:5173/` |
-| iOS dev client | `newyouai://auth/callback` |
+| iOS dev client | `newyouai://auth/callback` (in-app OAuth only) |
+| Supabase auth emails | `https://app.newyouai.app/auth/callback` (HTTPS bridge → opens app) |
 | Expo Go (if used) | `exp://127.0.0.1:8081/--/auth/callback`, `exp://127.0.0.1:8082/--/auth/callback` |
 | EAS preview/production | `newyouai://auth/callback` |
 

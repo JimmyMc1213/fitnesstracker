@@ -26,17 +26,35 @@ export async function updateUserEmail(
   return {};
 }
 
-export async function changeUserPassword(
-  email: string | null | undefined,
-  currentPassword: string,
-  newPassword: string,
+/** Sends a password-reset email to any account (sign-in "Forgot password?" flow). */
+export async function requestPasswordResetEmail(
+  email: string,
 ): Promise<{ error?: string }> {
   const sb = getSupabase();
   if (!sb) return { error: "Add Supabase keys to sync." };
-  if (!email) return { error: "Sign in to change your password." };
 
-  const { error: verifyError } = await sb.auth.signInWithPassword({ email, password: currentPassword });
-  if (verifyError) return { error: "Current password is incorrect." };
+  const trimmed = email.trim();
+  if (!trimmed.includes("@")) return { error: "Enter a valid email address." };
+
+  const { error } = await sb.auth.resetPasswordForEmail(trimmed, {
+    redirectTo: authEmailRedirectUrl(),
+  });
+  if (error) return { error: error.message };
+  return {};
+}
+
+/** Sends a password-reset email. Password only changes after the user opens the link. */
+export async function requestPasswordChangeEmail(
+  email: string | null | undefined,
+): Promise<{ error?: string }> {
+  if (!email) return { error: "Sign in to change your password." };
+  return requestPasswordResetEmail(email);
+}
+
+/** Sets a new password after the user confirms via the email recovery link. */
+export async function completePasswordReset(newPassword: string): Promise<{ error?: string }> {
+  const sb = getSupabase();
+  if (!sb) return { error: "Add Supabase keys to sync." };
 
   const { error } = await sb.auth.updateUser({ password: newPassword });
   if (error) return { error: error.message };

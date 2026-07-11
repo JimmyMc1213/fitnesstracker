@@ -61,10 +61,44 @@ async function resolveAuthenticatedContext(req: Request): Promise<AuthContext | 
   return { userId: user.id, userClient, adminClient };
 }
 
-/** Phase 7 step 30: replace with subscription / StoreKit entitlement check. */
-async function isFutureYouEntitled(_userId: string, _adminClient: SupabaseClient): Promise<boolean> {
-  const stub = Deno.env.get("FUTURE_YOU_ENTITLEMENT_STUB")?.trim().toLowerCase();
-  if (stub === "true" || stub === "1" || stub === "yes") return true;
+/**
+ * The dev entitlement stub is only honored against a local Supabase stack. On the hosted
+ * project SUPABASE_URL is https://<ref>.supabase.co, so the stub can never grant access in
+ * production even if the secret is accidentally set.
+ */
+function isStubAllowed(): boolean {
+  const url = Deno.env.get("SUPABASE_URL")?.toLowerCase() ?? "";
+  return url.includes("localhost") || url.includes("127.0.0.1") || url.includes("kong");
+}
+
+/**
+ * Authoritative entitlement check. Reads public.future_you_entitlements (written by the
+ * revenuecat-webhook function) and fails closed: any error, missing row, or expired
+ * entitlement resolves to false.
+ */
+async function isFutureYouEntitled(userId: string, adminClient: SupabaseClient): Promise<boolean> {
+  const { data, error } = await adminClient
+    .from("future_you_entitlements")
+    .select("is_active, expires_at")
+    .eq("user_id", userId)
+    .eq("entitlement_id", "pro")
+    .maybeSingle();
+
+  if (error) {
+    console.error("future-you-status: entitlement lookup failed", error);
+  } else if (data?.is_active) {
+    const expiresAtMs = data.expires_at ? new Date(data.expires_at as string).getTime() : null;
+    if (expiresAtMs == null || expiresAtMs > Date.now()) return true;
+  }
+
+  if (isStubAllowed()) {
+    const stub = Deno.env.get("FUTURE_YOU_ENTITLEMENT_STUB")?.trim().toLowerCase();
+    if (stub === "true" || stub === "1" || stub === "yes") {
+      console.warn("future-you-status: granting entitlement via local dev stub");
+      return true;
+    }
+  }
+
   return false;
 }
 

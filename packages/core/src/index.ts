@@ -19,6 +19,24 @@ export {
 } from "./sync/fitnessPayloadGuard";
 export { formatSyncedLabel, userFacingSyncError } from "./sync/syncErrors";
 export { connectedAuthProviders, isAppleSignInOnly } from "./auth/accountAuth";
+export {
+  PASSWORD_CHANGE_BUTTON_LABEL,
+  PASSWORD_CHANGE_CANCEL_LABEL,
+  PASSWORD_CHANGE_CONFIRM_LABEL,
+  PASSWORD_CHANGE_CONFIRM_MESSAGE,
+  PASSWORD_CHANGE_CONFIRM_TITLE,
+  PASSWORD_CHANGE_DONE_LABEL,
+  PASSWORD_CHANGE_HELPER,
+  PASSWORD_CHANGE_SENT_PREFIX,
+  formatPasswordChangeSentMessage,
+  PASSWORD_FORGOT_EMAIL_REQUIRED,
+  PASSWORD_FORGOT_LABEL,
+  PASSWORD_RESET_CONFIRM_LABEL,
+  PASSWORD_RESET_HELPER,
+  PASSWORD_RESET_NEW_LABEL,
+  PASSWORD_RESET_SUBMIT_LABEL,
+  PASSWORD_RESET_SUCCESS_MESSAGE,
+} from "./auth/passwordChangeModel";
 export { createEmptyPersistedSlice } from "./sync/testFixtures";
 export {
   buildOnboardingDraft,

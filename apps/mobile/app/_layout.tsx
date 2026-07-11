@@ -127,11 +127,11 @@ function AppShellLoadingGate({
   children: ReactNode;
   signedOut?: boolean;
 }) {
-  const { sessionEmail } = useAuth();
+  const { sessionEmail, passwordRecoveryPending } = useAuth();
   const shellInput = useAppShellRoutingInput();
   const { onboardingStubHydrated } = useOnboardingStub();
 
-  if (isVisualParityWebFrame() || signedOut) {
+  if (isVisualParityWebFrame() || signedOut || passwordRecoveryPending) {
     return children;
   }
 
@@ -180,6 +180,7 @@ function RootLayoutNav() {
             <Stack.Screen name="log-food" options={pushStackScreenOptions} />
             <Stack.Screen name="workout" options={pushStackScreenOptions} />
             <Stack.Screen name="progress" options={pushStackScreenOptions} />
+            <Stack.Screen name="reset-password" options={defaultStackScreenOptions} />
           </Stack>
         </WorkoutShellProvider>
       </AppShellLoadingGate>

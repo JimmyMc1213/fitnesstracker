@@ -1,4 +1,4 @@
-import type { Session } from "@supabase/supabase-js";
+import type { EmailOtpType, Session } from "@supabase/supabase-js";
 import * as WebBrowser from "expo-web-browser";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { AppState, Platform, type AppStateStatus } from "react-native";
@@ -7,12 +7,13 @@ import { AuthContext, type AuthContextValue } from "@/context/auth-context";
 import { mapOAuthSessionError, parseOAuthRedirectUrl } from "@/lib/authOAuth";
 import { authEmailRedirectUrl } from "@/lib/authRedirect";
 import { createAppleAuthNonce } from "@/lib/appleAuthNonce";
-import { changeUserPassword, updateUserEmail } from "@/lib/accountAuth";
+import { completePasswordReset, requestPasswordChangeEmail, updateUserEmail } from "@/lib/accountAuth";
 import { enforceAuthGenerationIfNeeded } from "@/lib/authEnforcement";
 import { authenticatedUserEmail } from "@/lib/authSession";
 import { displayNameFromUser } from "@/lib/displayNameFromUser";
 import { seedPersistedDisplayName } from "@/lib/seedPersistedDisplayName";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
+import { logInRevenueCat } from "@/lib/revenueCat";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -39,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const configured = isSupabaseConfigured();
   const [session, setSession] = useState<Session | null>(null);
   const [sessionResolved, setSessionResolved] = useState(false);
+  const [passwordRecoveryPending, setPasswordRecoveryPending] = useState(false);
 
   const refreshSession = useCallback(async () => {
     const sb = getSupabase();
@@ -147,6 +149,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.remove();
   }, [refreshSession]);
 
+  // Link the RevenueCat identity to the Supabase user id so purchases are attributed to this
+  // account and the RevenueCat webhook can map entitlements back to public.future_you_entitlements.
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId) return;
+    void logInRevenueCat(userId);
+  }, [session?.user?.id]);
+
   const signInWithPassword = useCallback(async (email: string, password: string) => {
     const sb = getSupabase();
     if (!sb) return { error: "Add Supabase keys to sign in." };
@@ -244,19 +254,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: mapOAuthSessionError(parsed.error) };
     }
 
-    const { data, error } = await sb.auth.setSession({
-      access_token: parsed.tokens.accessToken,
-      refresh_token: parsed.tokens.refreshToken,
-    });
-    if (error) return { error: mapOAuthSessionError(error.message) };
+    let nextSession: Session | null = null;
 
-    const resolvedName = displayNameFromUser(data.session?.user);
+    if (parsed.mode === "session") {
+      const { data, error } = await sb.auth.setSession({
+        access_token: parsed.tokens.accessToken,
+        refresh_token: parsed.tokens.refreshToken,
+      });
+      if (error) return { error: mapOAuthSessionError(error.message) };
+      nextSession = data.session;
+    } else if (parsed.mode === "code") {
+      const { data, error } = await sb.auth.exchangeCodeForSession(parsed.code);
+      if (error) return { error: mapOAuthSessionError(error.message) };
+      nextSession = data.session;
+    } else {
+      const { data, error } = await sb.auth.verifyOtp({
+        token_hash: parsed.tokenHash,
+        type: parsed.otpType as EmailOtpType,
+      });
+      if (error) return { error: mapOAuthSessionError(error.message) };
+      nextSession = data.session;
+    }
+
+    const resolvedName = displayNameFromUser(nextSession?.user);
     if (resolvedName) await seedPersistedDisplayName(resolvedName);
-    if (data.session) {
-      setSession(data.session);
+    if (nextSession) {
+      setSession(nextSession);
       setSessionResolved(true);
     }
-    return {};
+    if (parsed.recovery) {
+      setPasswordRecoveryPending(true);
+    }
+    return { recovery: parsed.recovery };
   }, []);
 
   const signInWithApple = useCallback(async () => {
@@ -348,6 +377,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setSession(null);
       setSessionResolved(true);
+      setPasswordRecoveryPending(false);
     }
   }, []);
 
@@ -356,11 +386,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [session?.user?.email],
   );
 
-  const changePassword = useCallback(
-    async (currentPassword: string, newPassword: string) =>
-      changeUserPassword(session?.user?.email, currentPassword, newPassword),
+  const requestPasswordChangeEmailAction = useCallback(
+    async () => requestPasswordChangeEmail(session?.user?.email),
     [session?.user?.email],
   );
+
+  const completePasswordResetAction = useCallback(async (newPassword: string) => {
+    const result = await completePasswordReset(newPassword);
+    if (!result.error) {
+      setPasswordRecoveryPending(false);
+    }
+    return result;
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -368,25 +405,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       sessionEmail: authenticatedUserEmail(session),
       sessionResolved,
+      passwordRecoveryPending,
       signInWithPassword,
       signUpWithEmail,
       signInWithApple,
       signOut,
       completeOAuthFromUrl: completeOAuthRedirect,
       updateEmail,
-      changePassword,
+      requestPasswordChangeEmail: requestPasswordChangeEmailAction,
+      completePasswordReset: completePasswordResetAction,
     }),
     [
       configured,
       session,
       sessionResolved,
+      passwordRecoveryPending,
       signInWithPassword,
       signUpWithEmail,
       signInWithApple,
       signOut,
       completeOAuthRedirect,
       updateEmail,
-      changePassword,
+      requestPasswordChangeEmailAction,
+      completePasswordResetAction,
     ],
   );
 

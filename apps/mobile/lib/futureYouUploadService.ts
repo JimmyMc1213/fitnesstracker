@@ -7,7 +7,7 @@ import {
   saveSyncMeta,
   tryPush,
 } from "@newyouai/core";
-import type { OnboardingProfile } from "@newyouai/types";
+import type { OnboardingProfile, PersistedFitnessSlice } from "@newyouai/types";
 import * as FileSystem from "expo-file-system/legacy";
 
 import {
@@ -47,25 +47,26 @@ export async function prepareFutureYouUploadProfile(
   if (!uid || !client) return;
 
   const localSlice =
-    (await loadPersistedSlice(storageAdapter, FITNESS_LOCAL_STORAGE_KEY)) ?? {};
-  const existingProfile = localSlice.onboardingProfile;
+    (await loadPersistedSlice<PersistedFitnessSlice>(storageAdapter, FITNESS_LOCAL_STORAGE_KEY)) ?? {};
+  const existingProfile = localSlice.onboardingProfile ?? undefined;
 
   const age = ageFromDateOfBirth(dateOfBirth) ?? profile.age ?? existingProfile?.age ?? 0;
-  const nextSlice = {
-    ...localSlice,
-    onboardingProfile: {
-      ...(existingProfile ?? {}),
-      dateOfBirth,
-      age,
-      heightIn: profile.heightIn ?? existingProfile?.heightIn ?? 0,
-      weightLbs: profile.weightLbs ?? existingProfile?.weightLbs ?? 0,
-      gender: profile.gender ?? existingProfile?.gender,
-      goal: profile.goal ?? existingProfile?.goal,
-    },
-  };
+  // Merge onto whatever profile exists; only dateOfBirth is required server-side for the
+  // age gate, so a sparse profile is an acceptable partial push here.
+  const onboardingProfile = {
+    ...(existingProfile ?? {}),
+    dateOfBirth,
+    age,
+    heightIn: profile.heightIn ?? existingProfile?.heightIn ?? 0,
+    weightLbs: profile.weightLbs ?? existingProfile?.weightLbs ?? 0,
+    gender: profile.gender ?? existingProfile?.gender,
+    goal: profile.goal ?? existingProfile?.goal,
+  } as OnboardingProfile;
 
   let meta = await loadSyncMeta(storageAdapter);
-  let slice = nextSlice;
+  // Intentional partial slice: the sync engine merges against the remote row, so we only
+  // carry the fields we know locally rather than a full PersistedFitnessSlice.
+  let slice = { ...localSlice, onboardingProfile } as PersistedFitnessSlice;
   let result = await tryPush(client, uid, slice, meta);
 
   for (let retries = 0; "conflict" in result && result.conflict && retries < 3; retries++) {
@@ -73,7 +74,7 @@ export async function prepareFutureYouUploadProfile(
     if (merged) {
       slice = {
         ...merged.mergedSlice,
-        onboardingProfile: nextSlice.onboardingProfile,
+        onboardingProfile,
       };
       meta = merged.meta;
     } else {

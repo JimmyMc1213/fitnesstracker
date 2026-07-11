@@ -7,10 +7,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useAppShellRoutingInput } from "@/hooks/useAppShellGate";
 import { useOnboardingStub } from "@/hooks/useOnboardingStub";
 import { resolveDeepLink } from "@/lib/deepLinkRouter";
+import { PASSWORD_RECOVERY_ROUTE } from "@/lib/authOAuth";
 
-export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promise<{ error?: string }>) {
+export function useDeepLinkHandler(
+  completeOAuthFromUrl: (url: string) => Promise<{ error?: string; recovery?: boolean }>,
+) {
   const shellInput = useAppShellRoutingInput();
-  const { configured, sessionResolved } = useAuth();
+  const { configured, sessionResolved, passwordRecoveryPending } = useAuth();
   const { onboardingStubHydrated } = useOnboardingStub();
   const pendingOAuthUrlRef = useRef<string | null>(null);
   const pendingNavigateUrlRef = useRef<string | null>(null);
@@ -19,9 +22,10 @@ export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promis
 
   const shellReady =
     authBootstrapReady &&
-    (!configured || !shellInput.sessionEmail || onboardingStubHydrated) &&
-    !isAppShellLoading(shellInput) &&
-    resolveAppShellMainView(shellInput) === "app";
+    (passwordRecoveryPending ||
+      ((!configured || !shellInput.sessionEmail || onboardingStubHydrated) &&
+        !isAppShellLoading(shellInput) &&
+        resolveAppShellMainView(shellInput) === "app"));
 
   const handleUrl = async (url: string | null) => {
     if (!url) return;
@@ -33,7 +37,10 @@ export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promis
         pendingOAuthUrlRef.current = url;
         return;
       }
-      await completeOAuthFromUrl(action.url);
+      const result = await completeOAuthFromUrl(action.url);
+      if (result.recovery) {
+        router.replace(PASSWORD_RECOVERY_ROUTE);
+      }
       return;
     }
 
@@ -55,10 +62,17 @@ export function useDeepLinkHandler(completeOAuthFromUrl: (url: string) => Promis
   };
 
   useEffect(() => {
+    if (!passwordRecoveryPending) return;
+    router.replace(PASSWORD_RECOVERY_ROUTE);
+  }, [passwordRecoveryPending]);
+
+  useEffect(() => {
     if (!authBootstrapReady || !pendingOAuthUrlRef.current) return;
     const url = pendingOAuthUrlRef.current;
     pendingOAuthUrlRef.current = null;
-    void completeOAuthFromUrl(url);
+    void completeOAuthFromUrl(url).then((result) => {
+      if (result.recovery) router.replace(PASSWORD_RECOVERY_ROUTE);
+    });
   }, [authBootstrapReady, completeOAuthFromUrl]);
 
   useEffect(() => {
