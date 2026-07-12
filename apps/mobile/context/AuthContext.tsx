@@ -6,7 +6,6 @@ import { AppState, Platform, type AppStateStatus } from "react-native";
 import { AuthContext, type AuthContextValue } from "@/context/auth-context";
 import { mapOAuthSessionError, parseOAuthRedirectUrl } from "@/lib/authOAuth";
 import { authEmailRedirectUrl } from "@/lib/authRedirect";
-import { createAppleAuthNonce } from "@/lib/appleAuthNonce";
 import { changeUserPassword, updateUserEmail } from "@/lib/accountAuth";
 import { enforceAuthGenerationIfNeeded } from "@/lib/authEnforcement";
 import { authenticatedUserEmail } from "@/lib/authSession";
@@ -277,14 +276,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const available = await AppleAuthentication.isAvailableAsync();
       if (!available) return { error: "Apple Sign-In is not available on this device." };
 
-      const { rawNonce, hashedNonce } = await createAppleAuthNonce();
-
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
-        nonce: hashedNonce,
       });
 
       if (!credential.identityToken) {
@@ -304,7 +300,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: authData, error } = await sb.auth.signInWithIdToken({
         provider: "apple",
         token: credential.identityToken,
-        nonce: rawNonce,
+        ...(credential.authorizationCode
+          ? { access_token: credential.authorizationCode }
+          : {}),
       });
       if (error) return { error: mapOAuthSessionError(error.message, "apple") };
 
