@@ -1,4 +1,5 @@
 import "react-native-gesture-handler";
+import "@/lib/lockFontScaling";
 import "../global.css";
 
 import { darkThemeColors, lightThemeColors } from "@newyouai/config/tokens";

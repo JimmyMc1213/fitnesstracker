@@ -18,7 +18,11 @@ export function buildFutureYouResultPath(userId: string, jobId: string): string 
   return `users/${userId}/result/${jobId}.png`;
 }
 
-/** Low-resolution teaser derived from the result (paywall / pre-subscribe polls). */
+/**
+ * Low-resolution, detail-stripped teaser derived from the result image. Served to
+ * non-entitled users behind the paywall blur instead of the full-resolution
+ * result, so the paid asset can never be retrieved without an entitlement.
+ */
 export function buildFutureYouPreviewPath(userId: string, jobId: string): string {
   return `users/${userId}/preview/${jobId}.png`;
 }

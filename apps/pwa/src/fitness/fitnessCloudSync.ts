@@ -1,5 +1,6 @@
 import {
   formatSyncedLabel,
+  isAppleSignInOnly,
   payloadToPersistedSlice,
   pullRemoteIntoLocal as corePullRemoteIntoLocal,
   pullRemoteMergeAlways as corePullRemoteMergeAlways,
@@ -16,9 +17,10 @@ import { migratePersistedFitnessSlice } from "./migrateTrainingSchedule";
 import { normalizeOnboardingDraft } from "./onboardingDraft";
 import type { PersistedFitnessSlice } from "./persistFitnessSlice";
 import { savePersistedSlice, sliceFromAppState } from "./persistFitnessSlice";
+import { invokeDeleteUserAccount } from "@newyouai/api-client";
 import { deleteUserAccount, isDeleteAccountDryRunEnabled } from "./deleteUserAccount";
 import { resetLocalAfterAccountDelete } from "./resetAfterAccountDelete";
-import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabase, getSupabaseEnv, isSupabaseConfigured } from "./supabaseClient";
 import { loadSyncMeta, saveSyncMeta } from "./syncMeta";
 import type { AppState } from "./types";
 
@@ -394,7 +396,7 @@ export function useFitnessCloudSync(
         confirmed: opts.confirmed,
         userId: session?.user?.id,
         dryRun,
-        invokeDeleteUser: (body) => sb.functions.invoke("delete-user", { method: "POST", body }),
+        invokeDeleteUser: (body) => invokeDeleteUserAccount(sb, getSupabaseEnv(), body),
         signOut: async () => {
           await sb.auth.signOut();
           setSession(null);
@@ -476,6 +478,7 @@ export function useFitnessCloudSync(
   return {
     configured,
     sessionEmail: session?.user?.email ?? null,
+    isAppleSignInOnly: isAppleSignInOnly(session),
     sessionResolved,
     busy,
     lastError,

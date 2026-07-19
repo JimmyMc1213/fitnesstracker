@@ -3,7 +3,6 @@ import { Text, View } from "react-native";
 
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
-import { useLargeTextEnabled } from "@/lib/fontScale";
 
 type Props = {
   value: PaywallBillingPeriod;
@@ -22,7 +21,6 @@ function PlanCard({
   stacked?: boolean;
 }) {
   const { colors, ob } = useOnboardingTheme();
-  const largeText = useLargeTextEnabled();
   const plan = PAYWALL_PLANS[period];
   const isYearly = period === "yearly";
 
@@ -78,14 +76,14 @@ function PlanCard({
       <Text
         className="mt-1 text-[10px] leading-snug"
         style={{ color: colors.textSecondary }}
-        numberOfLines={largeText ? undefined : 2}
+        numberOfLines={2}
       >
         {plan.trialNote}
       </Text>
       <Text
         className="mt-0.5 text-[11px] leading-snug"
         style={{ color: colors.textTertiary }}
-        numberOfLines={largeText ? undefined : 2}
+        numberOfLines={2}
       >
         {plan.billingNote}
       </Text>
@@ -94,12 +92,10 @@ function PlanCard({
 }
 
 export function OnboardingPaywallPlanPicker({ value, onChange }: Props) {
-  const largeText = useLargeTextEnabled();
-
   return (
     <View
       testID="onboarding-paywall-plan-picker"
-      className={largeText ? "gap-3" : "flex-row gap-3"}
+      className="flex-row gap-3"
       accessibilityRole="radiogroup"
       accessibilityLabel="Subscription plan"
     >
@@ -107,13 +103,11 @@ export function OnboardingPaywallPlanPicker({ value, onChange }: Props) {
         period="yearly"
         selected={value === "yearly"}
         onSelect={() => onChange("yearly")}
-        stacked={largeText}
       />
       <PlanCard
         period="monthly"
         selected={value === "monthly"}
         onSelect={() => onChange("monthly")}
-        stacked={largeText}
       />
     </View>
   );

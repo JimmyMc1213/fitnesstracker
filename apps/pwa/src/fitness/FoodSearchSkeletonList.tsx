@@ -1,8 +1,8 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-const foodListCardStyle = {
+const foodItemCardStyle = {
   padding: "4px 14px",
-  marginBottom: 16,
+  marginBottom: 8,
   overflow: "hidden" as const,
 };
 
@@ -11,7 +11,6 @@ const foodRowStyle = {
   alignItems: "center" as const,
   gap: 12,
   padding: "12px 0",
-  borderBottom: "1px solid var(--divider-subtle)",
   width: "100%",
 };
 
@@ -21,14 +20,9 @@ type FoodSearchSkeletonListProps = {
   rows?: number;
 };
 
-function FoodSearchRowSkeleton({ isLast }: { isLast: boolean }) {
+function FoodSearchRowSkeleton() {
   return (
-    <div
-      style={{
-        ...foodRowStyle,
-        borderBottom: isLast ? "none" : foodRowStyle.borderBottom,
-      }}
-    >
+    <div style={foodRowStyle}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <Skeleton style={{ height: 15, width: "68%", borderRadius: 6 }} />
         <Skeleton style={{ height: 12, width: "42%", marginTop: 8, borderRadius: 4 }} />
@@ -39,9 +33,15 @@ function FoodSearchRowSkeleton({ isLast }: { isLast: boolean }) {
 }
 
 export function FoodSearchSkeletonList({ variant = "card", rows = 4 }: FoodSearchSkeletonListProps) {
-  const rowItems = Array.from({ length: rows }, (_, idx) => (
-    <FoodSearchRowSkeleton key={idx} isLast={idx === rows - 1} />
-  ));
+  const rowItems = Array.from({ length: rows }, (_, idx) =>
+    variant === "card" ? (
+      <div key={idx} className="card" style={foodItemCardStyle}>
+        <FoodSearchRowSkeleton />
+      </div>
+    ) : (
+      <FoodSearchRowSkeleton key={idx} />
+    ),
+  );
 
   return (
     <div role="status" aria-label="Searching foods" aria-busy="true">
@@ -53,13 +53,7 @@ export function FoodSearchSkeletonList({ variant = "card", rows = 4 }: FoodSearc
           borderRadius: 4,
         }}
       />
-      {variant === "card" ? (
-        <div className="card" style={foodListCardStyle}>
-          {rowItems}
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column" }}>{rowItems}</div>
-      )}
+      {variant === "card" ? rowItems : <div style={{ display: "flex", flexDirection: "column" }}>{rowItems}</div>}
     </div>
   );
 }

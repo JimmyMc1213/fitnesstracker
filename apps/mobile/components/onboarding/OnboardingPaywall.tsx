@@ -26,7 +26,6 @@ import {
 import type { OnboardingPlanSnapshot } from "@/lib/onboardingPlanSnapshot";
 import type { PaywallBillingPeriod } from "@/lib/paywallPlans";
 import { paywallHeroLayoutTier } from "@/lib/paywallHeroLayout";
-import { useFontScale, useLargeTextEnabled } from "@/lib/fontScale";
 import { usePaywallOfferings } from "@/hooks/usePaywallOfferings";
 import { purchaseProSubscription, restorePurchases } from "@/lib/revenueCat";
 import {
@@ -62,8 +61,6 @@ export function OnboardingPaywall({
   const { colors, ob } = useOnboardingTheme();
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
-  const fontScale = useFontScale();
-  const largeText = useLargeTextEnabled();
   const paywallOfferings = usePaywallOfferings();
   const [billingPeriod, setBillingPeriod] = useState<PaywallBillingPeriod>("yearly");
   const [purchasing, setPurchasing] = useState(false);
@@ -72,7 +69,7 @@ export function OnboardingPaywall({
   const heroVisible = isFutureYouPaywallHeroVisible(futureYou, photoBlocked);
   const failedVisible = isFutureYouPaywallFailedVisible(futureYou, photoBlocked);
   const heroLayout = heroVisible
-    ? paywallHeroLayoutTier(screenHeight, insets.top, insets.bottom, fontScale)
+    ? paywallHeroLayoutTier(screenHeight, insets.top, insets.bottom)
     : null;
   const compactHeroLayout = heroLayout != null && heroLayout.tier !== "regular";
   const storeReady = paywallOfferings.stub || paywallOfferings.ready;
@@ -227,7 +224,7 @@ export function OnboardingPaywall({
       <OnboardingContentReveal delay={paywallRevealDelayMs(footerStartStep + 2)}>
         <View
           className="flex-row flex-wrap justify-center gap-x-4 gap-y-2"
-          style={{ paddingTop: 12, paddingBottom: largeText ? 16 : Math.max(insets.bottom, 8) }}
+          style={{ paddingTop: 12, paddingBottom: Math.max(insets.bottom, 8) }}
         >
           <PressableScale onPress={() => void handleRestore()} testID="onboarding-paywall-restore">
             <Text className="text-sm underline" style={{ color: colors.textSecondary }}>
@@ -285,47 +282,28 @@ export function OnboardingPaywall({
       </PressableScale>
 
       <View style={{ flex: 1, paddingTop: insets.top + (heroVisible || failedVisible ? 16 : 40), paddingHorizontal: 23 }}>
-        {largeText ? (
-          <ScrollView
-            className="flex-1"
-            contentContainerStyle={{
-              gap: scrollGap,
-              paddingBottom: Math.max(insets.bottom, 16),
-            }}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {heroScrollContent}
-            <View style={{ paddingTop: heroVisible || failedVisible ? 8 : 0, gap: 0 }}>
-              {checkoutFooter}
-            </View>
-          </ScrollView>
-        ) : (
-          <>
-            <ScrollView
-              className="flex-1"
-              contentContainerStyle={{
-                gap: scrollGap,
-                paddingBottom: heroVisible || failedVisible ? (compactHeroLayout ? 20 : 16) : 24,
-              }}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              {heroScrollContent}
-            </ScrollView>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{
+            gap: scrollGap,
+            paddingBottom: heroVisible || failedVisible ? (compactHeroLayout ? 20 : 16) : 24,
+          }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {heroScrollContent}
+        </ScrollView>
 
-            <View
-              style={{
-                marginTop: heroVisible || failedVisible ? 8 : "auto",
-                flexShrink: 0,
-                width: "100%",
-                paddingTop: heroVisible || failedVisible ? 4 : 0,
-              }}
-            >
-              {checkoutFooter}
-            </View>
-          </>
-        )}
+        <View
+          style={{
+            marginTop: heroVisible || failedVisible ? 8 : "auto",
+            flexShrink: 0,
+            width: "100%",
+            paddingTop: heroVisible || failedVisible ? 4 : 0,
+          }}
+        >
+          {checkoutFooter}
+        </View>
       </View>
     </View>
   );

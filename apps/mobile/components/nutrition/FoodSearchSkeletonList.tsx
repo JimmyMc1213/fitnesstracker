@@ -17,19 +17,29 @@ type Props = {
   showSectionHeader?: boolean;
 };
 
-function FoodSearchRowSkeleton({ isLast }: { isLast: boolean }) {
+function FoodSearchRowSkeleton() {
   const { colors } = useAppTheme();
 
   return (
-    <View
-      className="flex-row items-center gap-3 py-3"
-      style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: colors.border }}
-    >
+    <View className="flex-row items-center gap-3 py-3">
       <View className="min-w-0 flex-1 gap-2">
         <View className="h-[15px] w-[68%] rounded-md" style={{ backgroundColor: colors.border }} />
         <View className="h-3 w-[42%] rounded" style={{ backgroundColor: colors.border }} />
       </View>
       <View className="h-[18px] w-2.5 rounded" style={{ backgroundColor: colors.border }} />
+    </View>
+  );
+}
+
+function FoodSearchItemCardSkeleton() {
+  const { colors } = useAppTheme();
+
+  return (
+    <View
+      className="mb-2 overflow-hidden rounded-[14px] border px-3.5"
+      style={{ borderColor: colors.border, backgroundColor: colors.card }}
+    >
+      <FoodSearchRowSkeleton />
     </View>
   );
 }
@@ -65,14 +75,9 @@ export function FoodSearchSkeletonList({ rows = 4, showSectionHeader = true }: P
         {showSectionHeader ? (
           <View className="mb-2.5 h-[11px] w-[88px] rounded" style={{ backgroundColor: colors.border }} />
         ) : null}
-        <View
-          className="overflow-hidden rounded-[14px] border px-3.5 py-1"
-          style={{ borderColor: colors.border, backgroundColor: colors.card }}
-        >
-          {Array.from({ length: rows }, (_, idx) => (
-            <FoodSearchRowSkeleton key={idx} isLast={idx === rows - 1} />
-          ))}
-        </View>
+        {Array.from({ length: rows }, (_, idx) => (
+          <FoodSearchItemCardSkeleton key={idx} />
+        ))}
       </Animated.View>
     </View>
   );

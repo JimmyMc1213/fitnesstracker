@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import {
   FUTURE_YOU_BUCKET,
+  buildFutureYouPreviewPath,
   futureYouUserPrefix,
 } from "../_shared/future-you/paths.ts";
 
@@ -94,7 +95,7 @@ async function collectFutureYouStoragePaths(
   const paths = new Set<string>();
   const prefix = futureYouUserPrefix(userId);
 
-  for (const subfolder of ["source", "result"]) {
+  for (const subfolder of ["source", "result", "preview"]) {
     const folderPath = `${prefix}${subfolder}`;
     const listed = await listObjectsUnderFolder(adminClient, folderPath);
     for (const path of listed) {
@@ -161,6 +162,8 @@ async function deleteSingleJob(
     if (typeof job.result_photo_path === "string" && job.result_photo_path.trim()) {
       paths.push(job.result_photo_path.trim());
     }
+    // The teaser path is derived (not stored on the job row), so add it explicitly.
+    paths.push(buildFutureYouPreviewPath(auth.userId, jobId));
     await removeStoragePaths(auth.adminClient, paths);
 
     const { error: jobError } = await auth.adminClient

@@ -11,7 +11,10 @@ type Props = {
   sessionTip?: string;
   warmupGroups: readonly WorkoutWarmupGroup[];
   warmupTip?: string;
+  /** Used only in uncontrolled mode. */
   defaultExpanded?: boolean;
+  expanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
 };
 
 export function WorkoutCoachCard({
@@ -20,10 +23,14 @@ export function WorkoutCoachCard({
   warmupGroups,
   warmupTip,
   defaultExpanded = false,
+  expanded: controlledExpanded,
+  onExpandedChange,
 }: Props) {
   const { colors, theme } = useAppTheme();
   const coachCard = coachCardColors(theme);
-  const [open, setOpen] = useState(defaultExpanded);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultExpanded);
+  const open = controlledExpanded ?? uncontrolledOpen;
+  const setOpen = onExpandedChange ?? setUncontrolledOpen;
 
   return (
     <View

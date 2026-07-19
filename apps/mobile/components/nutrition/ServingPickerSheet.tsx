@@ -4,11 +4,11 @@ import {
   scaleMacros,
 } from "@newyouai/core";
 import type { FoodMeasurement, FoodSearchResult } from "@newyouai/types";
+import { IconBookmark } from "@tabler/icons-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { AppTextField } from "@/components/ui/AppTextField";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import type { CuratedFood } from "@/lib/curatedFoods";
@@ -35,7 +35,6 @@ type Props = {
   initialMeasurementId?: string;
   initialQuantity?: string;
   logButtonLabel?: string;
-  onBack: () => void;
   onLog: (args: {
     macros: { cal: number; p: number; c: number; f: number };
     servingLabel: string;
@@ -55,7 +54,6 @@ export function ServingPickerSheet({
   initialMeasurementId,
   initialQuantity,
   logButtonLabel,
-  onBack,
   onLog,
   onSaveToMyFoods,
 }: Props) {
@@ -63,7 +61,6 @@ export function ServingPickerSheet({
   const primaryActionLabel =
     logButtonLabel ?? (isMealIngredient ? "Add ingredient" : "Log food");
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
   const bottomActionPadding = useBottomActionPadding();
   const bundle = useMemo(() => buildPickerMeasurements(food, curated), [food, curated]);
   const [measurementId, setMeasurementId] = useState(bundle.measurements[0]?.id ?? "g");
@@ -118,59 +115,74 @@ export function ServingPickerSheet({
   return (
     <View testID="serving-picker" style={{ flex: 1 }}>
       <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
+        className="flex-1 px-screen-x"
+        contentContainerStyle={{ paddingTop: 20, paddingBottom: bottomActionPadding + 72 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View
-          className="rounded-[14px] border p-4"
-          style={{ borderColor: colors.border, backgroundColor: colors.card }}
-        >
-          <Text className="text-[17px] font-bold leading-6 tracking-tight" style={{ color: colors.textPrimary }}>
-            {displayFoodName(food.name, food.source)}
-          </Text>
+        <View className="mb-5">
+          <View className="flex-row items-center gap-3">
+            <Text
+              className="min-w-0 flex-1 text-[20px] font-bold leading-7 tracking-tight"
+              style={{ color: colors.textPrimary }}
+            >
+              {displayFoodName(food.name, food.source)}
+            </Text>
+            {!isMealIngredient && onSaveToMyFoods ? (
+              <Pressable
+                testID="serving-picker-save-my-foods"
+                onPress={handleSaveToMyFoods}
+                disabled={!canSave}
+                accessibilityRole="button"
+                accessibilityLabel="Save to My foods"
+                hitSlop={10}
+                className="shrink-0 p-0.5"
+                style={{ opacity: canSave ? 1 : 0.35 }}
+              >
+                <IconBookmark size={22} strokeWidth={1.75} color={colors.textPrimary} />
+              </Pressable>
+            ) : null}
+          </View>
           {food.brand ? (
             <Text className="mt-1.5 text-[13px] font-medium" style={{ color: colors.textSecondary }}>
               {food.brand}
             </Text>
           ) : null}
-
-          <Text
-            className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-widest"
-            style={{ color: colors.textTertiary }}
-          >
-            Unit
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="tablist">
-            <View className="flex-row gap-1 rounded-xl p-1" style={{ backgroundColor: colors.backgroundSecondary }}>
-              {bundle.measurements.map((m) => {
-                const active = measurement?.id === m.id;
-                return (
-                  <Pressable
-                    key={m.id}
-                    testID={`serving-unit-${m.id}`}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: active }}
-                    onPress={() => selectMeasurement(m)}
-                    className="rounded-lg px-3.5 py-2"
-                    style={{
-                      backgroundColor: active ? colors.card : "transparent",
-                      borderWidth: active ? 1 : 0,
-                      borderColor: colors.border,
-                    }}
-                  >
-                    <Text
-                      className="text-[13px] font-semibold"
-                      style={{ color: active ? colors.textPrimary : colors.textSecondary }}
-                    >
-                      {m.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </ScrollView>
         </View>
+
+        <Text
+          className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-widest"
+          style={{ color: colors.textTertiary }}
+        >
+          Unit
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="tablist">
+          <View className="flex-row gap-2.5">
+            {bundle.measurements.map((m) => {
+              const active = measurement?.id === m.id;
+              return (
+                <Pressable
+                  key={m.id}
+                  testID={`serving-unit-${m.id}`}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: active }}
+                  onPress={() => selectMeasurement(m)}
+                  className="rounded-[14px] border px-4 py-3.5"
+                  style={{
+                    borderColor: active ? colors.textPrimary : colors.border,
+                    backgroundColor: colors.card,
+                  }}
+                >
+                  <Text
+                    className="text-[13px] font-semibold"
+                    style={{ color: active ? colors.textPrimary : colors.textSecondary }}
+                  >
+                    {m.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </ScrollView>
 
         <Text
           className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-widest"
@@ -259,34 +271,13 @@ export function ServingPickerSheet({
       >
         <PrimaryButton
           block
+          haptic={isMealIngredient}
           testID={isMealIngredient ? "serving-picker-add-ingredient" : "serving-picker-log-food"}
           onPress={handleLog}
           disabled={!canLog}
         >
           {primaryActionLabel}
         </PrimaryButton>
-        {!isMealIngredient && onSaveToMyFoods ? (
-          <Pressable
-            testID="serving-picker-save-my-foods"
-            onPress={handleSaveToMyFoods}
-            disabled={!canSave}
-            className="mt-3 items-center rounded-xl border py-3"
-            style={{
-              borderColor: colors.border,
-              opacity: canSave ? 1 : 0.5,
-            }}
-            accessibilityRole="button"
-          >
-            <Text className="text-sm font-semibold" style={{ color: colors.textSecondary }}>
-              Save to My foods
-            </Text>
-          </Pressable>
-        ) : null}
-        <Pressable onPress={onBack} className="mt-3 items-center py-2" accessibilityRole="button">
-          <Text className="text-sm font-semibold" style={{ color: colors.textSecondary }}>
-            Back
-          </Text>
-        </Pressable>
       </View>
     </View>
   );

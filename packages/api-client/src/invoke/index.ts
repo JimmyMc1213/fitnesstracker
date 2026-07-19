@@ -1,4 +1,9 @@
 export { edgeFunctionErrorMessage } from "./edgeFunctionError";
+export {
+  invokeDeleteUserAccount,
+  type DeleteUserAccountInvokeBody,
+  type DeleteUserAccountInvokeResult,
+} from "./deleteUserAccount";
 export { FoodSearchError, searchFood } from "./foodSearch";
 export {
   lookupFoodByBarcode,

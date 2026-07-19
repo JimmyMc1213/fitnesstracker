@@ -8,7 +8,6 @@ import { useState } from "react";
 import { ScrollView, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useBottomActionPadding } from "@/lib/screenInsets";
 import { PrimaryButton } from "@/components/home/PrimaryButton";
 import { AppTextField } from "@/components/ui/AppTextField";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -35,7 +34,6 @@ export function ManualFoodEntryPanel({ dayLogAtCapacity, onLog }: Props) {
   const { colors } = useAppTheme();
   const { accent } = useLogFoodAccent();
   const insets = useSafeAreaInsets();
-  const bottomActionPadding = useBottomActionPadding();
   const [draftName, setDraftName] = useState("");
   const [draftCal, setDraftCal] = useState("");
   const [draftP, setDraftP] = useState("");
@@ -65,7 +63,7 @@ export function ManualFoodEntryPanel({ dayLogAtCapacity, onLog }: Props) {
     <View testID="manual-food-entry" style={{ flex: 1 }}>
       <ScrollView
         className="flex-1 px-screen-x"
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: insets.bottom + 72 }}
         keyboardShouldPersistTaps="handled"
       >
         <View
@@ -154,18 +152,20 @@ export function ManualFoodEntryPanel({ dayLogAtCapacity, onLog }: Props) {
       </ScrollView>
 
       <View
-        className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-3"
+        className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-2.5"
         style={{
           borderTopColor: colors.border,
           backgroundColor: colors.background,
-          paddingBottom: bottomActionPadding,
+          paddingBottom: Math.max(insets.bottom, 8) + 8,
         }}
       >
         <PrimaryButton
           block
+          haptic={false}
           testID="manual-food-log"
           onPress={logManualFood}
           disabled={dayLogAtCapacity}
+          style={{ minHeight: 40, paddingVertical: 10 }}
         >
           Log food
         </PrimaryButton>

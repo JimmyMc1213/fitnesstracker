@@ -18,6 +18,7 @@ export {
   isFitnessPayloadTooLarge,
 } from "./sync/fitnessPayloadGuard";
 export { formatSyncedLabel, userFacingSyncError } from "./sync/syncErrors";
+export { connectedAuthProviders, isAppleSignInOnly } from "./auth/accountAuth";
 export { createEmptyPersistedSlice } from "./sync/testFixtures";
 export {
   buildOnboardingDraft,

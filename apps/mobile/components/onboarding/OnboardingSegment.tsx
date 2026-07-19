@@ -3,7 +3,6 @@ import { Text, View } from "react-native";
 
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
-import { useLargeTextEnabled } from "@/lib/fontScale";
 import { onboardingPillColors, ONBOARDING_PILL_MIN_HEIGHT } from "@/lib/onboardingTheme";
 
 export function OnboardingSegment({
@@ -20,7 +19,6 @@ export function OnboardingSegment({
   testID?: string;
 }) {
   const { ob } = useOnboardingTheme();
-  const largeText = useLargeTextEnabled();
   const pill = onboardingPillColors(ob, selected);
 
   const inline = layout === "inline";
@@ -49,9 +47,9 @@ export function OnboardingSegment({
         <Text
           className={inline ? "text-[15px] font-medium" : "text-base font-medium"}
           style={{ color: pill.color }}
-          numberOfLines={largeText ? undefined : 1}
-          adjustsFontSizeToFit={inline && !largeText}
-          minimumFontScale={inline && !largeText ? 0.85 : 1}
+          numberOfLines={1}
+          adjustsFontSizeToFit={inline}
+          minimumFontScale={inline ? 0.85 : 1}
         >
           {children}
         </Text>

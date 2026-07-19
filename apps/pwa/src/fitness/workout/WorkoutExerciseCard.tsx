@@ -18,6 +18,7 @@ import { METADATA_SIZE, USER_NOTE_GRAY_MUTED, COACH_BLUE_MUTED, labelStyle } fro
 import { ExerciseActionSheet } from "./ExerciseActionSheet";
 import { SetKindPickerSheet } from "./SetKindPickerSheet";
 import { WorkoutSetField } from "./WorkoutSetField";
+import { useWorkoutKeypad } from "./WorkoutKeypadContext";
 
 const SET_GRID = "32px 68px 1fr 1fr 44px";
 
@@ -101,6 +102,7 @@ export function WorkoutExerciseCard({
   onToggleProgress: (exerciseId: string) => void;
   onRemoveExercise: (exercise: WorkoutExercise) => void;
 }) {
+  const keypad = useWorkoutKeypad();
   const [showActions, setShowActions] = useState(false);
   const [setKindPickerIndex, setSetKindPickerIndex] = useState<number | null>(null);
   const [deletingSetIndex, setDeletingSetIndex] = useState<number | null>(null);
@@ -384,7 +386,10 @@ export function WorkoutExerciseCard({
                     <button
                       type="button"
                       className={`tap workout-set-done-btn${isRejectShake ? " workout-set-done-btn--reject" : ""}`}
-                      onClick={() => onToggleSetDone(exercise, si)}
+                      onClick={() => {
+                        const pendingPatch = keypad.flushSetEntry(exercise.id, si);
+                        onToggleSetDone(exercise, si, pendingPatch);
+                      }}
                       aria-label="Done"
                       style={{
                         width: 36,

@@ -272,8 +272,12 @@ Deno.serve(async (req) => {
 
     if (job.status === "ready" && job.result_photo_path) {
       if (entitled) {
+        // Entitled users receive the full-resolution result.
         resultSignedUrl = await createStorageSignedUrl(auth.adminClient, job.result_photo_path);
       } else {
+        // Non-entitled users only ever receive the low-resolution teaser — never
+        // a URL that resolves to the full-resolution result object. Backfill
+        // missing teasers for older jobs; if still absent, signed URL is null.
         const previewPath =
           (await ensurePreviewObject(auth.adminClient, auth.userId, job)) ??
           buildFutureYouPreviewPath(auth.userId, job.id);

@@ -3,6 +3,7 @@ import type { AppState, FoodSearchResult, NutritionLoggedItem } from "@newyouai/
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Text, View } from "react-native";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
+import { GradientCard } from "@/components/ui/GradientCard";
 import { FoodSearchSkeletonList } from "@/components/nutrition/FoodSearchSkeletonList";
 import { AppTextField } from "@/components/ui/AppTextField";
 import {
@@ -28,6 +29,18 @@ type Props = {
   onRelogItem: (item: NutritionLoggedItem) => void;
 };
 
+function FoodItemCard({ children }: { children: ReactNode }) {
+  const { colors } = useAppTheme();
+  return (
+    <View
+      className="mb-2 overflow-hidden rounded-[14px] border px-3.5"
+      style={{ borderColor: colors.border, backgroundColor: colors.card }}
+    >
+      {children}
+    </View>
+  );
+}
+
 function FoodResultRow({
   name,
   subtitle,
@@ -46,7 +59,6 @@ function FoodResultRow({
       testID={testID}
       onPress={onPress}
       className="flex-row items-center gap-3 py-3"
-      style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}
     >
       <View className="min-w-0 flex-1">
         <Text className="text-[15px] font-semibold tracking-tight" style={{ color: colors.textPrimary }}>
@@ -72,18 +84,6 @@ function SectionHeader({ title }: { title: string }) {
     >
       {title}
     </Text>
-  );
-}
-
-function FoodListCard({ children }: { children: ReactNode }) {
-  const { colors } = useAppTheme();
-  return (
-    <View
-      className="mb-4 overflow-hidden rounded-[14px] border px-3.5 py-1"
-      style={{ borderColor: colors.border, backgroundColor: colors.card }}
-    >
-      {children}
-    </View>
   );
 }
 
@@ -215,38 +215,33 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
           {!searchLoading && !searchError && filteredCurated.length > 0 ? (
             <>
               <SectionHeader title="Common Foods" />
-              <FoodListCard>
-                {filteredCurated.map((curated, idx) => {
-                  const macros = curatedDefaultServingMacros(curated);
-                  const isLast = idx === filteredCurated.length - 1 && apiResults.length === 0;
-                  return (
-                    <View key={curated.id} style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: colors.border }}>
-                      <FoodResultRow
-                        name={curated.name}
-                        subtitle={`${macros.cal} cal · ${formatServingLabel(curated.defaultServing.label)}`}
-                        onPress={() => onOpenPicker(curatedToSearchResult(curated), curated)}
-                      />
-                    </View>
-                  );
-                })}
-              </FoodListCard>
+              {filteredCurated.map((curated) => {
+                const macros = curatedDefaultServingMacros(curated);
+                return (
+                  <FoodItemCard key={curated.id}>
+                    <FoodResultRow
+                      name={curated.name}
+                      subtitle={`${macros.cal} cal · ${formatServingLabel(curated.defaultServing.label)}`}
+                      onPress={() => onOpenPicker(curatedToSearchResult(curated), curated)}
+                    />
+                  </FoodItemCard>
+                );
+              })}
             </>
           ) : null}
           {!searchLoading && !searchError && apiResults.length > 0 ? (
             <>
               <SectionHeader title="More Results" />
-              <FoodListCard>
-                {apiResults.map((food, idx) => (
-                  <View key={food.id} style={{ borderBottomWidth: idx === apiResults.length - 1 ? 0 : 1, borderBottomColor: colors.border }}>
-                    <FoodResultRow
-                      testID={`log-food-search-result-${food.id}`}
-                      name={food.name}
-                      subtitle={`${Math.round(Number(food.cal) || 0)} cal · ${formatServingLabel(food.defaultServing)}${food.brand ? ` · ${food.brand}` : ""}`}
-                      onPress={() => onOpenPicker(food)}
-                    />
-                  </View>
-                ))}
-              </FoodListCard>
+              {apiResults.map((food) => (
+                <FoodItemCard key={food.id}>
+                  <FoodResultRow
+                    testID={`log-food-search-result-${food.id}`}
+                    name={food.name}
+                    subtitle={`${Math.round(Number(food.cal) || 0)} cal · ${formatServingLabel(food.defaultServing)}${food.brand ? ` · ${food.brand}` : ""}`}
+                    onPress={() => onOpenPicker(food)}
+                  />
+                </FoodItemCard>
+              ))}
             </>
           ) : null}
         </>
@@ -258,13 +253,9 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
               No recent foods yet.
             </Text>
           ) : (
-            <FoodListCard>
-              {recentlyLogged.map((item, idx) => (
-                <View
-                  key={`${item.id}-${item.name}`}
-                  className="flex-row items-center gap-2"
-                  style={{ borderBottomWidth: idx === recentlyLogged.length - 1 ? 0 : 1, borderBottomColor: colors.border }}
-                >
+            recentlyLogged.map((item) => (
+              <GradientCard key={`${item.id}-${item.name}`} padding={0} style={{ marginBottom: 8 }}>
+                <View className="flex-row items-center gap-2 px-3.5">
                   <Pressable
                     onPress={() => openRecentItem(item)}
                     accessibilityLabel={`Edit and log ${item.name.trim() || "food"}`}
@@ -285,6 +276,7 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
                   <Pressable
                     testID={`log-food-relog-${item.id}`}
                     accessibilityLabel={`Log again ${item.name.trim() || "food"}`}
+                    haptic={false}
                     onPress={() => onRelogItem(item)}
                     disabled={dayLogAtCapacity}
                     className="h-9 w-9 items-center justify-center rounded-full border"
@@ -299,8 +291,8 @@ export function LogFoodAllTab({ state, dayLogAtCapacity, onOpenPicker, onRelogIt
                     </Text>
                   </Pressable>
                 </View>
-              ))}
-            </FoodListCard>
+              </GradientCard>
+            ))
           )}
         </>
       )}

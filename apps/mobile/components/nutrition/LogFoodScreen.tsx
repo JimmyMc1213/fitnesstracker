@@ -36,7 +36,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-na
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useBottomActionPadding } from "@/lib/screenInsets";
+import { dismissKeyboard } from "@/lib/keyboard";
 import { PageTransition } from "@/components/motion";
 import { EditUserFoodSheet } from "@/components/nutrition/EditUserFoodSheet";
 import { BarcodeScannerGate } from "@/components/nutrition/BarcodeScannerGate";
@@ -61,6 +61,7 @@ import {
   computeServingMultiplier,
   getBaseGrams,
 } from "@/lib/nutritionPickerMeasurements";
+import { hapticLight } from "@/lib/haptics";
 import { queueNutritionLogToast } from "@/lib/nutritionLogToast";
 
 export type LogFoodTab = "all" | "myFoods" | "myMeals" | "saved";
@@ -91,7 +92,6 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   const { colors } = useAppTheme();
   const { accent, accentText } = useLogFoodAccent();
   const insets = useSafeAreaInsets();
-  const bottomActionPadding = useBottomActionPadding();
   const { state, setFitnessState } = useFitnessState();
   const [tab, setTab] = useState<LogFoodTab>("all");
   const [pickerFood, setPickerFood] = useState<FoodSearchResult | null>(null);
@@ -133,12 +133,14 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   }
 
   function openCreateMeal() {
+    dismissKeyboard();
     resetMealEditor();
     setMealEditorOpen(true);
     setTab("myMeals");
   }
 
   function openEditMeal(meal: NutritionMeal) {
+    dismissKeyboard();
     setEditingMealId(meal.id);
     setMealDraftName(meal.name);
     setMealDraftItems(meal.items.map((item) => ({ ...item })));
@@ -165,6 +167,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   }
 
   function handleBottomAction() {
+    dismissKeyboard();
     if (tab === "myMeals") {
       openCreateMeal();
       return;
@@ -174,6 +177,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   }
 
   function handleScanPress() {
+    dismissKeyboard();
     setBarcodeFeedback(null);
     setScannerOpen(true);
   }
@@ -231,12 +235,14 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   }
 
   function openPicker(food: FoodSearchResult, curated?: CuratedFood, mode: ServingPickerMode = "log") {
+    dismissKeyboard();
     setPickerFood(food);
     setPickerCurated(curated);
     setPickerMode(mode);
   }
 
   function closePicker() {
+    dismissKeyboard();
     setPickerFood(null);
     setPickerCurated(undefined);
     setPickerMode("log");
@@ -245,6 +251,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   }
 
   function openEditLoggedItem(item: NutritionLoggedItem) {
+    dismissKeyboard();
     setEditingLoggedItemId(item.id);
     setTab("all");
     setMealEditorOpen(false);
@@ -312,6 +319,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   }, [editItem?.id]);
 
   function finishLoggedFood(itemId: string) {
+    hapticLight();
     closePicker();
     queueNutritionLogToast({ itemId, dateKey: activeDateKey });
     router.back();
@@ -469,6 +477,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   }
 
   function handleHeaderBack() {
+    dismissKeyboard();
     if (pickerFood) {
       if (editingLoggedItemId) {
         setEditingLoggedItemId(null);
@@ -526,12 +535,34 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
   const showBottomChrome =
     !pickerFood && !manualOpen && !(mealEditorOpen && mealAddMode !== "none" && mealAddMode !== "manual");
 
+  const keyboardAvoidingBehavior = Platform.OS === "ios" ? "padding" : undefined;
+
+  const servingPickerOverlay =
+    pickerFood == null ? null : (
+      <View
+        className="absolute inset-0 z-10"
+        style={{ backgroundColor: colors.background }}
+      >
+        <ServingPickerSheet
+          food={pickerFood}
+          curated={pickerCurated}
+          dayLogAtCapacity={dayLogAtCapacity}
+          mode={pickerMode}
+          editing={Boolean(editingLoggedItemId)}
+          initialMeasurementId={pickerInitialMeasurementId}
+          initialQuantity={pickerInitialQuantity}
+          logButtonLabel={editingLoggedItemId ? "Save" : undefined}
+          onLog={logFromPicker}
+          onSaveToMyFoods={pickerMode === "log" && !editingLoggedItemId ? savePickerToMyFoods : undefined}
+        />
+      </View>
+    );
+
   return (
     <PageTransition>
-    <KeyboardAvoidingView
+    <View
       testID="modal-log-food"
       style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View
         className="flex-row items-center gap-3 border-b px-screen-x py-3"
@@ -563,12 +594,12 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
           <Pressable
             onPress={handleScanPress}
             testID="log-food-scan"
-            accessibilityLabel="Scan barcode"
+            accessibilityLabel="Barcode"
             className="flex-row items-center gap-1.5 rounded-full border px-3.5 py-2"
             style={{ borderColor: accent, backgroundColor: accent }}
           >
             <Text className="text-[13px] font-bold" style={{ color: accentText }}>
-              Scan
+              Barcode
             </Text>
           </Pressable>
         ) : (
@@ -576,21 +607,9 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
         )}
       </View>
 
-      {pickerFood ? (
-        <ServingPickerSheet
-          food={pickerFood}
-          curated={pickerCurated}
-          dayLogAtCapacity={dayLogAtCapacity}
-          mode={pickerMode}
-          editing={Boolean(editingLoggedItemId)}
-          initialMeasurementId={pickerInitialMeasurementId}
-          initialQuantity={pickerInitialQuantity}
-          logButtonLabel={editingLoggedItemId ? "Save" : undefined}
-          onBack={closePicker}
-          onLog={logFromPicker}
-          onSaveToMyFoods={pickerMode === "log" && !editingLoggedItemId ? savePickerToMyFoods : undefined}
-        />
-      ) : mealEditorOpen ? (
+      {mealEditorOpen ? (
+        <View className="flex-1">
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={keyboardAvoidingBehavior}>
         <View className="flex-1 px-screen-x pt-4">
           <MealEditorFlow
             state={state}
@@ -605,8 +624,13 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
             onAddModeChange={setMealAddMode}
           />
         </View>
+        </KeyboardAvoidingView>
+        {servingPickerOverlay}
+        </View>
       ) : manualOpen ? (
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={keyboardAvoidingBehavior}>
         <ManualFoodEntryPanel dayLogAtCapacity={dayLogAtCapacity} onLog={logManualFood} />
+        </KeyboardAvoidingView>
       ) : (
         <View className="flex-1">
           {showTabs ? (
@@ -620,7 +644,10 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
                 return (
                   <Pressable
                     key={t}
-                    onPress={() => setTab(t)}
+                    onPress={() => {
+                      dismissKeyboard();
+                      setTab(t);
+                    }}
                     testID={`log-food-tab-${t}`}
                     accessibilityRole="tab"
                     accessibilityState={{ selected }}
@@ -657,7 +684,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
           <ScrollView
             className="flex-1 px-screen-x"
             accessibilityLabel={`Log food for ${activeDateKey}`}
-            contentContainerStyle={{ flexGrow: 1, paddingTop: 20, paddingBottom: insets.bottom + 128 }}
+            contentContainerStyle={{ flexGrow: 1, paddingTop: 20, paddingBottom: insets.bottom + 96 }}
             keyboardShouldPersistTaps="handled"
           >
             {tab === "all" ? (
@@ -704,22 +731,25 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
 
           {showBottomChrome ? (
             <View
-              className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-5"
+              className="absolute bottom-0 left-0 right-0 border-t px-screen-x pt-2.5"
               style={{
                 borderTopColor: colors.border,
                 backgroundColor: colors.background,
-                paddingBottom: bottomActionPadding + 4,
+                paddingBottom: Math.max(insets.bottom, 8) + 8,
               }}
             >
               <PrimaryButton
                 block
                 testID={tab === "myMeals" ? "log-food-create-meal" : "log-food-manual-add"}
                 onPress={handleBottomAction}
+                style={{ minHeight: 40, paddingVertical: 10 }}
               >
                 {bottomActionLabel}
               </PrimaryButton>
             </View>
           ) : null}
+
+          {servingPickerOverlay}
         </View>
       )}
 
@@ -734,7 +764,7 @@ export function LogFoodScreen({ dateKey, editItem = null }: Props) {
           <BarcodeScannerGate onScan={handleBarcodeScan} onClose={() => setScannerOpen(false)} />
         </View>
       ) : null}
-    </KeyboardAvoidingView>
+    </View>
     </PageTransition>
   );
 }

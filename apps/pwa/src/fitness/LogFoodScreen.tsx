@@ -101,6 +101,12 @@ const foodListCardStyle = {
   overflow: "hidden" as const,
 };
 
+const foodItemCardStyle = {
+  padding: "4px 14px",
+  marginBottom: 8,
+  overflow: "hidden" as const,
+};
+
 const PICKER_MACRO_COLORS = {
   Protein: "var(--macro-protein)",
   Carbs: "var(--macro-carbs)",
@@ -1191,21 +1197,6 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       whiteSpace: "nowrap",
     }) as const;
 
-  const unitPill = (active: boolean) =>
-    ({
-      flexShrink: 0,
-      padding: "8px 14px",
-      borderRadius: 10,
-      border: "none",
-      fontWeight: 600,
-      fontSize: 13,
-      letterSpacing: "-0.02em",
-      cursor: "pointer",
-      background: active ? "var(--surface-4)" : "transparent",
-      color: active ? "var(--text-primary)" : "var(--text-faint-soft)",
-      whiteSpace: "nowrap",
-    }) as const;
-
   const foodRowStyle = {
     display: "flex",
     alignItems: "center" as const,
@@ -1305,7 +1296,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             type="button"
             className="tap"
             onClick={() => setScannerOpen(true)}
-            aria-label="Scan barcode"
+            aria-label="Barcode"
             style={{
               flexShrink: 0,
               display: "flex",
@@ -1323,7 +1314,7 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
             }}
           >
             <IconScan size={17} stroke={2.25} />
-            Scan
+            Barcode
           </button>
         ) : null}
       </div>
@@ -1331,75 +1322,79 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
       {pickerFood ? (
         <>
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px 100px", WebkitOverflowScrolling: "touch" }}>
-            <div className="card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16, marginBottom: 12 }}>
-              <div>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.02em", lineHeight: 1.25 }}>
-                      {displayFoodName(pickerFood.name, pickerFood.source)}
-                    </div>
-                    {pickerFood.brand ? (
-                      <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-faint-soft)", fontWeight: 500 }}>
-                        {pickerFood.brand}
-                      </div>
-                    ) : null}
+            <div className="card" style={{ padding: "16px 18px", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.02em", lineHeight: 1.25 }}>
+                    {displayFoodName(pickerFood.name, pickerFood.source)}
                   </div>
-                  {pickerMacros
-                    ? renderFavoriteButton(
-                        {
-                          name: pickerFood.name,
-                          ...pickerMacros,
-                          servingLabel: pickerServingLabel(pickerMeasurement!, pickerQuantityNum, pickerFixedLabels),
-                        },
-                        pickerFood.name,
-                      )
-                    : null}
+                  {pickerFood.brand ? (
+                    <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-faint-soft)", fontWeight: 500 }}>
+                      {pickerFood.brand}
+                    </div>
+                  ) : null}
                 </div>
+                {pickerMacros
+                  ? renderFavoriteButton(
+                      {
+                        name: pickerFood.name,
+                        ...pickerMacros,
+                        servingLabel: pickerServingLabel(pickerMeasurement!, pickerQuantityNum, pickerFixedLabels),
+                      },
+                      pickerFood.name,
+                    )
+                  : null}
               </div>
+            </div>
 
-              <div>
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: "var(--text-ghost)",
-                    fontWeight: 500,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    marginBottom: 8,
-                  }}
-                >
-                  Unit
-                </div>
-                <div
-                  role="tablist"
-                  aria-label="Serving unit"
-                  style={{
-                    display: "flex",
-                    gap: 4,
-                    padding: 4,
-                    borderRadius: 12,
-                    background: "var(--surface-3)",
-                    overflowX: "auto",
-                    WebkitOverflowScrolling: "touch",
-                  }}
-                >
-                  {pickerMeasurements.map((m) => {
-                    const active = pickerMeasurement?.id === m.id;
-                    return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={active}
-                        className="tap"
-                        onClick={() => selectPickerMeasurement(m)}
-                        style={unitPill(active)}
-                      >
-                        {m.label}
-                      </button>
-                    );
-                  })}
-                </div>
+            <div style={{ marginBottom: 12 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "var(--text-ghost)",
+                  fontWeight: 500,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  marginBottom: 8,
+                }}
+              >
+                Unit
+              </div>
+              <div
+                role="tablist"
+                aria-label="Serving unit"
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  overflowX: "auto",
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
+                {pickerMeasurements.map((m) => {
+                  const active = pickerMeasurement?.id === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      className="tap card"
+                      onClick={() => selectPickerMeasurement(m)}
+                      style={{
+                        flexShrink: 0,
+                        padding: "14px 16px",
+                        borderColor: active ? "var(--text-primary)" : undefined,
+                        fontWeight: 600,
+                        fontSize: 13,
+                        letterSpacing: "-0.02em",
+                        color: active ? "var(--text-primary)" : "var(--text-faint-soft)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -2030,18 +2025,14 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                             <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)", marginBottom: 10 }}>
                               Common Foods
                             </div>
-                            <div className="card" style={{ ...foodListCardStyle, marginBottom: apiResults.length > 0 ? 16 : foodListCardStyle.marginBottom }}>
-                              {filteredCurated.map((curated, idx) => {
-                                const macros = curatedDefaultServingMacros(curated);
-                                return (
+                            {filteredCurated.map((curated) => {
+                              const macros = curatedDefaultServingMacros(curated);
+                              return (
+                                <div key={curated.id} className="card" style={foodItemCardStyle}>
                                   <button
-                                    key={curated.id}
                                     type="button"
                                     className="tap between"
-                                    style={{
-                                      ...foodRowStyle,
-                                      borderBottom: idx === filteredCurated.length - 1 ? "none" : foodRowStyle.borderBottom,
-                                    }}
+                                    style={{ ...foodRowStyle, borderBottom: "none" }}
                                     onClick={() => openCuratedPicker(curated)}
                                   >
                                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -2060,26 +2051,22 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                                     )}
                                     <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
                                   </button>
-                                );
-                              })}
-                            </div>
+                                </div>
+                              );
+                            })}
                           </>
                         ) : null}
                         {apiResults.length > 0 ? (
                           <>
-                            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)", marginBottom: 10 }}>
+                            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-ghost)", marginTop: filteredCurated.length > 0 ? 16 : 0, marginBottom: 10 }}>
                               More Results
                             </div>
-                            <div className="card" style={foodListCardStyle}>
-                              {apiResults.map((food, idx) => (
+                            {apiResults.map((food) => (
+                              <div key={food.id} className="card" style={foodItemCardStyle}>
                                 <button
-                                  key={food.id}
                                   type="button"
                                   className="tap between"
-                                  style={{
-                                    ...foodRowStyle,
-                                    borderBottom: idx === apiResults.length - 1 ? "none" : foodRowStyle.borderBottom,
-                                  }}
+                                  style={{ ...foodRowStyle, borderBottom: "none" }}
                                   onClick={() => openPicker(food)}
                                 >
                                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -2102,8 +2089,8 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                                   )}
                                   <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
                                 </button>
-                              ))}
-                            </div>
+                              </div>
+                            ))}
                           </>
                         ) : null}
                       </>
@@ -2120,59 +2107,57 @@ export function LogFoodScreen({ open, onClose, dateKey, state, setState, editIte
                         Nothing logged recently. Search above or use Manual Add.
                       </p>
                     ) : (
-                      <div className="card" style={foodListCardStyle}>
-                        {filteredRecent.map((it, idx) => (
-                          <div
-                            key={`${it.id}-${it.name}`}
-                            data-recent-item-id={it.id}
-                            className={`between${highlightItemId === it.id ? " food-log-recent-item--highlight" : ""}`}
-                            style={{
-                              alignItems: "center",
-                              gap: 12,
-                              padding: "12px 0",
-                              borderBottom: idx === filteredRecent.length - 1 ? "none" : "1px solid var(--divider-subtle)",
-                            }}
+                      filteredRecent.map((it) => (
+                        <div
+                          key={`${it.id}-${it.name}`}
+                          data-recent-item-id={it.id}
+                          className={`card between${highlightItemId === it.id ? " food-log-recent-item--highlight" : ""}`}
+                          style={{
+                            ...foodItemCardStyle,
+                            alignItems: "center",
+                            gap: 12,
+                            padding: "4px 14px",
+                          }}
+                        >
+                          <button
+                            type="button"
+                            className="tap"
+                            style={{ ...foodRowStyle, flex: 1, padding: 0, borderBottom: "none" }}
+                            aria-label={`Edit and log ${it.name.trim() || "food"}`}
+                            onClick={() => openRecentItemForLog(it)}
                           >
-                            <button
-                              type="button"
-                              className="tap"
-                              style={{ ...foodRowStyle, flex: 1, padding: 0, borderBottom: "none" }}
-                              aria-label={`Edit and log ${it.name.trim() || "food"}`}
-                              onClick={() => openRecentItemForLog(it)}
-                            >
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
-                                  {displayFoodName(it.name.trim() || "Food", it.source)}
-                                </div>
-                                <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                                  {Math.round(Number(it.cal) || 0)} cal · {formatGramsInLabel(it.servingLabel?.trim() || DEFAULT_SERVING)}
-                                </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
+                                {displayFoodName(it.name.trim() || "Food", it.source)}
                               </div>
-                              <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
-                            </button>
-                            {renderFavoriteButton(
-                              {
-                                name: it.name.trim() || "Food",
-                                cal: Number(it.cal) || 0,
-                                p: Number(it.p) || 0,
-                                c: Number(it.c) || 0,
-                                f: Number(it.f) || 0,
-                                servingLabel: it.servingLabel?.trim(),
-                              },
-                              it.name.trim() || "food",
-                            )}
-                            <button
-                              type="button"
-                              className="tap"
-                              aria-label={`Log again ${it.name.trim() || "food"}`}
-                              onClick={() => relogItem(it)}
-                              style={addButtonStyle}
-                            >
-                              +
-                            </button>
-                          </div>
-                        ))}
-                      </div>
+                              <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                                {Math.round(Number(it.cal) || 0)} cal · {formatGramsInLabel(it.servingLabel?.trim() || DEFAULT_SERVING)}
+                              </div>
+                            </div>
+                            <span style={{ flexShrink: 0, fontSize: 18, color: "var(--text-ghost)" }}>›</span>
+                          </button>
+                          {renderFavoriteButton(
+                            {
+                              name: it.name.trim() || "Food",
+                              cal: Number(it.cal) || 0,
+                              p: Number(it.p) || 0,
+                              c: Number(it.c) || 0,
+                              f: Number(it.f) || 0,
+                              servingLabel: it.servingLabel?.trim(),
+                            },
+                            it.name.trim() || "food",
+                          )}
+                          <button
+                            type="button"
+                            className="tap"
+                            aria-label={`Log again ${it.name.trim() || "food"}`}
+                            onClick={() => relogItem(it)}
+                            style={addButtonStyle}
+                          >
+                            +
+                          </button>
+                        </div>
+                      ))
                     )}
                   </>
                 )}
