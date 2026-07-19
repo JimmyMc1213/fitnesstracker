@@ -1,4 +1,5 @@
 export type AuthUserLike = {
+  email?: string | null;
   identities?: { provider: string }[];
   app_metadata?: { provider?: string; providers?: string[] };
 };
