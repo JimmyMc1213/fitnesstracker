@@ -11,6 +11,10 @@ import { isRestorableOnboardingDraft, readOnboardingDraft, writeOnboardingDraft 
 
 const storageAdapter = createAsyncStorageAdapter();
 
+function isPlaceholderDisplayName(name: string | undefined): boolean {
+  return (name?.trim().toLowerCase() ?? "") === "friend";
+}
+
 /** Writes the account name into local fitness + onboarding draft when still blank. */
 export async function seedPersistedDisplayName(name: string): Promise<void> {
   const trimmed = name.trim();
@@ -21,13 +25,16 @@ export async function seedPersistedDisplayName(name: string): Promise<void> {
   const nextSlice: Partial<PersistedFitnessSlice> = { ...existingSlice };
   let sliceDirty = false;
 
-  if (!nextSlice.displayName?.trim()) {
+  if (!nextSlice.displayName?.trim() || isPlaceholderDisplayName(nextSlice.displayName)) {
     nextSlice.displayName = trimmed;
     sliceDirty = true;
   }
 
   const draftFromSlice = normalizeOnboardingDraft(nextSlice.onboardingDraft);
-  if (isRestorableOnboardingDraft(draftFromSlice) && !draftFromSlice.displayName.trim()) {
+  if (
+    isRestorableOnboardingDraft(draftFromSlice) &&
+    (!draftFromSlice.displayName.trim() || isPlaceholderDisplayName(draftFromSlice.displayName))
+  ) {
     nextSlice.onboardingDraft = { ...draftFromSlice, displayName: trimmed };
     sliceDirty = true;
   }
@@ -37,7 +44,10 @@ export async function seedPersistedDisplayName(name: string): Promise<void> {
   }
 
   const dedicatedDraft = await readOnboardingDraft();
-  if (isRestorableOnboardingDraft(dedicatedDraft) && !dedicatedDraft.displayName.trim()) {
+  if (
+    isRestorableOnboardingDraft(dedicatedDraft) &&
+    (!dedicatedDraft.displayName.trim() || isPlaceholderDisplayName(dedicatedDraft.displayName))
+  ) {
     await writeOnboardingDraft({ ...dedicatedDraft, displayName: trimmed });
   }
 }

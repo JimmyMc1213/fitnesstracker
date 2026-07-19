@@ -60,6 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       const { data } = await sb.auth.getSession();
       setSession(data.session ?? null);
+      const resolvedName = displayNameFromUser(data.session?.user);
+      if (resolvedName) void seedPersistedDisplayName(resolvedName);
     } catch {
       setSession(null);
     } finally {
@@ -111,6 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setSession(null);
             } else {
               setSession(nextSession);
+              const resolvedName = displayNameFromUser(nextSession.user);
+              if (resolvedName) void seedPersistedDisplayName(resolvedName);
             }
           } catch {
             setSession(null);
@@ -152,7 +156,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!sb) return { error: "Add Supabase keys to sign in." };
     const { data, error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
     if (error) return { error: mapSignInError(error.message) };
-    if (data.session) setSession(data.session);
+    if (data.session) {
+      setSession(data.session);
+      const resolvedName = displayNameFromUser(data.session.user);
+      if (resolvedName) await seedPersistedDisplayName(resolvedName);
+    }
     setSessionResolved(true);
     return {};
   }, []);

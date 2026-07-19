@@ -84,7 +84,8 @@ export function FitnessSyncProvider({ children }: { children: ReactNode }) {
   const seedDisplayName = useCallback(
     (name: string) => {
       setFitnessState((prev) => {
-        if (prev.displayName.trim()) return prev;
+        const current = prev.displayName.trim();
+        if (current && current.toLowerCase() !== "friend") return prev;
         return { ...prev, displayName: name };
       });
     },
