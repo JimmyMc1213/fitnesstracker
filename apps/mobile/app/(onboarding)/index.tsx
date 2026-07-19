@@ -50,6 +50,7 @@ import {
 import { useFutureYouGenerationPoll } from "@/hooks/useFutureYouGenerationPoll";
 import { useFutureYouOnboarding } from "@/hooks/useFutureYouOnboarding";
 import { useOnboardingState } from "@/hooks/useOnboardingState";
+import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
 import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
 import { finishOnboarding } from "@/lib/finishOnboarding";
@@ -114,6 +115,10 @@ import {
   isValidOnboardingHeightIn,
   isValidWeighInLbs,
 } from "@/lib/unitConversions";
+import {
+  onboardingDisplayNameForCopy,
+  resolveOnboardingDisplayName,
+} from "@/lib/resolveOnboardingDisplayName";
 
 const GENDERS: UserGender[] = ["male", "female", "other"];
 
@@ -156,8 +161,19 @@ export default function OnboardingWizardScreen() {
     subscriptionTier,
   } = useOnboardingWizard();
 
+  const { session } = useAuth();
   const { setOnboardingComplete } = useOnboardingState();
-  const { replaceFitnessState } = useFitnessState();
+  const { state: fitnessState, replaceFitnessState } = useFitnessState();
+  const resolvedDisplayName = useMemo(
+    () =>
+      resolveOnboardingDisplayName({
+        wizardDisplayName: displayName,
+        sessionUser: session?.user,
+        fitnessDisplayName: fitnessState?.displayName,
+      }),
+    [displayName, session?.user, fitnessState?.displayName],
+  );
+  const displayNameForCopy = onboardingDisplayNameForCopy(resolvedDisplayName);
   const [finishingOnboarding, setFinishingOnboarding] = useState(false);
   const [showPurchaseWelcomeSplash, setShowPurchaseWelcomeSplash] = useState(false);
   const [purchaseComplete, setPurchaseComplete] = useState(false);
@@ -1002,7 +1018,7 @@ export default function OnboardingWizardScreen() {
   }
 
   if (forStep === 26) {
-    const name = displayName.trim() || "Friend";
+    const name = displayNameForCopy;
     const templates = draftTemplates ?? [];
     const pollStatus = futureYou?.generationStatus ?? "idle";
     const futureYouBlocked = isFutureYouPhotoBlocked(dobAge);
@@ -1036,7 +1052,7 @@ export default function OnboardingWizardScreen() {
   }
 
   if (forStep === ONBOARDING_STEP_PAYWALL) {
-    const name = displayName.trim() || "Friend";
+    const name = displayNameForCopy;
     const templates = draftTemplates ?? [];
     const pollStatus = futureYou?.generationStatus ?? "idle";
     const futureYouBlocked = isFutureYouPhotoBlocked(dobAge);
@@ -1076,7 +1092,7 @@ export default function OnboardingWizardScreen() {
   }
 
   if (forStep === ONBOARDING_STEP_FUTURE_YOU_SUCCESS && subscriptionTier === "pro") {
-    const name = displayName.trim() || "Friend";
+    const name = displayNameForCopy;
     const templates = draftTemplates ?? [];
     const pollStatus = futureYou?.generationStatus ?? "idle";
     const futureYouBlocked = isFutureYouPhotoBlocked(dobAge);
@@ -1102,7 +1118,7 @@ export default function OnboardingWizardScreen() {
       setFinishingOnboarding(true);
       try {
         const nextState = await finishOnboarding({
-          displayName: name,
+          displayName: resolvedDisplayName,
           profile,
           unitPreferences,
           experienceLevel,

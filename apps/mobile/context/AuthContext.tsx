@@ -11,12 +11,19 @@ import { changeUserPassword, updateUserEmail } from "@/lib/accountAuth";
 import { enforceAuthGenerationIfNeeded } from "@/lib/authEnforcement";
 import { authenticatedUserEmail } from "@/lib/authSession";
 import { displayNameFromUser } from "@/lib/displayNameFromUser";
+import { configureRevenueCat, logInRevenueCat } from "@/lib/revenueCat";
+import { syncProEntitlementToServer } from "@/lib/syncProEntitlement";
 import { seedPersistedDisplayName } from "@/lib/seedPersistedDisplayName";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
 
 WebBrowser.maybeCompleteAuthSession();
 
 const DUPLICATE_EMAIL_PATTERNS = ["already registered", "already exists", "user already"];
+
+function linkRevenueCatIdentity(userId: string | undefined): void {
+  if (!userId?.trim()) return;
+  void configureRevenueCat().then(() => logInRevenueCat(userId)).then(() => syncProEntitlementToServer());
+}
 
 /** Never leave the app on a spinner if Supabase or SecureStore is slow/unreachable. */
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 10_000;
@@ -60,6 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       const { data } = await sb.auth.getSession();
       setSession(data.session ?? null);
+      const resolvedName = displayNameFromUser(data.session?.user);
+      if (resolvedName) void seedPersistedDisplayName(resolvedName);
+      linkRevenueCatIdentity(data.session?.user?.id);
     } catch {
       setSession(null);
     } finally {
@@ -111,6 +121,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setSession(null);
             } else {
               setSession(nextSession);
+              const resolvedName = displayNameFromUser(nextSession.user);
+              if (resolvedName) void seedPersistedDisplayName(resolvedName);
+              linkRevenueCatIdentity(nextSession.user.id);
             }
           } catch {
             setSession(null);
@@ -152,7 +165,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!sb) return { error: "Add Supabase keys to sign in." };
     const { data, error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
     if (error) return { error: mapSignInError(error.message) };
-    if (data.session) setSession(data.session);
+    if (data.session) {
+      setSession(data.session);
+      const resolvedName = displayNameFromUser(data.session.user);
+      if (resolvedName) await seedPersistedDisplayName(resolvedName);
+    }
     setSessionResolved(true);
     return {};
   }, []);

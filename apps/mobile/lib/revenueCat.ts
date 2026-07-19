@@ -10,6 +10,7 @@ import {
   REVENUECAT_PRODUCT_IDS,
   sanitizeRevenueCatError,
 } from "@/lib/revenueCatMessages";
+import { syncProEntitlementToServer } from "@/lib/syncProEntitlement";
 
 const IOS_KEY = String(
   process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ??
@@ -163,11 +164,13 @@ async function resolveProAccessAfterPurchase(
   purchasedProductId: string,
 ): Promise<PurchaseProResult> {
   if (hasProEntitlement(initial)) {
+    void syncProEntitlementToServer();
     return { ok: true, stub: false };
   }
 
   const refreshed = await refreshCustomerInfo(Purchases);
   if (hasProEntitlement(refreshed)) {
+    void syncProEntitlementToServer();
     return { ok: true, stub: false };
   }
 
@@ -178,6 +181,7 @@ async function resolveProAccessAfterPurchase(
       activeEntitlements: Object.keys(refreshed.entitlements.active),
       activeSubscriptions: refreshed.activeSubscriptions,
     });
+    void syncProEntitlementToServer();
     return { ok: true, stub: false };
   }
 
@@ -310,7 +314,11 @@ export async function restorePurchases(): Promise<PurchaseProResult> {
       ? restored
       : await refreshCustomerInfo(Purchases);
     const hasPro = hasProEntitlement(customerInfo);
-    return hasPro ? { ok: true, stub: false } : { ok: false, error: "No active subscription found" };
+    if (hasPro) {
+      void syncProEntitlementToServer();
+      return { ok: true, stub: false };
+    }
+    return { ok: false, error: "No active subscription found" };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Restore failed";
     if (isNativeModuleError(message)) {

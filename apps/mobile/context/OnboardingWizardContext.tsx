@@ -35,6 +35,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useFitnessSync } from "@/context/FitnessSyncContext";
 import { displayNameFromUser } from "@/lib/displayNameFromUser";
+import { resolveOnboardingDisplayName } from "@/lib/resolveOnboardingDisplayName";
 import {
   EMPTY_WIZARD_UNIT_PREFERENCES,
   FRESH_ONBOARDING_PROFILE,
@@ -214,6 +215,42 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
       cancelled = true;
     };
   }, [fitnessHydrated, fitnessState?.onboardingDraft, fitnessState?.displayName, session]);
+
+  useEffect(() => {
+    if (!fitnessHydrated) return;
+
+    setWizardState((prev) => {
+      const current = prev.displayName.trim();
+      if (current && current.toLowerCase() !== "friend") return prev;
+
+      const resolved = resolveOnboardingDisplayName({
+        wizardDisplayName: "",
+        sessionUser: session?.user,
+        fitnessDisplayName: fitnessState?.displayName,
+      });
+      if (!resolved.trim()) return prev;
+
+      const next = { ...prev, displayName: resolved };
+      void persistOnboardingDraft(
+        buildOnboardingDraft({
+          stepIndex: next.stepIndex,
+          displayName: next.displayName,
+          unitPreferences: next.unitPreferences as UnitPreferences,
+          experienceLevel: next.experienceLevel,
+          equipmentSetup: next.equipmentSetup,
+          profile: next.profile,
+          sessionLength: next.sessionLength,
+          draftTemplates: next.draftTemplates,
+          macros: next.macros,
+          notificationPrefs: next.notificationPrefs,
+          subscriptionTier: next.subscriptionTier,
+          theme: next.draftTheme,
+          futureYou: next.futureYou,
+        }),
+      );
+      return next;
+    });
+  }, [fitnessHydrated, fitnessState?.displayName, session]);
 
   const persistDraft = useCallback(
     async (nextState: typeof INITIAL_STATE) => {
