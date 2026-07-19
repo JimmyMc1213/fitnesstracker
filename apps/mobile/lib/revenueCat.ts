@@ -4,6 +4,7 @@ import type { PaywallBillingPeriod } from "@/lib/paywallPlans";
 import {
   customerInfoGrantsPro,
   isKnownProProductId,
+  isRevenueCatStubAllowed,
   PAYWALL_ENTITLEMENT_NOT_GRANTED_MESSAGE,
   PAYWALL_STORE_SETUP_MESSAGE,
   PAYWALL_STORE_UNAVAILABLE_MESSAGE,
@@ -45,6 +46,20 @@ export function isRevenueCatConfigured(): boolean {
   if (Platform.OS === "ios") return IOS_KEY.length > 0;
   if (Platform.OS === "android") return ANDROID_KEY.length > 0;
   return false;
+}
+
+function stubPurchaseResult(): PurchaseProResult {
+  if (isRevenueCatStubAllowed()) {
+    return { ok: true, stub: true };
+  }
+  return { ok: false, error: PAYWALL_STORE_SETUP_MESSAGE };
+}
+
+function stubOfferingsResult(): PaywallOfferingsResult {
+  if (isRevenueCatStubAllowed()) {
+    return { ok: true, packages: [], stub: true };
+  }
+  return { ok: false, error: PAYWALL_STORE_SETUP_MESSAGE, stub: false };
 }
 
 /** Configure RevenueCat once when entering onboarding (sandbox key from env). */
@@ -195,18 +210,18 @@ function isNativeModuleError(message: string): boolean {
 /** Prefetch offerings when the paywall mounts so purchase errors surface early. */
 export async function loadPaywallOfferings(): Promise<PaywallOfferingsResult> {
   if (!isRevenueCatConfigured() || purchasesModuleUnavailable) {
-    return { ok: true, packages: [], stub: true };
+    return stubOfferingsResult();
   }
 
   const Purchases = loadPurchasesModule()?.default;
   if (!Purchases) {
-    return { ok: true, packages: [], stub: true };
+    return stubOfferingsResult();
   }
 
   try {
     await configureRevenueCat();
     if (!configured) {
-      return { ok: true, packages: [], stub: true };
+      return stubOfferingsResult();
     }
 
     const offerings = await Purchases.getOfferings();
@@ -229,7 +244,7 @@ export async function loadPaywallOfferings(): Promise<PaywallOfferingsResult> {
     const message = error instanceof Error ? error.message : "Unable to load subscriptions";
     if (isNativeModuleError(message)) {
       purchasesModuleUnavailable = true;
-      return { ok: true, packages: [], stub: true };
+      return stubOfferingsResult();
     }
 
     return {
@@ -247,19 +262,19 @@ export type PurchaseProResult = { ok: true; stub: boolean } | { ok: false; error
  */
 export async function purchaseProSubscription(period: PaywallBillingPeriod): Promise<PurchaseProResult> {
   if (!isRevenueCatConfigured() || purchasesModuleUnavailable) {
-    return { ok: true, stub: true };
+    return stubPurchaseResult();
   }
 
   const module = loadPurchasesModule();
   const Purchases = module?.default;
   if (!Purchases) {
-    return { ok: true, stub: true };
+    return stubPurchaseResult();
   }
 
   try {
     await configureRevenueCat();
     if (!configured) {
-      return { ok: true, stub: true };
+      return stubPurchaseResult();
     }
 
     const offerings = await Purchases.getOfferings();
@@ -283,7 +298,7 @@ export async function purchaseProSubscription(period: PaywallBillingPeriod): Pro
     const message = error instanceof Error ? error.message : "Purchase failed";
     if (isNativeModuleError(message)) {
       purchasesModuleUnavailable = true;
-      return { ok: true, stub: true };
+      return stubPurchaseResult();
     }
     const sanitized = sanitizeRevenueCatError(message);
     if (!sanitized) {
@@ -295,18 +310,18 @@ export async function purchaseProSubscription(period: PaywallBillingPeriod): Pro
 
 export async function restorePurchases(): Promise<PurchaseProResult> {
   if (!isRevenueCatConfigured() || purchasesModuleUnavailable) {
-    return { ok: true, stub: true };
+    return stubPurchaseResult();
   }
 
   const Purchases = loadPurchasesModule()?.default;
   if (!Purchases) {
-    return { ok: true, stub: true };
+    return stubPurchaseResult();
   }
 
   try {
     await configureRevenueCat();
     if (!configured) {
-      return { ok: true, stub: true };
+      return stubPurchaseResult();
     }
 
     const restored = await Purchases.restorePurchases();
@@ -323,7 +338,7 @@ export async function restorePurchases(): Promise<PurchaseProResult> {
     const message = error instanceof Error ? error.message : "Restore failed";
     if (isNativeModuleError(message)) {
       purchasesModuleUnavailable = true;
-      return { ok: true, stub: true };
+      return stubPurchaseResult();
     }
     const sanitized = sanitizeRevenueCatError(message);
     return { ok: false, error: sanitized ?? message };

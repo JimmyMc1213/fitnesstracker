@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   customerInfoGrantsPro,
+  isPaywallStoreReady,
+  isRevenueCatStubAllowed,
   PAYWALL_ENTITLEMENT_NOT_GRANTED_MESSAGE,
   PAYWALL_STORE_SETUP_MESSAGE,
   REVENUECAT_PRODUCT_IDS,
@@ -9,6 +11,27 @@ import {
 } from "./revenueCatMessages";
 
 describe("revenueCat", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("allows RevenueCat stub mode only in dev builds", () => {
+    vi.stubGlobal("__DEV__", true);
+    expect(isRevenueCatStubAllowed()).toBe(true);
+
+    vi.stubGlobal("__DEV__", false);
+    expect(isRevenueCatStubAllowed()).toBe(false);
+  });
+
+  it("treats stub offerings as store-ready only in dev", () => {
+    vi.stubGlobal("__DEV__", true);
+    expect(isPaywallStoreReady(true, true)).toBe(true);
+
+    vi.stubGlobal("__DEV__", false);
+    expect(isPaywallStoreReady(true, true)).toBe(false);
+    expect(isPaywallStoreReady(true, false)).toBe(true);
+  });
+
   it("uses the App Store Connect product IDs documented for launch", () => {
     expect(REVENUECAT_PRODUCT_IDS.monthly).toBe("newyouai_pro_monthly");
     expect(REVENUECAT_PRODUCT_IDS.yearly).toBe("newyouai_pro_yearly");

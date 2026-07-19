@@ -41,6 +41,16 @@ export const PAYWALL_STORE_UNAVAILABLE_MESSAGE =
 export const PAYWALL_STORE_SETUP_MESSAGE =
   "We're finishing subscription setup. Please try again shortly or email support@newyouai.app.";
 
+/** Dev-only stub purchases when RevenueCat or the native module is unavailable. */
+export function isRevenueCatStubAllowed(): boolean {
+  return typeof __DEV__ !== "undefined" && __DEV__;
+}
+
+/** Paywall may proceed when the store is live or when dev stub mode is explicitly allowed. */
+export function isPaywallStoreReady(ready: boolean, stub: boolean): boolean {
+  return ready && (!stub || isRevenueCatStubAllowed());
+}
+
 /** Strip RevenueCat SDK noise before showing errors in the paywall UI. */
 export function sanitizeRevenueCatError(message: string): string | null {
   const trimmed = message.trim();

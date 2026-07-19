@@ -27,6 +27,7 @@ import type { OnboardingPlanSnapshot } from "@/lib/onboardingPlanSnapshot";
 import type { PaywallBillingPeriod } from "@/lib/paywallPlans";
 import { paywallHeroLayoutTier } from "@/lib/paywallHeroLayout";
 import { usePaywallOfferings } from "@/hooks/usePaywallOfferings";
+import { isPaywallStoreReady } from "@/lib/revenueCatMessages";
 import { purchaseProSubscription, restorePurchases } from "@/lib/revenueCat";
 import {
   isOnboardingDevResetEnabled,
@@ -72,7 +73,7 @@ export function OnboardingPaywall({
     ? paywallHeroLayoutTier(screenHeight, insets.top, insets.bottom)
     : null;
   const compactHeroLayout = heroLayout != null && heroLayout.tier !== "regular";
-  const storeReady = paywallOfferings.stub || paywallOfferings.ready;
+  const storeReady = isPaywallStoreReady(paywallOfferings.ready, paywallOfferings.stub);
   const storeError = !paywallOfferings.loading && !storeReady ? paywallOfferings.error : null;
   const ctaEnabled =
     isFutureYouPaywallCtaEnabled(futureYou, generationStatus, photoBlocked) &&

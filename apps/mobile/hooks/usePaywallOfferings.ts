@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { isRevenueCatConfigured, loadPaywallOfferings } from "@/lib/revenueCat";
+import { PAYWALL_STORE_SETUP_MESSAGE } from "@/lib/revenueCatMessages";
 
 type PaywallOfferingsState = {
   loading: boolean;
@@ -10,12 +11,24 @@ type PaywallOfferingsState = {
 };
 
 export function usePaywallOfferings(): PaywallOfferingsState {
-  const [state, setState] = useState<PaywallOfferingsState>(() => ({
-    loading: isRevenueCatConfigured(),
-    ready: !isRevenueCatConfigured(),
-    stub: !isRevenueCatConfigured(),
-    error: null,
-  }));
+  const [state, setState] = useState<PaywallOfferingsState>(() => {
+    if (!isRevenueCatConfigured()) {
+      const stub = typeof __DEV__ !== "undefined" && __DEV__;
+      return {
+        loading: false,
+        ready: stub,
+        stub,
+        error: stub ? null : PAYWALL_STORE_SETUP_MESSAGE,
+      };
+    }
+
+    return {
+      loading: true,
+      ready: false,
+      stub: false,
+      error: null,
+    };
+  });
 
   useEffect(() => {
     if (!isRevenueCatConfigured()) return;
