@@ -1,7 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
-import { FUTURE_YOU_BUCKET } from "../_shared/future-you/paths.ts";
+import {
+  FUTURE_YOU_BUCKET,
+  buildFutureYouPreviewPath,
+} from "../_shared/future-you/paths.ts";
+import { buildFutureYouPreviewPng } from "../_shared/future-you/previewImage.ts";
 import {
   FUTURE_YOU_JOB_STALE_ERROR,
   isFutureYouJobStale,
@@ -58,10 +62,35 @@ async function resolveAuthenticatedContext(req: Request): Promise<AuthContext | 
   return { userId: user.id, userClient, adminClient };
 }
 
-/** Phase 7 step 30: replace with subscription / StoreKit entitlement check. */
-async function isFutureYouEntitled(_userId: string, _adminClient: SupabaseClient): Promise<boolean> {
-  const stub = Deno.env.get("FUTURE_YOU_ENTITLEMENT_STUB")?.trim().toLowerCase();
-  if (stub === "true" || stub === "1" || stub === "yes") return true;
+function isStubAllowed(): boolean {
+  const url = Deno.env.get("SUPABASE_URL")?.toLowerCase() ?? "";
+  return url.includes("localhost") || url.includes("127.0.0.1") || url.includes("kong");
+}
+
+/** Reads public.future_you_entitlements (RevenueCat webhook / sync-pro-entitlement). */
+async function isFutureYouEntitled(userId: string, adminClient: SupabaseClient): Promise<boolean> {
+  const { data, error } = await adminClient
+    .from("future_you_entitlements")
+    .select("is_active, expires_at")
+    .eq("user_id", userId)
+    .eq("entitlement_id", "pro")
+    .maybeSingle();
+
+  if (error) {
+    console.error("future-you-status: entitlement lookup failed", error);
+  } else if (data?.is_active) {
+    const expiresAtMs = data.expires_at ? new Date(data.expires_at).getTime() : null;
+    if (expiresAtMs == null || expiresAtMs > Date.now()) return true;
+  }
+
+  if (isStubAllowed()) {
+    const stub = Deno.env.get("FUTURE_YOU_ENTITLEMENT_STUB")?.trim().toLowerCase();
+    if (stub === "true" || stub === "1" || stub === "yes") {
+      console.warn("future-you-status: granting entitlement via local dev stub");
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -99,20 +128,72 @@ async function loadJob(
   return data as FutureYouPollJobRow | null;
 }
 
-async function createResultSignedUrl(
+async function createStorageSignedUrl(
   adminClient: SupabaseClient,
-  resultPath: string,
+  path: string,
 ): Promise<string | null> {
   const { data, error } = await adminClient.storage
     .from(FUTURE_YOU_BUCKET)
-    .createSignedUrl(resultPath, 3600);
+    .createSignedUrl(path, 3600);
 
   if (error || !data?.signedUrl) {
-    console.error("future-you-status: signed URL failed", { resultPath, error });
+    console.error("future-you-status: signed URL failed", { path, error });
     return null;
   }
 
   return data.signedUrl;
+}
+
+/** Backfill teaser objects for jobs that finished before preview uploads existed. */
+async function ensurePreviewObject(
+  adminClient: SupabaseClient,
+  userId: string,
+  job: FutureYouPollJobRow,
+): Promise<string | null> {
+  const previewPath = buildFutureYouPreviewPath(userId, job.id);
+  const existing = await createStorageSignedUrl(adminClient, previewPath);
+  if (existing) return previewPath;
+
+  if (!job.result_photo_path) return null;
+
+  const { data, error } = await adminClient.storage
+    .from(FUTURE_YOU_BUCKET)
+    .download(job.result_photo_path);
+  if (error || !data) {
+    console.error("future-you-status: preview backfill download failed", {
+      jobId: job.id,
+      resultPath: job.result_photo_path,
+      error,
+    });
+    return null;
+  }
+
+  try {
+    const resultBytes = new Uint8Array(await data.arrayBuffer());
+    const previewBytes = await buildFutureYouPreviewPng(resultBytes);
+    const { error: uploadError } = await adminClient.storage
+      .from(FUTURE_YOU_BUCKET)
+      .upload(previewPath, previewBytes, {
+        contentType: "image/png",
+        upsert: true,
+      });
+    if (uploadError) {
+      console.error("future-you-status: preview backfill upload failed", {
+        jobId: job.id,
+        previewPath,
+        uploadError,
+      });
+      return null;
+    }
+    console.info("future-you-status: preview backfilled", { jobId: job.id, previewPath });
+    return previewPath;
+  } catch (previewError) {
+    console.error("future-you-status: preview backfill encode failed", {
+      jobId: job.id,
+      previewError,
+    });
+    return null;
+  }
 }
 
 async function reconcileStaleJob(
@@ -190,11 +271,13 @@ Deno.serve(async (req) => {
     let resultSignedUrl: string | null = null;
 
     if (job.status === "ready" && job.result_photo_path) {
-      const signedUrl = await createResultSignedUrl(auth.adminClient, job.result_photo_path);
       if (entitled) {
-        resultSignedUrl = signedUrl;
+        resultSignedUrl = await createStorageSignedUrl(auth.adminClient, job.result_photo_path);
       } else {
-        previewSignedUrl = signedUrl;
+        const previewPath =
+          (await ensurePreviewObject(auth.adminClient, auth.userId, job)) ??
+          buildFutureYouPreviewPath(auth.userId, job.id);
+        previewSignedUrl = await createStorageSignedUrl(auth.adminClient, previewPath);
       }
     }
 

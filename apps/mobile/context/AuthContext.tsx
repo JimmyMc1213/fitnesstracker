@@ -11,12 +11,19 @@ import { changeUserPassword, updateUserEmail } from "@/lib/accountAuth";
 import { enforceAuthGenerationIfNeeded } from "@/lib/authEnforcement";
 import { authenticatedUserEmail } from "@/lib/authSession";
 import { displayNameFromUser } from "@/lib/displayNameFromUser";
+import { configureRevenueCat, logInRevenueCat } from "@/lib/revenueCat";
+import { syncProEntitlementToServer } from "@/lib/syncProEntitlement";
 import { seedPersistedDisplayName } from "@/lib/seedPersistedDisplayName";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
 
 WebBrowser.maybeCompleteAuthSession();
 
 const DUPLICATE_EMAIL_PATTERNS = ["already registered", "already exists", "user already"];
+
+function linkRevenueCatIdentity(userId: string | undefined): void {
+  if (!userId?.trim()) return;
+  void configureRevenueCat().then(() => logInRevenueCat(userId)).then(() => syncProEntitlementToServer());
+}
 
 /** Never leave the app on a spinner if Supabase or SecureStore is slow/unreachable. */
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 10_000;
@@ -62,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session ?? null);
       const resolvedName = displayNameFromUser(data.session?.user);
       if (resolvedName) void seedPersistedDisplayName(resolvedName);
+      linkRevenueCatIdentity(data.session?.user?.id);
     } catch {
       setSession(null);
     } finally {
@@ -115,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setSession(nextSession);
               const resolvedName = displayNameFromUser(nextSession.user);
               if (resolvedName) void seedPersistedDisplayName(resolvedName);
+              linkRevenueCatIdentity(nextSession.user.id);
             }
           } catch {
             setSession(null);

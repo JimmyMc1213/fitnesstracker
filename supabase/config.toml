@@ -72,3 +72,9 @@ verify_jwt = true
 
 [functions.issue-report]
 verify_jwt = true
+
+[functions.revenuecat-webhook]
+verify_jwt = false
+
+[functions.sync-pro-entitlement]
+verify_jwt = true

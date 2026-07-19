@@ -4,8 +4,10 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { buildFutureYouPrompt } from "../_shared/future-you/buildFutureYouPrompt.ts";
 import {
   FUTURE_YOU_BUCKET,
+  buildFutureYouPreviewPath,
   buildFutureYouResultPath,
 } from "../_shared/future-you/paths.ts";
+import { buildFutureYouPreviewPng } from "../_shared/future-you/previewImage.ts";
 import {
   FUTURE_YOU_JOB_STALE_ERROR,
   isFutureYouJobStale,
@@ -272,6 +274,22 @@ async function runGenerationJob(
 
     if (uploadError) {
       throw new Error("Could not save generated image.");
+    }
+
+    const previewPath = buildFutureYouPreviewPath(userId, jobId);
+    try {
+      const previewBytes = await buildFutureYouPreviewPng(imageBytes);
+      const { error: previewUploadError } = await adminClient.storage
+        .from(FUTURE_YOU_BUCKET)
+        .upload(previewPath, previewBytes, {
+          contentType: "image/png",
+          upsert: true,
+        });
+      if (previewUploadError) {
+        console.warn("future-you-generate: preview upload failed", { jobId, previewUploadError });
+      }
+    } catch (previewError) {
+      console.warn("future-you-generate: preview build failed", { jobId, previewError });
     }
 
     await markJobReady(adminClient, jobId, userId, resultPath, revisedPrompt);

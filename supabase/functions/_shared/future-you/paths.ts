@@ -18,6 +18,11 @@ export function buildFutureYouResultPath(userId: string, jobId: string): string 
   return `users/${userId}/result/${jobId}.png`;
 }
 
+/** Low-resolution teaser derived from the result (paywall / pre-subscribe polls). */
+export function buildFutureYouPreviewPath(userId: string, jobId: string): string {
+  return `users/${userId}/preview/${jobId}.png`;
+}
+
 export function isFutureYouSourcePathForUser(path: string, userId: string): boolean {
   if (!SOURCE_PATH_RE.test(path)) return false;
   return isFutureYouPathOwnedByUser(path, userId);
