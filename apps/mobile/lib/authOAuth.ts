@@ -50,6 +50,9 @@ export function mapOAuthSessionError(message: string, context?: "apple"): string
   if (lower.includes("provider") && lower.includes("not enabled")) {
     return "Apple Sign-In isn't available right now. Please sign up with email instead.";
   }
+  if (lower.includes("nonce")) {
+    return "Apple Sign-In hit a server nonce check. Enable Skip nonce checks for Apple in Supabase Auth providers, then retry.";
+  }
   if (context === "apple") {
     return "Couldn't sign in with Apple. Try email sign-up instead.";
   }

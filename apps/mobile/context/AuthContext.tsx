@@ -1,4 +1,4 @@
-import type { Session } from "@supabase/supabase-js";
+import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import * as WebBrowser from "expo-web-browser";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { AppState, Platform, type AppStateStatus } from "react-native";
@@ -6,7 +6,6 @@ import { AppState, Platform, type AppStateStatus } from "react-native";
 import { AuthContext, type AuthContextValue } from "@/context/auth-context";
 import { mapOAuthSessionError, parseOAuthRedirectUrl } from "@/lib/authOAuth";
 import { authEmailRedirectUrl } from "@/lib/authRedirect";
-import { createAppleAuthNonce } from "@/lib/appleAuthNonce";
 import { changeUserPassword, updateUserEmail } from "@/lib/accountAuth";
 import { enforceAuthGenerationIfNeeded } from "@/lib/authEnforcement";
 import { authenticatedUserEmail } from "@/lib/authSession";
@@ -42,6 +41,17 @@ function mapSignInError(message: string): string {
   return message;
 }
 
+/** getSession JWT user can omit identities; merge getUser for provider-aware UI. */
+async function resolveSessionWithUser(sb: SupabaseClient): Promise<Session | null> {
+  const { data: userResult, error: userError } = await sb.auth.getUser();
+  if (userError || !userResult.user) return null;
+
+  const { data } = await sb.auth.getSession();
+  if (!data.session) return null;
+
+  return { ...data.session, user: userResult.user };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const configured = isSupabaseConfigured();
   const [session, setSession] = useState<Session | null>(null);
@@ -55,8 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     try {
-      const { data: userResult, error: userError } = await sb.auth.getUser();
-      if (userError || !userResult.user) {
+      const merged = await resolveSessionWithUser(sb);
+      if (!merged) {
         try {
           await sb.auth.signOut({ scope: "local" });
         } catch {
@@ -65,11 +75,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(null);
         return;
       }
-      const { data } = await sb.auth.getSession();
-      setSession(data.session ?? null);
-      const resolvedName = displayNameFromUser(data.session?.user);
+      setSession(merged);
+      const resolvedName = displayNameFromUser(merged.user);
       if (resolvedName) void seedPersistedDisplayName(resolvedName);
-      linkRevenueCatIdentity(data.session?.user?.id);
+      linkRevenueCatIdentity(merged.user.id);
     } catch {
       setSession(null);
     } finally {
@@ -116,14 +125,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
           try {
-            const { data: userResult, error: userError } = await sb.auth.getUser();
-            if (userError || !userResult.user) {
+            const merged = await resolveSessionWithUser(sb);
+            if (!merged) {
               setSession(null);
             } else {
-              setSession(nextSession);
-              const resolvedName = displayNameFromUser(nextSession.user);
+              setSession(merged);
+              const resolvedName = displayNameFromUser(merged.user);
               if (resolvedName) void seedPersistedDisplayName(resolvedName);
-              linkRevenueCatIdentity(nextSession.user.id);
+              linkRevenueCatIdentity(merged.user.id);
             }
           } catch {
             setSession(null);
@@ -166,8 +175,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data, error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
     if (error) return { error: mapSignInError(error.message) };
     if (data.session) {
-      setSession(data.session);
-      const resolvedName = displayNameFromUser(data.session.user);
+      const merged = await resolveSessionWithUser(sb);
+      setSession(merged ?? data.session);
+      const resolvedName = displayNameFromUser((merged ?? data.session).user);
       if (resolvedName) await seedPersistedDisplayName(resolvedName);
     }
     setSessionResolved(true);
@@ -294,14 +304,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const available = await AppleAuthentication.isAvailableAsync();
       if (!available) return { error: "Apple Sign-In is not available on this device." };
 
-      const { rawNonce, hashedNonce } = await createAppleAuthNonce();
-
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
-        nonce: hashedNonce,
       });
 
       if (!credential.identityToken) {
@@ -321,12 +328,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: authData, error } = await sb.auth.signInWithIdToken({
         provider: "apple",
         token: credential.identityToken,
-        nonce: rawNonce,
+        ...(credential.authorizationCode
+          ? { access_token: credential.authorizationCode }
+          : {}),
       });
       if (error) return { error: mapOAuthSessionError(error.message, "apple") };
 
       if (authData.session) {
-        setSession(authData.session);
+        const merged = await resolveSessionWithUser(sb);
+        setSession(merged ?? authData.session);
         setSessionResolved(true);
       }
 

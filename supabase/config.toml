@@ -45,10 +45,13 @@ enroll_enabled = false
 verify_enabled = false
 
 # Native iOS Sign in with Apple (bundle ID must match app.config.ts).
+# skip_nonce_check: GoTrue compares hex(SHA256(nonce)) while Apple ID tokens use
+# base64url — required for expo-apple-authentication + signInWithIdToken until fixed upstream.
 [auth.external.apple]
 enabled = true
 client_id = "app.newyouai.mobile"
 secret = ""
+skip_nonce_check = true
 
 # Edge Function deploy settings
 [functions.food-search]

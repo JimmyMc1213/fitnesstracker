@@ -35,3 +35,14 @@ export function isAppleSignInOnly(session: AuthSessionLike): boolean {
   const providers = connectedAuthProviders(session);
   return providers.includes("apple") && !providers.includes("email");
 }
+
+/** Show email/password account controls when the user can manage a password. */
+export function hasEmailPasswordAuth(session: AuthSessionLike): boolean {
+  const email = session?.user?.email?.trim();
+  if (!email) return false;
+  const providers = connectedAuthProviders(session);
+  if (providers.includes("email")) return true;
+  // JWT may omit identities; don't hide password controls for unknown provider metadata.
+  if (providers.length === 0) return true;
+  return !isAppleSignInOnly(session);
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { connectedAuthProviders, isAppleSignInOnly } from "./accountAuth";
+import { connectedAuthProviders, hasEmailPasswordAuth, isAppleSignInOnly } from "./accountAuth";
 
 describe("connectedAuthProviders", () => {
   it("reads providers from identities when present", () => {
@@ -63,5 +63,40 @@ describe("isAppleSignInOnly", () => {
         },
       }),
     ).toBe(false);
+  });
+});
+
+describe("hasEmailPasswordAuth", () => {
+  it("is true for email identity users", () => {
+    expect(
+      hasEmailPasswordAuth({
+        user: {
+          email: "user@example.com",
+          identities: [{ provider: "email" }],
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it("is false for Apple-only users with relay email", () => {
+    expect(
+      hasEmailPasswordAuth({
+        user: {
+          email: "abc@privaterelay.appleid.com",
+          app_metadata: { providers: ["apple"] },
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it("is true when email exists but JWT omitted identities", () => {
+    expect(
+      hasEmailPasswordAuth({
+        user: {
+          email: "user@example.com",
+          app_metadata: { provider: "email", providers: ["email"] },
+        },
+      }),
+    ).toBe(true);
   });
 });

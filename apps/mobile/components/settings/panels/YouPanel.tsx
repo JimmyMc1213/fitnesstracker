@@ -18,7 +18,7 @@ import { GradientCard } from "@/components/ui/GradientCard";
 import { useAuth } from "@/context/AuthContext";
 import { useFitnessState } from "@/context/FitnessContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { connectedAuthProviders, isAppleSignInOnly } from "@/lib/accountAuth";
+import { connectedAuthProviders, hasEmailPasswordAuth } from "@/lib/accountAuth";
 import { stopOnboardingPreview } from "@/lib/devPreviewOnboarding";
 import { invokeDeleteUserAccount } from "@newyouai/api-client";
 
@@ -92,8 +92,7 @@ export function YouPanel() {
   if (!state) return null;
 
   const providers = connectedAuthProviders(session);
-  const appleOnly = isAppleSignInOnly(session);
-  const showEmailPassword = Boolean(sessionEmail) && !appleOnly;
+  const showEmailPassword = hasEmailPasswordAuth(session);
 
   return (
     <View className="gap-4">

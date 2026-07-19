@@ -1,8 +1,8 @@
 import { getSupabase } from "@/lib/supabaseClient";
 import { authEmailRedirectUrl } from "@/lib/authRedirect";
-import { connectedAuthProviders, isAppleSignInOnly } from "@newyouai/core";
+import { connectedAuthProviders, hasEmailPasswordAuth, isAppleSignInOnly } from "@newyouai/core";
 
-export { connectedAuthProviders, isAppleSignInOnly };
+export { connectedAuthProviders, hasEmailPasswordAuth, isAppleSignInOnly };
 
 export async function updateUserEmail(
   currentEmail: string | null | undefined,
