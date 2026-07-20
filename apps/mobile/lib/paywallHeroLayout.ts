@@ -45,11 +45,11 @@ export function paywallHeroImageBoxSize(
   const heightRatio = tier === "regular" ? 4 / 3 : tier === "compact" ? 3.5 / 3 : 3.2 / 3;
 
   const width = Math.min(maxWidth, screenWidth * widthRatio);
-  const naturalHeight = (width * heightRatio) / 3;
+  const naturalHeight = width * heightRatio;
   const goalReserve = PAYWALL_HERO_GOAL_RESERVE_BY_TIER[tier];
   const maxImageHeight = Math.max(160, availableHeight - goalReserve);
   const height = Math.min(naturalHeight, maxImageHeight);
-  const adjustedWidth = height < naturalHeight ? (height * 3) / heightRatio : width;
+  const adjustedWidth = height < naturalHeight ? height / heightRatio : width;
 
   return { width: adjustedWidth, height };
 }

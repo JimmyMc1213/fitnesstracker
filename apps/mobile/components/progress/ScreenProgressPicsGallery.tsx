@@ -6,6 +6,7 @@ import {
   type ProgressPicGalleryItem,
 } from "@newyouai/core";
 import type { AppState } from "@newyouai/types";
+import * as ImagePicker from "expo-image-picker";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Image, ScrollView, Text, View } from "react-native";

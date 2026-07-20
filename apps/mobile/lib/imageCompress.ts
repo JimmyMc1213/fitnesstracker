@@ -1,10 +1,11 @@
+import * as ImageManipulator from "expo-image-manipulator";
+
 /** Resize and compress to JPEG on disk for upload (avoids huge base64 JSON payloads). */
 export async function compressImageToJpegFile(
   uri: string,
   maxWidth = 960,
   quality = 0.82,
 ): Promise<string> {
-  const ImageManipulator = await import("expo-image-manipulator");
   const result = await ImageManipulator.manipulateAsync(
     uri,
     [{ resize: { width: maxWidth } }],
@@ -27,7 +28,6 @@ export async function compressImageToJpegDataUrl(
   maxWidth = 960,
   quality = 0.82,
 ): Promise<string> {
-  const ImageManipulator = await import("expo-image-manipulator");
   const result = await ImageManipulator.manipulateAsync(
     uri,
     [{ resize: { width: maxWidth } }],

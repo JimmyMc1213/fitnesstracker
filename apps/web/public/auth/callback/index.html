@@ -34,6 +34,7 @@
   </head>
   <body>
     <main style="max-width: 420px">
+      <div id="check" hidden style="font-size: 3rem; line-height: 1; margin-bottom: 12px">✓</div>
       <h1 id="title" style="margin: 0 0 12px; font-size: 1.5rem">Opening New You…</h1>
       <p id="status" style="margin: 0; line-height: 1.6; color: rgba(255, 255, 255, 0.72)">
         Sending you back to the app.
@@ -48,6 +49,7 @@
         var params = new URLSearchParams(hash.replace(/^#/, ""));
         var code = params.get("error_code") || params.get("error") || "";
         var description = (params.get("error_description") || "").replace(/\+/g, " ");
+        var check = document.getElementById("check");
         var title = document.getElementById("title");
         var status = document.getElementById("status");
         var openLink = document.getElementById("open-app");
@@ -74,13 +76,21 @@
         }
 
         if (hash.indexOf("access_token") !== -1 || hash.indexOf("refresh_token") !== -1 || search.indexOf("code=") !== -1) {
-          window.location.replace(target);
-          window.setTimeout(function () {
-            if (status) {
-              status.textContent =
-                "If New You did not open automatically, tap Open New You to continue in the app.";
-            }
-          }, 1800);
+          // Show a confirmation instead of blanking the page. Attempt to open the
+          // app via a hidden iframe so the visible message survives in the
+          // email client's in-app browser (which turns location.replace into about:blank).
+          if (check) check.hidden = false;
+          if (title) title.textContent = "Email confirmed";
+          if (status) {
+            status.textContent = "Your email is verified. Tap Open New You to jump back into the app, or return to New You and sign in.";
+          }
+
+          try {
+            var frame = document.createElement("iframe");
+            frame.style.display = "none";
+            frame.src = target;
+            document.body.appendChild(frame);
+          } catch (e) {}
           return;
         }
 

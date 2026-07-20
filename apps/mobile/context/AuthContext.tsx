@@ -315,15 +315,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: "Apple Sign-In did not return an identity token." };
       }
 
-      const fullName = [
-        credential.fullName?.givenName,
-        credential.fullName?.familyName,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .trim();
+      // We only greet users by first name, so that's all we capture from Apple.
       const givenName = credential.fullName?.givenName?.trim() ?? "";
-      const familyName = credential.fullName?.familyName?.trim() ?? "";
 
       const { data: authData, error } = await sb.auth.signInWithIdToken({
         provider: "apple",
@@ -334,26 +327,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       if (error) return { error: mapOAuthSessionError(error.message, "apple") };
 
+      // Apple only returns the name on the FIRST authorization, and the identity
+      // token never carries it — so persist the first name to auth metadata
+      // before resolving the session, ensuring `session.user` reflects it right
+      // away. If Apple gives us nothing (re-auth, or the user hid their name),
+      // we simply leave the name blank.
+      if (authData.user && givenName) {
+        const existingMeta = authData.user.user_metadata ?? {};
+        if (!existingMeta.first_name && !existingMeta.full_name) {
+          try {
+            await sb.auth.updateUser({ data: { first_name: givenName } });
+          } catch {
+            // Best-effort: local seeding below still captures the name.
+          }
+        }
+      }
+
       if (authData.session) {
         const merged = await resolveSessionWithUser(sb);
         setSession(merged ?? authData.session);
         setSessionResolved(true);
       }
 
-      if (authData.user && (fullName || givenName || familyName)) {
-        const existingMeta = authData.user.user_metadata ?? {};
-        if (!existingMeta.full_name) {
-          await sb.auth.updateUser({
-            data: {
-              first_name: givenName || undefined,
-              last_name: familyName || undefined,
-              full_name: fullName || undefined,
-            },
-          });
-        }
-      }
-
-      const resolvedName = fullName || displayNameFromUser(authData.user);
+      const resolvedName = givenName || displayNameFromUser(authData.user);
       if (resolvedName) await seedPersistedDisplayName(resolvedName);
       return {};
     } catch (e) {

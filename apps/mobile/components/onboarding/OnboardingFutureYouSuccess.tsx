@@ -250,7 +250,7 @@ export function OnboardingFutureYouSuccess({
         ) : null}
       </View>
 
-      <View style={{ gap: 14 }}>
+      <View style={{ gap: 14, marginTop: heroVisible || failedVisible ? 20 : 0 }}>
         {heroVisible || failedVisible ? (
           <Text className="text-center text-base" style={{ color: colors.textSecondary }}>
             {FUTURE_YOU_SUCCESS_WELCOME_PREFIX}

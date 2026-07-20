@@ -1,4 +1,5 @@
 import { buildCoachContext, getWeighInReaction, localDateKey } from "@newyouai/core";
+import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Image, Text, View } from "react-native";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
@@ -66,7 +67,6 @@ export function WeighInSheet({
 
   const pickFromCamera = useCallback(async () => {
     try {
-      const ImagePicker = await import("expo-image-picker");
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) {
         setPhotoError(permissionDeniedMessage("camera"));
@@ -86,7 +86,6 @@ export function WeighInSheet({
 
   const pickFromGallery = useCallback(async () => {
     try {
-      const ImagePicker = await import("expo-image-picker");
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
         setPhotoError(permissionDeniedMessage("gallery"));

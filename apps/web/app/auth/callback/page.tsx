@@ -10,6 +10,7 @@ const BRAND_GOLD_ON = "#14110c";
 type CallbackState =
   | { kind: "loading" }
   | { kind: "error"; title: string; message: string }
+  | { kind: "confirmed"; target: string; status: string }
   | { kind: "bridge"; target: string; status: string; showButton: boolean };
 
 function readHashParams(hash: string): Record<string, string> {
@@ -65,16 +66,21 @@ export default function AuthCallbackPage() {
       hash.includes("access_token") || hash.includes("refresh_token") || search.includes("code=");
 
     if (hasSession) {
-      window.location.replace(deepLink);
-      const timeoutId = window.setTimeout(() => {
-        setState({
-          kind: "bridge",
-          target: deepLink,
-          status: "If New You did not open automatically, tap Open New You to continue in the app.",
-          showButton: true,
-        });
-      }, 1800);
-      return () => window.clearTimeout(timeoutId);
+      setState({
+        kind: "confirmed",
+        target: deepLink,
+        status:
+          "Your email is verified. Tap Open New You to jump back into the app, or return to New You and sign in.",
+      });
+      try {
+        const frame = document.createElement("iframe");
+        frame.style.display = "none";
+        frame.src = deepLink;
+        document.body.appendChild(frame);
+      } catch {
+        // Ignore: the visible confirmation + Open button still work.
+      }
+      return;
     }
 
     setState({
@@ -137,6 +143,35 @@ export default function AuthCallbackPage() {
         >
           Back to newyouai.app
         </Link>
+      </>,
+    );
+  }
+
+  if (state.kind === "confirmed") {
+    return shell(
+      <>
+        <div style={{ fontSize: "3rem", lineHeight: 1, marginBottom: 12 }} aria-hidden>
+          ✓
+        </div>
+        <h1 style={{ margin: "0 0 12px", fontSize: "1.5rem", letterSpacing: "-0.02em" }}>
+          Email confirmed
+        </h1>
+        <p style={{ margin: 0, lineHeight: 1.6, color: "rgba(255, 255, 255, 0.72)" }}>{state.status}</p>
+        <a
+          href={state.target}
+          style={{
+            display: "inline-block",
+            marginTop: 20,
+            padding: "12px 20px",
+            borderRadius: 999,
+            background: BRAND_GOLD,
+            color: BRAND_GOLD_ON,
+            fontWeight: 700,
+            textDecoration: "none",
+          }}
+        >
+          Open New You
+        </a>
       </>,
     );
   }
