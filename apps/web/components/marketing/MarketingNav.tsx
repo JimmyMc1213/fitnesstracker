@@ -4,9 +4,10 @@ import { AppStorePill } from "./AppStoreBadge";
 import { Logo } from "./Logo";
 
 const links = [
-  { href: "#future", label: "Future You" },
-  { href: "#features", label: "Features" },
-  { href: "#how", label: "How it works" },
+  { href: "/#future", label: "Future You" },
+  { href: "/#features", label: "Features" },
+  { href: "/#how", label: "How it works" },
+  { href: "/blog", label: "Blog" },
 ] as const;
 
 export function MarketingNav() {

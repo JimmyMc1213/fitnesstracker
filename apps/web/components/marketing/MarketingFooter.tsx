@@ -35,6 +35,9 @@ export function MarketingFooter() {
           <div>
             <div className="text-[13px] font-extrabold uppercase tracking-wider text-ink">Company</div>
             <div className="mt-4 flex flex-col gap-2.5 text-[14.5px] font-semibold text-ink-secondary">
+              <Link href="/blog" className="opacity-90 hover:opacity-100">
+                Blog
+              </Link>
               <Link href="/support" className="opacity-90 hover:opacity-100">
                 Support
               </Link>
@@ -67,6 +70,7 @@ export function LegalFooter() {
       <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-3 px-7 py-7 text-[13.5px] font-semibold text-stone">
         <Logo href="/" size="sm" />
         <div className="flex gap-6">
+          <Link href="/blog">Blog</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
           <Link href="/support">Support</Link>

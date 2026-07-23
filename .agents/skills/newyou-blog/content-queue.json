@@ -1,0 +1,73 @@
+{
+  "cadence": {
+    "recommended": "1 post per week",
+    "minimum": "2 posts per month",
+    "notes": "Consistency beats bursts for a new domain. Skip weeks rather than ship thin posts."
+  },
+  "posts": [
+    {
+      "slug": "why-newyou-vs-three-apps",
+      "title": "Why one app beats three separate fitness apps",
+      "keyword": "all in one fitness app",
+      "intent": "commercial",
+      "priority": 1,
+      "status": "queued"
+    },
+    {
+      "slug": "future-you-timeline-explained",
+      "title": "How the Future You timeline works",
+      "keyword": "future you ai timeline",
+      "intent": "informational",
+      "priority": 2,
+      "status": "queued"
+    },
+    {
+      "slug": "what-happens-when-you-subscribe",
+      "title": "What happens when you subscribe to NewYou AI",
+      "keyword": "newyou ai subscription",
+      "intent": "commercial",
+      "priority": 3,
+      "status": "queued"
+    },
+    {
+      "slug": "sunday-check-in-accountability",
+      "title": "Sunday check-in: weekly accountability that actually sticks",
+      "keyword": "weekly fitness check in",
+      "intent": "informational",
+      "priority": 4,
+      "status": "queued"
+    },
+    {
+      "slug": "protein-targets-cut-and-bulk",
+      "title": "Protein targets for cuts and bulks",
+      "keyword": "how much protein to build muscle",
+      "intent": "informational",
+      "priority": 5,
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-log-workouts-for-progress",
+      "title": "How to log workouts so you actually see progress",
+      "keyword": "workout logging app",
+      "intent": "informational",
+      "priority": 6,
+      "status": "queued"
+    },
+    {
+      "slug": "meal-prep-for-busy-lifters",
+      "title": "Meal prep for busy lifters",
+      "keyword": "meal prep muscle gain",
+      "intent": "informational",
+      "priority": 7,
+      "status": "queued"
+    },
+    {
+      "slug": "wedding-shred-timeline",
+      "title": "Wedding shred timeline: realistic fat loss before the big day",
+      "keyword": "wedding weight loss timeline",
+      "intent": "informational",
+      "priority": 8,
+      "status": "queued"
+    }
+  ]
+}
