@@ -297,10 +297,12 @@ export function OnboardingPaywall({
 
         <View
           style={{
-            marginTop: heroVisible || failedVisible ? 8 : "auto",
+            // Keep clear air under the hero goal/+lb line before plan cards (badge overhang is
+            // reserved inside the plan picker; this is the remaining visual gap).
+            marginTop: heroVisible || failedVisible ? 12 : "auto",
             flexShrink: 0,
             width: "100%",
-            paddingTop: heroVisible || failedVisible ? 4 : 0,
+            paddingTop: heroVisible || failedVisible ? 8 : 0,
           }}
         >
           {checkoutFooter}

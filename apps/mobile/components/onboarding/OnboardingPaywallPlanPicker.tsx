@@ -115,6 +115,9 @@ function PlanCard({
   );
 }
 
+/** Yearly "61% OFF" badge sits at top: -10 — reserve that overhang so it can't cover goal weight. */
+const PLAN_BADGE_OVERHANG_PX = 12;
+
 export function OnboardingPaywallPlanPicker({ value, onChange }: Props) {
   return (
     <View
@@ -122,6 +125,7 @@ export function OnboardingPaywallPlanPicker({ value, onChange }: Props) {
       className="flex-row gap-3"
       accessibilityRole="radiogroup"
       accessibilityLabel="Subscription plan"
+      style={{ paddingTop: PLAN_BADGE_OVERHANG_PX }}
     >
       <PlanCard
         period="yearly"

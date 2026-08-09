@@ -27,4 +27,12 @@ describe("paywallHeroImageBoxSize", () => {
     const { height } = paywallHeroImageBoxSize(tier, 390, availableHeight);
     expect(height).toBeLessThanOrEqual(availableHeight - 112);
   });
+
+  it("reserves enough footer space for plan badge overhang on compact phones", () => {
+    const { availableHeight, tier } = paywallHeroLayoutTier(844, 59, 34);
+    expect(tier).toBe("compact");
+    // Footer reserve grew for badge overhang; hero budget should still leave room for goal row.
+    expect(availableHeight).toBeGreaterThan(340);
+    expect(availableHeight).toBeLessThan(470);
+  });
 });
