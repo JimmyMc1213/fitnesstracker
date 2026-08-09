@@ -217,7 +217,9 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
   }, [fitnessHydrated, fitnessState?.onboardingDraft, fitnessState?.displayName, session]);
 
   useEffect(() => {
-    if (!fitnessHydrated) return;
+    // Wait for draft restore to finish — otherwise we persist INITIAL_STATE step 1
+    // with a fresh timestamp and win mergeOnboardingDrafts over the real draft.
+    if (!fitnessHydrated || !hydrated) return;
 
     setWizardState((prev) => {
       const current = prev.displayName.trim();
@@ -250,7 +252,7 @@ export function OnboardingWizardProvider({ children }: { children: ReactNode }) 
       );
       return next;
     });
-  }, [fitnessHydrated, fitnessState?.displayName, session]);
+  }, [fitnessHydrated, hydrated, fitnessState?.displayName, session]);
 
   const persistDraft = useCallback(
     async (nextState: typeof INITIAL_STATE) => {

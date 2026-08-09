@@ -1,7 +1,6 @@
 import { FUTURE_YOU_HERO_LOADING_LABEL } from "@newyouai/core";
 import type { FutureYouJobStatus, OnboardingProfile, UserGender, WeightUnit } from "@newyouai/types";
 import { ActivityIndicator, Image, Text, useWindowDimensions, View } from "react-native";
-import Svg, { Defs, FeGaussianBlur, Filter, Text as SvgText } from "react-native-svg";
 
 import { IconLock } from "@/components/icons/FitnessIcons";
 import { OnboardingContentReveal } from "@/components/motion";
@@ -13,7 +12,6 @@ import {
   futureYouWeightDeltaLabel,
 } from "@/lib/futureYouGoalSummary";
 import { futureYouSilhouettesForGender } from "@/lib/futureYouSilhouettes";
-import { splitFutureYouTimelineForPaywall } from "@/lib/futureYouTimeline";
 import {
   paywallHeroImageBoxSize,
   type PaywallHeroLayoutTier,
@@ -34,39 +32,6 @@ type Props = {
 /** Gold ring color = `--ob-gold` (#c9a876) at 0.75, matching PWA `__image-wrap`. */
 const GOLD_RING = "rgba(201, 168, 118, 0.75)";
 
-function BlurredTimelineValue({
-  value,
-  color,
-  fontSize,
-}: {
-  value: string;
-  color: string;
-  fontSize: number;
-}) {
-  const width = Math.max(fontSize, value.length * fontSize * 0.7) + 40;
-  const height = fontSize * 2.4;
-  return (
-    <Svg width={width} height={height} accessibilityElementsHidden>
-      <Defs>
-        <Filter id="paywall-fy-timeline-blur" x="-150%" y="-150%" width="400%" height="400%">
-          <FeGaussianBlur stdDeviation="7" />
-        </Filter>
-      </Defs>
-      <SvgText
-        x={width / 2}
-        y={height / 2 + fontSize * 0.34}
-        fontSize={fontSize}
-        fontWeight="600"
-        fill={color}
-        textAnchor="middle"
-        filter="url(#paywall-fy-timeline-blur)"
-      >
-        {value}
-      </SvgText>
-    </Svg>
-  );
-}
-
 /** Blurred Future You hero teaser on paywall. */
 export function OnboardingPaywallFutureYouHero({
   timeline,
@@ -86,8 +51,6 @@ export function OnboardingPaywallFutureYouHero({
 
   const goalLabel = futureYouGoalLabel(profile.goal);
   const weightDeltaLabel = futureYouWeightDeltaLabel(profile, weightUnit);
-  const { value: timelineValue, unit: timelineUnit } = splitFutureYouTimelineForPaywall(timeline);
-  const timelineFontSize = 20;
 
   // Blurred gendered silhouette stands in until the real Future You photo lands.
   const silhouetteSource = futureYouSilhouettesForGender(gender)?.after ?? null;
@@ -114,22 +77,13 @@ export function OnboardingPaywallFutureYouHero({
         >
           Future You
         </Text>
-        <View
-          className="flex-row flex-wrap items-center justify-center"
+        <Text
+          className="text-center text-xl font-medium"
+          style={{ color: colors.textSecondary }}
           accessibilityLabel={`You in ${timeline}`}
         >
-          <Text className="text-xl font-medium" style={{ color: colors.textSecondary }}>
-            You in{" "}
-          </Text>
-          <BlurredTimelineValue
-            value={timelineValue}
-            color={colors.textSecondary}
-            fontSize={timelineFontSize}
-          />
-          <Text className="text-xl font-medium" style={{ color: colors.textSecondary }}>
-            {timelineUnit}
-          </Text>
-        </View>
+          You in {timeline}
+        </Text>
       </OnboardingContentReveal>
 
       <OnboardingContentReveal

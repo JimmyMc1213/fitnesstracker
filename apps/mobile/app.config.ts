@@ -11,7 +11,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: false,
     bundleIdentifier: "app.newyouai.mobile",
-    buildNumber: "33",
+    buildNumber: "34",
     appleTeamId: "YJ77689737",
     usesAppleSignIn: true,
     infoPlist: {

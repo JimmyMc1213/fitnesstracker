@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 import { OnboardingFutureYouHeroImage } from "./OnboardingFutureYouHeroImage";
 import { paywallRevealDelaySec } from "./onboardingPaywallReveal";
-import { splitFutureYouTimelineForPaywall } from "./futureYouTimeline";
 import { useFutureYouPaywallImage } from "./useFutureYouPaywallImage";
 import { PAYWALL_YEARLY_PRICE } from "./paywallPlans";
 import type { FutureYouJobStatus } from "./futureYouJobs";
@@ -61,7 +60,6 @@ export function OnboardingPaywallFutureYouPoster({
     previewMode,
   });
   const preparing = status !== "ready" || imageLoading;
-  const { value: timelineValue, unit: timelineUnit } = splitFutureYouTimelineForPaywall(timeline);
 
   return (
     <div className="onboarding-paywall-future-you onboarding-paywall__poster" aria-busy={preparing}>
@@ -81,12 +79,8 @@ export function OnboardingPaywallFutureYouPoster({
         </PaywallReveal>
 
         <PaywallReveal step={2} variant="headline">
-          <p className="onboarding-paywall-future-you__headline">
-            You in{" "}
-            <span className="onboarding-paywall-future-you__timeline" aria-label={timeline}>
-              <span className="onboarding-paywall-future-you__timeline-blur">{timelineValue}</span>
-              {timelineUnit}
-            </span>
+          <p className="onboarding-paywall-future-you__headline" aria-label={`You in ${timeline}`}>
+            You in {timeline}
           </p>
         </PaywallReveal>
       </div>

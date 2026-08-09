@@ -88,9 +88,7 @@ test("step 21: photo path disables trial CTA until Future You is ready", async (
   await advanceToPaywallFromPlanReady(page);
 
   await expect(page.locator(".onboarding-paywall-future-you")).toBeVisible();
-  await expect(page.getByText(/^You in /)).toBeVisible();
-  await expect(page.locator(".onboarding-paywall-future-you__timeline-blur")).toHaveText("3");
-  await expect(page.locator(".onboarding-paywall-future-you__timeline")).toContainText("months");
+  await expect(page.getByText(/You in 3 months/i)).toBeVisible();
   await expect(page.getByRole("button", { name: "Preparing your Future You…" })).toBeDisabled();
 });
 
