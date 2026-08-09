@@ -1,7 +1,7 @@
 export type PaywallHeroLayoutTier = "regular" | "compact" | "tight";
 
-/** Space consumed by billing footer (picker + CTA + legal links). */
-const PAYWALL_FOOTER_RESERVE_PX = 236;
+/** Space consumed by billing footer (picker + badge overhang + CTA + legal links). */
+const PAYWALL_FOOTER_RESERVE_PX = 252;
 
 /** Title block above the hero image ("Future You" + timeline row). */
 const PAYWALL_HERO_HEADER_RESERVE_PX = 56;

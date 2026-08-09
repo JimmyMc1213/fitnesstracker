@@ -15,7 +15,7 @@ const MACRO_ROWS: {
 }[] = [
   { key: "p", label: "Protein", unit: "g", tag: "#1 priority", tagTone: "protein", priority: true },
   { key: "c", label: "Carbs", unit: "g", tag: "Your fuel", tagTone: "carbs" },
-  { key: "f", label: "Fats", unit: "g", tag: "Hormone balance", tagTone: "fat" },
+  { key: "f", label: "Fats", unit: "g", tag: "Energy & satiety", tagTone: "fat" },
 ];
 
 function PencilIcon() {

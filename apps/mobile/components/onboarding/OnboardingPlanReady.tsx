@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 
 import { OnboardingContentReveal } from "@/components/motion";
 import { TypewriterText } from "@/components/motion/TypewriterText";
+import { NutritionSourcesNote } from "@/components/nutrition/NutritionSourcesNote";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { MACRO_COLORS } from "@/lib/macroColors";
@@ -114,12 +115,12 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
   const stepsValueDelay = planReadyWeekSequenceDelayMs(weekTemplates.length + 3);
 
   return (
-    <View testID="onboarding-plan-ready" className="gap-3">
-      <View className="gap-2">
+    <View testID="onboarding-plan-ready" className="gap-5">
+      <View className="gap-3">
         <Text className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
           Daily fuel
         </Text>
-        <View className="flex-row gap-1.5">
+        <View className="flex-row gap-2">
           <MacroStat value={macros.cal} label="cal" delay={planReadyMacroDelayMs(0)} />
           <MacroStat value={macros.p} label="g protein" tone="protein" delay={planReadyMacroDelayMs(1)} />
           <MacroStat value={macros.c} label="g carbs" tone="carbs" delay={planReadyMacroDelayMs(2)} />
@@ -130,18 +131,21 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
             Goal timeline · {timeline}
           </Text>
         </OnboardingContentReveal>
+        <OnboardingContentReveal delay={planReadyMacroDelayMs(3) + 450}>
+          <NutritionSourcesNote compact />
+        </OnboardingContentReveal>
       </View>
 
       <View className="h-px" style={{ backgroundColor: colors.border }} />
 
-      <View className="flex-row items-stretch">
-        <View className="flex-1 gap-2">
+      <View className="flex-row items-stretch gap-2">
+        <View className="flex-1 gap-3">
           <OnboardingContentReveal delay={weekLabelDelay}>
             <Text className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
               Your week
             </Text>
           </OnboardingContentReveal>
-          <View style={{ flex: 1, justifyContent: "space-between" }}>
+          <View style={{ flex: 1, justifyContent: "space-between", gap: 8 }}>
             {weekTemplates.map((routine, index) => (
               <OnboardingContentReveal key={routine.id} delay={planReadyWeekSequenceDelayMs(index)}>
                 <View className="flex-row items-baseline gap-2.5">
@@ -170,8 +174,8 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
             ))}
           </View>
         </View>
-        <View className="flex-1 gap-3.5 pt-[19px] pl-8">
-          <View className="gap-1">
+        <View className="flex-1 gap-5 pt-[19px] pl-6">
+          <View className="gap-1.5">
             <OnboardingContentReveal delay={hydrationLabelDelay}>
               <Text className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
                 Hydration
@@ -183,7 +187,7 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
               </Text>
             </OnboardingContentReveal>
           </View>
-          <View className="gap-1">
+          <View className="gap-1.5">
             <OnboardingContentReveal delay={stepsLabelDelay}>
               <Text className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: colors.textTertiary }}>
                 Steps
@@ -200,7 +204,7 @@ export function OnboardingPlanReady({ planSnapshot }: Props) {
 
       <View className="h-px" style={{ backgroundColor: colors.border }} />
 
-      <View className="gap-2.5">
+      <View className="gap-3">
         <OnboardingContentReveal delay={coachDelay + 120}>
           <Text className="text-[17px] font-semibold" style={{ color: ob.coachBlueLabel }}>
             Coach

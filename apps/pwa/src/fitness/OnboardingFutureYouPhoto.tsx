@@ -158,8 +158,9 @@ export function OnboardingFutureYouPhoto({
       {!blocked ? (
         <div className="future-you-photo-step__actions">
         <p className="future-you-photo-step__trust">
-          Your photo is only used to create your Future You. It is never sold, and never shared
-          except with the AI provider that generates your image.
+          Your photo is only used to create your Future You. It is never sold. Before generating,
+          your photo is processed on our servers and sent to OpenAI (our third-party AI image
+          provider) to create your preview.
         </p>
 
         <label className="future-you-photo-step__consent">
@@ -175,9 +176,9 @@ export function OnboardingFutureYouPhoto({
             }}
           />
           <span className="future-you-photo-step__consent-label">
-            My photo will be processed by AI to generate my{" "}
+            I agree to have my photo processed on our servers and shared with OpenAI to generate my{" "}
             <span className="future-you-photo-step__consent-label-tail">
-              transformation.{" "}
+              Future You transformation.{" "}
               <a
                 href={FUTURE_YOU_PRIVACY_POLICY_URL}
                 target="_blank"
