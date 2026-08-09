@@ -2,6 +2,7 @@ import type { MacroTotals } from "@newyouai/types";
 import { Text, View } from "react-native";
 
 import { EditableNumber } from "@/components/onboarding/EditableNumber";
+import { NutritionSourcesNote } from "@/components/nutrition/NutritionSourcesNote";
 import { GradientCard } from "@/components/ui/GradientCard";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
@@ -26,7 +27,7 @@ const MACRO_ROWS: {
 }[] = [
   { key: "p", label: "Protein", unit: "g", tag: "#1 priority", tagTone: "protein", priority: true },
   { key: "c", label: "Carbs", unit: "g", tag: "Your fuel", tagTone: "carbs" },
-  { key: "f", label: "Fats", unit: "g", tag: "Hormone balance", tagTone: "fat" },
+  { key: "f", label: "Fats", unit: "g", tag: "Energy & satiety", tagTone: "fat" },
 ];
 
 type Props = {
@@ -47,7 +48,7 @@ export function OnboardingDailyFuelPlan({ macros, computedMacros, onChangeMacros
       macros.f !== computedMacros.f);
 
   return (
-    <View className="gap-4">
+    <View className="gap-5">
       <GradientCard>
         <Text className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: colors.textSecondary }}>
           Daily calories
@@ -69,7 +70,7 @@ export function OnboardingDailyFuelPlan({ macros, computedMacros, onChangeMacros
         {MACRO_ROWS.map((row) => (
           <View
             key={row.key}
-            className="mb-3 flex-row items-center justify-between"
+            className="mb-4 flex-row items-center justify-between"
             style={{ borderLeftWidth: 2, borderLeftColor: MACRO_TAG_COLORS[row.tagTone], paddingLeft: 10 }}
           >
             <View>
@@ -98,6 +99,8 @@ export function OnboardingDailyFuelPlan({ macros, computedMacros, onChangeMacros
           </View>
         ))}
       </GradientCard>
+
+      <NutritionSourcesNote />
 
       {macrosEdited ? (
         <PressableScale onPress={onReset}>

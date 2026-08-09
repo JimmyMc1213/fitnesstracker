@@ -49,9 +49,11 @@ function PlanCard({
       ) : null}
       <PlanCheck selected={selected} />
       <span className="onboarding-paywall__plan-label">{plan.label}</span>
-      <span className="onboarding-paywall__plan-price">{plan.displayPerMonth}</span>
+      <span className="onboarding-paywall__plan-price">{plan.billedAmount}</span>
+      {plan.calculatedPrice ? (
+        <span className="onboarding-paywall__plan-billing">{plan.calculatedPrice}</span>
+      ) : null}
       <span className="onboarding-paywall__plan-trial">{plan.trialNote}</span>
-      <span className="onboarding-paywall__plan-billing">{plan.billingNote}</span>
     </button>
   );
 }

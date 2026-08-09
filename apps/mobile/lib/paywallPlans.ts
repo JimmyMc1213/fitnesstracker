@@ -15,20 +15,30 @@ function yearlySavingsPercent(monthlyPrice: number, yearlyPrice: number): number
 
 export const PAYWALL_YEARLY_BADGE = `${yearlySavingsPercent(PAYWALL_MONTHLY_PRICE, PAYWALL_YEARLY_PRICE)}% OFF`;
 
+/**
+ * Plan copy for the paywall picker.
+ * `billedAmount` must be the most conspicuous price (Apple 3.1.2c).
+ * `calculatedPrice` is optional subordinate monthly-equivalent copy.
+ */
 export const PAYWALL_PLANS = {
   yearly: {
     label: "Yearly",
-    displayPerMonth: `${formatUsd(PAYWALL_YEARLY_PRICE / 12)}/mo`,
+    billedAmount: `${formatUsd(PAYWALL_YEARLY_PRICE)}/yr`,
+    calculatedPrice: `Just ${formatUsd(PAYWALL_YEARLY_PRICE / 12)}/mo`,
     trialNote: "No trial, billed immediately",
-    billingNote: `Billed at ${formatUsd(PAYWALL_YEARLY_PRICE)}/yr.`,
   },
   monthly: {
     label: "Monthly",
-    displayPerMonth: `${formatUsd(PAYWALL_MONTHLY_PRICE)}/mo`,
+    billedAmount: `${formatUsd(PAYWALL_MONTHLY_PRICE)}/mo`,
+    calculatedPrice: null,
     trialNote: "No trial, billed immediately",
-    billingNote: `Billed at ${formatUsd(PAYWALL_MONTHLY_PRICE)}/mo.`,
   },
 } as const satisfies Record<
   PaywallBillingPeriod,
-  { label: string; displayPerMonth: string; trialNote: string; billingNote: string }
+  {
+    label: string;
+    billedAmount: string;
+    calculatedPrice: string | null;
+    trialNote: string;
+  }
 >;

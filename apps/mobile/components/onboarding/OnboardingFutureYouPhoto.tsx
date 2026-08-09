@@ -244,8 +244,9 @@ export function OnboardingFutureYouPhoto({
             className="mb-3.5 text-center text-[10px] leading-[1.4]"
             style={{ color: colors.textSecondary }}
           >
-            Your photo is only used to create your Future You. It is never sold, and never shared
-            except with the AI provider that generates your image.
+            Your photo is only used to create your Future You. It is never sold. Before generating,
+            your photo is processed on our servers and sent to OpenAI (our third-party AI image
+            provider) to create your preview.
           </Text>
 
           <PressableScale
@@ -272,7 +273,8 @@ export function OnboardingFutureYouPhoto({
               ) : null}
             </View>
             <Text className="flex-1 text-[10px] leading-[1.4]" style={{ color: colors.textSecondary }}>
-              My photo will be processed by AI to generate my transformation.{" "}
+              I agree to have my photo processed on our servers and shared with OpenAI to generate
+              my Future You transformation.{" "}
               <Text
                 style={{ color: ob.gold }}
                 onPress={() => void Linking.openURL(FUTURE_YOU_PRIVACY_POLICY_URL)}

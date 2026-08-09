@@ -188,7 +188,7 @@ export function OnboardingPaywall({
 
   const checkoutFooter = (
     <>
-      <View className="gap-3">
+      <View className="gap-4">
         <OnboardingContentReveal delay={paywallRevealDelayMs(footerStartStep)}>
           <OnboardingPaywallPlanPicker value={billingPeriod} onChange={setBillingPeriod} />
         </OnboardingContentReveal>

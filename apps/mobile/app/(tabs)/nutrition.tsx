@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { FoodAddedToast, useFoodAddedToast } from "@/components/nutrition/FoodAddedToast";
+import { NutritionSourcesNote } from "@/components/nutrition/NutritionSourcesNote";
 import { TodayFoodLogCard } from "@/components/nutrition/TodayFoodLogCard";
 import { WaterTrackerCard } from "@/components/nutrition/WaterTrackerCard";
 import { MacroBar } from "@/components/home/MacroBar";
@@ -182,12 +183,12 @@ export default function NutritionScreen() {
         />
 
         <View
-          className="mt-[18px] rounded-[14px] border p-[18px]"
+          className="mt-6 rounded-[14px] border p-5"
           style={{ borderColor: colors.border, backgroundColor: colors.card }}
         >
-          <View className="flex-row items-center gap-[18px]">
+          <View className="flex-row items-center gap-5">
             <MacroRing value={totals.cal} target={targets.cal} size={132} stroke={6} />
-            <View className="min-w-0 flex-1 gap-3">
+            <View className="min-w-0 flex-1 gap-3.5">
               <View>
                 <Text
                   className="text-[11px] font-medium uppercase tracking-widest"
@@ -211,7 +212,7 @@ export default function NutritionScreen() {
 
           {targets.p > 0 && proteinLeft > 0 ? (
             <Text
-              className="mt-3.5 border-t pt-3.5 text-[13px] leading-5"
+              className="mt-4 border-t pt-4 text-[13px] leading-5"
               style={{ borderTopColor: colors.border, color: colors.textSecondary }}
             >
               <Text style={{ color: PROTEIN_PRIORITY_ACCENT, fontWeight: "600" }}>
@@ -221,6 +222,10 @@ export default function NutritionScreen() {
               <Text style={{ color: PROTEIN_PRIORITY_ACCENT, fontWeight: "600" }}>#1</Text> priority.
             </Text>
           ) : null}
+
+          <View className="mt-4 border-t pt-4" style={{ borderTopColor: colors.border }}>
+            <NutritionSourcesNote compact />
+          </View>
         </View>
 
         {state ? (

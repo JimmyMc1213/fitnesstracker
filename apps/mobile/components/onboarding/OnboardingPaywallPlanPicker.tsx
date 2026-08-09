@@ -1,4 +1,5 @@
 import { PAYWALL_PLANS, PAYWALL_YEARLY_BADGE, type PaywallBillingPeriod } from "@/lib/paywallPlans";
+import { PAYWALL_NO_FONT_SCALE, PAYWALL_TYPOGRAPHY } from "@/lib/paywallTypography";
 import { Text, View } from "react-native";
 
 import { PressableScale } from "@/components/ui/PressableScale";
@@ -24,11 +25,21 @@ function PlanCard({
   const plan = PAYWALL_PLANS[period];
   const isYearly = period === "yearly";
 
+  const accessibilityLabel = [
+    plan.label,
+    plan.billedAmount,
+    plan.calculatedPrice,
+    plan.trialNote,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   return (
     <PressableScale
       onPress={onSelect}
       accessibilityRole="radio"
       accessibilityState={{ selected }}
+      accessibilityLabel={accessibilityLabel}
       testID={`paywall-plan-${period}`}
       activeScale={0.97}
       style={{
@@ -48,7 +59,10 @@ function PlanCard({
           className="absolute rounded-full px-2.5 py-0.5"
           style={{ top: -10, left: 8, backgroundColor: ob.gold }}
         >
-          <Text className="text-[11px] font-bold uppercase" style={{ color: ob.goldOn }}>
+          <Text
+            {...PAYWALL_NO_FONT_SCALE}
+            style={{ ...PAYWALL_TYPOGRAPHY.planBadge, color: ob.goldOn, textTransform: "uppercase" }}
+          >
             {PAYWALL_YEARLY_BADGE}
           </Text>
         </View>
@@ -62,30 +76,40 @@ function PlanCard({
         }}
       >
         {selected ? (
-          <Text className="text-[10px] font-bold" style={{ color: ob.goldOn }}>
+          <Text {...PAYWALL_NO_FONT_SCALE} style={{ ...PAYWALL_TYPOGRAPHY.planCheck, color: ob.goldOn }}>
             ✓
           </Text>
         ) : null}
       </View>
-      <Text className="text-lg font-bold leading-tight" style={{ color: colors.textPrimary }}>
+      <Text
+        {...PAYWALL_NO_FONT_SCALE}
+        style={{ ...PAYWALL_TYPOGRAPHY.planLabel, color: colors.textPrimary }}
+      >
         {plan.label}
       </Text>
-      <Text className="mt-1 text-xl font-bold leading-tight" style={{ color: colors.textPrimary }}>
-        {plan.displayPerMonth}
-      </Text>
+      {/* Billed amount is primary (Apple 3.1.2c) */}
       <Text
-        className="mt-1 text-[10px] leading-snug"
-        style={{ color: colors.textSecondary }}
+        {...PAYWALL_NO_FONT_SCALE}
+        testID={`paywall-plan-${period}-billed`}
+        style={{ ...PAYWALL_TYPOGRAPHY.planPrice, marginTop: 4, color: colors.textPrimary }}
+      >
+        {plan.billedAmount}
+      </Text>
+      {plan.calculatedPrice ? (
+        <Text
+          {...PAYWALL_NO_FONT_SCALE}
+          testID={`paywall-plan-${period}-calculated`}
+          style={{ ...PAYWALL_TYPOGRAPHY.planBilling, marginTop: 2, color: colors.textTertiary }}
+        >
+          {plan.calculatedPrice}
+        </Text>
+      ) : null}
+      <Text
+        {...PAYWALL_NO_FONT_SCALE}
+        style={{ ...PAYWALL_TYPOGRAPHY.planTrial, marginTop: 6, color: colors.textSecondary }}
         numberOfLines={2}
       >
         {plan.trialNote}
-      </Text>
-      <Text
-        className="mt-0.5 text-[11px] leading-snug"
-        style={{ color: colors.textTertiary }}
-        numberOfLines={2}
-      >
-        {plan.billingNote}
       </Text>
     </PressableScale>
   );
