@@ -16,6 +16,7 @@ web-build/
 
 # Store marketing assets (not needed for binary build)
 /store/
+store/
 store.config.json
 subscription-review-screenshot.png
 
