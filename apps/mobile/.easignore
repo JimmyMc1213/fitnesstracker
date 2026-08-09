@@ -1,11 +1,12 @@
 # Local Xcode / CocoaPods artifacts (EAS installs pods on the builder)
-ios/build/
-ios/Pods/
-ios/DerivedData/
+/ios/build/
+/ios/Pods/
+/ios/DerivedData/
 **/xcuserdata/
 **/*.xcuserstate
 
-# Dependencies & caches
+# Dependencies & caches — EAS installs these remotely
+/node_modules/
 node_modules/
 .expo/
 .turbo/
@@ -14,7 +15,7 @@ dist/
 web-build/
 
 # Store marketing assets (not needed for binary build)
-store/
+/store/
 store.config.json
 subscription-review-screenshot.png
 
