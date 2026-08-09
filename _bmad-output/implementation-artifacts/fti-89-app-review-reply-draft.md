@@ -2,7 +2,7 @@
 
 Hello App Review team,
 
-Thank you for the detailed feedback on New You AI 1.0 (build 31). We have addressed each issue in build **32** as follows:
+Thank you for the detailed feedback on New You AI 1.0 (build 31). We have addressed each issue in build **33** as follows:
 
 **2.3.10 Accurate Metadata / Screenshots**  
 We replaced App Store screenshots with captures of the real iOS app UI (no nested device mockups or non-iOS status bars). Screenshots now show the main features: Future You, plan, home, workout, nutrition, and paywall.
