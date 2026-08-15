@@ -5,6 +5,62 @@ import type { NutritionGoal, UserGender } from "@newyouai/types";
 import { getFutureYouMotivationById } from "./motivations";
 import { isFutureYouSourcePathForUser } from "./paths";
 
+/** Server backstop: 3 generate attempts per rolling 24h (retries + one redo). */
+export const FUTURE_YOU_GENERATE_RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
+export const FUTURE_YOU_GENERATE_RATE_LIMIT_MAX = 3;
+
+/** Prompt timeline is interpolated into the OpenAI prompt — keep it short and shaped. */
+export const FUTURE_YOU_TIMELINE_MAX_LEN = 32;
+const FUTURE_YOU_TIMELINE_RE = /^\d+\s+(months?|years?)$/i;
+
+export type FutureYouGenerateRateLimitResult =
+  | { allowed: true }
+  | { allowed: false; retryAfterSec: number };
+
+export class FutureYouGenerateRateLimiter {
+  private buckets = new Map<string, { count: number; windowStartMs: number }>();
+
+  constructor(
+    private readonly windowMs = FUTURE_YOU_GENERATE_RATE_LIMIT_WINDOW_MS,
+    private readonly maxRequests = FUTURE_YOU_GENERATE_RATE_LIMIT_MAX,
+    private readonly nowMs: () => number = () => Date.now(),
+  ) {}
+
+  check(key: string): FutureYouGenerateRateLimitResult {
+    const now = this.nowMs();
+    const bucket = this.buckets.get(key);
+
+    if (!bucket || now - bucket.windowStartMs >= this.windowMs) {
+      this.buckets.set(key, { count: 1, windowStartMs: now });
+      return { allowed: true };
+    }
+
+    if (bucket.count >= this.maxRequests) {
+      const retryAfterMs = this.windowMs - (now - bucket.windowStartMs);
+      return { allowed: false, retryAfterSec: Math.max(1, Math.ceil(retryAfterMs / 1000)) };
+    }
+
+    bucket.count += 1;
+    return { allowed: true };
+  }
+
+  reset(key?: string): void {
+    if (key === undefined) {
+      this.buckets.clear();
+      return;
+    }
+    this.buckets.delete(key);
+  }
+}
+
+export function sanitizeFutureYouTimeline(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > FUTURE_YOU_TIMELINE_MAX_LEN) return undefined;
+  if (!FUTURE_YOU_TIMELINE_RE.test(trimmed)) return undefined;
+  return trimmed;
+}
+
 export type FutureYouGenerateProfile = {
   goal: NutritionGoal;
   gender: UserGender;
@@ -96,7 +152,7 @@ export function validateFutureYouGenerateRequest(
   const sourcePath = typeof raw.sourcePath === "string" ? raw.sourcePath.trim() : "";
   const motivationId = typeof raw.motivationId === "string" ? raw.motivationId.trim() : "";
   const profile = parseProfile(raw.profile);
-  const timeline = typeof raw.timeline === "string" ? raw.timeline.trim() : undefined;
+  const timeline = typeof raw.timeline === "string" ? sanitizeFutureYouTimeline(raw.timeline) : undefined;
 
   if (!sourcePath) {
     return { ok: false, error: "Missing source photo path.", status: 400 };

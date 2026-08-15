@@ -1,8 +1,62 @@
-/** Keep in sync with src/fitness/futureYouGenerateGuards.ts */
+/** Keep in sync with packages/core/src/future-you/generateGuards.ts */
 
 import { getFutureYouMotivationById } from "../_shared/future-you/futureYouMotivations.ts";
 import { isFutureYouSourcePathForUser } from "../_shared/future-you/paths.ts";
 import type { NutritionGoal, UserGender } from "../_shared/future-you/types.ts";
+
+/** Server backstop: 3 generate attempts per rolling 24h (retries + one redo). */
+export const FUTURE_YOU_GENERATE_RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
+export const FUTURE_YOU_GENERATE_RATE_LIMIT_MAX = 3;
+
+/** Prompt timeline is interpolated into the OpenAI prompt — keep it short and shaped. */
+export const FUTURE_YOU_TIMELINE_MAX_LEN = 32;
+const FUTURE_YOU_TIMELINE_RE = /^\d+\s+(months?|years?)$/i;
+
+export type FutureYouGenerateRateLimitResult =
+  | { allowed: true }
+  | { allowed: false; retryAfterSec: number };
+
+export class FutureYouGenerateRateLimiter {
+  private buckets = new Map<string, { count: number; windowStartMs: number }>();
+
+  constructor(
+    private readonly windowMs = FUTURE_YOU_GENERATE_RATE_LIMIT_WINDOW_MS,
+    private readonly maxRequests = FUTURE_YOU_GENERATE_RATE_LIMIT_MAX,
+    private readonly nowMs: () => number = () => Date.now(),
+  ) {}
+
+  check(key: string): FutureYouGenerateRateLimitResult {
+    const now = this.nowMs();
+    const bucket = this.buckets.get(key);
+
+    if (!bucket || now - bucket.windowStartMs >= this.windowMs) {
+      this.buckets.set(key, { count: 1, windowStartMs: now });
+      return { allowed: true };
+    }
+
+    if (bucket.count >= this.maxRequests) {
+      const retryAfterMs = this.windowMs - (now - bucket.windowStartMs);
+      return { allowed: false, retryAfterSec: Math.max(1, Math.ceil(retryAfterMs / 1000)) };
+    }
+
+    bucket.count += 1;
+    return { allowed: true };
+  }
+}
+
+const rateLimiter = new FutureYouGenerateRateLimiter();
+
+export function checkFutureYouGenerateRateLimit(userId: string): FutureYouGenerateRateLimitResult {
+  return rateLimiter.check(userId);
+}
+
+export function sanitizeFutureYouTimeline(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > FUTURE_YOU_TIMELINE_MAX_LEN) return undefined;
+  if (!FUTURE_YOU_TIMELINE_RE.test(trimmed)) return undefined;
+  return trimmed;
+}
 
 export type FutureYouGenerateProfile = {
   goal: NutritionGoal;
@@ -95,7 +149,7 @@ export function validateFutureYouGenerateRequest(
   const sourcePath = typeof raw.sourcePath === "string" ? raw.sourcePath.trim() : "";
   const motivationId = typeof raw.motivationId === "string" ? raw.motivationId.trim() : "";
   const profile = parseProfile(raw.profile);
-  const timeline = typeof raw.timeline === "string" ? raw.timeline.trim() : undefined;
+  const timeline = typeof raw.timeline === "string" ? sanitizeFutureYouTimeline(raw.timeline) : undefined;
 
   if (!sourcePath) {
     return { ok: false, error: "Missing source photo path.", status: 400 };
@@ -159,5 +213,13 @@ export function conflictActiveJobResponse(
     },
     409,
     corsHeaders,
+  );
+}
+
+export function rateLimitedResponse(retryAfterSec: number, corsHeaders: Record<string, string>): Response {
+  return jsonResponse(
+    { error: "Too many transformations. Try again later." },
+    429,
+    { ...corsHeaders, "Retry-After": String(retryAfterSec) },
   );
 }

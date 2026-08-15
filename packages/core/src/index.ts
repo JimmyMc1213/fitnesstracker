@@ -594,9 +594,15 @@ export {
   type FutureYouUploadValidationResult,
 } from "./future-you/uploadGuards";
 export {
+  FUTURE_YOU_GENERATE_RATE_LIMIT_WINDOW_MS,
+  FUTURE_YOU_GENERATE_RATE_LIMIT_MAX,
+  FUTURE_YOU_TIMELINE_MAX_LEN,
+  FutureYouGenerateRateLimiter,
   isMotivationValidForProfile,
+  sanitizeFutureYouTimeline,
   validateFutureYouGenerateRequest,
   type FutureYouGenerateProfile,
+  type FutureYouGenerateRateLimitResult,
   type FutureYouGenerateRequest,
   type FutureYouGenerateValidationError,
   type FutureYouGenerateValidationSuccess,

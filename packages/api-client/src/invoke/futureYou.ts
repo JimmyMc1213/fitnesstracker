@@ -29,7 +29,7 @@ export type FutureYouGenerateResult = {
 export class FutureYouGenerateError extends Error {
   constructor(
     message: string,
-    readonly code?: "auth_required" | "unavailable" | "invalid" | "conflict",
+    readonly code?: "auth_required" | "unavailable" | "invalid" | "conflict" | "rate_limited",
     readonly jobId?: string,
     readonly status?: FutureYouJobStatus,
   ) {
@@ -358,6 +358,31 @@ export async function startFutureYouGeneration(
       data && typeof data === "object" && typeof (data as { error?: string }).error === "string"
         ? (data as { error: string }).error.trim()
         : "Could not start generation. Try again.";
+    if (response.status === 429) {
+      throw new FutureYouGenerateError(
+        message || "Too many transformations. Try again later.",
+        "rate_limited",
+      );
+    }
+    if (response.status === 409) {
+      try {
+        return parseGenerateResponse(data);
+      } catch (err) {
+        if (err instanceof FutureYouGenerateError && err.code === "conflict" && err.jobId) {
+          return {
+            jobId: err.jobId,
+            status: err.status ?? "generating",
+          };
+        }
+        throw new FutureYouGenerateError(message || "A Future You generation is already in progress.", "conflict");
+      }
+    }
+    if (response.status === 401) {
+      throw new FutureYouGenerateError(message || "Sign in to create your Future You.", "auth_required");
+    }
+    if (response.status === 400) {
+      throw new FutureYouGenerateError(message || "Could not start generation. Try again.", "invalid");
+    }
     throw new FutureYouGenerateError(message || "Could not start generation. Try again.", "unavailable");
   }
 

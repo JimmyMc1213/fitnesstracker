@@ -88,6 +88,54 @@ describe("startFutureYouGeneration", () => {
     expect(result.jobId).toBe("aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee");
   });
 
+  it("maps 429 responses as rate_limited", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        json: async () => ({ error: "Too many transformations. Try again later." }),
+      }),
+    );
+
+    await expect(
+      startFutureYouGeneration(mockClient(vi.fn()), validEnv, {
+        sourcePath: "users/u1/source/a.jpg",
+        motivationId: "cut_m_veins",
+        profile: { goal: "cut", gender: "male", weightLbs: 190 },
+      }),
+    ).rejects.toMatchObject({
+      name: "FutureYouGenerateError",
+      code: "rate_limited",
+    });
+  });
+
+  it("returns the in-flight job when the server responds 409", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 409,
+        json: async () => ({
+          error: "A Future You generation is already in progress.",
+          jobId: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+          status: "generating",
+        }),
+      }),
+    );
+
+    const result = await startFutureYouGeneration(mockClient(vi.fn()), validEnv, {
+      sourcePath: "users/u1/source/a.jpg",
+      motivationId: "cut_m_veins",
+      profile: { goal: "cut", gender: "male", weightLbs: 190 },
+    });
+
+    expect(result).toEqual({
+      jobId: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      status: "generating",
+    });
+  });
+
   it("throws FutureYouGenerateError on fetch failure", async () => {
     vi.stubGlobal(
       "fetch",

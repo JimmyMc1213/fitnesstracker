@@ -15,9 +15,14 @@ import {
 } from "../_shared/future-you/staleJob.ts";
 import {
   badGenerateResponse,
+  checkFutureYouGenerateRateLimit,
   conflictActiveJobResponse,
+  FUTURE_YOU_GENERATE_RATE_LIMIT_MAX,
+  FUTURE_YOU_GENERATE_RATE_LIMIT_WINDOW_MS,
+  rateLimitedResponse,
   unauthorizedResponse,
   validateFutureYouGenerateRequest,
+  type FutureYouGenerateRateLimitResult,
   type FutureYouGenerateRequest,
 } from "./guards.ts";
 import {
@@ -255,6 +260,33 @@ async function uploadPreviewImage(
   }
 }
 
+/**
+ * Durable, cross-instance rate limit backed by Postgres (migration 014). Falls
+ * back to the per-instance in-memory limiter if the DB function is unavailable.
+ */
+async function enforceFutureYouGenerateRateLimit(
+  userClient: SupabaseClient,
+  userId: string,
+): Promise<FutureYouGenerateRateLimitResult> {
+  try {
+    const { data, error } = await userClient.rpc("check_future_you_generate_rate_limit", {
+      p_max: FUTURE_YOU_GENERATE_RATE_LIMIT_MAX,
+      p_window_ms: FUTURE_YOU_GENERATE_RATE_LIMIT_WINDOW_MS,
+    });
+    if (error) throw error;
+    if (data === false) {
+      return {
+        allowed: false,
+        retryAfterSec: Math.ceil(FUTURE_YOU_GENERATE_RATE_LIMIT_WINDOW_MS / 1000),
+      };
+    }
+    return { allowed: true };
+  } catch (e) {
+    console.error("future-you-generate: durable rate limit unavailable, using in-memory", e);
+    return checkFutureYouGenerateRateLimit(userId);
+  }
+}
+
 async function downloadSourcePhoto(
   adminClient: SupabaseClient,
   sourcePath: string,
@@ -384,6 +416,11 @@ Deno.serve(async (req) => {
       .download(validated.request.sourcePath);
     if (sourceDownloadError) {
       return badGenerateResponse("Source photo not found.", 400, corsHeaders);
+    }
+
+    const rateLimit = await enforceFutureYouGenerateRateLimit(auth.userClient, auth.userId);
+    if (!rateLimit.allowed) {
+      return rateLimitedResponse(rateLimit.retryAfterSec, corsHeaders);
     }
 
     const { data: job, error: insertError } = await auth.adminClient
