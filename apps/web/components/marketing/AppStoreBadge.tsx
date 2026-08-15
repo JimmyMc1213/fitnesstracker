@@ -28,6 +28,8 @@ export function AppStoreBadge({ variant = "dark", className = "" }: AppStoreBadg
   return (
     <a
       href={APP_STORE_URL}
+      rel="noopener noreferrer"
+      target="_blank"
       className={`inline-flex items-center gap-3 rounded-[14px] px-5 py-3.5 md:px-6 md:py-3.5 ${bg} ${className}`}
     >
       <AppleIcon className="h-[26px] w-[22px]" />
@@ -68,7 +70,12 @@ export function AppStorePill({
   }
 
   return (
-    <a href={APP_STORE_URL} className={className}>
+    <a
+      href={APP_STORE_URL}
+      rel="noopener noreferrer"
+      target="_blank"
+      className={className}
+    >
       <AppleIcon className={iconClass} />
       {label}
     </a>

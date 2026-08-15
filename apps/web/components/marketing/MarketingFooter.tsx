@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { APP_STORE_URL } from "../../lib/site";
 import { Logo } from "./Logo";
 
 export function MarketingFooter() {
@@ -27,9 +28,14 @@ export function MarketingFooter() {
               <Link href="/#how" className="opacity-90 hover:opacity-100">
                 How it works
               </Link>
-              <Link href="/#download" className="opacity-90 hover:opacity-100">
+              <a
+                href={APP_STORE_URL}
+                rel="noopener noreferrer"
+                target="_blank"
+                className="opacity-90 hover:opacity-100"
+              >
                 Download
-              </Link>
+              </a>
             </div>
           </div>
           <div>
