@@ -3,7 +3,7 @@ import type { ExpoConfig } from "expo/config";
 const config: ExpoConfig = {
   name: "New You AI",
   slug: "newyouai-mobile",
-  version: "1.0.0",
+  version: "1.0.1",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "newyouai",
@@ -11,7 +11,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: false,
     bundleIdentifier: "app.newyouai.mobile",
-    buildNumber: "35",
+    buildNumber: "36",
     appleTeamId: "YJ77689737",
     usesAppleSignIn: true,
     infoPlist: {
