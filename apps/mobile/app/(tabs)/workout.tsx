@@ -71,6 +71,7 @@ export default function WorkoutScreen() {
           open={showSummary}
           summary={state.workoutSummary}
           unitPreferences={state.unitPreferences}
+          session={state.workoutHistory?.[0]}
           onDone={() => setFitnessState((prev) => dismissWorkoutSummary(prev))}
         />
       ) : null}

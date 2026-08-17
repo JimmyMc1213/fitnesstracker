@@ -159,7 +159,14 @@ export function RestTimerSheet({
             </Text>
           ) : null}
 
-          <RestTimerDurationPicker variant="sheet" value={selectedPresetSec} onChange={onSelectPreset} />
+          <RestTimerDurationPicker
+            variant="sheet"
+            value={selectedPresetSec}
+            onChange={(seconds) => {
+              setDisplaySec(seconds);
+              onSelectPreset(seconds);
+            }}
+          />
 
           {isRunning ? (
             <View className="mb-4 flex-row gap-2">

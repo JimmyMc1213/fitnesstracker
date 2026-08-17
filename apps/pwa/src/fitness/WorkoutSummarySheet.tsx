@@ -1,74 +1,167 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { IconBarbell, IconChecks, IconStopwatch, IconTrophy } from "@tabler/icons-react";
+import type { TablerIcon } from "@tabler/icons-react";
 
-import { fireConfetti } from "./confetti";
+import { firePlanOnlySuccessConfetti } from "./confetti";
 import { closeAfterMotion, FullScreenOverlay, MOTION_DURATIONS } from "./motion";
 import { formatWorkoutDuration } from "./workoutSummary";
 import { LBS_PER_KG } from "./unitPreferences";
-import type { UnitPreferences, WorkoutSessionSummary } from "./types";
+import type { CompletedWorkoutSession, UnitPreferences, WorkoutSessionSummary } from "./types";
+
+const GOLD = "var(--ob-gold)";
+const RING_SIZE = 116;
+const RING_STROKE = 8;
 
 type Props = {
   open: boolean;
   summary: WorkoutSessionSummary;
   unitPreferences: UnitPreferences;
+  /** Just-finished session, used for the per-exercise breakdown. */
+  session?: CompletedWorkoutSession;
   onDone: () => void;
 };
 
-export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: Props) {
+type ExerciseLine = {
+  key: string;
+  name: string;
+  label?: string;
+  sets: number;
+  volume: number;
+};
+
+export function WorkoutSummarySheet({ open, summary, unitPreferences, session, onDone }: Props) {
   const [closing, setClosing] = useState(false);
+  const [sweep, setSweep] = useState(0);
   const visible = open && !closing;
-  const volLabel = unitPreferences.weightUnit === "kg" ? "kg·reps" : "lb·reps";
-  const displayVolume =
-    summary.totalVolume > 0 && unitPreferences.weightUnit === "kg"
-      ? Math.round(summary.totalVolume / LBS_PER_KG)
-      : summary.totalVolume;
+
+  const isKg = unitPreferences.weightUnit === "kg";
+  const volLabel = isKg ? "kg·reps" : "lb·reps";
+  const toDisplayVolume = (raw: number) => (isKg ? Math.round(raw / LBS_PER_KG) : Math.round(raw));
+  const displayVolume = summary.totalVolume > 0 ? toDisplayVolume(summary.totalVolume) : 0;
+
+  const completion = summary.totalSets > 0 ? Math.min(1, summary.doneSets / summary.totalSets) : 0;
+  const completionPct = Math.round(completion * 100);
+
+  const exerciseLines = useMemo<ExerciseLine[]>(() => {
+    if (!session) return [];
+    return session.exercises.map((ex) => ({
+      key: ex.id,
+      name: ex.name,
+      label: ex.label,
+      sets: ex.sets.length,
+      volume: ex.sets.reduce((total, st) => total + st.w * st.r, 0),
+    }));
+  }, [session]);
+
+  const peakVolume = exerciseLines.reduce((max, line) => Math.max(max, line.volume), 0);
 
   useEffect(() => {
     if (!open) setClosing(false);
   }, [open]);
 
   useEffect(() => {
-    const stop = fireConfetti();
+    const stop = firePlanOnlySuccessConfetti();
     return stop;
   }, []);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setSweep(completion));
+    return () => cancelAnimationFrame(frame);
+  }, [completion]);
 
   function handleDone() {
     setClosing(true);
     closeAfterMotion(onDone, MOTION_DURATIONS.panel);
   }
 
+  const radius = (RING_SIZE - RING_STROKE) / 2;
+  const circumference = 2 * Math.PI * radius;
+
   return (
     <FullScreenOverlay open={visible} zIndex={250} motionVariant="fade">
-      <div
-        className="screen page-transition"
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          paddingBottom: 24,
-        }}
-      >
-        <div style={{ textAlign: "center", paddingTop: 28, paddingBottom: 8 }}>
-          <div style={{ fontSize: 48, lineHeight: 1, marginBottom: 12 }} aria-hidden>
-            🎉
+      <div className="screen page-transition" style={{ flex: 1, overflowY: "auto", paddingBottom: 32 }}>
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 32 }}>
+          <div style={{ position: "relative", width: RING_SIZE, height: RING_SIZE }}>
+            <svg width={RING_SIZE} height={RING_SIZE} aria-hidden>
+              <defs>
+                <linearGradient id="workoutSummaryRingGold" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="var(--ob-gold-mid, #E5B769)" />
+                  <stop offset="1" stopColor="var(--ob-gold)" />
+                </linearGradient>
+              </defs>
+              <circle
+                cx={RING_SIZE / 2}
+                cy={RING_SIZE / 2}
+                r={radius}
+                stroke="var(--border)"
+                strokeWidth={RING_STROKE}
+                fill="none"
+              />
+              <circle
+                cx={RING_SIZE / 2}
+                cy={RING_SIZE / 2}
+                r={radius}
+                stroke="url(#workoutSummaryRingGold)"
+                strokeWidth={RING_STROKE}
+                fill="none"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={circumference * (1 - sweep)}
+                transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+                style={{ transition: "stroke-dashoffset 900ms cubic-bezier(0.22,1,0.36,1)" }}
+              />
+            </svg>
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 27,
+                  fontWeight: 700,
+                  letterSpacing: "-0.03em",
+                  fontVariantNumeric: "tabular-nums",
+                  lineHeight: 1,
+                }}
+              >
+                {completionPct}
+                <span style={{ fontSize: 15, color: GOLD }}>%</span>
+              </div>
+              <div
+                style={{
+                  marginTop: 5,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.09em",
+                  textTransform: "uppercase",
+                  color: "var(--text-ghost)",
+                }}
+              >
+                {summary.doneSets} of {summary.totalSets} sets
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div style={{ textAlign: "center", paddingTop: 24 }}>
           <div
             style={{
               fontSize: 11,
               fontWeight: 600,
-              letterSpacing: "0.12em",
+              letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "var(--text-ghost)",
+              color: GOLD,
             }}
           >
             Workout complete
           </div>
-          <h1
-            style={{
-              margin: "10px 0 4px",
-              fontSize: 26,
-              fontWeight: 700,
-              letterSpacing: "-0.03em",
-            }}
-          >
+          <h1 style={{ margin: "10px 0 6px", fontSize: 25, fontWeight: 700, letterSpacing: "-0.02em" }}>
             {summary.title}
           </h1>
           <p style={{ margin: 0, fontSize: 14, color: "var(--text-faint-soft)", fontWeight: 500 }}>
@@ -76,60 +169,196 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
           </p>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 10,
-            marginTop: 24,
-          }}
-        >
-          <StatCard label="Duration" value={formatWorkoutDuration(summary.durationSec)} />
-          <StatCard
-            label="Sets"
-            value={`${summary.doneSets}/${summary.totalSets}`}
-            sub={summary.totalSets > 0 ? "done" : undefined}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 28 }}>
+          <StatTile
+            icon={IconStopwatch}
+            value={formatWorkoutDuration(summary.durationSec)}
+            label="Duration"
           />
-          <StatCard
-            label="Volume"
-            value={summary.totalVolume > 0 ? displayVolume.toLocaleString() : ", "}
-            sub={summary.totalVolume > 0 ? volLabel : undefined}
+          <StatTile icon={IconChecks} value={`${summary.doneSets}`} label="Sets done" />
+          <StatTile
+            icon={IconBarbell}
+            value={displayVolume > 0 ? displayVolume.toLocaleString() : "—"}
+            label={displayVolume > 0 ? volLabel : "Volume"}
           />
         </div>
 
-        <SummarySection
-          title="Personal records"
-          empty="No PRs this session, keep stacking weight and reps."
-          accent="var(--chart-stroke)"
-          highlight={summary.prs.length > 0}
-        >
-          {summary.prs.map((pr) => (
-            <SummaryRow
-              key={`${pr.exerciseName}-${pr.detail}`}
-              title={pr.exerciseName}
-              detail={pr.detail}
-              badge="PR"
-              badgeColor="var(--chart-stroke)"
-              highlighted
-            />
-          ))}
-        </SummarySection>
+        {exerciseLines.length > 0 ? (
+          <section style={{ marginTop: 30 }}>
+            <SectionHeading icon={IconBarbell} title="Exercises" trailing={`${exerciseLines.length}`} />
+            <div
+              className="onboarding-gradient-card"
+              style={{ display: "flex", flexDirection: "column", gap: 18, padding: 16 }}
+            >
+              {exerciseLines.map((line) => {
+                const fill = peakVolume > 0 ? Math.max(0.06, line.volume / peakVolume) : 0;
+                return (
+                  <div key={line.key} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                      <div
+                        style={{
+                          minWidth: 0,
+                          flex: 1,
+                          fontSize: 15,
+                          fontWeight: 600,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {line.name}
+                        {line.label ? (
+                          <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, color: GOLD }}>
+                            {line.label.toUpperCase()}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div
+                        style={{
+                          flexShrink: 0,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          fontVariantNumeric: "tabular-nums",
+                          color: "var(--text-faint-soft)",
+                        }}
+                      >
+                        {line.sets} × set{line.sets === 1 ? "" : "s"}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div
+                        style={{
+                          flex: 1,
+                          height: 6,
+                          borderRadius: 999,
+                          background: "var(--surface-2, rgba(255,255,255,0.07))",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${fill * 100}%`,
+                            height: "100%",
+                            borderRadius: 999,
+                            background: GOLD,
+                            transition: "width 700ms cubic-bezier(0.22,1,0.36,1)",
+                          }}
+                        />
+                      </div>
+                      <span
+                        style={{
+                          flexShrink: 0,
+                          fontSize: 11,
+                          fontWeight: 500,
+                          fontVariantNumeric: "tabular-nums",
+                          color: "var(--text-ghost)",
+                        }}
+                      >
+                        {toDisplayVolume(line.volume).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
 
-        <SummarySection
-          title="Needs work"
-          empty="All logged sets hit target reps. Clean session."
-          accent="#FF9F0A"
-        >
-          {summary.needsWork.map((row) => (
-            <SummaryRow
-              key={`${row.exerciseName}-${row.detail}`}
-              title={row.exerciseName}
-              detail={row.detail}
-              badge="Below"
-              badgeColor="#FF9F0A"
-            />
-          ))}
-        </SummarySection>
+        <section style={{ marginTop: 30 }}>
+          <SectionHeading
+            icon={IconTrophy}
+            title="Personal records"
+            trailing={summary.prs.length > 0 ? `${summary.prs.length} new` : undefined}
+          />
+          {summary.prs.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {summary.prs.map((pr) => (
+                <div
+                  key={`${pr.exerciseName}-${pr.detail}`}
+                  className="onboarding-gradient-card"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: 16,
+                    borderLeft: `2px solid ${GOLD}`,
+                  }}
+                >
+                  <span
+                    style={{
+                      flexShrink: 0,
+                      width: 36,
+                      height: 36,
+                      borderRadius: 999,
+                      display: "grid",
+                      placeItems: "center",
+                      background: "rgba(212,175,110,0.12)",
+                      color: GOLD,
+                    }}
+                  >
+                    <IconTrophy size={17} stroke={1.9} />
+                  </span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 600,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {pr.exerciseName}
+                    </div>
+                    <div
+                      style={{
+                        marginTop: 6,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        fontVariantNumeric: "tabular-nums",
+                        color: GOLD,
+                      }}
+                    >
+                      {pr.detail}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="onboarding-gradient-card">
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: "var(--text-faint-soft)" }}>
+                No PRs this session. Add a rep or a little weight next time and this fills up.
+              </p>
+            </div>
+          )}
+        </section>
+
+        {summary.needsWork.length > 0 ? (
+          <section style={{ marginTop: 30 }}>
+            <SectionHeading icon={IconChecks} title="Needs work" tint="var(--text-ghost)" />
+            <div
+              className="onboarding-gradient-card"
+              style={{ display: "flex", flexDirection: "column", gap: 14, padding: 16 }}
+            >
+              {summary.needsWork.map((row) => (
+                <div key={`${row.exerciseName}-${row.detail}`}>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>{row.exerciseName}</div>
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: "var(--text-faint-soft)",
+                    }}
+                  >
+                    {row.detail}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </div>
 
       <div
@@ -147,8 +376,8 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
           onClick={handleDone}
           style={{
             width: "100%",
-            background: "var(--primary)",
-            color: "var(--primary-fg)",
+            background: GOLD,
+            color: "var(--ob-gold-on)",
             borderRadius: 12,
             padding: "14px 20px",
             fontSize: 16,
@@ -163,128 +392,70 @@ export function WorkoutSummarySheet({ open, summary, unitPreferences, onDone }: 
   );
 }
 
-function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function StatTile({
+  icon: Icon,
+  value,
+  label,
+}: {
+  icon: TablerIcon;
+  value: string;
+  label: string;
+}) {
   return (
-    <div
-      className="card"
-      style={{
-        padding: "14px 10px",
-        textAlign: "center",
-        border: "0.5px solid var(--border)",
-      }}
-    >
-      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-ghost)" }}>
-        {label}
-      </div>
+    <div className="onboarding-gradient-card" style={{ padding: 16 }}>
+      <span style={{ color: GOLD, display: "block", lineHeight: 0 }}>
+        <Icon size={16} stroke={1.9} />
+      </span>
       <div
         style={{
-          marginTop: 6,
-          fontSize: 20,
+          marginTop: 12,
+          fontSize: 18,
           fontWeight: 700,
+          letterSpacing: "-0.03em",
           fontVariantNumeric: "tabular-nums",
-          letterSpacing: "-0.02em",
         }}
       >
         {value}
       </div>
-      {sub ? <div style={{ marginTop: 2, fontSize: 10, color: "var(--text-ghost)", fontWeight: 500 }}>{sub}</div> : null}
+      <div style={{ marginTop: 5, fontSize: 11, fontWeight: 500, color: "var(--text-ghost)" }}>
+        {label}
+      </div>
     </div>
   );
 }
 
-function SummarySection({
+function SectionHeading({
+  icon: Icon,
   title,
-  empty,
-  accent,
-  highlight,
-  children,
+  trailing,
+  tint = GOLD,
 }: {
+  icon: TablerIcon;
   title: string;
-  empty: string;
-  accent: string;
-  highlight?: boolean;
-  children: ReactNode;
-}) {
-  const childList = Array.isArray(children) ? children : children != null ? [children] : [];
-  const hasItems = childList.length > 0;
-
-  return (
-    <section style={{ marginTop: 28 }}>
-      <div className="between" style={{ marginBottom: 10, alignItems: "flex-end" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>{title}</h2>
-          {highlight && hasItems ? (
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: accent,
-                background: `${accent}22`,
-                padding: "3px 7px",
-                borderRadius: 6,
-              }}
-            >
-              {childList.length} new
-            </span>
-          ) : null}
-        </div>
-        <span style={{ width: 8, height: 8, borderRadius: "50%", background: accent }} aria-hidden />
-      </div>
-      {hasItems ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{children}</div>
-      ) : (
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: "var(--text-ghost)", fontWeight: 400 }}>{empty}</p>
-      )}
-    </section>
-  );
-}
-
-function SummaryRow({
-  title,
-  detail,
-  badge,
-  badgeColor,
-  highlighted,
-}: {
-  title: string;
-  detail: string;
-  badge: string;
-  badgeColor: string;
-  highlighted?: boolean;
+  trailing?: string;
+  tint?: string;
 }) {
   return (
-    <div
-      className="card between"
-      style={{
-        padding: "12px 14px",
-        alignItems: "center",
-        gap: 12,
-        border: highlighted ? `1px solid ${badgeColor}55` : "0.5px solid var(--border)",
-        background: highlighted ? `${badgeColor}0d` : undefined,
-        boxShadow: highlighted ? `0 0 0 1px ${badgeColor}18` : undefined,
-      }}
-    >
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
-        <div style={{ marginTop: 2, fontSize: 12, color: "var(--text-faint-soft)", fontWeight: 500 }}>{detail}</div>
-      </div>
-      <span
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+      <span style={{ color: tint, lineHeight: 0 }}>
+        <Icon size={16} stroke={1.9} />
+      </span>
+      <h2
         style={{
-          flexShrink: 0,
-          fontSize: 10,
+          margin: 0,
+          flex: 1,
+          fontSize: 13,
           fontWeight: 700,
-          letterSpacing: "0.06em",
+          letterSpacing: "0.12em",
           textTransform: "uppercase",
-          color: badgeColor,
-          background: `${badgeColor}22`,
-          padding: "4px 8px",
-          borderRadius: 6,
+          color: "var(--text-faint-soft)",
         }}
       >
-        {badge}
-      </span>
+        {title}
+      </h2>
+      {trailing ? (
+        <span style={{ fontSize: 13, fontWeight: 700, color: tint }}>{trailing}</span>
+      ) : null}
     </div>
   );
 }

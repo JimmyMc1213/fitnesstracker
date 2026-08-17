@@ -177,7 +177,10 @@ export function RestTimerSheet({
       <RestTimerDurationPicker
         variant="sheet"
         value={selectedPresetSec}
-        onChange={onSelectPreset}
+        onChange={(seconds) => {
+          setDisplaySec(seconds);
+          onSelectPreset(seconds);
+        }}
       />
 
       {isRunning ? (

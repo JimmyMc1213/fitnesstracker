@@ -607,6 +607,7 @@ function FitnessAppMain({
                 open={showWorkoutSummary}
                 summary={state.workoutSummary}
                 unitPreferences={state.unitPreferences}
+                session={state.workoutHistory?.[0]}
                 onDone={() => {
                   setState((s) => dismissWorkoutSummary(s));
                   navigate("home");

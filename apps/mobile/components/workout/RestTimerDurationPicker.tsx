@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { AppTextField } from "@/components/ui/AppTextField";
 
 import {
   clampRestTimerSeconds,
-  formatRestDuration,
   MAX_REST_TIMER_SECONDS,
   MIN_REST_TIMER_SECONDS,
   REST_TIMER_PRESETS,
@@ -20,15 +19,43 @@ type Props = {
 
 export function RestTimerDurationPicker({ value, onChange, variant = "settings" }: Props) {
   const { colors } = useAppTheme();
+  const [selected, setSelected] = useState(value);
   const [customIn, setCustomIn] = useState(String(value));
+  const selectedRef = useRef(value);
+  const persistFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
+    selectedRef.current = value;
+    setSelected(value);
     setCustomIn(String(value));
   }, [value]);
+
+  useEffect(() => {
+    return () => {
+      if (persistFrameRef.current != null) cancelAnimationFrame(persistFrameRef.current);
+    };
+  }, []);
+
+  function persist(seconds: number) {
+    if (persistFrameRef.current != null) cancelAnimationFrame(persistFrameRef.current);
+    persistFrameRef.current = requestAnimationFrame(() => {
+      persistFrameRef.current = null;
+      onChange(seconds);
+    });
+  }
+
+  function pick(seconds: number) {
+    if (seconds === selectedRef.current) return;
+    selectedRef.current = seconds;
+    setSelected(seconds);
+    persist(seconds);
+  }
 
   function commitCustom(raw: string) {
     const n = parseInt(raw, 10);
     const val = clampRestTimerSeconds(Number.isFinite(n) ? n : value);
+    selectedRef.current = val;
+    setSelected(val);
     setCustomIn(String(val));
     onChange(val);
   }
@@ -37,20 +64,20 @@ export function RestTimerDurationPicker({ value, onChange, variant = "settings" 
     <View>
       <View className="mb-3.5 flex-row flex-wrap gap-2">
         {REST_TIMER_PRESETS.map((sec) => {
-          const selected = value === sec;
+          const isSelected = selected === sec;
           return (
             <Pressable
               key={sec}
-              onPress={() => onChange(sec)}
+              onPressIn={() => pick(sec)}
               className="min-w-[64px] flex-1 items-center rounded-[10px] border px-2 py-2.5"
               style={{
-                borderColor: selected ? colors.textPrimary : colors.border,
-                backgroundColor: selected ? colors.backgroundTertiary : colors.backgroundSecondary,
+                borderColor: isSelected ? colors.textPrimary : colors.border,
+                backgroundColor: isSelected ? colors.backgroundTertiary : colors.backgroundSecondary,
               }}
             >
               <Text
                 className="text-[13px] font-semibold tabular-nums"
-                style={{ color: selected ? colors.textPrimary : colors.textSecondary }}
+                style={{ color: isSelected ? colors.textPrimary : colors.textSecondary }}
               >
                 {sec}s
               </Text>
@@ -80,9 +107,6 @@ export function RestTimerDurationPicker({ value, onChange, variant = "settings" 
           />
         </>
       )}
-      <Text className="mt-2 text-xs font-medium" style={{ color: colors.textSecondary }}>
-        {MIN_REST_TIMER_SECONDS}s–{formatRestDuration(MAX_REST_TIMER_SECONDS)} allowed
-      </Text>
     </View>
   );
 }

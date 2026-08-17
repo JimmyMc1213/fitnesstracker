@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   REST_TIMER_PRESETS,
   clampRestTimerSeconds,
-  formatRestDuration,
   MAX_REST_TIMER_SECONDS,
   MIN_REST_TIMER_SECONDS,
 } from "./restTimerPreferences";
@@ -17,15 +16,43 @@ type Props = {
 };
 
 export function RestTimerDurationPicker({ value, onChange, variant = "settings" }: Props) {
+  const [selected, setSelected] = useState(value);
   const [customIn, setCustomIn] = useState(String(value));
+  const selectedRef = useRef(value);
+  const persistFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
+    selectedRef.current = value;
+    setSelected(value);
     setCustomIn(String(value));
   }, [value]);
+
+  useEffect(() => {
+    return () => {
+      if (persistFrameRef.current != null) cancelAnimationFrame(persistFrameRef.current);
+    };
+  }, []);
+
+  function persist(seconds: number) {
+    if (persistFrameRef.current != null) cancelAnimationFrame(persistFrameRef.current);
+    persistFrameRef.current = requestAnimationFrame(() => {
+      persistFrameRef.current = null;
+      onChange(seconds);
+    });
+  }
+
+  function pick(seconds: number) {
+    if (seconds === selectedRef.current) return;
+    selectedRef.current = seconds;
+    setSelected(seconds);
+    persist(seconds);
+  }
 
   function commitCustom(raw: string) {
     const n = parseInt(raw, 10);
     const val = clampRestTimerSeconds(Number.isFinite(n) ? n : value);
+    selectedRef.current = val;
+    setSelected(val);
     setCustomIn(String(val));
     onChange(val);
   }
@@ -38,22 +65,25 @@ export function RestTimerDurationPicker({ value, onChange, variant = "settings" 
     <>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
         {REST_TIMER_PRESETS.map((sec) => {
-          const selected = value === sec;
+          const isSelected = selected === sec;
           return (
             <button
               key={sec}
               type="button"
               className="tap"
-              aria-pressed={selected}
-              onClick={() => onChange(sec)}
+              aria-pressed={isSelected}
+              onPointerDown={(event) => {
+                if (event.button !== 0) return;
+                pick(sec);
+              }}
               style={{
                 flex: presetFlex,
                 minWidth: presetMinWidth,
                 padding: presetPadding,
                 borderRadius: 10,
-                border: selected ? `0.5px solid ${PRESET_SELECTED_BORDER}` : "0.5px solid var(--border)",
-                background: selected ? PRESET_SELECTED_BG : "var(--surface-1)",
-                color: selected ? PRESET_SELECTED_COLOR : "var(--text-muted-soft)",
+                border: isSelected ? `0.5px solid ${PRESET_SELECTED_BORDER}` : "0.5px solid var(--border)",
+                background: isSelected ? PRESET_SELECTED_BG : "var(--surface-1)",
+                color: isSelected ? PRESET_SELECTED_COLOR : "var(--text-muted-soft)",
                 fontSize: 13,
                 fontWeight: 600,
                 fontVariantNumeric: "tabular-nums",
@@ -89,9 +119,6 @@ export function RestTimerDurationPicker({ value, onChange, variant = "settings" 
           aria-label="Custom rest duration in seconds"
         />
       </label>
-      <div style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 500, marginTop: 8 }}>
-        {MIN_REST_TIMER_SECONDS}s–{formatRestDuration(MAX_REST_TIMER_SECONDS)} allowed
-      </div>
     </>
   );
 }

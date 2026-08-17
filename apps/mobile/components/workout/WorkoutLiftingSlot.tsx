@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ElementRef, type ReactNode } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { HapticPressable as Pressable } from "@/components/ui/HapticPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,6 +18,7 @@ import { WorkoutExerciseCardFlat } from "@/components/workout/WorkoutExerciseCar
 import {
   WORKOUT_KEYPAD_HEIGHT,
   WorkoutKeypadProvider,
+  useWorkoutKeypad,
 } from "@/components/workout/WorkoutKeypadContext";
 import type { WorkoutKeypadTarget } from "@/lib/workout/workoutKeypadLogic";
 import { scrollWorkoutFieldIntoView } from "@/lib/workout/scrollWorkoutFieldIntoView";
@@ -169,6 +170,17 @@ const LiftingExerciseRow = memo(function LiftingExerciseRow({
   );
 });
 
+function LiftingScrollBottomPad({
+  insetsBottom,
+  children,
+}: {
+  insetsBottom: number;
+  children: (paddingBottom: number) => ReactNode;
+}) {
+  const { open } = useWorkoutKeypad();
+  return <>{children(insetsBottom + 24 + (open ? WORKOUT_KEYPAD_HEIGHT : 0))}</>;
+}
+
 export function WorkoutLiftingSlot() {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
@@ -177,6 +189,8 @@ export function WorkoutLiftingSlot() {
   const listRef = useRef<ElementRef<typeof DraggableFlatList<WorkoutExercise>> | null>(null);
   const scrollOffsetRef = useRef(0);
   const restTimerRef = useRef<ActiveRestTimer | null>(null);
+  const pendingRestPresetRef = useRef<{ key: string; seconds: number } | null>(null);
+  const restPresetSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isWorkoutSessionE2e =
     typeof __DEV__ !== "undefined" &&
     __DEV__ &&
@@ -190,6 +204,7 @@ export function WorkoutLiftingSlot() {
   const [showCancelWorkoutConfirm, setShowCancelWorkoutConfirm] = useState(false);
   const [restTimer, setRestTimer] = useState<ActiveRestTimer | null>(null);
   const [restSheetExerciseId, setRestSheetExerciseId] = useState<string | null>(null);
+  const [restSheetPresetOverride, setRestSheetPresetOverride] = useState<number | null>(null);
   const [restedRestSecByExerciseId, setRestedRestSecByExerciseId] = useState<
     Record<string, Record<number, number>>
   >({});
@@ -568,6 +583,34 @@ export function WorkoutLiftingSlot() {
     [setFitnessState],
   );
 
+  const flushRestPreset = useCallback(() => {
+    if (restPresetSaveTimerRef.current) {
+      clearTimeout(restPresetSaveTimerRef.current);
+      restPresetSaveTimerRef.current = null;
+    }
+    const pending = pendingRestPresetRef.current;
+    if (!pending) return;
+    pendingRestPresetRef.current = null;
+    setFitnessState((prev) => ({
+      ...prev,
+      restTimerSecondsByExerciseKey: { ...prev.restTimerSecondsByExerciseKey, [pending.key]: pending.seconds },
+    }));
+  }, [setFitnessState]);
+
+  useEffect(
+    () => () => {
+      if (restPresetSaveTimerRef.current) clearTimeout(restPresetSaveTimerRef.current);
+      const pending = pendingRestPresetRef.current;
+      if (!pending) return;
+      pendingRestPresetRef.current = null;
+      setFitnessState((prev) => ({
+        ...prev,
+        restTimerSecondsByExerciseKey: { ...prev.restTimerSecondsByExerciseKey, [pending.key]: pending.seconds },
+      }));
+    },
+    [setFitnessState],
+  );
+
   const openRestSheet = useCallback(
     (exerciseId: string) => {
       const current = restTimerRef.current;
@@ -575,6 +618,7 @@ export function WorkoutLiftingSlot() {
         dismissCompletedRest();
         return;
       }
+      setRestSheetPresetOverride(null);
       setRestSheetExerciseId(exerciseId);
     },
     [dismissCompletedRest],
@@ -624,14 +668,16 @@ export function WorkoutLiftingSlot() {
       ? "complete"
       : "running"
     : "ready";
-  const restSheetPresetSec = restSheetExercise
-    ? restDurationForExercise(
-        restSheetExercise.name,
-        restSheetExercise.label,
-        state.restTimerDefaultSeconds,
-        state.restTimerSecondsByExerciseKey,
-      )
-    : state.restTimerDefaultSeconds;
+  const restSheetPresetSec =
+    restSheetPresetOverride ??
+    (restSheetExercise
+      ? restDurationForExercise(
+          restSheetExercise.name,
+          restSheetExercise.label,
+          state.restTimerDefaultSeconds,
+          state.restTimerSecondsByExerciseKey,
+        )
+      : state.restTimerDefaultSeconds);
 
   function updateSessionTitle(text: string) {
     setFitnessState((prev) => ({
@@ -663,10 +709,8 @@ export function WorkoutLiftingSlot() {
   function setRestPreset(exercise: WorkoutExercise, seconds: number) {
     const clamped = clampRestTimerSeconds(seconds);
     const key = exerciseNoteKey(exercise.name, exercise.label);
-    setFitnessState((prev) => ({
-      ...prev,
-      restTimerSecondsByExerciseKey: { ...prev.restTimerSecondsByExerciseKey, [key]: clamped },
-    }));
+    setRestSheetPresetOverride(clamped);
+    pendingRestPresetRef.current = { key, seconds: clamped };
     setRestTimer((current) => {
       if (!current || current.exerciseId !== exercise.id || current.completed) return current;
       if (current.paused) {
@@ -674,6 +718,8 @@ export function WorkoutLiftingSlot() {
       }
       return { ...current, durationSec: clamped, endsAtMs: Date.now() + clamped * 1000 };
     });
+    if (restPresetSaveTimerRef.current) clearTimeout(restPresetSaveTimerRef.current);
+    restPresetSaveTimerRef.current = setTimeout(flushRestPreset, 320);
   }
 
   function adjustRestTimer(deltaSec: number) {
@@ -889,6 +935,8 @@ export function WorkoutLiftingSlot() {
     setShowEmptyFinishConfirm(false);
     setShowCancelWorkoutConfirm(false);
     clearRestTimer();
+    flushRestPreset();
+    setRestSheetPresetOverride(null);
     setRestSheetExerciseId(null);
     setCoachCardExpanded(null);
     setRestedRestSecByExerciseId({});
@@ -968,9 +1016,11 @@ export function WorkoutLiftingSlot() {
         ) : null}
 
         {workout.exercises.length === 0 ? (
+          <LiftingScrollBottomPad insetsBottom={insets.bottom}>
+            {(paddingBottom) => (
           <ScrollView
             className="mt-4 flex-1"
-            contentContainerStyle={{ paddingBottom: WORKOUT_KEYPAD_HEIGHT + insets.bottom + 32 }}
+            contentContainerStyle={{ paddingBottom }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
@@ -994,8 +1044,12 @@ export function WorkoutLiftingSlot() {
               </Text>
             </Pressable>
           </ScrollView>
+            )}
+          </LiftingScrollBottomPad>
         ) : (
           <View className="mt-3 min-h-0 flex-1">
+            <LiftingScrollBottomPad insetsBottom={insets.bottom}>
+              {(paddingBottom) => (
             <SortableExerciseList
               listRef={listRef}
               items={workout.exercises}
@@ -1013,7 +1067,7 @@ export function WorkoutLiftingSlot() {
                 });
               }}
               contentContainerStyle={{
-                paddingBottom: WORKOUT_KEYPAD_HEIGHT + insets.bottom + 32,
+                paddingBottom,
                 ...(useNewLook ? { gap: 28 } : {}),
               }}
               renderItem={(exercise, index, handle, ctx) => (
@@ -1040,6 +1094,8 @@ export function WorkoutLiftingSlot() {
                 />
               )}
             />
+              )}
+            </LiftingScrollBottomPad>
           </View>
         )}
 
@@ -1106,7 +1162,11 @@ export function WorkoutLiftingSlot() {
           paused={restSheetIsActive ? restTimer!.paused : false}
           pausedRemainingMs={restSheetIsActive ? restTimer!.pausedRemainingMs : undefined}
           selectedPresetSec={restSheetIsActive ? restTimer!.durationSec : restSheetPresetSec}
-          onClose={() => setRestSheetExerciseId(null)}
+          onClose={() => {
+            flushRestPreset();
+            setRestSheetPresetOverride(null);
+            setRestSheetExerciseId(null);
+          }}
           onSelectPreset={(seconds) => setRestPreset(restSheetExercise, seconds)}
           onAdjustSeconds={adjustRestTimer}
           onTogglePause={toggleRestPause}

@@ -104,6 +104,9 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   const [showHistoryPage, setShowHistoryPage] = useState(false);
   const [restTimer, setRestTimer] = useState<ActiveRestTimer | null>(null);
   const [restSheetExerciseId, setRestSheetExerciseId] = useState<string | null>(null);
+  const [restSheetPresetOverride, setRestSheetPresetOverride] = useState<number | null>(null);
+  const pendingRestPresetRef = useRef<{ key: string; seconds: number } | null>(null);
+  const restPresetSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [restedRestSecByExerciseId, setRestedRestSecByExerciseId] = useState<Record<string, Record<number, number>>>({});
   const [swapExerciseId, setSwapExerciseId] = useState<string | null>(null);
   const [pendingExerciseDelete, setPendingExerciseDelete] = useState<{
@@ -210,7 +213,8 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
       : "running"
     : "ready";
   const restSheetPresetSec =
-    restSheetExercise == null
+    restSheetPresetOverride ??
+    (restSheetExercise == null
       ? state.restTimerDefaultSeconds
       : restDurationForExercise(
           restSheetExercise.name,
@@ -218,7 +222,7 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
           state.restTimerDefaultSeconds,
           state.restTimerSecondsByExerciseKey,
           exerciseNoteKey,
-        );
+        ));
 
   function updateSet(eid: string, idx: number, patch: Partial<{ w: number; r: number; done: boolean }>) {
     setState((s) => ({
@@ -316,11 +320,26 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
     });
   }
 
+  function flushRestPreset() {
+    if (restPresetSaveTimerRef.current) {
+      clearTimeout(restPresetSaveTimerRef.current);
+      restPresetSaveTimerRef.current = null;
+    }
+    const pending = pendingRestPresetRef.current;
+    if (!pending) return;
+    pendingRestPresetRef.current = null;
+    setState((s) => ({
+      ...s,
+      restTimerSecondsByExerciseKey: { ...s.restTimerSecondsByExerciseKey, [pending.key]: pending.seconds },
+    }));
+  }
+
   function openRestSheet(exerciseId: string) {
     if (restTimer?.exerciseId === exerciseId && restTimer.completed) {
       dismissCompletedRest();
       return;
     }
+    setRestSheetPresetOverride(null);
     setRestSheetExerciseId(exerciseId);
   }
 
@@ -415,10 +434,10 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
   function setRestPreset(exercise: WorkoutExercise, seconds: number) {
     const clamped = clampRestTimerSeconds(seconds);
     const key = exerciseNoteKey(exercise.name, exercise.label);
-    setState((s) => ({
-      ...s,
-      restTimerSecondsByExerciseKey: { ...s.restTimerSecondsByExerciseKey, [key]: clamped },
-    }));
+    setRestSheetPresetOverride(clamped);
+    pendingRestPresetRef.current = { key, seconds: clamped };
+    if (restPresetSaveTimerRef.current) clearTimeout(restPresetSaveTimerRef.current);
+    restPresetSaveTimerRef.current = setTimeout(flushRestPreset, 320);
     setRestTimer((current) => {
       if (!current || current.exerciseId !== exercise.id || current.completed) return current;
       if (current.paused) {
@@ -1104,7 +1123,11 @@ export function ScreenWorkout({ state, setState, onRoutineEditorOpenChange }: Sc
           paused={restSheetIsActive ? restTimer!.paused : false}
           pausedRemainingMs={restSheetIsActive ? restTimer!.pausedRemainingMs : undefined}
           selectedPresetSec={restSheetPresetSec}
-          onClose={() => setRestSheetExerciseId(null)}
+          onClose={() => {
+            flushRestPreset();
+            setRestSheetPresetOverride(null);
+            setRestSheetExerciseId(null);
+          }}
           onSelectPreset={(seconds) => setRestPreset(restSheetExercise, seconds)}
           onAdjustSeconds={adjustRestTimer}
           onTogglePause={toggleRestPause}
