@@ -135,7 +135,7 @@ See [`sprint-rn-2-auth-session-plan.md`](../_bmad-output/implementation-artifact
 
 **OAuth / Apple (RN-2-03+):** Rebuild the dev client after pulling auth changes (`expo-apple-authentication`, `expo-auth-session`). Apple Sign-In requires the Sign in with Apple capability — verify on a physical device or TestFlight if the simulator sheet fails. Google OAuth redirect URLs: [`docs/env-matrix.md`](env-matrix.md#oauth-redirect-uris-rn-2-03).
 
-**Apple Sign-In (RN-2-04):** Enabled in Supabase (`external.apple`, client ID `app.newyouai.mobile`) and Apple Developer (App ID capability). Rebuild the dev client after changing `app.config.ts` or native auth modules. Full Apple auth testing requires a physical device or TestFlight; simulator behavior varies.
+**Apple Sign-In (RN-2-04):** Enabled in Supabase (`external.apple`, client ID `app.newyouai.mobile`, **Skip nonce checks** on). Apple Developer App ID capability required. Rebuild the dev client after changing `app.config.ts` or native auth modules. Full Apple auth testing requires a physical device or TestFlight; simulator behavior varies.
 
 ### E2E simulator build (CI / RN-0-05)
 

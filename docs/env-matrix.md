@@ -101,7 +101,7 @@ supabase config push --yes
 3. Google Cloud Console OAuth client must list the Supabase callback URL (`https://ztedlrvvkcjxoomwavyd.supabase.co/auth/v1/callback`).
 4. Rebuild the dev client after changing `app.config.ts` scheme or Apple Sign-In capability.
 
-**Apple Sign-In (RN-2-04):** Enable **Apple** provider in Supabase dashboard. iOS builds need Sign in with Apple capability (`usesAppleSignIn: true` in `app.config.ts`). Full Apple auth testing may require TestFlight; simulator behavior varies.
+**Apple Sign-In (RN-2-04):** Enable **Apple** provider in Supabase dashboard with client ID `app.newyouai.mobile`. Turn on **Skip nonce checks** (GoTrue compares hex hashes while Apple ID tokens use base64url). After editing `supabase/config.toml`, run `supabase config push --yes`. iOS builds need Sign in with Apple capability (`usesAppleSignIn: true` in `app.config.ts`). Full Apple auth testing may require TestFlight; simulator behavior varies.
 
 ### Onboarding wizard (RN-4+)
 
