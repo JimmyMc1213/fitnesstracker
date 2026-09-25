@@ -10,10 +10,9 @@ One-time setup before public launch. Batch in a single ~2-hour session.
 
 ---
 
-## 1. Support email — support@newyouai.app
+## 1. Support email — jimmymccarthy1213@outlook.com
 
-- [ ] Choose provider: Google Workspace, Zoho Mail, or Cloudflare Email Routing → personal inbox
-- [ ] Add DNS records for newyouai.app domain
+- [x] Use personal Outlook (`jimmymccarthy1213@outlook.com`). Google Workspace for `newyouai.app` is cancelled.
 - [ ] Send a test email; confirm receipt
 - [ ] Add address in App Store Connect → App Information → Support URL / contact
 
@@ -86,4 +85,4 @@ A **stranger** (not friends/family) can:
 3. Complete onboarding + upload photo
 4. See blurred Future You on paywall
 5. Pay and see unblurred result + use full app
-6. Email support@newyouai.app if something breaks
+6. Email jimmymccarthy1213@outlook.com if something breaks

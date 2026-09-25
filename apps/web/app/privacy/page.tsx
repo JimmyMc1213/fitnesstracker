@@ -48,8 +48,8 @@ export default function PrivacyPage() {
             </li>
             <li>
               <strong>Privacy, legal, and support contact:</strong>{" "}
-              <a href="mailto:support@newyouai.app" className="font-bold text-gold">
-                support@newyouai.app
+              <a href="mailto:jimmymccarthy1213@outlook.com" className="font-bold text-gold">
+                jimmymccarthy1213@outlook.com
               </a>
               .
             </li>
@@ -250,8 +250,8 @@ export default function PrivacyPage() {
           </p>
           <p>
             To request deletion or ask questions about your data, email{" "}
-            <a href="mailto:support@newyouai.app" className="font-bold text-gold">
-              support@newyouai.app
+            <a href="mailto:jimmymccarthy1213@outlook.com" className="font-bold text-gold">
+              jimmymccarthy1213@outlook.com
             </a>
             .
           </p>
@@ -282,8 +282,8 @@ export default function PrivacyPage() {
           </ul>
           <p>
             To exercise any of these rights, contact{" "}
-            <a href="mailto:support@newyouai.app" className="font-bold text-gold">
-              support@newyouai.app
+            <a href="mailto:jimmymccarthy1213@outlook.com" className="font-bold text-gold">
+              jimmymccarthy1213@outlook.com
             </a>
             . We will verify your request and respond within the timeframes required by law. You may use
             an authorized agent where permitted.
@@ -325,8 +325,8 @@ export default function PrivacyPage() {
           <h2 className="mt-11 text-xl font-extrabold tracking-tight text-ink">15. Contact us</h2>
           <p>
             Questions, rights requests, or deletion requests:{" "}
-            <a href="mailto:support@newyouai.app" className="font-bold text-gold">
-              support@newyouai.app
+            <a href="mailto:jimmymccarthy1213@outlook.com" className="font-bold text-gold">
+              jimmymccarthy1213@outlook.com
             </a>
             .
           </p>

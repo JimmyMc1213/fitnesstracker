@@ -44,7 +44,7 @@ console.log("New You AI — launch infra probe\n");
 console.log("DNS newyouai.app");
 console.log("  MX:", (await dig("MX", "newyouai.app")).join(", "));
 console.log("  TXT:", (await dig("TXT", "newyouai.app")).slice(0, 3).join(", "));
-console.log("\nSupport email support@newyouai.app: configure MX or email routing if MX is empty.\n");
+console.log("\nSupport email: jimmymccarthy1213@outlook.com (personal inbox; no newyouai.app mailbox).\n");
 
 console.log("Social handles (HTTP status — verify logged-in that profile is yours):");
 for (const s of SOCIAL) {

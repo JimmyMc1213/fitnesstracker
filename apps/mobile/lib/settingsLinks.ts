@@ -5,7 +5,7 @@ import {
 
 export { FUTURE_YOU_PRIVACY_POLICY_URL as SETTINGS_PRIVACY_POLICY_URL, PAYWALL_TERMS_URL as SETTINGS_TERMS_URL };
 
-export const SETTINGS_SUPPORT_EMAIL = "support@newyouai.app";
+export const SETTINGS_SUPPORT_EMAIL = "jimmymccarthy1213@outlook.com";
 
 export const SETTINGS_INSTAGRAM_URL =
   String(process.env.EXPO_PUBLIC_INSTAGRAM_URL ?? "").trim() || "https://www.instagram.com/newyouai";

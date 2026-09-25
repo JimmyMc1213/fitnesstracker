@@ -94,7 +94,7 @@ export function Content() {
       </p>
       <p>
         <strong>What if I change my mind after uploading?</strong> Delete the image in the app or contact{" "}
-        <a href="mailto:support@newyouai.app">support@newyouai.app</a>. Account deletion removes
+        <a href="mailto:jimmymccarthy1213@outlook.com">jimmymccarthy1213@outlook.com</a>. Account deletion removes
         associated media.
       </p>
       <p>
@@ -103,7 +103,7 @@ export function Content() {
       </p>
       <p>
         Still have questions? Email{" "}
-        <a href="mailto:support@newyouai.app">support@newyouai.app</a> or visit our{" "}
+        <a href="mailto:jimmymccarthy1213@outlook.com">jimmymccarthy1213@outlook.com</a> or visit our{" "}
         <Link href="/support">Support page</Link>.
       </p>
     </>

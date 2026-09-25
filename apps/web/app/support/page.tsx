@@ -58,8 +58,8 @@ export default function SupportPage() {
             title="Email us"
             body="We answer within one business day."
             action={
-              <a href="mailto:hello@newyouai.app" className="mt-3 inline-block text-[14.5px] font-extrabold text-gold">
-                hello@newyouai.app
+              <a href="mailto:jimmymccarthy1213@outlook.com" className="mt-3 inline-block text-[14.5px] font-extrabold text-gold">
+                jimmymccarthy1213@outlook.com
               </a>
             }
             icon={

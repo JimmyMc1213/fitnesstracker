@@ -164,8 +164,8 @@ export default function TermsPage() {
           <p>
             These Terms are governed by the laws of the State of Arizona, United States, without regard to
             conflict-of-law rules. Before filing a formal claim, you agree to first contact us at{" "}
-            <a href="mailto:support@newyouai.app" className="font-bold text-gold">
-              support@newyouai.app
+            <a href="mailto:jimmymccarthy1213@outlook.com" className="font-bold text-gold">
+              jimmymccarthy1213@outlook.com
             </a>{" "}
             to seek an informal resolution. Any disputes not resolved informally will be subject to the
             exclusive jurisdiction of the state and federal courts located in Maricopa County, Arizona,
@@ -181,8 +181,8 @@ export default function TermsPage() {
 
           <h2 className="mt-11 text-xl font-extrabold tracking-tight text-ink">15. Contact</h2>
           <p>
-            <a href="mailto:support@newyouai.app" className="font-bold text-gold">
-              support@newyouai.app
+            <a href="mailto:jimmymccarthy1213@outlook.com" className="font-bold text-gold">
+              jimmymccarthy1213@outlook.com
             </a>
           </p>
 
