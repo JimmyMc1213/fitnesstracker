@@ -43,6 +43,6 @@ Deployed separately on Vercel (see [`vercel.md`](vercel.md)).
 
 ## Jimmy's dependencies
 
-None for TestFlight. Jimmy will route support email to `support@newyouai.app` until admin is enough for ops.
+None for TestFlight. Support email is `jimmymccarthy1213@outlook.com` until admin is enough for ops.
 
 Questions: Jimmy · Repo: `fitnesstracker/apps/admin/`

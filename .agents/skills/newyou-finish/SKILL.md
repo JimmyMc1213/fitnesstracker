@@ -26,7 +26,7 @@ Ship **New You AI** (`app.newyouai.mobile`) so a stranger can install, pay $14.9
 
 ## Done gate
 
-One uninterrupted stranger path: install → sign in → onboarding → blurred Future You → real purchase → unblur → use app → email support@newyouai.app.
+One uninterrupted stranger path: install → sign in → onboarding → blurred Future You → real purchase → unblur → use app → email jimmymccarthy1213@outlook.com.
 
 ---
 
@@ -49,7 +49,7 @@ Work **FTI-71 → FTI-88** in order. Mark each Done in Linear before starting th
 | **FTI-81** | Add iOS Privacy Manifest (`PrivacyInfo.xcprivacy`) | Agent (code) | No |
 | **FTI-82** | Tighten ATS — remove `NSAllowsArbitraryLoads` | Agent (code) | No |
 | **FTI-83** | Complete ASC metadata + review notes | User or agent via browser | App Store Connect |
-| **FTI-84** | Verify support@newyouai.app delivery + ASC contact | User or agent | Resend / email |
+| **FTI-84** | Verify jimmymccarthy1213@outlook.com delivery + ASC contact | User or agent | Outlook / email |
 | **FTI-85** | Fix overlay bleed bugs (FTI-60, FTI-61) | Agent (code) | No — optional pre-submit |
 | **FTI-86** | Add Manage subscription link in Settings | Agent (code) | No — optional |
 | **FTI-87** | Submit iOS app to App Store review | User or agent via browser | App Store Connect |

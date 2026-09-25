@@ -30,7 +30,7 @@ Both auto-renewable products are included with this submission:
 3. On paywall, confirm yearly billed amount is primary.  
 4. After subscribe (sandbox), open Nutrition / plan targets and open the Sources links.
 
-Support: support@newyouai.app
+Support: jimmymccarthy1213@outlook.com
 
 Thank you,  
 Jimmy McCarthy  

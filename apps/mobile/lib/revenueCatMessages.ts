@@ -13,7 +13,7 @@ export function isKnownProProductId(productId: string): boolean {
 }
 
 export const PAYWALL_ENTITLEMENT_NOT_GRANTED_MESSAGE =
-  "We couldn't confirm your subscription. Try Restore Purchases, or email support@newyouai.app if you were charged.";
+  "We couldn't confirm your subscription. Try Restore Purchases, or email jimmymccarthy1213@outlook.com if you were charged.";
 
 /** True when RevenueCat reports pro access via entitlement, active sub, or unexpired product. */
 export function customerInfoGrantsPro(
@@ -39,7 +39,7 @@ export const PAYWALL_STORE_UNAVAILABLE_MESSAGE =
   "Subscriptions aren't available right now. Make sure you're online and try again in a few minutes.";
 
 export const PAYWALL_STORE_SETUP_MESSAGE =
-  "We're finishing subscription setup. Please try again shortly or email support@newyouai.app.";
+  "We're finishing subscription setup. Please try again shortly or email jimmymccarthy1213@outlook.com.";
 
 /** Dev-only stub purchases when RevenueCat or the native module is unavailable. */
 export function isRevenueCatStubAllowed(): boolean {

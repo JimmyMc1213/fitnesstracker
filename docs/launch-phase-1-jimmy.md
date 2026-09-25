@@ -10,13 +10,12 @@ node scripts/check-launch-infra.mjs
 
 ---
 
-## 1. support@newyouai.app (30 min)
+## 1. jimmymccarthy1213@outlook.com (30 min)
 
-**Recommended:** [Cloudflare Email Routing](https://developers.cloudflare.com/email-routing/) (free) if `newyouai.app` DNS is on Cloudflare.
+Support contact is the personal Outlook inbox. Google Workspace for `newyouai.app` is cancelled, so do not create a Workspace mailbox.
 
-1. Cloudflare → Email → Routing → create `support@newyouai.app` → forward to your personal inbox
-2. Send test email from another account
-3. App Store Connect → app → App Information → add support URL/email
+1. Send a test email to `jimmymccarthy1213@outlook.com` from another account and confirm it arrives
+2. App Store Connect → app → App Information → set the support email to `jimmymccarthy1213@outlook.com`
 
 ---
 

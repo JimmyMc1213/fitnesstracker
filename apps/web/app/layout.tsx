@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex flex-wrap gap-4">
               <a href="/privacy">Privacy</a>
               <a href="/terms">Terms</a>
-              <a href="mailto:support@newyouai.app">support@newyouai.app</a>
+              <a href="mailto:jimmymccarthy1213@outlook.com">jimmymccarthy1213@outlook.com</a>
               <a href={SOCIAL.instagram} rel="noopener noreferrer" target="_blank">
                 Instagram
               </a>

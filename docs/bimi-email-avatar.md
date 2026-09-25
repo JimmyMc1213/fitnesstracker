@@ -40,7 +40,7 @@ For each record below:
 
 | Name | Value |
 |------|-------|
-| `_dmarc.mail` | `v=DMARC1; p=quarantine; pct=100; rua=mailto:support@newyouai.app` |
+| `_dmarc.mail` | `v=DMARC1; p=quarantine; pct=100; rua=mailto:jimmymccarthy1213@outlook.com` |
 
 After a few weeks of clean delivery, change to `p=reject`.
 
