@@ -1,6 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
+import { isSubscriptionRowEntitled } from "../_shared/subscriptions/entitlement.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -100,6 +102,32 @@ async function resolveAuthenticatedAdmin(req: Request): Promise<{
   return { userId: user.id, adminClient };
 }
 
+type SubscriptionOverrideRow = {
+  is_active?: boolean | null;
+  expires_at?: string | null;
+  product_id?: string | null;
+  store?: string | null;
+};
+
+/** Admin dashboard writes public.subscriptions. A missing table must not fail the sync. */
+async function readSubscriptionOverride(
+  adminClient: SupabaseClient,
+  userId: string,
+): Promise<SubscriptionOverrideRow | null> {
+  const { data, error } = await adminClient
+    .from("subscriptions")
+    .select("is_active, expires_at, product_id, store")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.warn("sync-pro-entitlement: subscriptions lookup skipped", error);
+    return null;
+  }
+
+  return data;
+}
+
 async function fetchRevenueCatSubscriber(
   userId: string,
   apiKey: string,
@@ -153,15 +181,20 @@ Deno.serve(async (req) => {
   }
 
   const pro = resolveProFromSubscriber(subscriber);
+  const override = await readSubscriptionOverride(auth.adminClient, auth.userId);
+  const nowMs = Date.now();
+  const overrideActive = isSubscriptionRowEntitled(override, nowMs);
+  const isActive = pro.isActive || overrideActive;
   const nowIso = new Date().toISOString();
   const { error } = await auth.adminClient.from("future_you_entitlements").upsert(
     {
       user_id: auth.userId,
       entitlement_id: PRO_ENTITLEMENT_ID,
-      is_active: pro.isActive,
-      product_id: pro.productId,
-      expires_at: pro.expiresAt,
-      last_event_type: "client_sync",
+      is_active: isActive,
+      product_id: pro.isActive ? pro.productId : overrideActive ? override?.product_id ?? null : null,
+      expires_at: pro.isActive ? pro.expiresAt : overrideActive ? override?.expires_at ?? null : null,
+      ...(overrideActive && !pro.isActive && override?.store ? { store: override.store } : {}),
+      last_event_type: pro.isActive ? "client_sync" : overrideActive ? "admin_override" : "client_sync",
       last_event_at: nowIso,
       updated_at: nowIso,
     },
@@ -175,9 +208,10 @@ Deno.serve(async (req) => {
 
   console.info("sync-pro-entitlement: updated", {
     userId: auth.userId,
-    isActive: pro.isActive,
-    expiresAt: pro.expiresAt,
+    isActive,
+    expiresAt: pro.isActive ? pro.expiresAt : override?.expires_at ?? null,
+    overrideActive,
   });
 
-  return jsonResponse(200, { isActive: pro.isActive });
+  return jsonResponse(200, { isActive });
 });

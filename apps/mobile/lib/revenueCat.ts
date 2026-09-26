@@ -308,6 +308,23 @@ export async function purchaseProSubscription(period: PaywallBillingPeriod): Pro
   }
 }
 
+/** True when this device's RevenueCat customer already has pro (including promotional grants). */
+export async function readRevenueCatProAccess(): Promise<boolean> {
+  if (!isRevenueCatConfigured() || purchasesModuleUnavailable) return false;
+
+  const Purchases = loadPurchasesModule()?.default;
+  if (!Purchases) return false;
+
+  try {
+    await configureRevenueCat();
+    if (!configured) return false;
+    const info = await Purchases.getCustomerInfo();
+    return hasProEntitlement(info);
+  } catch {
+    return false;
+  }
+}
+
 export async function restorePurchases(): Promise<PurchaseProResult> {
   if (!isRevenueCatConfigured() || purchasesModuleUnavailable) {
     return stubPurchaseResult();

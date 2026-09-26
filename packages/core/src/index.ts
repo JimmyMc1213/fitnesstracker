@@ -774,6 +774,11 @@ export {
 } from "./onboarding/progressGoal";
 export { defaultGoalWeightLbs } from "./settings/goalWeight";
 export {
+  grantsProAccess,
+  isSubscriptionRowEntitled,
+  type SubscriptionEntitlementRow,
+} from "./subscriptions/entitlement";
+export {
   applyGoalSettingsDraft,
   applyGoalSettingsPatch,
   clampGoalWeightLbs,

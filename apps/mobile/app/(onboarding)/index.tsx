@@ -1066,6 +1066,7 @@ export default function OnboardingWizardScreen() {
 
     return (
       <OnboardingPaywall
+        alreadyEntitled={subscriptionTier === "pro"}
         planSnapshot={planSnapshot}
         futureYou={futureYou}
         generationStatus={pollStatus}
