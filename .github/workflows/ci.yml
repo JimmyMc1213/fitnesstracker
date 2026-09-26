@@ -51,9 +51,12 @@ jobs:
         run: npx playwright install --with-deps chromium
         working-directory: apps/pwa
         env:
-          PLAYWRIGHT_BROWSERS_PATH: ../../.playwright-browsers
+          # Absolute so install and test share one directory. A relative path
+          # is resolved against npm INIT_CWD (the repo root for workspace
+          # scripts), which misses browsers installed from apps/pwa.
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
 
       - name: E2E tests
         run: npm run test:e2e --workspace=@newyouai/pwa
         env:
-          PLAYWRIGHT_BROWSERS_PATH: .playwright-browsers
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
