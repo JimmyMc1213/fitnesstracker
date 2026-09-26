@@ -7,7 +7,7 @@ import {
   saveSyncMeta,
   tryPush,
 } from "@newyouai/core";
-import type { OnboardingProfile } from "@newyouai/types";
+import type { OnboardingProfile, PersistedFitnessSlice } from "@newyouai/types";
 import * as FileSystem from "expo-file-system/legacy";
 
 import {
@@ -46,13 +46,15 @@ export async function prepareFutureYouUploadProfile(
   const client = createSupabaseSyncClient();
   if (!uid || !client) return;
 
-  const localSlice =
-    (await loadPersistedSlice(storageAdapter, FITNESS_LOCAL_STORAGE_KEY)) ?? {};
-  const existingProfile = localSlice.onboardingProfile;
+  const localSlice = await loadPersistedSlice<PersistedFitnessSlice>(
+    storageAdapter,
+    FITNESS_LOCAL_STORAGE_KEY,
+  );
+  const existingProfile = localSlice?.onboardingProfile;
 
   const age = ageFromDateOfBirth(dateOfBirth) ?? profile.age ?? existingProfile?.age ?? 0;
   const nextSlice = {
-    ...localSlice,
+    ...(localSlice ?? {}),
     onboardingProfile: {
       ...(existingProfile ?? {}),
       dateOfBirth,
@@ -62,7 +64,7 @@ export async function prepareFutureYouUploadProfile(
       gender: profile.gender ?? existingProfile?.gender,
       goal: profile.goal ?? existingProfile?.goal,
     },
-  };
+  } as PersistedFitnessSlice;
 
   let meta = await loadSyncMeta(storageAdapter);
   let slice = nextSlice;

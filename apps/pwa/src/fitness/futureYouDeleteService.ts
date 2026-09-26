@@ -11,6 +11,11 @@ function logDevDeleteFallback(): { removedObjects: number } {
   return { removedObjects: 0 };
 }
 
+/** Local dev without Supabase logs the delete. Unit tests still expect a rejection. */
+function allowUnsignedDevFallback(): boolean {
+  return import.meta.env.DEV && import.meta.env.MODE !== "test";
+}
+
 /**
  * Delete the user's Future You data. Pass `jobId` to remove a single kept preview; omit it to
  * permanently delete all Future You photos and generation jobs.
@@ -24,7 +29,7 @@ export async function deleteFutureYou(options?: {
   }
 
   if (!isSupabaseConfigured()) {
-    if (import.meta.env.DEV) {
+    if (allowUnsignedDevFallback()) {
       return logDevDeleteFallback();
     }
     throw new ApiFutureYouDeleteError("Sign in to delete NewYou.", "unavailable");
@@ -32,7 +37,7 @@ export async function deleteFutureYou(options?: {
 
   const sb = getSupabase();
   if (!sb) {
-    if (import.meta.env.DEV) {
+    if (allowUnsignedDevFallback()) {
       return logDevDeleteFallback();
     }
     throw new ApiFutureYouDeleteError("Sign in to delete NewYou.", "unavailable");
