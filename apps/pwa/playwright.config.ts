@@ -15,6 +15,11 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:4173",
     trace: "on-first-retry",
+    // Onboarding steps slide in with Framer Motion. Headless Chrome keeps that
+    // layer "unstable" long enough for Continue clicks to time out.
+    contextOptions: {
+      reducedMotion: "reduce",
+    },
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {

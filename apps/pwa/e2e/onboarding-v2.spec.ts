@@ -8,15 +8,16 @@ import {
   advanceToCalendarMaintain,
   advanceToPaywallFromPlanReady,
   clickContinue,
+  continueButton,
 } from "./helpers/onboarding";
 
 async function completeOnboardingFromCalendar(page: import("@playwright/test").Page) {
   await advanceFromCalendarToFuelTargets(page);
   await advanceFromFuelTargetsToPlanReady(page);
   await advanceToPaywallFromPlanReady(page);
-  await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await page.getByRole("button", { name: "Start My Journey" }).click();
-  await expect(page.getByText("Today's plan")).toBeVisible();
+  await page.getByRole("button", { name: "Start My Journey", exact: true }).click();
+  await page.locator(".onboarding-fy-success__cta").click();
+  await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible();
 }
 
 test.beforeEach(async ({ page }) => {
@@ -41,12 +42,16 @@ test("week calendar: 3-day minimum validation", async ({ page }) => {
   await page.goto("/");
   await advanceToCalendarMaintain(page);
 
-  const continueBtn = page.getByRole("button", { name: "Continue", exact: true });
+  const continueBtn = continueButton(page);
+  await expect(continueBtn).toBeDisabled();
+  await expect(page.getByText(/Pick 3–6 training days/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Pick for me" }).click();
+  await expect(page.getByText(/4 days selected/)).toBeVisible();
   await expect(continueBtn).toBeEnabled();
 
-  await page.getByRole("button", { name: "Wed, selected" }).click();
+  await page.getByRole("button", { name: "Tue, selected" }).click();
   await page.getByRole("button", { name: "Thu, selected" }).click();
-  await page.getByRole("button", { name: "Fri, selected" }).click();
   await expect(page.getByText(/2 days selected/)).toBeVisible();
   await expect(continueBtn).toBeDisabled();
 
