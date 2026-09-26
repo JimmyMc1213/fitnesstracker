@@ -9,12 +9,12 @@ test("Workout tab: start session → log set → finish → summary", async ({ p
   await page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "Workout" }).click();
   await expect(page.getByText("Start Workout")).toBeVisible();
 
-  await page.getByRole("button", { name: /E2E Upper strength/i }).click();
+  await page.getByRole("button", { name: /Mon E2E Upper strength/i }).click();
   await expect(page.getByRole("button", { name: "Start workout" })).toBeVisible();
   await page.getByRole("button", { name: "Start workout" }).click();
 
   await expect(page.getByRole("button", { name: "Finish workout" })).toBeVisible();
-  await expect(page.getByText(/Last session: 135x10/i)).toBeVisible();
+  await expect(page.getByText("135 lbs × 10").first()).toBeVisible();
   await page.getByRole("button", { name: "Done" }).first().click();
   await page.getByRole("button", { name: "Finish workout" }).click();
 

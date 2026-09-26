@@ -58,9 +58,10 @@ test("step 24: skip path completes paywall and lands on plan-only success", asyn
   await page.getByRole("button", { name: "Start My Journey", exact: true }).click();
   await expect(page.getByRole("heading", { name: "You're ready, Alex." })).toBeVisible();
   await expect(page.getByText("Your new chapter starts today.")).toBeVisible();
+  const successPlan = page.locator(".onboarding-fy-success-plan");
   await expect(page.getByText("Your plan", { exact: true })).toBeVisible();
-  await expect(page.getByText("2,100")).toBeVisible();
-  await expect(page.getByText("160", { exact: true })).toBeVisible();
+  await expect(successPlan.getByText("2,100")).toBeVisible();
+  await expect(successPlan.getByText("160", { exact: true })).toBeVisible();
   await expect(page.getByText("Mon · Upper strength")).toBeVisible();
   await expect(page.getByText("Wed · Lower strength")).toBeVisible();
   await expect(page.getByText("Your targets", { exact: true })).toBeVisible();
@@ -69,8 +70,8 @@ test("step 24: skip path completes paywall and lands on plan-only success", asyn
   await expect(page.locator(".onboarding-fy-success-plan")).toBeVisible();
   await expect(page.getByText("Welcome to NewYouAI")).toBeVisible();
   await expect(page.getByText("AI generated")).toHaveCount(0);
-  await page.getByRole("button", { name: "Start My Journey" }).click();
-  await expect(page.getByText("Today's plan")).toBeVisible();
+  await page.locator(".onboarding-fy-success__cta").click();
+  await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible();
 });
 
 test("step 21: photo path disables trial CTA until Future You is ready", async ({ page }) => {
@@ -92,7 +93,7 @@ test("step 21: photo path disables trial CTA until Future You is ready", async (
   await expect(page.getByRole("button", { name: "Preparing your Future You…" })).toBeDisabled();
 });
 
-test("step 21: photo path CTA reflects billing period when Future You is ready", async ({ page }) => {
+test("step 21: ready Future You keeps Continue on yearly and monthly", async ({ page }) => {
   await seedOnboardingDraft(
     page,
     makeOnboardingDraftAtStep(26, {
@@ -110,7 +111,8 @@ test("step 21: photo path CTA reflects billing period when Future You is ready",
   await expect(page.locator(".onboarding-paywall-future-you__preparing")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Continue", exact: true })).toBeEnabled();
   await page.getByRole("radio", { name: /Monthly/i }).click();
-  await expect(page.getByRole("button", { name: "Unlock Future You" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Continue", exact: true })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Unlock Future You" })).toHaveCount(0);
   await page.getByRole("radio", { name: /Yearly/i }).click();
   await expect(page.getByRole("button", { name: "Continue", exact: true })).toBeEnabled();
 });

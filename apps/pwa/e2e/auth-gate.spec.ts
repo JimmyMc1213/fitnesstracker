@@ -18,7 +18,13 @@ async function expectAuthWelcome(page: import("@playwright/test").Page) {
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 }
 
+const authDevServerConfigured = Boolean(process.env.E2E_DEV_URL);
+
 test.describe("auth gate (requires Supabase-configured dev server)", () => {
+  test.skip(
+    !authDevServerConfigured,
+    "Set E2E_DEV_URL to a Supabase-configured Vite dev server. CI only starts the preview build.",
+  );
   test.beforeEach(async ({ page }) => {
     await clearFitnessStorage(page);
     await clearSupabaseSession(page);

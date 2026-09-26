@@ -15,6 +15,11 @@ function logDevReportFallback(request: FutureYouReportRequest): { reportId: stri
   return { reportId: "dev-local" };
 }
 
+/** Local dev without Supabase logs the report. Unit tests still expect a rejection. */
+function allowUnsignedDevFallback(): boolean {
+  return import.meta.env.DEV && import.meta.env.MODE !== "test";
+}
+
 /** Submit a Future You quality report from onboarding success or Home. */
 export async function submitFutureYouReport(
   request: FutureYouReportRequest,
@@ -30,7 +35,7 @@ export async function submitFutureYouReport(
   }
 
   if (!isSupabaseConfigured()) {
-    if (import.meta.env.DEV) {
+    if (allowUnsignedDevFallback()) {
       return logDevReportFallback(payload);
     }
     throw new ApiFutureYouReportError("Sign in to send a report.", "unavailable");
@@ -38,7 +43,7 @@ export async function submitFutureYouReport(
 
   const sb = getSupabase();
   if (!sb) {
-    if (import.meta.env.DEV) {
+    if (allowUnsignedDevFallback()) {
       return logDevReportFallback(payload);
     }
     throw new ApiFutureYouReportError("Sign in to send a report.", "unavailable");

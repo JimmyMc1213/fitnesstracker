@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Linking, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Linking, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { DevSettings } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -11,6 +11,7 @@ import { OnboardingPaywallFutureYouHero } from "@/components/onboarding/Onboardi
 import { OnboardingPaywallPlanPicker } from "@/components/onboarding/OnboardingPaywallPlanPicker";
 import { OnboardingPaywallPlanSummary } from "@/components/onboarding/OnboardingPaywallPlanSummary";
 import { PressableScale } from "@/components/ui/PressableScale";
+import { useAuth } from "@/context/AuthContext";
 import { useOnboardingTheme } from "@/hooks/useOnboardingTheme";
 import { FUTURE_YOU_PRIVACY_POLICY_URL, PAYWALL_TERMS_URL } from "@/lib/futureYouLegal";
 import {
@@ -29,12 +30,35 @@ import { paywallHeroLayoutTier } from "@/lib/paywallHeroLayout";
 import { usePaywallOfferings } from "@/hooks/usePaywallOfferings";
 import { isPaywallStoreReady } from "@/lib/revenueCatMessages";
 import { purchaseProSubscription, restorePurchases } from "@/lib/revenueCat";
+import { readGrantedProAccess } from "@/lib/subscriptionAccess";
+import { isSupabaseConfigured } from "@/lib/supabaseClient";
+import { syncProEntitlementToServer } from "@/lib/syncProEntitlement";
 import {
   isOnboardingDevResetEnabled,
   seedPaywallFailedFutureYouState,
 } from "@/lib/onboardingDevTools";
 
+const ACCESS_CHECK_TIMEOUT_MS = 8_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(fallback), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      () => {
+        clearTimeout(timer);
+        resolve(fallback);
+      },
+    );
+  });
+}
+
 type Props = {
+  /** Local draft already says pro — skip the pay prompt without waiting on the network. */
+  alreadyEntitled?: boolean;
   onPurchaseStart: () => void;
   onPurchaseSuccess: (tier: "pro") => void;
   onPurchaseError: (error: string) => void;
@@ -48,6 +72,7 @@ type Props = {
 };
 
 export function OnboardingPaywall({
+  alreadyEntitled = false,
   onPurchaseStart,
   onPurchaseSuccess,
   onPurchaseError,
@@ -60,12 +85,59 @@ export function OnboardingPaywall({
   onReuploadFutureYou,
 }: Props) {
   const { colors, ob } = useOnboardingTheme();
+  const { session } = useAuth();
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
   const paywallOfferings = usePaywallOfferings();
   const [billingPeriod, setBillingPeriod] = useState<PaywallBillingPeriod>("yearly");
   const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkoutReady, setCheckoutReady] = useState(false);
+  const continuedRef = useRef(false);
+  const onPurchaseStartRef = useRef(onPurchaseStart);
+  const onPurchaseSuccessRef = useRef(onPurchaseSuccess);
+  onPurchaseStartRef.current = onPurchaseStart;
+  onPurchaseSuccessRef.current = onPurchaseSuccess;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    function continueAsPro() {
+      if (cancelled || continuedRef.current) return;
+      continuedRef.current = true;
+      void syncProEntitlementToServer();
+      onPurchaseStartRef.current();
+      onPurchaseSuccessRef.current("pro");
+    }
+
+    if (alreadyEntitled) {
+      continueAsPro();
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // Don't flash the pay CTA before we know whether an admin override applies.
+    if (isSupabaseConfigured() && !session?.user?.id) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    void (async () => {
+      const granted = await withTimeout(readGrantedProAccess(), ACCESS_CHECK_TIMEOUT_MS, false);
+      if (cancelled) return;
+      if (granted) {
+        continueAsPro();
+        return;
+      }
+      setCheckoutReady(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [alreadyEntitled, session?.user?.id]);
 
   const heroVisible = isFutureYouPaywallHeroVisible(futureYou, photoBlocked);
   const failedVisible = isFutureYouPaywallFailedVisible(futureYou, photoBlocked);
@@ -305,7 +377,23 @@ export function OnboardingPaywall({
             paddingTop: heroVisible || failedVisible ? 8 : 0,
           }}
         >
-          {checkoutFooter}
+          {checkoutReady ? (
+            checkoutFooter
+          ) : (
+            <View
+              testID="onboarding-paywall-access-check"
+              style={{
+                alignItems: "center",
+                gap: 12,
+                paddingBottom: Math.max(insets.bottom, 16),
+              }}
+            >
+              <ActivityIndicator color={ob.gold} />
+              <Text className="text-center text-sm" style={{ color: colors.textSecondary }}>
+                Checking your subscription…
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     </View>

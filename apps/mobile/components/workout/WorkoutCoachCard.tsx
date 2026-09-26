@@ -30,7 +30,11 @@ export function WorkoutCoachCard({
   const coachCard = coachCardColors(theme);
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultExpanded);
   const open = controlledExpanded ?? uncontrolledOpen;
-  const setOpen = onExpandedChange ?? setUncontrolledOpen;
+
+  function setOpen(next: boolean) {
+    if (onExpandedChange) onExpandedChange(next);
+    else setUncontrolledOpen(next);
+  }
 
   return (
     <View
@@ -39,7 +43,7 @@ export function WorkoutCoachCard({
     >
       <Pressable
         testID="workout-coach-card-toggle"
-        onPress={() => setOpen((v) => !v)}
+        onPress={() => setOpen(!open)}
         accessibilityRole="button"
         accessibilityLabel={open ? "Coach tips, tap to collapse" : "Coach tips, tap to expand"}
         className="flex-row items-center justify-between gap-3 px-4 py-3.5"

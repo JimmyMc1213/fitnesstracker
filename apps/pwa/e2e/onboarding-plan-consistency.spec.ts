@@ -54,11 +54,12 @@ test("step 20: edited macros on step 21 appear on plan ready", async ({ page }) 
   expect(planReady.protein).toBe("150");
 });
 
-test("paywall does not repeat plan summary after plan ready", async ({ page }) => {
+test("skip-path paywall shows the plan summary from plan ready", async ({ page }) => {
   await seedOnboardingDraft(page, makeOnboardingDraftAtStep(26));
   await page.goto("/");
   await advanceToPaywallFromPlanReady(page);
 
-  await expect(page.locator(".onboarding-paywall-plan-summary")).toHaveCount(0);
-  await expect(page.getByText("Daily fuel", { exact: true })).toHaveCount(0);
+  const summary = page.locator(".onboarding-paywall-plan-summary");
+  await expect(summary).toHaveCount(1);
+  await expect(summary.getByText("Daily fuel", { exact: true })).toBeVisible();
 });

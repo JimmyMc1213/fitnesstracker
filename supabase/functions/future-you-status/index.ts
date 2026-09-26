@@ -10,6 +10,7 @@ import {
   FUTURE_YOU_JOB_STALE_ERROR,
   isFutureYouJobStale,
 } from "../_shared/future-you/staleJob.ts";
+import { isSubscriptionRowEntitled } from "../_shared/subscriptions/entitlement.ts";
 import {
   badStatusResponse,
   buildFutureYouPollResponse,
@@ -67,8 +68,9 @@ function isStubAllowed(): boolean {
   return url.includes("localhost") || url.includes("127.0.0.1") || url.includes("kong");
 }
 
-/** Reads public.future_you_entitlements (RevenueCat webhook / sync-pro-entitlement). */
+/** Reads future_you_entitlements and the admin subscriptions override. */
 async function isFutureYouEntitled(userId: string, adminClient: SupabaseClient): Promise<boolean> {
+  const nowMs = Date.now();
   const { data, error } = await adminClient
     .from("future_you_entitlements")
     .select("is_active, expires_at")
@@ -78,9 +80,20 @@ async function isFutureYouEntitled(userId: string, adminClient: SupabaseClient):
 
   if (error) {
     console.error("future-you-status: entitlement lookup failed", error);
-  } else if (data?.is_active) {
-    const expiresAtMs = data.expires_at ? new Date(data.expires_at).getTime() : null;
-    if (expiresAtMs == null || expiresAtMs > Date.now()) return true;
+  } else if (isSubscriptionRowEntitled(data, nowMs)) {
+    return true;
+  }
+
+  const subscription = await adminClient
+    .from("subscriptions")
+    .select("is_active, expires_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (subscription.error) {
+    console.warn("future-you-status: subscriptions lookup skipped", subscription.error);
+  } else if (isSubscriptionRowEntitled(subscription.data, nowMs)) {
+    return true;
   }
 
   if (isStubAllowed()) {
